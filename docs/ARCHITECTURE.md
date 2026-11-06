@@ -79,3 +79,30 @@ Das System nimmt keine echten Gelder an, erstellt keine Wallets, sendet keine si
 ## Schnittstellen/Verträge
 
 Siehe [AGENT_PROTOCOL.md](AGENT_PROTOCOL.md). Für die aktuelle lokale API: `GET /api/health`, `GET /api/state`, `POST /api/command`. Erst eine sicherheitsgeprüfte externe Integrationsschicht darf die Agentensignale zum lokalen Controller transportieren.
+
+## Zielerweiterung: Fünf kooperierende Review-Agenten mit gemeinsamem Belegspeicher (06.11.2026)
+
+Referenz: [STRATEGY_5_AGENT_BIG_MOVES.md](STRATEGY_5_AGENT_BIG_MOVES.md). Die bestehende 1..N-Registry bleibt; die erste verbindliche Forschungskonfiguration hat fünf Rollen:
+
+```text
+read-only markets + news/social feeds -> persistent time-stamped evidence store
+                                  |
+     [A1 NEWS/LAUNCH] [A2 SOCIAL] [A3 ONCHAIN/LIQUIDITY]
+                 [A4 CONTRACT/SCAM] [A5 QA/OPPORTUNITY]
+                                  |
+                evidence, counterevidence, agent_vote.v1
+                                  |
+             dedupe + provenance + 5/5 fresh reviews + TTL
+                                  |
+              independent HARD risk/sellability/quote VETO
+                                  |
+                  position sizing: 0 or min..max TEST-USDC
+                                  |
+                   PAPER BUY + portfolio / long HOLD
+                                  |
+         adaptive exit engine always monitors active positions
+```
+
+No direct Dot-to-local communication, signed events, persistent shared discussion or five-agent consensus currently exists. Hourly ChatGPT Dots are **research**, not low-latency trade engines; implementation is a Codex task. Confirm by synthetic local tests before any connectivity claim. The existing +15% AUTO trigger in `runner/core.mjs` is *legacy*, NOT a feature-complete adaptive exit.
+
+Beware correlated sources, hindsight bias in multi-day social acceleration, stale data, slippage, whale/LP attacks, non-executable exits, browser closure, Windows sleep and crashes. `Bot AUS` must not cancel active exit monitoring. PAPER-only throughout.
