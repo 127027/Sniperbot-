@@ -84,4 +84,35 @@ In der ersten Iteration **lokale** Queue plus Persistenz testen, statt einen Cha
 5. Ein unabhängiger Risk Controller prüft Contract-Sicherheit, Pool-Tiefe, Verkaufbarkeit, Wallet-Konzentration, verfügbare virtuelle Mittel und Portfolio-/Chain-Limits **erneut**. Nur so können bei Bot AN Paper-Käufe entstehen.
 6. Für jeden späteren Kandidaten gilt der gleiche Prozess. Offene Positionen werden unabhängig von neuen Rechercheentscheidungen weiter überwacht; Bot AUS verhindert nur neue Käufe.
 
-**Authentifizierung:** keine öffentlich erreichbare Localhost-Order-API und keine privaten Schlüssel in Events. Eine Queue- oder Dot-Brücke darf auf Windows nicht ohne gesonderte technische Validierung im Netz erreichbar sein. Vor der Live-Phase zusätzliche rechtliche, technische und finanzielle Sicherheitsabnahme. 
+**Authentifizierung:** keine öffentlich erreichbare Localhost-Order-API und keine privaten Schlüssel in Events. Eine Queue- oder Dot-Brücke darf auf Windows nicht ohne gesonderte technische Validierung im Netz erreichbar sein. Vor der Live-Phase zusätzliche rechtliche, technische und finanzielle Sicherheitsabnahme.
+
+## Fünf-Rollen-Review und Abstimmungsvertrag – Zielversion v1 (2026-11-06)
+
+Zusätzliche verbindliche Strategie: [STRATEGY_5_AGENT_BIG_MOVES.md](STRATEGY_5_AGENT_BIG_MOVES.md). **Nicht implementiert.** Der koordinierende Review-Prozess basiert auf genau fünf anfänglich erforderlichen Fachrollen und weiterhin auf einer skalierbaren Registry von 1..N Agenten.
+
+Pflichtrollen: `news_discovery`, `social_acceleration`, `onchain_liquidity`, `contract_security`, `opportunity_qa`.
+
+Vor dem finalen Vorschlag wird jedes Signal zu `chain + token_address + pool_address` zusammengeführt und jeder Agent muss dieselbe Candidate-ID, den Zeitbereich, überprüfbare Quellen und Gegenargumente kennen. Die Verbindung läuft künftig über einen authentifizierten, **persistenten** Message-Bus und einen gemeinsamen Evidenzspeicher, nicht durch Chatnachrichten an den Bot.
+
+Schemaentwurf `agent_vote.v1` (exemplarisch, nicht ausgeführt):
+
+```json
+{
+  "schema": "agent_vote.v1",
+  "candidate_id": "solana:mint:pool",
+  "agent_id": "independent-agent-04",
+  "role": "contract_security",
+  "vote": "ABSTAIN",
+  "observed_at_utc": "2026-11-06T16:00:00Z",
+  "expires_at_utc": "2026-11-06T16:05:00Z",
+  "evidence_ids": [],
+  "counterevidence_ids": [],
+  "risk_flags": ["SELLABILITY_UNKNOWN"],
+  "reason": "Insufficient independent verified pool evidence",
+  "paper_only": true
+}
+```
+
+Entscheidung: **5/5 frische YES-Votes** aus fünf verschiedenen Pflichtrollen plus unabhängige positive Contract-/LP-/Sellability- und Portfolio-/Quote-Gates, Bot AN, ausreichend freie Mittel => erst dann `paper_trade_proposal.v1`. `ABSTAIN`, `NO`, `VETO`, unvollständige Stimmen, Duplikate, korrelierte Belege oder abgelaufene Daten => `WATCH/REJECT`. Der lokale Controller prüft alles selbst, führt nie einen direkten Agenten-Kaufbefehl aus und entscheidet über `0` oder einen zulässigen Min-Max-Betrag. Keine Signatur-/Walletrechte für Forschungsagenten.
+
+Der Exit-Manager verarbeitet bestehende Positionen und aktivierte Regeln unabhängig von diesem Konsens und von Bot AUS. Kein garantierter Exit bei fehlender verkäuflicher Quote oder ausgeschaltetem Laptop.
