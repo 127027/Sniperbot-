@@ -16,7 +16,7 @@ assert.equal(action(t,{type:'BUY',id:c.id,amount:50}),t,'Range stops 50');
 assert.equal(action(t,{type:'BUY',id:c.id,amount:250}),t,'Balance stops 250');
 let auto=freshState();auto=action(auto,{type:'DEPOSIT',eur:50});auto=action(auto,{type:'TOGGLE_BOT'});auto=action(auto,{type:'SET_AUTO',enabled:true});
 auto=updateCandidates(auto,[{...c,id:'solana:fake',isDemo:false,score:90,paperEligible:true}]);
-auto=autoBuyCandidate(auto);assert.equal(auto.positions.length,1,'Paper auto buy only with fresh qualifying signal');
+auto=autoBuyCandidate(auto);assert.equal(auto.positions.length,0,'Heuristic scores cannot bypass research gate');
 assert(validTokenAddress('solana','So11111111111111111111111111111111111111112'));
 assert(validTokenAddress('base','0x1111111111111111111111111111111111111111'));
 assert(!validTokenAddress('base','http://evil.example')); 

@@ -1,3 +1,28 @@
+# Implementierungsstand V0.4 – lokaler Forschungs-Gateway
+
+Neu: authentifizierte rollengetrennte Research-API, persistente Belege/Stimmen/Gegenargumente,
+5/5-Prüfung und separate synthetische Risikoprüfung, idempotente Paper-Käufe,
+mehrere Positionen mit Kapitalgrenzen und Demo-Trailing ohne feste Gewinnkappung.
+Der Scanner entdeckt weiterhin neue Pools; es gibt keine feste Liste von 20 Coins.
+
+**Echte Dots sind noch nicht verbunden.** Externe Research-Nachrichten können lokal
+angenommen werden, lösen aber ohne implementierte unabhängige On-Chain-/Sell-Adapter
+keine automatischen Käufe aus. Der vollständige Auto-Ablauf ist mit erfundenen
+Testcoins geprüft. Heuristischer Scanner-Autokauf ist abgeschaltet.
+
+Windows-Daten liegen standardmäßig unter `%LOCALAPPDATA%/MemeSniperPaper`, außerhalb
+von OneDrive. Bestehende `.local/paper-state-v03.json` wird einmalig kopiert und als
+Migrationsbackup erhalten. `SNIPER_DATA_DIR` überschreibt den Speicherort.
+Beschädigte Daten stoppen den Start, statt das Portfolio zurückzusetzen.
+
+Anleitung, Schnittstellen, Dot-Anbindung und Grenzen: [GATEWAY_V04.md](docs/GATEWAY_V04.md).
+Tests: `node runner/test.mjs` und `node --test runner/*.test.mjs`.
+
+Die nachfolgende V0.3-Dokumentation beschreibt den historischen Ausgangsstand;
+bei Widersprüchen gilt der oben verlinkte V0.4-Implementierungsstand.
+
+---
+
 # Meme Sniper AI – Lokal, minimalistisch, Windows
 
 **Version 0.3 + Codex-Handoff (06.11.2026) – ausschließlich TEST-/PAPER-TRADING; keine echten Einzahlungen, Auszahlungen, Kryptowährungskäufe oder Wallet-Zugriffe.**

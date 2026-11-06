@@ -1,3 +1,17 @@
+# Stand V0.4
+
+Lokaler Gateway, synthetische Fünf-Rollen-Tests, Mehrfachpositionen, begrenzter
+Kapitaleinsatz, Demo-Trailing, Neustart und Fehlerabbruch bei beschädigtem State
+sind implementiert. Details und verbleibende Grenzen: [GATEWAY_V04.md](GATEWAY_V04.md).
+Echte Dot-Zustellung, unabhängige reale Contract-/Sell-Prüfungen und eine validierte
+adaptive Marktstrategie bleiben offen. Trailing ist nur für synthetische Coins
+ausführbar. Der Research-JSON-Speicher wächst; Archivierung/Indexierung ist noch
+kein skalierbarer 24/7-Datenbankdienst. Registry-Erweiterung erfolgt lokal mit Neustart.
+
+Die folgende Liste dokumentiert V0.3 vor diesem Implementierungsschritt.
+
+---
+
 # Bekannte Probleme und Einschränkungen (ehrliche Ist-Liste)
 
 1. **Kein echter KI-Sniper:** V0.3 hat heuristisches Scoring, keine ChatGPT-Dot-Integration, keinen Agenten-Controller und kein Modell für verlässlich profitable Memecoins. Ein Demo-Signal wird künstlich erzeugt.
