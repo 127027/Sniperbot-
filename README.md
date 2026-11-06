@@ -68,9 +68,9 @@ Das offizielle Repository ist **[127027/Sniperbot-](https://github.com/127027/Sn
 
 ## Designvorschau
 
-![Paper Dashboard Desktop](docs/assets/dashboard-desktop.png)
+Die Desktop- und Smartphone-Vorschau ist im ursprünglichen Windows-Übergabepaket vorhanden; die beiden Bilddateien sind noch **nicht** in diesem Repository eingecheckt. Für den tatsächlichen Programmstand gilt der Quellcode unter `runner/`.
 
-![Paper Dashboard Smartphone](docs/assets/dashboard-mobile.png)
+Codex kann die visuellen Akzeptanztests auf Windows wiederholen und dabei aktuelle Screenshots erzeugen.
 
 Die Bilder zeigen einen Testzustand. Sie beweisen keine aktuelle Kurs-/KI-/Transaktionsanbindung.
 
