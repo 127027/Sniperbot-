@@ -18,3 +18,12 @@
 16. **Signal-Disziplin:** Der aktuelle Paper-Autokauf darf für Forschung die heuristischen Scores nutzen, obwohl keine Contract-Sicherheitsprüfung besteht. Das ist in keiner Weise eine Zulassung für Echtgeldhandel; bei späterer Live-Integration muss die Architektur standardmäßig fail-closed sein.
 
 Kein Punkt dieser Liste darf im UI/README oder GitHub als „bereits gelöst“ bezeichnet werden, solange keine unabhängigen Tests vorliegen.
+
+## Zusätzliche Lücken nach Strategiefreigabe 06.11.2026
+
+17. **Legacy +15 % Take Profit:** `runner/core.mjs` setzt `takeProfit:15`, `AUTO` schließt eine Position bei +15 %, sofern diese Regel gewählt ist. Das widerspricht dem gewünschten High-Upside-Sniper als Standard-Exit. **Nur dokumentiert, noch nicht behoben.** Codex soll eine adaptive, getestete Exit-Engine bauen und UI/Tests anpassen.
+18. **Fünf-Agenten-Konsens fehlt:** Der Bot hat derzeit weder fünf verbundene unabhängige Forschungsagenten noch einen gemeinsamen Belegspeicher, eine reale Dot-zu-Bot-Schnittstelle oder einen 5/5-Vote-Gate. Ziel als fünf logische Rollen, technisch weiter 1..N.
+19. **1000-USDC-Positionsgröße nicht risikoprüfbar:** Die aktuelle Betragslogik kennt noch kein belastbares Contract-/Sell-/Liquiditäts-/Portfolio-Risiko. Ein scheinbar überzeugender KI-Score darf nicht 1000 Test-USDC rechtfertigen.
+20. **Social-Hype-Frühdetektion fehlt:** Zeitreihen von einzigartigen Autoren, kanalübergreifender Beschleunigung, Bot-/Spam-Korrektur und unabhängiger On-Chain-Bestätigung sind nicht implementiert. Ein zeitlich korrekter Frühindikator ist noch nicht nachgewiesen.
+
+Neue Produktspezifikation: [STRATEGY_5_AGENT_BIG_MOVES.md](STRATEGY_5_AGENT_BIG_MOVES.md). Bis zu separater Codex-Implementierung und Abnahme sind das **offene TODOs**, keine Features.
