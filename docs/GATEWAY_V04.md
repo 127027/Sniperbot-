@@ -17,11 +17,17 @@
 - Gemeinsames Lesen über GET ermöglicht den Austausch vor der nächsten Stimme.
 - Synthetische End-to-End-Demo: fünf simulierte Rollen → separate Risiko-Fixture →
   Paper-Kauf → Portfolio → HOLD oder Demo-Trailing → Test-USDC. Eine Ablehnung kauft nicht.
-- Positionsgröße = Minimum aus Nutzermaximum, freiem Guthaben, freiem
-  Gesamteinsatzbudget, Positionskappe und geprüftem Risikobetrag; unter Nutzerminimum
-  kein Kauf. Demo-Risiko-Fixture ist bewusst auf 50 Test-USDC begrenzt.
-- Mehrere Positionen, standardmäßig höchstens fünf; Einstellungen bis 20 offene
-  Positionen sind Kapitalgrenzen, **keine Grenze für neue Coin-Recherche**.
+- Min/Max gelten pro neuem Coin-Kauf. Bei 50–50 genau 50, bei 200–200 genau 200.
+  Bei 50–200 ist ein bewertungsabhängiger Betrag zwischen 50 und 200 möglich.
+  Keine zusätzliche Anzahl-, Gesamteinsatz- oder Positionskappe. Freies Guthaben
+  und unabhängige technische Verkaufsgrenzen bleiben wirksam. Reicht der mögliche
+  Betrag nicht für das Minimum, erfolgt kein Kauf.
+- Optionale Rollenbewertung `score_0_100`: vorläufige, nicht validierte Paper-Regel:
+  niedrigster Score aller Pflichtrollen; Anteil = min(1, Score/95);
+  Zielbetrag = Min + (Max−Min) × Anteil. Fehlende Scores wählen Min. Ab 95 Punkten
+  ist Max möglich, etwa 1000 bei 100–1000. Der Score ist keine Gewinnwahrscheinlichkeit.
+  Demo-Fixtures verwenden 95 und eine synthetische Verkaufsgrenze von 100000;
+  sie belegen nur die Betragsmechanik, nicht eine echte Marktchance.
 - TRAILING: verfolgt Höchstkurs, schließt bei eingestelltem Rückgang oder Stop-Loss,
   ohne festen Gewinn-Take-Profit. Nur synthetische Quotes erlauben diesen neuen
   automatischen Exit. HOLD bleibt unverändert; alte AUTO-Regel heißt LEGACY.
@@ -84,7 +90,7 @@ sich in `runner/gateway.test.mjs` und `runner/research.test.mjs`.
 |---|---|
 | `candidate.v1` | `chain`, `token_address`, `pool_address`, `symbol` |
 | `evidence.v1` | `evidence_id`, `url` (HTTPS), `independence_key`, `summary` |
-| `agent_vote.v1` | `role`, `vote` (YES/NO/ABSTAIN/VETO), `reason`, `evidence_ids`, `counterevidence_ids`, `risk_flags` |
+| `agent_vote.v1` | `role`, `vote` (YES/NO/ABSTAIN/VETO), `reason`, `evidence_ids`, `counterevidence_ids`, `risk_flags`; optional `score_0_100` |
 | `risk_assessment.v1` | `contract`, `liquidity`, `sellability` (PASS/FAIL/UNKNOWN), `max_amount_usdc`, `reason`; nur Risiko-Identität |
 
 Erst Kandidat, dann Belege, dann Stimmen. Evidenz-IDs sind unveränderlich; neue

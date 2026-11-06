@@ -2,8 +2,9 @@
 
 Neu: authentifizierte rollengetrennte Research-API, persistente Belege/Stimmen/Gegenargumente,
 5/5-Prüfung und separate synthetische Risikoprüfung, idempotente Paper-Käufe,
-mehrere Positionen mit Kapitalgrenzen und Demo-Trailing ohne feste Gewinnkappung.
+mehrere Positionen mit Min/Max-Einsatz je Coin und Demo-Trailing ohne feste Gewinnkappung.
 Der Scanner entdeckt weiterhin neue Pools; es gibt keine feste Liste von 20 Coins.
+Min/Max gilt je Kauf; keine zusätzliche Positionsanzahl- oder Gesamteinsatzgrenze.
 
 **Echte Dots sind noch nicht verbunden.** Externe Research-Nachrichten können lokal
 angenommen werden, lösen aber ohne implementierte unabhängige On-Chain-/Sell-Adapter

@@ -26,7 +26,9 @@ export function storage(root){
   validate(JSON.parse(readFileSync(legacy,'utf8')));copyFileSync(legacy,file);copyFileSync(legacy,path.join(dir,'migration-backup-v03.json'));
  }
  let state=existsSync(file)?validate(JSON.parse(readFileSync(file,'utf8'))):freshState();
- state={...freshState(),...state,maxPositions:state.research?state.maxPositions:5,research:state.research||emptyResearch()};
+ state={...freshState(),...state,research:state.research||emptyResearch()};
+ // Retired portfolio caps must not silently survive migration.
+ for(const key of ['maxPositions','maxExposure','perPositionCap'])delete state[key];
  const credentialsFile=path.join(dir,'gateway-credentials.json');
  let credentials;
  if(existsSync(credentialsFile))credentials=JSON.parse(readFileSync(credentialsFile,'utf8'));

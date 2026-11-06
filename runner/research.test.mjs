@@ -1,9 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {freshState,action,applyExits,autoBuyCandidate} from './core.mjs';
-import {ROLES,simulate,evaluate,assess,ingest,identity} from './research.mjs';
+import {ROLES,simulate,evaluate,assess,ingest,identity,positionSize} from './research.mjs';
 const funded=()=>({...freshState(),cashUsdc:200,entriesEnabled:true,automaticPaperBuys:true});
 const pending=()=>simulate({...funded(),entriesEnabled:false});
+test('per-coin fixed amount: 200 means 200, including sixth position and >1000 total',()=>{
+ let s={...funded(),cashUsdc:1400,minTrade:200,maxTrade:200,maxPositions:5,maxExposure:1000,perPositionCap:50};
+ for(let i=0;i<7;i++)s=simulate(s);
+ assert.equal(s.positions.length,7);assert(s.positions.every(p=>p.amountUsdc===200));assert.equal(s.cashUsdc,0);
+ s=simulate(s);assert.equal(s.positions.length,7);
+});
+test('95-point agreement can allocate 1000 to one coin within 100–1000',()=>{
+ const s=simulate({...funded(),cashUsdc:1200,minTrade:100,maxTrade:1000});
+ assert.equal(s.positions[0].amountUsdc,1000);assert.equal(s.cashUsdc,200);
+});
+test('allocation varies by rating; missing scores use minimum, cash and sell limits still apply',()=>{
+ const base={...funded(),cashUsdc:5000,minTrade:50,maxTrade:200};
+ const amounts=[0,30,60,95].map(score=>simulate(base,false,score).positions[0].amountUsdc);
+ assert.equal(amounts[0],50);assert.equal(amounts[3],200);assert(amounts[0]<amounts[1]&&amounts[1]<amounts[2]&&amounts[2]<amounts[3]);
+ let s=simulate({...base,entriesEnabled:false}),c=s.research.candidates[0];
+ c.votes.forEach(v=>delete v.score_0_100);assert.equal(positionSize(s,c),50);
+ c.votes.forEach(v=>v.score_0_100=95);s.cashUsdc=120;assert.equal(positionSize(s,c),120);
+ c.risk.max_amount_usdc=75;assert.equal(positionSize(s,c),75);
+ s.minTrade=200;s.maxTrade=200;assert.equal(positionSize(s,c),0,'fixed 200 never silently buys 75');
+});
 test('five simulated roles + independent fixture buy 50 once; multiple new coins',()=>{
  let s=simulate(funded());assert.equal(s.positions.length,1);assert.equal(s.positions[0].amountUsdc,50);assert.equal(s.cashUsdc,150);
  s=evaluate(s);assert.equal(s.positions.length,1);s=simulate(s);assert.equal(s.positions.length,2);assert.equal(s.cashUsdc,100);
@@ -29,9 +49,6 @@ test('bot OFF and AUTO off block; limited budget cannot overspend',()=>{
  assert.equal(simulate({...funded(),entriesEnabled:false}).positions.length,0);
  assert.equal(simulate({...funded(),automaticPaperBuys:false}).positions.length,0);
  assert.equal(simulate({...funded(),cashUsdc:49}).positions.length,0);
- assert.equal(simulate({...funded(),maxExposure:49}).positions.length,0);
- assert.equal(simulate({...funded(),perPositionCap:49}).positions.length,0);
- let s=simulate({...funded(),maxPositions:1});s=simulate(s);assert.equal(s.positions.length,1);
 });
 test('trailing holds above +15%, persists high water and exits while bot OFF',()=>{
  let s=simulate({...funded(),defaultExitMode:'TRAILING'});s.entriesEnabled=false;

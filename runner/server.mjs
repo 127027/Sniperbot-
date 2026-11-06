@@ -57,7 +57,7 @@ const server=createServer(async(req,res)=>{
  if(!req.headers['content-type']?.startsWith('application/json'))return error(res,415,'JSON erforderlich');
  let raw='';try{for await(const chunk of req){raw+=chunk;if(raw.length>6000)throw Error('Anfrage zu groß')}}catch{return error(res,413,'Anfrage zu groß')}
  let a;try{a=JSON.parse(raw)}catch{return error(res,400,'Ungültiges JSON')}
- const allowed=new Set(['SIMULATE_AGENTS','SET_LIMITS','TOGGLE_BOT','SET_AUTO','SET_RANGE','SET_EXITS','DEPOSIT','WITHDRAW','EXCHANGE','EXCHANGE_BACK','BUY','SELL','RESET','SCAN','DEMO_SIGNAL','LOOKUP','DEMO_MOVE']);
+ const allowed=new Set(['SIMULATE_AGENTS','TOGGLE_BOT','SET_AUTO','SET_RANGE','SET_EXITS','DEPOSIT','WITHDRAW','EXCHANGE','EXCHANGE_BACK','BUY','SELL','RESET','SCAN','DEMO_SIGNAL','LOOKUP','DEMO_MOVE']);
  if(!allowed.has(a?.type))return error(res,400,'Aktion nicht zulässig');
  if(a.type==='SIMULATE_AGENTS'){try{commit(simulate(state,a.negative===true));return reply(res,200,{ok:true,state})}catch(e){return error(res,422,e.message)}}
  if(a.type==='SCAN'){void scan();return reply(res,202,{ok:true,message:'Marktdatenabfrage gestartet'})}
