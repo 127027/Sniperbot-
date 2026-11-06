@@ -75,4 +75,16 @@ Die existierenden ChatGPT-Automationen laufen **nicht** automatisch in der lokal
 - **Mehrere Coin-Positionen, unterschiedliche Investitionen:** bei jedem neuen potenziellen Coin unabhängige Prüfung und Budgetierung, kein mehrfacher blinder Kauf. Anlage z. B. 50–50 oder 200–400 Test-USDC, wählbar, niemals über verfügbares Cash und Exposure hinaus.
 - **Strategie:** Coins dürfen lange gehalten werden, Positionsüberwachung und Exit-Engine müssen auch ohne Browser und bei Bot AUS laufen; bei Serverabschaltung/Windows-Ruhezustand gibt es keine Überwachung. Schutz durch persistente Daten, Watchdog und Recovery entwickeln.
 - **Rendite:** 50 EUR auf 5000 EUR in einem Monat ist ein theoretisches Ausnahmeszenario, kein Leistungsziel oder Garantie. Exit wird durch überprüfte Verkaufbarkeit, Risiko, Marktdaten und implementierte Regeln bestimmt, nicht durch fixe Gewinnannahme.
-- **Fiat/Paypal/Wallet:** echte Ein- und Auszahlungen sind NICHT IMPLEMENTIERT; Test-EUR dürfen nicht wie echte Euro angezeigt oder behandelt werden. 
+- **Fiat/Paypal/Wallet:** echte Ein- und Auszahlungen sind NICHT IMPLEMENTIERT; Test-EUR dürfen nicht wie echte Euro angezeigt oder behandelt werden.
+
+## Verbindliche Strategiepräzisierung 06.11.2026
+
+Vollständige Spezifikation: [STRATEGY_5_AGENT_BIG_MOVES.md](STRATEGY_5_AGENT_BIG_MOVES.md).
+
+Der Produktfokus ist nicht +10/+15 % je Trade, sondern das **frühzeitige** Finden seltener Kandidaten mit außergewöhnlichem Aufwärtspotenzial und das kontrollierte Begleiten einer mehrtägigen/mehrwöchigen Aufwärtsbewegung. Extremgewinne sind hypothetisch; Totalverlust und fehlgeschlagener Verkauf müssen gleichermaßen modelliert werden.
+
+Die erste Teamkonfiguration enthält **fünf verpflichtende logische Rollen** (News/Discovery, Social Acceleration, On-Chain/Liquidity, Contract/Scam Risk, unabhängige Opportunity/QA). Skaliere weiter auf 1..N. Alle fünf liefern pro Kandidat eine deduplizierte, aktuelle Begründung, echte unabhängige Belege und `YES/NO/ABSTAIN/VETO`; vorläufig 5/5 YES als erforderliches, aber **nicht hinreichendes** Gate für einen autonomen PAPER-Einstieg. Contract-/Liquidity-/Sellability-Gates und Portfolio-Risikobudgets bleiben unabhängig zwingend. Technische Verbindung noch nicht implementiert.
+
+Eine einzelne Positionsgröße darf **0** oder, bei bestandenem Gate, einen Betrag innerhalb der eingestellten Grenzen (z. B. 50–1000 TEST-USDC) betragen. Große Beträge dürfen nie allein auf einer behaupteten KI-Sicherheit beruhen. Mehrfachpositionen und langes Halten sind Zielzustand. **+15 % AUTO Take-Profit ist V0.3-Altverhalten, nicht gewünschte Default-Strategie.** Adaptive regelgebundene Exits müssen testbar Gewinne laufen lassen und Risiken begrenzen; keine Gewinne ohne ausführbare Sell-Quote buchen. Bot AUS unterbindet Käufe, die Überwachung offener Positionen läuft weiter.
+
+Keine Änderung am realen Paper-Runner durch reine Dokumentationsarbeit behaupten. Keine Echtgeldfreigabe, keine Hixton-Änderungen.
