@@ -1,0 +1,17 @@
+name: Paper-Runner Tests
+on:
+  push:
+  pull_request:
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check runner/server.mjs
+      - run: node --check runner/core.mjs
+      - run: node --check runner/market.mjs
+      - run: node runner/test.mjs
+      - run: node --test runner/integration.test.mjs

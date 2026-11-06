@@ -1,0 +1,20 @@
+# Bekannte Probleme und Einschränkungen (ehrliche Ist-Liste)
+
+1. **Kein echter KI-Sniper:** V0.3 hat heuristisches Scoring, keine ChatGPT-Dot-Integration, keinen Agenten-Controller und kein Modell für verlässlich profitable Memecoins. Ein Demo-Signal wird künstlich erzeugt.
+2. **Keine echte EUR- oder USDC-Transaktion:** 50 € Testguthaben und die 1:1-Konvertierung sind reine Simulation. Keine PayPal-/Bank-/Wallet-Funktion, keine Ein-/Auszahlung echten Geldes.
+3. **Keine echten Käufe/Verkäufe:** Preisindikationen von DEX Screener sind keine ausführbaren Swap-Quotes. Keine Wallet, Signaturen, MEV-/Slippage-/Latenz-/Liquiditätsausstiegs-Simulation im realistischen Maßstab.
+4. **Keine vollständige Contract-Sicherheit:** Mint-/Freeze-Authority, Token-2022-Extensions, Honeypot/Sell-Tax, LP-Owner, Insider-Wallet-Cluster und Rug-Pull-Risiken fehlen als verifizierte Gates.
+5. **Keine zuverlässige echte Sniping-Latenz:** Neue Pools per 90-s HTTP-Polling, offene Positionen ca. alle 30 s. API-Limits, Datenlücken, fehlerhafte Response-Felder und Latenz wurden nicht unabhängig in Livebetrieb verifiziert.
+6. **Nur eine Position gleichzeitig:** `maxPositions:1` in `runner/core.mjs`; die Nutzeranforderung mehrerer paralleler Käufe ist noch zu implementieren. Betragsschema `minTrade/maxTrade` ist vorbereitet.
+7. **Bot AN/AUS nicht gleich Exitmodus:** `HOLD` hält bis manueller Verkauf; nur `AUTO` erzwingt TP/SL auch bei Bot AUS. Die spätere KI-gesteuerte Exit-Entscheidung gibt es nicht.
+8. **Riskanter Positionswert:** Kurse basieren auf indikativen Preisen und können aus einem anderen Pool stammen. Das UI zeigt einen Kurs, nicht den bei Verkaufsorder tatsächlich erhältlichen Betrag. Mark-Quotes sind nicht atomar mit einem Fill.
+9. **Market-Scanner nur bedingt getestet:** Offline-Tests validieren Parser mit Fixtures; kein verlässlicher, dauerhafter echter Provider-Benchmark im aktuellen Paket. Öffentliche APIs können Rate Limits oder Antwortschemaänderungen haben.
+10. **Windows nicht vollständig Ende-zu-Ende auf Nutzer-PC getestet:** Runner-Unit- und lokale HTTP-Integrationstests bestehen in einer Linux-Testumgebung mit Node.js 22; Windows Defender, Firewall, browserseitige Besonderheiten und Laptop-Schlafmodus sind noch vor Ort zu prüfen.
+11. **Kein Windows-Service/Autostart:** Nach Windows-Neustart muss `Windows_Starten.bat` aktuell manuell gestartet werden. Schließen des Terminals beendet den Dienst; Sleep/Shutdown stoppt alle Ausstiege.
+12. **Einfaches Ledger:** JSON-Datei mit atomarem Replace statt revisionssicherem, event-sourced Journal; beschädigte Daten werden momentan im Server mit einem frischen Testzustand ersetzt. Für langfristigen Betrieb sind Backups, Integritätsprüfung und Fehlermeldung statt stillen Reset erforderlich.
+13. **FX-/Kapital-Einheit:** Virtuelles EUR und Test-USDC werden 1:1 behandelt; P&L in Test-USDC ist keine echte EUR-Rendite und enthält keine tatsächlichen On-Ramp-Gebühren.
+14. **GitHub-Sichtbarkeit:** Offizielles Repository `127027/Sniperbot-` ist aktuell **öffentlich**. Codex muss sicherstellen, dass keine Zugangsdaten oder lokale Zustände committed werden.
+15. **Datenexport:** Noch kein CSV-/JSON-Export im UI; `.local/` enthält Testdaten und wird bewusst nicht hochgeladen.
+16. **Signal-Disziplin:** Der aktuelle Paper-Autokauf darf für Forschung die heuristischen Scores nutzen, obwohl keine Contract-Sicherheitsprüfung besteht. Das ist in keiner Weise eine Zulassung für Echtgeldhandel; bei späterer Live-Integration muss die Architektur standardmäßig fail-closed sein.
+
+Kein Punkt dieser Liste darf im UI/README oder GitHub als „bereits gelöst“ bezeichnet werden, solange keine unabhängigen Tests vorliegen.
