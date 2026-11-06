@@ -67,4 +67,38 @@ Für jedes Paket: Problem + Änderung + Tests + Risiken + offene Punkte + Commit
 
 **Forschung und Multi-Agenten-Ziel (P2+):** beliebig viele registrierte Agenten; Bewertungsrollen Discovery, News, Social, On-chain, Wallet-Cluster, Pool-Liquidität, Scam, QA und Trade-Entscheidung. Dots sollen intern erst Evidenz/Quellen abgleichen, veraltete Kandidaten verwerfen und Konflikte markieren. Danach darf nur ein technisch authentifiziertes `candidate.v1`-Event an das lokale Paper-Gateway gehen. Zentraler Controller verhindert doppelte oder übergroße Käufe, erzwingt On-Chain-Prüfung und realistische Sell-Quote und dokumentiert jede Annahme. Alle 1..N Dots sind Forschungsinput, nicht Orderautorität. Ein direkter Dot-zu-Bot-Kanal existiert noch NICHT; Implementierungsarbeit nötig.
 
-**Portfolio-Ziel:** wiederholte neue Empfehlungen mit eigener Position (Kapital-/Exposure-Caps), individuell 50 oder maximal zulässiger Betrag, wählbares min/max (inkl. 50–50 und 200–400), Tage-/Wochen-/Monate-HOLD sowie Risiko-/Gewinn-Exit. Beispiel 50→5.000 EUR ist ein hypothetischer Extremfall, nicht zugesicherte Rendite. Bot AUS blockiert ausschließlich Neueinstiege, bestehende Positionen behalten Exit-Überwachung. 
+**Portfolio-Ziel:** wiederholte neue Empfehlungen mit eigener Position (Kapital-/Exposure-Caps), individuell 50 oder maximal zulässiger Betrag, wählbares min/max (inkl. 50–50 und 200–400), Tage-/Wochen-/Monate-HOLD sowie Risiko-/Gewinn-Exit. Beispiel 50→5.000 EUR ist ein hypothetischer Extremfall, nicht zugesicherte Rendite. Bot AUS blockiert ausschließlich Neueinstiege, bestehende Positionen behalten Exit-Überwachung.
+
+## Neue freigegebene Codex-Aufträge: fünf Agenten, variable Konfidenz-Budgets, adaptive Long-Hold-Exits
+
+**Verbindliche Anforderung:** [STRATEGY_5_AGENT_BIG_MOVES.md](STRATEGY_5_AGENT_BIG_MOVES.md). Diese Änderungen sind *noch nicht implementiert*; zuerst P0 Windows-Fehlerprüfung aus Issue #1.
+
+### A. Fünf-Agenten-Review und Kommunikationsadapter – Issue #2
+
+- [ ] Fünf unabhängige logische Rollen: News/Discovery, Social Acceleration, On-Chain/Liquidity, Contract/Scam-Security, Opportunity/QA; 1..N skalierbar.
+- [ ] Gemeinsame zeitlich korrekt versionierte Evidence-IDs und Gegenbeweise, deduplizierte positive/negative Stimmen mit TTL, Abstimmungen für denselben Chain+Contract+Pool.
+- [ ] Vorläufiges 5/5-YES-Quorum **zusätzlich** zu einer unabhängigen zwingenden Contract-/LP-/Sell-/Portfoliorisiko-Freigabe; `NO/ABSTAIN/VETO/stale` blockieren automatische Paper-Käufe.
+- [ ] Sicheren und **nachweislich funktionierenden** Agent-zu-lokal-Paper-Gateway mit synthetischen Agentenereignissen und Tests implementieren; bestehende ChatGPT-Dots sind **nicht** direkt verbunden.
+- [ ] Social-Acceleration-Zeitreihen (1 → 15 → 25.000 Erwähnungen nur als Beispiel), Autoren-/Bot-/Quellen-Unabhängigkeit und On-Chain-Gegenprüfung; kein Look-ahead.
+- [ ] End-to-end-Test für 5/5 YES und für 4/5, ABSTAIN, VETO, Missing Data und Replay.
+
+### B. Sniper-Positionsgrößen – neues Issue
+
+- [ ] Nutzer-Min/Max 50–1000, 50–50, 200–400 TEST-USDC; 0 = kein Kauf.
+- [ ] Größere Position nur, wenn Eigenkapital, Pool-/Sell-Tiefe, erwartete Slippage, Gebühren, individueller und Gesamtverlustrahmen das ermöglichen; kein 100-%-Vertrauensscore.
+- [ ] Mehrere unabhängige Positionen; testbare Kapitalreservierung und idempotente Wiederholungen; Bot AUS verhindert jeden neuen Kauf.
+- [ ] Test: schwaches/unklares Signal => 0, gutes aber illiquides Signal => 0 bzw. begrenzen; maximaler Einsatz nie über alle Limits.
+
+### C. Entfernen der +15-%-Take-Profit-Pflicht – neues Issue
+
+- [ ] Feststellen und dokumentieren: `runner/core.mjs` verwendet derzeit `takeProfit:15`, AUTO schließt bei +15 %. Das ist **Legacy/Demo**, nicht die gewünschte Default-Strategie.
+- [ ] Erweiterbares und testbares Exitmodell für intakte Langfristtrends, volatilitätsabhängiges Trailing, gebrochene Investmentthesen, plötzlichen LP-Abzug, Risikohinweise, optional partielle Gewinnsicherung.
+- [ ] Bewertbare, tatsächlich verfügbare simulierte Sell-Quotes unter Gebühren/Slippage statt reinem Preis-High.
+- [ ] Tests: +15 % bei weiter intaktem Trend => nicht automatisch vollständig schließen; Ausstieg nach gebrochener These; SELL-FAIL => kein Phantomprofit; Bot AUS => bestehende Exits aktiv; Neuanlauf/Ausfall.
+- [ ] Legacy-AUTO-Verhalten sauber migrieren und UI/README anpassen, aber **nicht** stillschweigend Echtgeld-Orders aktivieren.
+
+### D. Forschung & Abnahme
+
+- [ ] Backtests auf vollständigen Launch-Kohorten inklusive Ruggers/Delistings mit Out-of-sample/Walk-forward und ohne Look-ahead/Survivorship.
+- [ ] Legacy-Take-Profit gegen adaptive Exits vergleichen: Netto-P&L, DD, Risiko, Fill-/Exit-Failrate, Median/P95, seltene Ausreißergewinne.
+- [ ] Jede Änderung in einem eigenen PR mit echten Testergebnissen und noch offenen Grenzen dokumentieren. Keine Hixton-Änderungen; keine Echtgeldtransaktionen.
