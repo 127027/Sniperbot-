@@ -17,7 +17,7 @@ Keine `npm install` für die Startversion nötig. Zum Testen: `Windows_Tests.bat
 3. Auf **Testsignal erstellen** klicken. Der angezeigte `TEST`-Coin ist vollständig erfunden, damit der Ablauf ohne Marktfeed überprüfbar ist.
 4. **Testkauf 50** klicken (oder vorher den optionalen Paper-Autokauf einschalten, dann kauft ein Demo-Signal ebenfalls automatisch). Beim Kauf wandelt der Server die 50 virtuellen EUR automatisch 1:1 in Test-USDC. Das ist ein absichtlich fiktiver Umrechnungskurs und kein tatsächlicher EUR/USD/USDC-Wechselkurs. Modellierte Kaufkosten 1 %.
 5. Position erscheint unter **Gekaufte Coins**. Standardmäßig **HOLD**, sie bleibt also liegen bis du sie verkaufst.
-6. Optional **Automatische Ausstiege** aktivieren (+15 % / −10 %). Auch wenn Bot AUS ist, bleibt der Exitprozess für bestehende Positionen aktiv, solange der Laptop-Runner läuft.
+6. Optional **Legacy-Demo-Ausstiege** aktivieren (+15 % / −10 %). **Dies ist noch nicht die geplante adaptive Sniper-Verkaufsstrategie.** Auch wenn Bot AUS ist, bleibt der Exitprozess für bestehende Positionen aktiv, solange der Laptop-Runner läuft.
 7. Über **Verkaufen** wird ein Testverkauf gebucht. Nur frei verfügbares virtuelles EUR-Guthaben kann abgehoben werden; vorher Test-USDC zurück in Demo-EUR tauschen (bei vorhandenem freien Test-USDC).
 
 ## Vier Chain-Scanner (nur lesend)
@@ -31,7 +31,7 @@ Scoring erfolgt nur anhand einfacher Marktkennzahlen. **Es ist keine KI-Prognose
 - Bot AN/AUS: **AUS verhindert neue Paperkäufe**, aber bestehende Positionen werden weiter markiert und beim AUTO-Exit automatisch geschlossen.
 - Paper-Autokauf optional: nur falls Scanner einen Kandidaten nach einer konservativen, nicht auditierenden Punktelogik markiert und ausreichend Testguthaben vorhanden ist. Die Funktion ist standardmäßig AUS.
 - Positionsgröße flexibel: `50–50`, `200–400` oder frei eingeben; max. 1 Position gleichzeitig in der aktuellen Testversion (**mehrere** parallele Positionen sind für Codex als Anforderung spezifiziert).
-- Exit: Standard **HOLD** (Position bleibt liegen), alternativ **AUTO** mit Stop-Loss/Take-Profit.
+- Exit: Standard **HOLD** (Position bleibt liegen), alternativ **LEGACY AUTO** mit Stop-Loss/Take-Profit (aktuell +15 %; Ablösung in Arbeit).
 - Testguthaben-Ein-/Auszahlung und 1:1-Testumtausch; **keine PayPal- oder Bankanbindung**.
 
 ## 24/7
@@ -82,4 +82,17 @@ Die Bilder zeigen einen Testzustand. Sie beweisen keine aktuelle Kurs-/KI-/Trans
 
 Aktuelle Grenzen: Die Dot-zu-Bot-Kommunikation ist NICHT integriert; Coin-Qualifikation und Exit-Realismus müssen entwickelt und getestet werden. Langfristige Portfolio-Strategie ist vorgesehen, aber derzeit ist höchstens eine simulierte Position gleichzeitig unterstützt.
 
-**GitHub-Verwendung auf Windows:** `git clone https://github.com/127027/Sniperbot-.git` und `cd Sniperbot-`, dann `Windows_Tests.bat` sowie `Windows_Starten.bat`. Node.js 22+ benötigt. Die lokale API erscheint nur unter http://127.0.0.1:3030. Für das Ziel eines nicht-technischen Nutzers sollte Codex einen sicheren Windows-Installer bzw. Starter entwickeln. 
+**GitHub-Verwendung auf Windows:** `git clone https://github.com/127027/Sniperbot-.git` und `cd Sniperbot-`, dann `Windows_Tests.bat` sowie `Windows_Starten.bat`. Node.js 22+ benötigt. Die lokale API erscheint nur unter http://127.0.0.1:3030. Für das Ziel eines nicht-technischen Nutzers sollte Codex einen sicheren Windows-Installer bzw. Starter entwickeln.
+
+## Strategiewechsel: Fünf Agenten und langfristiger High-Upside-Sniper (freigegeben am 06.11.2026)
+
+**Verbindlicher neuer Codex-Auftrag:** [Fünf-Agenten-Strategie, dynamische Positionsgrößen, adaptive Exits](docs/STRATEGY_5_AGENT_BIG_MOVES.md). Codex-Details und Abnahmetests: [docs/CODEX_TASKS.md](docs/CODEX_TASKS.md) und GitHub-Issues.
+
+- **Ziel:** Früh vor einer breiten organischen Memecoin-Nachfragewelle einsteigen; mögliche starke Kursanstiege über Tage/Wochen begleiten. 50 auf 5.000 ist eine extreme hypothetische 100×-Entwicklung, kein Beleg und kein Versprechen.
+- **Fünf Fachrollen:** News/Discovery, Social-Momentum, On-Chain/Liquidität, Contract-/Rug-Risiko, unabhängige Opportunity-/QA-Prüfung. Vor Paper-Autokauf soll vorläufig 5/5 aktueller, unabhängiger Reviews plus ein externes hartes Risk-Gate nötig sein. Andere verfügbare Forschungsagenten können später unterstützen (Registry 1..N).
+- **Bot-Einsätze:** Nutzerdefiniertes Minimum/Maximum, z. B. 50–1000 TEST-USDC; je Kandidat ist 0 oder ein Wert dazwischen möglich. Kein automatisches Maximieren auf 1.000 wegen eines KI-Scores. Cash, Positions-/Portfoliorisiko, Liquidität, Gebühren, Slippage und Sellbarkeit bleiben Grenzen.
+- **Keine feste Gewinnkappung:** Der aktuelle AUTO-Exit bei **+15 %** ist **LEGACY/DEMO**, **nicht** die gewünschte Sniper-Strategie. Codex muss den pauschalen TP durch eine getestete dynamische Exit-Engine ersetzen (Trend, Trailing, Liquiditäts-/Risk-Exit, lange Haltedauer). Der aktuelle Quellcode wurde durch diesen Dokumentationscommit **nicht** verändert.
+- **Bot AUS:** Blockiert Neueinstiege, **niemals** die Überwachung oder aktive Exit-Regeln offener Positionen.
+- **Nicht implementiert:** Fünf verbundene Dots, direkte Dot-zu-Windows-Kommunikation, autonome KI-Ausführung, sichere Paper-Einstiege nach neuem Konsens, adaptive Exit-Engine und Echtgeldhandel. Vor allem gilt der derzeitige Scanner nicht als vorhersagefähiges 100×-System.
+
+**Sicherheit:** Aktuell nur PAPER, keine echten Geldflüsse/Orders und kein Eingriff in Hixton.
