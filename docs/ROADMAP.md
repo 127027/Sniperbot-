@@ -28,3 +28,17 @@
 - Langfristiges HOLD über Tage, Wochen, Monate und später konfigurierte KI-/Risikostrategien für Ausstieg. Gewinnziele sind keine Renditegarantie.
 - Quellcode/Dokumentation für Codex: `AGENTS.md`, `REQUIREMENTS.md`, `ARCHITECTURE.md`, `AGENT_PROTOCOL.md`, `CODEX_TASKS.md`, `KNOWN_ISSUES.md`, `SECURITY.md`.
 - Priorität zuerst Windows-Lauffähigkeit und nachweisbare Paper-Funktion statt Echtgeld-Integration.
+
+## Neues verbindliches Ziel – High-Upside-Sniper mit fünf Agenten (06.11.2026)
+
+Siehe [STRATEGY_5_AGENT_BIG_MOVES.md](STRATEGY_5_AGENT_BIG_MOVES.md).
+
+1. P0: Bereits veröffentlichte V0.3 auf dem echten Windows-Laptop installieren, Fehler beheben, Paper-End-to-end absichern.
+2. P1: fünf unabhängige logische Agentenrollen, gemeinsamer Evidence-Store, 5/5-Review plus hard Risk-VETO, synthetische Gateway-Integration und Audits.
+3. P2: zeitlich korrekte On-Chain-/Social-Daten, Kandidaten früh vor Hype erkennen (keine Social-Bots und kein Backtest-Look-ahead).
+4. P3: Min-/Max-Positionsgrößen einschließlich 50–1000 TEST-USDC, Kapitallimits, Pool-Tiefe, mehrere Positionen, keine Pflicht zum Maximaleinsatz.
+5. P4: bisherige +15-%-AUTO-TP als Legacy ersetzen durch nachweisbar adaptive Trend-/Risk-/Liquidity-/Trailing-Exitstrategie; Bot AUS sperrt nur Einstieg.
+6. P5: historische vollständige Launch-Kohorten, lange HOLDs, Exit-Fails und tatsächliche modellierte Kosten, Out-of-sample-Validierung.
+7. Später separat: echter Zahlungs- und Wallet-Betrieb nur nach expliziter neuer Freigabe.
+
+Aktueller Quellcode ist **noch unverändert** und besitzt weiterhin den +15-%-Demo-AUTO-Exit. Zwei stündliche ChatGPT-Forschungsautomationen sind nicht gleich fünf verbundene Agenten; Verbindung und Quorum erst implementieren.
