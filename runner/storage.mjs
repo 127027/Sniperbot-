@@ -20,6 +20,7 @@ export function storage(root){
   if(s.version!==3||!Array.isArray(s.positions)||!Array.isArray(s.candidates)||!Array.isArray(s.history)||![s.cashEur,s.cashUsdc,s.closedPnl,s.minTrade,s.maxTrade,s.takeProfit,s.stopLoss].every(Number.isFinite)||s.cashEur<0||s.cashUsdc<0)throw Error('Ungültiger gespeicherter Paper-Stand; kein Reset');
   if(s.positions.some(p=>![p.qty,p.priceUsd,p.entryPriceUsd,p.amountUsdc].every(v=>Number.isFinite(v)&&v>0)))throw Error('Ungültige gespeicherte Position');
   if(s.research&&(!Array.isArray(s.research.events)||!Array.isArray(s.research.candidates)||!Array.isArray(s.research.decisions)))throw Error('Ungültiger Research-Speicher');
+  if(s.paperDecisions&&(!Array.isArray(s.paperDecisions.receipts)||!s.paperDecisions.revisions||typeof s.paperDecisions.revisions!=='object'||Array.isArray(s.paperDecisions.revisions)))throw Error('Ungültiger Entscheidungsspeicher');
   return s;
  }
  if(!process.env.SNIPER_DATA_DIR&&file!==legacy&&!existsSync(file)&&existsSync(legacy)){

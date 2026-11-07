@@ -14,12 +14,12 @@ test('95-point agreement can allocate 1000 to one coin within 100–1000',()=>{
  const s=simulate({...funded(),cashUsdc:1200,minTrade:100,maxTrade:1000});
  assert.equal(s.positions[0].amountUsdc,1000);assert.equal(s.cashUsdc,200);
 });
-test('allocation varies by rating; missing scores use minimum, cash and sell limits still apply',()=>{
+test('allocation varies by rating; missing scores block, cash and sell limits still apply',()=>{
  const base={...funded(),cashUsdc:5000,minTrade:50,maxTrade:200};
- const amounts=[0,30,60,95].map(score=>simulate(base,false,score).positions[0].amountUsdc);
+ const amounts=[80,84,88,92].map(score=>simulate(base,false,score).positions[0].amountUsdc);
  assert.equal(amounts[0],50);assert.equal(amounts[3],200);assert(amounts[0]<amounts[1]&&amounts[1]<amounts[2]&&amounts[2]<amounts[3]);
  let s=simulate({...base,entriesEnabled:false}),c=s.research.candidates[0];
- c.votes.forEach(v=>delete v.score_0_100);assert.equal(positionSize(s,c),50);
+ c.votes.forEach(v=>delete v.score_0_100);assert.equal(positionSize(s,c),0);
  c.votes.forEach(v=>v.score_0_100=95);s.cashUsdc=120;assert.equal(positionSize(s,c),120);
  c.risk.max_amount_usdc=75;assert.equal(positionSize(s,c),75);
  s.minTrade=200;s.maxTrade=200;assert.equal(positionSize(s,c),0,'fixed 200 never silently buys 75');

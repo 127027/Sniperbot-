@@ -1,3 +1,4 @@
+import {allocatePaper} from './allocation.mjs';
 // Untrusted research is stored, never treated as an executable order.
 import {createHash, randomUUID} from 'node:crypto';
 import {validTokenAddress} from './market.mjs';
@@ -84,18 +85,13 @@ export function assess(c,now=Date.now()){
  if(!c.isDemo)return {status:'WATCH',reason:'REAL_VALIDATOR_UNAVAILABLE: echte On-Chain-/Sell-Adapter fehlen'};
  return {status:'PAPER_ELIGIBLE',reason:'5 Rollen + separate synthetische Risiko-Fixture bestätigt'};
 }
-// Explicit allocation convention, NOT a calibrated probability of profit.
-// Missing scores select the minimum. The lowest role score determines sizing;
-// 95 or higher may select the user maximum, subject to cash and technical sell limits.
+// Legacy synthetic lab shares the user's 80–92 allocation rule.
 export function positionSize(s,c){
  const scores=ROLES.map(role=>{
   const votes=c.votes.filter(v=>v.role===role);
   return votes.length?Math.min(...votes.map(v=>Number.isFinite(v.score_0_100)?v.score_0_100:0)):0;
  });
- const fraction=Math.min(1,Math.max(0,Math.min(...scores)/95));
- const target=s.minTrade+(s.maxTrade-s.minTrade)*fraction;
- const amount=Math.floor((Math.min(target,s.maxTrade,s.cashUsdc+s.cashEur,c.risk.max_amount_usdc)+1e-9)*100)/100;
- return amount>=s.minTrade?amount:0;
+ return allocatePaper({score:Math.min(...scores),min:s.minTrade,max:s.maxTrade,free:s.cashUsdc+s.cashEur,capacity:c.risk.max_amount_usdc});
 }
 export function evaluate(state,now=Date.now()){
  let s={...state,research:structuredClone(state.research||emptyResearch())};

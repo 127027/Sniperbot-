@@ -33,6 +33,10 @@ test('authenticated gateway: shared evidence, scoped identities, replay, researc
    assert.equal(r.status,expected,await r.clone().text());return r.json();
   };
   const cmd=(a,expected=200)=>request('/api/command',a,null,expected);
+  const central=await request('/api/decisions');assert.equal(central.publisherConfigured,false);
+  await request('/api/decisions/events',{type:'BUY'},null,422);
+  await cmd({type:'SET_CENTRAL_FOLLOW',enabled:true});
+  assert.equal((await request('/api/state')).state.centralPaperFollow,true);
   await request('/api/research',undefined,null,401);
   await request('/api/research/events',{type:'BUY'},credentials[0].token,422);
   await request('/api/research',undefined,credentials[0].token,403,{origin:'https://evil.example'});

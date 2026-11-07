@@ -81,3 +81,7 @@ may be inferred from a model rating. This overrides earlier portfolio-cap guidan
 - Historical win-rate/holding period figures from a prior chat are not verified evidence; research HOLD review windows (24h/7/14/30/90 days) are **hypotheses for backtests**, not compulsory sell timers.
 - No payment, wallet or real-order integration without another explicit approval; currently PAPER-only, fail closed for external tokens without validators. Do not modify Hixton, any of its Dots, automations or repositories.
 
+
+## Owner override – central decisions and local capital (07.11.2026)
+
+Latest user instruction supersedes older requirements for a second local research/quorum decision. Central Dots perform research and decide PAPER_BUY/PAPER_SELL; local clients verify technical validity and manage their own capital, no local AI research. Per-entry user min/max has no fixed200 cap. Score80→minimum,92+→maximum, bounded by free funds and technical quote capacity; under80 or under minimum→no purchase. Scores are uncalibrated ratings. See docs/CENTRAL_PAPER_IMPLEMENTATION.md for implemented vs blocked components. User authorized Paper setup with1000 Test-USDC and two-hour monitoring, not live trading. Do not treat pending GPT infrastructure as implemented.

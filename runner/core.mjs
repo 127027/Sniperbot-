@@ -2,7 +2,7 @@
 export const PAPER_EUR_TO_TEST_USDC=1; // intentionally NOT a market EUR/USD quote
 const round=(x)=>Math.round((x+Number.EPSILON)*1e8)/1e8;
 const time=()=>new Date().toISOString();
-export function freshState(){return {version:3,entriesEnabled:false,automaticPaperBuys:false,
+export function freshState(){return {version:3,entriesEnabled:false,automaticPaperBuys:false,centralPaperFollow:false,
  minTrade:50,maxTrade:50,takeProfit:15,stopLoss:10,defaultExitMode:'HOLD',trailingPercent:25,
  cashEur:0,cashUsdc:0,positions:[],candidates:[],history:[],closedPnl:0,
  lastScan:null,scanErrors:[],priceUpdatedAt:null,scanRunning:false,lastError:null};}
@@ -13,6 +13,7 @@ const finitePrice=x=>Number.isFinite(x)&&x>0;
 export function action(s,a){if(!a||typeof a!=='object')return s;
  switch(a.type){
  case 'TOGGLE_BOT':return {...s,entriesEnabled:!s.entriesEnabled,history:log(s,!s.entriesEnabled?'Bot AN':'Bot AUS',!s.entriesEnabled?'Neue Paper-Einstiege erlaubt':'Neue Paper-Einstiege gestoppt, Exit-Engine bleibt aktiv')};
+ case 'SET_CENTRAL_FOLLOW':return {...s,centralPaperFollow:a.enabled===true,history:log(s,'Zentrale Paper-Ausführung',a.enabled===true?'Wartet auf gültige zentrale Aufträge; fehlende Publisher/Marktadapter blockieren':'Deaktiviert')};
  case 'SET_AUTO':return {...s,automaticPaperBuys:!!a.enabled,history:log(s,'Autokauf-Modus',a.enabled?'Nur freigegebene 5-Rollen-Signale werden geprüft':'Nur manuelle Testkäufe')};
  case 'SET_RANGE': {const min=numeric(a.min),max=numeric(a.max);if(!isAmount(min)||!isAmount(max)||min>max)return s;return {...s,minTrade:min,maxTrade:max,history:log(s,'Beträge eingestellt',`${min}–${max} TEST-USDC`)}};
  case 'SET_EXITS':{const profit=numeric(a.profit),loss=numeric(a.loss),mode=a.mode;
