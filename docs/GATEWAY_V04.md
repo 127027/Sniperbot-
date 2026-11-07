@@ -1,3 +1,5 @@
+> Ergänzung 07.11.2026: Historische Scout-Nachricht über GitHub im Windows-Bot empfangen; kein direkter Dot-POST. Siehe [Empfangsnachweis](SCOUT_INBOX_PROOF.md) und [informativer Eingang](RESEARCH_INBOX.md). Der folgende Stand beschreibt insbesondere den bisherigen direkten Gateway-Zugang.
+
 # Lokaler Research-Gateway V0.4
 
 Aktuelle echte Scout-Prüfung: [DOT_CONNECTIVITY_STATUS.md](DOT_CONNECTIVITY_STATUS.md).

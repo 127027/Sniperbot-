@@ -1,3 +1,5 @@
+> Ergänzung 07.11.2026: Historische Scout-Nachricht über GitHub im Windows-Bot empfangen; kein direkter Dot-POST. Siehe [Empfangsnachweis](SCOUT_INBOX_PROOF.md) und [informativer Eingang](RESEARCH_INBOX.md). Der folgende Stand beschreibt insbesondere den bisherigen direkten Gateway-Zugang.
+
 # Meme Scout: Verbindungsprüfung vom 06.11.2026
 
 ## Ergebnis
