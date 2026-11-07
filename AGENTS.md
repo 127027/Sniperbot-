@@ -68,3 +68,16 @@ maxPositions, maxExposure and perPositionCap, including persisted legacy fields.
 Repeated distinct coins may use available funds until exhausted. Independent
 technical contract/sellability gates still apply. No calibrated profit probability
 may be inferred from a model rating. This overrides earlier portfolio-cap guidance.
+
+## Binding owner clarification – 2026-11-07: multi-device, isolated-user fleet
+
+**Read before coding:** [docs/DISTRIBUTED_INSTANCES.md](docs/DISTRIBUTED_INSTANCES.md), [docs/SIGNAL_DISTRIBUTION_PROTOCOL.md](docs/SIGNAL_DISTRIBUTION_PROTOCOL.md), [docs/HOLD_EXIT_POLICY.md](docs/HOLD_EXIT_POLICY.md), [docs/IMPLEMENTATION_STATUS_2026-11-07.md).
+
+- Exactly one common five-role *research production policy* initially, 1..N possible research workers. The owner's GitHub account hosts **source and docs**, not 24/7 live signal delivery. Do not confuse five logical gateway roles with five connected ChatGPT Dots.
+- Distributed clients: independently installable Windows/other-device instances with separate owner identity, per-user storage, funds, private keys (future only), local settings, paper holdings, tax/export history and trading decisions. Friends must not share a seed, instance identity, local credential registry, portfolio database or wallet with the owner.
+- Central service can broadcast only authenticated research and exit **advisories** (with TTL, provenance, signatures, retry/dedupe). It must not read or modify client balances, keys, positions or config, nor submit remote buy/sell/deposit/withdraw commands. Clients independently revalidate all safety and budget checks; opt-in/opt-out, revocation and tenant isolation required.
+- Device independence means one machine being offline cannot stop another's research intake/own exit engine. Host availability is not guaranteed by a mobile web page; mobile should initially control only the authenticated owner's bot. Android autonomous host needs separate engineering/testing.
+- Position sizing example 50..200 TEST-USDC is PER CLIENT and PER ENTRY, not a shared pot: with only 50 free, at most 50 can be entered if costs/risk allow; with 200 free, multiple independently reviewed positions may consume 50+50+100. Open mark-to-market profit is **not** available cash until realized.
+- Historical win-rate/holding period figures from a prior chat are not verified evidence; research HOLD review windows (24h/7/14/30/90 days) are **hypotheses for backtests**, not compulsory sell timers.
+- No payment, wallet or real-order integration without another explicit approval; currently PAPER-only, fail closed for external tokens without validators. Do not modify Hixton, any of its Dots, automations or repositories.
+

@@ -102,3 +102,42 @@ Für jedes Paket: Problem + Änderung + Tests + Risiken + offene Punkte + Commit
 - [ ] Backtests auf vollständigen Launch-Kohorten inklusive Ruggers/Delistings mit Out-of-sample/Walk-forward und ohne Look-ahead/Survivorship.
 - [ ] Legacy-Take-Profit gegen adaptive Exits vergleichen: Netto-P&L, DD, Risiko, Fill-/Exit-Failrate, Median/P95, seltene Ausreißergewinne.
 - [ ] Jede Änderung in einem eigenen PR mit echten Testergebnissen und noch offenen Grenzen dokumentieren. Keine Hixton-Änderungen; keine Echtgeldtransaktionen.
+
+## NEW PRODUCT-OWNER-APPROVED WORKSTREAM – 2026-11-07 (multi-device fleet)
+
+Canonical specifications:
+- [Independent instances, shared research](DISTRIBUTED_INSTANCES.md)
+- [Message distributor / protocol](SIGNAL_DISTRIBUTION_PROTOCOL.md)
+- [Hold and exit research](HOLD_EXIT_POLICY.md)
+- [Verified current vs target](IMPLEMENTATION_STATUS_2026-11-07.md)
+
+### P0 – Existing gateway: real Dot → Windows proof (still BLOCKED)
+- [ ] Use only authorized local computer access; `runner/agent-client.mjs get`, then one harmless `candidate.v1` paper test.
+- [ ] Confirm same actual `event_id` in (1) genuine Dot's HTTP response and (2) local bot's persisted event journal. If inaccessible, report `LOCAL_COMPUTER_ACCESS_UNAVAILABLE`; don't counterfeit a delivery.
+- [ ] Keep external market auto-buy blocked until independent real on-chain/sell validators exist.
+
+### P1 – Central research broadcaster (new)
+- [ ] Five logical roles share evidence/contradictions, vote per identical chain+contract+pool, separate hard security veto. Distinguish stündliche ChatGPT-Automationen vs a genuinely 24/7 source/collector.
+- [ ] Authenticated signed `BUY_CANDIDATE`, `EXIT_ALERT` and `URGENT_RISK_ALERT` advisory events, publish with provenance, expiry and stable IDs. **Never publish live commands, account settings or amounts.**
+- [ ] Persistent subscription queue and client ACK semantics, TLS, per-instance authentication, signature verification, dedupe, replay protection, rate limits, reconnect/backfill/TTL, offline clients and revocation.
+- [ ] GitHub is source/control docs, not live broker. Decide hosting/budget/privacy independently.
+
+### P2 – Client isolation and multi-device autonomy
+- [ ] Simulate three friend installations A/B/C with isolated accounts, portfolios, credentials, files and balances. A, B, C can subscribe to **same** signals, cannot query/modify one another's state.
+- [ ] Repeat 50 Test-USDC deposit on each and verify none shares ledger, wallet state or UserID. Different local settings (50–200 vs 50–1000) produce independent buy/skip/amount decisions.
+- [ ] Central publisher must not know private trading balances or gain direct control over `BUY/SELL/DEPOSIT/WITHDRAW`; opt-in/out and disabled device tested.
+- [ ] Preserve local exit engine when `Bot AUS`, browser closed or central publisher offline (not when host is switched off).
+- [ ] Mobile web dashboard pairs only to owner's authenticated bot; phone as autonomous always-on trading host a distinct future feasibility milestone.
+
+### P3 – Exits, historical validation and payments later
+- [ ] Historical memecoin cohorts to compare adaptive holding review points (24h, 7/14/30/90 days) against genuine quotes and exit failures; no claim of optimal date or 100% certainty.
+- [ ] Global sell/exit research advisories are **advice**; each client locally rechecks whether it holds a position and whether sell quote/own policy allows a paper sell.
+- [ ] Real PayPal/EUR-USDC integration and wallet-/live orders remain BLOCKED until separate owner authorization, compliance/security integration and provider review.
+
+### Acceptance / reporting
+- [ ] 3 independent processes, one shared test `signal_id`, 3 different local decision outcomes, **0 cross-account visibility or state mutation**, expired signals not traded.
+- [ ] Isolated device revocation and offline/backfill; malformed/forged signal rejected.
+- [ ] Tested README onboarding, secure mobile-own-instance view, no declared 24/7 Android runtime without real test.
+- [ ] Demonstrate a genuine agent-originated receipt only once actual Windows response and event ID exist.
+- [ ] Commit/PR evidence and tests; no changes to Hixton; no real payments, wallet access or live trades.
+

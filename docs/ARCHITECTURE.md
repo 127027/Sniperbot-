@@ -106,3 +106,12 @@ read-only markets + news/social feeds -> persistent time-stamped evidence store
 No direct Dot-to-local communication, signed events, persistent shared discussion or five-agent consensus currently exists. Hourly ChatGPT Dots are **research**, not low-latency trade engines; implementation is a Codex task. Confirm by synthetic local tests before any connectivity claim. The existing +15% AUTO trigger in `runner/core.mjs` is *legacy*, NOT a feature-complete adaptive exit.
 
 Beware correlated sources, hindsight bias in multi-day social acceleration, stale data, slippage, whale/LP attacks, non-executable exits, browser closure, Windows sleep and crashes. `Bot AUS` must not cancel active exit monitoring. PAPER-only throughout.
+
+## Verbindliche Zielarchitektur 07.11.2026: Multi-Instanz-Netz (noch NICHT implementiert)
+
+Die lokale V0.4-Gateway-Implementierung wird durch zwei **Soll**-Ebenen ergänzt: (A) ein gemeinsamer fünfrollenbasierter Forschungskoordinator und ein abonniertes, sicheres **Signalverteilungsnetz**, (B) **N autonom entscheidende Client-Instanzen** für N unabhängige Nutzer und Geräte. Siehe [DISTRIBUTED_INSTANCES.md](DISTRIBUTED_INSTANCES.md) und [SIGNAL_DISTRIBUTION_PROTOCOL.md](SIGNAL_DISTRIBUTION_PROTOCOL.md).
+
+Forschungsrollen gehören zentral zum Besitzerprojekt; Backend-/Event-Dienst muss separat betrieben werden (GitHub ist kein Dauerprozess). Publisher kennt weder Konten noch Guthaben/Wallets/offene Positionen. Jede Installation empfängt ausschließlich Version/Quellen/TTL/signierte Kandidaten und Exit-Hinweise, prüft lokal Contract/Sellability/Portfolio/Botstatus und entscheidet ggf. über eigene Paper-Orders. A=50 Test-USDC, B=200 Test-USDC, C=0 Test-USDC bleiben vollständig getrennt. Kein fremder Adminzugriff, kein ungeschützter Portforward; Authentisierung, TLS, Isolation, Opt-in, Revocation, Offline-Queue und separate lokale Datenbank.
+
+Mobile App/PWA steuert nur die eigene Instanz. Eine vollständige mobile 24/7-Host-Engine ist noch kein bestätigter Bestand und braucht gesonderte Android/iOS-Hintergrundtests. Bot AUS sperrt neue Käufe, lokale Exits laufen unabhängig vom zentralen Forschungsnetz weiter. Konkrete Forschungsannahmen zu Haltefristen in [HOLD_EXIT_POLICY.md](HOLD_EXIT_POLICY.md), kein starres +15%-Gewinnziel als Wunschstrategie. Aktueller Nachweisstand in [IMPLEMENTATION_STATUS_2026-11-07.md](IMPLEMENTATION_STATUS_2026-11-07.md).
+

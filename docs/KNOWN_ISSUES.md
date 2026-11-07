@@ -41,3 +41,15 @@ Kein Punkt dieser Liste darf im UI/README oder GitHub als „bereits gelöst“ 
 20. **Social-Hype-Frühdetektion fehlt:** Zeitreihen von einzigartigen Autoren, kanalübergreifender Beschleunigung, Bot-/Spam-Korrektur und unabhängiger On-Chain-Bestätigung sind nicht implementiert. Ein zeitlich korrekter Frühindikator ist noch nicht nachgewiesen.
 
 Neue Produktspezifikation: [STRATEGY_5_AGENT_BIG_MOVES.md](STRATEGY_5_AGENT_BIG_MOVES.md). Bis zu separater Codex-Implementierung und Abnahme sind das **offene TODOs**, keine Features.
+
+## Neuer Soll-/Ist-Gap – 07.11.2026 Mehrbenutzer/Mehrgeräte
+
+21. **Kein zentraler Research-/Exit-Signalverteiler:** V0.4 kann nur über `127.0.0.1` innerhalb des jeweiligen lokalen Rechners Research-Events empfangen. Kein sicherer Multi-Instanz-Broadcast, kein signiertes Offline-Abonnement, keine bestätigte echte Dot-Testnachricht. Siehe [SIGNAL_DISTRIBUTION_PROTOCOL.md](SIGNAL_DISTRIBUTION_PROTOCOL.md).
+22. **Keine voneinander getrennten Produktionsnutzerkonten:** Mehrere Freunde mit jeweils eigenem Ledger, Credentials, Wallet, Einstellungen, Guthaben und Datenschutzrechten sind ein noch nicht implementierter Sollzustand; aktuelles Ledger ist ein einzelner lokaler Paper-Stand.
+23. **Kein autonomer Android-/iOS-Bot:** Responsive mobile HTML-Ansicht ersetzt keinen 24/7-Dienst und keine sichere Fernsteuerung über das eigene Geräte-Netz. Die heutige localhost-Adresse funktioniert nicht über fremde Mobilgeräte.
+24. **Verkaufsempfehlungs-Broadcast fehlt:** Keine zentrale Verteilung von zeitgültigen Research-Exit-Hinweisen und keine lokale zustandsabhängige Verarbeitung über viele Nutzerbots.
+25. **Echte Zahlungen/Wallet-/Wechselkurse fehlen weiterhin:** Jede hypothetische 50-€-Aufladung ist ein getrenntes, virtuelles Testkonto; kein PayPal und keine Echtgeld-Funktionen.
+26. **Haltefristen nicht statistisch validiert:** 24h/7/14/30/90-Tage-Prüfpunkte sind Forschungsannahmen, keine automatisch optimalen Verkaufstermine. Kein Bot darf aufgrund eines beendeten Social-Hypes 'sicher nie wieder Pump' behaupten.
+
+Siehe [DISTRIBUTED_INSTANCES.md](DISTRIBUTED_INSTANCES.md), [HOLD_EXIT_POLICY.md](HOLD_EXIT_POLICY.md) und [IMPLEMENTATION_STATUS_2026-11-07.md](IMPLEMENTATION_STATUS_2026-11-07.md).
+

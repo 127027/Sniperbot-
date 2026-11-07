@@ -42,3 +42,17 @@ Siehe [STRATEGY_5_AGENT_BIG_MOVES.md](STRATEGY_5_AGENT_BIG_MOVES.md).
 7. Später separat: echter Zahlungs- und Wallet-Betrieb nur nach expliziter neuer Freigabe.
 
 Aktueller Quellcode ist **noch unverändert** und besitzt weiterhin den +15-%-Demo-AUTO-Exit. Zwei stündliche ChatGPT-Forschungsautomationen sind nicht gleich fünf verbundene Agenten; Verbindung und Quorum erst implementieren.
+
+## Neue verbindliche Roadmap: unabhängige Nutzergeräte, zentrale Forschung (07.11.2026)
+
+**Goal:** Eigentümer und Freunde installieren jeweils einen eigenen Bot und verwalten 100 % getrennt ihr eigenes Guthaben/Coins/Wallets. Ein gemeinsamer Forschungsdienst mit fünf überprüfenden Rollen sendet BUY- und EXIT-Hinweise an alle abonnierten Instanzen, nie direkte Kontobefehle. Spezifikation: [DISTRIBUTED_INSTANCES.md](DISTRIBUTED_INSTANCES.md); [SIGNAL_DISTRIBUTION_PROTOCOL.md](SIGNAL_DISTRIBUTION_PROTOCOL.md).
+
+- M0: Echter Dot-zu-lokal-Gateway-Test mit tatsächlicher Serverantwort + identischer Event-ID (weiter offen).
+- M1: Signierter zentraler Research-/Exit-Advisory-Broker mit authentifiziertem, ausgehendem Client-Abonnement, Replay-/TTL-/Offline-Schutz; kein GitHub-as-Broker.
+- M2: Separater Instanz-Onboarding-/Account-/Credential-/Storage-Lifecycle und 3-isolierte-Clients-Test, eigene Paper-Kontostände und Entscheidungen trotz gleicher Signalsendung.
+- M3: Authentifizierte mobile Remote-UI nur für den eigenen Bot; Android/iOS-Host nur nach gesonderter Plattformvalidierung.
+- M4: Adaptive Position-/Halte-/Exit-Regeln inklusive Signalbewertungen und echter sellbarer Paper-Quotes, historische vollständige Kohorten, keine garantierte Rendite.
+- M5: Echter Wallet-/PayPal-/Fiat-Service erst mit erneuter expliziter Autorisierung und Compliance-/Sicherheitsprüfung.
+
+**Stand V0.4:** Ein lokaler Rollen-Gateway ist vorhanden; kein bestätigter echter Dot, kein verteilter Broker, kein plattformübergreifender produktiver Dienst und keine echten Gelder. Hixton unangetastet.
+

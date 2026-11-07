@@ -152,3 +152,8 @@ vom Nutzerportfolio. CI führt dieselben Tests mit Node 22 aus.
 
 Bezieht sich auf Issue #2; keine Behauptung, dass alle langfristigen Abnahmepunkte
 des Issues oder die gesamte Sniper-Strategie damit erfüllt sind.
+
+## Hinweis zur Mehrgeräte-Zielarchitektur (07.11.2026)
+
+Dieser Gateway ist **lokal** und nicht automatisch ein zentraler Relay für Freunde/Handys. Er authentifiziert einzelne lokale Forschungsrollen, kennt aber weder unabhängige fremde Nutzerkonten noch einen signierten, registrierten Broadcast-Kanal. Bitte **keinen lokalen Port 3030 ins öffentliche Internet stellen** und lokale Role-Tokens nicht unter Freunden verteilen. Für den zentralen Forschungs-/Exit-Verteiler siehe [SIGNAL_DISTRIBUTION_PROTOCOL.md](SIGNAL_DISTRIBUTION_PROTOCOL.md), für getrennte Nutzerkonten/Wallets siehe [DISTRIBUTED_INSTANCES.md](DISTRIBUTED_INSTANCES.md). Alle heute noch fehlenden Funktionen werden in [IMPLEMENTATION_STATUS_2026-11-07.md](IMPLEMENTATION_STATUS_2026-11-07.md) aufgeführt. PayPal-/Wallet-/Echtgeldaktionen bleiben vollständig gesperrt.
+

@@ -11,3 +11,8 @@
 - Public GitHub Actions erhalten keine Secrets; alle Tests laufen offline.
 - Gewünschte reale EUR-Aufladung und Auszahlung: regulatorisch gesondertes Projekt mit Anbieterprüfung, Custody-/Noncustody-Entscheid, KYC/AML, steuerlicher Dokumentation, Gebühren- und Betrugsrisikoanalyse.
 - Das Repo darf privat sein; kein automatischer Zugriff anderer Codex-/Dot-Systeme ohne bewusst eingerichtete Berechtigungen.
+
+## Zentrales Research-Netz / getrennte Nutzerbots (neue Sollarchitektur 07.11.2026)
+
+Der zentrale Publisher erhält **ausschließlich die Berechtigung, signierte Research-/Exit-Hinweise zu senden**, niemals `BUY/SELL/DEPOSIT/WITHDRAW/RESET` bei fremden Instanzen auszuführen oder Wallet-/Kontostände abzurufen. Jeder Nutzer besitzt eigene Identität, Daten, Credentials, Einstellungen und künftig eine eigene Wallet. Kein gemeinsames Seed-Material oder Datenverzeichnis für Freunde. Client-registrierte Abos per TLS/Signatur/TTL, unabhängige lokale Risiko-/Quote-Gates, Revocation und Geräteisolation sind Pflicht. PWA/App-Remotezugriff darf nur die eigene Instanz autorisieren; ohne Schutzmechanismen kein Internetzugang zur localhost-API. Der Stand ist derzeit nur PAPER; vollständige Spezifikation: [DISTRIBUTED_INSTANCES.md](DISTRIBUTED_INSTANCES.md), [SIGNAL_DISTRIBUTION_PROTOCOL.md](SIGNAL_DISTRIBUTION_PROTOCOL.md).
+
