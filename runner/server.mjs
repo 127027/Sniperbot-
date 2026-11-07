@@ -1,3 +1,4 @@
+import {createReceiver} from './research-inbox.mjs';
 import {storage} from './storage.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
@@ -41,6 +42,7 @@ const server=createServer(async(req,res)=>{
   return res.end(readFileSync(path.join(root,'runner','dashboard.html')));
  }
  if(req.method==='GET'&&route==='/api/state')return reply(res,200,{ok:true,mode:'PAPER_ONLY',dataSource:'GeckoTerminal / DEX Screener (read only)',state,health:{online:true,scanRunning:scanning,pricing,uptimeSec:Math.round(process.uptime())}});
+ if(req.method==='GET'&&route==='/api/research/inbox')return reply(res,200,{ok:true,mode:'PAPER_ONLY',enabled:process.env.SNIPER_RESEARCH_FEED==='1',inbox:state.researchInbox||{receipts:[]}});
  if(req.method==='GET'&&route==='/api/health')return reply(res,200,{ok:true,mode:'PAPER_ONLY',uptimeSec:Math.round(process.uptime())});
  if(route==='/api/research'||route==='/api/research/events'){
   if(req.headers.origin)return error(res,403,'Gateway ist nur für lokale Clients');
@@ -91,3 +93,9 @@ if(process.env.SNIPER_OFFLINE!=='1')setInterval(()=>{void prices()},30000);
 if(process.env.SNIPER_OFFLINE!=='1')setTimeout(()=>{void scan()},2500);
 setInterval(()=>{try{commit(evaluate(applyExits(state)))}catch(e){console.error('Research/Exit:',e.message)}},5000);
 for(const sig of ['SIGINT','SIGTERM'])process.on(sig,()=>{save();server.close();process.exit(0)});
+
+// Opt-in, outbound-only, informational feed. Never calls ingest/evaluate/action.
+if(process.env.SNIPER_RESEARCH_FEED==='1'){
+ const pollResearch=createReceiver({getState:()=>state,commit});
+ void pollResearch().catch(e=>console.error('Research inbox:',e.message));setInterval(()=>{void pollResearch().catch(e=>console.error('Research inbox:',e.message))},60000);
+}
