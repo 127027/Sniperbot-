@@ -1,5 +1,10 @@
 # Lokaler Research-Gateway V0.4
 
+Aktuelle echte Scout-Prüfung: [DOT_CONNECTIVITY_STATUS.md](DOT_CONNECTIVITY_STATUS.md).
+Am 06.11.2026 meldete Meme Scout fehlenden lokalen Windows-Ausführungszugang;
+keine Nachricht, keine Serverantwort und keine bestätigte Event-ID. Kein erfolgreicher
+Dot-zu-Bot-Test. Details und notwendige Einrichtung im Prüfprotokoll.
+
 ## Was tatsächlich funktioniert
 
 - Fortlaufende neue Pool-Entdeckung über den bestehenden Scanner; keine feste
