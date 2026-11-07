@@ -7,7 +7,7 @@ node --check runner\core.mjs || goto :fail
 node --check runner\market.mjs || goto :fail
 node --check runner\server.mjs || goto :fail
 node runner\test.mjs || goto :fail
-node --test runner\integration.test.mjs || goto :fail
+node --test runner/*.test.mjs || goto :fail
 echo ALLE TESTS BESTANDEN
 pause
 exit /b 0

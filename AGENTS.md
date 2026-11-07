@@ -58,3 +58,13 @@ Priorität P0: Repository vollständig auschecken, Windows 11 frisch installiere
 - Dynamic position sizing: a user-defined min/max (e.g. 50–1000 TEST-USDC), selected amount may be 0 (no trade) or inside the range, bounded by available capital, risk budget, portfolio exposure, pool depth, route, fees and slippage. No '100% confident' or guaranteed 100× return.
 - **Exit change:** `runner/core.mjs` currently defaults to `takeProfit:15`; the legacy AUTO mode closes at +15%. That must NOT remain the target default Sniper exit. Investigate and test adaptive trend/trailing/liquidity/risk/timeout exits, multiple positions and persistent monitoring; explicitly preserve and label legacy/demo behavior until replacement is tested. Do **not** claim the code is already updated.
 - Entry OFF leaves existing active exit monitoring running; intentional HOLD versus AUTO must remain explicit. If feeds or laptop fail, do not report a successful sale. Keep all features PAPER-only, Hixton out of scope, no real money/wallet/payment work.
+
+
+## Owner clarification: per-coin sizing (06.11.2026)
+
+User min/max are per new coin purchase, not total capital and not a position-count
+limit. Equal bounds mean exactly that amount for each eligible new coin. Remove
+maxPositions, maxExposure and perPositionCap, including persisted legacy fields.
+Repeated distinct coins may use available funds until exhausted. Independent
+technical contract/sellability gates still apply. No calibrated profit probability
+may be inferred from a model rating. This overrides earlier portfolio-cap guidance.
