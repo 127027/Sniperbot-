@@ -1,5 +1,8 @@
 # GPT / Codex – Publisher-Blocker und Einrichtungsplan der fünf Forschungsrollen
 
+> **EINRICHTUNGS-NACHTRAG (07.11.2026):** Die folgende ursprüngliche Bestandsaufnahme (zwei aktive Sniper-Forschungsautomationen) ist inzwischen überholt. **Fünf** Sniper-Forschungsautomationen sind jetzt tatsächlich angelegt/ergänzt, aktiv und in der Automationsverwaltung geprüft. Zwei Bestandsaufgaben wurden wiederverwendet, drei neu angelegt. Die **gemeinsame tatsächliche Snapshot-Zustellung ist noch nicht abgenommen**; Ed25519-Signierdienst und objektive Contract-/Sellability-Adapter bleiben BLOCKED. Maßgeblicher Einrichtungsnachweis: [GPT_FIVE_ROLE_SETUP_REPLY.md](GPT_FIVE_ROLE_SETUP_REPLY.md). **Keine** automatischen Kauf-/Verkaufssignale freigegeben.
+
+
 **Geprüft:** 2026-11-07T22:38:50.436Z UTC  
 **Geltungsbereich:** `127027/Sniperbot-`, Arbeitsbranch `codex/research-gateway-v04`; keine Änderungen an `main`, Hixton, Windows-Kapital oder Echtgeld.  
 **Ziel:** Echte unabhängige Forschungsautomationen, aber **keine** direkte Orderausgabe, solange der kryptografisch verifizierte Paper-Publisher und unabhängige Markt-/Sellability-Prüfungen fehlen.
