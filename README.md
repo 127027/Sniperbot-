@@ -126,3 +126,11 @@ Aktuelle Grenzen: Die Dot-zu-Bot-Kommunikation ist NICHT integriert; Coin-Qualif
 - **Nicht implementiert:** Fünf verbundene Dots, direkte Dot-zu-Windows-Kommunikation, autonome KI-Ausführung, sichere Paper-Einstiege nach neuem Konsens, adaptive Exit-Engine und Echtgeldhandel. Vor allem gilt der derzeitige Scanner nicht als vorhersagefähiges 100×-System.
 
 **Sicherheit:** Aktuell nur PAPER, keine echten Geldflüsse/Orders und kein Eingriff in Hixton.
+
+## Optionaler Scout-Forschungseingang (Arbeitsbranch)
+
+`Windows_Starten_mit_Forschung.bat` startet den lokalen Bot mit ausdrücklich aktiviertem Nur-Informations-Feed. Vorher einen bereits laufenden Bot beenden; pro Datenordner läuft nur eine Instanz. `Windows_Starten.bat` allein aktiviert dieses Abonnement nicht.
+
+Der Feed liest öffentliche Scout-Nachrichten über GitHub; er nimmt **keine Kaufbefehle** an. Im Dashboard steht der Eingang unter „Scout-Eingang“. Technischer lokaler Empfangsnachweis: `/api/research/inbox`.
+
+Ein historischer echter Scout-Test wurde auf Windows empfangen und in drei weiteren isolierten Testinstanzen bestätigt. Regelmäßige Veröffentlichung und tatsächliche Empfangsbelege werden separat dokumentiert: [Empfangsnachweis](docs/SCOUT_INBOX_PROOF.md), [Grenzen und Betrieb](docs/RESEARCH_INBOX.md). Kein Smartphone-Host, kein signierter Echtzeit-Broker, keine Echtgeldfunktion.
