@@ -67,3 +67,15 @@ Lokale 80–92-Regel (brutto einschließlich Kosten): score<80 => 0; score80=>lo
 6. Erst nach Sicherheitsfreigabe den signierten Paper-Decision-Stream nutzen; bislang sind Research-Snapshots und alle Research-STATUS-Nachrichten **nicht handelbar**.
 
 **Keine Änderungen an: Hixton, Echtgeld, PayPal, Wallet, main oder lokaler Desktop-Instanz durch GPT.**
+
+
+## 6. Tatsächlich erfolgte erste Rollenzustellung und Korrektur
+
+**Erster nachgewiesener regulärer Rollendurchlauf:** Sniper Onchain Research wurde um 2026-11-07T22:45:13Z gestartet und um 22:45:31Z als abgeschlossen protokolliert. Die Aufgabenverwaltung nennt den tatsächlichen GitHub-Commit `ac86eaca56bcc298b65c0e28b9e4e43a29cc1946` und erfolgreichen Readback der Datei [research/roles/onchain_liquidity/latest.json](../research/roles/onchain_liquidity/latest.json).
+
+Der Inhalt wurde nochmals unabhängig gelesen: `schema=research_role_snapshot.v1`, `role=onchain_liquidity`, `paper_only=true`, `actionable=false`, `status=NO_VERIFIED_CANDIDATE`, `candidates=[]`, `published_at_utc=2026-11-07T22:45:25.175Z`. Der Bericht erklärt korrekt, dass die andere Rollen-Datei und ein eindeutig identifizierter Kandidat zu diesem Zeitpunkt noch fehlen; keine unabhängigen Contract-/Sell-Quotes oder Verkaufbarkeits-Nachweise, keine BUY-/SELL-Entscheidung. **Damit ist exakt ein echter neuer Rollen-GitHub-Veröffentlichungsweg bewiesen, nicht fünf und kein Handels-Publisher.**
+
+**Befund und Behebung im Einrichtungs-Chat:** Der On-Chain-Lauf meldete einen falsch spezifizierten Dokumentationspfad `docs/GPT_PUBLISHER_BLOCKER_AND_onchain_liquidity_SETUP.md` statt `docs/GPT_PUBLISHER_BLOCKER_AND_ROLE_SETUP.md`. Ursache war eine zu breite Ersetzung des Platzhalters `ROLE` beim Erzeugen der drei neuen Prompttexte. Die drei gespeicherten Aufgaben `Sniper Social Research`, `Sniper Onchain Research` und `Sniper Opportunity QA` wurden deshalb **nur hinsichtlich dieses Pfads** korrigiert. Die Automationsverwaltung bestätigte bei allen drei den richtigen Pfad, die Entfernung des fehlerhaften Pfads und **unveränderte** stündliche Zeitpläne/Modi. Kein Bot-/Handelscode, keine Feed-Dateien und keine Hixton-Aufgaben wurden dazu verändert.
+
+**Noch ausstehend:** reale Snapshot-Veröffentlichungen von `news_discovery`, `contract_security`, `social_acceleration` und `opportunity_qa`, ein belegter Austausch derselben Kandidatenidentität, ein gemeinsamer Evidence-/Vote-/Risk-Store und ein unabhängiger echter Ed25519-Publisher samt Markt-/Sellability-Adaptern.
+
