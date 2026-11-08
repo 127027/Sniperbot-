@@ -3,8 +3,65 @@
 <style>
 :root{--bg:#0c1016;--panel:#131923;--muted:#8894a8;--border:#26303e;--fg:#f3f5fa;--mint:#66dfba;--warn:#efc681;--red:#f38e9c}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}main{max-width:1280px;margin:auto;padding:0 22px 60px}header{height:78px;display:flex;gap:22px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}h1{font-size:20px;letter-spacing:-.4px;margin:0}h2{font-size:15px;margin:0 0 4px}h3{font-size:13px;margin:0}p{color:var(--muted);margin:4px 0 12px}small{color:var(--muted)}a{color:var(--mint)}.brand{display:flex;gap:12px;align-items:center}.mark{width:37px;height:37px;border-radius:11px;background:var(--mint);color:#073227;display:grid;place-items:center;font-weight:900;font-size:19px}.tag{padding:6px 10px;border-radius:30px;border:1px solid var(--border);font-size:11px;white-space:nowrap;color:var(--muted)}.tag.good{color:var(--mint);border-color:#2c6858;background:#14372d}.tag.warn{color:var(--warn);border-color:#5b4731;background:#2e271e}.tag.danger{color:var(--red)}.banner{margin:22px 0;padding:12px 16px;border:1px solid #5b4930;background:#2b251c;border-radius:12px;color:#efcf95;font-size:12px;line-height:1.6}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.tile,.panel{border:1px solid var(--border);background:var(--panel);border-radius:15px}.tile{padding:19px}.tile b{display:block;font-size:24px;letter-spacing:-.5px}.tile small{display:block;margin-bottom:10px}.two{display:grid;grid-template-columns:1.05fr 1fr;gap:14px;margin-top:14px}.panel{padding:20px;margin-top:14px}.panel header{height:auto;border:0;margin-bottom:15px;align-items:flex-start}.panel >h2{margin-bottom:10px}.flex{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.push{margin-left:auto}.btn{border:1px solid #405061;border-radius:9px;background:#202d3d;color:#e9f1f7;padding:9px 14px;font-weight:600;cursor:pointer;min-height:39px}.btn.primary{background:var(--mint);color:#092c23;border-color:var(--mint)}.btn.danger{background:#362631;color:var(--red);border-color:#69404d}.btn:hover{filter:brightness(1.12)}.btn:disabled{opacity:.5;cursor:not-allowed}input,select{background:#0b111a;border:1px solid #35445a;padding:9px 11px;min-height:39px;border-radius:8px;color:#fff;min-width:0}input[type=number]{width:106px}input.address{width:min(100%,340px)}label{display:flex;align-items:center;gap:6px;color:#9badbd;font-size:12px}.field{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.field b{font-size:12px}.muted{color:var(--muted)}.good{color:var(--mint)}.warning{color:var(--warn)}.bad{color:var(--red)}.divider{height:1px;background:var(--border);margin:18px 0}.toggle{border:1px solid #506173;border-radius:12px;padding:10px 14px;background:#26313c;color:#e5edf6;font-weight:800;cursor:pointer}.toggle.on{border-color:#409879;background:#163f34;color:var(--mint)}.panelgrid{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:12px}.stack{display:grid;gap:8px}.row{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--border);padding:10px 0}.row:last-child{border:0}.row .name{font-weight:700}.row small{display:block;margin-top:3px;font-size:11px;overflow-wrap:anywhere}.right{text-align:right;white-space:nowrap}.mono{font-family:ui-monospace,Consolas,monospace;font-size:11px}.note{font-size:11px;color:var(--muted);line-height:1.7}.positions .row{align-items:flex-start}.empty{color:var(--muted);padding:20px 0}.bar{margin-top:14px;color:var(--muted);font-size:11px}.status{min-height:15px}.trade-actions{margin-top:9px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}.details{font-size:11px;color:var(--muted);line-height:1.65}.error{color:var(--red)}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--mint);outline-offset:2px}@media(max-width:880px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.panelgrid{grid-template-columns:1fr}}@media(max-width:530px){main{padding:0 13px 36px}.grid{gap:9px}.tile{padding:14px}.tile b{font-size:19px}.panel{padding:15px}.row{flex-wrap:wrap}.right{text-align:left}header{gap:10px}.tag{font-size:10px}.brand h1{font-size:16px}}
+
+/* Compact, read-only local research reception indicator. */
+.topbar{height:auto;min-height:78px;padding:11px 0;gap:14px}
+.header-right{display:flex;gap:12px;align-items:center;margin-left:auto;min-width:0}
+.header-tags{gap:8px}
+.dot-widget{width:315px;max-width:100%;position:relative;flex-shrink:0;font-size:12px}
+.dot-toggle{list-style:none;display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid var(--border);border-radius:11px;background:#141f29;min-height:53px;cursor:pointer}
+.dot-toggle::-webkit-details-marker{display:none}
+.dot-toggle:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.dot-widget[open] .dot-toggle{border-color:#49687a}
+.dot-lamp{height:10px;width:10px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.dot-widget[data-status="received"] .dot-lamp{background:var(--mint);box-shadow:0 0 8px #66dfba55}
+.dot-widget[data-status="stale"] .dot-lamp,.dot-widget[data-status="historical_only"] .dot-lamp{background:var(--warn)}
+.dot-widget[data-status="error"] .dot-lamp,.dot-widget[data-status="offline"] .dot-lamp{background:var(--red)}
+.dot-heading{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+.dot-heading strong{font-size:12px;line-height:1.2}
+.dot-heading small{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dot-badge{font-size:10px;color:var(--muted);border:1px solid var(--border);border-radius:12px;padding:2px 7px;white-space:nowrap}
+.dot-widget[data-status="received"] .dot-badge{color:var(--mint);border-color:#2c6858}
+.dot-widget[data-status="error"] .dot-badge,.dot-widget[data-status="offline"] .dot-badge{color:var(--red)}
+.dot-widget[data-status="stale"] .dot-badge{color:var(--warn)}
+.dot-popup{position:absolute;right:0;top:calc(100% + 7px);width:360px;max-width:calc(100vw - 30px);z-index:30;background:#151e2b;border:1px solid #344154;border-radius:13px;box-shadow:0 14px 36px #0009;padding:15px}
+.dot-popup h3{font-size:13px}
+.dot-hint{font-size:11px;margin:4px 0 13px}
+.dot-meta{display:flex;gap:12px;justify-content:space-between;border-bottom:1px solid var(--border);padding:5px 0;font-size:11px}
+.dot-meta>span{color:var(--muted)}
+.dot-meta>strong{text-align:right;font-weight:600}
+.dot-role-heading{margin-top:13px!important;margin-bottom:7px!important}
+.dot-role-item{border-top:1px solid var(--border);padding:7px 0;display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
+.dot-role-item>strong{font-size:11px;font-weight:600}
+.dot-role-item>small{font-size:10px;text-align:right;max-width:60%;overflow-wrap:anywhere}
+.dot-role-item .dot-missing{color:var(--muted)}
+.dot-role-item .dot-old{color:var(--warn)}
+.dot-error{margin-top:10px;font-size:11px;color:var(--red);overflow-wrap:anywhere}
+@media(max-width:880px){.topbar{flex-wrap:wrap}.header-right{flex-wrap:wrap}.dot-widget{width:300px}}
+@media(max-width:530px){.topbar{align-items:flex-start}.header-right{width:100%;margin-left:0;display:flex;flex-direction:column;align-items:stretch}.dot-widget{width:100%}.dot-popup{position:static;width:100%;max-width:none;margin-top:8px;box-shadow:none}.header-tags{justify-content:space-between}.dot-toggle{min-height:50px}}
+
 </style></head><body><main>
-<header><div class="brand"><span class="mark">⌖</span><div><h1>Meme Sniper <span class="good">AI</span></h1><small>WINDOWS · LOCAL</small></div></div><div class="flex"><span class="tag warn">NUR TESTGUTHABEN</span><span id="online" class="tag">Verbinde …</span></div></header>
+<header class="topbar"><div class="brand"><span class="mark">⌖</span><div><h1>Meme Sniper <span class="good">AI</span></h1><small>WINDOWS · LOCAL</small></div></div>
+<div class="header-right">
+  <details id="dotWidget" class="dot-widget" data-status="no_receipt">
+    <summary class="dot-toggle" aria-label="Letzte Forschungsnachricht und Dot-Empfangsdetails anzeigen">
+      <span class="dot-lamp" aria-hidden="true"></span>
+      <span class="dot-heading"><strong>Dot-Eingang</strong><small id="dotLatest">Noch kein Empfang bestätigt</small></span>
+      <span id="dotBadge" class="dot-badge">Unbekannt</span>
+    </summary>
+    <div class="dot-popup">
+      <h3>Forschungsnachrichten</h3>
+      <p class="dot-hint">Bestätigte lokale Empfänge – keine direkte Dot-Verbindung und keine Handelsfreigabe.</p>
+      <div class="dot-meta"><span>Gesendet</span><strong id="dotPublished">–</strong></div>
+      <div class="dot-meta"><span>Empfangen im Bot</span><strong id="dotReceived">–</strong></div>
+      <div class="dot-meta"><span>Letzter Abruf</span><strong id="dotChecked">–</strong></div>
+      <h3 class="dot-role-heading">Forschungsrollen</h3>
+      <div id="dotRoleDetails" class="dot-role-list"><p>Noch kein Rollenempfang bestätigt.</p></div>
+      <p id="dotError" class="dot-error" hidden></p>
+    </div>
+  </details>
+  <div class="flex header-tags"><span class="tag warn">NUR TESTGUTHABEN</span><span id="online" class="tag">Verbinde …</span></div>
+</div></header>
 <div class="banner"><b>Kein echtes Geld, keine echte Order.</b> Testeinzahlungen, Wechselkurs 1:1 und Coins sind nur Paper-Trading. Neue Pools/Kurse können aus öffentlichen Live-Feeds kommen, sind aber nicht sicherheitsgeprüft. Der Bot darf ohne unabhängige Sicherheitsprüfung keine echten Coins kaufen.</div>
 <section class="grid" id="summary"></section>
 <section class="two">
@@ -32,10 +89,39 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const num=(x,d=2)=>Number.isFinite(Number(x))?Number(x).toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d}):'–';
 const t=x=>x?new Date(x).toLocaleString('de-DE'):'unbekannt';
 const tiny=s=>String(s||'').length>18?`${String(s).slice(0,9)}…${String(s).slice(-6)}`:String(s||'');
+
+function dotTime(iso){const n=typeof iso==='string'?Date.parse(iso):NaN;return Number.isFinite(n)?new Date(n).toLocaleString('de-DE'):'–'}
+function renderDotStatus(model){
+ const known=['received','stale','error','disabled','historical_only','no_receipt'];
+ const status=known.includes(model?.status)?model.status:'no_receipt';
+ $('dotWidget').dataset.status=status;
+ $('dotBadge').textContent=({received:'Empfangen',stale:'Veraltet',error:'Abruffehler',disabled:'Empfang aus',historical_only:'Nur Test',no_receipt:'Noch kein Eingang'})[status];
+ const latest=model?.latest;
+ $('dotLatest').textContent=latest?'Empfangen: '+dotTime(latest.received_at_utc):model?.historical_received_at_utc?'Nur historische Testnachricht':'Noch kein regulärer Empfang';
+ $('dotPublished').textContent=latest?dotTime(latest.published_at_utc):'–';
+ $('dotReceived').textContent=latest?dotTime(latest.received_at_utc):model?.historical_received_at_utc?'Historische Probe: '+dotTime(model.historical_received_at_utc):'–';
+ $('dotChecked').textContent=dotTime(model?.last_check_at_utc);
+ const roles=Array.isArray(model?.roles)?model.roles:[];
+ $('dotRoleDetails').innerHTML=roles.map(role=>{
+  const received=!!role.last_received_at,stale=!!role.stale;
+  const state=received?(stale?'Veraltet · ':'Empfangen · ')+dotTime(role.last_received_at):'Noch kein Bot-Empfang';
+  return '<div class="dot-role-item"><strong>'+esc(role.label)+'</strong><small class="'+(!received?'dot-missing':stale?'dot-old':'')+'">'+esc(state)+'</small></div>';
+ }).join('')||'<p>Noch kein Rollenempfang bestätigt.</p>';
+ const err=$('dotError');
+ err.hidden=!model?.last_error;
+ err.textContent=model?.last_error?'Letzter Abruffehler: '+model.last_error:'';
+}
+function dotRunnerOffline(){
+ $('dotWidget').dataset.status='offline';
+ $('dotBadge').textContent='Runner offline';
+ $('dotLatest').textContent='Letzten Empfang nicht neu geprüft';
+}
+
 const getMoney=()=>Number($('eur').value);
 async function api(a){if(waiting)return;waiting=true;try{const r=await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(a)});const j=await r.json();if(!r.ok)throw Error(j.error||'Abgelehnt');await refresh(true)}catch(e){alert('Testaktion nicht ausgeführt: '+e.message)}finally{waiting=false}}
-async function refresh(force=false){try{const r=await fetch('/api/state',{cache:'no-store'});if(!r.ok)throw Error('Server antwortet nicht');const j=await r.json();lastState=j.state;lastHealth=j.health;$('online').textContent='Paper-Runner aktiv';$('online').className='tag good';render(force)}catch(e){$('online').textContent='Runner offline';$('online').className='tag danger';$('scanstatus').textContent='Keine Verbindung zum lokalen Runner. Starte Windows_Starten.bat.'}}
+async function refresh(force=false){try{const r=await fetch('/api/state',{cache:'no-store'});if(!r.ok)throw Error('Server antwortet nicht');const j=await r.json();lastState=j.state;lastHealth=j.health;$('online').textContent='Paper-Runner aktiv';$('online').className='tag good';render(force)}catch(e){$('online').textContent='Runner offline';$('online').className='tag danger';$('scanstatus').textContent='Keine Verbindung zum lokalen Runner. Starte Windows_Starten.bat.';dotRunnerOffline()}}
 function render(force){if(!lastState)return;const s=lastState;
+ renderDotStatus(lastHealth?.dotStatus);
  const worth=s.positions.reduce((n,p)=>n+p.qty*p.priceUsd*.99,0),net=s.cashEur+s.cashUsdc+worth;
  $('summary').innerHTML=`<div class="tile"><small>Virtuelles EUR-Guthaben</small><b>${num(s.cashEur)} €</b><small>Nur Testguthaben</small></div><div class="tile"><small>Freie Test-USDC</small><b>${num(s.cashUsdc)}</b><small>Testwährung</small></div><div class="tile"><small>Positionen (Papierwert)</small><b>${num(worth)}</b><small>${s.positions.length} offene Coin-Position(en)</small></div><div class="tile"><small>Gesamter Testwert</small><b>${num(net)}</b><small>Rechnerisch, kein reales Vermögen</small></div>`;
  $('toggle').textContent=s.entriesEnabled?'Bot AN – Pausieren':'Bot AUS – Einschalten';$('toggle').className='toggle '+(s.entriesEnabled?'on':'');
