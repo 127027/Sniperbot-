@@ -2,11 +2,11 @@
   "schema": "research_role_snapshot.v1",
   "role": "contract_security",
   "producer": "Meme Sniper – Techniklabor",
-  "snapshot_id": "contract-security-20261108T073315601Z-scheduled",
-  "published_at_utc": "2026-11-08T07:33:15.601Z",
+  "snapshot_id": "contract-security-20261108T083001002Z-scheduled",
+  "published_at_utc": "2026-11-08T08:30:01.002Z",
   "paper_only": true,
   "actionable": false,
   "status": "NO_VERIFIED_CANDIDATE",
   "candidates": [],
-  "summary": "Scheduled research 2026-11-08T07:33:15.601Z: Read publisher blocker/setup and all five role snapshots directly via GitHub. Other four roles currently NO_VERIFIED_CANDIDATE with candidates=[]; derived reports only, not independent on-chain validation. Independently checked official Solana primary docs https://solana.com/docs/tokens/extensions/default-state and https://solana.com/docs/tokens/extensions/transfer-hook; both checks already recorded in prior research, no materially new technical finding. No independently verified chain:token_address:pool_address. Contract mint/freeze/delegate, holder/LP concentration, honeypot, live executable sell quotes, size-dependent slippage and sellability UNKNOWN; REAL_VALIDATOR_UNAVAILABLE. No PASS, orders, keys or other file changes."
+  "summary": "Scheduled independent research 2026-11-08T08:30:01.002Z: Read docs/GPT_PUBLISHER_BLOCKER_AND_ROLE_SETUP.md and all five current role snapshots directly via GitHub. Other four roles all NO_VERIFIED_CANDIDATE, candidates=[]; derived reports only, no independent candidate verification. Newly independently checked official Solana Token-2022 CPI Guard primary source https://solana.com/docs/tokens/extensions/cpi-guard (accessed 2026-11-08): CpiGuard is a token-account extension (not just mint), and enabled guard rejects owner-authorized TransferChecked/TransferCheckedWithFee through CPI; direct token instructions and delegate-authorized CPI can behave differently. Therefore route-specific swap/sell simulation must inspect source token account extension and exact CPI authority/path, not just mint rights or indicative DEX quote. No verified chain:token_address:pool_address. Candidate-specific mint/freeze/delegate, holder/LP concentration, honeypot, executable sell quotes, slippage, sellability UNKNOWN; REAL_VALIDATOR_UNAVAILABLE. No PASS, trading, keys, or other changes."
 }
