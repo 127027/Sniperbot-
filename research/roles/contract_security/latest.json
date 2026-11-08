@@ -2,11 +2,11 @@
   "schema": "research_role_snapshot.v1",
   "role": "contract_security",
   "producer": "Meme Sniper – Techniklabor",
-  "snapshot_id": "contract-security-20261108T214710039Z-run11",
-  "published_at_utc": "2026-11-08T21:47:10.039Z",
+  "snapshot_id": "contract-security-20261108T221224173Z-scheduled",
+  "published_at_utc": "2026-11-08T22:12:24.173Z",
   "paper_only": true,
   "actionable": false,
   "status": "NO_VERIFIED_CANDIDATE",
   "candidates": [],
-  "summary": "Independent architecture finding checked 2026-11-08 against Solana primary documentation https://solana.com/docs/tokens/extensions/confidential-transfer/integration-guide : Token-2022 Confidential Balances encrypts transfer amounts and confidential available/pending balances; ordinary pre/post public balance diffs miss confidential transfers. Public token-account addresses remain visible, but amount-based holder-flow, wash-trading and volume analytics are incomplete without authorized disclosure. Account approval policies may additionally gate confidential transfers. Future validator must detect ConfidentialTransferMint/Account, mark confidential amount-based concentration/volume metrics UNKNOWN (never zero), distinguish public versus confidential balances, and test only the actual public DEX sell route for supported account state; no keys or confidential proof transactions. Benefit: avoids false confidence in transparent volume/holder heuristics; cost: lower analytics coverage and more account-state parsing. All four other role snapshots read directly from GitHub and report NO_VERIFIED_CANDIDATE/candidates=[] (DERIVED, not independent verification). No independently verified common chain:token_address:pool_address. Candidate-specific contract rights, LP/holder concentration, executable sell quotes and sellability UNKNOWN; REAL_VALIDATOR_UNAVAILABLE. No orders/signatures/keys."
+  "summary": "2026-11-08 22:12 UTC: GitHub project setup document and all four other role snapshots independently read via connected GitHub access. All four report NO_VERIFIED_CANDIDATE/candidates=[] (DERIVED role statuses, not independent on-chain confirmations). No shared independently verified chain:token_address:pool_address. Candidate-specific mint/freeze/pause/transfer-hook rights, LP and holder concentration, honeypot indicators, real executable buy/sell quotes and sellability UNKNOWN; REAL_VALIDATOR_UNAVAILABLE. Previous verified Token-2022 findings remain relevant; no newly verified material technical finding in this run. Attempted additional official Solana docs retrieval timed out or was inaccessible; do not claim new verification. No live orders, signatures, wallets or keys. Research only."
 }
