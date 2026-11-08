@@ -29,7 +29,8 @@ export function buildDotStatus(inbox,{enabled=false,now=Date.now()}={}){
     if(!r)continue;
     role.last_received_at=r.received_at_utc;
     role.last_published_at=r.message.published_at_utc;
-    role.event_id=typeof (r.message.event_id||r.message.snapshot_id)==='string'?(r.message.event_id||r.message.snapshot_id):null;
+    const id=r.message.schema==='research_role_snapshot.v1'?r.message.snapshot_id:r.message.event_id;
+    role.event_id=typeof id==='string'?id:null;
     const expiry=typeof r.message.expires_at_utc==='string'?Date.parse(r.message.expires_at_utc):NaN;
     role.stale=now-Date.parse(r.received_at_utc)>MAX_AGE_MS||(Number.isFinite(expiry)&&expiry<=now);
   }
