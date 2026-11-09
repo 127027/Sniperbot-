@@ -8,7 +8,7 @@ export function attachSupervisedStop(shutdown,{env=process.env,stream=process.st
   const receive=chunk=>{
     if(requested)return;
     buffer=(buffer+String(chunk)).slice(-256);
-    if(buffer.includes('SNIPER_STOP_V1\n')){
+    if(/SNIPER_STOP_V1\r?\n/.test(buffer)){
       requested=true;
       try{shutdown()}catch(e){console.error('Shutdown error:',e?.message||'UNKNOWN')}
     }
