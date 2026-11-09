@@ -1,6 +1,7 @@
 import {receiveDecision} from './central-decisions.mjs';
 import {createReceiver} from './research-inbox.mjs';
 import {buildDotStatus} from './dot-status.mjs';
+import {fetchResearchNetwork} from './research-network.mjs';
 import {storage} from './storage.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
@@ -15,6 +16,25 @@ const root=path.join(path.dirname(fileURLToPath(import.meta.url)),'..');
 const store=storage(root);
 let state=store.state,scanning=false,pricing=false;
 const allowRequest=limiter();
+let researchNetwork={schema:'research_network_status.v1',transport:'PUBLIC_GITHUB_PULL_ONLY',
+ paper_only:true,actionable:false,current_roles:0,total_roles:5,
+ roles:[],watchlist:{candidate_count:null,stale:true},local_execution:'BLOCKED_REAL_VALIDATOR_UNAVAILABLE',
+ checked_at_utc:null,message:'Awaiting first public GitHub research readback'};
+let networkBusy=false;
+async function refreshResearchNetwork(){
+ if(networkBusy)return;networkBusy=true;
+ try{
+  const next=await fetchResearchNetwork();
+  researchNetwork=next;
+  // Public summaries only; never put portfolio, tokens or signing keys in the cache.
+  const target=path.join(root,'.local','research-network','status.json');
+  mkdirSync(path.dirname(target),{recursive:true});
+  const temp=target+'.tmp-'+process.pid;
+  writeFileSync(temp,JSON.stringify(next,null,2)+'\n','utf8');
+  renameSync(temp,target);
+ }catch(e){console.error('GitHub research mirror:',e?.message||'UNAVAILABLE')}
+ finally{networkBusy=false}
+}
 function decisionKeys(){
  const file=path.join(store.dir,'trusted-publishers.json');
  if(!existsSync(file))return [];
@@ -56,7 +76,8 @@ const server=createServer(async(req,res)=>{
     'Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'"});
   return res.end(readFileSync(path.join(root,'runner','dashboard.html')));
  }
- if(req.method==='GET'&&route==='/api/state')return reply(res,200,{ok:true,mode:'PAPER_ONLY',dataSource:'GeckoTerminal / DEX Screener (read only)',state,health:{online:true,scanRunning:scanning,pricing,uptimeSec:Math.round(process.uptime()),central:centralStatus(),dotStatus:buildDotStatus(state.researchInbox,{enabled:process.env.SNIPER_RESEARCH_FEED==='1'})}});
+ if(req.method==='GET'&&route==='/api/state')return reply(res,200,{ok:true,mode:'PAPER_ONLY',dataSource:'GeckoTerminal / DEX Screener (read only)',state,health:{online:true,scanRunning:scanning,pricing,uptimeSec:Math.round(process.uptime()),central:centralStatus(),researchNetwork,dotStatus:buildDotStatus(state.researchInbox,{enabled:process.env.SNIPER_RESEARCH_FEED==='1'})}});
+ if(req.method==='GET'&&route==='/api/research/network')return reply(res,200,{ok:true,network:researchNetwork});
  if(req.method==='GET'&&route==='/api/research/inbox')return reply(res,200,{ok:true,mode:'PAPER_ONLY',enabled:process.env.SNIPER_RESEARCH_FEED==='1',inbox:state.researchInbox||{receipts:[]}});
  if(req.method==='GET'&&route==='/api/decisions')return reply(res,200,{ok:true,...centralStatus()});
  if(req.method==='POST'&&route==='/api/decisions/events'){
@@ -124,6 +145,12 @@ function shutdownServer(){
 }
 for(const sig of ['SIGINT','SIGTERM'])process.on(sig,shutdownServer);
 attachSupervisedStop(shutdownServer);
+
+// Read-only five-role GitHub research mirror, separate from portfolio and action handlers.
+if(process.env.SNIPER_OFFLINE!=='1'){
+ void refreshResearchNetwork();
+ setInterval(()=>{void refreshResearchNetwork()},120000);
+}
 
 // Opt-in, outbound-only, informational feed. Never calls ingest/evaluate/action.
 if(process.env.SNIPER_RESEARCH_FEED==='1'){
