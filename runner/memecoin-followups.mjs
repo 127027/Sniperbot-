@@ -140,6 +140,41 @@ export async function fetchFollowupPool(record,{fetcher=fetch,now}={}){
   buys_m5:finiteOrNull(att.transactions?.m5?.buys),
   sells_m5:finiteOrNull(att.transactions?.m5?.sells)},now);
 }
+// Official GeckoTerminal multi-pool GET: no more than thirty exact identities per
+// chain and one read-only request per chain per collector cycle. Never accept a
+// token from a different pool, and never treat pool prices as executable quotes.
+export async function fetchFollowupBatch(records,{fetcher=fetch,now}={}){
+ if(!Array.isArray(records)||records.length===0||records.length>BATCH_PER_CHAIN||
+    !Number.isFinite(moment(now))||records.some(r=>!validRecord(r))||
+    records.some(r=>r.chain!==records[0].chain)||
+    new Set(records.map(r=>r.candidate_id)).size!==records.length)
+    throw Error('INVALID_FOLLOWUP_BATCH');
+ const chain=records[0].chain;
+ const addresses=records.map(r=>encodeURIComponent(r.pool_address)).join(',');
+ const url='https://api.geckoterminal.com/api/v2/networks/'+CHAINS[chain]+'/pools/multi/'+addresses;
+ const response=await fetcher(url,{headers:{accept:'application/json','user-agent':'MemeSniperResearchFollowups/1.0'},
+  signal:AbortSignal.timeout(12000),redirect:'error'});
+ if(!response?.ok){const e=Error('FOLLOWUP_PROVIDER_UNAVAILABLE');e.status=response?.status;throw e}
+ const json=await response.json(),data=Array.isArray(json?.data)?json.data:json?.data?[json.data]:null;
+ if(!data)throw Error('FOLLOWUP_BAD_RESPONSE');
+ const expected=new Set(records.map(r=>r.candidate_id));
+ const found=new Map();
+ for(const raw of data){
+  const att=raw?.attributes,tok=raw?.relationships?.base_token?.data?.id;
+  if(!att||typeof tok!=='string'||!tok.startsWith(CHAINS[chain]+'_'))continue;
+  let id;try{id=candidateId(chain,tok.slice(CHAINS[chain].length+1),att.address)}catch{continue}
+  if(!expected.has(id)||found.has(id))continue;
+  const price=finiteOrNull(att.base_token_price_usd);
+  if(!validPrice(price))continue;
+  const obs=observation({price_usd:price,liquidity_usd:finiteOrNull(att.reserve_in_usd),
+   volume_m5_usd:finiteOrNull(att.volume_usd?.m5),
+   buys_m5:finiteOrNull(att.transactions?.m5?.buys),
+   sells_m5:finiteOrNull(att.transactions?.m5?.sells)},now);
+  found.set(id,{id,obs});
+ }
+ return records.map(r=>found.get(r.candidate_id)||
+   {id:r.candidate_id,error:'POOL_IDENTITY_OR_PRICE_UNAVAILABLE'});
+}
 export async function runFollowups(snapshot,{filename,fetcher=fetch,now=snapshot?.published_at_utc}={}){
  if(typeof filename!=='string'||!path.isAbsolute(filename))throw Error('ABSOLUTE_RESEARCH_FILE_REQUIRED');
  let current=emptyFollowupState();
@@ -151,11 +186,13 @@ export async function runFollowups(snapshot,{filename,fetcher=fetch,now=snapshot
  const {state,admitted,omitted}=selectFollowupCandidates(current,snapshot,{now});
  const pending=dueFollowups(state,{now});
  let succeeded=0,failed=0;
- // Eight public read-only requests maximum per 2-minute cycle, without retry bursts.
- const checked=await Promise.all(pending.map(async r=>{
-  try{return {id:r.candidate_id,obs:await fetchFollowupPool(r,{fetcher,now})}}
-  catch(e){return {id:r.candidate_id,error:errCode(e)}}
- }));
+ // Bounded to four free-provider requests at most per 2-minute cycle:
+ // one batch (up to 30 pools) per network, no retries or arbitrary URLs.
+ const groups=Object.keys(CHAINS).map(chain=>pending.filter(r=>r.chain===chain));
+ const checked=(await Promise.all(groups.filter(group=>group.length).map(async group=>{
+  try{return await fetchFollowupBatch(group,{fetcher,now})}
+  catch(e){return group.map(r=>({id:r.candidate_id,error:errCode(e)}))}
+ }))).flat();
  const byId=new Map(state.records.map(r=>[r.candidate_id,r]));
  for(const c of checked){
   const r=byId.get(c.id);if(!r)continue;
@@ -164,12 +201,15 @@ export async function runFollowups(snapshot,{filename,fetcher=fetch,now=snapshot
   else{r.check_errors++;r.last_error=c.error;failed++}
  }
  finishFollowupState(state,{now});
- const output=JSON.stringify(state);
- if(Buffer.byteLength(output)>MAX_FILE_BYTES)throw Error('RESEARCH_TRACKER_LIMIT: no observations overwritten');
- await mkdir(path.dirname(filename),{recursive:true});
- const tmp=filename+'.tmp-'+process.pid;
- await writeFile(tmp,output+'\n','utf8');
- await rename(tmp,filename);
+ const completing=state.records.some(r=>r.completed_at_utc===now);
+ if(admitted||checked.length||completing){
+  const output=JSON.stringify(state);
+  if(Buffer.byteLength(output)>MAX_FILE_BYTES)throw Error('RESEARCH_TRACKER_LIMIT: no observations overwritten');
+  await mkdir(path.dirname(filename),{recursive:true});
+  const tmp=filename+'.tmp-'+process.pid;
+  await writeFile(tmp,output+'\n','utf8');
+  await rename(tmp,filename);
+ }
  return {schema:'memecoin_followups_status.v1',paper_only:true,actionable:false,
   monitored_active:state.records.filter(r=>!r.completed_at_utc).length,
   completed:state.records.filter(r=>r.completed_at_utc).length,
