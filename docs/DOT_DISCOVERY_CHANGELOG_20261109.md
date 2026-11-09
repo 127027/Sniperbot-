@@ -33,7 +33,7 @@ Alle fünf bereits existierenden Sniper-Aufgaben wurden über die Automationsver
 ## 3. Was die Veränderung real leistet – und was nicht
 
 - **Real umgesetzt:** historische Quellenübersicht, dokumentierte falsifizierbare Frühsignalhypothesen, deduplizierte persistente Watchlist als leeres Research-Artefakt, getestete Offline-Review-Funktionen, fünf tatsächlich aktualisierte laufende Automationsprompts.
-- **Noch nicht beobachtet / kein Erfolgsbeweis:** Watchlist enthält aktuell **0** echte Kandidaten; kein neuer geplanter Scout-Lauf nach dem Umbau hat dort bisher eine echte validierte Adresse publiziert. Die vier Fachrollen müssen die erste gemeinsame Kandidatenanalyse noch wirklich demonstrieren. Eine gespeicherte Promptanweisung ist kein ständig laufender Kollektor.
+- **Erster echter Scout-Lauf nach der Umstellung nachgewiesen:** Geplanter Lauf vom **09.11.2026 um 13:03 UTC** hat das neue Playbook und die anderen Research-Snapshots gelesen und die Watchlist tatsächlich mit Zeitstempel **13:03:33.025 UTC** per GitHub-Commit `f2f909532b6fbef2a7dd858f97de70b7a303fc42` aktualisiert. Der Zugriff auf strukturierte New-Pool-APIs scheiterte dabei teilweise an Web-Rechten beziehungsweise DNS; daher **0** validierte Adressen, kein Coin, keine Order. Die vier Fachrollen müssen eine erste gemeinsame echte Kandidatenanalyse noch beweisen. Einzelheiten/Backoff: [DOT_DISCOVERY_PLAYBOOK_V1.md](DOT_DISCOVERY_PLAYBOOK_V1.md), Abschnitt 8. Eine laufende ChatGPT-Stundenaufgabe ist noch kein Sekundentakt-Marktdienst.
 - **Nicht implementiert:** eine globale minuten-/sekundengenaue WebSocket-/RPC-Überwachung, vollständige historische Onchain-OHLCV-/Wallet-/Social-Daten, autonome Modell-Nachtrainierung oder empirisch kalibrierte Gewinnwahrscheinlichkeit; sichere Ed25519-Publisher-/Queue- und vollständige unabhängige Contract-/Sell-Quote-Adapter fehlen weiter.
 - **Handel bleibt BLOCKED:** research_notice.v1 sowie research_role_snapshot.v1 und research_watchlist.v1 sind ausschließlich `actionable=false`; keine Verbindung zu externen Paper-Orders, keine Echtgeld-/Wallet-/PayPal-Verbindungen.
 - **Kein lokaler PC-Eingriff:** bestehende virtuelle 1.000 Test-USDC, Min/Max und Laptop-Prozess wurden **nicht** angetastet. Kein Hixton-Touch und kein Merge nach `main`.
@@ -47,3 +47,7 @@ Alle fünf bereits existierenden Sniper-Aufgaben wurden über die Automationsver
 5. Erst separate technische Implementierung eines sicheren Live-Collectors, unabhängigen Validierers und Publishers, bevor irgendein externer Paper-Fill jemals freigegeben wird.
 
 **Die zehn Gewinner sind historische Trainingsbeispiele für Suchheuristiken, keine zehn Backtests; kein verifizierter Nettogewinn wurde berechnet.**
+
+## Nachtrag: dynamische Watchlist und CI-Regressionskorrektur
+
+Der neue Test hatte zunächst irrtümlich einen dauerhaft leeren `published_at_utc` erwartet. Der erste echte Scout-Lauf aktualisierte den Wert korrekt. Der Test wurde daraufhin geändert: Er prüft nun die aktuelle Research-Datei auf schema-strikte Gültigkeit, paper_only=true und actionable=false, ohne echte neue Veröffentlichungszeitpunkte oder künftige Kandidaten zu verbieten. Die korrigierte GitHub Actions-Pipeline [42622372929](https://github.com/127027/Sniperbot-/actions/runs/42622372929) lief anschließend erfolgreich. Dieser Testfehler war **kein** Handels- oder Forschungsdatenfehler.
