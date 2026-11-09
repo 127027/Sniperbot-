@@ -8,8 +8,10 @@ test('paper capital sets exact total, not additional deposit; settings and resea
   const original={...freshState(),cashEur:350,cashUsdc:650,minTrade:50,maxTrade:1000,centralPaperFollow:true,
     researchInbox:{receipts:[{event_id:'existing'}]},paperDecisions:{receipts:[{signal_id:'existing'}]}};
   const changed=action(original,{type:'SET_PAPER_BALANCE',amount:1000});
-  assert.equal(changed,original,'identical account amount is a no-op only for already pure TEST-USDC; EUR must be consolidated');
-  // Existing 350 demo EUR are intentionally preserved until the user explicitly sets a different total.
+  assert.notEqual(changed,original,'explicit total setting converts the simulated split balance into exactly the requested Test-USDC total');
+  assert.equal(changed.cashEur,0);
+  assert.equal(changed.cashUsdc,1000);
+  // Existing virtual EUR are reclassified only on explicit user action.
   const replacement=action(original,{type:'SET_PAPER_BALANCE',amount:800});
   assert.notEqual(replacement,original);
   assert.equal(replacement.cashEur,0);
