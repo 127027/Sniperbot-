@@ -9,6 +9,11 @@ on:
       - "runner/windows-supervisor-test-child.mjs"
       - "runner/supervised-stop.mjs"
       - "runner/supervised-stop.test.mjs"
+      - "runner/memecoin-*.mjs"
+      - "runner/research-market-collector.mjs"
+      - "runner/research-market-collector.test.mjs"
+      - "runner/research-market-daemon.mjs"
+      - ".github/workflows/tests.yml"
       - ".github/workflows/windows-supervisor.yml"
   workflow_dispatch:
 jobs:
@@ -22,6 +27,10 @@ jobs:
           node-version: "22"
       - name: Validate Node supervisor shutdown module
         run: node --test runner/supervised-stop.test.mjs
+      - name: Validate V0.5 research-only longitudinal tracking on Windows
+        shell: powershell
+        run: |
+          node --test runner/memecoin-followups.test.mjs runner/memecoin-outcomes.test.mjs runner/memecoin-learning.test.mjs runner/research-market-collector.test.mjs runner/research-market-daemon.test.mjs
       - name: Test Windows DPAPI, JobObject and private stdin stop without real token
         shell: powershell
         run: |
