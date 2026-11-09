@@ -1,3 +1,9 @@
+## V0.5 – weiter offene Risiken (09.11.2026)
+
+Die neue Forschungskomponente liest bis zu zwei Neupool-Seiten pro Chain, speichert ausgewählte wiederholte indikative Pool-Preise lokal und zählt historische 2×/5×/10×/50×/200×-Beobachtungen. **Nicht behoben:** Vollständige Abdeckung aller Memecoin-Starts, unabhängige unzensierte Launch-Gesamtkohorten, verlässlich kalibrierte 14-Tage-Ausbruchswahrscheinlichkeiten, Contract-/LP-/Honeypot-/Sellability-Validatoren, signierte Fünf-Rollen-Kaufpublikation, echte externe automatische Paper-Käufe, unabhängige echte Sell-Quotes und nachgewiesene profitable Selbstverbesserung. Kein Cloud-Dot schreibt unmittelbar lokale Windows-Dateien. [Details](V05_DISCOVERY_LEARNING_STATUS_20261109.md).
+
+---
+
 # Stand V0.4
 
 Lokaler Gateway, synthetische Fünf-Rollen-Tests, Mehrfachpositionen, begrenzter
