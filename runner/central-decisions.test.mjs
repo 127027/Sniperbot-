@@ -8,29 +8,42 @@ const {privateKey,publicKey}=generateKeyPairSync('ed25519');
 const keys=[{key_id:'test-key-001',issuer:'test-central',scope:'synthetic',public_key_pem:publicKey.export({type:'spki',format:'pem'})}];
 const now=Date.now();
 const signed=d=>({...d,signature:sign(null,Buffer.from(unsigned(d)),privateKey).toString('base64')});
-function buy(extra={}){return signed({schema:'paper_execution_decision.v1',paper_only:true,signal_id:'signal-buy-001',decision_id:'decision-001',decision_revision:1,action:'PAPER_BUY',chain:'demo',token_address:'test-token',pool_address:'test-pool',candidate_id:'demo:test-token:test-pool',decision_at_utc:new Date(now-1000).toISOString(),expires_at_utc:new Date(now+60000).toISOString(),score_0_100:92,research_snapshot_id:'snapshot-001',quorum_policy:'FIVE_INDEPENDENT_YES',votes_ref:'synthetic-five-role-proof',independent_risk_ref:'synthetic-risk-proof',issuer:'test-central',key_id:'test-key-001',...extra});}
-function sell(){const d=buy();for(const k of ['score_0_100','quorum_policy','votes_ref','independent_risk_ref','signature'])delete d[k];return signed({...d,signal_id:'signal-sell-001',decision_id:'decision-sell-001',action:'PAPER_SELL',close_fraction:1,reason_code:'CENTRAL_RESEARCH_EXIT',exit_policy_ref:'synthetic-exit-policy'});}
+function buy(extra={}){return signed({schema:'paper_execution_decision.v1',paper_only:true,signal_id:'signal-buy-001',decision_id:'decision-001',decision_revision:1,action:'PAPER_BUY',chain:'demo',token_address:'test-token',pool_address:'test-pool',candidate_id:'demo:test-token:test-pool',decision_at_utc:new Date(now-1000).toISOString(),expires_at_utc:new Date(now+60000).toISOString(),score_0_100:92,allocation_intent:'EXPLORATORY',target_test_usdc:null,research_snapshot_id:'snapshot-001',quorum_policy:'FIVE_INDEPENDENT_YES',votes_ref:'synthetic-five-role-proof',independent_risk_ref:'synthetic-risk-proof',issuer:'test-central',key_id:'test-key-001',...extra});}
+function sell(){const d=buy();for(const k of ['score_0_100','allocation_intent','target_test_usdc','quorum_policy','votes_ref','independent_risk_ref','signature'])delete d[k];return signed({...d,signal_id:'signal-sell-001',decision_id:'decision-sell-001',action:'PAPER_SELL',close_fraction:1,reason_code:'CENTRAL_RESEARCH_EXIT',exit_policy_ref:'synthetic-exit-policy'});}
 const funded=(cash=1000)=>({...freshState(),cashUsdc:cash,minTrade:50,maxTrade:1000,centralPaperFollow:true,entriesEnabled:true});
-const options=(d=buy(),extra={})=>({now,allowSynthetic:true,syntheticQuote:{candidate_id:d.candidate_id,priceUsd:1,asOf:now,sellable:true,riskPass:true,quorumPass:true,maxGross:10000,...extra}});
+const options=(d=buy(),extra={})=>({now,allowSynthetic:true,syntheticQuote:{candidate_id:d.candidate_id,priceUsd:1,asOf:now,sellable:true,riskPass:true,quorumPass:true,convictionPass:true,maxGross:10000,...extra}});
 test('capital examples: no fixed 200 cap, free capital and equal bounds',()=>{
- for(const [score,min,max,free,expected] of [[79,50,1000,1000,0],[80,50,1000,1000,50],[86,50,200,200,125],[92,50,1000,1000,1000],[92,50,1000,50,50],[92,50,200,150,150],[92,200,200,150,0],[80,200,200,200,200],[92,50,1000,49,0]])assert.equal(allocatePaper({score,min,max,free}),expected);
- assert.equal(allocatePaper({score:NaN,min:50,max:1000,free:1000}),0);
+ for(const [intent,min,max,free,capacity,targetUsdc,expected] of [
+  ['EXPLORATORY',50,1000,1000,Infinity,null,50],
+  ['HIGH_CONVICTION',50,1000,1000,Infinity,null,1000],
+  ['HIGH_CONVICTION',50,1000,350,Infinity,null,350],
+  ['HIGH_CONVICTION',500,5000,3500,Infinity,null,3500],
+  ['TARGET',50,1000,1000,Infinity,325,325],
+  ['TARGET',50,100,1000,Infinity,1000,100],
+  ['HIGH_CONVICTION',500,5000,3500,1000,null,1000],
+  ['HIGH_CONVICTION',200,200,150,Infinity,null,0],
+  ['EXPLORATORY',50,1000,49,Infinity,null,0],
+ ]){
+  assert.equal(allocatePaper({intent,min,max,free,capacity,targetUsdc}),expected);
+ }
+ assert.equal(allocatePaper({score:95,min:50,max:1000,free:1000}),50,'Uncalibrated score cannot authorize max allocation');
+ assert.equal(allocatePaper({intent:'TARGET',min:50,max:100,free:100}),0,'TARGET requires an explicit amount');
 });
 test('same authenticated central decision respects three isolated budgets',()=>{
- const d=buy();const states=[50,200,1000].map(cash=>receiveDecision(funded(cash),d,keys,options(d)));
+ const d=buy({allocation_intent:'HIGH_CONVICTION'});const states=[50,200,1000].map(cash=>receiveDecision(funded(cash),d,keys,options(d)));
  assert.deepEqual(states.map(s=>s.positions[0].amountUsdc),[50,200,1000]);
  assert(states.every(s=>s.cashUsdc===0));
  assert.deepEqual(states.map(s=>s.positions[0].qty),[49.5,198,990]);
  assert(states.every(s=>s.paperDecisions.receipts[0].signal_id===d.signal_id));
 });
 test('sequential decisions use remaining funds; persisted duplicate never buys again',()=>{
- const d=buy({score_0_100:80});let s=receiveDecision({...funded(200),maxTrade:200},d,keys,options(d));assert.equal(s.cashUsdc,150);
+ const d=buy({score_0_100:95,allocation_intent:'EXPLORATORY'});let s=receiveDecision({...funded(200),maxTrade:200},d,keys,options(d));assert.equal(s.cashUsdc,150);
  s=JSON.parse(JSON.stringify(s));assert.equal(receiveDecision(s,d,keys,options(d)),s);
- const second=buy({signal_id:'signal-buy-002',decision_id:'decision-002',token_address:'token-two',candidate_id:'demo:token-two:test-pool'});
+ const second=buy({signal_id:'signal-buy-002',decision_id:'decision-002',token_address:'token-two',candidate_id:'demo:token-two:test-pool',score_0_100:80,allocation_intent:'HIGH_CONVICTION'});
  s=receiveDecision(s,second,keys,options(second));assert.equal(s.cashUsdc,0);assert.deepEqual(s.positions.map(p=>p.amountUsdc),[150,50]);
 });
 test('sell acts only on own exact position, works with new entries OFF',()=>{
- let s=receiveDecision(funded(),buy(),keys,options());s.entriesEnabled=false;
+ let s=receiveDecision(funded(),buy({allocation_intent:'HIGH_CONVICTION'}),keys,options());s.entriesEnabled=false;
  const d=sell();s=receiveDecision(s,d,keys,options(d));assert.equal(s.positions.length,0);assert.equal(s.cashUsdc,980.1);
  assert.equal(receiveDecision(funded(),d,keys,options(d)).paperDecisions.receipts[0].status,'NOOP');
 });
@@ -53,4 +66,36 @@ test('off, missing quote and missing central proof cannot fill; external coins r
  const token='0x'+'1'.repeat(40),pool='0x'+'2'.repeat(40);
  const real=buy({chain:'base',token_address:token,pool_address:pool,candidate_id:`base:${token}:${pool}`});
  const s=receiveDecision(funded(),real,[{...keys[0],scope:'external'}],{now});assert.equal(s.positions.length,0);assert.equal(s.paperDecisions.receipts[0].reason,'REAL_VALIDATOR_UNAVAILABLE');
+});
+
+test('three 500 USDC exploratory positions leave 3500 for a separate high-conviction decision',()=>{
+ let s={...funded(5000),minTrade:500,maxTrade:5000};
+ for(let i=1;i<=3;i++){
+  const d=buy({signal_id:'exploratory-'+i,decision_id:'decision-small-'+i,
+    token_address:'token-small-'+i,candidate_id:'demo:token-small-'+i+':test-pool',score_0_100:95});
+  s=receiveDecision(s,d,keys,options(d));
+  assert.equal(s.positions.length,i);
+  assert.equal(s.positions[0].amountUsdc,500);
+ }
+ assert.equal(s.cashUsdc,3500);
+ const d=buy({signal_id:'conviction-fourth',decision_id:'decision-big-fourth',
+    token_address:'token-big-fourth',candidate_id:'demo:token-big-fourth:test-pool',
+    score_0_100:50,allocation_intent:'HIGH_CONVICTION'});
+ s=receiveDecision(s,d,keys,options(d));
+ assert.equal(s.positions[0].amountUsdc,3500,'Residual cash instead of a percentage of score');
+ assert.equal(s.cashUsdc,0);
+ assert.equal(s.positions.length,4);
+});
+test('high-conviction without separate conviction verification never buys',()=>{
+ const d=buy({allocation_intent:'HIGH_CONVICTION'});
+ const s=receiveDecision(funded(),d,keys,options(d,{convictionPass:false}));
+ assert.equal(s.positions.length,0);
+ assert.equal(s.paperDecisions.receipts[0].reason,'INDEPENDENT_CONVICTION_PROOF_UNAVAILABLE');
+});
+test('signed target is independent of breakout rating, respects local 50-100 range',()=>{
+ const d=buy({allocation_intent:'TARGET',target_test_usdc:100,score_0_100:42});
+ const s=receiveDecision({...funded(1000),maxTrade:100},d,keys,options(d));
+ assert.equal(s.positions[0].amountUsdc,100);
+ assert.equal(s.cashUsdc,900);
+ assert.throws(()=>receiveDecision(funded(),buy({allocation_intent:'TARGET',target_test_usdc:null}),keys,options()),/Kapitalstrategie/);
 });
