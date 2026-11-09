@@ -1,4 +1,4 @@
-# Codex / Agent Instructions – Meme Sniper AI
+> **Aktueller technischer Stand V0.5 (09.11.2026):** [Neue-Memecoin-Discovery und Forschungslernen](docs/V05_DISCOVERY_LEARNING_STATUS_20261109.md), [Kapitalstrategie](docs/STRATEGIC_PAPER_CAPITAL_V1.md). Die **einzige reguläre** Windows-Startdatei ist `Sniperbot_Starten.bat` (ältere Windows_Starten-Dateien entfernt). Alle fünf Cloud-Automationen tauschen nur `actionable:false`-Forschungsdateien über GitHub aus. Erweiterte bis zu 96 Poolidentitäten pro Scan, lokale zeitlich gestaffelte Nachbeobachtung und indikative 2x–200x-Studie sind implementiert. **Es gibt weiterhin keinen freigegebenen Realmarkt-Paper-BUY/SELL aus Cloud-Dots oder kalibrierte 95%-Prognose.** Keine stillen Realdaten-/Handelsgates umgehen.\n\n# Codex / Agent Instructions – Meme Sniper AI
 
 ## Scope
 Independent Windows-first LOCAL **PAPER TRADING** application; NOT Hixton. Do not import, modify, or depend on any Hixton repository, dot, scheduled automation, files, strategies, data, credentials, or deployments.
@@ -14,7 +14,7 @@ Independent Windows-first LOCAL **PAPER TRADING** application; NOT Hixton. Do no
 ## Run and test
 - `node runner/test.mjs`
 - `node runner/server.mjs` then open `http://127.0.0.1:3030`
-- `Windows_Starten.bat` for Windows users
+- `Sniperbot_Starten.bat` for Windows users
 
 ## Architecture
 - `runner/core.mjs`: server-side paper ledger, entries, virtual fiat conversions, exits and guards.
