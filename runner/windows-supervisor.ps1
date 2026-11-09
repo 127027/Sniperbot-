@@ -219,7 +219,32 @@ function Smoke-TestNativeJob([string]$nodePath){
     [SniperWindowsJob]::Close($nativeJob)
     if($null -ne $proc){try{if(!$proc.HasExited){$proc.Kill()}}catch{};$proc.Dispose()}
   }
-  Write-Host 'WINDOWS_SUPERVISOR_SELF_TEST_OK (DPAPI, job assignment, graceful exit)' -ForegroundColor Green
+  # Test exactly what the user requested: closing the sole supervisor window must
+  # terminate a still-running child, even if that child never received STOP.
+  $killJob=[SniperWindowsJob]::OpenKillOnClose()
+  $orphan=$null
+  try{
+    $i=New-Object Diagnostics.ProcessStartInfo
+    $i.FileName=$nodePath
+    $i.Arguments='runner/windows-supervisor-test-child.mjs --ignore-stop'
+    $i.WorkingDirectory=$root
+    $i.UseShellExecute=$false
+    $i.CreateNoWindow=$true
+    $i.RedirectStandardInput=$true
+    $orphan=New-Object Diagnostics.Process
+    $orphan.StartInfo=$i
+    if(!$orphan.Start()){throw 'Kill-on-close child could not start'}
+    [SniperWindowsJob]::Add($killJob,$orphan)
+    Start-Sleep -Milliseconds 350
+    if($orphan.HasExited){throw 'Kill-on-close child stopped unexpectedly'}
+    [SniperWindowsJob]::Close($killJob)
+    $killJob=[IntPtr]::Zero
+    if(!$orphan.WaitForExit(5000)){throw 'Closing the Windows job left a child running'}
+  }finally{
+    if($killJob -ne [IntPtr]::Zero){[SniperWindowsJob]::Close($killJob)}
+    if($null -ne $orphan){try{if(!$orphan.HasExited){$orphan.Kill()}}catch{};$orphan.Dispose()}
+  }
+  Write-Host 'WINDOWS_SUPERVISOR_SELF_TEST_OK (DPAPI, stdin exit, kill-on-window-close)' -ForegroundColor Green
 }
 
 try {
