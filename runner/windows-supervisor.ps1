@@ -244,7 +244,33 @@ function Smoke-TestNativeJob([string]$nodePath){
     if($killJob -ne [IntPtr]::Zero){[SniperWindowsJob]::Close($killJob)}
     if($null -ne $orphan){try{if(!$orphan.HasExited){$orphan.Kill()}}catch{};$orphan.Dispose()}
   }
-  Write-Host 'WINDOWS_SUPERVISOR_SELF_TEST_OK (DPAPI, stdin exit, kill-on-window-close)' -ForegroundColor Green
+  # Exercise the real ProcessStartInfo path twice, including one supervised restart.
+  # Fake children use no GitHub token and no market/paper files.
+  $newMutex=$false
+  $guard=New-Object Threading.Mutex($true,('Local\SniperbotSelfTest_'+[Guid]::NewGuid().ToString('N')),[ref]$newMutex)
+  if(!$newMutex){throw 'Could not acquire local supervisor mutex'}
+  $nativeJob=[SniperWindowsJob]::OpenKillOnClose()
+  $first=$null
+  $second=$null
+  try {
+    $first=Start-Child 'TEST' 'runner/windows-supervisor-test-child.mjs' $nodePath $nativeJob
+    $second=Start-Child 'TEST' 'runner/windows-supervisor-test-child.mjs' $nodePath $nativeJob
+    if($first.HasExited -or $second.HasExited){throw 'Two fake supervised processes did not start'}
+    Stop-Child $second 'TEST'
+    $second=Start-Child 'TEST' 'runner/windows-supervisor-test-child.mjs' $nodePath $nativeJob
+    if($second.HasExited){throw 'Supervised restart failed'}
+    Stop-Child $second 'TEST'
+    $second=$null
+    Stop-Child $first 'TEST'
+    $first=$null
+  }finally{
+    if($null -ne $second){Stop-Child $second 'TEST'}
+    if($null -ne $first){Stop-Child $first 'TEST'}
+    [SniperWindowsJob]::Close($nativeJob)
+    $guard.ReleaseMutex()
+    $guard.Dispose()
+  }
+  Write-Host 'WINDOWS_SUPERVISOR_SELF_TEST_OK (DPAPI, two children, restart, stdin exit, kill-on-window-close)' -ForegroundColor Green
 }
 
 try {
