@@ -66,23 +66,40 @@ function crosscheckRecord(json,m,c){
   if(!Array.isArray(json?.pairs))return false;
   return json.pairs.some(pair=>pair.chainId===m.dex&&identity(m.chain,pair.baseToken?.address,pair.pairAddress)===c.candidate_id);
 }
-export async function collectSnapshot({fetcher=fetch,now=new Date().toISOString()}={}){
+export async function collectSnapshot({fetcher=fetch,now=new Date().toISOString(),pages=2}={}){
   const timestamp=utc(now);if(timestamp!==now)throw Error('Invalid UTC time');
   const coverage=[],candidates=[],failed=[];
-  // One bounded new-pools request per chain, independent of the existing trading adapter.
-  for(const m of MARKETS){
-    const url=GT+'/networks/'+m.gecko+'/new_pools?page=1';
-    try{
-      const data=await getJson(url,fetcher);
-      if(!Array.isArray(data?.data))throw Error('Malformed pool data');
-      const items=dedup(data.data.map(p=>gtRecord(p,m,now,url)).filter(Boolean)).slice(0,12);
-      candidates.push(...items);
-      coverage.push({chain:m.chain,source:'GECKOTERMINAL',status:'OK',
-        provider_rows:data.data.length,valid_identities:items.length});
-    }catch(e){
-      failed.push(m);
-      coverage.push({chain:m.chain,source:'GECKOTERMINAL',status:reason(e),provider_rows:0,valid_identities:0});
+  // Page 1 alone drops many launches during rapid waves. Two bounded pages per
+  // chain give wider coverage, NOT a complete history of all launches.
+  if(!Number.isInteger(pages)||pages<1||pages>2)throw Error('Unzulässiges Discovery-Seitenlimit');
+  const surveyed=await Promise.all(MARKETS.map(async m=>{
+    const rows=[],failures=[];
+    let count=0,successfulPages=0;
+    for(let page=1;page<=pages;page++){
+      const url=GT+'/networks/'+m.gecko+'/new_pools?page='+page;
+      try{
+        const data=await getJson(url,fetcher);
+        if(!Array.isArray(data?.data))throw Error('Malformed pool data');
+        successfulPages++;
+        count+=data.data.length;
+        rows.push(...data.data.map(p=>gtRecord(p,m,now,url)).filter(Boolean));
+      }catch(e){
+        failures.push(reason(e));
+        // Never multiply 429 or other provider errors with unnecessary retries.
+        if(e?.status===429)break;
+      }
     }
+    return {m,rows:dedup(rows).slice(0,24),count,successfulPages,failures};
+  }));
+  for(const item of surveyed){
+    const {m,rows,count,successfulPages,failures}=item;
+    candidates.push(...rows);
+    const status=successfulPages===0?(failures[0]||'SOURCE_UNAVAILABLE'):
+      failures.length?'PARTIAL':'OK';
+    coverage.push({chain:m.chain,source:'GECKOTERMINAL',status,
+      pages_ok:successfulPages,pages_requested:pages,provider_rows:count,valid_identities:rows.length,
+      ...(failures.length?{failed_pages:failures}: {})});
+    if(!successfulPages)failed.push(m);
   }
   // Limit independent pair lookups to two per chain to respect free provider rates.
   for(const m of MARKETS){
@@ -127,14 +144,14 @@ export async function collectSnapshot({fetcher=fetch,now=new Date().toISOString(
         status:reason(e),provider_rows:0,valid_identities:0});
     }
   }
-  const found=dedup(candidates).slice(0,48);
-  const reachable=coverage.some(x=>x.status==='OK'||x.status==='PROMOTED_PROFILES_ONLY'||x.status==='NO_PAIR_IDENTITIES');
+  const found=dedup(candidates).slice(0,96);
+  const reachable=coverage.some(x=>x.status==='OK'||x.status==='PARTIAL'||x.status==='PROMOTED_PROFILES_ONLY'||x.status==='NO_PAIR_IDENTITIES');
   return {
     schema:'research_market_snapshot.v1',paper_only:true,actionable:false,
     producer:'Local read-only research market collector',published_at_utc:now,
     collection_status:reachable?'OBSERVED_OR_PARTIAL':'BLOCKED_RESEARCH_DATA_ACCESS',
     coverage,candidates:found,
-    summary:{identities:found.length,cross_checked:found.filter(x=>x.verification==='CROSS_PROVIDER_IDENTITY').length,
+    summary:{identities:found.length,discovery_cap_per_scan:96,pages_per_chain:pages,cross_checked:found.filter(x=>x.verification==='CROSS_PROVIDER_IDENTITY').length,
       promotional_only:found.filter(x=>x.promotion_biased).length,
       note:'Research only: prices are NOT executable quotes; Contract, LP and sellability remain UNKNOWN.'}
   };
