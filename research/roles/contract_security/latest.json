@@ -2,11 +2,11 @@
   "schema": "research_role_snapshot.v1",
   "role": "contract_security",
   "producer": "Meme Sniper – Techniklabor",
-  "snapshot_id": "contract-security-20261109T095718204Z-scheduled",
-  "published_at_utc": "2026-11-09T09:57:18.204Z",
+  "snapshot_id": "contract-security-20261109T100836081Z-scheduled",
+  "published_at_utc": "2026-11-09T10:08:36.081Z",
   "paper_only": true,
   "actionable": false,
   "status": "NO_VERIFIED_CANDIDATE",
   "candidates": [],
-  "summary": "2026-11-09: Read project setup and five GitHub role snapshots. Other roles news_discovery 09:15:41Z, social_acceleration 09:43:08Z, onchain_liquidity 09:46:36Z, opportunity_qa 09:52:46Z all NO_VERIFIED_CANDIDATE with candidates=[]; DERIVED reports only, not independent on-chain validation. No independently corroborated chain:token_address:pool_address. Prior official Solana Token-2022 security research retained; no additional material independently verified finding this run. Candidate-specific mint/freeze/transfer authority, holder/LP concentration, honeypot, size-dependent executable sell quotes and actual sellability UNKNOWN; REAL_VALIDATOR_UNAVAILABLE. No trading instructions or other repository changes."
+  "summary": "2026-11-09: Project setup and all five role snapshots read directly from GitHub. Other roles news_discovery 09:15:41Z, social_acceleration 09:43:08Z, onchain_liquidity 09:46:36Z, opportunity_qa 09:52:46Z all NO_VERIFIED_CANDIDATE/candidates=[]; DERIVED status only. Independent general technical finding from official Solana Token-2022 docs https://solana.com/docs/tokens/extensions/transfer-fees (accessed 2026-11-09): TransferFeeConfig withholds per-transfer fee at destination, has current/next epoch fee settings, max fee and fee config authority; SetTransferFee activates newer fee after two epochs. Future paper execution must decode effective fee for the quote epoch and next scheduled fee, calculate gross/net output and both buy/sell route fee impacts for 50, 200, 400, 1000 USDC; refresh before exit even when new entries OFF, and mark unsupported route UNKNOWN/EXIT_UNAVAILABLE rather than fill. Advantage: avoids overstated paper PnL; cost: extra mint/account RPC and epoch-boundary refresh. No actual contract or executable sell quote verified. No independently corroborated chain:token_address:pool_address. Candidate-specific mint/freeze rights, holder/LP concentration, honeypot and real sellability UNKNOWN; REAL_VALIDATOR_UNAVAILABLE. No trading or other repository changes."
 }
