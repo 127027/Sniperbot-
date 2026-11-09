@@ -26,7 +26,7 @@ test('one Gecko pool per EVM chain is a research observation, not a sellability 
   assert.ok(snapshot.candidates.every(c=>c.unresolved_checks.includes('SELLABILITY')&&c.unresolved_checks.includes('CONTRACT')));
   assert.equal(snapshot.candidates.find(c=>c.chain==='base').verification,'CROSS_PROVIDER_IDENTITY');
   assert.equal(snapshot.candidates.find(c=>c.chain==='eth').verification,'PROVIDER_ONLY');
-  assert.equal(calls.filter(x=>x.includes('/new_pools?')).length,4);
+  assert.equal(calls.filter(x=>x.includes('/new_pools?')).length,8);
   assert.ok(calls.every(x=>x.startsWith('https://api.geckoterminal.com/')||x.startsWith('https://api.dexscreener.com/')));
 });
 test('malformed contract and pool addresses never enter candidate list',async()=>{
@@ -86,4 +86,39 @@ test('identity cross-check rejects a wrong pool with same base token',async()=>{
   };
   const result=await collectSnapshot({fetcher,now});
   assert.equal(result.candidates.find(c=>c.chain==='base').verification,'PROVIDER_ONLY');
+});
+
+test('second discovery page catches independent new pools, no more than 2 pages per chain',async()=>{
+ const anotherToken='0x'+'5'.repeat(40),anotherPool='0x'+'6'.repeat(40);
+ const urls=[];
+ const fetcher=async url=>{
+  urls.push(url);
+  if(url.includes('geckoterminal')){
+   const m=getChain(url);
+   return response({data:m.chain==='base'&&url.includes('page=2')?
+     [validPool(m,anotherToken,anotherPool)]:fakeGT(m).data});
+  }
+  return response({pairs:[]});
+ };
+ const r=await collectSnapshot({fetcher,now});
+ assert.equal(r.candidates.length,4);
+ assert(r.candidates.some(c=>c.candidate_id==='base:'+anotherToken+':'+anotherPool));
+ assert.equal(r.summary.pages_per_chain,2);
+ assert(r.summary.discovery_cap_per_scan,96);
+ assert.equal(urls.filter(u=>u.includes('/new_pools?')).length,8);
+ assert.throws(()=>collectSnapshot({fetcher,now,pages:3}),/Discovery-Seitenlimit/);
+});
+test('rate-limit on page one does not request page two on same chain',async()=>{
+ const urls=[];
+ const fetcher=async url=>{
+  urls.push(url);
+  if(url.includes('/networks/base/new_pools?page=1'))throw Object.assign(Error('rate'),{status:429});
+  if(url.includes('geckoterminal'))return response(fakeGT(getChain(url)));
+  if(url.includes('token-profiles'))return response([]);
+  return response({pairs:[]});
+ };
+ const s=await collectSnapshot({fetcher,now});
+ assert(!urls.some(u=>u.includes('/networks/base/new_pools?page=2')));
+ assert.equal(s.coverage.find(x=>x.chain==='base'&&x.source==='GECKOTERMINAL').status,'HTTP_429_RATE_LIMIT');
+ assert.equal(s.collection_status,'OBSERVED_OR_PARTIAL');
 });
