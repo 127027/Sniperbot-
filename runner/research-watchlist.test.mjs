@@ -11,11 +11,18 @@ const entry=(over={})=>({chain:'base',token_address:tok,pool_address:pool,
   state:'NEW',priority:'NORMAL',source_urls:['https://example.com/token/1'],
   reason:'Nur Forschungsidentität, KEINE Kaufentscheidung',unresolved_checks:['SELLABILITY_UNKNOWN'],...over});
 
-test('initial on-repo watchlist is explicitly empty, paper only, non-actionable',()=>{
-  const initial=JSON.parse(readFileSync(new URL('../research/watchlist/current.json',import.meta.url),'utf8'));
-  assert.deepEqual(initial,emptyWatchlist());
+test('evolving on-repo research watchlist stays valid and non-actionable',()=>{
+  const live=JSON.parse(readFileSync(new URL('../research/watchlist/current.json',import.meta.url),'utf8'));
+  assert.deepEqual(validateWatchlist(live),live);
+  assert.equal(live.paper_only,true);
+  assert.equal(live.actionable,false);
+  assert.equal(live.producer,'Meme Scout – Forschungsradar');
+  assert.ok(Array.isArray(live.candidates));
+  // The real scheduled Scout is allowed to update published_at_utc and add verified candidates.
+  const initial=emptyWatchlist();
   validateWatchlist(initial);
-  assert.equal(initial.candidates.length,0);
+  assert.equal(initial.published_at_utc,null);
+  assert.deepEqual(initial.candidates,[]);
 });
 test('EVM identifiers canonicalize lowercase, two distinct pools remain distinct',()=>{
   const caps=candidateId('base',tok.toUpperCase().replace(/^0X/,'0x'),pool.toUpperCase().replace(/^0X/,'0x'));
