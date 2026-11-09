@@ -13,16 +13,16 @@ Die fünf Sniper-Forschungsrollen konnten öffentliche Pool-Webendpunkte aus ihr
 | `runner/research-market-collector.mjs` | Nur lesender GeckoTerminal-New-Pool-Abruf für Solana, Base, BNB Chain, Ethereum; bis zwei DEX-Screener-Pair-Gegenprüfungen je Chain; bei Gecko-Ausfall alternative DEX-Screener-Tokenprofile/**bezahlte Werbung** als getrennt deklarierte mögliche Quellen |
 | `runner/research-market-daemon.mjs` | Lokal wiederholende Erfassung und sichere Archivierung; `--once` führt nur einen einzigen Erfassungszyklus aus |
 | `runner/research-market-publisher.mjs` | **Optional**, standardmäßig AUS: veröffentlicht ausschließlich `research/market/latest.json` als research_market_snapshot.v1 über bereits selbst bereitgestellte GitHub-Authentifizierung |
-| `Windows_Marktbeobachtung_Starten.bat` | Startet nur den Recherche-Collector, **keinen zweiten Paper-Bot** |
+| `Sniperbot_Starten.bat` | Zentraler Windows-Starter: Paper-Bot, Research-Feed und Recherche-Collector unter einer Prozesssteuerung |
 | `runner/research-market-collector.test.mjs`, `runner/research-market-daemon.test.mjs` | Negative API-/Schlüssel-/Verifikations-/Retention-Tests |
 
 ### Start auf dem Windows-Laptop
 
 1. Zuerst Arbeitsbranch `codex/research-gateway-v04` vollständig auf den Laptop übertragen; **lokale .local-Dateien und bestehendes Paper-Konto vorher sichern**. Der GitHub-Commit verändert auf dem Laptop noch nichts.
-2. Bei laufendem Bot darf **nur** `Windows_Marktbeobachtung_Starten.bat` gestartet werden. **Nicht nochmals `Windows_Starten.bat`** ausführen, sonst könnte ein zweiter Runner-Start versucht werden.
+2. Vorhandenen Bot und Markt-Collector beenden und ausschließlich `Sniperbot_Starten.bat` doppelklicken. Alte separate Starter wurden entfernt. Die Ein-Klick-Prozesssteuerung verhindert doppelte Starts.
 3. Nach dem Start auf dem Laptop existieren – **nur bei erfolgreich abgerufenen echten Marktdaten** – `.local/research-market/latest.json` und komprimierte JSON-Snapshots unter `.local/research-market/history/`. Der jeweilige technische Zustand (auch Fehler) steht in `.local/research-market/status.json`.
 4. Ohne längeren Dauerbetrieb lässt sich einmal testen: `node runner/research-market-daemon.mjs --once`. Bei DNS-/HTTP-Blockade bleibt der letzte erfolgreiche Snapshot **unverändert** und der Status ist `BLOCKED_RESEARCH_DATA_ACCESS`.
-5. Es ist ein **eigener Windows-Prozess**. Wird dieses Fenster geschlossen, Windows in den Energiesparmodus versetzt oder der Rechner heruntergefahren, endet die Datenerfassung; es wurde **kein** automatischer Windows-Dienst/Autostart auf dem Privatgerät eingerichtet.
+5. Der Collector läuft als eigener, gemeinsam über das Fenster von `Sniperbot_Starten.bat` verwalteter Kindprozess. Mit **Q** werden Paper-Bot und Collector geordnet gestoppt; Fensterschluss beendet die gestarteten Prozesse. Beim Windows-Energiesparmodus oder Herunterfahren endet die Datenerfassung; es wurde **kein** automatischer Windows-Dienst/Autostart eingerichtet.
 
 ### Speicher & automatische Bereinigung
 
