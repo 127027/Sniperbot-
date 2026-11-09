@@ -27,7 +27,7 @@ Die fünf Sniper-Forschungsrollen konnten öffentliche Pool-Webendpunkte aus ihr
 ### Speicher & automatische Bereinigung
 
 - Unter `.local/research-market/history/` speichert der Collector erfolgreiche regelmäßige Snapshots als komprimierte `.json.gz`.
-- **Maximal 21 Tage**, **höchstens 512 MiB**, **höchstens 16.000 Snapshot-Dateien**. Bei Überschreitung werden die **ältesten eigenen** Dateien entfernt. Diese 21 Tage reichen für die separat gewünschten 17-/18-Tage-Forschungsvergleiche, garantieren aber noch keinen historischen Backtest.
+- **Maximal bis zu 45 Tage (512-MiB-Grenze)**, **höchstens 512 MiB**, **höchstens 16.000 Snapshot-Dateien**. Bei Überschreitung werden die **ältesten eigenen** Dateien entfernt. Diese bis zu 45 Tage (512-MiB-Grenze) reichen für die separat gewünschten 17-/18-Tage-Forschungsvergleiche, garantieren aber noch keinen historischen Backtest.
 - `.local/research-market/latest.json` bleibt als letzte erfolgreiche Beobachtung bestehen (auch wenn eine spätere Erhebung fehlschlägt); `status.json` kennzeichnet dann den aktuellen Verbindungsfehler. Historische Snapshots werden nur im eigens vorgesehenen `history`-Ordner gelöscht.
 - **Niemals** das Paper-Konto, State-Dateien, Käufe, GitHub-Rollensnapshots oder die gemeinsame Watchlist bereinigen. `.local/` ist bereits in `.gitignore` ausgeschlossen. Bitte die lokale Forschungssicherung beim Gerätewechsel berücksichtigen.
 - Stündlich geplante Forschungs-Dots lesen **nicht direkt** die privaten lokalen Dateien; für gemeinsamen Zugriff ist eine freigegebene Veröffentlichung notwendig.
@@ -56,3 +56,8 @@ Die fünf Sniper-Dots können bei Vorhandensein des GitHub-Files `research/marke
 Erst wenn der Laptop tatsächlich einen erfolgreichen `research_market_snapshot.v1`-Datensatz schreibt und (nach separater Freigabe) `research/market/latest.json` auf GitHub erscheint, liegt ein echter gemeinsamer Datenpfad zu den Cloud-Dots vor. Bis dahin ist die Brücke **BLOCKED/NOT_CONFIGURED**, auch wenn die neuen Funktionen im GitHub-Repository syntaktisch und durch Unit-Tests funktionieren.
 
 Quellen: https://api.geckoterminal.com/docs/index.html ; https://docs.dexscreener.com/api/reference .
+
+
+## Ergänzung V0.5
+
+Mit der aktuellen Arbeitsbranch-Version speichert der Collector zusätzlich ausgewählte 14-Tage-Poolbeobachtungen unter `.local/research-learning/pools.json`. Er prüft bis zu zwei Seiten neuer Pools pro Chain und holt für nachbeobachtete Kandidaten öffentliche Multi-Pool-Marktdaten; das ist eine Stichprobe, keine vollständige Marktüberwachung. Die alte Backup-Anleitung bleibt gültig: **den gesamten .local-Ordner sichern und erhalten**. [Umfang, Grenzen und Tests](V05_DISCOVERY_LEARNING_STATUS_20261109.md).
