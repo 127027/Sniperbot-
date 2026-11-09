@@ -13,12 +13,15 @@ export function unsigned(d){const {signature,...payload}=d;return DOMAIN+canonic
 const common=['schema','paper_only','signal_id','decision_id','decision_revision','action','chain','token_address','pool_address','candidate_id','decision_at_utc','expires_at_utc','research_snapshot_id','issuer','key_id','signature'];
 const buy=['score_0_100','quorum_policy','votes_ref','independent_risk_ref'];
 const sell=['close_fraction','reason_code','exit_policy_ref'];
+const optionalBuyAllocation=['allocation_intent','target_test_usdc'];
 export function verifyDecision(d,keys,{now=Date.now(),allowSynthetic=false}={}){
  if(!d||typeof d!=='object'||Array.isArray(d))throw Error('Ungültige Entscheidung');
- const fields=[...common,...(d.action==='PAPER_BUY'?buy:d.action==='PAPER_SELL'?sell:[])];
+ const allocationFields=optionalBuyAllocation.filter(k=>Object.hasOwn(d,k));
+ if(allocationFields.length===1 || (allocationFields.length>0&&d.action!=='PAPER_BUY'))throw Error('Unvollständige Kapitalentscheidung');
+ const fields=[...common,...(d.action==='PAPER_BUY'?buy:d.action==='PAPER_SELL'?sell:[]),...allocationFields];
  if(Object.keys(d).length!==fields.length||fields.some(k=>!Object.hasOwn(d,k)))throw Error('Ungültige Felder');
  if(d.schema!=='paper_execution_decision.v1'||d.paper_only!==true||!['PAPER_BUY','PAPER_SELL'].includes(d.action))throw Error('Nur Paper-Entscheidungen');
- for(const k of fields.filter(k=>!['paper_only','decision_revision','score_0_100','close_fraction'].includes(k)))if(typeof d[k]!=='string'||!d[k]||d[k].length>1000)throw Error('Ungültiges Textfeld');
+ for(const k of fields.filter(k=>!['paper_only','decision_revision','score_0_100','close_fraction','target_test_usdc'].includes(k)))if(typeof d[k]!=='string'||!d[k]||d[k].length>1000)throw Error('Ungültiges Textfeld');
  for(const k of ['signal_id','decision_id','key_id'])if(!/^[-a-zA-Z0-9]{8,100}$/.test(d[k]))throw Error('Ungültige ID');
  if(!Number.isSafeInteger(d.decision_revision)||d.decision_revision<1)throw Error('Ungültige Revision');
  const at=Date.parse(d.decision_at_utc),expiry=Date.parse(d.expires_at_utc);
@@ -33,6 +36,11 @@ export function verifyDecision(d,keys,{now=Date.now(),allowSynthetic=false}={}){
  if(!synthetic&&(!validTokenAddress(d.chain,d.token_address)||!validTokenAddress(d.chain,d.pool_address)))throw Error('Ungültige Coin-Adresse');
  if(d.candidate_id!==identity(d.chain,d.token_address,d.pool_address))throw Error('Coin-Identität stimmt nicht');
  if(d.action==='PAPER_BUY'&&(!Number.isFinite(d.score_0_100)||d.score_0_100<0||d.score_0_100>100||d.quorum_policy!=='FIVE_INDEPENDENT_YES'))throw Error('Ungültige Bewertung/Policy');
+ if(allocationFields.length===2){
+  if(!['EXPLORATORY','TARGET','HIGH_CONVICTION'].includes(d.allocation_intent)||
+    (d.allocation_intent==='TARGET'?(!Number.isFinite(d.target_test_usdc)||d.target_test_usdc<=0):d.target_test_usdc!==null))
+    throw Error('Ungültige Kapitalstrategie');
+ }
  if(d.action==='PAPER_SELL'&&(d.close_fraction!==1||d.reason_code!=='CENTRAL_RESEARCH_EXIT'))throw Error('Ungültige Exit-Policy');
  return {synthetic};
 }
@@ -55,8 +63,9 @@ export function receiveDecision(state,d,keys,options={}){
   else if(d.action==='PAPER_BUY'){
    if(!state.entriesEnabled){reason='Bot AUS';}
    else if(!quote.riskPass||!quote.quorumPass){reason='CENTRAL_PROOF_UNAVAILABLE';}
+   else if(d.allocation_intent==='HIGH_CONVICTION'&&quote.convictionPass!==true){reason='INDEPENDENT_CONVICTION_PROOF_UNAVAILABLE';}
    else{
-    amount=allocatePaper({score:d.score_0_100,min:state.minTrade,max:state.maxTrade,free:state.cashEur+state.cashUsdc,capacity:quote.maxGross});
+    amount=allocatePaper({intent:d.allocation_intent||'EXPLORATORY',targetUsdc:d.target_test_usdc??null,min:state.minTrade,max:state.maxTrade,free:state.cashEur+state.cashUsdc,capacity:quote.maxGross});
     if(!amount){reason='Score/Guthaben unter Mindestbetrag';}
     else{
      const candidate={id:d.candidate_id,chain:d.chain,tokenAddress:d.token_address,poolAddress:d.pool_address,symbol:'SYNTHETIC',name:'Synthetischer Ausführungstest',priceUsd:quote.priceUsd,asOf:new Date(now).toISOString(),isDemo:true,source:'SYNTHETIC_QUOTE'};
