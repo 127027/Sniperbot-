@@ -29,12 +29,9 @@ Dot-zu-Bot-Test. Details und notwendige Einrichtung im Prüfprotokoll.
   Keine zusätzliche Anzahl-, Gesamteinsatz- oder Positionskappe. Freies Guthaben
   und unabhängige technische Verkaufsgrenzen bleiben wirksam. Reicht der mögliche
   Betrag nicht für das Minimum, erfolgt kein Kauf.
-- Optionale Rollenbewertung `score_0_100`: vorläufige, nicht validierte Paper-Regel:
-  niedrigster Score aller Pflichtrollen; Anteil = min(1, Score/95);
-  Zielbetrag = Min + (Max−Min) × Anteil. Fehlende Scores wählen Min. Ab 95 Punkten
-  ist Max möglich, etwa 1000 bei 100–1000. Der Score ist keine Gewinnwahrscheinlichkeit.
-  Demo-Fixtures verwenden 95 und eine synthetische Verkaufsgrenze von 100000;
-  sie belegen nur die Betragsmechanik, nicht eine echte Marktchance.
+- **Neuer Stand 09.11.2026:** Forschungsscore `score_0_100` ist **keine** 14-Tage-Ausbruchswahrscheinlichkeit und berechnet **keinen** Betrag. Die frühere Score-zu-Einsatz-Formel wurde ersetzt durch eine getrennte signierte Kapitalintention: `EXPLORATORY` = Mindestbetrag, `TARGET` = expliziter Zielbetrag, `HIGH_CONVICTION` = bis zum verfügbaren Betrag unter `maxTrade` und unabhängig überprüfter Kapazität. Die optionale `allocation_intent`-Empfehlung in der lokalen 5-Rollen-Laborpipeline ist nur bei Einstimmigkeit HIGH_CONVICTION, sonst EXPLORATORY. Das synthetische Entscheidungsgate verlangt für hohe Beträge einen separaten `convictionPass`, unabhängig vom numerischen Rating. Für reale externe Coins bleiben fehlende Validierungsadapter die harte Sperre.
+- Für eine messbare Ausbruchswahrscheinlichkeit wird vorläufig **+100 % Kursanstieg innerhalb von 14 Tagen** als Forschungsziel verwendet. `runner/breakout-forecast.mjs` enthält nur Rechenlogik für nachprüfbare, vollständige historische Holdout-Kohorten. Ohne ausreichende historische Fälle zeigt die Anwendung **keine** fiktiven 80/95-%-Prognosen. Siehe `docs/STRATEGIC_PAPER_CAPITAL_V1.md`.
+- `runner/research-network.mjs` liest alle fünf veröffentlichten Cloud-Rollenberichte als **rein informativen GitHub-Spiegel**, ohne Rollenstimmen als authentifizierte lokale Gateway-Events oder Orders auszugeben. Das verifiziert keinen direkten Laptop-Zugriff der Cloud-Dots.
 - TRAILING: verfolgt Höchstkurs, schließt bei eingestelltem Rückgang oder Stop-Loss,
   ohne festen Gewinn-Take-Profit. Nur synthetische Quotes erlauben diesen neuen
   automatischen Exit. HOLD bleibt unverändert; alte AUTO-Regel heißt LEGACY.
