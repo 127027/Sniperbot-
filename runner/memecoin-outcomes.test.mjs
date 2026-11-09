@@ -13,11 +13,16 @@ test('a 10x observed price is not a proven 10x sale or a fabricated 50x',()=>{
  assert.equal(r.coverage_complete,false);
 });
 test('complete 14d observation can mark a price target missed, never profit',()=>{
- const r=classifyMemecoinBreakouts({first_seen_at_utc:anchor,entry_price_usd:1,
+ const sparse=classifyMemecoinBreakouts({first_seen_at_utc:anchor,entry_price_usd:1,
   observations:full,observed_until_at_utc:t(14*24)});
- assert.equal(r.coverage_complete,true);
- assert.equal(r.outcomes[2].hit,false);
- assert.equal(r.outcomes[200].hit,false);
+ assert.equal(sparse.coverage_complete,true);
+ assert.equal(sparse.outcomes[2].hit,null,'Even 30-minute samples can miss a rapid intrainterval pump');
+ const verified=classifyMemecoinBreakouts({first_seen_at_utc:anchor,entry_price_usd:1,
+  observations:full,observed_until_at_utc:t(14*24),
+  independently_verified_quotes:true,complete_ohlcv_coverage:true});
+ assert.equal(verified.negative_outcomes_verified,true);
+ assert.equal(verified.outcomes[2].hit,false);
+ assert.equal(verified.outcomes[200].hit,false);
 });
 test('missing follow-ups cannot label a failed launch as confirmed negative',()=>{
  const r=classifyMemecoinBreakouts({first_seen_at_utc:anchor,entry_price_usd:1,
