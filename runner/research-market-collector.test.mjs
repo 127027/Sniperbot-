@@ -106,7 +106,7 @@ test('second discovery page catches independent new pools, no more than 2 pages 
  assert.equal(r.summary.pages_per_chain,2);
  assert(r.summary.discovery_cap_per_scan,96);
  assert.equal(urls.filter(u=>u.includes('/new_pools?')).length,8);
- assert.throws(()=>collectSnapshot({fetcher,now,pages:3}),/Discovery-Seitenlimit/);
+ await assert.rejects(collectSnapshot({fetcher,now,pages:3}),/Discovery-Seitenlimit/);
 });
 test('rate-limit on page one does not request page two on same chain',async()=>{
  const urls=[];
