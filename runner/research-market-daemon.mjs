@@ -6,6 +6,7 @@ import {mkdir,readdir,stat,unlink,open,readFile,writeFile,rename} from 'node:fs/
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {gzipSync} from 'node:zlib';
+import {attachSupervisedStop} from './supervised-stop.mjs';
 import {setTimeout as sleep} from 'node:timers/promises';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -119,8 +120,10 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
     console.log(publishingEnabled()?'GitHub market publication explicitly enabled.':
       'GitHub publication OFF: local-only until separately configured. Dots cannot read local files.');
     let lastPublishedAt=0,active=true;
-    const stop=()=>{active=false};
+    const shutdownSignal=new AbortController();
+    const stop=()=>{active=false;shutdownSignal.abort()};
     process.on('SIGINT',stop);process.on('SIGTERM',stop);
+    attachSupervisedStop(stop);
     do{
       const shouldPublish=publishingEnabled()&&Date.now()-lastPublishedAt>=PUB_PERIOD_MS;
       try{
@@ -131,7 +134,10 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
         await atomicJson(statusFile,{schema:'research_market_collector_status.v1',
           paper_only:true,actionable:false,status:'ERROR',last_check_at_utc:new Date().toISOString()});
       }
-      if(!once&&active)await sleep(PERIOD_MS);
+      if(!once&&active){
+        try{await sleep(PERIOD_MS,undefined,{signal:shutdownSignal.signal})}
+        catch(e){if(e?.name!=='AbortError')throw e}
+      }
     }while(!once&&active);
   }catch(e){console.error('[MARKT]',e.message||'Cannot start collector');process.exitCode=1}
   finally{if(unlocked)await unlocked()}
