@@ -1,6 +1,7 @@
 // Optional local 24/7 read-only research process. Never imports trade/order state.
 // Local cache: .local/research-market/. Automatic cleanup ONLY inside its history/ folder.
 import {collectSnapshot,writeSnapshot} from './research-market-collector.mjs';
+import {runFollowups} from './memecoin-followups.mjs';
 import {publishResearchSnapshot,publishingEnabled} from './research-market-publisher.mjs';
 import {mkdir,readdir,stat,unlink,open,readFile,writeFile,rename} from 'node:fs/promises';
 import path from 'node:path';
@@ -14,13 +15,14 @@ const cache=path.join(root,'.local','research-market');
 const history=path.join(cache,'history');
 const PERIOD_MS=120_000;                  // 2 min pool observations, not sub-second trading
 const PUB_PERIOD_MS=15*60_000;           // at most once per 15 min if explicitly enabled
-const RETAIN_MS=21*24*60*60_000;         // preserves 17/18-day study horizon
-const MAX_FILES=16_000;
+const RETAIN_MS=45*24*60*60_000;         // supports 14/30-day indicative research, if byte cap permits
+const MAX_FILES=40_000;
 const MAX_BYTES=512*1024*1024;          // 512 MiB maximum local compressed history
 const entryName=/^snapshot-\d{8}T\d{9}Z\.json\.gz$/;
 const fileTimestamp=iso=>iso.replace(/[-:.]/g,'');
 const statusFile=path.join(cache,'status.json');
 const latestFile=path.join(cache,'latest.json');
+const followupFile=path.join(root,'.local','research-learning','pools.json');
 
 async function atomicJson(filename,value){
   await mkdir(path.dirname(filename),{recursive:true});
@@ -92,6 +94,11 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     await saveHistory(snapshot);
   }
   const clean=await pruneHistory();
+  let followups=null,followupError=null;
+  if(success){
+    try{followups=await runFollowups(snapshot,{filename:followupFile,fetcher,now})}
+    catch(e){followupError=String(e?.message||'FOLLOWUP_FAILED').replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,100)}
+  }
   let published=null,publishError=null;
   if(success&&publish){
     try{published=await publisher(snapshot,{token:process.env.SNIPER_MARKET_GITHUB_TOKEN})}
@@ -102,13 +109,15 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     last_check_at_utc:now,latest_local_snapshot_at_utc:success?now:null,
     status:success?'RUNNING_RESEARCH':'BLOCKED_RESEARCH_DATA_ACCESS',
     candidate_count:snapshot.candidates.length,
-    coverage:snapshot.coverage,history:clean,
+    coverage:snapshot.coverage,history:clean,followups,followup_error:followupError,
     publishing_enabled:publishingEnabled(),published_commit:published?.commit_sha||null,
     publish_error:publishError
   });
   console.log('[MARKT]',now,success?'Identities='+snapshot.summary.identities:'BLOCKED_RESEARCH_DATA_ACCESS',
     'history='+clean.remaining,published?'GitHubCommit='+published.commit_sha:'',
-    publishError?'GitHubPublishError='+publishError:'');
+    publishError?'GitHubPublishError='+publishError:'',
+    followups?'FollowupOK='+followups.followup_ok+' Active='+followups.monitored_active:'',
+    followupError?'FollowupError='+followupError:'');
   return {snapshot,published};
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
@@ -117,7 +126,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   try{
     unlocked=await acquireLock();
     console.log('Sniper research market collector – PAPER ONLY / NO TRADES');
-    console.log('Polling every 120 seconds; 21 days of local compressed observations, max 512 MiB.');
+    console.log('Polling every 120 seconds; max 45 days local gzip history (512 MiB cap) + bounded research followups; paper only.');
     console.log(publishingEnabled()?'GitHub market publication explicitly enabled.':
       'GitHub publication OFF: local-only until separately configured. Dots cannot read local files.');
     let lastPublishedAt=0,active=true;
