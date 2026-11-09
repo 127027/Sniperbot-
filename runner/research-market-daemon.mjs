@@ -107,7 +107,8 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     publish_error:publishError
   });
   console.log('[MARKT]',now,success?'Identities='+snapshot.summary.identities:'BLOCKED_RESEARCH_DATA_ACCESS',
-    'history='+clean.remaining,published?'GitHubCommit='+published.commit_sha:'');
+    'history='+clean.remaining,published?'GitHubCommit='+published.commit_sha:'',
+    publishError?'GitHubPublishError='+publishError:'');
   return {snapshot,published};
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
