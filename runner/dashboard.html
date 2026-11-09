@@ -159,7 +159,8 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
   <div class="section-heading"><h2>Forschungsnetzwerk</h2><span class="tag">NUR FORSCHUNG</span></div>
   <div id="researchNetworkStatus" class="subtle">Prüfe fünf GitHub-Forschungsberichte …</div>
   <div id="researchNetworkRoles" class="subtle"></div>
-  <p class="notice">14-Tage-Ausbruchschance (+100 %): noch nicht statistisch kalibriert. Ein Forschungsscore von 95 bedeutet nicht 95 % Wahrscheinlichkeit. Forschungsberichte autorisieren keine Paper-Käufe.</p>
+  <div id="localLearningStatus" class="subtle">Lokales Memecoin-Lernarchiv wird geprüft …</div>
+  <p class="notice">Forschung: neue Coins und historische 2×/5×/10×/50×/200×-Kursbewegungen innerhalb von 14 Tagen. Ohne vollständige, unabhängig validierte Kohorten keine echte Prozentwahrscheinlichkeit. Angezeigte DEX-Kurse sind kein Beweis eines verkaufbaren 50×- oder 200×-Gewinns. Forschungsberichte autorisieren keine Paper-Käufe.</p>
 </section>
 
 <section class="panel section">
@@ -293,6 +294,13 @@ function render(force){
   $('researchNetworkRoles').innerHTML=Array.isArray(network?.roles)
     ? network.roles.map(role=>'<div class="activity-row">'+esc(role.role||'Rolle')+': '+esc(role.status||'UNAVAILABLE')+(role.stale?' · veraltet/nicht erreichbar':'')+'</div>').join('')
     : '';
+  const learning=lastHealth?.localLearning;
+  $('localLearningStatus').textContent=learning?.available
+    ? 'Lokale Pool-Nachbeobachtung: '+learning.monitored_active+' aktive · '+learning.completed+
+      ' abgeschlossene 14-Tage-Kohorten · zuletzt '+t(learning.checked_at_utc)+
+      (learning.stale?' · Daten veraltet':'')+
+      (learning.warning?' · Fehler: '+learning.warning:'')
+    : 'Lokale Pool-Nachbeobachtung: noch keine Messdaten im neuen Forschungsarchiv';
   $('centralFollow').checked=!!s.centralPaperFollow;
   $('accountStatus').textContent=(s.entriesEnabled||positions.length)?'Zum Ändern Bot ausschalten und Positionen schließen.':'Testkapital kann jetzt festgelegt werden.';
   $('setBalance').disabled=!!(s.entriesEnabled||positions.length);
