@@ -1,0 +1,28 @@
+name: Windows One-Click Supervisor Smoke Test
+on:
+  push:
+    branches:
+      - codex/research-gateway-v04
+    paths:
+      - "Sniperbot_Starten.bat"
+      - "runner/windows-supervisor.ps1"
+      - "runner/windows-supervisor-test-child.mjs"
+      - "runner/supervised-stop.mjs"
+      - "runner/supervised-stop.test.mjs"
+      - ".github/workflows/windows-supervisor.yml"
+  workflow_dispatch:
+jobs:
+  win-oneclick:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate Node supervisor shutdown module
+        run: node --test runner/supervised-stop.test.mjs
+      - name: Test Windows DPAPI, JobObject and private stdin stop without real token
+        shell: powershell
+        run: |
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File runner/windows-supervisor.ps1 -SelfTest
