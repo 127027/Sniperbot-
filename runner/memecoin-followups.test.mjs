@@ -4,7 +4,7 @@ import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {selectFollowupCandidates,dueFollowups,finishFollowupState,runFollowups,
- fetchFollowupPool,emptyFollowupState} from './memecoin-followups.mjs';
+ fetchFollowupPool,fetchFollowupBatch,emptyFollowupState} from './memecoin-followups.mjs';
 
 const now='2026-11-09T12:00:00Z';
 const at=m=>new Date(Date.parse(now)+m*60000).toISOString();
@@ -20,7 +20,7 @@ const gt=(c=coin())=>({data:{attributes:{address:c.pool_address,base_token_price
  relationships:{base_token:{data:{id:'base_'+c.token_address}}}}});
 const response=data=>({ok:true,json:async()=>data});
 
-test('admit momentum only as research and observe at most eight active candidates per chain',()=>{
+test('admit one new research sample per six-hour slot instead of filling all cohort slots at launch',()=>{
  const next=selectFollowupCandidates(emptyFollowupState(),snapshot());
  assert.equal(next.admitted,1);
  const record=next.state.records[0];
@@ -36,8 +36,8 @@ test('admit momentum only as research and observe at most eight active candidate
   return coin({token_address:a,pool_address:p,candidate_id:'base:'+a+':'+p});
  });
  const capped=selectFollowupCandidates(emptyFollowupState(),snapshot(now,batch));
- assert.equal(capped.admitted,8);
- assert.equal(capped.omitted,4);
+ assert.equal(capped.admitted,1);
+ assert.equal(capped.omitted,0);
  assert(capped.state.records.every(r=>r.actionable===undefined));
 });
 test('provider must return exact chain-token-pool, never substitutes another contract',async()=>{
@@ -78,4 +78,37 @@ test('malformed existing research history fails closed and is not overwritten',a
   await assert.rejects(runFollowups(snapshot(),{filename}),SyntaxError);
   assert.equal(await readFile(filename,'utf8'),'{invalid json');
  }finally{await rm(dir,{recursive:true,force:true})}
+});
+
+test('six-hour slots keep sampling later launches instead of using the whole 14-day budget at once',()=>{
+ const s1=selectFollowupCandidates(emptyFollowupState(),snapshot(now,[coin()]));
+ const token2='0x'+'a'.repeat(40),pool2='0x'+'b'.repeat(40);
+ const second=coin({token_address:token2,pool_address:pool2,candidate_id:'base:'+token2+':'+pool2});
+ const s2=selectFollowupCandidates(s1.state,snapshot(at(360),[second]),{now:at(360)});
+ assert.equal(s1.admitted,1);
+ assert.equal(s2.admitted,1);
+ assert.equal(s2.state.records.length,2);
+ assert.notEqual(s1.state.records[0].slot_id,s2.state.records[1].slot_id);
+});
+test('multi-pool endpoint matches every exact original pool and never invents missing quotes',async()=>{
+ const first=selectFollowupCandidates(emptyFollowupState(),snapshot(now,[coin()])).state.records[0];
+ const secondToken='0x'+'a'.repeat(40),secondPool='0x'+'b'.repeat(40);
+ const second={...first,candidate_id:'base:'+secondToken+':'+secondPool,
+  token_address:secondToken,pool_address:secondPool};
+ const urls=[];
+ const fetcher=async url=>{
+  urls.push(url);
+  return response({data:[gt(coin({price_usd:.002})).data,
+    gt(coin({token_address:secondToken,pool_address:secondPool,
+      candidate_id:second.candidate_id,price_usd:.003})).data]});
+ };
+ const obs=await fetchFollowupBatch([first,second],{fetcher,now:at(16)});
+ assert.equal(urls.length,1,'two pools in one public request');
+ assert.match(urls[0],/\/pools\/multi\//);
+ assert.deepEqual(obs.map(x=>x.obs?.price_usd),[.002,.003]);
+ const missing=await fetchFollowupBatch([first,second],{now:at(16),
+  fetcher:async()=>response({data:[gt().data]})});
+ assert.equal(missing[0].obs.price_usd,.00001);
+ assert.equal(missing[1].obs,undefined,'a missing pool is not a synthetic fill');
+ assert.equal(missing[1].error,'POOL_IDENTITY_OR_PRICE_UNAVAILABLE');
 });
