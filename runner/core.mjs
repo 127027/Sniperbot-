@@ -15,6 +15,16 @@ export function action(s,a){if(!a||typeof a!=='object')return s;
  case 'TOGGLE_BOT':return {...s,entriesEnabled:!s.entriesEnabled,history:log(s,!s.entriesEnabled?'Bot AN':'Bot AUS',!s.entriesEnabled?'Neue Paper-Einstiege erlaubt':'Neue Paper-Einstiege gestoppt, Exit-Engine bleibt aktiv')};
  case 'SET_CENTRAL_FOLLOW':return {...s,centralPaperFollow:a.enabled===true,history:log(s,'Zentrale Paper-Ausführung',a.enabled===true?'Wartet auf gültige zentrale Aufträge; fehlende Publisher/Marktadapter blockieren':'Deaktiviert')};
  case 'SET_AUTO':return {...s,automaticPaperBuys:!!a.enabled,history:log(s,'Autokauf-Modus',a.enabled?'Nur freigegebene 5-Rollen-Signale werden geprüft':'Nur manuelle Testkäufe')};
+ case 'SET_PAPER_BALANCE': {
+  // Explicit total virtual balance replacement; never mint extra test funds accidentally.
+  // No open positions may be discarded and entries must be paused during the reset.
+  const amount=a.amount;
+  if(typeof amount!=='number'||!Number.isFinite(amount)||amount<0||amount>100000||Math.abs(amount*100-Math.round(amount*100))>1e-6)return s;
+  if(s.entriesEnabled||!Array.isArray(s.positions)||s.positions.length>0)return s;
+  const next=Math.round(amount*100)/100,old=round(s.cashEur+s.cashUsdc);
+  if(s.cashEur===0&&s.cashUsdc===next)return s;
+  return {...s,cashEur:0,cashUsdc:next,history:log(s,'Testkapital festgelegt',`Virtuelles Guthaben gesamt ${old.toFixed(2)} → ${next.toFixed(2)} TEST-USDC; keine Einzahlung, Auszahlung oder echte Umwandlung`)};
+ }
  case 'SET_RANGE': {const min=numeric(a.min),max=numeric(a.max);if(!isAmount(min)||!isAmount(max)||min>max)return s;return {...s,minTrade:min,maxTrade:max,history:log(s,'Beträge eingestellt',`${min}–${max} TEST-USDC`)}};
  case 'SET_EXITS':{const profit=numeric(a.profit),loss=numeric(a.loss),mode=a.mode;
  if(!isAmount(profit)||!isAmount(loss)||loss>=100||profit>500||!['HOLD','AUTO','TRAILING'].includes(mode)|| (mode==='TRAILING'&&(!isAmount(Number(a.trailing))||Number(a.trailing)>=100)))return s;
