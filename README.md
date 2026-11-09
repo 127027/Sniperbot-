@@ -2,7 +2,7 @@
 
 **Empfohlener Start ab diesem Arbeitsbranch: nur noch `Sniperbot_Starten.bat` doppelklicken.** Damit starten der bestehende Paper-Bot, sein Forschungsstatusfeed und der Markt-Collector samt optional verschlüsselter GitHub-Forschungsübertragung gemeinsam. Ein Kontrollfenster; mit **Q** geordnet stoppen; Fenster schließen beendet dank Windows-Prozessgruppe alle zugehörigen lokalen Prozesse. Einmalig eigenen GitHub-Token verdeckt eingeben, danach ist er per Windows-DPAPI im Benutzerprofil verschlüsselt gespeichert.
 
-**Aktualisieren:** Bestehenden Ordner und `%LOCALAPPDATA%\MemeSniperPaper` sichern. Arbeitsbranch-ZIP herunterladen, **nur Programmdateien in vorhandenen Ordner kopieren**, `.local/`/Paper-Guthaben erhalten. Alte Startdateien leiten nur auf den neuen Starter weiter. Kein Echtgeld, keine automatische Konto-/Wallet-Integration. [Schritt-für-Schritt-Anleitung](docs/WINDOWS_EIN_KLICK_START_20261109.md).
+**Aktualisieren:** Bestehenden Ordner und `%LOCALAPPDATA%\MemeSniperPaper` sichern. Arbeitsbranch-ZIP herunterladen, **nur Programmdateien in vorhandenen Ordner kopieren**, `.local/`/Paper-Guthaben erhalten. Die drei alten Startdateien wurden entfernt. Einziger regulärer Starter ist `Sniperbot_Starten.bat`. Kein Echtgeld, keine automatische Konto-/Wallet-Integration. [Schritt-für-Schritt-Anleitung](docs/WINDOWS_EIN_KLICK_START_20261109.md).
 
 ---
 
@@ -44,7 +44,7 @@ bei Widersprüchen gilt der oben verlinkte V0.4-Implementierungsstand.
 
 1. **Node.js 22 LTS oder neuer** installieren: https://nodejs.org
 2. ZIP in einen eigenen Ordner entpacken.
-3. `Windows_Starten.bat` doppelklicken. Dashboard: **http://127.0.0.1:3030**. Das schwarze Terminal-Fenster geöffnet lassen.
+3. `Sniperbot_Starten.bat` doppelklicken. Dashboard: **http://127.0.0.1:3030**. Das schwarze Terminal-Fenster geöffnet lassen.
 
 Keine `npm install` für die Startversion nötig. Zum Testen: `Windows_Tests.bat` bzw. `node runner/test.mjs` und `node --test runner/integration.test.mjs`. Der HTTP-Integrationstest arbeitet **offline** mit einem separaten temporären Datenordner und verändert dein Portfolio nicht.
 
@@ -120,7 +120,7 @@ Die Bilder zeigen einen Testzustand. Sie beweisen keine aktuelle Kurs-/KI-/Trans
 
 Aktuelle Grenzen: Die Dot-zu-Bot-Kommunikation ist NICHT integriert; Coin-Qualifikation und Exit-Realismus müssen entwickelt und getestet werden. Langfristige Portfolio-Strategie ist vorgesehen, aber derzeit ist höchstens eine simulierte Position gleichzeitig unterstützt.
 
-**GitHub-Verwendung auf Windows:** `git clone https://github.com/127027/Sniperbot-.git` und `cd Sniperbot-`, dann `Windows_Tests.bat` sowie `Windows_Starten.bat`. Node.js 22+ benötigt. Die lokale API erscheint nur unter http://127.0.0.1:3030. Für das Ziel eines nicht-technischen Nutzers sollte Codex einen sicheren Windows-Installer bzw. Starter entwickeln.
+**GitHub-Verwendung auf Windows:** `git clone https://github.com/127027/Sniperbot-.git` und `cd Sniperbot-`, dann `Windows_Tests.bat` sowie `Sniperbot_Starten.bat`. Node.js 22+ benötigt. Die lokale API erscheint nur unter http://127.0.0.1:3030. Für das Ziel eines nicht-technischen Nutzers sollte Codex einen sicheren Windows-Installer bzw. Starter entwickeln.
 
 ## Strategiewechsel: Fünf Agenten und langfristiger High-Upside-Sniper (freigegeben am 06.11.2026)
 
@@ -137,7 +137,7 @@ Aktuelle Grenzen: Die Dot-zu-Bot-Kommunikation ist NICHT integriert; Coin-Qualif
 
 ## Optionaler Scout-Forschungseingang (Arbeitsbranch)
 
-`Windows_Starten_mit_Forschung.bat` startet den lokalen Bot mit ausdrücklich aktiviertem Nur-Informations-Feed. Vorher einen bereits laufenden Bot beenden; pro Datenordner läuft nur eine Instanz. `Windows_Starten.bat` allein aktiviert dieses Abonnement nicht.
+`Sniperbot_Starten.bat` startet den lokalen Bot mit aktiviertem Nur-Informations-Feed und den Markt-Collector samt GitHub-Publisher (nach DPAPI-Token-Einrichtung). Vorher einen bereits laufenden Bot und Collector beenden; pro Datenordner läuft nur eine Instanz.
 
 Der Feed liest öffentliche Scout-Nachrichten über GitHub; er nimmt **keine Kaufbefehle** an. Im Dashboard steht der Eingang unter „Scout-Eingang“. Technischer lokaler Empfangsnachweis: `/api/research/inbox`.
 
