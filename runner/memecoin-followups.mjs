@@ -8,8 +8,10 @@ import {classifyMemecoinBreakouts} from './memecoin-outcomes.mjs';
 import {summarizeCohorts} from './memecoin-learning.mjs';
 
 const CHAINS=Object.freeze({solana:'solana',base:'base',bsc:'bsc',eth:'eth'});
-const POLL_MS=15*60_000, HORIZON_MS=14*86400_000, KEEP_MS=120*86400_000;
-const CAP_PER_CHAIN=8, MAX_PER_CYCLE=8, MAX_FILE_BYTES=24*1024*1024;
+const HORIZON_MS=14*86400_000, KEEP_MS=120*86400_000;
+const CAP_PER_CHAIN=56, MAX_PER_CYCLE=120, MAX_FILE_BYTES=48*1024*1024;
+const SLOT_MS=6*3600_000; // spread 4 new research samples per chain across every UTC day
+const BATCH_PER_CHAIN=30; // official GeckoTerminal multiple-pools endpoint
 const validPrice=p=>typeof p==='number'&&Number.isFinite(p)&&p>0;
 const finiteOrNull=x=>x===undefined||x===null||x===''?null:
  (Number.isFinite(Number(x))&&Number(x)>=0?Number(x):null);
@@ -40,33 +42,66 @@ export function selectFollowupCandidates(current,snapshot,{now=snapshot?.publish
  const active=r=>!r.completed_at_utc&&moment(now)-moment(r.first_seen_at_utc)<HORIZON_MS;
  const ids=new Set(records.map(r=>r.candidate_id));
  let admitted=0,omitted=0;
- for(const c of snapshot.candidates){
-  if(!validRecord(c)||!validPrice(c.price_usd)||ids.has(c.candidate_id))continue;
-  const control=hexFraction(c.candidate_id)===0;
-  const momentum=Number.isFinite(c.volume_m5_usd)&&c.volume_m5_usd>=500&&
-    Number.isFinite(c.liquidity_usd)&&c.liquidity_usd>=10000;
-  if(!control&&!momentum)continue;
-  if(records.filter(r=>r.chain===c.chain&&active(r)).length>=CAP_PER_CHAIN){omitted++;continue}
-  records.push({candidate_id:c.candidate_id,chain:c.chain,token_address:c.token_address,
-    pool_address:c.pool_address,first_seen_at_utc:now,last_poll_at_utc:now,
-    selection:control?'DETERMINISTIC_CONTROL':'EARLY_MOMENTUM',
-    baseline_price_usd:c.price_usd,observations:[observation(c,now)],
+ const slot=Math.floor(moment(now)/SLOT_MS);
+ const wantsControl=(slot%4)===1;
+ // One new cohort sample per chain / six-hour slot to avoid filling
+ // every 14-day slot from one launch burst. The sample is NOT exhaustive.
+ const pool=structuredClone(snapshot.candidates)
+   .filter(c=>validRecord(c)&&validPrice(c.price_usd)&&!ids.has(c.candidate_id))
+   .sort((a,b)=>hexFraction(a.candidate_id)-hexFraction(b.candidate_id)||
+     a.candidate_id.localeCompare(b.candidate_id));
+ for(const m of Object.keys(CHAINS)){
+  const group=pool.filter(c=>c.chain===m);
+  if(records.filter(r=>r.chain===m&&active(r)).length>=CAP_PER_CHAIN){omitted+=group.length;continue}
+  // Earlier versions may not have slot_id; recover it from original timestamp.
+  if(records.some(r=>r.chain===m&&(r.slot_id??Math.floor(moment(r.first_seen_at_utc)/SLOT_MS))===slot))continue;
+  const found=group.find(c=>{
+   const control=hexFraction(c.candidate_id)===0;
+   const momentum=Number.isFinite(c.volume_m5_usd)&&c.volume_m5_usd>=500&&
+     Number.isFinite(c.liquidity_usd)&&c.liquidity_usd>=10000&&c.promotion_biased!==true;
+   return wantsControl?control:momentum&&!control;
+  });
+  if(!found)continue;
+  records.push({candidate_id:found.candidate_id,chain:m,token_address:found.token_address,
+    pool_address:found.pool_address,first_seen_at_utc:now,last_poll_at_utc:now,
+    slot_id:slot,selection:wantsControl?'DETERMINISTIC_CONTROL':'EARLY_MOMENTUM',
+    baseline_price_usd:found.price_usd,observations:[observation(found,now)],
     check_errors:0,check_count:0,completed_at_utc:null,outcomes:null});
-  ids.add(c.candidate_id);admitted++;
+  ids.add(found.candidate_id);admitted++;
  }
  // Prune ONLY completed research summaries older than 120 days.
  const kept=records.filter(r=>!r.completed_at_utc||
     moment(now)-moment(r.completed_at_utc)<=KEEP_MS);
  return {state:{...current,records:kept,last_updated_at_utc:now},admitted,omitted};
 }
+function pollInterval(record,now){
+ const age=moment(now)-moment(record.first_seen_at_utc);
+ if(record.selection==='DETERMINISTIC_CONTROL')return 6*3600_000;
+ if(age<6*3600_000)return 15*60_000; // early high-cadence burst
+ if(age<48*3600_000)return 60*60_000;
+ return 6*3600_000; // longer horizon: minimize requests
+}
 export function dueFollowups(state,{now,limit=MAX_PER_CYCLE}={}){
- if(!Number.isFinite(moment(now))||!Number.isInteger(limit)||limit<0||limit>64)
+ if(!Number.isFinite(moment(now))||!Number.isInteger(limit)||limit<0||limit>120)
    throw Error('INVALID_FOLLOWUP_SCHEDULE');
- return state.records.filter(r=>!r.completed_at_utc&&validRecord(r)&&
+ const due=state.records.filter(r=>!r.completed_at_utc&&validRecord(r)&&
    moment(now)-moment(r.first_seen_at_utc)<HORIZON_MS&&
-   moment(now)-moment(r.last_poll_at_utc)>=POLL_MS)
+   moment(now)-moment(r.last_poll_at_utc)>=pollInterval(r,now))
  .sort((a,b)=>moment(a.last_poll_at_utc)-moment(b.last_poll_at_utc)||
-  a.candidate_id.localeCompare(b.candidate_id)).slice(0,limit);
+  a.candidate_id.localeCompare(b.candidate_id));
+ // At most one batch per chain/cycle, 30 unique pool addresses in each.
+ const perChain=new Map();
+ for(const r of due){
+  const n=perChain.get(r.chain)||0;
+  if(n>=BATCH_PER_CHAIN)continue;
+  perChain.set(r.chain,n+1);
+ }
+ const consumed=new Map();
+ return due.filter(r=>{
+  const n=consumed.get(r.chain)||0;
+  if(n>=(perChain.get(r.chain)||0))return false;
+  consumed.set(r.chain,n+1);return true;
+ }).slice(0,limit);
 }
 export function finishFollowupState(state,{now}={}){
  if(!Number.isFinite(moment(now)))throw Error('INVALID_RESEARCH_TIME');
