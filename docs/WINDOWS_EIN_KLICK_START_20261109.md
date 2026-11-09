@@ -43,7 +43,7 @@ Dadurch wird der alte verschlüsselte Eintrag gelöscht und der neue Token verde
 |---|---|
 | Bestehender Paper-Bot und lokale Oberfläche | Startet mit erhaltenem lokalen Zustand; Port 3030 |
 | Research-Statusfeed | Bleibt für Paper-Bot aktiviert (nicht handelbar) |
-| Markt-Collector | Startet alle ~120 Sekunden und archiviert nur Research-Snapshots bis 21 Tage/512 MiB |
+| Markt-Collector | Startet alle ~120 Sekunden und archiviert nur Research-Snapshots bis maximal 45 Tage/512 MiB |
 | GitHub-Marktbrücke | Startet bei verfügbarem, lokal entschlüsselbarem Token; veröffentlicht alle ~15 Minuten |
 | Fünf externe ChatGPT-Forschungsautomationen | Bleiben unabhängig und laufen nach ihren bestehenden Cloud-Zeitplänen – **nicht** als lokale Windows-Prozesse |
 | Echtgeld, Wallet, Bank, PayPal und echte externe Orders | Nicht aktiviert/implementiert |
@@ -62,3 +62,8 @@ Ein laufendes Markt-Snapshot ist noch **keine** gültige Sell-Quote, keine volls
 Die beiden Node-Prozesse werden auf einem echten Windows-Kern verwaltet; Code- und CI-Tests sind ein technischer Nachweis, **kein** Nachweis eines bereits auf dem Laptop ausgeführten Upgrades. Erst nach ZIP-Austausch und lokalem Start mit seinem eigenen DPAPI-Token läuft die neue Version auf dem Gerät. Kein PC-Zugriff wurde behauptet. Keine Hintergrund-/Autostart-Aufgabe eingerichtet: der Nutzer startet bewusst die eine Datei, Windows-Schlafmodus stoppt die Datenerfassung.
 
 **Wichtig:** Tokenverschlüsselung durch Windows DPAPI schützt ruhende Daten gegen einfache Dateikopie, **nicht** gegen Malware mit Zugriff auf das angemeldete Windows-Benutzerkonto.
+
+
+## Ergänzung V0.5
+
+Mit der aktuellen Arbeitsbranch-Version speichert der Collector zusätzlich ausgewählte 14-Tage-Poolbeobachtungen unter `.local/research-learning/pools.json`. Er prüft bis zu zwei Seiten neuer Pools pro Chain und holt für nachbeobachtete Kandidaten öffentliche Multi-Pool-Marktdaten; das ist eine Stichprobe, keine vollständige Marktüberwachung. Die alte Backup-Anleitung bleibt gültig: **den gesamten .local-Ordner sichern und erhalten**. [Umfang, Grenzen und Tests](V05_DISCOVERY_LEARNING_STATUS_20261109.md).
