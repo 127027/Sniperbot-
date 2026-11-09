@@ -16,7 +16,7 @@ test('supervisor command on private stdin stops only once',()=>{
   const detach=attachSupervisedStop(()=>stopped++,{env:{SNIPER_SUPERVISED:'1'},stream});
   stream.write('SNIPER_ST');
   stream.write('OP_V1\n');
-  stream.write('SNIPER_STOP_V1\n');
+  stream.write('SNIPER_STOP_V1\r\n');
   assert.equal(stopped,1);
   detach();stream.destroy();
 });
