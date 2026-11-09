@@ -1,3 +1,11 @@
+## Windows-Ein-Klick-Start (09.11.2026)
+
+**Empfohlener Start ab diesem Arbeitsbranch: nur noch `Sniperbot_Starten.bat` doppelklicken.** Damit starten der bestehende Paper-Bot, sein Forschungsstatusfeed und der Markt-Collector samt optional verschlüsselter GitHub-Forschungsübertragung gemeinsam. Ein Kontrollfenster; mit **Q** geordnet stoppen; Fenster schließen beendet dank Windows-Prozessgruppe alle zugehörigen lokalen Prozesse. Einmalig eigenen GitHub-Token verdeckt eingeben, danach ist er per Windows-DPAPI im Benutzerprofil verschlüsselt gespeichert.
+
+**Aktualisieren:** Bestehenden Ordner und `%LOCALAPPDATA%\MemeSniperPaper` sichern. Arbeitsbranch-ZIP herunterladen, **nur Programmdateien in vorhandenen Ordner kopieren**, `.local/`/Paper-Guthaben erhalten. Alte Startdateien leiten nur auf den neuen Starter weiter. Kein Echtgeld, keine automatische Konto-/Wallet-Integration. [Schritt-für-Schritt-Anleitung](docs/WINDOWS_EIN_KLICK_START_20261109.md).
+
+---
+
 > **NEUE VERBINDLICHE PRODUKTSPEZIFIKATION (07.11.2026): Ein gemeinsames Forschungsnetzwerk, beliebig viele voneinander isolierte Sniperbot-Installationen.** Jeder Empfänger nutzt sein **eigenes** virtuelles bzw. später gesondert freigegebenes echtes Konto, eigene Wallet, Guthaben, Einstellungen und Trading-Engine. Die fünf zentralen Forschungsrollen publizieren nur Kaufkandidaten und Exit-Hinweise an alle ausdrücklich abonnierenden Instanzen. **Keine fremden Kontozugriffe, keine fremden Orders, kein gemeinsames Guthaben.** Eine nachweisliche Dot-Zustellung und ein zentraler Geräte-Broadcast fehlen heute noch. Siehe [Mehrgeräte-Sollarchitektur](docs/DISTRIBUTED_INSTANCES.md), [Signalverteiler-Protokoll](docs/SIGNAL_DISTRIBUTION_PROTOCOL.md), [Halte-/Exit-Policy](docs/HOLD_EXIT_POLICY.md), [Ist-/Soll-Stand](docs/IMPLEMENTATION_STATUS_2026-11-07.md).
 
 > **Stand heute: V0.4, ausschließlich PAPER.** GitHub ist Code-/Forschungsprojekt, nicht laufender Live-Broker. Eine Installation auf Windows ≠ unabhängige native Android-Engine. Echte PayPal-Zahlungen, Wallets und Handel sind NICHT implementiert oder freigegeben.
