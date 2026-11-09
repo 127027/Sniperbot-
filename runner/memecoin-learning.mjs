@@ -5,7 +5,7 @@ const GROUPS=['EARLY_MOMENTUM','DETERMINISTIC_CONTROL'];
 export function summarizeCohorts(records){
  if(!Array.isArray(records))throw Error('INVALID_COHORT_INPUT');
  const summary=Object.fromEntries(GROUPS.map(group=>[group,{
-  observed:0,completed:0,coverage_complete:0,
+  observed:0,completed:0,coverage_complete:0,negative_outcomes_verified:0,
   indicative_hits:Object.fromEntries(MULTIPLIERS.map(k=>[k,0])),
   unknown_without_complete_coverage:0
  }]));
@@ -15,6 +15,7 @@ export function summarizeCohorts(records){
   if(!r.completed_at_utc)continue;
   s.completed++;
   if(r.outcomes?.coverage_complete===true)s.coverage_complete++;
+  if(r.outcomes?.negative_outcomes_verified===true)s.negative_outcomes_verified++;
   else s.unknown_without_complete_coverage++;
   for(const multiple of MULTIPLIERS){
    if(r.outcomes?.outcomes?.[multiple]?.hit===true)s.indicative_hits[multiple]++;
@@ -24,5 +25,5 @@ export function summarizeCohorts(records){
   horizon_days:14,threshold_multipliers:MULTIPLIERS,
   summary,calibration_status:'NOT_CALIBRATED',
   trade_execution_verified:false,sellability_verified:false,
-  note:'Small selected cohorts, unverified indicator quotes. Counts are NOT 14-day profit probabilities, causal model skill, real sell profits or comprehensive market coverage.'};
+  note:'Selected cohorts, sparse indicative quotes. Unless independent complete OHLCV interval highs are verified, unobserved 2x-200x spikes are UNKNOWN, not false. Counts are NOT profit probabilities, proof of skill, realized proceeds or comprehensive market coverage.'};
 }
