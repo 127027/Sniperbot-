@@ -41,6 +41,8 @@ function gtRecord(raw,m,now,url){
   return {chain:m.chain,token_address:canonToken,pool_address:canonPool,candidate_id:id,
     observed_at_utc:now,pool_created_at_utc:utc(att.pool_created_at||att.created_at),
     liquidity_usd:numeric(att.reserve_in_usd),volume_m5_usd:numeric(att.volume_usd?.m5),
+    price_usd:numeric(att.base_token_price_usd),buys_m5:numeric(att.transactions?.m5?.buys),
+    sells_m5:numeric(att.transactions?.m5?.sells),
     source:'GECKOTERMINAL_NEW_POOLS',verification:'PROVIDER_ONLY',
     promotion_biased:false,source_urls:[url],
     unresolved_checks:['INDEPENDENT_PAIR_IDENTITY','CONTRACT','LIQUIDITY_RISK','SELLABILITY']};
@@ -53,6 +55,8 @@ function dexRecord(raw,m,now,urls){
   return {chain:m.chain,token_address:token,pool_address:pool,candidate_id:id,
     observed_at_utc:now,pool_created_at_utc:Number.isFinite(createdMs)&&createdMs>0?utc(createdMs):null,
     liquidity_usd:numeric(raw.liquidity?.usd),volume_m5_usd:numeric(raw.volume?.m5),
+    price_usd:numeric(raw.priceUsd),buys_m5:numeric(raw.txns?.m5?.buys),
+    sells_m5:numeric(raw.txns?.m5?.sells),
     source:'DEXSCREENER_PROMOTED_PROFILE_FALLBACK',verification:'PROVIDER_ONLY',
     promotion_biased:true,source_urls:urls,
     unresolved_checks:['INDEPENDENT_PAIR_IDENTITY','CONTRACT','LIQUIDITY_RISK','SELLABILITY','PAID_PROFILE_BIAS']};
