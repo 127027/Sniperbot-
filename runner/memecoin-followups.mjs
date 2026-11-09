@@ -5,6 +5,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {candidateId} from './research-watchlist.mjs';
 import {classifyMemecoinBreakouts} from './memecoin-outcomes.mjs';
+import {summarizeCohorts} from './memecoin-learning.mjs';
 
 const CHAINS=Object.freeze({solana:'solana',base:'base',bsc:'bsc',eth:'eth'});
 const POLL_MS=15*60_000, HORIZON_MS=14*86400_000, KEEP_MS=120*86400_000;
@@ -137,6 +138,7 @@ export async function runFollowups(snapshot,{filename,fetcher=fetch,now=snapshot
  return {schema:'memecoin_followups_status.v1',paper_only:true,actionable:false,
   monitored_active:state.records.filter(r=>!r.completed_at_utc).length,
   completed:state.records.filter(r=>r.completed_at_utc).length,
+  cohort_study:summarizeCohorts(state.records),
   admitted,omitted_capacity:omitted,checked:checked.length,
   followup_ok:succeeded,followup_failed:failed,
   disclaimer:'Selected subset only, indicative pool prices, no verified sellability or trade fills'};
