@@ -35,6 +35,21 @@ async function refreshResearchNetwork(){
  }catch(e){console.error('GitHub research mirror:',e?.message||'UNAVAILABLE')}
  finally{networkBusy=false}
 }
+function localResearchLearning(){
+ const filename=path.join(root,'.local','research-market','status.json');
+ try{
+  const m=JSON.parse(readFileSync(filename,'utf8'));
+  const f=m?.followups;
+  if(m?.schema!=='research_market_collector_status.v1'||f?.schema!=='memecoin_followups_status.v1')
+    return {available:false,paper_only:true,actionable:false,error:m?.followup_error||'NO_LOCAL_FOLLOWUP_DATA'};
+  return {available:true,paper_only:true,actionable:false,
+    checked_at_utc:m.last_check_at_utc,stale:Date.now()-Date.parse(m.last_check_at_utc)>600000,
+    monitored_active:f.monitored_active,completed:f.completed,admitted_last_cycle:f.admitted,
+    omitted_capacity_last_cycle:f.omitted_capacity,followup_ok_last_cycle:f.followup_ok,
+    followup_failed_last_cycle:f.followup_failed,disclaimer:f.disclaimer,
+    warning:m.followup_error||null};
+ }catch{return {available:false,paper_only:true,actionable:false,error:'LOCAL_FOLLOWUP_DATA_UNAVAILABLE'}}
+}
 function decisionKeys(){
  const file=path.join(store.dir,'trusted-publishers.json');
  if(!existsSync(file))return [];
@@ -76,8 +91,9 @@ const server=createServer(async(req,res)=>{
     'Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'"});
   return res.end(readFileSync(path.join(root,'runner','dashboard.html')));
  }
- if(req.method==='GET'&&route==='/api/state')return reply(res,200,{ok:true,mode:'PAPER_ONLY',dataSource:'GeckoTerminal / DEX Screener (read only)',state,health:{online:true,scanRunning:scanning,pricing,uptimeSec:Math.round(process.uptime()),central:centralStatus(),researchNetwork,dotStatus:buildDotStatus(state.researchInbox,{enabled:process.env.SNIPER_RESEARCH_FEED==='1'})}});
+ if(req.method==='GET'&&route==='/api/state')return reply(res,200,{ok:true,mode:'PAPER_ONLY',dataSource:'GeckoTerminal / DEX Screener (read only)',state,health:{online:true,scanRunning:scanning,pricing,uptimeSec:Math.round(process.uptime()),central:centralStatus(),researchNetwork,localLearning:localResearchLearning(),dotStatus:buildDotStatus(state.researchInbox,{enabled:process.env.SNIPER_RESEARCH_FEED==='1'})}});
  if(req.method==='GET'&&route==='/api/research/network')return reply(res,200,{ok:true,network:researchNetwork});
+ if(req.method==='GET'&&route==='/api/research/learning')return reply(res,200,{ok:true,learning:localResearchLearning()});
  if(req.method==='GET'&&route==='/api/research/inbox')return reply(res,200,{ok:true,mode:'PAPER_ONLY',enabled:process.env.SNIPER_RESEARCH_FEED==='1',inbox:state.researchInbox||{receipts:[]}});
  if(req.method==='GET'&&route==='/api/decisions')return reply(res,200,{ok:true,...centralStatus()});
  if(req.method==='POST'&&route==='/api/decisions/events'){
