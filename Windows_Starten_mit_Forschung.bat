@@ -1,5 +1,5 @@
 @echo off
-setlocal
-cd /d "%~dp0"
-set SNIPER_RESEARCH_FEED=1
-call Windows_Starten.bat
+rem Legacy alias: only the unified supervisor starts the local bot and collector.
+rem No second paper-bot or second collector process is created here.
+call "%~dp0Sniperbot_Starten.bat" %*
+exit /b %ERRORLEVEL%
