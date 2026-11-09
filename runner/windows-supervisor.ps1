@@ -102,7 +102,7 @@ function Initialize-ResearchToken {
   Write-Host '[ZUGANG] Einmalig GitHub-Token fuer 127027/Sniperbot- eingeben.' -ForegroundColor Cyan
   Write-Host 'Nur Contents: Read and write fuer dieses Repo. Token NIE hier im Chat teilen.'
   $secure = Read-Host 'GitHub-Token (Eingabe unsichtbar)' -AsSecureString
-  if($null -eq $secure -or $secure.Length -lt 15)throw 'GitHub-Token zu kurz oder leer. Keine Anmeldung gespeichert.'
+  if($null -eq $secure -or $secure.Length -lt 15){throw 'GitHub-Token zu kurz oder leer. Keine Anmeldung gespeichert.'}
   $encrypted = ConvertFrom-SecureString -SecureString $secure
   [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($tokenFile)) | Out-Null
   $temp = $tokenFile+'.pending'
@@ -113,14 +113,14 @@ function Initialize-ResearchToken {
   Write-Host '[ZUGANG] Windows-DPAPI-Speicherung abgeschlossen; nur dieser Windows-Benutzer kann entschluesseln.' -ForegroundColor Green
 }
 function Read-ResearchToken {
-  if(!(Test-Path -LiteralPath $tokenFile))throw 'Kein verschluesselter Forschungstoken gefunden.'
+  if(!(Test-Path -LiteralPath $tokenFile)){throw 'Kein verschluesselter Forschungstoken gefunden.'}
   try {
     $encrypted = [IO.File]::ReadAllText($tokenFile,[Text.Encoding]::UTF8).Trim()
     $secret = ConvertTo-SecureString -String $encrypted
     $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret)
     try {
       $value = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
-      if([string]::IsNullOrEmpty($value) -or $value.Length -lt 15)throw 'Ungueltige Token-Laenge'
+      if([string]::IsNullOrEmpty($value) -or $value.Length -lt 15){throw 'Ungueltige Token-Laenge'}
       return $value
     }
     finally{[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr);$secret.Dispose()}
@@ -165,7 +165,7 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
   }
   $proc = New-Object Diagnostics.Process
   $proc.StartInfo = $info
-  if(!$proc.Start())throw ('Start fehlgeschlagen: '+$role)
+  if(!$proc.Start()){throw ('Start fehlgeschlagen: '+$role)}
   try {[SniperWindowsJob]::Add($jobHandle,$proc)}
   catch {try{$proc.Kill()}catch{};throw}
   Write-Host ('[START] '+$role+' PID='+$proc.Id) -ForegroundColor Green
@@ -193,7 +193,7 @@ function Smoke-TestNativeJob([string]$nodePath){
   $check=ConvertTo-SecureString $cipher
   $ptr=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($check)
   try {
-    if([Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr) -ne 'FAKE_TEST_ONLY_NO_GITHUB_TOKEN_123')throw 'DPAPI roundtrip failed'
+    if([Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr) -ne 'FAKE_TEST_ONLY_NO_GITHUB_TOKEN_123'){throw 'DPAPI roundtrip failed'}
   }finally{[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr);$testSecret.Dispose();$check.Dispose()}
   $nativeJob=[SniperWindowsJob]::OpenKillOnClose()
   $proc=$null
@@ -208,13 +208,13 @@ function Smoke-TestNativeJob([string]$nodePath){
     $info.EnvironmentVariables['SNIPER_SUPERVISED']='1'
     $proc=New-Object Diagnostics.Process
     $proc.StartInfo=$info
-    if(!$proc.Start())throw 'Test child could not start'
+    if(!$proc.Start()){throw 'Test child could not start'}
     [SniperWindowsJob]::Add($nativeJob,$proc)
-    if($proc.HasExited)throw 'Test child terminated too early'
+    if($proc.HasExited){throw 'Test child terminated too early'}
     $proc.StandardInput.WriteLine('SNIPER_STOP_V1')
     $proc.StandardInput.Flush()
-    if(!$proc.WaitForExit(6000))throw 'Graceful stdin stop did not work'
-    if($proc.ExitCode -ne 0)throw 'Graceful test child did not exit cleanly'
+    if(!$proc.WaitForExit(6000)){throw 'Graceful stdin stop did not work'}
+    if($proc.ExitCode -ne 0){throw 'Graceful test child did not exit cleanly'}
   }finally{
     [SniperWindowsJob]::Close($nativeJob)
     if($null -ne $proc){try{if(!$proc.HasExited){$proc.Kill()}}catch{};$proc.Dispose()}
@@ -233,7 +233,7 @@ try {
   $mutexName='Local\SniperbotOneClick_'+([BitConverter]::ToString($digest).Replace('-','').Substring(0,20))
   $created=$false
   $mutex=New-Object Threading.Mutex($true,$mutexName,[ref]$created)
-  if(!$created)throw 'SNIPERBOT_ALREADY_STARTED: Zuerst die vorhandene zentrale Konsole schliessen.'
+  if(!$created){throw 'SNIPERBOT_ALREADY_STARTED: Zuerst die vorhandene zentrale Konsole schliessen.'}
   $ownsMutex=$true
   Assert-PortAvailable
   Initialize-ResearchToken
@@ -243,7 +243,7 @@ try {
   # Avoid opening an old/stale bot URL until the new listener answered locally.
   if(!$NoBrowser){
     for($attempt=0;$attempt -lt 25;$attempt++){
-      if($bot.HasExited)throw 'Paper-Bot hat vor dem Start des Dashboards beendet.'
+      if($bot.HasExited){throw 'Paper-Bot hat vor dem Start des Dashboards beendet.'}
       try{
         $response=Invoke-WebRequest -UseBasicParsing -Uri ($paperUrl+'/api/health') -TimeoutSec 2
         if($response.StatusCode -eq 200){Start-Process $paperUrl;break}
@@ -259,7 +259,7 @@ try {
   while($true){
     if($bot.HasExited){
       $restarts.BOT++
-      if($restarts.BOT -gt 3)throw 'Paper-Bot 3x unerwartet beendet. Alles wird gestoppt.'
+      if($restarts.BOT -gt 3){throw 'Paper-Bot 3x unerwartet beendet. Alles wird gestoppt.'}
       Write-Host ('[WARNUNG] Paper-Bot beendet. Neustart '+$restarts.BOT+'/3') -ForegroundColor Yellow
       Start-Sleep -Seconds ([Math]::Pow(2,$restarts.BOT))
       Assert-PortAvailable
@@ -267,7 +267,7 @@ try {
     }
     if($market.HasExited){
       $restarts.MARKET++
-      if($restarts.MARKET -gt 3)throw 'Markt-Collector 3x unerwartet beendet. Alles wird gestoppt.'
+      if($restarts.MARKET -gt 3){throw 'Markt-Collector 3x unerwartet beendet. Alles wird gestoppt.'}
       Write-Host ('[WARNUNG] Markt-Collector beendet. Neustart '+$restarts.MARKET+'/3') -ForegroundColor Yellow
       Start-Sleep -Seconds ([Math]::Pow(2,$restarts.MARKET))
       $market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job
