@@ -5,6 +5,7 @@ import {storage} from './storage.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
+import {attachSupervisedStop} from './supervised-stop.mjs';
 import {existsSync,mkdirSync,readFileSync,renameSync,writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -112,7 +113,17 @@ if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_LOCAL_DISCOVERY==='1')se
 if(process.env.SNIPER_OFFLINE!=='1')setInterval(()=>{void prices()},30000);
 if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_LOCAL_DISCOVERY==='1')setTimeout(()=>{void scan()},2500);
 setInterval(()=>{try{commit(evaluate(applyExits(state)))}catch(e){console.error('Research/Exit:',e.message)}},5000);
-for(const sig of ['SIGINT','SIGTERM'])process.on(sig,()=>{save();server.close();process.exit(0)});
+let shuttingDown=false;
+function shutdownServer(){
+ if(shuttingDown)return;
+ shuttingDown=true;
+ try{save()}catch(e){console.error('Paper-state save on shutdown:',e.message)}
+ server.close(()=>process.exit(0));
+ // Exit even if an HTTP connection refuses to close. State was saved first.
+ setTimeout(()=>process.exit(0),3000).unref();
+}
+for(const sig of ['SIGINT','SIGTERM'])process.on(sig,shutdownServer);
+attachSupervisedStop(shutdownServer);
 
 // Opt-in, outbound-only, informational feed. Never calls ingest/evaluate/action.
 if(process.env.SNIPER_RESEARCH_FEED==='1'){
