@@ -1,163 +1,323 @@
 <!doctype html>
-<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>Meme Sniper AI · LOCAL PAPER</title>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Meme Sniper AI · PAPER</title>
 <style>
-:root{--bg:#0c1016;--panel:#131923;--muted:#8894a8;--border:#26303e;--fg:#f3f5fa;--mint:#66dfba;--warn:#efc681;--red:#f38e9c}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}main{max-width:1280px;margin:auto;padding:0 22px 60px}header{height:78px;display:flex;gap:22px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}h1{font-size:20px;letter-spacing:-.4px;margin:0}h2{font-size:15px;margin:0 0 4px}h3{font-size:13px;margin:0}p{color:var(--muted);margin:4px 0 12px}small{color:var(--muted)}a{color:var(--mint)}.brand{display:flex;gap:12px;align-items:center}.mark{width:37px;height:37px;border-radius:11px;background:var(--mint);color:#073227;display:grid;place-items:center;font-weight:900;font-size:19px}.tag{padding:6px 10px;border-radius:30px;border:1px solid var(--border);font-size:11px;white-space:nowrap;color:var(--muted)}.tag.good{color:var(--mint);border-color:#2c6858;background:#14372d}.tag.warn{color:var(--warn);border-color:#5b4731;background:#2e271e}.tag.danger{color:var(--red)}.banner{margin:22px 0;padding:12px 16px;border:1px solid #5b4930;background:#2b251c;border-radius:12px;color:#efcf95;font-size:12px;line-height:1.6}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.tile,.panel{border:1px solid var(--border);background:var(--panel);border-radius:15px}.tile{padding:19px}.tile b{display:block;font-size:24px;letter-spacing:-.5px}.tile small{display:block;margin-bottom:10px}.two{display:grid;grid-template-columns:1.05fr 1fr;gap:14px;margin-top:14px}.panel{padding:20px;margin-top:14px}.panel header{height:auto;border:0;margin-bottom:15px;align-items:flex-start}.panel >h2{margin-bottom:10px}.flex{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.push{margin-left:auto}.btn{border:1px solid #405061;border-radius:9px;background:#202d3d;color:#e9f1f7;padding:9px 14px;font-weight:600;cursor:pointer;min-height:39px}.btn.primary{background:var(--mint);color:#092c23;border-color:var(--mint)}.btn.danger{background:#362631;color:var(--red);border-color:#69404d}.btn:hover{filter:brightness(1.12)}.btn:disabled{opacity:.5;cursor:not-allowed}input,select{background:#0b111a;border:1px solid #35445a;padding:9px 11px;min-height:39px;border-radius:8px;color:#fff;min-width:0}input[type=number]{width:106px}input.address{width:min(100%,340px)}label{display:flex;align-items:center;gap:6px;color:#9badbd;font-size:12px}.field{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.field b{font-size:12px}.muted{color:var(--muted)}.good{color:var(--mint)}.warning{color:var(--warn)}.bad{color:var(--red)}.divider{height:1px;background:var(--border);margin:18px 0}.toggle{border:1px solid #506173;border-radius:12px;padding:10px 14px;background:#26313c;color:#e5edf6;font-weight:800;cursor:pointer}.toggle.on{border-color:#409879;background:#163f34;color:var(--mint)}.panelgrid{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:12px}.stack{display:grid;gap:8px}.row{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--border);padding:10px 0}.row:last-child{border:0}.row .name{font-weight:700}.row small{display:block;margin-top:3px;font-size:11px;overflow-wrap:anywhere}.right{text-align:right;white-space:nowrap}.mono{font-family:ui-monospace,Consolas,monospace;font-size:11px}.note{font-size:11px;color:var(--muted);line-height:1.7}.positions .row{align-items:flex-start}.empty{color:var(--muted);padding:20px 0}.bar{margin-top:14px;color:var(--muted);font-size:11px}.status{min-height:15px}.trade-actions{margin-top:9px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}.details{font-size:11px;color:var(--muted);line-height:1.65}.error{color:var(--red)}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--mint);outline-offset:2px}@media(max-width:880px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.panelgrid{grid-template-columns:1fr}}@media(max-width:530px){main{padding:0 13px 36px}.grid{gap:9px}.tile{padding:14px}.tile b{font-size:19px}.panel{padding:15px}.row{flex-wrap:wrap}.right{text-align:left}header{gap:10px}.tag{font-size:10px}.brand h1{font-size:16px}}
-
-/* Compact, read-only local research reception indicator. */
-.topbar{height:auto;min-height:78px;padding:11px 0;gap:14px}
-.header-right{display:flex;gap:12px;align-items:center;margin-left:auto;min-width:0}
-.header-tags{gap:8px}
-.dot-widget{width:315px;max-width:100%;position:relative;flex-shrink:0;font-size:12px}
-.dot-toggle{list-style:none;display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid var(--border);border-radius:11px;background:#141f29;min-height:53px;cursor:pointer}
+:root{--bg:#0b1119;--panel:#141d28;--panel2:#1b2734;--line:#2b3b4c;--fg:#eff5fb;--muted:#94a3b7;--mint:#6ce5be;--yellow:#edc47b;--red:#f098a5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:1150px;margin:0 auto;padding:0 22px 44px}
+header.topbar{min-height:90px;display:flex;gap:16px;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:14px 0}
+.brand{display:flex;align-items:center;gap:11px;white-space:nowrap}
+.mark{width:39px;height:39px;border-radius:12px;background:var(--mint);display:grid;place-items:center;color:#092820;font-size:20px;font-weight:800}
+.brand h1{font-size:20px;margin:0;letter-spacing:-.4px}
+.brand small{color:var(--muted);font-size:10px;letter-spacing:.8px}
+.header-right{display:flex;align-items:center;gap:10px;min-width:0}
+.tag{padding:5px 10px;border:1px solid var(--line);border-radius:20px;color:var(--muted);font-size:11px;white-space:nowrap}
+.tag.paper{color:var(--mint);border-color:#306653}
+.tag.offline,.bad{color:var(--red)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+.subtle{font-size:12px;color:var(--muted);margin:4px 0 0}
+.eyebrow{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+h2{font-size:17px;margin:0 0 10px}
+h3{font-size:13px;margin:0}
+p{margin:8px 0;color:var(--muted)}
+.good{color:var(--mint)}
+.warning{color:var(--yellow)}
+.title-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.overview{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin:22px 0 14px}
+.equity{font-size:36px;font-weight:750;letter-spacing:-1.4px;margin:10px 0 2px}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mode-line{display:flex;align-items:center;gap:7px}
+.mode{font-size:11px;padding:6px 10px;border:1px solid var(--line);border-radius:20px;color:var(--muted)}
+.mode.current{color:var(--mint);border-color:#326a59;background:#183429}
+.mode.disabled{opacity:.65;cursor:not-allowed}
+.primary-control{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:20px;padding-top:17px;border-top:1px solid var(--line)}
+.btn{border:1px solid #40576c;border-radius:10px;background:#233143;color:var(--fg);padding:11px 14px;min-height:42px;cursor:pointer;font-weight:650}
+.btn:hover:not(:disabled){filter:brightness(1.12)}
+.btn:disabled{opacity:.48;cursor:not-allowed}
+.btn.on{background:#244335;color:var(--mint);border-color:#3b8267}
+.btn.strong{background:var(--mint);border-color:var(--mint);color:#10261f}
+.btn.danger{color:var(--red);background:#34232d;border-color:#6b3b50}
+:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;height:100%}
+.metric{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:16px}
+.metric small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}
+.metric b{display:block;font-size:20px;letter-spacing:-.5px}
+.metric.wide{grid-column:span 2}
+.section{margin-top:14px}
+.section-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.section-heading h2{margin:0}
+.empty{color:var(--muted);padding:16px 0}
+.position-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding:14px 0}
+.position-row:first-child{border-top:0}
+.position-name{font-weight:650}
+.position-details{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.position-value{text-align:right}
+.position-value strong{font-size:16px}
+.mini-note{font-size:11px;color:var(--muted)}
+details.panel{padding:0}
+details.panel>summary{list-style:none;cursor:pointer;padding:17px 20px;font-size:14px;font-weight:650;display:flex;align-items:center;justify-content:space-between}
+details.panel>summary::-webkit-details-marker{display:none}
+details.panel>summary:after{content:'＋';color:var(--muted);font-size:20px;font-weight:400}
+details.panel[open]>summary:after{content:'−'}
+.details-body{border-top:1px solid var(--line);padding:17px 20px}
+.details-body>p:first-child{margin-top:0}
+.lower{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.controls{display:flex;align-items:end;flex-wrap:wrap;gap:10px;margin:13px 0}
+label{display:inline-flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}
+label.check{flex-direction:row;align-items:center;gap:8px}
+input[type=number]{background:#0c141e;border:1px solid #3b4e60;border-radius:9px;color:var(--fg);min-height:42px;padding:9px 12px;width:154px;font:inherit}
+input[type=checkbox]{accent-color:var(--mint)}
+.notice{font-size:12px;border-left:3px solid var(--yellow);padding:8px 11px;background:#2a271e;border-radius:5px;color:#e9d4a9}
+.activity-row{border-top:1px solid var(--line);padding:9px 0;font-size:12px}
+.activity-row:first-child{border-top:0}
+.activity-row small{display:block;color:var(--muted)}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:250px;overflow:auto;background:#0e151f;border:1px solid var(--line);padding:12px;border-radius:9px;font-size:11px}
+.statusline{min-height:22px;font-size:12px;color:var(--muted)}
+footer{font-size:11px;color:var(--muted);margin:22px 0}
+/* Top-right Dot reception: local acknowledgements only. */
+.dot-widget{width:298px;max-width:100%;position:relative;flex-shrink:0;font-size:12px}
+.dot-toggle{list-style:none;display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);min-height:53px;cursor:pointer}
 .dot-toggle::-webkit-details-marker{display:none}
-.dot-toggle:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
-.dot-widget[open] .dot-toggle{border-color:#49687a}
 .dot-lamp{height:10px;width:10px;border-radius:50%;background:var(--muted);flex-shrink:0}
-.dot-widget[data-status="received"] .dot-lamp{background:var(--mint);box-shadow:0 0 8px #66dfba55}
-.dot-widget[data-status="stale"] .dot-lamp,.dot-widget[data-status="historical_only"] .dot-lamp{background:var(--warn)}
-.dot-widget[data-status="error"] .dot-lamp,.dot-widget[data-status="offline"] .dot-lamp{background:var(--red)}
-.dot-heading{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
-.dot-heading strong{font-size:12px;line-height:1.2}
-.dot-heading small{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dot-badge{font-size:10px;color:var(--muted);border:1px solid var(--border);border-radius:12px;padding:2px 7px;white-space:nowrap}
-.dot-widget[data-status="received"] .dot-badge{color:var(--mint);border-color:#2c6858}
-.dot-widget[data-status="error"] .dot-badge,.dot-widget[data-status="offline"] .dot-badge{color:var(--red)}
-.dot-widget[data-status="stale"] .dot-badge{color:var(--warn)}
-.dot-popup{position:absolute;right:0;top:calc(100% + 7px);width:360px;max-width:calc(100vw - 30px);z-index:30;background:#151e2b;border:1px solid #344154;border-radius:13px;box-shadow:0 14px 36px #0009;padding:15px}
-.dot-popup h3{font-size:13px}
-.dot-hint{font-size:11px;margin:4px 0 13px}
-.dot-meta{display:flex;gap:12px;justify-content:space-between;border-bottom:1px solid var(--border);padding:5px 0;font-size:11px}
-.dot-meta>span{color:var(--muted)}
-.dot-meta>strong{text-align:right;font-weight:600}
-.dot-role-heading{margin-top:13px!important;margin-bottom:7px!important}
-.dot-role-item{border-top:1px solid var(--border);padding:7px 0;display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
-.dot-role-item>strong{font-size:11px;font-weight:600}
-.dot-role-item>small{font-size:10px;text-align:right;max-width:60%;overflow-wrap:anywhere}
-.dot-role-item .dot-missing{color:var(--muted)}
-.dot-role-item .dot-old{color:var(--warn)}
-.dot-error{margin-top:10px;font-size:11px;color:var(--red);overflow-wrap:anywhere}
-@media(max-width:880px){.topbar{flex-wrap:wrap}.header-right{flex-wrap:wrap}.dot-widget{width:300px}}
-@media(max-width:530px){.topbar{align-items:flex-start}.header-right{width:100%;margin-left:0;display:flex;flex-direction:column;align-items:stretch}.dot-widget{width:100%}.dot-popup{position:static;width:100%;max-width:none;margin-top:8px;box-shadow:none}.header-tags{justify-content:space-between}.dot-toggle{min-height:50px}}
+.dot-widget[data-status=received] .dot-lamp{background:var(--mint)}
+.dot-widget[data-status=stale] .dot-lamp,.dot-widget[data-status=historical_only] .dot-lamp{background:var(--yellow)}
+.dot-widget[data-status=error] .dot-lamp,.dot-widget[data-status=offline] .dot-lamp{background:var(--red)}
+.dot-heading{display:flex;flex-direction:column;flex:1;min-width:0}
+.dot-heading strong{font-size:12px}
+.dot-heading small{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot-badge{font-size:10px;color:var(--muted)}
+.dot-widget[data-status=received] .dot-badge{color:var(--mint)}
+.dot-widget[data-status=error] .dot-badge,.dot-widget[data-status=offline] .dot-badge{color:var(--red)}
+.dot-popup{position:absolute;right:0;top:calc(100% + 7px);width:360px;max-width:calc(100vw - 30px);z-index:20;background:#192433;border:1px solid #42556a;border-radius:14px;box-shadow:0 16px 35px #000a;padding:16px}
+.dot-hint{font-size:11px;margin:6px 0 13px}
+.dot-meta{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:11px}
+.dot-meta span{color:var(--muted)}
+.dot-meta strong{text-align:right}
+.dot-role-heading{margin:13px 0 6px}
+.dot-role-item{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding:7px 0}
+.dot-role-item strong{font-size:11px}
+.dot-role-item small{font-size:10px;text-align:right;color:var(--muted)}
+.dot-old{color:var(--yellow)!important}
+.dot-error{color:var(--red);font-size:11px}
+@media(max-width:900px){.overview{grid-template-columns:1fr}.header-right{flex-wrap:wrap;justify-content:flex-end}.brand h1{font-size:18px}}
+@media(max-width:630px){main{padding:0 13px 30px}.topbar{align-items:flex-start;flex-wrap:wrap}.header-right{width:100%;justify-content:space-between}.dot-widget{width:100%;order:2}.dot-popup{position:static;width:100%;max-width:none;box-shadow:none;margin-top:8px}.lower{grid-template-columns:1fr}.equity{font-size:31px}.panel{padding:16px}.summary-grid{gap:9px}.metric{padding:12px}details.panel>summary{padding:15px}details.panel .details-body{padding:15px}.position-row{align-items:flex-start}.position-value strong{font-size:14px}}
+</style>
+</head>
+<body>
+<main>
+<header class="topbar">
+  <div class="brand"><span class="mark" aria-hidden="true">⌖</span><div><h1>MEME SNIPER</h1><small>AI · LOCAL BOT</small></div></div>
+  <div class="header-right">
+    <span id="online" class="tag">Verbinde …</span>
+    <details class="dot-widget" id="dotWidget" data-status="no_receipt">
+      <summary class="dot-toggle" aria-label="Dot-Empfangsdetails anzeigen">
+        <span class="dot-lamp" aria-hidden="true"></span>
+        <span class="dot-heading"><strong>Dot-Eingang</strong><small id="dotLatest">Noch kein Empfang bestätigt</small></span>
+        <span class="dot-badge" id="dotBadge">Unbekannt</span>
+      </summary>
+      <div class="dot-popup">
+        <h3>Forschungsnachrichten</h3>
+        <p class="dot-hint">Nur bestätigte lokale Nachrichten. Nicht gleichbedeutend mit einer Kaufverbindung.</p>
+        <div class="dot-meta"><span>Gesendet</span><strong id="dotPublished">–</strong></div>
+        <div class="dot-meta"><span>Empfangen im Bot</span><strong id="dotReceived">–</strong></div>
+        <div class="dot-meta"><span>Letzter Abruf</span><strong id="dotChecked">–</strong></div>
+        <h3 class="dot-role-heading">Fünf Forschungsrollen</h3>
+        <div id="dotRoleDetails">Noch kein Rollenempfang bestätigt.</div>
+        <p id="dotError" class="dot-error" hidden></p>
+      </div>
+    </details>
+  </div>
+</header>
 
-</style></head><body><main>
-<header class="topbar"><div class="brand"><span class="mark">⌖</span><div><h1>Meme Sniper <span class="good">AI</span></h1><small>WINDOWS · LOCAL</small></div></div>
-<div class="header-right">
-  <details id="dotWidget" class="dot-widget" data-status="no_receipt">
-    <summary class="dot-toggle" aria-label="Letzte Forschungsnachricht und Dot-Empfangsdetails anzeigen">
-      <span class="dot-lamp" aria-hidden="true"></span>
-      <span class="dot-heading"><strong>Dot-Eingang</strong><small id="dotLatest">Noch kein Empfang bestätigt</small></span>
-      <span id="dotBadge" class="dot-badge">Unbekannt</span>
-    </summary>
-    <div class="dot-popup">
-      <h3>Forschungsnachrichten</h3>
-      <p class="dot-hint">Bestätigte lokale Empfänge – keine direkte Dot-Verbindung und keine Handelsfreigabe.</p>
-      <div class="dot-meta"><span>Gesendet</span><strong id="dotPublished">–</strong></div>
-      <div class="dot-meta"><span>Empfangen im Bot</span><strong id="dotReceived">–</strong></div>
-      <div class="dot-meta"><span>Letzter Abruf</span><strong id="dotChecked">–</strong></div>
-      <h3 class="dot-role-heading">Forschungsrollen</h3>
-      <div id="dotRoleDetails" class="dot-role-list"><p>Noch kein Rollenempfang bestätigt.</p></div>
-      <p id="dotError" class="dot-error" hidden></p>
+<section class="overview" aria-label="Bot-Übersicht">
+  <div class="panel">
+    <div class="topline">
+      <span class="eyebrow">Dein Sniperbot</span>
+      <div class="mode-line" aria-label="Handelsmodus"><span class="mode current">PAPER</span><button class="mode disabled" type="button" disabled title="Kein Echtgeldhandel implementiert">LIVE · gesperrt</button></div>
+    </div>
+    <div class="subtle">Gesamtes virtuelles Vermögen</div>
+    <div id="capitalValue" class="equity">–</div>
+    <div class="subtle">TEST-USDC · Kein echtes Geld</div>
+    <div class="primary-control">
+      <div><strong id="botState">Status wird geladen</strong><div id="botInfo" class="subtle">Der Schalter steuert neue Paper-Einstiege.</div></div>
+      <button class="btn" id="toggle" type="button">Bot …</button>
+    </div>
+  </div>
+  <div class="summary-grid">
+    <div class="metric"><small>Freies Testguthaben</small><b id="freeCash">–</b><small id="eurNote"></small></div>
+    <div class="metric"><small>Offene Positionen</small><b id="positionCount">–</b><small>Eigenes Paper-Portfolio</small></div>
+    <div class="metric wide"><small>Zentrale Entscheidungen</small><strong id="decisionState">Prüfe Verbindung …</strong><div class="subtle" id="decisionInfo">Keine ungeprüften Käufe</div></div>
+  </div>
+</section>
+
+<section class="panel section">
+  <div class="section-heading"><h2>Meine Positionen</h2><span class="tag">PAPER</span></div>
+  <div id="positions" class="empty">Positionen werden geladen …</div>
+</section>
+
+<div class="lower">
+  <details class="panel" id="accountDetails">
+    <summary>Testkapital verwalten</summary>
+    <div class="details-body">
+      <p>Gesamtes virtuelles Guthaben festlegen oder auf null setzen. Keine Zahlung und keine Auszahlung.</p>
+      <div class="controls">
+        <label>Testkapital (USDC)<input id="paperBalance" type="number" min="0" max="100000" step="0.01" value="1000" inputmode="decimal"></label>
+        <button class="btn strong" id="setBalance" type="button">Testkapital festlegen</button>
+        <button class="btn danger" id="clearBalance" type="button">Auf 0 setzen</button>
+      </div>
+      <p class="notice">Änderungen nur bei Bot AUS und ohne offene Positionen. Bestehendes Guthaben wird ersetzt, nicht zusätzlich eingezahlt.</p>
+      <p class="statusline" id="accountStatus"></p>
     </div>
   </details>
-  <div class="flex header-tags"><span class="tag warn">NUR TESTGUTHABEN</span><span id="online" class="tag">Verbinde …</span></div>
-</div></header>
-<div class="banner"><b>Kein echtes Geld, keine echte Order.</b> Testeinzahlungen, Wechselkurs 1:1 und Coins sind nur Paper-Trading. Neue Pools/Kurse können aus öffentlichen Live-Feeds kommen, sind aber nicht sicherheitsgeprüft. Der Bot darf ohne unabhängige Sicherheitsprüfung keine echten Coins kaufen.</div>
-<section class="grid" id="summary"></section>
-<section class="two">
-<div class="panel"><h2>Bot-Steuerung</h2><p>AN ermöglicht neue <b>Testkäufe</b>. AUS stoppt nur neue Einstiege. Bestehende Positionen bleiben verwaltet.</p>
-<div class="flex"><button id="toggle" class="toggle" data-action="TOGGLE_BOT">Bot AUS</button><label><input type="checkbox" id="centralFollow">Zentrale Paper-Aufträge ausführen</label></div>
-<div class="divider"></div><div class="field"><b>Einsatz pro Coin:</b><label>Min <input id="min" type="number" min="1" step="1" value="50"> Test-USDC</label><label>Max <input id="max" type="number" min="1" step="1" value="50"></label><button class="btn" id="range">Speichern</button></div>
-<div class="flex" style="margin-top:10px"><button class="btn" data-range="50,50">50–50</button><button class="btn" data-range="200,400">200–400</button><button class="btn" data-range="100,1000">100–1000</button></div>
-<p class="note">Min und Max gelten für jeden einzelnen neuen Coin-Kauf. Gleiche Werte = fester Einsatz; unterschiedliche Werte = bewertungsabhängiger Einsatz im Bereich. Weitere Coins können gekauft werden, solange freies Testguthaben reicht. Keine zusätzliche Anzahl- oder Gesamteinsatzgrenze.</p><div class="divider"></div><div class="field"><b>Verkaufsmodus:</b><select id="exit"><option value="HOLD">HOLD – Coin liegen lassen</option><option value="TRAILING">TRAILING – Demo-Trend laufen lassen</option><option value="AUTO">LEGACY AUTO – fester TP/SL</option></select><label>Legacy-TP <input id="tp" type="number" min="0.1" max="500" value="15">%</label><label>SL <input id="sl" type="number" min="0.1" max="99" value="10">%</label><label>Trailing <input id="trailing" type="number" min="1" max="99" value="25">%</label><button class="btn" id="saveExit">Speichern</button></div>
-<p class="note">HOLD bleibt manuell. TRAILING hat keine feste Gewinnkappung, ist aber nur für erfundene Testcoins ausführbar; echte Sell-Adapter fehlen. Die Werte sind Testparameter, keine validierte Strategie. Im Modus AUTO laufen Ausstiege weiter, auch wenn neue Käufe ausgeschaltet sind. Nur solange der Laptop-Runner läuft.</p></div>
-<div class="panel"><h2>Testguthaben · Einzahlung / Auszahlung</h2><p>Keine Verbindung zu PayPal, Bankkonto oder Wallet. Keine tatsächliche EUR- oder USDC-Buchung.</p>
-<div class="field"><label>Betrag € <input id="eur" type="number" min="1" max="100000" value="50" step="1"></label><button class="btn primary" id="deposit">Test + EUR</button><button class="btn" id="withdraw">Test − EUR</button></div>
-<div class="divider"></div><div class="field"><label>Umtausch <input id="exchange" type="number" min="1" max="100000" value="50" step="1"></label><button class="btn" id="toUsdc">EUR → Test-USDC</button><button class="btn" id="toEur">Test-USDC → EUR</button></div><p class="note">Beim Testkauf rechnet der Bot verfügbares virtuelles EUR-Guthaben automatisch in Test-USDC um (fest 1:1, <b>kein echter Wechselkurs</b>). Gewinne werden als Test-USDC ausgewiesen; zum Auszahlen zunächst in Demo-EUR zurücktauschen.</p>
-<div class="divider"></div><h3>In 50-Euro-Schritten ausprobieren</h3><p class="note">50 € Testguthaben → Bot AN → Paper-Autokauf → fünf simulierte YES → neue Testposition sehen.</p></div>
-</section>
-<section class="panel"><h2>Zentrale Entscheidungen</h2><p id="centralStatus"></p><p>Bewertung unter 80: kein Kauf. 80: Mindesteinsatz; ab 92: Höchsteinsatz, begrenzt durch freies Testguthaben. Keine Gewinnwahrscheinlichkeit. Kein festes 200er-Limit.</p><pre id="centralReceipts" style="white-space:pre-wrap;max-height:240px;overflow:auto"></pre></section>
-<details class="panel"><summary>Diagnose: Scout-Forschungseingang und Paper-Labor</summary><section><h2>Scout-Eingang · GitHub-Forschungshinweise</h2><p>Nur Information, keine Kaufbefehle. Historische Probe ist kein aktuelles Signal. Empfang über öffentlichen GitHub-Arbeitsbranch; keine unabhängige Agentensignatur.</p><div id="scoutInbox"></div><details><summary>Technischer Empfangsnachweis</summary><pre id="scoutReceipt" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:300px;overflow:auto"></pre></details></section>
-<section><h2>Fünf-Agenten-Kommunikation · Paper-Labor</h2><label><input type="checkbox" id="auto">Synthetische Laborsignale automatisch PAPER prüfen</label><p>Lokaler Belegspeicher und Gateway aktiv. Fünf echte Forschungsrollen noch nicht verbunden; der Scout-Informationseingang steht separat oben. Externe Coins bleiben ohne unabhängige On-Chain-/Sell-Prüfung gesperrt.</p><div class="flex"><button class="btn" id="fiveYes">5 simulierte YES senden</button><button class="btn" id="oneNo">4 YES + 1 NO senden</button></div><p class="note">Erfundene Testcoins. Ein Testkauf braucht Bot AN, Paper-Autokauf und vorhandenes Testguthaben. Keine Einzahlung durch diese Schaltflächen.</p><div id="research"></div><details><summary>Nachrichten und Entscheidungen (vollständiger lokaler Verlauf)</summary><pre id="researchLog" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:400px;overflow:auto"></pre></details></section></details>
-<section class="panel"><header><div><h2>Neue Meme-Coins finden</h2><p>Die Dots übernehmen die Recherche. Der lokale automatische Poolscanner ist standardmäßig aus; die manuelle Abfrage dient nur der Diagnose.</p></div><button class="btn" id="scan">Suche aktualisieren</button></header><p class="note" id="scanstatus">Initialisierung …</p></section>
-<section class="two"><div class="panel positions"><h2>Eröffnete Positionen · Paper-Portfolio</h2><p>Aktuelle Preisschätzung aus DEX-Feed; Exit-Quotes und Handelbarkeit sind nicht verifiziert. TEST-Positionen nutzen ein erfundenes Signal.</p><div id="positions"></div></div><div class="panel"><h2>Journal</h2><p>Alle Testbuchungen und Handelsentscheidungen auf deinem Rechner gespeichert.</p><div id="journal" class="stack"></div></div></section>
-<div class="bar">Datenquellen: GeckoTerminal (neue Pools) und DEX Screener (Preis/Token). Lokaler Gateway bereit; Scout-Empfang siehe oben; keine direkte Dot-Orderverbindung. Kein PayPal, keine Wallet und keine Echtgeldfunktionen. Entwicklerversion V0.4 · lokaler Research-Gateway · <a href="https://docs.dexscreener.com/api/reference" target="_blank" rel="noopener">DEX Screener Dokumentation</a>.</div>
-</main><script>
+  <details class="panel" id="settingsDetails">
+    <summary>Einstellungen</summary>
+    <div class="details-body">
+      <p>Der Bot berechnet Einsätze selbst. Die Dots liefern die zentralen Bewertungen.</p>
+      <div class="controls">
+        <label>Mindesteinsatz<input id="min" type="number" min="1" max="100000" step="0.01"></label>
+        <label>Höchsteinsatz<input id="max" type="number" min="1" max="100000" step="0.01"></label>
+        <button id="range" class="btn" type="button">Grenzen speichern</button>
+      </div>
+      <label class="check"><input type="checkbox" id="centralFollow">Zentrale Paper-Entscheidungen empfangen</label>
+      <p class="subtle">Eingeschaltet bedeutet nicht, dass bereits signierte Orders zugestellt werden. Ohne Publisher, Contract- und Sellability-Prüfung bleiben externe automatische Käufe blockiert.</p>
+    </div>
+  </details>
+</div>
+
+<details class="panel section">
+  <summary>Aktivitäten und Diagnose</summary>
+  <div class="details-body">
+    <h3>Letzte Aktivitäten</h3><div id="journal"></div>
+    <details><summary>Forschungseingang (nur Information)</summary><div id="scoutInbox"></div><pre id="scoutReceipt"></pre></details>
+    <details><summary>Zentrale Paper-Ereignisse</summary><pre id="centralReceipts"></pre></details>
+    <details><summary>Technischer Forschungsstatus</summary><div id="research"></div><pre id="researchLog"></pre></details>
+  </div>
+</details>
+<footer>Paper-Trading-Prototyp · Kein Echtgeldhandel, keine PayPal-/Wallet-Anbindung, keine überprüften realen Swap- oder Sell-Routen. LIVE ist bewusst gesperrt.</footer>
+</main>
+<script>
 let lastState=null,lastHealth=null,waiting=false,initialized=false;
 const $=id=>document.getElementById(id);
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=(x,d=2)=>Number.isFinite(Number(x))?Number(x).toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d}):'–';
-const t=x=>x?new Date(x).toLocaleString('de-DE'):'unbekannt';
-const tiny=s=>String(s||'').length>18?`${String(s).slice(0,9)}…${String(s).slice(-6)}`:String(s||'');
+const t=x=>x&&Number.isFinite(Date.parse(x))?new Date(x).toLocaleString('de-DE'):'–';
+const money=n=>num(n)+' USDC';
+const number=n=>Number.isFinite(Number(n))?Number(n):0;
 
-function dotTime(iso){const n=typeof iso==='string'?Date.parse(iso):NaN;return Number.isFinite(n)?new Date(n).toLocaleString('de-DE'):'–'}
+function dotTime(iso){return t(iso)}
 function renderDotStatus(model){
- const known=['received','stale','error','disabled','historical_only','no_receipt'];
- const status=known.includes(model?.status)?model.status:'no_receipt';
- $('dotWidget').dataset.status=status;
- $('dotBadge').textContent=({received:'Empfangen',stale:'Veraltet',error:'Abruffehler',disabled:'Empfang aus',historical_only:'Nur Test',no_receipt:'Noch kein Eingang'})[status];
- const latest=model?.latest;
- $('dotLatest').textContent=latest?'Empfangen: '+dotTime(latest.received_at_utc):model?.historical_received_at_utc?'Nur historische Testnachricht':'Noch kein regulärer Empfang';
- $('dotPublished').textContent=latest?dotTime(latest.published_at_utc):'–';
- $('dotReceived').textContent=latest?dotTime(latest.received_at_utc):model?.historical_received_at_utc?'Historische Probe: '+dotTime(model.historical_received_at_utc):'–';
- $('dotChecked').textContent=dotTime(model?.last_check_at_utc);
- const roles=Array.isArray(model?.roles)?model.roles:[];
- $('dotRoleDetails').innerHTML=roles.map(role=>{
-  const received=!!role.last_received_at,stale=!!role.stale;
-  const state=received?(stale?'Veraltet · ':'Empfangen · ')+dotTime(role.last_received_at):'Noch kein Bot-Empfang';
-  return '<div class="dot-role-item"><strong>'+esc(role.label)+'</strong><small class="'+(!received?'dot-missing':stale?'dot-old':'')+'">'+esc(state)+'</small></div>';
- }).join('')||'<p>Noch kein Rollenempfang bestätigt.</p>';
- const err=$('dotError');
- err.hidden=!model?.last_error;
- err.textContent=model?.last_error?'Letzter Abruffehler: '+model.last_error:'';
+  const known=['received','stale','error','disabled','historical_only','no_receipt'];
+  const status=known.includes(model?.status)?model.status:'no_receipt';
+  $('dotWidget').dataset.status=status;
+  $('dotBadge').textContent=({received:'Empfangen',stale:'Veraltet',error:'Abruffehler',disabled:'Empfang aus',historical_only:'Nur Test',no_receipt:'Noch kein Eingang'})[status];
+  const latest=model?.latest;
+  $('dotLatest').textContent=latest?'Empfangen: '+dotTime(latest.received_at_utc):model?.historical_received_at_utc?'Nur historische Testnachricht':'Noch kein regulärer Empfang';
+  $('dotPublished').textContent=latest?dotTime(latest.published_at_utc):'–';
+  $('dotReceived').textContent=latest?dotTime(latest.received_at_utc):model?.historical_received_at_utc?'Historische Probe: '+dotTime(model.historical_received_at_utc):'–';
+  $('dotChecked').textContent=dotTime(model?.last_check_at_utc);
+  const roles=Array.isArray(model?.roles)?model.roles:[];
+  $('dotRoleDetails').innerHTML=roles.map(role=>{
+    const received=!!role.last_received_at;
+    const display=received?(role.stale?'Veraltet · ':'Empfangen · ')+dotTime(role.last_received_at):'Noch kein Bot-Empfang';
+    return '<div class="dot-role-item"><strong>'+esc(role.label)+'</strong><small class="'+(role.stale?'dot-old':'')+'">'+esc(display)+'</small></div>';
+  }).join('')||'<p>Keine Empfangsbelege vorhanden.</p>';
+  $('dotError').hidden=!model?.last_error;
+  $('dotError').textContent=model?.last_error?'Letzter Abruffehler: '+model.last_error:'';
 }
 function dotRunnerOffline(){
- $('dotWidget').dataset.status='offline';
- $('dotBadge').textContent='Runner offline';
- $('dotLatest').textContent='Letzten Empfang nicht neu geprüft';
+  $('dotWidget').dataset.status='offline';
+  $('dotBadge').textContent='Runner offline';
+  $('dotLatest').textContent='Empfang kann nicht geprüft werden';
 }
 
-const getMoney=()=>Number($('eur').value);
-async function api(a){if(waiting)return;waiting=true;try{const r=await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(a)});const j=await r.json();if(!r.ok)throw Error(j.error||'Abgelehnt');await refresh(true)}catch(e){alert('Testaktion nicht ausgeführt: '+e.message)}finally{waiting=false}}
-async function refresh(force=false){try{const r=await fetch('/api/state',{cache:'no-store'});if(!r.ok)throw Error('Server antwortet nicht');const j=await r.json();lastState=j.state;lastHealth=j.health;$('online').textContent='Paper-Runner aktiv';$('online').className='tag good';render(force)}catch(e){$('online').textContent='Runner offline';$('online').className='tag danger';$('scanstatus').textContent='Keine Verbindung zum lokalen Runner. Starte Windows_Starten.bat.';dotRunnerOffline()}}
-function render(force){if(!lastState)return;const s=lastState;
- renderDotStatus(lastHealth?.dotStatus);
- const worth=s.positions.reduce((n,p)=>n+p.qty*p.priceUsd*.99,0),net=s.cashEur+s.cashUsdc+worth;
- $('summary').innerHTML=`<div class="tile"><small>Virtuelles EUR-Guthaben</small><b>${num(s.cashEur)} €</b><small>Nur Testguthaben</small></div><div class="tile"><small>Freie Test-USDC</small><b>${num(s.cashUsdc)}</b><small>Testwährung</small></div><div class="tile"><small>Positionen (Papierwert)</small><b>${num(worth)}</b><small>${s.positions.length} offene Coin-Position(en)</small></div><div class="tile"><small>Gesamter Testwert</small><b>${num(net)}</b><small>Rechnerisch, kein reales Vermögen</small></div>`;
- $('toggle').textContent=s.entriesEnabled?'Bot AN – Pausieren':'Bot AUS – Einschalten';$('toggle').className='toggle '+(s.entriesEnabled?'on':'');
- $('auto').checked=!!s.automaticPaperBuys;
- $('centralFollow').checked=!!s.centralPaperFollow;
- $('centralStatus').textContent=s.centralPaperFollow?'Bereit zum Prüfen – automatische Ausführung noch blockiert: zentraler Publisher und reale Prüf-/Ausführungsadapter erforderlich.':'Zentrale Paper-Ausführung ausgeschaltet.';
- $('centralReceipts').textContent=JSON.stringify(s.paperDecisions?.receipts||[],null,2);
- if(force||!initialized){$('min').value=s.minTrade;$('max').value=s.maxTrade;$('tp').value=s.takeProfit;$('sl').value=s.stopLoss;$('exit').value=s.defaultExitMode;$('trailing').value=s.trailingPercent;initialized=true}
- $('scanstatus').innerHTML=`Letzte Pool-Prüfung: <b>${esc(t(s.lastScan))}</b> · ${s.candidates.filter(x=>!x.isDemo).length} externe Pools · ${s.scanErrors.length?`<span class="warning">Provider: ${esc(s.scanErrors.join('; '))}</span>`:'Datenanbieter ohne gemeldeten Fehler'} · ${s.automaticPaperBuys?'Paper-Autokauf aktiv':'Paper-Autokauf aus'} · <b>Contract-Sicherheit nicht überprüft</b>`;
- const inbox=s.researchInbox||{receipts:[]};
- $('scoutInbox').innerHTML=(inbox.lastError?'<p>Abruf derzeit nicht erfolgreich: '+esc(inbox.lastError)+'</p>':'')+(inbox.receipts.slice(-5).reverse().map(r=>'<div class="row"><div><b>'+esc(r.historical_probe?'Historische Scout-Testnachricht empfangen':r.message.producer)+'</b><small>'+esc(r.message.summary||r.message.message)+'</small><small>Empfangen: '+esc(new Date(r.received_at_utc).toLocaleString('de-DE'))+' · Nur Information'+(!r.historical_probe&&Date.parse(r.message.expires_at_utc)<=Date.now()?' · ABGELAUFEN':'')+'</small></div></div>').join('')||'<p>Noch keine Scout-Nachricht empfangen.</p>');
- $('scoutReceipt').textContent=JSON.stringify(inbox,null,2);
- const research=s.research||{candidates:[],events:[],decisions:[]};
- $('research').innerHTML=research.candidates.slice(-20).reverse().map(c=>`<div class="row"><div><b>${esc(c.symbol)} · ${c.isDemo?'SIMULATION':'Externe Recherche'}</b><small>${esc(c.id)}</small><small>${esc(c.votes.map(v=>v.role+': '+v.vote).join(' · '))}</small><small>${esc(c.status)}: ${esc(c.reason)}</small><small>${c.evidence.length} Belege · ${c.votes.length} Stimmen</small></div></div>`).join('')||'<p>Noch keine Forschungsnachrichten.</p>';
- $('researchLog').textContent=JSON.stringify({events:research.events,decisions:research.decisions},null,2);
- $('positions').innerHTML=s.positions.length?s.positions.map(p=>{const pnl=p.qty*p.priceUsd*.99-p.amountUsdc;const stale=p.isDemo?'Fiktiver Testcoin':!p.markAt||Date.now()-Date.parse(p.markAt)>180000?'Kurs veraltet':'Indikativer Marktkurs';return `<div class="row"><div><b>${esc(p.symbol)} <span class="tag">${esc(p.chain)}</span></b><small>${esc(tiny(p.tokenAddress))}</small><small>${esc(p.exitMode)} · ${esc(p.quoteStatus||stale)} · ${esc(t(p.markAt))}</small><small>Einstand ${num(p.amountUsdc)} Test-USDC · ${num(p.qty,5)} Token</small></div><div class="right"><b>${num(p.qty*p.priceUsd*.99)} Test-USDC</b><small class="${pnl>=0?'good':'bad'}">${pnl>=0?'+':''}${num(pnl)} (nicht realisiert)</small><div class="trade-actions"><button class="btn danger" data-sell="${esc(p.id)}">Testverkauf</button>${p.isDemo?`<button class="btn" data-move="${esc(p.id)}">+20% Demo</button>`:''}</div></div></div>`}).join(''):'<div class="empty">Noch keine Position eröffnet. Neue simulierte Käufe erscheinen hier automatisch.</div>';
- $('journal').innerHTML=s.history.length?s.history.slice(0,14).map(h=>`<div class="row"><div><b>${esc(h.title)}</b><small>${esc(h.detail)}</small></div><small class="right">${esc(t(h.at))}</small></div>`).join(''):'<div class="empty">Noch keine Buchungen.</div>';
+async function api(input){
+  if(waiting)return;
+  waiting=true;
+  try{
+    const response=await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)});
+    const result=await response.json();
+    if(!response.ok)throw Error(result.error||'Aktion nicht zugelassen');
+    await refresh(true);
+  }catch(e){alert('Aktion nicht ausgeführt: '+e.message);await refresh(true)}
+  finally{waiting=false}
+}
+async function refresh(force=false){
+  try{
+    const r=await fetch('/api/state',{cache:'no-store'});
+    if(!r.ok)throw Error('Runner nicht erreichbar');
+    const data=await r.json();
+    lastState=data.state;lastHealth=data.health;
+    $('online').textContent='Runner aktiv';
+    $('online').className='tag paper';
+    render(force);
+  }catch(e){
+    $('online').textContent='Runner offline';
+    $('online').className='tag offline';
+    $('botState').textContent='Verbindung unterbrochen';
+    $('decisionState').textContent='Runner offline';
+    dotRunnerOffline();
+  }
+}
+function render(force){
+  if(!lastState)return;
+  const s=lastState,positions=Array.isArray(s.positions)?s.positions:[];
+  const free=number(s.cashUsdc)+number(s.cashEur);
+  const marked=positions.reduce((sum,p)=>sum+number(p.qty)*number(p.priceUsd)*0.99,0);
+  $('capitalValue').textContent=money(free+marked);
+  $('freeCash').textContent=money(free);
+  $('eurNote').textContent=number(s.cashEur)>0?num(s.cashEur)+' virtuelle EUR (nur 1:1-Demo-Umrechnung)':'Für neue Paper-Einsätze';
+  $('positionCount').textContent=String(positions.length);
+  $('botState').textContent=s.entriesEnabled?'Bot eingeschaltet':'Bot ausgeschaltet';
+  $('botInfo').textContent=s.entriesEnabled?'Neue Paper-Einstiege grundsätzlich erlaubt':'Neue Einstiege gestoppt; laufende Überwachung nur bei gestartetem Runner';
+  $('toggle').textContent=s.entriesEnabled?'Bot ausschalten':'Bot einschalten';
+  $('toggle').className='btn '+(s.entriesEnabled?'on':'strong');
+  $('decisionState').textContent=s.centralPaperFollow?'Paper-Folge aktiviert':'Paper-Folge deaktiviert';
+  const central=lastHealth?.central;
+  $('decisionInfo').textContent=central?.publisherConfigured?'Signierter Publisher konfiguriert · externe Fills bleiben ohne echte Validatoren blockiert':'Publisher und reale Ausführungsprüfungen fehlen – keine externen Autokäufe';
+  $('centralFollow').checked=!!s.centralPaperFollow;
+  $('accountStatus').textContent=(s.entriesEnabled||positions.length)?'Zum Ändern Bot ausschalten und Positionen schließen.':'Testkapital kann jetzt festgelegt werden.';
+  $('setBalance').disabled=!!(s.entriesEnabled||positions.length);
+  $('clearBalance').disabled=!!(s.entriesEnabled||positions.length);
+  if(force||!initialized){
+    $('min').value=s.minTrade;$('max').value=s.maxTrade;
+    if(!initialized)$('paperBalance').value=Number(free.toFixed(2));
+    initialized=true;
+  }
+  $('positions').innerHTML=positions.length?positions.map(p=>{
+    const value=number(p.qty)*number(p.priceUsd)*0.99;
+    const pnl=value-number(p.amountUsdc);
+    const stale=!p.isDemo&&(!Number.isFinite(Date.parse(p.markAt))||Date.now()-Date.parse(p.markAt)>180000);
+    return '<div class="position-row"><div><span class="position-name">'+esc(p.symbol||'Token')+'</span><span class="position-details">'+esc(p.chain)+' · '+esc(p.status||'PAPER_ONLY')+'</span><span class="position-details">'+(p.isDemo?'Fiktiver Demo-Coin':stale?'Kurs veraltet':'Indikative Bewertung, keine ausführbare Sell-Quote')+'</span></div><div class="position-value"><strong>'+money(value)+'</strong><div class="'+(pnl>=0?'good':'bad')+'">'+(pnl>=0?'+':'')+money(pnl)+'</div></div></div>';
+  }).join(''):'<div class="empty">Noch keine offenen Positionen.</div>';
+  const inbox=s.researchInbox||{receipts:[]};
+  $('scoutInbox').innerHTML=(inbox.lastError?'<p class="bad">Abruf: '+esc(inbox.lastError)+'</p>':'')+(Array.isArray(inbox.receipts)?inbox.receipts.slice(-5).reverse().map(r=>'<div class="activity-row">'+esc(r.historical_probe?'Historische Scout-Probe':r.message?.producer||'Forschung')+' · '+esc(t(r.received_at_utc))+'</div>').join(''):'');
+  $('scoutReceipt').textContent=JSON.stringify(inbox,null,2);
+  $('centralReceipts').textContent=JSON.stringify(s.paperDecisions?.receipts||[],null,2);
+  const research=s.research||{candidates:[],events:[],decisions:[]};
+  $('research').textContent=(research.candidates?.length||0)+' Kandidaten im lokalen Labor (keine zentralen Kaufentscheidungen)';
+  $('researchLog').textContent=JSON.stringify({events:research.events||[],decisions:research.decisions||[]},null,2);
+  $('journal').innerHTML=(Array.isArray(s.history)&&s.history.length)?s.history.slice(0,8).map(h=>'<div class="activity-row"><strong>'+esc(h.title)+'</strong><small>'+esc(h.detail)+' · '+esc(t(h.at))+'</small></div>').join(''):'<div class="empty">Keine Aktivitäten gespeichert.</div>';
+  renderDotStatus(lastHealth?.dotStatus);
 }
 $('toggle').onclick=()=>api({type:'TOGGLE_BOT'});
 $('centralFollow').onchange=e=>api({type:'SET_CENTRAL_FOLLOW',enabled:e.target.checked});
-$('auto').onchange=e=>api({type:'SET_AUTO',enabled:e.target.checked});
 $('range').onclick=()=>api({type:'SET_RANGE',min:Number($('min').value),max:Number($('max').value)});
-$('saveExit').onclick=()=>api({type:'SET_EXITS',mode:$('exit').value,profit:Number($('tp').value),loss:Number($('sl').value),trailing:Number($('trailing').value)});
-$('fiveYes').onclick=()=>api({type:'SIMULATE_AGENTS'});
-$('oneNo').onclick=()=>api({type:'SIMULATE_AGENTS',negative:true});
-$('deposit').onclick=()=>api({type:'DEPOSIT',eur:getMoney()});
-$('withdraw').onclick=()=>api({type:'WITHDRAW',eur:getMoney()});
-$('toUsdc').onclick=()=>api({type:'EXCHANGE',eur:Number($('exchange').value)});
-$('toEur').onclick=()=>api({type:'EXCHANGE_BACK',usdc:Number($('exchange').value)});
-$('scan').onclick=()=>api({type:'SCAN'});
-document.addEventListener('click',e=>{
- const buy=e.target.closest('[data-buy]'),sell=e.target.closest('[data-sell]'),move=e.target.closest('[data-move]'),range=e.target.closest('[data-range]');
- if(buy)api({type:'BUY',id:buy.dataset.buy,amount:lastState.minTrade});
- if(sell&&confirm('Nur den simulierten Coin verkaufen?'))api({type:'SELL',id:sell.dataset.sell});
- if(move)api({type:'DEMO_MOVE',id:move.dataset.move,percent:20});
- if(range){const [min,max]=range.dataset.range.split(',');$('min').value=min;$('max').value=max}
-});
+$('setBalance').onclick=()=>{
+  const raw=$('paperBalance').value;
+  const amount=Number(raw);
+  if(raw.trim()===''||!Number.isFinite(amount)||amount<0||amount>100000||Math.abs(amount*100-Math.round(amount*100))>1e-6){alert('Gültiges Testkapital zwischen 0 und 100.000 mit maximal zwei Dezimalstellen eingeben.');return}
+  if(!confirm('Das gesamte freie Testguthaben auf '+money(amount)+' setzen? Die bisherigen freien Testbeträge werden ersetzt.'))return;
+  api({type:'SET_PAPER_BALANCE',amount});
+};
+$('clearBalance').onclick=()=>{
+  if(!confirm('Virtuelles Guthaben wirklich vollständig auf 0 setzen? Diese Änderung wird protokolliert.'))return;
+  api({type:'SET_PAPER_BALANCE',amount:0});
+};
 refresh(true);setInterval(()=>refresh(false),3000);
-</script></body></html>
+</script>
+</body></html>
