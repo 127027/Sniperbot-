@@ -4,7 +4,7 @@
 
 ## Was ändert sich?
 
-**Nur `Sniperbot_Starten.bat` doppelklicken.** Diese eine Datei startet den bestehenden Paper-Gateway samt eingeschaltetem Forschungs-Statusfeed und den lokalen Markt-Collector. Der Browser zeigt weiterhin die vorhandene Oberfläche unter `http://127.0.0.1:3030`. Die Startsteuerung öffnet keine zweite Konsole. Alle drei alten `Windows_Starten*.bat`-Varianten einschließlich `Windows_Marktbeobachtung_Starten.bat` leiten nun aus Kompatibilitätsgründen an dieselbe zentrale Startdatei weiter.
+**Nur `Sniperbot_Starten.bat` doppelklicken.** Diese eine Datei startet den bestehenden Paper-Gateway samt eingeschaltetem Forschungs-Statusfeed und den lokalen Markt-Collector. Der Browser zeigt weiterhin die vorhandene Oberfläche unter `http://127.0.0.1:3030`. Die Startsteuerung öffnet keine zweite Konsole. Die drei alten Startdateien `Windows_Starten.bat`, `Windows_Starten_mit_Forschung.bat` und `Windows_Marktbeobachtung_Starten.bat` sind entfernt. `Sniperbot_Starten.bat` ist der einzige reguläre Starter; `Windows_Tests.bat` bleibt nur für Offline-Tests.
 
 **Ein zentral verwaltetes Kontrollfenster** überwacht beide Node-Prozesse. Über **Taste `Q`** wird geordnet beendet: Paper-Bot schreibt vorher den aktuellen Zustand, Markt-Collector beendet die Warteschleife und gibt seinen Lock frei. **Beim Schließen des Fensters über X/Alt+F4** beendet eine geprüfte native Windows-JobObject-Gruppe alle dazugehörigen Kindprozesse; dieser erzwungene Fall ist nicht gleichbedeutend mit einem garantierten letzten State-Save. **Deshalb für einen sauberen Abschluss vorzugsweise Q verwenden.**
 
