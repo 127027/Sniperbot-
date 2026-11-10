@@ -10,7 +10,7 @@ import {storage} from './storage.mjs';
 import {createAgentScratchpad} from './agent-scratchpad.mjs';
 import {createLocalSolanaVault,readLocalSolanaVault,
  encryptedSolanaBackup,verifyEncryptedSolanaBackup,
- restoreEncryptedSolanaBackup} from './local-solana-vault.mjs';
+ restoreEncryptedSolanaBackup,checkSolanaVaultPassword} from './local-solana-vault.mjs';
 import {readSolanaBalance} from './local-solana-balance.mjs';
 import {fetchIndicativeSolanaQuote} from './solana-swap-quote.mjs';
 import {previewSolanaSwapRoundtrip} from './solana-swap-roundtrip.mjs';
@@ -190,10 +190,20 @@ const server=createServer(async(req,res)=>{
    return reply(res,200,{ok:true,balance});
   }catch{return error(res,503,'Blockchain-Guthaben derzeit nicht verifizierbar')}
  }
- if(req.method==='GET'&&route==='/api/wallet/encrypted-backup'){
-  try{return reply(res,200,{ok:true,encrypted_backup:await encryptedSolanaBackup(walletFile),
-   warning:'Nur verschlüsselte Kopie. Passwort getrennt offline aufbewahren. Nicht in Cloud/Chat/GitHub teilen.'})}
-  catch{return error(res,409,'Keine gültige Wallet für Sicherung')}
+ if(req.method==='POST'&&route==='/api/wallet/encrypted-backup'){
+  if(!req.headers.origin||!corsAllowed(req))
+   return error(res,403,'Wallet-Backup nur aus der lokalen Oberfläche');
+  if(!allowRequest('wallet-export-backup'))return error(res,429,'Zu viele Export-Anfragen');
+  try{
+   const input=await body(req);
+   if(!input||Object.keys(input).sort().join(',')!=='password'||
+      typeof input.password!=='string')
+    return error(res,422,'Passwort erforderlich');
+   await checkSolanaVaultPassword({filename:walletFile,password:input.password});
+   const sealed=await encryptedSolanaBackup(walletFile);
+   return reply(res,200,{ok:true,encrypted_backup:sealed,
+    warning:'Verschlüsselte Kopie nur nach Passwortprüfung. Passwort getrennt offline aufbewahren.'});
+  }catch{return error(res,422,'WALLET_BACKUP_PASSWORD_OR_INTEGRITY_FAILED')}
  }
  if(req.method==='POST'&&['/api/wallet/verify-backup','/api/wallet/restore-backup'].includes(route)){
   if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Benutzeroberfläche');
