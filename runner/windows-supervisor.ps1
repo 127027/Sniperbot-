@@ -3,7 +3,8 @@
 param(
   [switch]$ResetToken,
   [switch]$SelfTest,
-  [switch]$NoBrowser
+  [switch]$NoBrowser,
+  [switch]$WithResearchCollector
 )
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -154,7 +155,8 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
   $info.EnvironmentVariables.Remove('SNIPER_MARKET_GITHUB_TOKEN')
   $info.EnvironmentVariables.Remove('SNIPER_MARKET_PUBLISH')
   if($role -eq 'BOT') {
-    $info.EnvironmentVariables['SNIPER_RESEARCH_FEED'] = '1'
+    $info.EnvironmentVariables['SNIPER_RESEARCH_FEED'] = $(if($WithResearchCollector){'1'}else{'0'})
+    $info.EnvironmentVariables['SNIPER_RESEARCH_READ'] = $(if($WithResearchCollector){'1'}else{'0'})
     $info.EnvironmentVariables['SNIPER_LOCAL_DISCOVERY'] = '0'
   }
   if($role -eq 'MARKET') {
@@ -287,10 +289,11 @@ try {
   if(!$created){throw 'SNIPERBOT_ALREADY_STARTED: Zuerst die vorhandene zentrale Konsole schliessen.'}
   $ownsMutex=$true
   Assert-PortAvailable
-  Initialize-ResearchToken
+  if($WithResearchCollector){Initialize-ResearchToken}
+  elseif($ResetToken){throw 'ResetToken nur im expliziten Forschungs-Collector-Modus verwenden.'}
   $job=[SniperWindowsJob]::OpenKillOnClose()
   $bot=Start-Child 'BOT' 'runner/server.mjs' $node $job
-  $market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job
+  if($WithResearchCollector){$market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job}
   # Avoid opening an old/stale bot URL until the new listener answered locally.
   if(!$NoBrowser){
     for($attempt=0;$attempt -lt 25;$attempt++){
@@ -303,8 +306,8 @@ try {
     }
   }
   Write-Host ''
-  Write-Host '[OK] Beide lokalen Komponenten gestartet. Github-Zugang nur fuer Markt-Collector.' -ForegroundColor Green
-  Write-Host '[INFO] Die fuenf Cloud-Dots laufen weiterhin unabhaengig.'
+  Write-Host '[OK] Lokaler Bot sichtbar gestartet; keine Anmeldung an GitHub erforderlich.' -ForegroundColor Green
+  if($WithResearchCollector){Write-Host '[OPTIONAL] Separater Markt-Collector explizit gestartet.'}
   Write-Host '[INFO] Zum Beenden Q druecken oder dieses Fenster schliessen.'
   $restarts=@{BOT=0;MARKET=0}
   while($true){
@@ -316,7 +319,7 @@ try {
       Assert-PortAvailable
       $bot=Start-Child 'BOT' 'runner/server.mjs' $node $job
     }
-    if($market.HasExited){
+    if($null -ne $market -and $market.HasExited){
       $restarts.MARKET++
       if($restarts.MARKET -gt 3){throw 'Markt-Collector 3x unerwartet beendet. Alles wird gestoppt.'}
       Write-Host ('[WARNUNG] Markt-Collector beendet. Neustart '+$restarts.MARKET+'/3') -ForegroundColor Yellow
