@@ -4,7 +4,7 @@ export const PAPER_EUR_TO_TEST_USDC=1; // intentionally NOT a market EUR/USD quo
 const round=(x)=>Math.round((x+Number.EPSILON)*1e8)/1e8;
 const time=()=>new Date().toISOString();
 export function freshState(){return {version:3,entriesEnabled:false,automaticPaperBuys:false,centralPaperFollow:false,
- minTrade:50,maxTrade:50,portfolioBudgetUsdc:50,takeProfit:15,stopLoss:10,defaultExitMode:'HOLD',trailingPercent:25,
+ minTrade:50,maxTrade:50,portfolioBudgetUsdc:null,takeProfit:15,stopLoss:10,defaultExitMode:'HOLD',trailingPercent:25,
  cashEur:0,cashUsdc:0,positions:[],candidates:[],history:[],closedPnl:0,
  lastScan:null,scanErrors:[],priceUpdatedAt:null,scanRunning:false,lastError:null};}
 export function log(s,title,detail){return [{id:`${Date.now()}-${Math.random().toString(16).slice(2)}`,at:time(),title,detail},...s.history].slice(0,150)};
