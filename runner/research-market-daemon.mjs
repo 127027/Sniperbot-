@@ -5,6 +5,7 @@ import {runFollowups} from './memecoin-followups.mjs';
 import {detectEarlyMarketAcceleration} from './research-hype-triggers.mjs';
 import {collectNarrativeLeads} from './research-narrative-radar.mjs';
 import {updateLocalNewsJournal} from './research-news-journal.mjs';
+import {readPublicPoolReadbacks} from './readback-public-bridge.mjs';
 import {publishResearchSnapshot,publishingEnabled} from './research-market-publisher.mjs';
 import {mkdir,readdir,stat,unlink,open,readFile,writeFile,rename} from 'node:fs/promises';
 import path from 'node:path';
@@ -28,6 +29,7 @@ const latestFile=path.join(cache,'latest.json');
 const followupFile=path.join(root,'.local','research-learning','pools.json');
 const alertFile=path.join(root,'.local','research-learning','market-alerts.json');
 const newsFile=path.join(root,'.local','research-learning','news-captures.json');
+const readbackFile=path.join(root,'.local','research-learning','pool-readbacks','latest.json');
 
 async function atomicJson(filename,value){
   await mkdir(path.dirname(filename),{recursive:true});
@@ -139,6 +141,7 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
   let alertJournal=null,alertError=null;
   let narrative={leads:[],coverage:[]},narrativeError=null;
   let news={leads:[],coverage:[],new_saved_events:0,stored_events:0},newsError=null;
+  let readbackBridgeError=null;
   // Even if DEX providers are blocked, the public news stream may still run.
   // Poll feeds at most every 15 min; retain first local capture for later replay.
   try{news=await updateLocalNewsJournal({filename:newsFile,fetcher,now})}
@@ -165,6 +168,12 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     snapshot.narrative_coverage=narrative.coverage;
     snapshot.news_leads=news.leads;
     snapshot.news_coverage=news.coverage;
+    // Return only locally confirmed, still-fresh PUBLIC pool identity notes
+    // to GitHub, where five Dots can read them. Never publish private ledger.
+    try{snapshot.pool_readbacks=await readPublicPoolReadbacks({
+      filename:readbackFile,now:Date.parse(now)})}
+    catch(e){snapshot.pool_readbacks=[];
+      readbackBridgeError=String(e?.message||'READBACK_BRIDGE_UNAVAILABLE').slice(0,90)}
     await writeSnapshot(snapshot,latestFile);
     await saveHistory(snapshot);
   }
@@ -194,6 +203,7 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
       new_local_alerts:alertJournal?.added??0,
       rolling_public_research_alerts:snapshot.research_alerts?.length??0,
       local_alert_error:alertError},
+    pool_readback_bridge:{published_readbacks:snapshot.pool_readbacks?.length||0,error:readbackBridgeError},
     publishing_enabled:publishingEnabled(),published_commit:published?.commit_sha||null,
     publish_error:publishError
   });
