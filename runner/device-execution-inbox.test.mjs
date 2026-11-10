@@ -84,6 +84,21 @@ test('separate devices cannot read or use each others local inbox',async()=>{
   await assert.rejects(two.submit(signed(),{now}),/DIFFERENT_DEVICE/);
  }finally{await rm(dir,{recursive:true,force:true})}
 });
+test('tampered local receipt cannot pretend a real signed/settled trade occurred',async()=>{
+ const dir=await mkdtemp(path.join(os.tmpdir(),'sniper-inbox-tamper-'));
+ const filename=path.join(dir,'inbox.json'),trustFile=path.join(dir,'keys.json');
+ try{
+  await writeFile(trustFile,JSON.stringify(keys));
+  const instance=await createExecutionInbox({filename,trustFile,deviceId:deviceA});
+  await instance.submit(signed(),{now});
+  const original=JSON.parse(await readFile(filename,'utf8'));
+  original.records[0].transaction_signed=true;
+  await writeFile(filename,JSON.stringify(original));
+  await assert.rejects(instance.summary(),/CORRUPT_EXECUTION_INBOX_RECORD/);
+  await assert.rejects(instance.submit(signed({command_id:'cmd_'+'2'.repeat(32)}),{now}),
+   /CORRUPT_EXECUTION_INBOX_RECORD/);
+ }finally{await rm(dir,{recursive:true,force:true})}
+});
 test('missing registry and corrupted inbox cannot be silently reset',async()=>{
  const dir=await mkdtemp(path.join(os.tmpdir(),'sniper-inbox-corrupt-'));
  const filename=path.join(dir,'inbox.json'),trustFile=path.join(dir,'keys.json');
