@@ -19,6 +19,7 @@ import {recentSolanaWalletActivity} from './solana-wallet-activity.mjs';
 import {previewJupiterUnsignedOrder} from './solana-unsigned-order.mjs';
 import {assessWalletSolSpend} from './solana-wallet-spend-preflight.mjs';
 import {verifyFinalizedSolanaReceipt} from './solana-finalized-receipt.mjs';
+import {observeExternalSolanaWallet} from './external-wallet-observer.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
@@ -159,6 +160,17 @@ const server=createServer(async(req,res)=>{
    }
    return error(res,405,'Methode nicht erlaubt');
   }catch(e){return error(res,422,String(e?.message||'INVALID_SCRATCHPAD_REQUEST').slice(0,140))}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/external-observe'){
+  // Explicitly a different user's wallet, never this bot's encrypted wallet.
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine externen Guthaben');
+  if(!allowRequest('external-solana-watch-only'))return error(res,429,'Zu viele externe Abfragen');
+  try{
+   const query=new URL(req.url,'http://127.0.0.1:'+port);
+   const publicAddress=query.searchParams.get('address');
+   const summary=await observeExternalSolanaWallet(publicAddress);
+   return reply(res,200,{ok:true,external:summary});
+  }catch{return error(res,503,'Externe Wallet-Adresse oder Blockchain-Daten nicht verifizierbar')}
  }
  if(req.method==='GET'&&route==='/api/wallet/status'){
   try{return reply(res,200,{ok:true,wallet:await readLocalSolanaVault(walletFile),
