@@ -9,6 +9,9 @@ import {fetchResearchNetwork} from './research-network.mjs';
 import {storage} from './storage.mjs';
 import {loadOrCreateDeviceIdentity} from './device-identity.mjs';
 import {createExecutionInbox} from './device-execution-inbox.mjs';
+import {loadLocalDeviceTopology,installLocalDeviceTopology,
+ followerStatus,operationAllowedWhenMasterOffline} from './device-topology.mjs';
+import {fetchMasterPresence} from './github-master-presence.mjs';
 import {createAgentScratchpad} from './agent-scratchpad.mjs';
 import {createLocalSolanaVault,readLocalSolanaVault,
  encryptedSolanaBackup,verifyEncryptedSolanaBackup,
@@ -34,6 +37,23 @@ import {CHAINS,lookupToken,scanNewPools,tokenQuote,validTokenAddress} from './ma
 const root=path.join(path.dirname(fileURLToPath(import.meta.url)),'..');
 const store=storage(root);
 const localDevice=loadOrCreateDeviceIdentity(store.dir);
+let deviceTopology=loadLocalDeviceTopology(store.dir,localDevice.device_id);
+let masterConnection=followerStatus({topology:deviceTopology});
+async function refreshMasterConnection(){
+ if(deviceTopology.mode!=='FOLLOWER')return;
+ masterConnection=await fetchMasterPresence(deviceTopology);
+}
+function masterStatus(){
+ const now=Date.now();
+ if(deviceTopology.mode!=='FOLLOWER')return followerStatus({topology:deviceTopology,now});
+ // Even a previously successful HTTP poll stops being valid after TTL expires.
+ const expired=masterConnection?.expires_at_utc?
+  Date.parse(masterConnection.expires_at_utc)<=now:true;
+ return expired?
+  followerStatus({topology:deviceTopology,lastFetchError:'MASTER_TIMEOUT',now}):
+  masterConnection;
+}
+
 const agentExecutionInbox=await createExecutionInbox({
  filename:path.join(store.dir,'execution','instructions.v1.json'),
  trustFile:path.join(store.dir,'trusted-execution-publishers.json'),
@@ -118,7 +138,7 @@ function commit(next){if(next!==state){store.save(next);state=next}}
 function reply(res,code,body){res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(body))}
 function error(res,code,msg){return reply(res,code,{ok:false,error:msg})}
 function corsAllowed(req){const origin=req.headers.origin;return !origin || origin===`http://127.0.0.1:${port}`}
-async function scan(){if(scanning)return;scanning=true;
+async function scan(){if(deviceTopology.mode==='FOLLOWER')return;if(scanning)return;scanning=true;
  try {const {results,errors,at}=await scanNewPools();
    const custom=state.candidates.filter(c=>c.source==='DEX Screener' || c.isDemo);
    const ids=new Set(results.map(x=>x.id));const others=custom.filter(x=>!ids.has(x.id));
@@ -127,7 +147,7 @@ async function scan(){if(scanning)return;scanning=true;
  }catch(e){commit({...state,lastError:e.message})}
  finally{scanning=false}
 }
-async function prices(){if(pricing || state.positions.length===0)return;pricing=true;
+async function prices(){if(deviceTopology.mode==='FOLLOWER')return;if(pricing || state.positions.length===0)return;pricing=true;
  const quotes={};
  try{for(const p of state.positions){if(p.isDemo)continue;try{const quote=await tokenQuote(p.chain,p.tokenAddress);if(quote)quotes[p.id]=quote}catch(e){console.log('Kursabfrage',p.symbol,e.message)}}
   if(Object.keys(quotes).length)commit(updateQuotes(state,quotes));
@@ -149,9 +169,45 @@ const server=createServer(async(req,res)=>{
  if(req.method==='GET'&&route==='/api/research/inbox')return reply(res,200,{ok:true,mode:'PAPER_ONLY',enabled:process.env.SNIPER_RESEARCH_FEED==='1',inbox:state.researchInbox||{receipts:[]}});
  if(req.method==='GET'&&route==='/api/decisions')return reply(res,200,{ok:true,...centralStatus()});
  if(req.method==='POST'&&route==='/api/decisions/events'){
+  if(deviceTopology.mode==='FOLLOWER')
+   return error(res,409,'Follower nimmt keine eigenständigen Handelsentscheidungen an');
   if(req.headers.origin)return error(res,403,'Nur lokale signierte Clients');
   if(!allowRequest('central-paper-publisher'))return error(res,429,'Rate-Limit');
   try{const d=await body(req),next=receiveDecision(state,d,decisionKeys());const duplicate=next===state;commit(next);return reply(res,200,{ok:true,duplicate,receipt:state.paperDecisions.receipts.find(r=>r.signal_id===d.signal_id)});}catch(e){return error(res,422,e.message)}
+ }
+ if(req.method==='GET'&&route==='/api/coordination/status')
+  return reply(res,200,{ok:true,
+   local_device_id:localDevice.device_id,
+   topology_role:deviceTopology.mode,
+   master_device_id:deviceTopology.master_device_id,
+   github_repository:'127027/Sniperbot-',
+   master:masterStatus(),
+   live_trading_enabled:false,
+   funding_provider_connected:false,
+   message:masterStatus().message});
+ if(req.method==='POST'&&route==='/api/device/topology'){
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Geräte-Einrichtung');
+  if(!allowRequest('local-device-pairing'))return error(res,429,'Zu viele Kopplungsversuche');
+  if(deviceTopology.mode!=='UNPAIRED')return error(res,409,'Geräterolle bereits festgelegt; kein heimlicher Wechsel');
+  try{
+   const d=await body(req);
+   if(!d||typeof d!=='object'||Array.isArray(d)||!
+    ['MASTER','FOLLOWER'].includes(d.mode))return error(res,422,'MASTER oder FOLLOWER erforderlich');
+   if(d.mode==='MASTER'&&Object.keys(d).sort().join(',')!=='mode')
+    return error(res,422,'Keine Zusatzfelder für Master');
+   if(d.mode==='FOLLOWER'&&
+    Object.keys(d).sort().join(',')!=='master_device_id,master_public_key_pem,mode')
+    return error(res,422,'Follower braucht Master-ID und öffentlichen Schlüssel');
+   const created=installLocalDeviceTopology({
+    dir:store.dir,deviceId:localDevice.device_id,mode:d.mode,
+    masterDeviceId:d.mode==='MASTER'?localDevice.device_id:d.master_device_id,
+    masterPublicKeyPem:d.mode==='FOLLOWER'?d.master_public_key_pem:null});
+   deviceTopology=created;
+   masterConnection=followerStatus({topology:created});
+   return reply(res,201,{ok:true,mode:created.mode,
+    master_device_id:created.master_device_id,
+    message:masterStatus().message});
+  }catch(e){return error(res,422,String(e?.message||'PAIRING_BLOCKED').slice(0,120))}
  }
  if(req.method==='GET'&&route==='/api/device/identity')
   return reply(res,200,{ok:true,device:localDevice,
@@ -169,6 +225,8 @@ const server=createServer(async(req,res)=>{
   if(principal?.role!=='risk_controller')return error(res,401,'Lokaler Executor-Rollen-Token erforderlich');
   if(!allowRequest('execution-inbox-'+principal.id))return error(res,429,'Befehlsrate begrenzt');
   try{
+   if(deviceTopology.mode==='FOLLOWER'&&!masterStatus().coordination_online)
+    return error(res,409,'Keine Verbindung – ruf Andreas an');
    const command=await body(req);
    const receipt=await agentExecutionInbox.submit(command);
    return reply(res,200,{ok:true,receipt,live_execution_enabled:false});
@@ -374,6 +432,10 @@ const server=createServer(async(req,res)=>{
  let a;try{a=JSON.parse(raw)}catch{return error(res,400,'Ungültiges JSON')}
  const allowed=new Set(['PREVIEW_PAPER_FUNDING','SET_PAPER_BALANCE','SET_CENTRAL_FOLLOW','SIMULATE_AGENTS','TOGGLE_BOT','SET_AUTO','SET_RANGE','SET_EXITS','DEPOSIT','WITHDRAW','EXCHANGE','EXCHANGE_BACK','BUY','SELL','RESET','SCAN','DEMO_SIGNAL','LOOKUP','DEMO_MOVE']);
  if(!allowed.has(a?.type))return error(res,400,'Aktion nicht zulässig');
+ if(deviceTopology.mode==='FOLLOWER'&&
+  !operationAllowedWhenMasterOffline(a?.type,false))
+  return error(res,409,'Keine Verbindung – ruf Andreas an; nur Ein-/Auszahlung erlaubt');
+
  if(a.type==='PREVIEW_PAPER_FUNDING'){
   const result=previewFundingV09({amountEur:a.amountEur,eurPerUsdc:a.eurPerUsdc,
     providerFeeEur:a.providerFeeEur,spreadPct:a.spreadPct,networkFeeUsdc:a.networkFeeUsdc,
@@ -406,11 +468,16 @@ const server=createServer(async(req,res)=>{
 });
 server.requestTimeout=10000;server.headersTimeout=10000;
 server.listen(port,'127.0.0.1',()=>console.log(`MEME SNIPER V0.9 PAPER GATEWAY (kein LIVE) http://127.0.0.1:${port}`));
+// Public GitHub presence is informational; a Follower NEVER trades on its own.
+if(process.env.SNIPER_OFFLINE!=='1'&&deviceTopology.mode==='FOLLOWER'){
+ void refreshMasterConnection();
+ setInterval(()=>{void refreshMasterConnection()},60000);
+}
 // Safe, low-frequency public polling; independent of browser. No private keys, no live execution.
 if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_LOCAL_DISCOVERY==='1')setInterval(()=>{void scan()},90000);
 if(process.env.SNIPER_OFFLINE!=='1')setInterval(()=>{void prices()},30000);
 if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_LOCAL_DISCOVERY==='1')setTimeout(()=>{void scan()},2500);
-setInterval(()=>{try{commit(evaluate(applyExits(state)))}catch(e){console.error('Research/Exit:',e.message)}},5000);
+setInterval(()=>{if(deviceTopology.mode==='FOLLOWER')return;try{commit(evaluate(applyExits(state)))}catch(e){console.error('Research/Exit:',e.message)}},5000);
 let shuttingDown=false;
 function shutdownServer(){
  if(shuttingDown)return;
