@@ -23,6 +23,24 @@ function assertResearch(s){
          Object.keys(e).some(k=>!allowed.has(k))))
       throw Error('Unsafe public research alert payload');
   }
+
+  if(s.narrative_leads!==undefined){
+    const allowed=new Set(['chain','token_address','observed_at_utc','origin',
+      'source_urls','signal_categories','paid_promotion_seen',
+      'organic_social_verified','candidate_id','pool_address','paper_only',
+      'actionable','probability_pct','claim_status']);
+    if(!Array.isArray(s.narrative_leads)||s.narrative_leads.length>24||
+       s.narrative_leads.some(e=>!e||e.paper_only!==true||e.actionable!==false||
+         e.organic_social_verified!==false||e.probability_pct!==null||
+         e.origin!=='DEXSCREENER_METADATA_ONLY'||!Array.isArray(e.signal_categories)||
+         !Array.isArray(e.source_urls)||e.source_urls.length>3||
+         Object.keys(e).some(k=>!allowed.has(k))))
+      throw Error('Unsafe public narrative lead payload');
+  }
+  if(s.narrative_coverage!==undefined&&
+     (!Array.isArray(s.narrative_coverage)||s.narrative_coverage.length>3))
+    throw Error('Unsafe narrative provider status');
+
 }
 async function readJson(resp){
   const raw=await resp.json().catch(()=>null);
