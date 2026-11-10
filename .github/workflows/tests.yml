@@ -14,6 +14,8 @@ jobs:
           node-version: '22'
       - run: node --check runner/server.mjs
       - run: node runner/dashboard-syntax-check.mjs
+      - name: Observe actual unfunded signed Solana transfer simulation (NO broadcast)
+        run: node runner/native-solana-signed-simulation-live-probe.mjs
       - name: Check actual public SOL to USDC to SOL roundtrip quotes (non-blocking)
         run: node runner/solana-roundtrip-live-probe.mjs
       - name: Observe Jupiter unsigned wallet-specific order assembly (no signing)
