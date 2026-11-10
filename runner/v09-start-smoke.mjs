@@ -2,7 +2,7 @@
 // paper account, with ALL outbound research / market polling disabled.
 // Verifies V0.9 endpoints and ensures a funding preview changes no balances.
 import {spawn} from 'node:child_process';
-import {mkdtemp,rm} from 'node:fs/promises';
+import {mkdtemp,rm,readFile} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
@@ -42,6 +42,32 @@ try{
   const r=await fetch(base+p,{headers:{host:'127.0.0.1:'+port}});
   assert.equal(r.status,200,p);return r.json();
  };
+
+ // The REAL local executor serves private research notes only with a scoped agent token.
+ const registry=JSON.parse(await readFile(path.join(tmp,'gateway-credentials.json'),'utf8'));
+ const r1=registry.find(x=>x.role==='news_discovery'),r2=registry.find(x=>x.role==='opportunity_qa');
+ assert(r1&&r2);
+ const unauth=await fetch(base+'/api/agent/scratchpad');
+ assert.equal(unauth.status,401);
+ const put=await fetch(base+'/api/agent/scratchpad',{method:'POST',
+  headers:{authorization:'Bearer '+r1.token,'content-type':'application/json'},
+  body:JSON.stringify({key:'test-research',visibility:'shared',
+    ttl_minutes:10,value:{candidate_id:'base:fake_test',observation:'not an order'}})});
+ assert.equal(put.status,200);
+ const putResult=await put.json();
+ assert.equal(putResult.receipt.actionable,false);
+ const notesResponse=await fetch(base+'/api/agent/scratchpad',
+  {headers:{authorization:'Bearer '+r2.token}});
+ assert.equal(notesResponse.status,200);
+ const notes=await notesResponse.json();
+ assert.equal(notes.scratchpad.records.length,1);
+ assert.equal(notes.scratchpad.records[0].key,'test-research');
+ const reject=await fetch(base+'/api/agent/scratchpad',{method:'POST',
+  headers:{authorization:'Bearer '+r1.token,'content-type':'application/json'},
+  body:JSON.stringify({key:'bad',visibility:'shared',ttl_minutes:10,
+   value:{private_key:'MUST_NOT_STORE'}})});
+ assert.equal(reject.status,422);
+
  const before=await read('/api/state');
  const status=await read('/api/v09/status');
  const dossiers=await read('/api/v09/dossiers');
@@ -72,6 +98,33 @@ try{
  assert.equal(after.state.cashUsdc,before.state.cashUsdc);
  assert.equal(after.state.cashEur,before.state.cashEur);
  assert.deepEqual(after.state.positions,before.state.positions);
+ const command=async payload=>{
+  const resp=await fetch(base+'/api/command',{method:'POST',
+   headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+  assert.equal(resp.status,200,JSON.stringify(payload));return resp.json();
+ };
+ // Real local server exercises clickable PAPER Euro controls end to end.
+ await command({type:'DEPOSIT',eur:50});
+ let acct=(await read('/api/state')).state;
+ assert.equal(acct.cashEur,50);
+ await command({type:'EXCHANGE',eur:40});
+ acct=(await read('/api/state')).state;
+ assert.equal(acct.cashEur,10);
+ assert.equal(acct.cashUsdc,40);
+ await command({type:'EXCHANGE_BACK',usdc:10});
+ acct=(await read('/api/state')).state;
+ assert.equal(acct.cashEur,20);
+ assert.equal(acct.cashUsdc,30);
+ await command({type:'WITHDRAW',eur:15});
+ acct=(await read('/api/state')).state;
+ assert.equal(acct.cashEur,5);
+ assert.equal(acct.cashUsdc,30);
+ assert.equal(acct.positions.length,0);
+ const noFunds=await fetch(base+'/api/command',{method:'POST',
+  headers:{'content-type':'application/json'},body:JSON.stringify({type:'WITHDRAW',eur:500})});
+ assert.equal(noFunds.status,422);
+ assert.equal((await read('/api/state')).state.cashEur,5);
+ console.log('BOT_VISIBLE_PAPER_EUR_50_DEPOSIT_EXCHANGE_WITHDRAW_OK: no actual payment or trade');
  console.log('V09_WINDOWS_COMPATIBLE_START_SMOKE_OK: status, funding preview, paper ledger unchanged');
 }finally{
  if(child){

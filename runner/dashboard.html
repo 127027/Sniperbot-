@@ -183,6 +183,32 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
   </details>
 </section>
 
+<section class="panel section" aria-label="Eurokonto, PayPal und Wallet">
+  <div class="section-heading"><h2>Euro · PayPal · Wallet</h2><span class="tag paper">PAPER / ECHTGELD AUS</span></div>
+  <div class="summary-grid" style="height:auto">
+    <div class="metric"><small>Virtuelle Euro</small><b id="paperEurAmount">0,00 €</b></div>
+    <div class="metric"><small>Virtuelle USDC</small><b id="paperUsdcAmount">0,00 USDC</b></div>
+  </div>
+  <h3 style="margin-top:15px">Papiergeld einzahlen oder auszahlen</h3>
+  <p>Diese Vorgänge verändern nur dein lokales Testkonto. Es wird kein Geld bei PayPal oder deiner Bank bewegt.</p>
+  <div class="controls">
+    <label>Euro-Betrag (nur Test)<input id="paperEurInput" type="number" min="0.01" max="100000" step="0.01" value="50"></label>
+    <button class="btn strong" id="paperEurDeposit" type="button">Test-Einzahlung</button>
+    <button class="btn" id="paperEurWithdraw" type="button">Test-Auszahlung</button>
+    <button class="btn" id="paperEurExchange" type="button">Test-EUR → USDC</button>
+    <button class="btn" id="paperUsdcExchangeBack" type="button">Test-USDC → EUR</button>
+  </div>
+  <p id="paperEurResult" class="statusline"></p>
+  <details style="margin-top:13px">
+    <summary>PayPal: echter Kauf / echte Auszahlung über einen Anbieter</summary>
+    <p>MoonPay dokumentiert PayPal für Kryptokäufe und Verkäufe in Deutschland. Der Bezahlvorgang läuft ausschließlich beim Anbieter mit eigenem Checkout und Identitätsprüfung. Der Sniperbot hat <strong>keinen</strong> PayPal-Zugriff, erzeugt keine automatische Abbuchung und empfängt keine Echtgeld-Bestätigung.</p>
+    <p><a href="https://www.moonpay.com/" target="_blank" rel="noopener noreferrer">MoonPay – Anbieter im Browser öffnen</a></p>
+    <p><a href="https://support.moonpay.com/en/articles/381271-paypal-faqs" target="_blank" rel="noopener noreferrer">PayPal-Einzahlungen und Auszahlungen: Anbieterinformationen</a></p>
+    <p class="warning">Die lokale Echtgeld-Wallet ist noch nicht erstellt. Ohne verifizierte eigene Wallet-Adresse und realen Zahlungsstatus hier noch keine Zahlung ausführen.</p>
+  </details>
+  <p class="subtle" id="walletSafetyStatus">Lokale Wallet: noch nicht eingerichtet · private Schlüssel: keine · Live-Signierung: aus.</p>
+</section>
+
 <section class="panel section">
   <div class="section-heading"><h2>Meine Positionen</h2><span class="tag">PAPER</span></div>
   <div id="positions" class="empty">Positionen werden geladen …</div>
@@ -295,6 +321,8 @@ async function refresh(force=false){
 function render(force){
   if(!lastState)return;
   const s=lastState,positions=Array.isArray(s.positions)?s.positions:[];
+  $('paperEurAmount').textContent=num(s.cashEur)+' €';
+  $('paperUsdcAmount').textContent=num(s.cashUsdc)+' TEST-USDC';
   const free=number(s.cashUsdc)+number(s.cashEur);
   const marked=positions.reduce((sum,p)=>sum+number(p.qty)*number(p.priceUsd)*0.99,0);
   $('capitalValue').textContent=money(free+marked);
@@ -378,6 +406,48 @@ function render(force){
 $('toggle').onclick=()=>api({type:'TOGGLE_BOT'});
 $('centralFollow').onchange=e=>api({type:'SET_CENTRAL_FOLLOW',enabled:e.target.checked});
 $('range').onclick=()=>api({type:'SET_RANGE',min:Number($('min').value),max:Number($('max').value)});
+function paperEurAmount(){
+ const amount=Number($('paperEurInput').value);
+ if(!Number.isFinite(amount)||amount<=0||amount>100000||
+    Math.abs(amount*100-Math.round(amount*100))>1e-6)
+  throw Error('Bitte einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen eingeben.');
+ return amount;
+}
+$('paperEurDeposit').onclick=()=>{
+ try{
+  const eur=paperEurAmount();
+  if(!confirm(num(eur)+' virtuelle Euro TESTWEISE hinzufügen? Keine echte PayPal-Zahlung.'))return;
+  api({type:'DEPOSIT',eur});
+  $('paperEurResult').textContent='Test-Einzahlung angefragt. Kontostand wird aktualisiert.';
+ }catch(e){$('paperEurResult').textContent=e.message}
+};
+$('paperEurWithdraw').onclick=()=>{
+ try{
+  const eur=paperEurAmount();
+  if(eur>Number(lastState?.cashEur||0))throw Error('Nicht genügend virtuelle Euro verfügbar.');
+  if(!confirm(num(eur)+' virtuelle Euro TESTWEISE abheben? Keine echte Auszahlung.'))return;
+  api({type:'WITHDRAW',eur});
+  $('paperEurResult').textContent='Test-Auszahlung angefragt. Kontostand wird aktualisiert.';
+ }catch(e){$('paperEurResult').textContent=e.message}
+};
+$('paperEurExchange').onclick=()=>{
+ try{
+  const eur=paperEurAmount();
+  if(eur>Number(lastState?.cashEur||0))throw Error('Zu wenig virtuelle Euro vorhanden.');
+  if(!confirm(num(eur)+' Demo-EUR 1:1 in TEST-USDC umwandeln? Das ist KEIN realer Wechselkurs.'))return;
+  api({type:'EXCHANGE',eur});
+  $('paperEurResult').textContent='Umwandlung beantragt – TEST, 1:1, keine echten Coins.';
+ }catch(e){$('paperEurResult').textContent=e.message}
+};
+$('paperUsdcExchangeBack').onclick=()=>{
+ try{
+  const usdc=paperEurAmount();
+  if(usdc>Number(lastState?.cashUsdc||0))throw Error('Zu wenig TEST-USDC vorhanden.');
+  if(!confirm(num(usdc)+' TEST-USDC 1:1 in Demo-EUR umwandeln? Keine echte Auszahlung.'))return;
+  api({type:'EXCHANGE_BACK',usdc});
+  $('paperEurResult').textContent='Rückumwandlung beantragt – TEST, 1:1, keine Bankzahlung.';
+ }catch(e){$('paperEurResult').textContent=e.message}
+};
 $('setBalance').onclick=()=>{
   const raw=$('paperBalance').value;
   const amount=Number(raw);

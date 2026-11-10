@@ -7,6 +7,7 @@ import {createReceiver} from './research-inbox.mjs';
 import {buildDotStatus} from './dot-status.mjs';
 import {fetchResearchNetwork} from './research-network.mjs';
 import {storage} from './storage.mjs';
+import {createAgentScratchpad} from './agent-scratchpad.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
@@ -18,6 +19,7 @@ import {action,applyExits,autoBuyCandidate,freshState,log,paperSignal,updateCand
 import {CHAINS,lookupToken,scanNewPools,tokenQuote,validTokenAddress} from './market.mjs';
 const root=path.join(path.dirname(fileURLToPath(import.meta.url)),'..');
 const store=storage(root);
+const scratchpad=await createAgentScratchpad(path.join(store.dir,'research-scratchpad','notes.json'));
 let state=store.state,scanning=false,pricing=false;
 const allowRequest=limiter();
 let researchNetwork={schema:'research_network_status.v1',transport:'PUBLIC_GITHUB_PULL_ONLY',
@@ -129,6 +131,22 @@ const server=createServer(async(req,res)=>{
   if(!allowRequest('central-paper-publisher'))return error(res,429,'Rate-Limit');
   try{const d=await body(req),next=receiveDecision(state,d,decisionKeys());const duplicate=next===state;commit(next);return reply(res,200,{ok:true,duplicate,receipt:state.paperDecisions.receipts.find(r=>r.signal_id===d.signal_id)});}catch(e){return error(res,422,e.message)}
  }
+ if(route==='/api/agent/scratchpad'){
+  const principal=authenticate(req.headers.authorization,store.credentials);
+  if(!principal)return error(res,401,'Agentenzugang erforderlich');
+  if(!allowRequest(principal.id))return error(res,429,'Rate-Limit');
+  try{
+   if(req.method==='GET')return reply(res,200,{ok:true,
+    scratchpad:await scratchpad.get({role:principal.role})});
+   if(req.method==='POST'){
+    if(!req.headers['content-type']?.startsWith('application/json'))
+     return error(res,415,'JSON erforderlich');
+    const entry=await body(req);
+    return reply(res,200,{ok:true,receipt:await scratchpad.put({role:principal.role,entry})});
+   }
+   return error(res,405,'Methode nicht erlaubt');
+  }catch(e){return error(res,422,String(e?.message||'INVALID_SCRATCHPAD_REQUEST').slice(0,140))}
+ }
  if(req.method==='GET'&&route==='/api/v09/status')return reply(res,200,{ok:true,v09:buildV09Status({state,network:researchNetwork})});
  if(req.method==='GET'&&route==='/api/v09/pool-readbacks')return reply(res,200,{ok:true,readbacks:poolReadbacks});
  if(req.method==='GET'&&route==='/api/v09/dossiers')return reply(res,200,{ok:true,dossiers:buildDecisionDossiers({network:researchNetwork,batch:poolReadbacks})});
@@ -200,7 +218,7 @@ for(const sig of ['SIGINT','SIGTERM'])process.on(sig,shutdownServer);
 attachSupervisedStop(shutdownServer);
 
 // Read-only five-role GitHub research mirror, separate from portfolio and action handlers.
-if(process.env.SNIPER_OFFLINE!=='1'){
+if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_RESEARCH_READ==='1'){
  void refreshResearchNetwork();
  setInterval(()=>{void refreshResearchNetwork()},120000);
 }
