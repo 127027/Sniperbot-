@@ -3,6 +3,7 @@
 import {decodeBase58} from './local-solana-vault.mjs';
 import {SOL_MINT,JUPITER_V2_ORDER} from './solana-swap-quote.mjs';
 import {auditUnsignedSolanaWire} from './solana-wire-audit.mjs';
+import {simulateUnsignedSolanaOrder} from './solana-unsigned-simulation.mjs';
 const UINT=/^[1-9][0-9]{0,19}$/;
 const fail=reason=>({schema:'jupiter_unsigned_order_preflight.v1',
  status:'BLOCKED',reason,prepared_transaction_present:false,
@@ -27,7 +28,8 @@ export function inspectUnsignedSolanaOrder({base64,wallet}={}){
   message:'Vollständiges Wire-Format decodiert. Programme, Instruktionsfolgen, ALTs, Limits und Empfänger NICHT freigegeben.'};
 }
 export async function previewJupiterUnsignedOrder({
- wallet,targetMint,amountLamports,fetcher=fetch,now=new Date().toISOString()
+ wallet,targetMint,amountLamports,fetcher=fetch,now=new Date().toISOString(),
+ simulate=false,rpcFetcher=fetch
 }={}){
  decodeBase58(wallet);decodeBase58(targetMint);
  if(targetMint===SOL_MINT)return fail('SAME_ASSET');
@@ -54,11 +56,13 @@ export async function previewJupiterUnsignedOrder({
    !UINT.test(data.outAmount)||!['metis','jupiterz','dflow','okx'].includes(data.router))
    return fail('ORDER_AMOUNT_OR_ROUTE_MISMATCH');
   const inspection=inspectUnsignedSolanaOrder({base64:data.transaction,wallet});
+  const simulation=simulate?await simulateUnsignedSolanaOrder({
+   base64:data.transaction,wallet,fetcher:rpcFetcher}):null;
   return {schema:'jupiter_unsigned_order_preflight.v1',
    status:'UNSIGNED_TRANSACTION_OBSERVED',wallet_address:wallet,
    target_mint:targetMint,amount_lamports:amountLamports,
    expected_target_atoms:data.outAmount,router:data.router,
-   checked_at_utc:new Date(at).toISOString(),inspection,
+   checked_at_utc:new Date(at).toISOString(),inspection,simulation,
    prepared_transaction_present:true,transaction_signed:false,
    transaction_sent:false,live_trading_enabled:false,
    contract_safety_verified:false,sellability_verified:false,
