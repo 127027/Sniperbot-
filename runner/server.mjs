@@ -299,6 +299,8 @@ const server=createServer(async(req,res)=>{
   if(principal?.role!=='risk_controller')return error(res,401,'Lokaler Executor-Rollen-Token erforderlich');
   if(!allowRequest('execution-inbox-'+principal.id))return error(res,429,'Befehlsrate begrenzt');
   try{
+   if(deviceTopology.mode==='UNPAIRED')
+    return error(res,409,'Befehlsgerät muss zuerst mit der Laptop-Zentrale gekoppelt werden');
    if(deviceTopology.mode==='FOLLOWER'&&!masterStatus().coordination_online)
     return error(res,409,'Keine Verbindung – ruf Andreas an');
    const command=await body(req);
@@ -490,6 +492,8 @@ const server=createServer(async(req,res)=>{
  if(req.method==='GET'&&route==='/api/v09/dossiers')return reply(res,200,{ok:true,dossiers:buildDecisionDossiers({network:researchNetwork,batch:poolReadbacks})});
  if(req.method==='GET'&&route==='/api/health')return reply(res,200,{ok:true,mode:'PAPER_ONLY',uptimeSec:Math.round(process.uptime())});
  if(route==='/api/research'||route==='/api/research/events'){
+  if(deviceTopology.mode==='FOLLOWER'&&route==='/api/research/events')
+   return error(res,409,'Keine Verbindung – ruf Andreas an; Folgegerät akzeptiert keine Forschungsbefehle');
   if(req.headers.origin)return error(res,403,'Gateway ist nur für lokale Clients');
   const principal=authenticate(req.headers.authorization,store.credentials);
   if(!principal)return error(res,401,'Agenten-Zugang erforderlich');
