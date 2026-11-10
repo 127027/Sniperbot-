@@ -26,6 +26,9 @@ try{
   providers:report.sources.map(s=>({provider:s.provider,
    identity_match:s.identity_match,error:s.error})),
   onchain_existence:chainReport.existence_status,
+  solana_mint_authority:chainReport.solana_mint_header?.mint_authority||'UNKNOWN',
+  solana_freeze_authority:chainReport.solana_mint_header?.freeze_authority||'UNKNOWN',
+  solana_mint_risk:chainReport.solana_mint_header?.observed_risk||'UNKNOWN',
   onchain_reason:chainReport.reason,paper_entry_authorized:false,live_authorized:false
  }));
 }catch(e){
