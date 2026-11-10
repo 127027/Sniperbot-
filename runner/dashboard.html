@@ -169,6 +169,7 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
 <section class="panel section" aria-label="V0.9 Status und Finanzierungs-Vorschau">
   <div class="section-heading"><h2>V0.9 · Systemprüfung</h2><span class="tag">PAPER ONLY</span></div>
   <p id="v09Status" class="subtle">Prüfe lokale V0.9-Komponenten …</p>
+  <p id="v09Readbacks" class="subtle">Prüfe unabhängige Pool-Nachkontrollen …</p>
   <details>
     <summary>50 € Einzahlung nur simulieren (ohne Guthabenänderung)</summary>
     <div class="controls" style="padding-top:12px">
@@ -410,7 +411,20 @@ $('v09Preview').onclick=async()=>{
       ' TEST-USDC. Kein PayPal, keine Wallet, keine Buchung. Guthaben unverändert.';
   }catch(e){$('v09PreviewResult').textContent='Keine Berechnung: '+e.message}
 };
-refreshV09();setInterval(refreshV09,30000);
+async function refreshV09Readbacks(){
+ try{
+  const response=await fetch('/api/v09/pool-readbacks',{cache:'no-store'});
+  if(!response.ok)throw Error('Pool-Nachkontrolle nicht erreichbar');
+  const data=await response.json(),batch=data.readbacks||{};
+  const matched=(batch.results||[]).filter(r=>r.market_identity_verified===true).length;
+  $('v09Readbacks').textContent='Live-Pool-Abgleich: '+matched+'/'+(batch.attempted||0)+
+    ' Identitäten bei GeckoTerminal & DEX Screener bestätigt · '+(batch.status||'UNAVAILABLE')+
+    ' · zuletzt '+(batch.checked_at_utc?new Date(batch.checked_at_utc).toLocaleString('de-DE'):'noch nicht geprüft')+
+    '. Auch bei Treffer: Sicherheit, echte Verkaufbarkeit und Paper-Kauf weiter UNGEPRÜFT.';
+ }catch(e){$('v09Readbacks').textContent='Pool-Nachkontrolle: '+e.message}
+}
+refreshV09();refreshV09Readbacks();
+setInterval(refreshV09,30000);setInterval(refreshV09Readbacks,30000);
 refresh(true);setInterval(()=>refresh(false),3000);
 </script>
 </body></html>
