@@ -390,6 +390,50 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
 </div>
 </section>
 
+<section class="panel section" aria-label="Tokenunabhängiger Routenprüfer">
+  <div class="section-heading">
+    <h2>Universeller Coin-Executor – Vorprüfung</h2><span class="tag paper">LIVE-TAUSCH GESPERRT</span>
+  </div>
+  <p>Keine feste Coin-Liste: Die GPT-Agenten geben später Blockchain, genaue Mint-/Contract-Adresse
+    und Ein-/Ausgangswährung vor. Der Bot prüft die Route; der Coin-Name allein ist
+    <strong>niemals</strong> eine eindeutige Identität.</p>
+  <div class="controls">
+    <label>Blockchain
+      <select id="dynamicChain" aria-label="Zielblockchain">
+        <option value="solana">Solana (Jupiter-Vorschau)</option>
+        <option value="base">Base (Adapter fehlt noch)</option>
+        <option value="eth">Ethereum (Adapter fehlt noch)</option>
+        <option value="bsc">BNB Chain (Adapter fehlt noch)</option>
+      </select>
+    </label>
+    <label>Start-Asset (Mint / Contract, nicht Ticker)
+      <input id="dynamicInputAsset" type="text"
+        value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v">
+    </label>
+    <label>Ziel-Asset (Mint / Contract, nicht Ticker)
+      <input id="dynamicOutputAsset" type="text" placeholder="Vollständige Token-Adresse">
+    </label>
+    <label>Einsatz als kleinste Token-Einheiten (Atome)
+      <input id="dynamicAmountAtoms" type="text" value="50000000" inputmode="numeric">
+    </label>
+    <label>Minimal erwartete Ausgabe-Atome
+      <input id="dynamicMinimumAtoms" type="text" value="1" inputmode="numeric">
+    </label>
+    <button class="btn" type="button" id="dynamicRouteCheck">Handelsroute prüfen – NICHT kaufen</button>
+  </div>
+  <p class="subtle">Beispiel: Bei Solana-USDC mit 6 Dezimalstellen sind 50 USDC
+    genau 50.000.000 Atome. Bei anderen Tokens müssen ihre individuellen Dezimalstellen
+    berücksichtigt werden. Keine 50 € Paper-Kasse wird dadurch zu echtem USDC.</p>
+  <p id="dynamicRouteResult" class="subtle">Noch keine dynamische Route geprüft.</p>
+  <h3>Vom Laptop empfangene signierte Handelsaufträge</h3>
+  <button class="btn" type="button" id="dynamicInboxRefresh">Bestätigte Aufträge anzeigen</button>
+  <pre id="dynamicInboxStatus" class="subtle" style="white-space:pre-wrap;word-break:break-word">
+Bisher keine signierten Aufträge abgerufen. Alle Live-Trades sind deaktiviert.</pre>
+  <p class="warning">Eine angezeigte Jupiter-Quote ist noch kein Kauf. Ohne freigegebene
+    Sicherheitsprüfung, lokale Signatur, Onchain-Finalisierung und echten SOL-Gasbestand
+    führt dieser Executor KEINEN Live-Trade aus. Automatische Euro→USDC-Einzahlung fehlt ebenfalls noch.</p>
+</section>
+
 <section class="panel section">
   <div class="section-heading"><h2>Meine Positionen</h2><span class="tag">PAPER</span></div>
   <div id="positions" class="empty">Positionen werden geladen …</div>
@@ -903,6 +947,50 @@ $('walletNativeHistory').onclick=async()=>{
     ' · '+t.state+' · Signatur '+t.signature).join('\n'):
    'Noch keine lokalen SOL-Überweisungen.';
  }catch(e){$('walletNativeHistoryList').textContent='Journalfehler: '+e.message}
+};
+$('dynamicRouteCheck').onclick=async()=>{
+ $('dynamicRouteResult').textContent='Prüfe Walletbestand und öffentliche DEX-Route …';
+ try{
+  const chain=$('dynamicChain').value;
+  const input=$('dynamicInputAsset').value.trim();
+  const output=$('dynamicOutputAsset').value.trim();
+  const atoms=$('dynamicAmountAtoms').value.trim();
+  const minimum=$('dynamicMinimumAtoms').value.trim();
+  if(!/^[1-9][0-9]{0,19}$/.test(atoms)||!/^[1-9][0-9]{0,19}$/.test(minimum))
+   throw Error('Bitte exakte positive Token-Atome eingeben, keine gerundeten Euro.');
+  const params=new URLSearchParams({chain,inputAsset:input,outputAsset:output,
+   amountAtoms:atoms,minReceiveAtoms:minimum});
+  const res=await fetch('/api/wallet/dynamic-route?'+params.toString(),{cache:'no-store'});
+  const body=await res.json();
+  if(!res.ok)throw Error(body.error||'Routenprüfung nicht verfügbar');
+  const p=body.plan;
+  if(p?.status!=='QUOTE_OBSERVED_NO_TRADE'){
+   $('dynamicRouteResult').textContent='BLOCKIERT – '+String(p?.reason||'Unbekannt')+
+    (typeof p?.details==='string'?' · '+p.details:'')+
+    '. Keine Coins gekauft oder verkauft.';
+   return;
+  }
+  $('dynamicRouteResult').textContent=
+   'ECHTE NUR-QUOTE: '+p.input_atoms+' Atome von '+p.input_mint+
+   ' → '+p.indicative_output_atoms+' Atome von '+p.output_mint+
+   ' über '+p.quote_router+' auf '+p.network+
+   '. Tatsächliches Eingangsguthaben: '+p.input_available_atoms+
+   ' Atome. GAS-Reserve: '+p.gas_reserve_lamports+
+   ' Lamports. KEIN Kauf, kein gesicherter Rücktausch, kein PnL; Wallet bleibt unverändert.';
+ }catch(e){$('dynamicRouteResult').textContent='Route BLOCKIERT: '+e.message}
+};
+$('dynamicInboxRefresh').onclick=async()=>{
+ try{
+  const res=await fetch('/api/execution/route-v2',{cache:'no-store'});
+  const data=await res.json();
+  if(!res.ok)throw Error(data.error||'Befehlsspeicher nicht lesbar');
+  const records=data.inbox?.recent_receipts||[];
+  $('dynamicInboxStatus').textContent=records.length?
+   records.map(r=>r.action+' '+r.chain+' | '+r.token_address+
+    ' | '+r.input_amount_atoms+' Atome | '+r.execution_status+
+    ' | Kurs: '+r.route_status+' | kein Trade').join('\n'):
+   'Keine signierten V2-BUY/SELL-Befehle. Handel bleibt deaktiviert.';
+ }catch(e){$('dynamicInboxStatus').textContent='Befehle nicht lesbar: '+e.message}
 };
 let currentRealWallet=null;
 async function refreshLocalWallet(){
