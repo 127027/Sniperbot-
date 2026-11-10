@@ -44,6 +44,10 @@ try{
  };
  const before=await read('/api/state');
  const status=await read('/api/v09/status');
+ const readbacks=await read('/api/v09/pool-readbacks');
+ assert.equal(readbacks.readbacks.paper_only,true);
+ assert.equal(readbacks.readbacks.actionable,false);
+ assert.equal(readbacks.readbacks.status,'NOT_CHECKED');
  assert.equal(status.ok,true);
  assert.equal(status.v09.mode,'PAPER_ONLY');
  assert.equal(status.v09.live_enabled,false);
