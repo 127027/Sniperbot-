@@ -19,6 +19,14 @@ on:
       - "runner/research-hype-triggers.test.mjs"
       - "runner/research-network.mjs"
       - "runner/central-decisions.test.mjs"
+      - "runner/portfolio-budget.mjs"
+      - "runner/portfolio-budget.test.mjs"
+      - "runner/research-narrative-radar.mjs"
+      - "runner/research-narrative-radar.test.mjs"
+      - "runner/historical-replay-readiness.mjs"
+      - "runner/historical-replay-readiness.test.mjs"
+      - "runner/core.mjs"
+      - "runner/research.mjs"
       - ".github/workflows/tests.yml"
       - ".github/workflows/windows-supervisor.yml"
   workflow_dispatch:
@@ -33,10 +41,10 @@ jobs:
           node-version: "22"
       - name: Validate Node supervisor shutdown module
         run: node --test runner/supervised-stop.test.mjs
-      - name: Validate V0.5 research-only longitudinal tracking on Windows
+      - name: Validate V0.6 budget, meme narrative discovery and historical replay safeguards on Windows
         shell: powershell
         run: |
-          node --test runner/memecoin-followups.test.mjs runner/memecoin-outcomes.test.mjs runner/memecoin-learning.test.mjs runner/research-market-collector.test.mjs runner/research-market-daemon.test.mjs runner/research-advisories.test.mjs runner/research-hype-triggers.test.mjs runner/research-network.test.mjs runner/central-decisions.test.mjs
+          node --test runner/memecoin-followups.test.mjs runner/memecoin-outcomes.test.mjs runner/memecoin-learning.test.mjs runner/research-market-collector.test.mjs runner/research-market-daemon.test.mjs runner/research-advisories.test.mjs runner/research-hype-triggers.test.mjs runner/research-network.test.mjs runner/central-decisions.test.mjs runner/portfolio-budget.test.mjs runner/research-narrative-radar.test.mjs runner/historical-replay-readiness.test.mjs runner/research.test.mjs
       - name: Test Windows DPAPI, JobObject and private stdin stop without real token
         shell: powershell
         run: |
