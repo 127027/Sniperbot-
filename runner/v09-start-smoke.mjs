@@ -44,6 +44,11 @@ try{
  };
  const before=await read('/api/state');
  const status=await read('/api/v09/status');
+ const dossiers=await read('/api/v09/dossiers');
+ assert.equal(dossiers.ok,true);
+ assert.equal(dossiers.dossiers.schema,'candidate_decision_dossiers.v1');
+ assert.equal(dossiers.dossiers.automated_external_paper_entry_authorized,false);
+ assert.equal(dossiers.dossiers.paper_only,true);
  const readbacks=await read('/api/v09/pool-readbacks');
  assert.equal(readbacks.readbacks.paper_only,true);
  assert.equal(readbacks.readbacks.actionable,false);
