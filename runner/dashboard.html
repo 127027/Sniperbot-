@@ -231,8 +231,10 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
     <div class="controls">
       <button class="btn" type="button" id="walletCopy">Adresse kopieren</button>
       <button class="btn" type="button" id="walletRefresh">SOL-Guthaben auf Blockchain prüfen</button>
+      <button class="btn" type="button" id="walletTokens">Token-Guthaben prüfen</button>
     </div>
     <p id="walletBalance" class="subtle">Noch keine Blockchain-Abfrage. TEST-USDC ist davon getrennt.</p>
+    <p id="walletTokenList" class="subtle">Noch keine SPL-Token-Konten abgefragt.</p>
     <h3 style="margin-top:16px">SOL mit 50 € über PayPal kaufen</h3>
     <p>Der Einkauf erfolgt auf der offiziellen MoonPay-Website. Dort <strong>50 €</strong>, <strong>SOL auf Solana</strong>, <strong>PayPal</strong> und unbedingt die oben angezeigte eigene Empfangsadresse auswählen. Gebühren und KYC beim Anbieter prüfen. Der Bot erhält keinen Zahlungszugang.</p>
     <a href="https://www.moonpay.com/buy/sol" target="_blank" rel="noopener noreferrer">MoonPay: SOL kaufen – externe Zahlungsseite öffnen</a>
@@ -248,11 +250,11 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
       <p id="walletBackupResult" class="subtle">Eine heruntergeladene Sicherung ist erst nach erfolgreicher Prüfung als getestet anzusehen.</p>
     </div>
     <p class="warning">Bevor du echtes Geld an diese selbst erstellte Wallet schickst: verschlüsselte Wallet-Datei offline sichern und Wiederherstellung mit deinem Passwort unabhängig testen. Dieser Entwicklungsstand besitzt noch keinen Echtgeld-Verkauf.</p>
-    <h3 style="margin-top:16px">Neuen Solana-Coin auf Tauschroute prüfen</h3>
+    <h3 style="margin-top:16px">Neuen Solana-Coin: Kauf- und Rücktauschroute prüfen</h3>
     <div class="controls">
       <label>Ziel-Token (Mint-Adresse)<input id="walletTargetMint" type="text" placeholder="Solana-Mint-Adresse"></label>
       <label>Einsatz (SOL)<input id="walletSwapSol" type="number" min="0.00001" max="100" step="0.001" value="0.1"></label>
-      <button class="btn" type="button" id="walletQuote">Echten Kurs prüfen – nicht kaufen</button>
+      <button class="btn" type="button" id="walletQuote">Kauf + Rücktausch prüfen – keine Order</button>
     </div>
     <p id="walletQuoteResult" class="subtle">Tausch wird nicht ausgelöst. Ausführbare Swap-Signierung bleibt deaktiviert.</p>
   </div>
@@ -615,23 +617,48 @@ $('walletRefresh').onclick=async()=>{
    '. Keine PayPal-Bestätigung, keine TEST-USDC-Buchung.';
  }catch(e){$('walletBalance').textContent=e.message}
 };
+$('walletTokens').onclick=async()=>{
+ if(!currentRealWallet?.exists)return;
+ $('walletTokenList').textContent='Prüfe SOLANA SPL Token / Token-2022 Konten …';
+ try{
+  const resp=await fetch('/api/wallet/tokens',{cache:'no-store'});
+  const result=await resp.json();
+  if(!resp.ok)throw Error(result.error||'Keine verlässlichen Token-Bestände');
+  const h=result.holdings;
+  if(!Array.isArray(h.tokens))throw Error('Ungültige Token-Bestandsdaten');
+  if(h.tokens.length===0){$('walletTokenList').textContent='Keine positiven Tokenbestände gefunden (finalisierter Stand '+h.finalized_slot+').';return}
+  $('walletTokenList').innerHTML='<strong>Finalisiert beobachtete Token-Konten: '+h.count+'</strong>'+
+   h.tokens.slice(0,12).map(t=>'<div style="word-break:break-all;margin:7px 0">'+
+    esc(t.mint)+' · '+esc(t.ui_amount)+' Token · '+esc(t.account_state)+
+    (t.account_state==='frozen'?' (EINGEFROREN)':'')+'</div>').join('')+
+   '<small>Reine Onchain-Bestände; weder PayPal-Eingang noch Handelsfreigabe.</small>';
+ }catch(e){$('walletTokenList').textContent='Token-Guthaben nicht verfügbar: '+e.message}
+};
 $('walletQuote').onclick=async()=>{
- $('walletQuoteResult').textContent='Prüfe echte Jupiter-Kursdaten …';
+ $('walletQuoteResult').textContent='Prüfe Jupiter-Hin- und Rückkursdaten (keine Transaktion) …';
  try{
   const amount=Number($('walletSwapSol').value);
   if(!Number.isFinite(amount)||amount<0.00001||amount>100)throw Error('Bitte 0,00001 bis 100 SOL eingeben.');
   const lamports=String(Math.round(amount*1e9));
   const mint=$('walletTargetMint').value.trim();
-  const url='/api/wallet/swap-quote?outputMint='+encodeURIComponent(mint)+
+  const url='/api/wallet/swap-roundtrip?outputMint='+encodeURIComponent(mint)+
    '&amountLamports='+encodeURIComponent(lamports);
   const resp=await fetch(url,{cache:'no-store'});
   const result=await resp.json();
-  if(!resp.ok)throw Error(result.error||'Keine sichere Quote');
-  $('walletQuoteResult').textContent='Nur Kurs: '+result.quote.input_lamports+
-   ' Lamports → '+result.quote.output_token_atoms+' Ziel-Token-Atome (Dezimalstellen noch nicht verifiziert).'+
-   ' Anbieter: Jupiter · Route: '+result.quote.router+' · Gebühr: '+result.quote.fee_bps+
-   ' bps. KEIN Kauf. Token-Sicherheit und Verkaufbarkeit nicht bestätigt.';
- }catch(e){$('walletQuoteResult').textContent='Quote blockiert: '+e.message}
+  if(!resp.ok)throw Error(result.error||'Kursprüfung nicht möglich');
+  const p=result.preview;
+  if(p.status!=='TWO_QUOTES_OBSERVED'){
+   $('walletQuoteResult').textContent='BLOCKIERT: '+(p.reason||'Rückkurs fehlt')+
+    ' · '+(p.details||'')+'. Nicht kaufen.';
+   return;
+  }
+  $('walletQuoteResult').textContent='ZWEI KURSAUSKÜNFTE: '+num(Number(p.input_sol_lamports)/1e9,6)+
+   ' SOL → '+p.intermediate_target_token_atoms+
+   ' Token-Atome → '+num(Number(p.indicative_return_sol_lamports)/1e9,6)+
+   ' SOL. Geschätzte Rundreise-Veränderung: '+num(p.approximate_roundtrip_change_bps/100,2)+
+   ' %. Kaufroute: '+p.buy_router+' · Verkaufroute: '+p.sell_router+
+   '. KEIN Handel; tatsächliche Verkaufbarkeit, Sicherheit, Gas und Slippage unbewiesen.';
+ }catch(e){$('walletQuoteResult').textContent='Kursprüfung blockiert: '+e.message}
 };
 async function getEncryptedWalletFile(id){
  const file=$(id)?.files?.[0];
