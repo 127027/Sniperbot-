@@ -43,6 +43,28 @@ jobs:
         run: node --test runner/research-news-archive.test.mjs runner/research-news-journal.test.mjs
       - name: Test V0.8 paper execution parity and risk gates on Windows
         run: node --test runner/execution-parity-lab.test.mjs
+  windows-browser-ui-acceptance:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install temporary browser test library (never bundled into the user's bot)
+        run: npm install --no-save --no-package-lock playwright@1.65.0
+      - name: Test the ACTUAL Windows local bot in headless Microsoft Edge
+        env:
+          SNIPER_UI_ARTIFACTS: artifacts/ui-windows
+        run: node runner/browser-ui-acceptance.mjs
+      - name: Preserve UI screenshots and failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sniper-v19-windows-ui-screenshots
+          path: artifacts/ui-windows/*.png
+          if-no-files-found: warn
+          retention-days: 7
   windows-v09-wallet-and-funding:
     runs-on: windows-latest
     steps:
