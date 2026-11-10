@@ -26,3 +26,16 @@ jobs:
         run: node --test runner/research-news-archive.test.mjs runner/research-news-journal.test.mjs
       - name: Test V0.8 paper execution parity and risk gates on Windows
         run: node --test runner/execution-parity-lab.test.mjs
+  windows-v09-wallet-and-funding:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check V0.9 wallet and onramp lab modules
+        run: |
+          node --check runner/wallet-readiness.mjs
+          node --check runner/paper-fiat-onramp.mjs
+      - name: Verify strict no-secret watch-only policy and synthetic fiat only
+        run: node --test runner/wallet-readiness.test.mjs runner/paper-fiat-onramp.test.mjs
