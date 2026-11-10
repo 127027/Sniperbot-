@@ -8,7 +8,7 @@ import path from 'node:path';
 function safeEvent(event){
  const first=Date.parse(event?.first_observed_at_utc);
  if(typeof event?.event_id!=='string'||!/^news-[0-9a-f]{32}$/.test(event.event_id)||
-  !Number.isFinite(first)||new Date(first).toISOString()!==event.first_observed_at_utc||
+  !Number.isFinite(first)||!event.first_observed_at_utc.endsWith('Z')||
   event?.paper_only!==true||event?.actionable!==false||
   typeof event?.source_url!=='string'||!event.source_url.startsWith('https://'))
   throw Error('INVALID_NEWS_ARCHIVE_EVENT');
