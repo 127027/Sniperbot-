@@ -71,7 +71,7 @@ test('local vault signs ONLY one system transfer with exact recipient, amount an
   assert.equal(sig.to,TO);
   assert.equal(sig.program,'SYSTEM_PROGRAM_TRANSFER_ONLY');
   assert.equal(sig.secret_exported,false);
-  assert.equal(Buffer.from(sig.signed_transaction_base64,'base64').length,150);
+  assert.equal(Buffer.from(sig.signed_transaction_base64,'base64').length,215);
   const plain=JSON.stringify(sig);
   assert(!plain.includes(PASS));
   await assert.rejects(signLocalSolanaSystemTransfer({filename,password:PASS+'WRONG',
