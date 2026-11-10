@@ -1,0 +1,38 @@
+name: Historical Blind Replay - Public Five Cases
+on:
+  push:
+    branches:
+      - codex/research-gateway-v04
+    paths:
+      - "runner/historical-blind-*.mjs"
+      - "runner/fixtures/historical-public-five-cases-20261110.json"
+      - "runner/research-news-rss*.mjs"
+      - "runner/research-news-journal*.mjs"
+      - ".github/workflows/historical-blind-replay.yml"
+  workflow_dispatch:
+jobs:
+  historical-public-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test blind temporal safeguards and live-news observation safety
+        run: node --test runner/historical-blind-replay.test.mjs runner/research-news-rss.test.mjs runner/research-news-journal.test.mjs
+      - name: Execute 225 UTC virtual days on public as-of evidence only
+        run: |
+          node runner/historical-blind-five.mjs
+          node runner/historical-blind-five.mjs --json > historical_blind_five_public.json
+      - name: Validate that no historical profits or fills are fabricated
+        run: |
+          node --input-type=module -e "import fs from 'node:fs'; const r=JSON.parse(fs.readFileSync('historical_blind_five_public.json','utf8')); if(r.simulated_days!==225||r.cases_evaluated!==5||r.untestable_case_count!==5||r.historically_confirmed_paper_buy_fills!==0||r.historically_confirmed_paper_exit_fills!==0)process.exit(1);"
+      - name: Upload day-by-day public research replay report
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-blind-five-days-public
+          path: historical_blind_five_public.json
+          retention-days: 30
