@@ -54,7 +54,7 @@ test('invalid test capital, strings, excessive precision, negative amounts are r
   assert.equal(valid.cashUsdc,50.29);
 });
 
-test('the simplified UI shows Paper prominently and never offers functional LIVE, payment or wallet controls',()=>{
+test('the two-tab UI keeps Paper distinct from local wallet and blocks live trading by default',()=>{
   const html=readFileSync(new URL('./dashboard.html',import.meta.url),'utf8');
   const server=readFileSync(new URL('./server.mjs',import.meta.url),'utf8');
   for(const id of ['dotWidget','dotPublished','dotReceived','dotRoleDetails','toggle','paperBalance','setBalance','clearBalance','positions','centralFollow','min','max']){
@@ -62,7 +62,15 @@ test('the simplified UI shows Paper prominently and never offers functional LIVE
   }
   assert.match(html,/<button[^>]*disabled[^>]*>LIVE · gesperrt<\/button>/);
   assert.doesNotMatch(html,/id="withdraw"|id="toEur"|id="toUsdc"|id="deposit"|id="saveExit"|id="fiveYes"|id="oneNo"/);
-  assert.match(html,/LIVE ist bewusst gesperrt/);
+  assert.match(html,/Echtgeldhandel.*GESPE[R]?RT/i);
+  assert.match(html,/id="paperWorkspaceTab"/);
+  assert.match(html,/id="realWorkspaceTab"/);
+  assert.match(html,/id="realLiveSwitch"[^>]*disabled/);
+  assert.match(html,/id="paperEurAmount"/);
+  assert.match(html,/id="realSolTotal"/);
+  assert.match(html,/id="realUsdcTotal"/);
+  assert.match(html,/Kein automatischer Echtgeldhandel oder direkter PayPal-Checkout/);
+  assert.match(server,/\/api\/trading\/live-mode/);
   assert.match(server,/'SET_PAPER_BALANCE'/);
   const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
   assert.equal(scripts.length,1);
