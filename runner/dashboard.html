@@ -166,6 +166,21 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
   <p class="notice">Forschung: neue Coins und historische 2×/5×/10×/50×/200×-Kursbewegungen innerhalb von 14 Tagen. Ohne vollständige, unabhängig validierte Kohorten keine echte Prozentwahrscheinlichkeit. Angezeigte DEX-Kurse sind kein Beweis eines verkaufbaren 50×- oder 200×-Gewinns. Forschungsberichte autorisieren keine Paper-Käufe.</p>
 </section>
 
+<section class="panel section" aria-label="V0.9 Status und Finanzierungs-Vorschau">
+  <div class="section-heading"><h2>V0.9 · Systemprüfung</h2><span class="tag">PAPER ONLY</span></div>
+  <p id="v09Status" class="subtle">Prüfe lokale V0.9-Komponenten …</p>
+  <details>
+    <summary>50 € Einzahlung nur simulieren (ohne Guthabenänderung)</summary>
+    <div class="controls" style="padding-top:12px">
+      <label>Beispiel-EUR<input id="v09Eur" type="number" min="1" max="100000" step="0.01" value="50"></label>
+      <label>Angenommene EUR je USDC<input id="v09Fx" type="number" min="0.01" max="100" step="0.0001" value="0.92"></label>
+      <button id="v09Preview" class="btn" type="button">Nur Testberechnung</button>
+    </div>
+    <p class="subtle">0,92 ist ein frei gewählter DEMO-Kurs, keine echte FX- oder PayPal-Quote. Die Berechnung verändert keine Wallet und kein Paper-Guthaben.</p>
+    <pre id="v09PreviewResult" class="subtle" style="white-space:pre-wrap"></pre>
+  </details>
+</section>
+
 <section class="panel section">
   <div class="section-heading"><h2>Meine Positionen</h2><span class="tag">PAPER</span></div>
   <div id="positions" class="empty">Positionen werden geladen …</div>
@@ -374,6 +389,28 @@ $('clearBalance').onclick=()=>{
   if(!confirm('Virtuelles Guthaben wirklich vollständig auf 0 setzen? Diese Änderung wird protokolliert.'))return;
   api({type:'SET_PAPER_BALANCE',amount:0});
 };
+async function refreshV09(){
+  try{
+    const response=await fetch('/api/v09/status',{cache:'no-store'});
+    if(!response.ok)throw Error('V0.9-Status nicht erreichbar');
+    const data=await response.json();
+    const v=data.v09;
+    $('v09Status').textContent='GitHub-Rollen: '+v.role_snapshots_visible+'/5 · sichtbare Kandidaten: '+v.candidates_visible+
+      ' · externer Papier-Autokauf: GESPERRT · Wallet: nicht angelegt · LIVE: AUS. '+v.message;
+  }catch(e){$('v09Status').textContent='V0.9-Schnittstelle nicht erreichbar: '+e.message}
+}
+$('v09Preview').onclick=async()=>{
+  try{
+    const response=await fetch('/api/command',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'PREVIEW_PAPER_FUNDING',amountEur:Number($('v09Eur').value),
+       eurPerUsdc:Number($('v09Fx').value),providerFeeEur:0,spreadPct:0,networkFeeUsdc:0})});
+    const data=await response.json();
+    if(!response.ok||data.preview?.status!=='PAPER_QUOTED')throw Error(data.preview?.reason||data.error||'Berechnung blockiert');
+    $('v09PreviewResult').textContent='Nur eine unverbindliche TEST-Berechnung: '+num(data.preview.expected_test_usdc)+
+      ' TEST-USDC. Kein PayPal, keine Wallet, keine Buchung. Guthaben unverändert.';
+  }catch(e){$('v09PreviewResult').textContent='Keine Berechnung: '+e.message}
+};
+refreshV09();setInterval(refreshV09,30000);
 refresh(true);setInterval(()=>refresh(false),3000);
 </script>
 </body></html>
