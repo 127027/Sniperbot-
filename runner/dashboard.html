@@ -183,6 +183,60 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
   </details>
 </section>
 
+<section class="panel section" aria-label="Zentrale und verknüpfte Geräte">
+  <div class="section-heading"><h2>Bot-Zentrale und verbundene Geräte</h2><span class="tag paper">EIGENE WALLET JE GERÄT</span></div>
+  <p>Der Windows-Laptop ist die Zentrale. GitHub überträgt ausschließlich signierte Zustands- und später freigegebene Befehlsinformationen.
+     Andere Installationen bleiben eigenständig, kopieren keine Wallet-Schlüssel und entscheiden nicht über Käufe oder Verkäufe.</p>
+  <div class="summary-grid" style="height:auto">
+    <div class="metric"><small>Geräte-ID dieser Installation</small><b id="deviceIdentityText" style="font-size:12px;word-break:break-all">Wird gelesen …</b></div>
+    <div class="metric"><small>Master-Verbindung</small><b id="deviceMasterStatus" style="font-size:14px">Nicht eingerichtet</b></div>
+  </div>
+  <p class="subtle" id="deviceCoordinatorNote">Bei Verbindungsabbruch: Keine Verbindung – ruf Andreas an.</p>
+  <div id="deviceRoleSetup" style="margin-top:12px">
+    <h3>Dieses Gerät einmalig zuordnen</h3>
+    <p>Nur auf deinem Laptop: „Zentralen-Laptop“ wählen. Auf PC oder Handy eines anderen:
+       „Folgegerät“ mit der Geräte-ID und dem <strong>öffentlichen</strong> Signaturschlüssel
+       der Laptop-Zentrale koppeln. Niemals private Schlüssel oder Seeds eintragen.</p>
+    <button type="button" class="btn" id="deviceChooseMaster">Dieses Gerät ist die Laptop-Zentrale</button>
+    <details style="margin-top:10px">
+      <summary>Als Folgegerät verbinden</summary>
+      <label>Geräte-ID der Laptop-Zentrale<input id="deviceMasterIdInput" type="text" placeholder="device_..."></label>
+      <label>Öffentlicher Ed25519-Schlüssel der Zentrale (PEM)
+        <textarea id="deviceMasterPubInput" rows="4" spellcheck="false" placeholder="-----BEGIN PUBLIC KEY-----"></textarea>
+      </label>
+      <button type="button" class="btn" id="deviceChooseFollower">Folgegerät einrichten</button>
+    </details>
+  </div>
+  <div id="masterPresencePanel" style="display:none;margin-top:16px">
+    <h3>GitHub-Verbindung der Laptop-Zentrale</h3>
+    <p>Der private Signaturschlüssel wird nur auf diesem Laptop mit einem Passwort verschlüsselt
+      gespeichert. Die Wallet-Schlüssel sind davon getrennt.
+      Der GitHub-Token benötigt ausschließlich Schreibrechte auf den Repository-Inhalt
+      und wird nur im laufenden Bot-Speicher gehalten, nicht auf GitHub hochgeladen.</p>
+    <p class="subtle">Öffentlicher Kopplungsschlüssel für Folgegeräte:</p>
+    <textarea id="masterPublicKeyDisplay" rows="4" readonly spellcheck="false"
+      placeholder="Zuerst Signaturschlüssel einrichten"></textarea>
+    <div class="controls">
+      <label>Passphrase für den Master-Signaturschlüssel (min. 16 Zeichen)
+        <input id="masterSigningPassphrase" type="password" autocomplete="off">
+      </label>
+      <button class="btn" id="masterCreateSigningKey" type="button">Signaturschlüssel einmalig erstellen</button>
+    </div>
+    <div class="controls">
+      <label>GitHub-Token für dieses Repository
+        <input id="masterGithubToken" type="password" autocomplete="off">
+      </label>
+      <button class="btn" id="masterStartPublishing" type="button">Laptop-Verbindung starten</button>
+      <button class="btn" id="masterStopPublishing" type="button">Verbindung stoppen</button>
+    </div>
+    <p class="subtle" id="masterPublishResult">Nur der Online-Status wird signiert veröffentlicht. Keine Wallet-Daten und keine Handelsentscheidungen.</p>
+  </div>
+  <p class="warning">Folgegeräte: Bei fehlender Verbindung weder neue Orders noch automatische Paper-Exits.
+     Ein- und Auszahlung sind technisch vorgesehen, derzeit aber nur im PAPER-Modus implementiert.
+     GitHub ist kein Echtzeit-Ausfallsignal; selbst bei gültiger Heartbeat-Nachricht bleibt Live-Trading gesperrt.</p>
+  <p class="subtle" id="deviceSetupResult"></p>
+</section>
+
 <section class="panel section" aria-label="Eurokonto, PayPal und Wallet">
   <div class="section-heading"><h2>Euro · PayPal · Wallet</h2><span class="tag paper">PAPER / ECHTGELD AUS</span></div>
   <div class="summary-grid" style="height:auto">
@@ -653,6 +707,92 @@ $('externalWalletObserve').onclick=async()=>{
    'TEST-USDC und Bot-Wallet bleiben unverändert.</small>';
  }catch(e){$('externalWalletResult').textContent='Beobachtung nicht möglich: '+e.message}
 };
+async function refreshDeviceTopology(){
+ try{
+  const r=await fetch('/api/coordination/status',{cache:'no-store'});
+  const j=await r.json();
+  if(!r.ok||!j.ok)throw Error(j.error||'Keine Geräteverwaltung');
+  $('deviceIdentityText').textContent=j.local_device_id;
+  $('deviceMasterStatus').textContent=j.topology_role==='MASTER'?'Zentralen-Laptop':
+   j.topology_role==='FOLLOWER'?
+   (j.master?.coordination_online?'Zentrale kürzlich erreichbar':'KEINE VERBINDUNG'):'Noch nicht gekoppelt';
+  $('deviceCoordinatorNote').textContent=j.master?.message||'Keine Verbindung – ruf Andreas an';
+  $('deviceRoleSetup').style.display=j.topology_role==='UNPAIRED'?'block':'none';
+  $('masterPresencePanel').style.display=j.topology_role==='MASTER'?'block':'none';
+  if(j.topology_role==='MASTER')void refreshMasterPublicKey();
+ }catch(e){
+  $('deviceMasterStatus').textContent='KEINE VERBINDUNG';
+  $('deviceCoordinatorNote').textContent='Keine Verbindung – ruf Andreas an';
+ }
+}
+async function pairDevice(body){
+ try{
+  const r=await fetch('/api/device/topology',{method:'POST',
+   headers:{'content-type':'application/json'},
+   body:JSON.stringify(body)});
+  const j=await r.json();
+  if(!r.ok)throw Error(j.error||'Gerät konnte nicht verbunden werden');
+  $('deviceSetupResult').textContent='Einrichtung gespeichert. '+j.message+
+   ' · Für echten GitHub-Austausch ist die Signatur-/Publisher-Einrichtung noch erforderlich.';
+  await refreshDeviceTopology();
+ }catch(e){$('deviceSetupResult').textContent='Kopplung blockiert: '+e.message}
+}
+$('deviceChooseMaster').onclick=async()=>{
+ if(!confirm('Dieses Gerät unwiderruflich als zentrale Laptop-Installation festlegen?'))return;
+ await pairDevice({mode:'MASTER'});
+};
+$('deviceChooseFollower').onclick=async()=>{
+ const id=$('deviceMasterIdInput').value.trim();
+ const pem=$('deviceMasterPubInput').value.trim();
+ if(!confirm('Folgegerät mit genau dieser Zentrale verbinden? Kein Zugriff auf deren private Wallet-Schlüssel.'))return;
+ await pairDevice({mode:'FOLLOWER',master_device_id:id,master_public_key_pem:pem});
+};
+async function refreshMasterPublicKey(){
+ try{
+  const r=await fetch('/api/master/signing-public-key',{cache:'no-store'});
+  const d=await r.json();
+  if(!r.ok)throw Error(d.error||'Öffentlicher Schlüssel nicht verfügbar');
+  $('masterPublicKeyDisplay').value=d.public_key_pem||'Master-Signaturschlüssel noch nicht eingerichtet';
+ }catch(e){$('masterPublicKeyDisplay').value='Unbekannt: '+e.message}
+}
+$('masterCreateSigningKey').onclick=async()=>{
+ const passphrase=$('masterSigningPassphrase').value;
+ try{
+  if(passphrase.length<16)throw Error('Mindestens 16 Zeichen erforderlich.');
+  if(!confirm('Neuen, verschlüsselten Signaturschlüssel für die Laptop-Zentrale erstellen? Dies ist KEINE Wallet.'))return;
+  const r=await fetch('/api/master/signing-key/create',{method:'POST',
+   headers:{'content-type':'application/json'},body:JSON.stringify({passphrase})});
+  const d=await r.json();if(!r.ok)throw Error(d.error||'Erstellung fehlgeschlagen');
+  $('masterPublishResult').textContent='Signaturschlüssel lokal erstellt. Öffentlichen PEM-Schlüssel auf Folgegeräte übertragen. Privaten Schlüssel niemals teilen.';
+  await refreshMasterPublicKey();
+ }catch(e){$('masterPublishResult').textContent='Signatur-Einrichtung: '+e.message}
+ finally{$('masterSigningPassphrase').value=''}
+};
+$('masterStartPublishing').onclick=async()=>{
+ const passphrase=$('masterSigningPassphrase').value;
+ const github_token=$('masterGithubToken').value;
+ try{
+  if(passphrase.length<16||github_token.length<20)
+   throw Error('Master-Passphrase und gültiger GitHub-Token erforderlich.');
+  if(!confirm('Signierten Status über das öffentliche GitHub-Repository veröffentlichen? Es werden keine Wallet-Daten übertragen.'))return;
+  const r=await fetch('/api/master/presence/start',{method:'POST',
+   headers:{'content-type':'application/json'},body:JSON.stringify({passphrase,github_token})});
+  const d=await r.json();if(!r.ok)throw Error(d.error||'GitHub-Verbindung fehlgeschlagen');
+  $('masterPublishResult').textContent='Online-Status wird veröffentlicht, solange dieses Bot-Fenster läuft. Echtgeldhandel weiterhin AUS.';
+  await refreshDeviceTopology();
+ }catch(e){$('masterPublishResult').textContent='Master-Status: '+e.message}
+ finally{$('masterSigningPassphrase').value='';$('masterGithubToken').value=''}
+};
+$('masterStopPublishing').onclick=async()=>{
+ try{
+  const r=await fetch('/api/master/presence/stop',{method:'POST',
+   headers:{'content-type':'application/json'},body:'{}'});
+  const d=await r.json();if(!r.ok)throw Error(d.error||'Stopp fehlgeschlagen');
+  $('masterPublishResult').textContent='Publikation gestoppt. Bereits veröffentlichter Status verfällt automatisch; Folgegeräte dürfen bis dahin trotzdem keine Echtgeldorders auslösen.';
+  await refreshDeviceTopology();
+ }catch(e){$('masterPublishResult').textContent='Stopp: '+e.message}
+};
+refreshDeviceTopology();setInterval(refreshDeviceTopology,30000);
 let currentRealWallet=null;
 async function refreshLocalWallet(){
  try{

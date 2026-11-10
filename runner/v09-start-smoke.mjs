@@ -69,6 +69,43 @@ try{
  assert.equal(reject.status,422);
 
 
+
+ // Real local master-laptop onboarding in an entirely isolated test directory.
+ const identity=(await read('/api/device/identity')).device;
+ assert.match(identity.device_id,/^device_[a-f0-9]{32}$/);
+ const unpaired=(await read('/api/coordination/status'));
+ assert.equal(unpaired.topology_role,'UNPAIRED');
+ assert.equal(unpaired.live_trading_enabled,false);
+ const roleToken=registry.find(x=>x.role==='risk_controller').token;
+ const unpairedCmd=await fetch(base+'/api/execution/instructions',{method:'POST',
+  headers:{authorization:'Bearer '+roleToken,'content-type':'application/json'},
+  body:'{}'});
+ assert.equal(unpairedCmd.status,409);
+ const assignMaster=await fetch(base+'/api/device/topology',{method:'POST',
+  headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({mode:'MASTER'})});
+ assert.equal(assignMaster.status,201);
+ const alreadyAssigned=await fetch(base+'/api/device/topology',{method:'POST',
+  headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({mode:'MASTER'})});
+ assert.equal(alreadyAssigned.status,409);
+ const masterPassword='CI_ONLY_DO_NOT_USE_MASTER_SIGNING_2026!';
+ const signingKey=await fetch(base+'/api/master/signing-key/create',{method:'POST',
+  headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({passphrase:masterPassword})});
+ assert.equal(signingKey.status,201);
+ const masterPublic=await read('/api/master/signing-public-key');
+ assert.match(masterPublic.public_key_pem,/BEGIN PUBLIC KEY/);
+ assert(!JSON.stringify(masterPublic).includes(masterPassword));
+ const cannotPublishOffline=await fetch(base+'/api/master/presence/start',{method:'POST',
+  headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({passphrase:masterPassword,github_token:'github_fake_ci_1234567890'})});
+ assert.equal(cannotPublishOffline.status,503);
+ const topo=(await read('/api/coordination/status'));
+ assert.equal(topo.topology_role,'MASTER');
+ assert.equal(topo.master.coordination_online,false);
+ assert.equal(topo.master.trade_authorized,false);
+
  // Actual on-device wallet creation with ephemeral, isolated CI keys ONLY.
  const walletInitial=await read('/api/wallet/status');
  assert.equal(walletInitial.wallet.exists,false);

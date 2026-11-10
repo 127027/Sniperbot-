@@ -1,6 +1,8 @@
 name: Paper-Runner Tests
 on:
   push:
+    branches-ignore:
+      - 'coordination/**'
   pull_request:
 jobs:
   tests:
@@ -22,6 +24,7 @@ jobs:
       - run: node --check runner/market.mjs
       - run: node runner/test.mjs
       - run: node --test runner/*.test.mjs
+      - run: node runner/follower-offline-start-smoke.mjs
       - run: node runner/v09-start-smoke.mjs
       - name: Observe one real public pool readback (non-blocking, read-only)
         run: node runner/readback-live-probe.mjs
@@ -63,6 +66,10 @@ jobs:
         run: node --test runner/local-solana-vault.test.mjs runner/local-solana-balance.test.mjs runner/solana-swap-quote.test.mjs runner/solana-swap-roundtrip.test.mjs runner/solana-owned-tokens.test.mjs runner/solana-wallet-activity.test.mjs runner/solana-unsigned-order.test.mjs runner/solana-wire-audit.test.mjs runner/solana-wallet-spend-preflight.test.mjs runner/solana-unsigned-simulation.test.mjs runner/solana-finalized-receipt.test.mjs
       - name: Separate external PayPal/Phantom observable wallet from bot wallet and paper funds
         run: node --test runner/external-wallet-observer.test.mjs
+      - name: Device wallets, laptop-master signatures, Github follower online/offline protocol
+        run: node --test runner/device-identity.test.mjs runner/device-execution-inbox.test.mjs runner/device-topology.test.mjs runner/github-master-presence.test.mjs runner/master-coordination.test.mjs
+      - name: Verify real Windows follower cannot trade while master laptop is offline
+        run: node runner/follower-offline-start-smoke.mjs
       - name: Verify actual native Windows supervisor and protected test secret handling
         shell: powershell
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File runner/windows-supervisor.ps1 -SelfTest
