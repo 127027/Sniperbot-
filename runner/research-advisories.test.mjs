@@ -21,7 +21,7 @@ test('five roles mentioned a coin but it is NOT a signed five-of-five safety app
  assert.equal(a.candidates[0].paper_entry_authorized,false);
  assert.equal(a.candidates[0].actionable,false);
  assert.equal(a.candidates[0].breakout_probability_pct,null);
- assert.equal(a.candidates[0].hypothetical_paper_range.minimum_test_usdc,500);
+ assert.equal(a.candidates[0].hypothetical_paper_range.minimum_test_usdc,50);assert.equal(a.candidates[0].hypothetical_paper_range.preferred_test_usdc,500);
  assert.equal(a.candidates[0].hypothetical_paper_range.maximum_test_usdc,3500);
  assert.equal(a.candidates[0].correlated_evidence_warning,true,'Repeated source is not independent');
  assert(a.candidates[0].required_checks.includes('NON_EXECUTING_SIZE_SPECIFIC_SELL_QUOTE'));
@@ -49,7 +49,7 @@ test('stale and wrong-chain mentions never count, invalid token never enters',()
  assert.equal(a.candidates[0].independent_source_hosts,1);
 });
 test('funds below minimum never authorize even illustrative position',()=>{
- const a=buildResearchAdvisories({roles:roles(),watchlist,settings:{...settings,cashUsdc:200},now:Date.parse(date)});
+ const a=buildResearchAdvisories({roles:roles(),watchlist,settings:{...settings,cashUsdc:40},now:Date.parse(date)});
  assert.equal(a.candidates[0].hypothetical_paper_range.minimum_test_usdc,null);
  assert.equal(a.candidates[0].hypothetical_paper_range.available,false);
  assert.equal(a.candidates[0].paper_entry_authorized,false);
