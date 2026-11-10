@@ -13,6 +13,7 @@ for(const marker of ['walletCreate','walletBackupDownload','walletBackupVerify',
  'deviceChooseMaster','deviceChooseFollower','masterCreateSigningKey',
  'masterStartPublishing','masterStopPublishing',
  'walletNativePreview','walletNativeSend','walletNativeHistory',
+ 'dynamicRouteCheck','dynamicInboxRefresh',
  'paperEurDeposit','paperEurWithdraw']){
  if(!html.includes('id="'+marker+'"'))throw Error('MISSING_DASHBOARD_CONTROL_'+marker);
 }

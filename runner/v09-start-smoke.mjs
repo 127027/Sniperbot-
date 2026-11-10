@@ -165,6 +165,14 @@ try{
  assert.equal(solSendOffline.status,503);
  const solJournal=await read('/api/wallet/sol-transfer/history');
  assert.deepEqual(solJournal.transfers,[]);
+ const dynamicQuoteOffline=await fetch(base+'/api/wallet/dynamic-route?chain=solana&inputAsset=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&outputAsset=So11111111111111111111111111111111111111112&amountAtoms=50000000');
+ assert.equal(dynamicQuoteOffline.status,503,'no live dynamic quote offline');
+ const dynamicInbox=await read('/api/execution/route-v2');
+ assert.equal(dynamicInbox.inbox.stored,0);
+ const dynamicAgentOffline=await fetch(base+'/api/execution/route-v2',{
+  method:'POST',headers:{authorization:'Bearer '+roleToken,
+   'content-type':'application/json'},body:'{}'});
+ assert.equal(dynamicAgentOffline.status,503,'signed agent v2 cannot quote offline');
  const offlineWalletBalance=await fetch(base+'/api/wallet/balance');
  assert.equal(offlineWalletBalance.status,503);
 

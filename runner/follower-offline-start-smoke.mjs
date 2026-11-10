@@ -54,6 +54,12 @@ try{
   const r=await command(forbidden);
   assert.equal(r.status,409,forbidden.type);
  }
+ const followerV2=await fetch(base+'/api/execution/route-v2',{method:'POST',
+  headers:{'authorization':'Bearer '+
+   JSON.parse(await readFile(path.join(tmp,'gateway-credentials.json'),'utf8'))
+    .find(k=>k.role==='risk_controller').token,
+   'content-type':'application/json'},body:'{}'});
+ assert.equal(followerV2.status,409,'follower cannot accept live-scope trade v2');
  const oldAgent=await fetch(base+'/api/decisions/events',{method:'POST',
   headers:{'content-type':'application/json'},body:'{}'});
  assert.equal(oldAgent.status,409);

@@ -22,6 +22,8 @@ jobs:
         run: node runner/solana-unsigned-order-live-probe.mjs
       - name: Observe public Jupiter real SOL to USDC rate (non-blocking, no swap)
         run: node runner/solana-quote-live-probe.mjs
+      - name: Observe actual public dynamic 50 USDC to SOL indicative quote (no trade)
+        run: node runner/dynamic-usdc-live-probe.mjs
       - run: node --check runner/core.mjs
       - run: node --check runner/market.mjs
       - run: node runner/test.mjs
@@ -74,6 +76,10 @@ jobs:
         run: node runner/follower-offline-start-smoke.mjs
       - name: Verify native SOL locally signed transactions never send without a successful preflight and durable journal
         run: node --test runner/solana-native-transfer.test.mjs
+      - name: Validate arbitrary new mint dynamic routing on Solana and signed multichain trade intents
+        run: node --test runner/dynamic-asset-router.test.mjs runner/chain-trade-intent-v2.test.mjs
+      - name: Verify durable signed dynamic V2 command inbox, exact wallet matching and replay blocking
+        run: node --test runner/dynamic-trade-inbox.test.mjs
       - name: Verify actual native Windows supervisor and protected test secret handling
         shell: powershell
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File runner/windows-supervisor.ps1 -SelfTest
