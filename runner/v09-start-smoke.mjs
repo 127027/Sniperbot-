@@ -1,0 +1,74 @@
+// Starts the REAL Windows-compatible HTTP server with a temporary isolated
+// paper account, with ALL outbound research / market polling disabled.
+// Verifies V0.9 endpoints and ensures a funding preview changes no balances.
+import {spawn} from 'node:child_process';
+import {mkdtemp,rm} from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import net from 'node:net';
+import assert from 'node:assert/strict';
+import {fileURLToPath} from 'node:url';
+
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const tmp=await mkdtemp(path.join(os.tmpdir(),'sniper-v09-smoke-'));
+async function freePort(){
+ const server=net.createServer();
+ await new Promise((resolve,reject)=>server.once('error',reject).listen(0,'127.0.0.1',resolve));
+ const port=server.address().port;
+ await new Promise(resolve=>server.close(resolve));
+ return port;
+}
+let child;
+try{
+ const port=await freePort();
+ child=spawn(process.execPath,[path.join(root,'runner','server.mjs')],{
+  cwd:root,env:{...process.env,SNIPER_PORT:String(port),SNIPER_DATA_DIR:tmp,
+   SNIPER_OFFLINE:'1',SNIPER_LOCAL_DISCOVERY:'0',SNIPER_RESEARCH_FEED:'0'},
+  stdio:['ignore','pipe','pipe'],windowsHide:true
+ });
+ let output='';
+ child.stdout.on('data',x=>{output+=x.toString().slice(0,2000)});
+ child.stderr.on('data',x=>{output+=x.toString().slice(0,2000)});
+ const base='http://127.0.0.1:'+port;
+ let up=false;
+ for(let i=0;i<70;i++){
+  if(child.exitCode!==null)throw Error('V09_SERVER_EARLY_EXIT '+output.slice(-500));
+  try{const r=await fetch(base+'/api/health',{signal:AbortSignal.timeout(300)});
+   if(r.ok){up=true;break}}catch{}
+  await new Promise(resolve=>setTimeout(resolve,100));
+ }
+ assert(up,'real local server did not start '+output.slice(-500));
+ const read=async p=>{
+  const r=await fetch(base+p,{headers:{host:'127.0.0.1:'+port}});
+  assert.equal(r.status,200,p);return r.json();
+ };
+ const before=await read('/api/state');
+ const status=await read('/api/v09/status');
+ assert.equal(status.ok,true);
+ assert.equal(status.v09.mode,'PAPER_ONLY');
+ assert.equal(status.v09.live_enabled,false);
+ assert.equal(status.v09.wallet_created,false);
+ assert.equal(status.v09.automated_external_paper_trading_enabled,false);
+ const preview=await fetch(base+'/api/command',{
+  method:'POST',headers:{'content-type':'application/json'},
+  body:JSON.stringify({type:'PREVIEW_PAPER_FUNDING',amountEur:50,
+   eurPerUsdc:0.92,providerFeeEur:1,spreadPct:1,networkFeeUsdc:0.2})
+ });
+ assert.equal(preview.status,200);
+ const p=await preview.json();
+ assert.equal(p.preview.status,'PAPER_QUOTED');
+ assert.equal(p.preview.payment_performed,false);
+ assert.equal(p.ledger_unchanged,true);
+ const after=await read('/api/state');
+ assert.equal(after.state.cashUsdc,before.state.cashUsdc);
+ assert.equal(after.state.cashEur,before.state.cashEur);
+ assert.deepEqual(after.state.positions,before.state.positions);
+ console.log('V09_WINDOWS_COMPATIBLE_START_SMOKE_OK: status, funding preview, paper ledger unchanged');
+}finally{
+ if(child){
+  child.kill();
+  await Promise.race([new Promise(resolve=>child.once('exit',resolve)),
+   new Promise(resolve=>setTimeout(resolve,2000))]);
+ }
+ await rm(tmp,{recursive:true,force:true});
+}
