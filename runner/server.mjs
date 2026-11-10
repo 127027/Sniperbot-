@@ -10,6 +10,7 @@ import {storage} from './storage.mjs';
 import {createAgentScratchpad} from './agent-scratchpad.mjs';
 import {createLocalSolanaVault,readLocalSolanaVault} from './local-solana-vault.mjs';
 import {readSolanaBalance} from './local-solana-balance.mjs';
+import {fetchIndicativeSolanaQuote} from './solana-swap-quote.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
@@ -184,6 +185,19 @@ const server=createServer(async(req,res)=>{
    walletBalanceCache=balance;lastWalletBalanceAt=Date.now();
    return reply(res,200,{ok:true,balance});
   }catch{return error(res,503,'Blockchain-Guthaben derzeit nicht verifizierbar')}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/swap-quote'){
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine echten Swap-Quotes');
+  if(!allowRequest('wallet-swap-quote'))return error(res,429,'Quote-Ratenlimit');
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  try{
+   const u=new URL(req.url,'http://127.0.0.1:'+port);
+   const outputMint=u.searchParams.get('outputMint');
+   const amountLamports=u.searchParams.get('amountLamports');
+   const quote=await fetchIndicativeSolanaQuote({outputMint,amountLamports});
+   return reply(res,200,{ok:true,quote});
+  }catch(e){return error(res,422,String(e?.message||'NO_QUOTE_AVAILABLE').slice(0,120))}
  }
  if(req.method==='GET'&&route==='/api/v09/status')return reply(res,200,{ok:true,v09:buildV09Status({state,network:researchNetwork})});
  if(req.method==='GET'&&route==='/api/v09/pool-readbacks')return reply(res,200,{ok:true,readbacks:poolReadbacks});
