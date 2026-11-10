@@ -680,7 +680,9 @@ $('walletUnsignedOrder').onclick=async()=>{
   $('walletUnsignedResult').textContent='Nur eine ununterschriebene Transaktion erkannt: '+
     p.inspection.transaction_version+' · Wallet-Signaturposition '+
     p.inspection.wallet_signer_index+' · Kaufmenge in Token-Atomen '+p.expected_target_atoms+
-    '. Instruktionen/Sicherheit noch NICHT auditiert. Signieren und Senden GESPERRT.';
+    ' · RPC-Simulation: '+(p.simulation?.status||'NICHT_VERFÜGBAR')+
+    (p.simulation?.estimated_fee_lamports?' · geschätzte Netzwerkgebühr '+p.simulation.estimated_fee_lamports+' Lamports':'')+
+    '. Instruktionen, Empfänger und Token-Sicherheit NICHT auditiert. Signieren und Senden GESPERRT.';
  }catch(e){$('walletUnsignedResult').textContent='Order-Vorprüfung blockiert: '+e.message}
 };
 $('walletQuote').onclick=async()=>{
