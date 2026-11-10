@@ -68,6 +68,35 @@ try{
    value:{private_key:'MUST_NOT_STORE'}})});
  assert.equal(reject.status,422);
 
+
+ // Actual on-device wallet creation with ephemeral, isolated CI keys ONLY.
+ const walletInitial=await read('/api/wallet/status');
+ assert.equal(walletInitial.wallet.exists,false);
+ const walletPassword='CI_TEST_WALLET_ONLY_DO_NOT_USE_OR_FUND_789123';
+ const create=await fetch(base+'/api/wallet/create',{method:'POST',headers:{
+  origin:base,'content-type':'application/json'},body:JSON.stringify({password:walletPassword})});
+ assert.equal(create.status,201);
+ const newWallet=await create.json();
+ assert.equal(newWallet.wallet.encrypted,true);
+ assert.equal(newWallet.wallet.signing_enabled,false);
+ const walletStatus=await read('/api/wallet/status');
+ assert.equal(walletStatus.wallet.exists,true);
+ assert.equal(walletStatus.wallet.address,newWallet.wallet.address);
+ const encryptedBackup=await read('/api/wallet/encrypted-backup');
+ assert.equal(encryptedBackup.ok,true);
+ assert(!JSON.stringify(encryptedBackup).includes(walletPassword));
+ const verifyBackup=await fetch(base+'/api/wallet/verify-backup',{method:'POST',
+  headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({password:walletPassword,record:encryptedBackup.encrypted_backup})});
+ assert.equal(verifyBackup.status,200);
+ assert.equal((await verifyBackup.json()).backup.valid,true);
+ const duplicateWallet=await fetch(base+'/api/wallet/create',{method:'POST',
+  headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({password:walletPassword})});
+ assert.equal(duplicateWallet.status,422);
+ const offlineWalletBalance=await fetch(base+'/api/wallet/balance');
+ assert.equal(offlineWalletBalance.status,503);
+
  const before=await read('/api/state');
  const status=await read('/api/v09/status');
  const dossiers=await read('/api/v09/dossiers');
