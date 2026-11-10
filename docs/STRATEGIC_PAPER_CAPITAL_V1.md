@@ -1,3 +1,5 @@
+> **Historischer Stand V0.5 – V0.6 ersetzt die unten beschriebene Min-/Max-pro-Trade-Regel!** Aktuell gilt: 1. Zahl = bevorzugte normale Positionsgröße; 2. Zahl = **Gesamtbudget** aller gleichzeitig offenen Paper-Positionen. Flexible Einzelbeträge ab 50 Test-USDC, gebundenes Kapital ist Cost Basis. [Gültige V0.6-Regeln](V06_TOTAL_BUDGET_AND_MULTI_SOURCE_DISCOVERY_20261110.md).
+
 # Memecoin Sniper: strategisches Paper-Kapital statt Score-Prozentformel
 
 **Stand: 09.11.2026.** Nur Forschung und virtuelle TEST-USDC. Gilt nur im Arbeitsbranch `codex/research-gateway-v04`. Kein Echtgeld, keine Wallets, kein Merge auf `main`.
