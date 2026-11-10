@@ -606,7 +606,8 @@ async function refreshV09Dossiers(){
    }).join('');
  }catch(e){$('v09Dossiers').textContent='Entscheidungsakten: '+e.message}
 }
-refreshV09Dossiers();$('externalWalletObserve').onclick=async()=>{
+refreshV09Dossiers();let lastExternalObservation=null;
+$('externalWalletObserve').onclick=async()=>{
  const address=$('externalWalletAddress').value.trim();
  $('externalWalletResult').textContent='Lese öffentliche SOL- und SPL-Bestände der externen Wallet …';
  try{
@@ -621,8 +622,29 @@ refreshV09Dossiers();$('externalWalletObserve').onclick=async()=>{
    throw Error('Ungültige externe Wallet-Daten');
   const holdings=Array.isArray(data.external.observed_tokens)?
    data.external.observed_tokens.slice(0,12):[];
+  const last=lastExternalObservation?.address===data.external.address?
+   lastExternalObservation:null;
+  let changes='';
+  if(last){
+   const solDelta=BigInt(data.external.observed_sol_lamports)-
+    BigInt(last.observed_sol_lamports);
+   const before=new Map(last.observed_tokens.map(x=>[x.mint+':'+x.program_id,x]));
+   const moving=[];
+   for(const x of data.external.observed_tokens){
+    const old=before.get(x.mint+':'+x.program_id);
+    const delta=BigInt(x.amount_raw)-BigInt(old?.amount_raw||'0');
+    if(delta!==0n)moving.push(x.mint.slice(0,9)+'…: '+delta+' Token-Atome');
+    before.delete(x.mint+':'+x.program_id);
+   }
+   for(const x of before.values())moving.push(x.mint.slice(0,9)+'…: -'+x.amount_raw+' Token-Atome');
+   changes='<div>Veränderung seit letzter Abfrage: SOL '+esc(
+    (Number(solDelta)/1e9).toFixed(9))+
+    ', Tokenbewegungen: '+esc(moving.length?moving.join('; '):'keine erkannt')+'</div>';
+  }
+  lastExternalObservation=data.external;
   $('externalWalletResult').innerHTML=
    '<strong>Externe Wallet, nur lesen: '+esc(data.external.observed_sol_balance)+' SOL</strong>'+
+   changes+
    '<div>Öffentlich beobachtete SPL-Token: '+holdings.length+'</div>'+
    holdings.map(x=>'<div style="word-break:break-all;margin:7px 0">'+
     esc(x.mint)+' · '+esc(x.display_amount===null?'Anzeige ungeklärt':x.display_amount)+
