@@ -48,7 +48,7 @@ export async function updateLocalNewsJournal({filename,fetcher=fetch,now=new Dat
   state.last_check_at_utc=now;
   state.last_coverage=capture.coverage;
  }
- // Retention applies ONLY to the bounded recent-news cache. Immutable monthly
+ // Retention applies ONLY to the bounded recent-news cache. Immutable ID-hash
  // shards remain available for future time-correct historical research.
  const before=state.events.length,cutoff=nowMs(now)-RETENTION_MS;
  state.events=state.events.filter(e=>e?.paper_only===true&&e.actionable===false&&
@@ -69,7 +69,7 @@ export async function updateLocalNewsJournal({filename,fetcher=fetch,now=new Dat
   .slice(-16);
  return {schema:'research_news_bridge.v1',paper_only:true,actionable:false,
   checked_at_utc:state.last_check_at_utc,fetch_performed:due,new_saved_events:newCount,
-  stored_events:state.events.length,archive_mode:'IMMUTABLE_MONTHLY_LOCAL',
+  stored_events:state.events.length,archive_mode:'IMMUTABLE_HASH_SHARDS_LOCAL',
   leads:recent,coverage:state.last_coverage,
   warning:'RSS headlines captured prospectively, not independently verified token IDs or original social posts. Never execute trades.'};
 }
