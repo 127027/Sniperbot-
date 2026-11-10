@@ -24,7 +24,9 @@ export function sanitizePoolReadbacks(value,{now=Date.now()}={}){
     x.executable_buy_quote!==false||x.executable_sell_quote!==false||
     x.contract_status!=='UNKNOWN'||x.sellability_status!=='UNKNOWN'||
     !allowedReasons.has(x.reason)||!['UNVERIFIED','IDENTITY_MATCHED'].includes(x.status)||
-    typeof x.market_identity_verified!=='boolean')return [];
+    typeof x.market_identity_verified!=='boolean'||
+    (x.status==='IDENTITY_MATCHED')!==x.market_identity_verified||
+    (x.status==='IDENTITY_MATCHED'&&x.reason!=='IDENTITY_ONLY_RISK_AND_SELL_QUOTE_STILL_UNKNOWN'))return [];
   // Defensive output whitelist: no input extras, no prices, no identifiers beyond pool ID.
   return [{
    candidate_id:x.candidate_id,
