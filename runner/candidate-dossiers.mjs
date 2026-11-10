@@ -44,10 +44,15 @@ export function buildDecisionDossiers({network,batch,now=Date.now()}={}){
    chain.paper_entry_authorized===false&&chain.contract_security==='UNKNOWN'&&
    chain.sellability==='UNKNOWN';
   const header=chainOK?chain?.solana_mint_header:null;
-  const mintObserved=header?.schema==='solana_mint_header_risk.v1'&&
+  const mintObserved=candidate.chain==='solana'&&
+   header?.schema==='solana_mint_header_risk.v1'&&
    header?.paper_only===true&&header?.actionable===false&&
    header?.paper_entry_authorized===false&&
-   header?.contract_security==='UNKNOWN'&&header?.sellability==='UNKNOWN';
+   header?.contract_security==='UNKNOWN'&&header?.sellability==='UNKNOWN'&&
+   ['SPL_TOKEN_LEGACY','TOKEN_2022'].includes(header?.mint_program)&&
+   ['REVOKED','RETAINED'].includes(header?.mint_authority)&&
+   ['REVOKED','RETAINED'].includes(header?.freeze_authority)&&
+   ['CAUTION','HEADER_ONLY_NO_KNOWN_AUTHORITY'].includes(header?.observed_risk);
   const mint=mintObserved?header.mint_authority:'UNKNOWN';
   const freeze=mintObserved?header.freeze_authority:'UNKNOWN';
   const roles=Array.isArray(candidate.roles_reporting)?
