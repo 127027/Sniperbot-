@@ -3,17 +3,20 @@
   "paper_only": true,
   "actionable": false,
   "producer": "Local read-only research market collector",
-  "published_at_utc": "2026-11-10T13:45:07.461Z",
+  "published_at_utc": "2026-11-10T14:01:21.647Z",
   "collection_status": "OBSERVED_OR_PARTIAL",
   "coverage": [
     {
       "chain": "solana",
       "source": "GECKOTERMINAL",
-      "status": "OK",
-      "pages_ok": 2,
+      "status": "PARTIAL",
+      "pages_ok": 1,
       "pages_requested": 2,
-      "provider_rows": 40,
-      "valid_identities": 24
+      "provider_rows": 20,
+      "valid_identities": 20,
+      "failed_pages": [
+        "HTTP_429_RATE_LIMIT"
+      ]
     },
     {
       "chain": "base",
@@ -22,7 +25,7 @@
       "pages_ok": 1,
       "pages_requested": 2,
       "provider_rows": 20,
-      "valid_identities": 6,
+      "valid_identities": 5,
       "failed_pages": [
         "HTTP_429_RATE_LIMIT"
       ]
@@ -30,11 +33,14 @@
     {
       "chain": "bsc",
       "source": "GECKOTERMINAL",
-      "status": "OK",
-      "pages_ok": 2,
+      "status": "PARTIAL",
+      "pages_ok": 1,
       "pages_requested": 2,
-      "provider_rows": 40,
-      "valid_identities": 24
+      "provider_rows": 20,
+      "valid_identities": 18,
+      "failed_pages": [
+        "HTTP_429_RATE_LIMIT"
+      ]
     },
     {
       "chain": "eth",
@@ -43,55 +49,30 @@
       "pages_ok": 2,
       "pages_requested": 2,
       "provider_rows": 40,
-      "valid_identities": 20
+      "valid_identities": 19
     }
   ],
   "candidates": [
     {
       "chain": "solana",
-      "token_address": "123rpEod6WzRCqzkXu7Woarg96X95C4UbHaD92qCTsZj",
-      "pool_address": "EwKeDK58iJb4xEkrjWByMXwBMoKS9Ly1dGLs2qya9C67",
-      "candidate_id": "solana:123rpEod6WzRCqzkXu7Woarg96X95C4UbHaD92qCTsZj:EwKeDK58iJb4xEkrjWByMXwBMoKS9Ly1dGLs2qya9C67",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:43:05.000Z",
+      "token_address": "93xYfE1nbb7ggCKdS2ymdKm36irDmizCcy2UDqMfLoat",
+      "pool_address": "GiCUaNCZrPnAsNT5EhMHXepcbTuRzzDnc7MTuiRhP9Ch",
+      "candidate_id": "solana:93xYfE1nbb7ggCKdS2ymdKm36irDmizCcy2UDqMfLoat:GiCUaNCZrPnAsNT5EhMHXepcbTuRzzDnc7MTuiRhP9Ch",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:54.000Z",
       "liquidity_usd": null,
-      "volume_m5_usd": 205.7107500955,
-      "price_usd": 1.721822765825266e-9,
-      "buys_m5": 35,
-      "sells_m5": 28,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "CROSS_PROVIDER_IDENTITY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1",
-        "https://api.dexscreener.com/latest/dex/pairs/solana/EwKeDK58iJb4xEkrjWByMXwBMoKS9Ly1dGLs2qya9C67"
-      ],
-      "unresolved_checks": [
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "7DvSJqWKorSbSzW2vFiLu4jt4BK5jQuDF9mWEqWNQ6E5",
-      "pool_address": "HAco4iBKLTteASF2bxQ9CzbER7S7idVaF24ufjRf3kAz",
-      "candidate_id": "solana:7DvSJqWKorSbSzW2vFiLu4jt4BK5jQuDF9mWEqWNQ6E5:HAco4iBKLTteASF2bxQ9CzbER7S7idVaF24ufjRf3kAz",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:43:03.000Z",
-      "liquidity_usd": null,
-      "volume_m5_usd": 0.4443187477,
-      "price_usd": 0.000007642414976982514,
-      "buys_m5": 2,
+      "volume_m5_usd": 2710.7737929955,
+      "price_usd": 0.00003053505498971982,
+      "buys_m5": 10,
       "sells_m5": 1,
       "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "CROSS_PROVIDER_IDENTITY",
+      "verification": "PROVIDER_ONLY",
       "promotion_biased": false,
       "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1",
-        "https://api.dexscreener.com/latest/dex/pairs/solana/HAco4iBKLTteASF2bxQ9CzbER7S7idVaF24ufjRf3kAz"
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
       ],
       "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
         "CONTRACT",
         "LIQUIDITY_RISK",
         "SELLABILITY"
@@ -99,14 +80,114 @@
     },
     {
       "chain": "solana",
-      "token_address": "Dq69mgMktwoReNC5GB4yAJJogLc1ChNkwcCke48mpump",
-      "pool_address": "As2MbbjXgxajcdGEtMNUHmbFzSypJ3ruyDiai6wqC2Qy",
-      "candidate_id": "solana:Dq69mgMktwoReNC5GB4yAJJogLc1ChNkwcCke48mpump:As2MbbjXgxajcdGEtMNUHmbFzSypJ3ruyDiai6wqC2Qy",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:43:03.000Z",
+      "token_address": "4XkgW4WSyKUnuyr88Su1WGWTYUXGxtLiSssSJnoZpump",
+      "pool_address": "5YapkaFs8RUL8XygbcRyaivV3JePYu1x2tTzDo7JK2CW",
+      "candidate_id": "solana:4XkgW4WSyKUnuyr88Su1WGWTYUXGxtLiSssSJnoZpump:5YapkaFs8RUL8XygbcRyaivV3JePYu1x2tTzDo7JK2CW",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:53.000Z",
       "liquidity_usd": null,
-      "volume_m5_usd": 29.0489150954,
-      "price_usd": 0.000003942893552277143,
+      "volume_m5_usd": 160.4685411112,
+      "price_usd": 0.000004172599794730174,
+      "buys_m5": 6,
+      "sells_m5": 2,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "6ZTZYMVebaWcsywyycG77cfiDtKoB5m32rFDufoWpump",
+      "pool_address": "2FpYFSU8SPAuaAh2s9rqw8tZRRqF7qxF88g7D7iB4E8Y",
+      "candidate_id": "solana:6ZTZYMVebaWcsywyycG77cfiDtKoB5m32rFDufoWpump:2FpYFSU8SPAuaAh2s9rqw8tZRRqF7qxF88g7D7iB4E8Y",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:48.000Z",
+      "liquidity_usd": null,
+      "volume_m5_usd": 18.5082634661,
+      "price_usd": 0.000002393804520289381,
+      "buys_m5": 1,
+      "sells_m5": 1,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "HGu4vmcJ5XbAw5apTmjKSi9EHy76M3yMVPgmbvUfpump",
+      "pool_address": "A9YwyDXoQc8NtuYxUhrB9THjNp3psnvoQbBh44jaxZDH",
+      "candidate_id": "solana:HGu4vmcJ5XbAw5apTmjKSi9EHy76M3yMVPgmbvUfpump:A9YwyDXoQc8NtuYxUhrB9THjNp3psnvoQbBh44jaxZDH",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:51.000Z",
+      "liquidity_usd": null,
+      "volume_m5_usd": 0.5813792558,
+      "price_usd": 0.0000017439460194865155,
+      "buys_m5": 1,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "A1zrwrANXfEC3ZnM7ycG1ZvmvZ8MWQJRxnyKXh1Vpump",
+      "pool_address": "FonxySANtCFYZXhi45CQuuhs3oSSiQG3xAPmzw1YPwXW",
+      "candidate_id": "solana:A1zrwrANXfEC3ZnM7ycG1ZvmvZ8MWQJRxnyKXh1Vpump:FonxySANtCFYZXhi45CQuuhs3oSSiQG3xAPmzw1YPwXW",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:49.000Z",
+      "liquidity_usd": null,
+      "volume_m5_usd": 1.2302223513,
+      "price_usd": 0.0000015052982650173815,
+      "buys_m5": 1,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "8xscKyz9uabTBqqriDuYjZJMyPPsAU5GfqTuR615pump",
+      "pool_address": "FQQwN3txB9wRqQ4z6vcXbmtk7uYNUpoqsAnAGxJSqsJ3",
+      "candidate_id": "solana:8xscKyz9uabTBqqriDuYjZJMyPPsAU5GfqTuR615pump:FQQwN3txB9wRqQ4z6vcXbmtk7uYNUpoqsAnAGxJSqsJ3",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:48.000Z",
+      "liquidity_usd": 1920.72623073457,
+      "volume_m5_usd": 21.9343126915,
+      "price_usd": 0.0000024195652318581404,
       "buys_m5": 2,
       "sells_m5": 1,
       "source": "GECKOTERMINAL_NEW_POOLS",
@@ -124,16 +205,16 @@
     },
     {
       "chain": "solana",
-      "token_address": "HXNXveoLB3HuVU2CbzSRRjkUZmuFR4mrVjKiwBM1pump",
-      "pool_address": "C3mDrpdRGiAz5FEGnsVRR3pFdeZ62mXb8fgKdvHQWWJW",
-      "candidate_id": "solana:HXNXveoLB3HuVU2CbzSRRjkUZmuFR4mrVjKiwBM1pump:C3mDrpdRGiAz5FEGnsVRR3pFdeZ62mXb8fgKdvHQWWJW",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:43:02.000Z",
-      "liquidity_usd": null,
-      "volume_m5_usd": 161.2194108325,
-      "price_usd": 8.897871379067485e-7,
-      "buys_m5": 19,
-      "sells_m5": 12,
+      "token_address": "3gJdQF48v6SLahid6URuWUDsMsKzxxorR3NVsMyMpump",
+      "pool_address": "HWECwcuH6etfeC4Zq43kBMFrU9YTJbGhCg998tXvmkLM",
+      "candidate_id": "solana:3gJdQF48v6SLahid6URuWUDsMsKzxxorR3NVsMyMpump:HWECwcuH6etfeC4Zq43kBMFrU9YTJbGhCg998tXvmkLM",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:46.000Z",
+      "liquidity_usd": 1440.9234641124,
+      "volume_m5_usd": 1.1548514255,
+      "price_usd": 0.0000018164337746479031,
+      "buys_m5": 0,
+      "sells_m5": 1,
       "source": "GECKOTERMINAL_NEW_POOLS",
       "verification": "PROVIDER_ONLY",
       "promotion_biased": false,
@@ -149,15 +230,15 @@
     },
     {
       "chain": "solana",
-      "token_address": "En7TisMv9rCUWH67ixnxPJLShmAuGxVBasPDg2EHpump",
-      "pool_address": "DEXUSXByd1MMeYYykH3uCNjM4N8b5BDmTxPiE7YHqPPL",
-      "candidate_id": "solana:En7TisMv9rCUWH67ixnxPJLShmAuGxVBasPDg2EHpump:DEXUSXByd1MMeYYykH3uCNjM4N8b5BDmTxPiE7YHqPPL",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:43:01.000Z",
-      "liquidity_usd": null,
-      "volume_m5_usd": 2304.9661411774,
-      "price_usd": 0.000002364040703609241,
-      "buys_m5": 14,
+      "token_address": "BXwBxMPbYyi1SakXtPsruaiyc9uYxQcohofcHTKBpump",
+      "pool_address": "82TAtLEpdJxJiEq39qFdwc1CgUfDzFMU68QoSuJWnP4V",
+      "candidate_id": "solana:BXwBxMPbYyi1SakXtPsruaiyc9uYxQcohofcHTKBpump:82TAtLEpdJxJiEq39qFdwc1CgUfDzFMU68QoSuJWnP4V",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:40.000Z",
+      "liquidity_usd": 1903.525722724,
+      "volume_m5_usd": 126.7705615506,
+      "price_usd": 0.0000022297401872287076,
+      "buys_m5": 9,
       "sells_m5": 3,
       "source": "GECKOTERMINAL_NEW_POOLS",
       "verification": "PROVIDER_ONLY",
@@ -174,621 +255,671 @@
     },
     {
       "chain": "solana",
-      "token_address": "9N2muX9PJrAsa1SxqsAsqG5Tt5Yv2tiKr2kzae3epump",
-      "pool_address": "HDtaVXXjXb6ffx8XTihRzvV9ScgZACKYPx35SaYwzPpK",
-      "candidate_id": "solana:9N2muX9PJrAsa1SxqsAsqG5Tt5Yv2tiKr2kzae3epump:HDtaVXXjXb6ffx8XTihRzvV9ScgZACKYPx35SaYwzPpK",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:51.000Z",
+      "token_address": "7SyKaXChEDmfqsXhmZ6bujUJe8Uaqr2YmvmXF4ZMpump",
+      "pool_address": "5zdj4t1s7QHjTnVShZr85dvbuckrSCTr49aMad5seKHh",
+      "candidate_id": "solana:7SyKaXChEDmfqsXhmZ6bujUJe8Uaqr2YmvmXF4ZMpump:5zdj4t1s7QHjTnVShZr85dvbuckrSCTr49aMad5seKHh",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:35.000Z",
+      "liquidity_usd": 2467.8044,
+      "volume_m5_usd": 46.8054008084,
+      "price_usd": 0.0000031665446890536785,
+      "buys_m5": 3,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "5YtnhBFGHdWsmTt5PovXek5SmYDhDVELXyRirh9hFwKr",
+      "pool_address": "CSANNkiqvNa53CSohR99wQaShEQ3CJm7hyngDbTLwteK",
+      "candidate_id": "solana:5YtnhBFGHdWsmTt5PovXek5SmYDhDVELXyRirh9hFwKr:CSANNkiqvNa53CSohR99wQaShEQ3CJm7hyngDbTLwteK",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:33.000Z",
+      "liquidity_usd": 15089.9343,
+      "volume_m5_usd": 254.9397375315,
+      "price_usd": 0.00004899915137576263,
+      "buys_m5": 9,
+      "sells_m5": 1,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "AYpC1UMwAfU11DFHb7ytfFQVBxkzucyaaagQYXA4pump",
+      "pool_address": "FHgaupMJk4dUbPyAJB7Jb9WWj9TLPY28SHeBENnHg7eM",
+      "candidate_id": "solana:AYpC1UMwAfU11DFHb7ytfFQVBxkzucyaaagQYXA4pump:FHgaupMJk4dUbPyAJB7Jb9WWj9TLPY28SHeBENnHg7eM",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:30.000Z",
+      "liquidity_usd": 2463.7950064927,
+      "volume_m5_usd": 417.9464081311,
+      "price_usd": 0.000003193062959103834,
+      "buys_m5": 2,
+      "sells_m5": 1,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "5N94Agv7M6UNxfz6ak1WwCuopnpGXfhNTZ1AReuSRa4",
+      "pool_address": "Bpva8mMtMPtSZSzg9xq33bYykYiAjgbjFWzin7E8fSjB",
+      "candidate_id": "solana:5N94Agv7M6UNxfz6ak1WwCuopnpGXfhNTZ1AReuSRa4:Bpva8mMtMPtSZSzg9xq33bYykYiAjgbjFWzin7E8fSjB",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:29.000Z",
+      "liquidity_usd": 42063.355,
+      "volume_m5_usd": 20132.3093292113,
+      "price_usd": 0.00005909698698043886,
+      "buys_m5": 172,
+      "sells_m5": 57,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "71n8jrBaTougViZPJdyQuPnLiFCJ8KgcAbhZePJC3w6",
+      "pool_address": "w52kUqi8mMx6hwSJioQQ141mQB9wCC43L7zTMkpVMYo",
+      "candidate_id": "solana:71n8jrBaTougViZPJdyQuPnLiFCJ8KgcAbhZePJC3w6:w52kUqi8mMx6hwSJioQQ141mQB9wCC43L7zTMkpVMYo",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:29.000Z",
+      "liquidity_usd": 1921.9843,
+      "volume_m5_usd": 74.7756631246,
+      "price_usd": 0.0000024216722264155403,
+      "buys_m5": 1,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "EzgSoxs5ABAjA7t398ddaLkoo9uZVV8133oR31Rdpump",
+      "pool_address": "AKRfo7puwoZzUemkKx1YHDBjmG8BcGPNd9rxuJS3kez7",
+      "candidate_id": "solana:EzgSoxs5ABAjA7t398ddaLkoo9uZVV8133oR31Rdpump:AKRfo7puwoZzUemkKx1YHDBjmG8BcGPNd9rxuJS3kez7",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:29.000Z",
+      "liquidity_usd": 2508.92708236842,
+      "volume_m5_usd": 29.5160129409,
+      "price_usd": 0.0000034632716410352627,
+      "buys_m5": 2,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "Fm8LUMWUd6RPzV9URXudq96Ghv4NoE329mWrbjtwpump",
+      "pool_address": "Anes8nZnHcwtJsU6ubmVhDgaGWBVPJJVEbCikk5b55c5",
+      "candidate_id": "solana:Fm8LUMWUd6RPzV9URXudq96Ghv4NoE329mWrbjtwpump:Anes8nZnHcwtJsU6ubmVhDgaGWBVPJJVEbCikk5b55c5",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:28.000Z",
+      "liquidity_usd": 2460.44789862512,
+      "volume_m5_usd": 41.4949694976,
+      "price_usd": 0.0000030741998861254,
+      "buys_m5": 1,
+      "sells_m5": 1,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "Db5VR7SkzgernJ4yWqCiSiFhTwGN2LwJzzY3Q7Hqpump",
+      "pool_address": "475fjRCti7WHUuGxgmTGf8XDRsk4MtdFdMYzuFa5pACt",
+      "candidate_id": "solana:Db5VR7SkzgernJ4yWqCiSiFhTwGN2LwJzzY3Q7Hqpump:475fjRCti7WHUuGxgmTGf8XDRsk4MtdFdMYzuFa5pACt",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:25.000Z",
+      "liquidity_usd": 3830.9651,
+      "volume_m5_usd": 84.8863005676,
+      "price_usd": 0.000004879179037269597,
+      "buys_m5": 7,
+      "sells_m5": 4,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "52SQdBDmbYgLhaGdm1vuGBaAmm2xNcToyE6QgfLupump",
+      "pool_address": "9LFFg1TSHNchYaWpsdW9R6EmJSjCunxikoRdP99SsUhK",
+      "candidate_id": "solana:52SQdBDmbYgLhaGdm1vuGBaAmm2xNcToyE6QgfLupump:9LFFg1TSHNchYaWpsdW9R6EmJSjCunxikoRdP99SsUhK",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:24.000Z",
+      "liquidity_usd": 1866.7357,
+      "volume_m5_usd": 0.08419721978,
+      "price_usd": 0.000002354147987498567,
+      "buys_m5": 1,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "4dMRHZ4U9uBW9biwXz5TEjPceTg7GHqPCF3yYbPTpump",
+      "pool_address": "E8jHnyXL7hi4bmUGyV5u7Ah29LpL14k5DNTj2d8VnffG",
+      "candidate_id": "solana:4dMRHZ4U9uBW9biwXz5TEjPceTg7GHqPCF3yYbPTpump:E8jHnyXL7hi4bmUGyV5u7Ah29LpL14k5DNTj2d8VnffG",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:24.000Z",
       "liquidity_usd": null,
-      "volume_m5_usd": 161.0534466146,
-      "price_usd": 0.000008461303833589241,
+      "volume_m5_usd": 0.08419808128,
+      "price_usd": 0.0000023541720750874632,
+      "buys_m5": 1,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "BQc7LiGcS8yBfLpr4WVNX8K7coj8AEWahXgkFLJspump",
+      "pool_address": "2FiqKbinf87PnvNFubEupywBMcnv7n1uSmyLhvmWT97s",
+      "candidate_id": "solana:BQc7LiGcS8yBfLpr4WVNX8K7coj8AEWahXgkFLJspump:2FiqKbinf87PnvNFubEupywBMcnv7n1uSmyLhvmWT97s",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:24.000Z",
+      "liquidity_usd": 1866.7357,
+      "volume_m5_usd": 0.08419762541,
+      "price_usd": 0.000002354159328909762,
+      "buys_m5": 1,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "solana",
+      "token_address": "BVqGysJ8zcuEN5mPmDWx4PhqF5xjVg6cmo6UrcZjpump",
+      "pool_address": "Etp7VAhs27BCvYUHccGjadr9GZBgfjywf8GVeRQRLSYf",
+      "candidate_id": "solana:BVqGysJ8zcuEN5mPmDWx4PhqF5xjVg6cmo6UrcZjpump:Etp7VAhs27BCvYUHccGjadr9GZBgfjywf8GVeRQRLSYf",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T14:00:24.000Z",
+      "liquidity_usd": 1867.08376375833,
+      "volume_m5_usd": 0.08419721978,
+      "price_usd": 0.000002354147987498567,
+      "buys_m5": 1,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "base",
+      "token_address": "0x1c316454b213929180ecc6e5c311bcb765b06f3a",
+      "pool_address": "0x2b15d8918e3f378781564ea5bf4edbc976915e74",
+      "candidate_id": "base:0x1c316454b213929180ecc6e5c311bcb765b06f3a:0x2b15d8918e3f378781564ea5bf4edbc976915e74",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:58:36.000Z",
+      "liquidity_usd": 413.504,
+      "volume_m5_usd": 0.412297867,
+      "price_usd": 0.00000206353841842512,
+      "buys_m5": 1,
+      "sells_m5": 1,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "CROSS_PROVIDER_IDENTITY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/base/new_pools?page=1",
+        "https://api.dexscreener.com/latest/dex/pairs/base/0x2b15d8918e3f378781564ea5bf4edbc976915e74"
+      ],
+      "unresolved_checks": [
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "base",
+      "token_address": "0x122b46f686dfa08048078b640cfea7024a7446e5",
+      "pool_address": "0x68a55374c92b1f3c648b27bf943e214e9953dc64",
+      "candidate_id": "base:0x122b46f686dfa08048078b640cfea7024a7446e5:0x68a55374c92b1f3c648b27bf943e214e9953dc64",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:49:56.000Z",
+      "liquidity_usd": 17902.5594,
+      "volume_m5_usd": 489.0364775381,
+      "price_usd": 0.00000177836032026072,
+      "buys_m5": 20,
+      "sells_m5": 4,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "CROSS_PROVIDER_IDENTITY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/base/new_pools?page=1",
+        "https://api.dexscreener.com/latest/dex/pairs/base/0x68a55374c92b1f3c648b27bf943e214e9953dc64"
+      ],
+      "unresolved_checks": [
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "base",
+      "token_address": "0x52370bc5ef0367a00a5d74731a3229572d4bec63",
+      "pool_address": "0x2f27eedd1339e70fa93577f9e844f5f2de5b195b",
+      "candidate_id": "base:0x52370bc5ef0367a00a5d74731a3229572d4bec63:0x2f27eedd1339e70fa93577f9e844f5f2de5b195b",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:49:14.000Z",
+      "liquidity_usd": 65759.9546,
+      "volume_m5_usd": 612.117995,
+      "price_usd": 0.00000400394067143784,
+      "buys_m5": 4,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/base/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "base",
+      "token_address": "0x63b627a425ba629807211caab940effe2c3888c9",
+      "pool_address": "0xf34f74392b14827a283a3433ab52c396bd983fff",
+      "candidate_id": "base:0x63b627a425ba629807211caab940effe2c3888c9:0xf34f74392b14827a283a3433ab52c396bd983fff",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:45:40.000Z",
+      "liquidity_usd": 1.4484,
+      "volume_m5_usd": 515.1413725649,
+      "price_usd": 1.71895466253331e-14,
+      "buys_m5": 16,
+      "sells_m5": 3,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/base/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "base",
+      "token_address": "0xf32b8bb87f6503eb14eb2ed9641dd0844367c710",
+      "pool_address": "0x98ca5042055f6238269bd23980ebe05de899e47a",
+      "candidate_id": "base:0xf32b8bb87f6503eb14eb2ed9641dd0844367c710:0x98ca5042055f6238269bd23980ebe05de899e47a",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:42:21.000Z",
+      "liquidity_usd": 8267.92,
+      "volume_m5_usd": 0,
+      "price_usd": 0.00829448551775105,
+      "buys_m5": 0,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/base/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "bsc",
+      "token_address": "0x0f2f6b993f6480adbb1c5a9bf6741e8597a17777",
+      "pool_address": "0x6adcabdd5a0ee0b58782ed8e97d4cbdfe698fa47",
+      "candidate_id": "bsc:0x0f2f6b993f6480adbb1c5a9bf6741e8597a17777:0x6adcabdd5a0ee0b58782ed8e97d4cbdfe698fa47",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:59:20.000Z",
+      "liquidity_usd": 10316.7686,
+      "volume_m5_usd": 2143.3883144567,
+      "price_usd": 0.000031760737384595,
+      "buys_m5": 11,
+      "sells_m5": 17,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "CROSS_PROVIDER_IDENTITY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1",
+        "https://api.dexscreener.com/latest/dex/pairs/bsc/0x6adcabdd5a0ee0b58782ed8e97d4cbdfe698fa47"
+      ],
+      "unresolved_checks": [
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "bsc",
+      "token_address": "0x8ddd004ef7bdb1ef556b5d9200b7f6113fb3ffff",
+      "pool_address": "0x8ddd004ef7bdb1ef556b5d9200b7f6113fb3ffff",
+      "candidate_id": "bsc:0x8ddd004ef7bdb1ef556b5d9200b7f6113fb3ffff:0x8ddd004ef7bdb1ef556b5d9200b7f6113fb3ffff",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:59:18.000Z",
+      "liquidity_usd": 2574.5451,
+      "volume_m5_usd": 0.001108141245,
+      "price_usd": 0.00000321717760642531,
+      "buys_m5": 1,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "bsc",
+      "token_address": "0xbe96b36e46a81002654b9b525967e4680c27a1f6",
+      "pool_address": "0x56c0dfe745293659189a5a4230dbd645d5e19d4c",
+      "candidate_id": "bsc:0xbe96b36e46a81002654b9b525967e4680c27a1f6:0x56c0dfe745293659189a5a4230dbd645d5e19d4c",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:58:35.000Z",
+      "liquidity_usd": 20537.1,
+      "volume_m5_usd": 123.2226,
+      "price_usd": 0.00000104175083142857,
+      "buys_m5": 1,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "bsc",
+      "token_address": "0xf19b152a9f603ae715b390250cf61beb63e87777",
+      "pool_address": "0xd10c5df50faf19af9ad213d48359e221c2e2c194",
+      "candidate_id": "bsc:0xf19b152a9f603ae715b390250cf61beb63e87777:0xd10c5df50faf19af9ad213d48359e221c2e2c194",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:58:19.000Z",
+      "liquidity_usd": 14728.947,
+      "volume_m5_usd": 3760.2619029573,
+      "price_usd": 0.0000527047991966261,
+      "buys_m5": 11,
+      "sells_m5": 16,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "bsc",
+      "token_address": "0xa3748bfef125e15e24378d8a75d6b2410e53eeaa",
+      "pool_address": "0x09c222a282b20c88c353cb440ac699e4a4f14961",
+      "candidate_id": "bsc:0xa3748bfef125e15e24378d8a75d6b2410e53eeaa:0x09c222a282b20c88c353cb440ac699e4a4f14961",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:58:16.000Z",
+      "liquidity_usd": 23138.3615,
+      "volume_m5_usd": 277.6720852078,
+      "price_usd": 0.0000619389086760753,
+      "buys_m5": 2,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "bsc",
+      "token_address": "0x03a60264a404bcebe2eb73e0dfb032af9cf64444",
+      "pool_address": "0x03a60264a404bcebe2eb73e0dfb032af9cf64444",
+      "candidate_id": "bsc:0x03a60264a404bcebe2eb73e0dfb032af9cf64444:0x03a60264a404bcebe2eb73e0dfb032af9cf64444",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:58:03.000Z",
+      "liquidity_usd": 2672.0264,
+      "volume_m5_usd": 136.708,
+      "price_usd": 0.00000334141205292861,
+      "buys_m5": 1,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "bsc",
+      "token_address": "0x97f2b96d969ddc042b274e6b6d24ebba1c487777",
+      "pool_address": "0x4971b98c8c9e4b77d395f83e8f64035d9f298e4f",
+      "candidate_id": "bsc:0x97f2b96d969ddc042b274e6b6d24ebba1c487777:0x4971b98c8c9e4b77d395f83e8f64035d9f298e4f",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:57:39.000Z",
+      "liquidity_usd": 29011.995,
+      "volume_m5_usd": 11263.7571964194,
+      "price_usd": 0.0000896518450692975,
+      "buys_m5": 28,
+      "sells_m5": 40,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "bsc",
+      "token_address": "0x05dfb26885fddfce1faf74cb9b529cfc7e3cffff",
+      "pool_address": "0x05dfb26885fddfce1faf74cb9b529cfc7e3cffff",
+      "candidate_id": "bsc:0x05dfb26885fddfce1faf74cb9b529cfc7e3cffff:0x05dfb26885fddfce1faf74cb9b529cfc7e3cffff",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:57:38.000Z",
+      "liquidity_usd": 2570.5953,
+      "volume_m5_usd": 0.001106796944,
+      "price_usd": 0.00000321327480542949,
+      "buys_m5": 1,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "bsc",
+      "token_address": "0x0357dafd9c335917900c21df8c2daad9f011ffff",
+      "pool_address": "0x0357dafd9c335917900c21df8c2daad9f011ffff",
+      "candidate_id": "bsc:0x0357dafd9c335917900c21df8c2daad9f011ffff:0x0357dafd9c335917900c21df8c2daad9f011ffff",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:57:31.000Z",
+      "liquidity_usd": 2570.5953,
+      "volume_m5_usd": 0.0013818614,
+      "price_usd": 0.00000321327506154824,
+      "buys_m5": 1,
+      "sells_m5": 0,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "bsc",
+      "token_address": "0x596b50ff297c3a8f4c659b7ec76501cf8495be1e",
+      "pool_address": "0x82337979c0e5da78537a1f6c27e87e34fac8ff32",
+      "candidate_id": "bsc:0x596b50ff297c3a8f4c659b7ec76501cf8495be1e:0x82337979c0e5da78537a1f6c27e87e34fac8ff32",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:57:26.000Z",
+      "liquidity_usd": 15678.0796,
+      "volume_m5_usd": 1224.6704261284,
+      "price_usd": 8.79430132873368e-7,
       "buys_m5": 8,
       "sells_m5": 5,
       "source": "GECKOTERMINAL_NEW_POOLS",
       "verification": "PROVIDER_ONLY",
       "promotion_biased": false,
       "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "6LhJP6if3uAym8yEKEB55Dc1173bWgA54n8MhRSgMipj",
-      "pool_address": "2PS2JssfYwvGWMFHwYomjNy3tyxLd16bhtLFCzcAPyxh",
-      "candidate_id": "solana:6LhJP6if3uAym8yEKEB55Dc1173bWgA54n8MhRSgMipj:2PS2JssfYwvGWMFHwYomjNy3tyxLd16bhtLFCzcAPyxh",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:50.000Z",
-      "liquidity_usd": 2049.8904,
-      "volume_m5_usd": 3401.3094499992,
-      "price_usd": 0.0000025653657919658722,
-      "buys_m5": 28,
-      "sells_m5": 27,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "8nNVbJTLq7g7vRbpGhkF3eVZDokoD7NgcwabAemPpump",
-      "pool_address": "Fkkh2jp7vvAjCaPwxdzF1bh93D3Pa5AycnWsgtBAx6yU",
-      "candidate_id": "solana:8nNVbJTLq7g7vRbpGhkF3eVZDokoD7NgcwabAemPpump:Fkkh2jp7vvAjCaPwxdzF1bh93D3Pa5AycnWsgtBAx6yU",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:50.000Z",
-      "liquidity_usd": null,
-      "volume_m5_usd": 299.1558833592,
-      "price_usd": 0.0000023526443978640517,
-      "buys_m5": 2,
-      "sells_m5": 1,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "64zm5XGw6p7vYjRobMJQ1YzzikT4Ru75hmhgNwtepump",
-      "pool_address": "HDks14fE1V98p9G5BKjKukrhLnMESvq7wWQxiNaWpbUs",
-      "candidate_id": "solana:64zm5XGw6p7vYjRobMJQ1YzzikT4Ru75hmhgNwtepump:HDks14fE1V98p9G5BKjKukrhLnMESvq7wWQxiNaWpbUs",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:49.000Z",
-      "liquidity_usd": 184.220393508693,
-      "volume_m5_usd": 433.8387946648,
-      "price_usd": 1.6854113861120862e-7,
-      "buys_m5": 18,
-      "sells_m5": 9,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "8gZvU5brwuYTf3jNXNBxHeY7VJ7TorFYp1pYP3j1pump",
-      "pool_address": "7Ww9FtkFgNbfYu2uWvi4Hof3Z6DGuhYs2tGLqBmw8EQB",
-      "candidate_id": "solana:8gZvU5brwuYTf3jNXNBxHeY7VJ7TorFYp1pYP3j1pump:7Ww9FtkFgNbfYu2uWvi4Hof3Z6DGuhYs2tGLqBmw8EQB",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:45.000Z",
-      "liquidity_usd": 2174.55148664953,
-      "volume_m5_usd": 18.0082048519,
-      "price_usd": 0.0000027650198316321765,
-      "buys_m5": 3,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "F1XBRNapCeW9gAZHFGaBrPKWRojFsR5846kMfKuzpump",
-      "pool_address": "QL1URJqDEd487hHvZrcFK7JLwrHEsrAfdnrzEr34CbD",
-      "candidate_id": "solana:F1XBRNapCeW9gAZHFGaBrPKWRojFsR5846kMfKuzpump:QL1URJqDEd487hHvZrcFK7JLwrHEsrAfdnrzEr34CbD",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:41.000Z",
-      "liquidity_usd": 1876.11169369601,
-      "volume_m5_usd": 5783.045568396,
-      "price_usd": 0.0000023655510332581748,
-      "buys_m5": 27,
-      "sells_m5": 101,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "GmSoemqNzaMtDp44iJcu8TyyMMZxcdGmUjqrVsQJpump",
-      "pool_address": "ESeymmptJvzSyMocDLn725cd9aAqNmNLNHWxcNX2HGGV",
-      "candidate_id": "solana:GmSoemqNzaMtDp44iJcu8TyyMMZxcdGmUjqrVsQJpump:ESeymmptJvzSyMocDLn725cd9aAqNmNLNHWxcNX2HGGV",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:37.000Z",
-      "liquidity_usd": 970.0969,
-      "volume_m5_usd": 151.1147881073,
-      "price_usd": 0.000001092881634872747,
-      "buys_m5": 21,
-      "sells_m5": 15,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "EKyit3D6SyfyLdRraa9THbzAstZvdauzATFzLqAtpump",
-      "pool_address": "DM5YrVCNQur5hdE9egrFsZK2XG9a1beUiThzPhj3Q3D2",
-      "candidate_id": "solana:EKyit3D6SyfyLdRraa9THbzAstZvdauzATFzLqAtpump:DM5YrVCNQur5hdE9egrFsZK2XG9a1beUiThzPhj3Q3D2",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:36.000Z",
-      "liquidity_usd": 3137.5322,
-      "volume_m5_usd": 4233.5224175774,
-      "price_usd": 0.000002919148016838715,
-      "buys_m5": 42,
-      "sells_m5": 29,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "FfP2fEkcEsApsyHzCcbimK9QA3aftGYPLwP4MQRkpump",
-      "pool_address": "DoyLTr8ppLcPtbmmC4ALC4fxp4rW5h4ki1NrfbApXB5N",
-      "candidate_id": "solana:FfP2fEkcEsApsyHzCcbimK9QA3aftGYPLwP4MQRkpump:DoyLTr8ppLcPtbmmC4ALC4fxp4rW5h4ki1NrfbApXB5N",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:30.000Z",
-      "liquidity_usd": 1913.2144,
-      "volume_m5_usd": 125.977105407,
-      "price_usd": 0.0000024108746517941333,
-      "buys_m5": 1,
-      "sells_m5": 1,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "EcVDFZM8MXvm6WFmVnLUkrpxAUxgXg9seubHwYmspump",
-      "pool_address": "DkWVLSngfxM3P1nmDwwEvBH29JE6L8zyCw55AD2NtsVQ",
-      "candidate_id": "solana:EcVDFZM8MXvm6WFmVnLUkrpxAUxgXg9seubHwYmspump:DkWVLSngfxM3P1nmDwwEvBH29JE6L8zyCw55AD2NtsVQ",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:30.000Z",
-      "liquidity_usd": 4740.6416,
-      "volume_m5_usd": 14008.0259747646,
-      "price_usd": 0.000006738225771622623,
-      "buys_m5": 135,
-      "sells_m5": 99,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "6V8gt734PqmVc7ERaGtpe7Pgtb8LFyGegGjAFMLPpump",
-      "pool_address": "5x1nxTVs9bhziFmfB4VoCo6GXDeCQhosBHZgrg5TDgiU",
-      "candidate_id": "solana:6V8gt734PqmVc7ERaGtpe7Pgtb8LFyGegGjAFMLPpump:5x1nxTVs9bhziFmfB4VoCo6GXDeCQhosBHZgrg5TDgiU",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:27.000Z",
-      "liquidity_usd": 11658.9964,
-      "volume_m5_usd": 724.78655054,
-      "price_usd": 0.000015263728245202273,
-      "buys_m5": 24,
-      "sells_m5": 12,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "6NmR8uCakf2ZxnVnFa8AVsmzf2Y4Sjn9XF3ZuGnupump",
-      "pool_address": "6zeCZyh4Kk4t6NJQk1fZe3KPYz1qc8nJYKK8ja9d6Yws",
-      "candidate_id": "solana:6NmR8uCakf2ZxnVnFa8AVsmzf2Y4Sjn9XF3ZuGnupump:6zeCZyh4Kk4t6NJQk1fZe3KPYz1qc8nJYKK8ja9d6Yws",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:16.000Z",
-      "liquidity_usd": 2872.3107,
-      "volume_m5_usd": 4848.2958988264,
-      "price_usd": 0.0000023871984679786308,
-      "buys_m5": 63,
-      "sells_m5": 56,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "9RizxH8EivKnHGNgBFxpAptTQZ2ACoNBPnVvFJkppump",
-      "pool_address": "AqzavptyfsDKG4cnfLAhrTnuHRYYX3dL3pbRuQfjpcvE",
-      "candidate_id": "solana:9RizxH8EivKnHGNgBFxpAptTQZ2ACoNBPnVvFJkppump:AqzavptyfsDKG4cnfLAhrTnuHRYYX3dL3pbRuQfjpcvE",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:15.000Z",
-      "liquidity_usd": 2096.97824777611,
-      "volume_m5_usd": 122.9324470128,
-      "price_usd": 0.0000026371283144088464,
-      "buys_m5": 16,
-      "sells_m5": 13,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "FWT4pEBaQyonuv29iYx4ND8QeCkt9QgDKMVAa4c3pump",
-      "pool_address": "FvzFp49Dv2QLwuZew4LDh6Uad8cpkgQP8ahZ67SkYEry",
-      "candidate_id": "solana:FWT4pEBaQyonuv29iYx4ND8QeCkt9QgDKMVAa4c3pump:FvzFp49Dv2QLwuZew4LDh6Uad8cpkgQP8ahZ67SkYEry",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:14.000Z",
-      "liquidity_usd": 1932.33079687784,
-      "volume_m5_usd": 275.150380457,
-      "price_usd": 0.0000024361504671461175,
-      "buys_m5": 2,
-      "sells_m5": 3,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "6boypTwCNfxJsgq5n25ZGV5g4k4Si3gTD4mNtQAgVmba",
-      "pool_address": "CnQx5ydiHiBLX9f7YAhoXynHCko9ANRBrhhvR1tfMQNT",
-      "candidate_id": "solana:6boypTwCNfxJsgq5n25ZGV5g4k4Si3gTD4mNtQAgVmba:CnQx5ydiHiBLX9f7YAhoXynHCko9ANRBrhhvR1tfMQNT",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:42:12.000Z",
-      "liquidity_usd": 15012.7587,
-      "volume_m5_usd": 18883.1146956867,
-      "price_usd": 0.000008283780118205449,
-      "buys_m5": 71,
-      "sells_m5": 34,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "EEgt76LkRr4FrNjW6idpsdYt3S32eMNvdMS3msdJpump",
-      "pool_address": "GHor41ReFXkJGWSkUw6DBBQLBASNzVkAgPgk4dozg6rh",
-      "candidate_id": "solana:EEgt76LkRr4FrNjW6idpsdYt3S32eMNvdMS3msdJpump:GHor41ReFXkJGWSkUw6DBBQLBASNzVkAgPgk4dozg6rh",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:41:57.000Z",
-      "liquidity_usd": 1337.6902,
-      "volume_m5_usd": 81.8953918299,
-      "price_usd": 0.0000016855301914939775,
-      "buys_m5": 10,
-      "sells_m5": 6,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=2"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "HGFE3m6KpAYn7Y3wdPiPBscLw7yA5WxcSdcwtu8Ppump",
-      "pool_address": "ESSa48QcX926kdE691eFRAgtToQvfYnnQFEuMpmBH7wp",
-      "candidate_id": "solana:HGFE3m6KpAYn7Y3wdPiPBscLw7yA5WxcSdcwtu8Ppump:ESSa48QcX926kdE691eFRAgtToQvfYnnQFEuMpmBH7wp",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:41:56.000Z",
-      "liquidity_usd": 1919.12508107479,
-      "volume_m5_usd": 74.7171394614,
-      "price_usd": 0.000002421939447187384,
-      "buys_m5": 1,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=2"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "AVakAUg2sEzBHDiYdaxM2ZTMwhKm9Yp3V3N7X8SRpump",
-      "pool_address": "Df6uFkcJzLKBo6s5Hk5CfyipF3zDhP8TE7oWGnULhNt8",
-      "candidate_id": "solana:AVakAUg2sEzBHDiYdaxM2ZTMwhKm9Yp3V3N7X8SRpump:Df6uFkcJzLKBo6s5Hk5CfyipF3zDhP8TE7oWGnULhNt8",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:41:55.000Z",
-      "liquidity_usd": 6997.3009,
-      "volume_m5_usd": 431.4783723374,
-      "price_usd": 0.000009202913823884135,
-      "buys_m5": 18,
-      "sells_m5": 10,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=2"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "solana",
-      "token_address": "4eky578Uo3bkLPAUyoEtGUfwSNrySfPZdc3EsfKwpump",
-      "pool_address": "A1Pcybihwt2V6nVjXLQdnB282Bo1tfFfCsNA9BZEL6wv",
-      "candidate_id": "solana:4eky578Uo3bkLPAUyoEtGUfwSNrySfPZdc3EsfKwpump:A1Pcybihwt2V6nVjXLQdnB282Bo1tfFfCsNA9BZEL6wv",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:41:54.000Z",
-      "liquidity_usd": 3961.5699,
-      "volume_m5_usd": 14206.7212138901,
-      "price_usd": 0.00000660942994639013,
-      "buys_m5": 219,
-      "sells_m5": 133,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=2"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "base",
-      "token_address": "0x7025c05c67136285339836241b30bf5ba19a8100",
-      "pool_address": "0x05497792ac4824ac5a670b307a98d6a95af0b4c2",
-      "candidate_id": "base:0x7025c05c67136285339836241b30bf5ba19a8100:0x05497792ac4824ac5a670b307a98d6a95af0b4c2",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:32:23.000Z",
-      "liquidity_usd": 123.7782,
-      "volume_m5_usd": 0,
-      "price_usd": 6.17878697796229e-7,
-      "buys_m5": 0,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "CROSS_PROVIDER_IDENTITY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/base/new_pools?page=1",
-        "https://api.dexscreener.com/latest/dex/pairs/base/0x05497792ac4824ac5a670b307a98d6a95af0b4c2"
-      ],
-      "unresolved_checks": [
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "base",
-      "token_address": "0xe4e24400a472e5ed5e6a855db83fdd3da0471d2e",
-      "pool_address": "0xc9643947ca0935f7929d3e60e573ff41da2e454a",
-      "candidate_id": "base:0xe4e24400a472e5ed5e6a855db83fdd3da0471d2e:0xc9643947ca0935f7929d3e60e573ff41da2e454a",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:25:34.000Z",
-      "liquidity_usd": 183661.5909,
-      "volume_m5_usd": 2019.046484,
-      "price_usd": 0.0000156218112681267,
-      "buys_m5": 6,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "CROSS_PROVIDER_IDENTITY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/base/new_pools?page=1",
-        "https://api.dexscreener.com/latest/dex/pairs/base/0xc9643947ca0935f7929d3e60e573ff41da2e454a"
-      ],
-      "unresolved_checks": [
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "base",
-      "token_address": "0x36e86b75739e42dfa07fc063019028ca696cda2d",
-      "pool_address": "0xcab9c67ea2ac0e86b7c332b05a6d263116d35ff7",
-      "candidate_id": "base:0x36e86b75739e42dfa07fc063019028ca696cda2d:0xcab9c67ea2ac0e86b7c332b05a6d263116d35ff7",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:25:24.000Z",
-      "liquidity_usd": 154988.8322,
-      "volume_m5_usd": 3141.284789,
-      "price_usd": 0.0000115106486699547,
-      "buys_m5": 5,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/base/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "base",
-      "token_address": "0xc35763695ffb9f05a0f84c02780d7456d9e7b50c",
-      "pool_address": "0x4e22bbcce75c2c965de60afb2bcedb0189648604",
-      "candidate_id": "base:0xc35763695ffb9f05a0f84c02780d7456d9e7b50c:0x4e22bbcce75c2c965de60afb2bcedb0189648604",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:24:53.000Z",
-      "liquidity_usd": 1434328.9912,
-      "volume_m5_usd": 0,
-      "price_usd": 0.0000987933207012284,
-      "buys_m5": 0,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/base/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "base",
-      "token_address": "0xcbb465798411bd3f0959979da2b66d9f966276cc",
-      "pool_address": "0x63fec46c1298a512a3d2d6b76d8a284cdaad5115",
-      "candidate_id": "base:0xcbb465798411bd3f0959979da2b66d9f966276cc:0x63fec46c1298a512a3d2d6b76d8a284cdaad5115",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:22:52.000Z",
-      "liquidity_usd": 0.00415171989237794,
-      "volume_m5_usd": 0,
-      "price_usd": 4.16789456663975e-13,
-      "buys_m5": 0,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/base/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "base",
-      "token_address": "0x7bbef664477ac310a4fde2be54623ebae044fc96",
-      "pool_address": "0x6011d30fa6439f3daff986b26fe5d378866bedf9",
-      "candidate_id": "base:0x7bbef664477ac310a4fde2be54623ebae044fc96:0x6011d30fa6439f3daff986b26fe5d378866bedf9",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:21:23.000Z",
-      "liquidity_usd": 16969.8372,
-      "volume_m5_usd": 0.4586403217,
-      "price_usd": 7.75941550186792e-15,
-      "buys_m5": 1,
-      "sells_m5": 1,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/base/new_pools?page=1"
+        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
       ],
       "unresolved_checks": [
         "INDEPENDENT_PAIR_IDENTITY",
@@ -799,14 +930,14 @@
     },
     {
       "chain": "bsc",
-      "token_address": "0xc9a33189001391abb952a88ed9c8947d98aaffff",
-      "pool_address": "0xc9a33189001391abb952a88ed9c8947d98aaffff",
-      "candidate_id": "bsc:0xc9a33189001391abb952a88ed9c8947d98aaffff:0xc9a33189001391abb952a88ed9c8947d98aaffff",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:44:07.000Z",
-      "liquidity_usd": 2569.9182,
-      "volume_m5_usd": 0.001549176978,
-      "price_usd": 0.00000321242882703413,
+      "token_address": "0x6c0ab08a5a3f35130608ddbbf6c0047fd0c7ffff",
+      "pool_address": "0x6c0ab08a5a3f35130608ddbbf6c0047fd0c7ffff",
+      "candidate_id": "bsc:0x6c0ab08a5a3f35130608ddbbf6c0047fd0c7ffff:0x6c0ab08a5a3f35130608ddbbf6c0047fd0c7ffff",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:56:55.000Z",
+      "liquidity_usd": 2570.5953,
+      "volume_m5_usd": 0.001161708372,
+      "price_usd": 0.00000321430933359908,
       "buys_m5": 1,
       "sells_m5": 0,
       "source": "GECKOTERMINAL_NEW_POOLS",
@@ -824,14 +955,14 @@
     },
     {
       "chain": "bsc",
-      "token_address": "0x17e20b18d300c7a85d8ea62e30a2559ba15affff",
-      "pool_address": "0x17e20b18d300c7a85d8ea62e30a2559ba15affff",
-      "candidate_id": "bsc:0x17e20b18d300c7a85d8ea62e30a2559ba15affff:0x17e20b18d300c7a85d8ea62e30a2559ba15affff",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:43:31.000Z",
-      "liquidity_usd": 2569.3163,
-      "volume_m5_usd": 0.001106246267,
-      "price_usd": 0.00000321167606767216,
+      "token_address": "0x2efefef076488eef6e785fa29c30f548f651ffff",
+      "pool_address": "0x2efefef076488eef6e785fa29c30f548f651ffff",
+      "candidate_id": "bsc:0x2efefef076488eef6e785fa29c30f548f651ffff:0x2efefef076488eef6e785fa29c30f548f651ffff",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:56:34.000Z",
+      "liquidity_usd": 2571.5734,
+      "volume_m5_usd": 0.001634193402,
+      "price_usd": 0.00000321388657838715,
       "buys_m5": 1,
       "sells_m5": 0,
       "source": "GECKOTERMINAL_NEW_POOLS",
@@ -849,16 +980,16 @@
     },
     {
       "chain": "bsc",
-      "token_address": "0x06e44bc829a81c805727918c430e9cb96cc14193",
-      "pool_address": "0xcb3381afad4e3812f490680afb8f0d36faadc30e",
-      "candidate_id": "bsc:0x06e44bc829a81c805727918c430e9cb96cc14193:0xcb3381afad4e3812f490680afb8f0d36faadc30e",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:43:16.000Z",
-      "liquidity_usd": 8066.1504,
-      "volume_m5_usd": 115.160228,
-      "price_usd": 0.00415869980196574,
-      "buys_m5": 2,
-      "sells_m5": 0,
+      "token_address": "0x385bdddaecc0cf1e6ce4f68f3f77f9f2b0206666",
+      "pool_address": "0x5413ea44da326f04127b36e10e6efe80ddeb0286",
+      "candidate_id": "bsc:0x385bdddaecc0cf1e6ce4f68f3f77f9f2b0206666:0x5413ea44da326f04127b36e10e6efe80ddeb0286",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:56:03.000Z",
+      "liquidity_usd": 5575.1608,
+      "volume_m5_usd": 417.4751101166,
+      "price_usd": 0.00000543530304571618,
+      "buys_m5": 4,
+      "sells_m5": 4,
       "source": "GECKOTERMINAL_NEW_POOLS",
       "verification": "PROVIDER_ONLY",
       "promotion_biased": false,
@@ -874,14 +1005,14 @@
     },
     {
       "chain": "bsc",
-      "token_address": "0x5f27373a9dc922fdb6c094f49dcfff333da7ffff",
-      "pool_address": "0x5f27373a9dc922fdb6c094f49dcfff333da7ffff",
-      "candidate_id": "bsc:0x5f27373a9dc922fdb6c094f49dcfff333da7ffff:0x5f27373a9dc922fdb6c094f49dcfff333da7ffff",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:43:04.000Z",
-      "liquidity_usd": 2569.7677,
-      "volume_m5_usd": 0.001182329632,
-      "price_usd": 0.00000321224039871905,
+      "token_address": "0x1ccef0150db4ff00a24b6c49d4168c91c1ecffff",
+      "pool_address": "0x1ccef0150db4ff00a24b6c49d4168c91c1ecffff",
+      "candidate_id": "bsc:0x1ccef0150db4ff00a24b6c49d4168c91c1ecffff:0x1ccef0150db4ff00a24b6c49d4168c91c1ecffff",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:55:48.000Z",
+      "liquidity_usd": 2571.3853,
+      "volume_m5_usd": 0.001107137068,
+      "price_usd": 0.00000321426226110313,
       "buys_m5": 1,
       "sells_m5": 0,
       "source": "GECKOTERMINAL_NEW_POOLS",
@@ -899,14 +1030,14 @@
     },
     {
       "chain": "bsc",
-      "token_address": "0x5284f892413d1dd53bb74870a5af785c83a8ffff",
-      "pool_address": "0x5284f892413d1dd53bb74870a5af785c83a8ffff",
-      "candidate_id": "bsc:0x5284f892413d1dd53bb74870a5af785c83a8ffff:0x5284f892413d1dd53bb74870a5af785c83a8ffff",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:41:54.000Z",
-      "liquidity_usd": 2570.3188945145,
-      "volume_m5_usd": 0.001106667373,
-      "price_usd": 0.00000321289863183953,
+      "token_address": "0x5ae58e19c9f085f41d82c2d7a9bbda379122ffff",
+      "pool_address": "0x5ae58e19c9f085f41d82c2d7a9bbda379122ffff",
+      "candidate_id": "bsc:0x5ae58e19c9f085f41d82c2d7a9bbda379122ffff:0x5ae58e19c9f085f41d82c2d7a9bbda379122ffff",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:55:13.000Z",
+      "liquidity_usd": 2571.3853,
+      "volume_m5_usd": 0.00114371035,
+      "price_usd": 0.0000032147795336778,
       "buys_m5": 1,
       "sells_m5": 0,
       "source": "GECKOTERMINAL_NEW_POOLS",
@@ -924,14 +1055,39 @@
     },
     {
       "chain": "bsc",
-      "token_address": "0x85d8868d3824b32663033911f284e67ba61c0998",
-      "pool_address": "0xd6ae217f4284c0ead2d27d38cd248ad36c32e4f3",
-      "candidate_id": "bsc:0x85d8868d3824b32663033911f284e67ba61c0998:0xd6ae217f4284c0ead2d27d38cd248ad36c32e4f3",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:41:51.000Z",
-      "liquidity_usd": 22935.0358,
-      "volume_m5_usd": 675.5664149981,
-      "price_usd": 0.0000122021096624955,
+      "token_address": "0x9282086af814ecd0c088517d62d7343872fa7777",
+      "pool_address": "0x53b844d095ee22bdbe1c506bad3033d63279e2ee",
+      "candidate_id": "bsc:0x9282086af814ecd0c088517d62d7343872fa7777:0x53b844d095ee22bdbe1c506bad3033d63279e2ee",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:55:08.000Z",
+      "liquidity_usd": 0.0247813491806728,
+      "volume_m5_usd": 6851.5493203989,
+      "price_usd": 5.59593754294942e-10,
+      "buys_m5": 49,
+      "sells_m5": 60,
+      "source": "GECKOTERMINAL_NEW_POOLS",
+      "verification": "PROVIDER_ONLY",
+      "promotion_biased": false,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
+      ],
+      "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
+        "CONTRACT",
+        "LIQUIDITY_RISK",
+        "SELLABILITY"
+      ]
+    },
+    {
+      "chain": "bsc",
+      "token_address": "0x07f0cd8ac3a7ff59fda5e4600de4a056e47f7dc9",
+      "pool_address": "0xb2287159d3490ad069cb771585b4f8d107ac297b",
+      "candidate_id": "bsc:0x07f0cd8ac3a7ff59fda5e4600de4a056e47f7dc9:0xb2287159d3490ad069cb771585b4f8d107ac297b",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:54:56.000Z",
+      "liquidity_usd": 5458.0106,
+      "volume_m5_usd": 1833.0656184221,
+      "price_usd": 0.00000632252210565892,
       "buys_m5": 5,
       "sells_m5": 0,
       "source": "GECKOTERMINAL_NEW_POOLS",
@@ -949,14 +1105,14 @@
     },
     {
       "chain": "bsc",
-      "token_address": "0x10751d4d4c4640b45ff36f9b21e0a74ed3abffff",
-      "pool_address": "0x10751d4d4c4640b45ff36f9b21e0a74ed3abffff",
-      "candidate_id": "bsc:0x10751d4d4c4640b45ff36f9b21e0a74ed3abffff:0x10751d4d4c4640b45ff36f9b21e0a74ed3abffff",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:41:28.000Z",
-      "liquidity_usd": 2572.0624,
-      "volume_m5_usd": 0.001644579907,
-      "price_usd": 0.00000321506213015018,
+      "token_address": "0x8723de165bb5eed251544b1f8c9b545a571dffff",
+      "pool_address": "0x8723de165bb5eed251544b1f8c9b545a571dffff",
+      "candidate_id": "bsc:0x8723de165bb5eed251544b1f8c9b545a571dffff:0x8723de165bb5eed251544b1f8c9b545a571dffff",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:54:48.000Z",
+      "liquidity_usd": 2572.1752,
+      "volume_m5_usd": 0.001322767763,
+      "price_usd": 0.0000032152499172384,
       "buys_m5": 1,
       "sells_m5": 0,
       "source": "GECKOTERMINAL_NEW_POOLS",
@@ -973,425 +1129,25 @@
       ]
     },
     {
-      "chain": "bsc",
-      "token_address": "0xd891703088edbb341c2eeeb1802afb2686efffff",
-      "pool_address": "0xd891703088edbb341c2eeeb1802afb2686efffff",
-      "candidate_id": "bsc:0xd891703088edbb341c2eeeb1802afb2686efffff:0xd891703088edbb341c2eeeb1802afb2686efffff",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:41:27.000Z",
-      "liquidity_usd": 2572.0624,
-      "volume_m5_usd": 0.001523896478,
-      "price_usd": 0.00000321506201778016,
+      "chain": "eth",
+      "token_address": "0x4f311c2a55285ef00c4b4065b6a390ab083f73ae",
+      "pool_address": "0x6092cebad20ce1613e8f2378cd9c03a58a4b434c",
+      "candidate_id": "eth:0x4f311c2a55285ef00c4b4065b6a390ab083f73ae:0x6092cebad20ce1613e8f2378cd9c03a58a4b434c",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "pool_created_at_utc": "2026-11-10T13:50:23.000Z",
+      "liquidity_usd": 26571.8547,
+      "volume_m5_usd": 116.652096,
+      "price_usd": 0.0000544340602008332,
       "buys_m5": 1,
       "sells_m5": 0,
       "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
+      "verification": "CROSS_PROVIDER_IDENTITY",
       "promotion_biased": false,
       "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
+        "https://api.geckoterminal.com/api/v2/networks/eth/new_pools?page=1",
+        "https://api.dexscreener.com/latest/dex/pairs/ethereum/0x6092cebad20ce1613e8f2378cd9c03a58a4b434c"
       ],
       "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0xabd0287a81007daaa2a8d10468e62ce50470ffff",
-      "pool_address": "0x3b8266a73bac719c9b8004bcbf4b182a7388c1cd",
-      "candidate_id": "bsc:0xabd0287a81007daaa2a8d10468e62ce50470ffff:0x3b8266a73bac719c9b8004bcbf4b182a7388c1cd",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:41:11.000Z",
-      "liquidity_usd": 43331.2039,
-      "volume_m5_usd": 21002.0235440132,
-      "price_usd": 0.29606769663582,
-      "buys_m5": 74,
-      "sells_m5": 19,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0xfbb1d60d2e2554dc4e2a04215de0daa04b677777",
-      "pool_address": "0x77f7768adc518c6d61f57faa033b5b49d251e86a",
-      "candidate_id": "bsc:0xfbb1d60d2e2554dc4e2a04215de0daa04b677777:0x77f7768adc518c6d61f57faa033b5b49d251e86a",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:41:02.000Z",
-      "liquidity_usd": 27789.6962,
-      "volume_m5_usd": 12382.2765760954,
-      "price_usd": 0.0000872408109645561,
-      "buys_m5": 30,
-      "sells_m5": 46,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0x163a21ecdc5dda04fa835203bf2f92ab668dffff",
-      "pool_address": "0x163a21ecdc5dda04fa835203bf2f92ab668dffff",
-      "candidate_id": "bsc:0x163a21ecdc5dda04fa835203bf2f92ab668dffff:0x163a21ecdc5dda04fa835203bf2f92ab668dffff",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:40:00.000Z",
-      "liquidity_usd": 2572.589,
-      "volume_m5_usd": 0.001107655353,
-      "price_usd": 0.00000321576695546297,
-      "buys_m5": 1,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0x6a441cf2e1bbe30db692729a4a243c7e9d087777",
-      "pool_address": "0xc9ea709e336ce82750558aa7738c8fbd0ce4e4b4",
-      "candidate_id": "bsc:0x6a441cf2e1bbe30db692729a4a243c7e9d087777:0xc9ea709e336ce82750558aa7738c8fbd0ce4e4b4",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:39:36.000Z",
-      "liquidity_usd": 0.013849311330062,
-      "volume_m5_usd": 0.158183421,
-      "price_usd": 1.33689384607446e-7,
-      "buys_m5": 3,
-      "sells_m5": 1,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0xeeae50a94acf968f8bffc77cf63dd5723ad87462",
-      "pool_address": "0x1bc93c4df358986ba6e1c80af1d5e5d5a07b4579",
-      "candidate_id": "bsc:0xeeae50a94acf968f8bffc77cf63dd5723ad87462:0x1bc93c4df358986ba6e1c80af1d5e5d5a07b4579",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:39:11.000Z",
-      "liquidity_usd": 21861.8966,
-      "volume_m5_usd": 12236.005,
-      "price_usd": 0.00529872756308601,
-      "buys_m5": 10,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0xb39770b95e7f964d2ba100c545c46896652fffff",
-      "pool_address": "0xb39770b95e7f964d2ba100c545c46896652fffff",
-      "candidate_id": "bsc:0xb39770b95e7f964d2ba100c545c46896652fffff:0xb39770b95e7f964d2ba100c545c46896652fffff",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:38:13.000Z",
-      "liquidity_usd": 2569.9182,
-      "volume_m5_usd": 0,
-      "price_usd": 0.00000321948166966381,
-      "buys_m5": 0,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0x3da3f5695004154ae1ead11b4fb6c7e654e6ffff",
-      "pool_address": "0x3da3f5695004154ae1ead11b4fb6c7e654e6ffff",
-      "candidate_id": "bsc:0x3da3f5695004154ae1ead11b4fb6c7e654e6ffff:0x3da3f5695004154ae1ead11b4fb6c7e654e6ffff",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:37:54.000Z",
-      "liquidity_usd": 2569.9182,
-      "volume_m5_usd": 0,
-      "price_usd": 0.0000032194816785967,
-      "buys_m5": 0,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0x382631f1b22b1bc9866d1ca9776f1a2b18e2dead",
-      "pool_address": "0x943212ea882c5cb73e9caced7675175a7b22c9f4",
-      "candidate_id": "bsc:0x382631f1b22b1bc9866d1ca9776f1a2b18e2dead:0x943212ea882c5cb73e9caced7675175a7b22c9f4",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:36:42.000Z",
-      "liquidity_usd": 35.7965,
-      "volume_m5_usd": 7.8016582764,
-      "price_usd": 1.42712735702702e-7,
-      "buys_m5": 3,
-      "sells_m5": 4,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0xe7e404ede2daffbc6fa7f241c4d7017167677777",
-      "pool_address": "0x5ab5ede055d964485070f72a5428459e9105d1aa",
-      "candidate_id": "bsc:0xe7e404ede2daffbc6fa7f241c4d7017167677777:0x5ab5ede055d964485070f72a5428459e9105d1aa",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:35:53.000Z",
-      "liquidity_usd": 18508.8721,
-      "volume_m5_usd": 9468.3414914971,
-      "price_usd": 0.000099184343747371,
-      "buys_m5": 30,
-      "sells_m5": 30,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0x1a49d63fa366c626e11aa9e740b03f45891746e7",
-      "pool_address": "0xd43c62495b09d65570e7290a66f58d5b22a909e0",
-      "candidate_id": "bsc:0x1a49d63fa366c626e11aa9e740b03f45891746e7:0xd43c62495b09d65570e7290a66f58d5b22a909e0",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:35:31.000Z",
-      "liquidity_usd": 33409.8144,
-      "volume_m5_usd": 11999.7176888329,
-      "price_usd": 0.000115402514726497,
-      "buys_m5": 89,
-      "sells_m5": 72,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=2"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0xbee31e7c39c65a701621cef7d98fb79e6735fa57",
-      "pool_address": "0x773d1fc29de194239386705237af30fd9cef0db2",
-      "candidate_id": "bsc:0xbee31e7c39c65a701621cef7d98fb79e6735fa57:0x773d1fc29de194239386705237af30fd9cef0db2",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:34:35.000Z",
-      "liquidity_usd": 12327.6395,
-      "volume_m5_usd": 762.8102042509,
-      "price_usd": 0.0000742762621661732,
-      "buys_m5": 8,
-      "sells_m5": 4,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=2"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0x3a75496001c5114b472c7231d390be34fa859d29",
-      "pool_address": "0xe6cc6813d2f6e6924330ef7cfe29bcda13282f69",
-      "candidate_id": "bsc:0x3a75496001c5114b472c7231d390be34fa859d29:0xe6cc6813d2f6e6924330ef7cfe29bcda13282f69",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:34:26.000Z",
-      "liquidity_usd": 26480.8083,
-      "volume_m5_usd": 1170.1431365864,
-      "price_usd": 0.0000825871664675985,
-      "buys_m5": 10,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=2"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0xb6d3172293eef67ed02427c0192397060728ffff",
-      "pool_address": "0xb6d3172293eef67ed02427c0192397060728ffff",
-      "candidate_id": "bsc:0xb6d3172293eef67ed02427c0192397060728ffff:0xb6d3172293eef67ed02427c0192397060728ffff",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:34:20.000Z",
-      "liquidity_usd": 2555.013,
-      "volume_m5_usd": 0,
-      "price_usd": 0.00000318640931938893,
-      "buys_m5": 0,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=2"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0x86ccc0d97566611181a959145f8530f81a9affff",
-      "pool_address": "0x86ccc0d97566611181a959145f8530f81a9affff",
-      "candidate_id": "bsc:0x86ccc0d97566611181a959145f8530f81a9affff:0x86ccc0d97566611181a959145f8530f81a9affff",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:34:08.000Z",
-      "liquidity_usd": 2555.013,
-      "volume_m5_usd": 0,
-      "price_usd": 0.00000318640941501049,
-      "buys_m5": 0,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=2"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0xfa89d33509e485a79f9f161670089a533fd03a24",
-      "pool_address": "0x7b77c12852d19aec4352ebf28f0a2fb456886b2a",
-      "candidate_id": "bsc:0xfa89d33509e485a79f9f161670089a533fd03a24:0x7b77c12852d19aec4352ebf28f0a2fb456886b2a",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:33:52.000Z",
-      "liquidity_usd": 0.0274773192488967,
-      "volume_m5_usd": 213.4411985188,
-      "price_usd": 2.98937741146712e-7,
-      "buys_m5": 8,
-      "sells_m5": 2,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=2"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "bsc",
-      "token_address": "0x924454d93651e5a95a50e33223b8f41348f887fa",
-      "pool_address": "0x404511145b3636cec0143abc2459bc5713df455f",
-      "candidate_id": "bsc:0x924454d93651e5a95a50e33223b8f41348f887fa:0x404511145b3636cec0143abc2459bc5713df455f",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T13:33:24.000Z",
-      "liquidity_usd": 16611.3306,
-      "volume_m5_usd": 1147.0969831033,
-      "price_usd": 0.0000996403394419651,
-      "buys_m5": 7,
-      "sells_m5": 3,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=2"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
         "CONTRACT",
         "LIQUIDITY_RISK",
         "SELLABILITY"
@@ -1402,12 +1158,12 @@
       "token_address": "0x206ecbc2cf25e9c3f60c59ebd55dc8b26cc57dc7",
       "pool_address": "0xf951ecfe10e1d975c1456535304274c9cccf9253",
       "candidate_id": "eth:0x206ecbc2cf25e9c3f60c59ebd55dc8b26cc57dc7:0xf951ecfe10e1d975c1456535304274c9cccf9253",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T13:28:59.000Z",
-      "liquidity_usd": 8158.052,
-      "volume_m5_usd": 0,
-      "price_usd": 8.35158861473149e-12,
-      "buys_m5": 0,
+      "liquidity_usd": 9600.5912,
+      "volume_m5_usd": 560.657709,
+      "price_usd": 1.20699381403618e-11,
+      "buys_m5": 9,
       "sells_m5": 0,
       "source": "GECKOTERMINAL_NEW_POOLS",
       "verification": "CROSS_PROVIDER_IDENTITY",
@@ -1427,21 +1183,21 @@
       "token_address": "0xdc76fb6e9fd1f01626a7b8f09fe09251a64b9942",
       "pool_address": "0x58de0ec22107433ad627cc7c7bf335bbeede7d87",
       "candidate_id": "eth:0xdc76fb6e9fd1f01626a7b8f09fe09251a64b9942:0x58de0ec22107433ad627cc7c7bf335bbeede7d87",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T13:06:47.000Z",
-      "liquidity_usd": 15235.3391,
+      "liquidity_usd": 15265.5335,
       "volume_m5_usd": 0,
       "price_usd": 2.13752655723257e-11,
       "buys_m5": 0,
       "sells_m5": 0,
       "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "CROSS_PROVIDER_IDENTITY",
+      "verification": "PROVIDER_ONLY",
       "promotion_biased": false,
       "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/eth/new_pools?page=1",
-        "https://api.dexscreener.com/latest/dex/pairs/ethereum/0x58de0ec22107433ad627cc7c7bf335bbeede7d87"
+        "https://api.geckoterminal.com/api/v2/networks/eth/new_pools?page=1"
       ],
       "unresolved_checks": [
+        "INDEPENDENT_PAIR_IDENTITY",
         "CONTRACT",
         "LIQUIDITY_RISK",
         "SELLABILITY"
@@ -1452,9 +1208,9 @@
       "token_address": "0xdb9b34b6260047e192420acf8eae4c5875689b84",
       "pool_address": "0x1bf967688b045c6a2df52b69dfb1a0e884bad17c",
       "candidate_id": "eth:0xdb9b34b6260047e192420acf8eae4c5875689b84:0x1bf967688b045c6a2df52b69dfb1a0e884bad17c",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T13:06:35.000Z",
-      "liquidity_usd": 3697.9619,
+      "liquidity_usd": 3705.2908,
       "volume_m5_usd": 0,
       "price_usd": 5.41214029205388e-7,
       "buys_m5": 0,
@@ -1477,7 +1233,7 @@
       "token_address": "0x9fc410cd9d6f16f649858d650c2a6eaf98e9a706",
       "pool_address": "0x6291cb726bfaf950ad6e9fe765be6e88ba40e292",
       "candidate_id": "eth:0x9fc410cd9d6f16f649858d650c2a6eaf98e9a706:0x6291cb726bfaf950ad6e9fe765be6e88ba40e292",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T12:59:59.000Z",
       "liquidity_usd": 0.00106687243982641,
       "volume_m5_usd": 0,
@@ -1502,9 +1258,9 @@
       "token_address": "0xd86800d5b021f5d79350c2f742bbb1ecc010bf82",
       "pool_address": "0x02f6d4fe9aca85a84d0e08c8b1374902526cf498",
       "candidate_id": "eth:0xd86800d5b021f5d79350c2f742bbb1ecc010bf82:0x02f6d4fe9aca85a84d0e08c8b1374902526cf498",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T12:44:35.000Z",
-      "liquidity_usd": 16.5097,
+      "liquidity_usd": 16.5877,
       "volume_m5_usd": 0,
       "price_usd": 0.000111922631420177,
       "buys_m5": 0,
@@ -1527,7 +1283,7 @@
       "token_address": "0xf946812fdb5d6be197952283065087e8cbb1152c",
       "pool_address": "0xa11c31ece2ca7f5b1073ac0016a3adc8dea56594",
       "candidate_id": "eth:0xf946812fdb5d6be197952283065087e8cbb1152c:0xa11c31ece2ca7f5b1073ac0016a3adc8dea56594",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T12:38:35.000Z",
       "liquidity_usd": 0.000421848446456629,
       "volume_m5_usd": 0,
@@ -1552,7 +1308,7 @@
       "token_address": "0x20abab9db4faf843a6f35941cdc4a8bc6bc3ef52",
       "pool_address": "0x40b96db7b66f077429019b368bbd4fcfafb55799",
       "candidate_id": "eth:0x20abab9db4faf843a6f35941cdc4a8bc6bc3ef52:0x40b96db7b66f077429019b368bbd4fcfafb55799",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T12:30:47.000Z",
       "liquidity_usd": 0.02022289362,
       "volume_m5_usd": 0,
@@ -1577,7 +1333,7 @@
       "token_address": "0x43037b60bc235cf0e1419c6c1c6e14749575017d",
       "pool_address": "0xeb79ae44a568afa7b1833874d789eb98f333c296",
       "candidate_id": "eth:0x43037b60bc235cf0e1419c6c1c6e14749575017d:0xeb79ae44a568afa7b1833874d789eb98f333c296",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T12:09:47.000Z",
       "liquidity_usd": 0.0001905479821,
       "volume_m5_usd": 0,
@@ -1602,9 +1358,9 @@
       "token_address": "0x9a792f9e25838517589c579f2e5cf9ea3a0d551b",
       "pool_address": "0xe4e6dbe05040ee60b1258bfe82839d72b7ca43d2",
       "candidate_id": "eth:0x9a792f9e25838517589c579f2e5cf9ea3a0d551b:0xe4e6dbe05040ee60b1258bfe82839d72b7ca43d2",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T12:02:35.000Z",
-      "liquidity_usd": 53245.7817,
+      "liquidity_usd": 53351.3078,
       "volume_m5_usd": 0,
       "price_usd": 0.00000532219338247258,
       "buys_m5": 0,
@@ -1627,7 +1383,7 @@
       "token_address": "0xf504a9519f778b10f10ec9bf793da76d1a0100bb",
       "pool_address": "0x1ade933fd22c3c07823d8cdb6b61c4f2dcbdaf86",
       "candidate_id": "eth:0xf504a9519f778b10f10ec9bf793da76d1a0100bb:0x1ade933fd22c3c07823d8cdb6b61c4f2dcbdaf86",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T12:00:35.000Z",
       "liquidity_usd": 0.003172635395,
       "volume_m5_usd": 0,
@@ -1652,7 +1408,7 @@
       "token_address": "0xb5d7ccf09cfc36ff782367082789d9ee4c1a8776",
       "pool_address": "0x6007fa88171fa7ce09d871791fb2a1768baee865",
       "candidate_id": "eth:0xb5d7ccf09cfc36ff782367082789d9ee4c1a8776:0x6007fa88171fa7ce09d871791fb2a1768baee865",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T11:42:59.000Z",
       "liquidity_usd": 0.0001849169955,
       "volume_m5_usd": 0,
@@ -1677,7 +1433,7 @@
       "token_address": "0x6b1a429017b318c330abb20fa2dac3b7bd8686fb",
       "pool_address": "0xc8434d796491699b3f689e7ad014d86c40bc6eea",
       "candidate_id": "eth:0x6b1a429017b318c330abb20fa2dac3b7bd8686fb:0xc8434d796491699b3f689e7ad014d86c40bc6eea",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T10:46:23.000Z",
       "liquidity_usd": 0.0006776269239,
       "volume_m5_usd": 0,
@@ -1702,7 +1458,7 @@
       "token_address": "0x29db472e216be0ea54c4e2417642b282592d7a4d",
       "pool_address": "0x07a00005291044a86fdc934e5ddfda297dec3518",
       "candidate_id": "eth:0x29db472e216be0ea54c4e2417642b282592d7a4d:0x07a00005291044a86fdc934e5ddfda297dec3518",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T10:32:11.000Z",
       "liquidity_usd": 0.00308029532,
       "volume_m5_usd": 0,
@@ -1727,7 +1483,7 @@
       "token_address": "0xc4e68c243d59251536d1fbdeeecb9df7e96acb6d",
       "pool_address": "0x781f3f2ff197701922b189882cca24632e953f8a",
       "candidate_id": "eth:0xc4e68c243d59251536d1fbdeeecb9df7e96acb6d:0x781f3f2ff197701922b189882cca24632e953f8a",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T10:12:11.000Z",
       "liquidity_usd": 0.0007773763431,
       "volume_m5_usd": 0,
@@ -1752,7 +1508,7 @@
       "token_address": "0xb11e1325fdd7f959a390320b24c39221fc1f2b25",
       "pool_address": "0x3d5f743ad2e08ff66b050f1fa8fd4b0041efa09b",
       "candidate_id": "eth:0xb11e1325fdd7f959a390320b24c39221fc1f2b25:0x3d5f743ad2e08ff66b050f1fa8fd4b0041efa09b",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T09:53:59.000Z",
       "liquidity_usd": 0.0110264804477623,
       "volume_m5_usd": 0,
@@ -1777,7 +1533,7 @@
       "token_address": "0x4f49c70cb3108bffbf9b284f85950083c07daad3",
       "pool_address": "0x8750db49322e0e342d4aba9644f882919755f9eb",
       "candidate_id": "eth:0x4f49c70cb3108bffbf9b284f85950083c07daad3:0x8750db49322e0e342d4aba9644f882919755f9eb",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T09:50:59.000Z",
       "liquidity_usd": 0.003943000353,
       "volume_m5_usd": 0,
@@ -1802,7 +1558,7 @@
       "token_address": "0xe3876ffaab637dc1eb955d1e761adb259efd4c73",
       "pool_address": "0x842c8a7c04a50a8ba8e9544007a6ad4123dc544d",
       "candidate_id": "eth:0xe3876ffaab637dc1eb955d1e761adb259efd4c73:0x842c8a7c04a50a8ba8e9544007a6ad4123dc544d",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T09:46:47.000Z",
       "liquidity_usd": 0.000742374641249609,
       "volume_m5_usd": 0,
@@ -1827,7 +1583,7 @@
       "token_address": "0xa105a4213d3e3aea5060ec7e93db5482d6ae4f91",
       "pool_address": "0x1407744c99fe65e5c2f78477ace861e8eadb52f4",
       "candidate_id": "eth:0xa105a4213d3e3aea5060ec7e93db5482d6ae4f91:0x1407744c99fe65e5c2f78477ace861e8eadb52f4",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "pool_created_at_utc": "2026-11-10T09:12:23.000Z",
       "liquidity_usd": 0.0007182249172,
       "volume_m5_usd": 0,
@@ -1846,100 +1602,17 @@
         "LIQUIDITY_RISK",
         "SELLABILITY"
       ]
-    },
-    {
-      "chain": "eth",
-      "token_address": "0xa1086fba42350498428b14e365ec63e6d22d5bb0",
-      "pool_address": "0x163b6f208bf003c9cc94bee0871a38258a4fbbb1",
-      "candidate_id": "eth:0xa1086fba42350498428b14e365ec63e6d22d5bb0:0x163b6f208bf003c9cc94bee0871a38258a4fbbb1",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T09:07:59.000Z",
-      "liquidity_usd": 2217.6975,
-      "volume_m5_usd": 0,
-      "price_usd": 0.00000170264583675636,
-      "buys_m5": 0,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/eth/new_pools?page=2"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
-    },
-    {
-      "chain": "eth",
-      "token_address": "0xe56b0b7099eeae55f3d5ac96257929a6b7d7049b",
-      "pool_address": "0x9b3ec08a985da4eaa7c63698e5acc72bd97ef61c",
-      "candidate_id": "eth:0xe56b0b7099eeae55f3d5ac96257929a6b7d7049b:0x9b3ec08a985da4eaa7c63698e5acc72bd97ef61c",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "pool_created_at_utc": "2026-11-10T08:45:47.000Z",
-      "liquidity_usd": 0.000394349684,
-      "volume_m5_usd": 0,
-      "price_usd": 2.82849298093459e-10,
-      "buys_m5": 0,
-      "sells_m5": 0,
-      "source": "GECKOTERMINAL_NEW_POOLS",
-      "verification": "PROVIDER_ONLY",
-      "promotion_biased": false,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/eth/new_pools?page=2"
-      ],
-      "unresolved_checks": [
-        "INDEPENDENT_PAIR_IDENTITY",
-        "CONTRACT",
-        "LIQUIDITY_RISK",
-        "SELLABILITY"
-      ]
     }
   ],
   "summary": {
-    "identities": 74,
+    "identities": 62,
     "discovery_cap_per_scan": 96,
     "pages_per_chain": 2,
-    "cross_checked": 6,
+    "cross_checked": 5,
     "promotional_only": 0,
     "note": "Research only: prices are NOT executable quotes; Contract, LP and sellability remain UNKNOWN."
   },
   "research_alerts": [
-    {
-      "event_id": "research-alert-8c5a7d5e065d9c936b9eb8e841401c73",
-      "event_type": "MARKET_ACCELERATION",
-      "candidate_id": "bsc:0xdcd52832162f327a4eebc78f3ead1285a2a6ffff:0x521ebc96d797d9b2a8d214b198a0d14f2012957c",
-      "chain": "bsc",
-      "token_address": "0xdcd52832162f327a4eebc78f3ead1285a2a6ffff",
-      "pool_address": "0x521ebc96d797d9b2a8d214b198a0d14f2012957c",
-      "observed_at_utc": "2026-11-10T12:54:22.457Z",
-      "previous_observed_at_utc": "2026-11-10T12:52:21.001Z",
-      "previous_volume_m5_usd": 845.3813991356,
-      "current_volume_m5_usd": 23206.4012907134,
-      "m5_volume_ratio": 27.45,
-      "current_liquidity_usd": 51648.8791,
-      "buy_transactions_m5": 70,
-      "sell_transactions_m5": 16,
-      "indicative_price_ratio": 2.16,
-      "source_urls": [
-        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
-      ],
-      "paper_only": true,
-      "actionable": false,
-      "probability_pct": null,
-      "recommended_action": "INDEPENDENT_FIVE_ROLE_REVIEW",
-      "unknown_checks": [
-        "ORGANIC_SOCIAL_PROOF",
-        "INDEPENDENT_WALLET_ANALYSIS",
-        "CONTRACT_SECURITY",
-        "LP_CONTROL",
-        "SELLABILITY",
-        "SIZE_SPECIFIC_EXIT_QUOTE"
-      ],
-      "warning": "Volume and buy counts from DEX aggregator may include wash trading, bot clusters or self-trades. This is NOT a trade signal."
-    },
     {
       "event_id": "research-alert-a7e1b077af365b5359eba42d969e1ce4",
       "event_type": "MARKET_ACCELERATION",
@@ -2170,13 +1843,68 @@
         "SIZE_SPECIFIC_EXIT_QUOTE"
       ],
       "warning": "Volume and buy counts from DEX aggregator may include wash trading, bot clusters or self-trades. This is NOT a trade signal."
+    },
+    {
+      "event_id": "research-alert-44abe2023d063b0f5d8aaf432c60869a",
+      "event_type": "MARKET_ACCELERATION",
+      "candidate_id": "bsc:0xa895a6ded2acb37427f7d7c28a59cf6eb5c4ffff:0xff1b729f7bda58c9fdcd80cb329f224da3531cb0",
+      "chain": "bsc",
+      "token_address": "0xa895a6ded2acb37427f7d7c28a59cf6eb5c4ffff",
+      "pool_address": "0xff1b729f7bda58c9fdcd80cb329f224da3531cb0",
+      "observed_at_utc": "2026-11-10T13:51:14.585Z",
+      "previous_observed_at_utc": "2026-11-10T13:49:13.218Z",
+      "previous_volume_m5_usd": 851.9588559247,
+      "current_volume_m5_usd": 7856.018062789,
+      "m5_volume_ratio": 9.22,
+      "current_liquidity_usd": 52671.5232,
+      "buy_transactions_m5": 41,
+      "sell_transactions_m5": 2,
+      "indicative_price_ratio": 1.53,
+      "source_urls": [
+        "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1"
+      ],
+      "paper_only": true,
+      "actionable": false,
+      "probability_pct": null,
+      "recommended_action": "INDEPENDENT_FIVE_ROLE_REVIEW",
+      "unknown_checks": [
+        "ORGANIC_SOCIAL_PROOF",
+        "INDEPENDENT_WALLET_ANALYSIS",
+        "CONTRACT_SECURITY",
+        "LP_CONTROL",
+        "SELLABILITY",
+        "SIZE_SPECIFIC_EXIT_QUOTE"
+      ],
+      "warning": "Volume and buy counts from DEX aggregator may include wash trading, bot clusters or self-trades. This is NOT a trade signal."
     }
   ],
   "narrative_leads": [
     {
       "chain": "solana",
+      "token_address": "3RJ8MmZmbVBPqj7re8AHcrMvPq5MctYqu1ZHXMZkpump",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "origin": "DEXSCREENER_METADATA_ONLY",
+      "source_urls": [
+        "https://api.dexscreener.com/token-profiles/latest/v1",
+        "https://api.dexscreener.com/token-boosts/latest/v1"
+      ],
+      "signal_categories": [
+        "NEW_TOKEN_PROFILE",
+        "PAID_BOOST"
+      ],
+      "paid_promotion_seen": true,
+      "organic_social_verified": false,
+      "candidate_id": null,
+      "pool_address": null,
+      "paper_only": true,
+      "actionable": false,
+      "probability_pct": null,
+      "claim_status": "UNVERIFIED_COIN_OR_NARRATIVE"
+    },
+    {
+      "chain": "solana",
       "token_address": "5JHHcudrqibzuc4S9tGgthmfLNoRof4E3KWWGQsrpump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/community-takeovers/latest/v1",
@@ -2198,7 +1926,7 @@
     {
       "chain": "bsc",
       "token_address": "0xb201ead1771c07cfe79cade35550c702a70f7777",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-profiles/latest/v1"
@@ -2218,7 +1946,7 @@
     {
       "chain": "eth",
       "token_address": "0x35ebe010cdd541284fcfd2f85992a392a488f989",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-profiles/latest/v1"
@@ -2238,7 +1966,7 @@
     {
       "chain": "solana",
       "token_address": "12XbVdAszAGw6rviPP1P7q3rxhpbUJUcrnZNfP8Qfunz",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-boosts/latest/v1"
@@ -2258,7 +1986,7 @@
     {
       "chain": "solana",
       "token_address": "2HhH7LwfNHrxqMrSoXZ6Ri7GdmRYSJ4e8qSra9Krpump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-boosts/latest/v1"
@@ -2278,7 +2006,7 @@
     {
       "chain": "solana",
       "token_address": "34DXEU2ttEtBSb1TqGJm7izgvYTTkqKcCoiNWdPDpump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-boosts/latest/v1"
@@ -2298,27 +2026,7 @@
     {
       "chain": "solana",
       "token_address": "3jXB2MhzxRwwbqadrVYcbiEPy6Vqb5UMXhHYYA5uBAGS",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "origin": "DEXSCREENER_METADATA_ONLY",
-      "source_urls": [
-        "https://api.dexscreener.com/token-boosts/latest/v1"
-      ],
-      "signal_categories": [
-        "PAID_BOOST"
-      ],
-      "paid_promotion_seen": true,
-      "organic_social_verified": false,
-      "candidate_id": null,
-      "pool_address": null,
-      "paper_only": true,
-      "actionable": false,
-      "probability_pct": null,
-      "claim_status": "UNVERIFIED_COIN_OR_NARRATIVE"
-    },
-    {
-      "chain": "solana",
-      "token_address": "3RJ8MmZmbVBPqj7re8AHcrMvPq5MctYqu1ZHXMZkpump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-boosts/latest/v1"
@@ -2338,7 +2046,7 @@
     {
       "chain": "solana",
       "token_address": "3uc2mx5wXSAYHV4oWTqgMwutywRdtfZCKwN9Lyezpump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-boosts/latest/v1"
@@ -2358,7 +2066,7 @@
     {
       "chain": "solana",
       "token_address": "3yjyHCC4EzLb7J7cx3uczgTrqhpXDCBkfShK8Rf3pump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-profiles/latest/v1"
@@ -2378,7 +2086,7 @@
     {
       "chain": "solana",
       "token_address": "4VE9sy4fEMJdZ6i7MkYPbnqDJd2oqzJQmg44WJ3opump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-boosts/latest/v1"
@@ -2398,7 +2106,7 @@
     {
       "chain": "solana",
       "token_address": "5ygcwzryHZMbDZZ4ECiySwF5BkkTomkKrvn7zP3je8P5",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-profiles/latest/v1"
@@ -2418,7 +2126,7 @@
     {
       "chain": "solana",
       "token_address": "6174xdM8VMLvyfbQZ2fRcT37cVWME2k9FEnNoL83pump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-profiles/latest/v1"
@@ -2438,7 +2146,7 @@
     {
       "chain": "solana",
       "token_address": "6d9SJVns9WUmcUeKcHitTccGVKTD6QsPZ6fDi2e1pump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-profiles/latest/v1"
@@ -2458,7 +2166,7 @@
     {
       "chain": "solana",
       "token_address": "783FVoae5TP78vdCbuGBbbmdferrNU51r1xXSvpMpump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-profiles/latest/v1"
@@ -2478,7 +2186,7 @@
     {
       "chain": "solana",
       "token_address": "7mq84UEsjxYehH2cebat9173cAbkoFm2H2CGpzd4pump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-boosts/latest/v1"
@@ -2498,7 +2206,27 @@
     {
       "chain": "solana",
       "token_address": "86eESqktK5qmPyZ5mHPoELR32uj9YYa4uB4iMhp6pump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
+      "origin": "DEXSCREENER_METADATA_ONLY",
+      "source_urls": [
+        "https://api.dexscreener.com/token-profiles/latest/v1"
+      ],
+      "signal_categories": [
+        "NEW_TOKEN_PROFILE"
+      ],
+      "paid_promotion_seen": false,
+      "organic_social_verified": false,
+      "candidate_id": null,
+      "pool_address": null,
+      "paper_only": true,
+      "actionable": false,
+      "probability_pct": null,
+      "claim_status": "UNVERIFIED_COIN_OR_NARRATIVE"
+    },
+    {
+      "chain": "solana",
+      "token_address": "8ETPDhk262rJvF6rNCpRkLLsDsZKjf88tReMT9woPM2Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-profiles/latest/v1"
@@ -2518,7 +2246,7 @@
     {
       "chain": "solana",
       "token_address": "8MzXoMcRjUkScnk3FvorCH9ZbXz8G6hWhyrQEb3iwoov",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/community-takeovers/latest/v1"
@@ -2538,7 +2266,7 @@
     {
       "chain": "solana",
       "token_address": "8QCqrCmjCTmFarmq8SxCryuxzMBLVEWasbFaZQgXpump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-profiles/latest/v1"
@@ -2558,7 +2286,7 @@
     {
       "chain": "solana",
       "token_address": "8VdrHbx444YZJZp1vNb9pXAv5aW4Kv7E7bk7Zwaapump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-boosts/latest/v1"
@@ -2578,7 +2306,7 @@
     {
       "chain": "solana",
       "token_address": "A8oG7Zq3tEgquTKYnXUu2jjDRc2ooRJLN8DxHsnpump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-profiles/latest/v1"
@@ -2598,7 +2326,7 @@
     {
       "chain": "solana",
       "token_address": "AoHVuFNKTAEUc5aiC8HLWUWytNC3nkJ4jcnjyFQaiCJg",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-boosts/latest/v1"
@@ -2617,28 +2345,8 @@
     },
     {
       "chain": "solana",
-      "token_address": "AsdFcM5a7CWLYVfLypktYYVNs1PB4dFRXGbHv28npump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
-      "origin": "DEXSCREENER_METADATA_ONLY",
-      "source_urls": [
-        "https://api.dexscreener.com/token-profiles/latest/v1"
-      ],
-      "signal_categories": [
-        "NEW_TOKEN_PROFILE"
-      ],
-      "paid_promotion_seen": false,
-      "organic_social_verified": false,
-      "candidate_id": null,
-      "pool_address": null,
-      "paper_only": true,
-      "actionable": false,
-      "probability_pct": null,
-      "claim_status": "UNVERIFIED_COIN_OR_NARRATIVE"
-    },
-    {
-      "chain": "solana",
       "token_address": "BAftaSb1HVqBn5723w72WLcXU7YASSgmVxQxJJAJpump",
-      "observed_at_utc": "2026-11-10T13:45:07.461Z",
+      "observed_at_utc": "2026-11-10T14:01:21.647Z",
       "origin": "DEXSCREENER_METADATA_ONLY",
       "source_urls": [
         "https://api.dexscreener.com/token-boosts/latest/v1"
