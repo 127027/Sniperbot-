@@ -655,7 +655,7 @@ $('walletTokens').onclick=async()=>{
   if(h.tokens.length===0){$('walletTokenList').textContent='Keine positiven Tokenbestände gefunden (finalisierter Stand '+h.finalized_slot+').';return}
   $('walletTokenList').innerHTML='<strong>Finalisiert beobachtete Token-Konten: '+h.count+'</strong>'+
    h.tokens.slice(0,12).map(t=>'<div style="word-break:break-all;margin:7px 0">'+
-    esc(t.mint)+' · '+esc(t.ui_amount)+' Token · '+esc(t.account_state)+
+    esc(t.mint)+' · '+esc(t.ui_amount===null?'Anzeige unbekannt (Rohmenge '+t.amount_raw+')':t.ui_amount)+' Token · '+esc(t.account_state)+
     (t.account_state==='frozen'?' (EINGEFROREN)':'')+'</div>').join('')+
    '<small>Reine Onchain-Bestände; weder PayPal-Eingang noch Handelsfreigabe.</small>';
  }catch(e){$('walletTokenList').textContent='Token-Guthaben nicht verfügbar: '+e.message}
