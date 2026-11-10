@@ -172,3 +172,68 @@ export async function restoreEncryptedSolanaBackup({filename,record,password}={}
  return {restored:true,address:checked.address,
   encrypted:true,signing_enabled:false,live_trading_enabled:false};
 }
+
+// Single-purpose LOCAL SOL send signer. Never accepts arbitrary instructions,
+// program IDs, a user-supplied transaction or a wallet-exposure request.
+// The calling server must perform explicit user confirmation and fee checks.
+const SYSTEM_PROGRAM=Buffer.alloc(32);
+const TRANSFER_LIMIT=2_000_000_000n; // deliberate per-transfer 2 SOL beta ceiling
+function checkedNativeTransfer({destination,amountLamports,blockhash,source}={}){
+ const from=decodeBase58(source),to=decodeBase58(destination),block=decodeBase58(blockhash);
+ if(from.equals(to))throw Error('SENDER_AND_DESTINATION_IDENTICAL');
+ if(to.equals(SYSTEM_PROGRAM))throw Error('SYSTEM_PROGRAM_CANNOT_BE_RECIPIENT');
+ if(block.equals(SYSTEM_PROGRAM))throw Error('INVALID_RECENT_BLOCKHASH');
+ if(typeof amountLamports!=='string'||!/^[1-9][0-9]{0,18}$/.test(amountLamports))
+  throw Error('INVALID_LAMPORT_AMOUNT');
+ const n=BigInt(amountLamports);
+ if(n<10000n||n>TRANSFER_LIMIT)throw Error('TRANSFER_OUTSIDE_BETA_LIMIT');
+ const payload=Buffer.alloc(12);
+ payload.writeUInt32LE(2,0); // Solana SystemProgram::Transfer
+ payload.writeBigUInt64LE(n,4);
+ const message=Buffer.concat([
+  Buffer.from([1,0,1,3]), // 1 writable signer, 1 readonly non-signer
+  from,to,SYSTEM_PROGRAM,block,
+  Buffer.from([1,2,2,0,1,12]),payload
+ ]);
+ return {message,from};
+}
+export function createUnsignedSolanaTransferMessage(args){
+ return checkedNativeTransfer(args).message;
+}
+export async function signLocalSolanaSystemTransfer({
+ filename,password,destination,amountLamports,blockhash
+}={}){
+ passwordCheck(password);
+ if(typeof filename!=='string'||!path.isAbsolute(filename))throw Error('INVALID_WALLET_LOCATION');
+ const raw=await readFile(filename);
+ if(raw.length>MAX_VAULT)throw Error('WALLET_FILE_TOO_LARGE');
+ const v=validVault(JSON.parse(raw.toString('utf8')));
+ const {message,from}=checkedNativeTransfer({
+  destination,amountLamports,blockhash,source:v.address
+ });
+ const key=await keyFor(password,Buffer.from(v.kdf.salt,'base64'));
+ let secret;
+ try{
+  const decrypt=createDecipheriv('aes-256-gcm',key,Buffer.from(v.cipher.iv,'base64'));
+  decrypt.setAAD(aad(v));
+  decrypt.setAuthTag(Buffer.from(v.cipher.tag,'base64'));
+  secret=Buffer.concat([
+   decrypt.update(Buffer.from(v.cipher.ciphertext,'base64')),decrypt.final()
+  ]);
+  const priv=createPrivateKey({format:'der',type:'pkcs8',key:secret});
+  if(priv.asymmetricKeyType!=='ed25519'||addressFor(createPublicKey(priv))!==v.address)
+   throw Error('WALLET_IDENTITY_MISMATCH');
+  const signed=sign(null,message,priv);
+  if(signed.length!==64||!verify(null,message,createPublicKey(priv),signed))
+   throw Error('INVALID_LOCAL_SIGNATURE');
+  const transaction=Buffer.concat([Buffer.from([1]),signed,message]);
+  if(transaction.length>1232)throw Error('SOLANA_PACKET_TOO_LARGE');
+  return {schema:'local_signed_system_sol_transfer.v1',
+   from:v.address,to:destination,lamports:amountLamports,
+   signature:encodeBase58(signed),
+   signed_transaction_base64:transaction.toString('base64'),
+   network:'solana-mainnet',program:'SYSTEM_PROGRAM_TRANSFER_ONLY',
+   secret_exported:false};
+ }catch{throw Error('WALLET_PASSWORD_OR_TRANSFER_SIGNING_FAILED')}
+ finally{key.fill(0);secret?.fill(0)}
+}

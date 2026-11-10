@@ -153,6 +153,18 @@ try{
  assert.equal(offlineUnsigned.status,503);
  const outside=await fetch(base+'/api/wallet/external-observe?address=So11111111111111111111111111111111111111112');
  assert.equal(outside.status,503,'no external wallet readback in offline CI');
+ const solPreviewOffline=await fetch(base+'/api/wallet/sol-transfer/prepare',{
+  method:'POST',headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({destination:'So11111111111111111111111111111111111111112',
+   lamports:'10000000'})});
+ assert.equal(solPreviewOffline.status,503);
+ const solSendOffline=await fetch(base+'/api/wallet/sol-transfer/send',{
+  method:'POST',headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({confirmation_id:'no',confirmation_phrase:'ICH SENDE SOL',
+   password:'TEST_ONLY_LONG_PASSWORD_123'})});
+ assert.equal(solSendOffline.status,503);
+ const solJournal=await read('/api/wallet/sol-transfer/history');
+ assert.deepEqual(solJournal.transfers,[]);
  const offlineWalletBalance=await fetch(base+'/api/wallet/balance');
  assert.equal(offlineWalletBalance.status,503);
 
