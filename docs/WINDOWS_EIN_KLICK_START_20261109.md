@@ -1,3 +1,5 @@
+> **Update V0.6 (10.11.2026):** Windows-Ein-Klick-Starter bleibt `Sniperbot_Starten.bat`. Die zwei Werte im Dashboard bedeuten jetzt bevorzugter Einzelkauf / **Gesamtbudget offener Paper-Positionen**, flexible Käufe ab 50 USDC. Bestehenden `.local`-Ordner und `%LOCALAPPDATA%\MemeSniperPaper` bei Aktualisierung sichern und erhalten. [Details](V06_TOTAL_BUDGET_AND_MULTI_SOURCE_DISCOVERY_20261110.md).
+
 # Sniperbot Windows – ein Startfenster, zwei lokal beaufsichtigte Prozesse
 
 **Arbeitsbranch:** `codex/research-gateway-v04` · **nur PAPER** · kein Merge nach `main`.
