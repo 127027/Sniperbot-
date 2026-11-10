@@ -15,3 +15,14 @@ jobs:
       - run: node --check runner/market.mjs
       - run: node runner/test.mjs
       - run: node --test runner/*.test.mjs
+  windows-v08-paper-lab:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test immutable news archive on Windows NTFS
+        run: node --test runner/research-news-archive.test.mjs runner/research-news-journal.test.mjs
+      - name: Test V0.8 paper execution parity and risk gates on Windows
+        run: node --test runner/execution-parity-lab.test.mjs
