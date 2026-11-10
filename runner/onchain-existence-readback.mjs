@@ -2,6 +2,7 @@
 // Read-only RPC methods only. Existence of code/accounts does NOT prove safe
 // mint rights, taxes, non-honeypot behavior, ownership, LP, or sellable swaps.
 import {candidateId} from './research-watchlist.mjs';
+import {analyzeSolanaMintHeader} from './solana-mint-risk.mjs';
 
 const EVM=Object.freeze({
  eth:{url:'https://ethereum-rpc.publicnode.com',chainId:'0x1'},
@@ -45,18 +46,20 @@ export async function checkReadOnlyOnchainExistence(c,{fetcher=fetch,now=new Dat
   return unknown(id,iso,'INVALID_CHAIN_TOKEN_POOL');
  try{
   if(c.chain==='solana'){
-   const params=x=>[x,{encoding:'base64',commitment:'confirmed',dataSlice:{offset:0,length:0}}];
+   const params=(x,bytes)=>[x,{encoding:'base64',commitment:'confirmed',dataSlice:{offset:0,length:bytes}}];
    const [mint,pool]=await Promise.all([
-    rpc(SOLANA,'getAccountInfo',params(c.token_address),1,fetcher),
-    rpc(SOLANA,'getAccountInfo',params(c.pool_address),2,fetcher)
+    rpc(SOLANA,'getAccountInfo',params(c.token_address,82),1,fetcher),
+    rpc(SOLANA,'getAccountInfo',params(c.pool_address,0),2,fetcher)
    ]);
    if(!mint||!pool||!Object.hasOwn(mint,'value')||!Object.hasOwn(pool,'value'))
     return unknown(id,iso,'SOLANA_RPC_ACCOUNT_UNKNOWN');
+   const mintHeader=analyzeSolanaMintHeader(mint.value);
    const tokenPresent=!!mint.value&&typeof mint.value.owner==='string';
    const poolPresent=!!pool.value&&typeof pool.value.owner==='string';
    return {...unknown(id,iso,tokenPresent&&poolPresent?'ACCOUNT_EXISTS_ONLY_NOT_AUDITED':'SOLANA_ACCOUNT_NOT_FOUND'),
     existence_status:tokenPresent&&poolPresent?'ACCOUNTS_REPORTED':'UNKNOWN',
-    token_account_or_contract_exists:tokenPresent,pool_account_or_contract_exists:poolPresent};
+    token_account_or_contract_exists:tokenPresent,pool_account_or_contract_exists:poolPresent,
+    solana_mint_header:mintHeader};
   }
   const network=EVM[c.chain];
   if(!network)return unknown(id,iso,'RPC_CHAIN_UNSUPPORTED');

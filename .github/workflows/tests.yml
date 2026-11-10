@@ -47,7 +47,7 @@ jobs:
       - name: Boot the actual local V0.9 HTTP server without touching real user data
         run: node runner/v09-start-smoke.mjs
       - name: Verify real external public pool crosschecks remain read-only
-        run: node --test runner/live-pool-readback.test.mjs runner/readback-batch.test.mjs runner/readback-history.test.mjs runner/signed-research-quorum.test.mjs runner/readback-public-bridge.test.mjs runner/onchain-existence-readback.test.mjs
+        run: node --test runner/live-pool-readback.test.mjs runner/readback-batch.test.mjs runner/readback-history.test.mjs runner/signed-research-quorum.test.mjs runner/readback-public-bridge.test.mjs runner/onchain-existence-readback.test.mjs runner/solana-mint-risk.test.mjs runner/candidate-dossiers.test.mjs
       - name: Verify actual native Windows supervisor and protected test secret handling
         shell: powershell
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File runner/windows-supervisor.ps1 -SelfTest

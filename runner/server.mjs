@@ -1,6 +1,7 @@
 import {receiveDecision} from './central-decisions.mjs';
 import {buildV09Status,previewFundingV09} from './v09-integration.mjs';
 import {runPoolReadbackBatch,READBACK_INTERVAL_MS} from './readback-batch.mjs';
+import {buildDecisionDossiers} from './candidate-dossiers.mjs';
 import {saveReadbackBatch} from './readback-history.mjs';
 import {createReceiver} from './research-inbox.mjs';
 import {buildDotStatus} from './dot-status.mjs';
@@ -130,6 +131,7 @@ const server=createServer(async(req,res)=>{
  }
  if(req.method==='GET'&&route==='/api/v09/status')return reply(res,200,{ok:true,v09:buildV09Status({state,network:researchNetwork})});
  if(req.method==='GET'&&route==='/api/v09/pool-readbacks')return reply(res,200,{ok:true,readbacks:poolReadbacks});
+ if(req.method==='GET'&&route==='/api/v09/dossiers')return reply(res,200,{ok:true,dossiers:buildDecisionDossiers({network:researchNetwork,batch:poolReadbacks})});
  if(req.method==='GET'&&route==='/api/health')return reply(res,200,{ok:true,mode:'PAPER_ONLY',uptimeSec:Math.round(process.uptime())});
  if(route==='/api/research'||route==='/api/research/events'){
   if(req.headers.origin)return error(res,403,'Gateway ist nur für lokale Clients');

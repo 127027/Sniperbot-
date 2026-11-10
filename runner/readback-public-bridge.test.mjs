@@ -81,3 +81,46 @@ test('public bridge refuses to interpret forged onchain contract PASS as safety'
  assert.equal(result[0].onchain_existence_status,'UNKNOWN');
  assert.equal(result[0].paper_entry_authorized,false);
 });
+
+test('Solana revoked versus retained mint rights are public facts, never trading approvals',()=>{
+ const solId='solana:So11111111111111111111111111111111111111112:9KNZ2WoEC2bpL3HeKaT3B7B73Wbv8Kgwz5NmRMT2qZ2H';
+ const b=batch(),v=record();
+ v.candidate_id=solId;
+ v.onchain_existence={schema:'onchain_existence_readback.v1',
+  candidate_id:solId,paper_only:true,actionable:false,paper_entry_authorized:false,
+  existence_status:'ACCOUNTS_REPORTED',contract_security:'UNKNOWN',
+  sellability:'UNKNOWN',amount_specific_sell_quote:false,
+  solana_mint_header:{schema:'solana_mint_header_risk.v1',
+   paper_only:true,actionable:false,paper_entry_authorized:false,
+   mint_program:'SPL_TOKEN_LEGACY',mint_authority:'RETAINED',
+   freeze_authority:'REVOKED',initialized:true,supply_raw:'999999',
+   extension_audit:'NOT_APPLICABLE',observed_risk:'CAUTION',
+   contract_security:'UNKNOWN',sellability:'UNKNOWN'}};
+ b.results=[v];
+ const out=sanitizePoolReadbacks(b,{now});
+ assert.equal(out.length,1);
+ assert.equal(out[0].solana_mint_authority,'RETAINED');
+ assert.equal(out[0].solana_freeze_authority,'REVOKED');
+ assert.equal(out[0].solana_mint_header_risk,'CAUTION');
+ assert.equal(out[0].contract_status,'UNKNOWN');
+ assert.equal(out[0].paper_entry_authorized,false);
+ assert(!JSON.stringify(out).includes('MUST_NOT_ESCALATE'));
+});
+test('forged Solana mint risk PASS never leaves public research bridge',()=>{
+ const solId='solana:So11111111111111111111111111111111111111112:9KNZ2WoEC2bpL3HeKaT3B7B73Wbv8Kgwz5NmRMT2qZ2H';
+ const b=batch(),v=record();
+ v.candidate_id=solId;
+ v.onchain_existence={schema:'onchain_existence_readback.v1',
+  candidate_id:solId,paper_only:true,actionable:false,paper_entry_authorized:false,
+  existence_status:'ACCOUNTS_REPORTED',contract_security:'UNKNOWN',
+  sellability:'UNKNOWN',amount_specific_sell_quote:false,
+  solana_mint_header:{schema:'solana_mint_header_risk.v1',paper_only:true,
+   actionable:false,paper_entry_authorized:false,mint_program:'SPL_TOKEN_LEGACY',
+   mint_authority:'REVOKED',freeze_authority:'REVOKED',initialized:true,
+   supply_raw:'1000',extension_audit:'NOT_APPLICABLE',observed_risk:'PASS',
+   contract_security:'UNKNOWN',sellability:'UNKNOWN'}};
+ b.results=[v];
+ const out=sanitizePoolReadbacks(b,{now});
+ assert.equal(out[0].solana_mint_authority,'UNKNOWN');
+ assert.equal(out[0].solana_mint_header_risk,'UNKNOWN');
+});

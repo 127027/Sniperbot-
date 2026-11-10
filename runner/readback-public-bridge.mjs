@@ -36,6 +36,25 @@ export function sanitizePoolReadbacks(value,{now=Date.now()}={}){
    chain.amount_specific_sell_quote===false&&
    ['UNKNOWN','CODE_PRESENT','ACCOUNTS_REPORTED'].includes(chain.existence_status)?
     chain.existence_status:'UNKNOWN';
+  const header=chainStatus==='ACCOUNTS_REPORTED'&&x.candidate_id.startsWith('solana:')?
+    chain?.solana_mint_header:null;
+  const validHeader=header?.schema==='solana_mint_header_risk.v1'&&
+   header.paper_only===true&&header.actionable===false&&
+   header.paper_entry_authorized===false&&
+   header.contract_security==='UNKNOWN'&&header.sellability==='UNKNOWN'&&
+   ['SPL_TOKEN_LEGACY','TOKEN_2022'].includes(header.mint_program)&&
+   ['REVOKED','RETAINED'].includes(header.mint_authority)&&
+   ['REVOKED','RETAINED'].includes(header.freeze_authority)&&
+   ['CAUTION','HEADER_ONLY_NO_KNOWN_AUTHORITY'].includes(header.observed_risk)&&
+   (header.mint_program==='TOKEN_2022')===(header.extension_audit==='REQUIRED')&&
+   ((header.observed_risk==='HEADER_ONLY_NO_KNOWN_AUTHORITY')===
+      (header.mint_program==='SPL_TOKEN_LEGACY'&&
+       header.mint_authority==='REVOKED'&&header.freeze_authority==='REVOKED'&&
+       header.initialized===true&&header.supply_raw!=='0'));
+  const mintStatus=validHeader?header.mint_authority:'UNKNOWN';
+  const freezeStatus=validHeader?header.freeze_authority:'UNKNOWN';
+  const mintRisk=validHeader?header.observed_risk:'UNKNOWN';
+  const mintProgram=validHeader?header.mint_program:'UNKNOWN';
   // Defensive output whitelist: no input extras, no prices, no identifiers beyond pool ID.
   return [{
    candidate_id:x.candidate_id,
@@ -43,6 +62,8 @@ export function sanitizePoolReadbacks(value,{now=Date.now()}={}){
    status:x.status,market_identity_verified:x.market_identity_verified,
    reason:x.reason,source_names:['GECKOTERMINAL','DEXSCREENER'],
    onchain_existence_status:chainStatus,
+   solana_mint_program:mintProgram,solana_mint_authority:mintStatus,
+   solana_freeze_authority:freezeStatus,solana_mint_header_risk:mintRisk,
    contract_status:'UNKNOWN',sellability_status:'UNKNOWN',
    executable_sell_quote:false,paper_entry_authorized:false,
    paper_only:true,actionable:false
