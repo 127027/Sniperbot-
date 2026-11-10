@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {generateKeyPairSync,sign} from 'node:crypto';
 import {allocatePaper} from './allocation.mjs';
 import {receiveDecision,unsigned} from './central-decisions.mjs';
-import {freshState} from './core.mjs';
+import {freshState,applyExits} from './core.mjs';
 const {privateKey,publicKey}=generateKeyPairSync('ed25519');
 const keys=[{key_id:'test-key-001',issuer:'test-central',scope:'synthetic',public_key_pem:publicKey.export({type:'spki',format:'pem'})}];
 const now=Date.now();
@@ -98,4 +98,23 @@ test('signed target is independent of breakout rating, respects local 50-100 ran
  assert.equal(s.positions[0].amountUsdc,100);
  assert.equal(s.cashUsdc,900);
  assert.throws(()=>receiveDecision(funded(),buy({allocation_intent:'TARGET',target_test_usdc:null}),keys,options()),/Kapitalstrategie/);
+});
+
+test('synthetic 5-role approved demo enters, rides 3x pump and autonomously trailing-exits with bot OFF',()=>{
+ const initial={...funded(100),defaultExitMode:'TRAILING',trailingPercent:25,stopLoss:10};
+ const d=buy({allocation_intent:'HIGH_CONVICTION'});
+ let s=receiveDecision(initial,d,keys,options(d));
+ assert.equal(s.positions.length,1);
+ assert.equal(s.cashUsdc,0);
+ assert.equal(s.positions[0].isDemo,true);
+ const quoteAt=new Date().toISOString();
+ s={...s,positions:s.positions.map(p=>({...p,priceUsd:3,markAt:quoteAt}))};
+ s=applyExits(s);
+ assert.equal(s.positions.length,1,'3x price rise must not auto-cap gains at +15%');
+ assert.equal(s.positions[0].highWaterPrice,3);
+ s={...s,entriesEnabled:false,positions:s.positions.map(p=>({...p,priceUsd:2.15,markAt:quoteAt}))};
+ s=applyExits(s);
+ assert.equal(s.positions.length,0,'drawdown from high triggers autonomous demo exit even with entries OFF');
+ assert(s.cashUsdc>100,'hypothetical demo profit does not imply real sellable profit');
+ assert(s.history.some(h=>h.title?.includes('AUTO-EXIT')));
 });
