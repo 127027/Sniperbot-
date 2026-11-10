@@ -2,6 +2,7 @@
 // No portfolio, no keys, no BUY/SELL, no wallets, no trading.
 // This CANNOT certify security, profitability or an actual executable swap.
 import {readbackExactPool} from './live-pool-readback.mjs';
+import {checkReadOnlyOnchainExistence} from './onchain-existence-readback.mjs';
 const url='https://raw.githubusercontent.com/127027/Sniperbot-/codex/research-gateway-v04/research/market/latest.json';
 try{
  const response=await fetch(url,{redirect:'error',headers:{accept:'application/json'},
@@ -18,12 +19,14 @@ try{
    typeof x.token_address==='string'&&typeof x.pool_address==='string');
  if(!c)throw Error('NO_SUITABLE_PUBLIC_CANDIDATE');
  const report=await readbackExactPool(c);
+ const chainReport=await checkReadOnlyOnchainExistence(c);
  console.log('LIVE_PUBLIC_POOL_PROBE',JSON.stringify({
   checked_at_utc:report.checked_at_utc,candidate_id:report.candidate_id,
   status:report.status,reason:report.reason,
   providers:report.sources.map(s=>({provider:s.provider,
    identity_match:s.identity_match,error:s.error})),
-  paper_entry_authorized:false,live_authorized:false
+  onchain_existence:chainReport.existence_status,
+  onchain_reason:chainReport.reason,paper_entry_authorized:false,live_authorized:false
  }));
 }catch(e){
  console.log('LIVE_PUBLIC_POOL_PROBE_INCONCLUSIVE',String(e?.message||'UNAVAILABLE').slice(0,100));
