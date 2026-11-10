@@ -18,6 +18,7 @@ import {readSolanaOwnedTokens} from './solana-owned-tokens.mjs';
 import {recentSolanaWalletActivity} from './solana-wallet-activity.mjs';
 import {previewJupiterUnsignedOrder} from './solana-unsigned-order.mjs';
 import {assessWalletSolSpend} from './solana-wallet-spend-preflight.mjs';
+import {verifyFinalizedSolanaReceipt} from './solana-finalized-receipt.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
@@ -230,6 +231,18 @@ const server=createServer(async(req,res)=>{
   }catch(e){return error(res,422,e?.code==='EEXIST'?
     'Vorhandene Wallet wird niemals überschrieben':
     String(e?.message||'BACKUP_NOT_VERIFIED').slice(0,100))}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/receipt'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Bestätigung möglich');
+  if(!allowRequest('wallet-transaction-receipt'))return error(res,429,'Zu viele Belegprüfungen');
+  try{
+   const u=new URL(req.url,'http://127.0.0.1:'+port);
+   const receipt=await verifyFinalizedSolanaReceipt({
+    wallet:wallet.address,signature:u.searchParams.get('signature')});
+   return reply(res,200,{ok:true,receipt});
+  }catch{return error(res,422,'Ungültige Signatur oder Blockchain-Antwort nicht verfügbar')}
  }
  if(req.method==='GET'&&route==='/api/wallet/activity'){
   const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
