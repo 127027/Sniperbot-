@@ -2,6 +2,7 @@
 // Local cache: .local/research-market/. Automatic cleanup ONLY inside its history/ folder.
 import {collectSnapshot,writeSnapshot} from './research-market-collector.mjs';
 import {runFollowups} from './memecoin-followups.mjs';
+import {detectEarlyMarketAcceleration} from './research-hype-triggers.mjs';
 import {publishResearchSnapshot,publishingEnabled} from './research-market-publisher.mjs';
 import {mkdir,readdir,stat,unlink,open,readFile,writeFile,rename} from 'node:fs/promises';
 import path from 'node:path';
@@ -23,6 +24,7 @@ const fileTimestamp=iso=>iso.replace(/[-:.]/g,'');
 const statusFile=path.join(cache,'status.json');
 const latestFile=path.join(cache,'latest.json');
 const followupFile=path.join(root,'.local','research-learning','pools.json');
+const alertFile=path.join(root,'.local','research-learning','market-alerts.json');
 
 async function atomicJson(filename,value){
   await mkdir(path.dirname(filename),{recursive:true});
@@ -62,6 +64,31 @@ export async function pruneHistory({folder=history,now=Date.now(),
   }
   return {deleted,remaining,bytes:total};
 }
+export async function appendResearchAlerts(events,{filename=alertFile,now=Date.now()}={}){
+ if(!Array.isArray(events)||events.length>24||
+    events.some(e=>e?.paper_only!==true||e.actionable!==false||
+      typeof e.event_id!=='string'||!/^research-alert-[a-f0-9]{32}$/.test(e.event_id)))
+   throw Error('RESEARCH_ALERTS_MUST_BE_READ_ONLY');
+ let existing={schema:'research_alert_history.v1',paper_only:true,actionable:false,events:[]};
+ try{
+  const raw=await readFile(filename);
+  if(raw.length>4*1024*1024)throw Error('RESEARCH_ALERT_JOURNAL_TOO_LARGE');
+  existing=JSON.parse(raw.toString('utf8'));
+ }catch(e){if(e.code!=='ENOENT')throw e}
+ if(existing.schema!=='research_alert_history.v1'||existing.paper_only!==true||
+   existing.actionable!==false||!Array.isArray(existing.events)||existing.events.length>1100)
+   throw Error('INVALID_RESEARCH_ALERT_JOURNAL');
+ const seen=new Set(existing.events.map(e=>e.event_id)),added=[];
+ for(const e of events){if(seen.has(e.event_id))continue;
+  seen.add(e.event_id);added.push(e)}
+ const oldest=now-45*86400_000;
+ const kept=[...existing.events,...added].filter(e=>Number.isFinite(Date.parse(e.observed_at_utc))&&
+   Date.parse(e.observed_at_utc)>=oldest).slice(-1000);
+ if(added.length||kept.length!==existing.events.length){
+  await atomicJson(filename,{...existing,events:kept});
+ }
+ return {added:added.length,retained:kept.length};
+}
 async function acquireLock(){
   await mkdir(cache,{recursive:true});
   const filename=path.join(cache,'collector.pid');
@@ -89,7 +116,20 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
  now=new Date().toISOString(),publish=false}={}){
   const snapshot=await collectSnapshot({fetcher,now});
   const success=snapshot.collection_status!=='BLOCKED_RESEARCH_DATA_ACCESS';
+  let marketAlerts={schema:'research_market_triggers.v1',paper_only:true,actionable:false,
+   events:[],evaluated_pairs:0,reason:'NO_LIVE_SNAPSHOT'};
+  let alertJournal=null,alertError=null;
   if(success){
+    let previous=null;
+    try{previous=JSON.parse(await readFile(latestFile,'utf8'))}
+    catch(e){if(e.code!=='ENOENT')alertError='PREVIOUS_SNAPSHOT_UNREADABLE'}
+    marketAlerts=detectEarlyMarketAcceleration(previous,snapshot);
+    // Public GitHub relay carries ONLY non-actionable market observations.
+    snapshot.research_alerts=marketAlerts.events;
+    if(marketAlerts.events.length){
+      try{alertJournal=await appendResearchAlerts(marketAlerts.events,{now:Date.parse(now)})}
+      catch(e){alertError=String(e?.message||'ALERT_JOURNAL_FAILED').replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,100)}
+    }
     await writeSnapshot(snapshot,latestFile);
     await saveHistory(snapshot);
   }
@@ -110,6 +150,9 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     status:success?'RUNNING_RESEARCH':'BLOCKED_RESEARCH_DATA_ACCESS',
     candidate_count:snapshot.candidates.length,
     coverage:snapshot.coverage,history:clean,followups,followup_error:followupError,
+    market_alerts:{events_found:marketAlerts.events.length,
+      compared_pairs:marketAlerts.evaluated_pairs,
+      new_local_alerts:alertJournal?.added??0,local_alert_error:alertError},
     publishing_enabled:publishingEnabled(),published_commit:published?.commit_sha||null,
     publish_error:publishError
   });
@@ -117,7 +160,9 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     'history='+clean.remaining,published?'GitHubCommit='+published.commit_sha:'',
     publishError?'GitHubPublishError='+publishError:'',
     followups?'FollowupOK='+followups.followup_ok+' Active='+followups.monitored_active:'',
-    followupError?'FollowupError='+followupError:'');
+    followupError?'FollowupError='+followupError:'',
+    'MarketAlerts='+marketAlerts.events.length,
+    alertError?'AlertsError='+alertError:'');
   return {snapshot,published};
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
