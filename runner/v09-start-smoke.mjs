@@ -82,7 +82,17 @@ try{
  const walletStatus=await read('/api/wallet/status');
  assert.equal(walletStatus.wallet.exists,true);
  assert.equal(walletStatus.wallet.address,newWallet.wallet.address);
- const encryptedBackup=await read('/api/wallet/encrypted-backup');
+ const anonymousBackup=await fetch(base+'/api/wallet/encrypted-backup');
+ assert.equal(anonymousBackup.status,404,'encrypted backup must never be exported via GET');
+ const wrongBackup=await fetch(base+'/api/wallet/encrypted-backup',{method:'POST',
+  headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({password:walletPassword+'WRONG'})});
+ assert.equal(wrongBackup.status,422);
+ const authorizedBackup=await fetch(base+'/api/wallet/encrypted-backup',{method:'POST',
+  headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({password:walletPassword})});
+ assert.equal(authorizedBackup.status,200);
+ const encryptedBackup=await authorizedBackup.json();
  assert.equal(encryptedBackup.ok,true);
  assert(!JSON.stringify(encryptedBackup).includes(walletPassword));
  const verifyBackup=await fetch(base+'/api/wallet/verify-backup',{method:'POST',
@@ -94,6 +104,10 @@ try{
   headers:{origin:base,'content-type':'application/json'},
   body:JSON.stringify({password:walletPassword})});
  assert.equal(duplicateWallet.status,422);
+ const offlineTokens=await fetch(base+'/api/wallet/tokens');
+ assert.equal(offlineTokens.status,503);
+ const offlineRoundtrip=await fetch(base+'/api/wallet/swap-roundtrip?outputMint=So11111111111111111111111111111111111111112&amountLamports=100000000');
+ assert.equal(offlineRoundtrip.status,503);
  const offlineWalletBalance=await fetch(base+'/api/wallet/balance');
  assert.equal(offlineWalletBalance.status,503);
 
