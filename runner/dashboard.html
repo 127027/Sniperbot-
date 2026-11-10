@@ -242,6 +242,7 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
       <h3>Wallet sichern und Wiederherstellung testen</h3>
       <p>Die heruntergeladene Datei enthält nur verschlüsselte Wallet-Schlüsseldaten. Sichere sie auf einem separaten, nicht mit OneDrive synchronisierten Datenträger. Passwort getrennt aufbewahren.</p>
       <div class="controls">
+        <label>Wallet-Passwort für sicheren Export<input id="walletBackupExportPassword" type="password" autocomplete="off"></label>
         <button id="walletBackupDownload" class="btn" type="button">Verschlüsselte Sicherung herunterladen</button>
       </div>
       <label>Backup-Datei für Prüfung<input id="walletBackupFile" type="file" accept=".json,application/json"></label>
@@ -666,8 +667,11 @@ async function getEncryptedWalletFile(id){
  return JSON.parse(await file.text());
 }
 $('walletBackupDownload').onclick=async()=>{
+ const password=$('walletBackupExportPassword').value;
  try{
-  const r=await fetch('/api/wallet/encrypted-backup',{cache:'no-store'});
+  if(password.length<16)throw Error('Wallet-Passwort erforderlich.');
+  const r=await fetch('/api/wallet/encrypted-backup',{method:'POST',
+   headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});
   const d=await r.json();if(!r.ok)throw Error(d.error||'Keine Sicherung verfügbar');
   const blob=new Blob([JSON.stringify(d.encrypted_backup,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');
@@ -675,6 +679,7 @@ $('walletBackupDownload').onclick=async()=>{
   document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
   $('walletBackupResult').textContent='Verschlüsselte Sicherung angeboten. Bitte extern offline sichern und danach testen.';
  }catch(e){$('walletBackupResult').textContent='Sicherung fehlgeschlagen: '+e.message}
+ finally{$('walletBackupExportPassword').value=''}
 };
 $('walletBackupVerify').onclick=async()=>{
  const password=$('walletBackupPassword').value;
