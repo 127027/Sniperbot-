@@ -59,6 +59,7 @@ function assertResearch(s){
     const allowed=new Set(['candidate_id','checked_at_utc','status',
       'market_identity_verified','reason','source_names','contract_status',
       'sellability_status','executable_sell_quote','paper_entry_authorized',
+      'onchain_existence_status',
       'paper_only','actionable']);
     if(!Array.isArray(s.pool_readbacks)||s.pool_readbacks.length>3||
       s.pool_readbacks.some(e=>!e||Object.keys(e).length!==allowed.size||
@@ -66,6 +67,7 @@ function assertResearch(s){
         e.paper_only!==true||e.actionable!==false||
         e.contract_status!=='UNKNOWN'||e.sellability_status!=='UNKNOWN'||
         e.executable_sell_quote!==false||e.paper_entry_authorized!==false||
+        !['UNKNOWN','CODE_PRESENT','ACCOUNTS_REPORTED'].includes(e.onchain_existence_status)||
         !Array.isArray(e.source_names)||e.source_names.join(',')!=='GECKOTERMINAL,DEXSCREENER'||
         !['IDENTITY_MATCHED','UNVERIFIED'].includes(e.status)||
         (e.status==='IDENTITY_MATCHED')!==(e.market_identity_verified===true)||
