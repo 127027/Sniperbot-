@@ -5,7 +5,7 @@ import {LEGACY_TOKEN_PROGRAM,TOKEN_2022_PROGRAM} from './solana-mint-risk.mjs';
 import {SOLANA_MAINNET_RPC} from './local-solana-balance.mjs';
 const PROGRAMS=[LEGACY_TOKEN_PROGRAM,TOKEN_2022_PROGRAM];
 const UINT=/^(0|[1-9][0-9]{0,39})$/;
-const DISPLAY=/^(0|[1-9][0-9]{0,39})(\\.[0-9]{1,18})?$/;
+const DISPLAY=/^(0|[1-9][0-9]{0,39})([.][0-9]{1,18})?$/;
 const MAX_BYTES=262144;
 async function rpcOwner(owner,programId,fetcher){
  const reply=await fetcher(SOLANA_MAINNET_RPC,{
