@@ -78,6 +78,11 @@ export function runDailyBlindReplay({scenario_id,window_start_utc,window_end_utc
  const first=Math.floor(start/DAY)*DAY,last=Math.floor(end/DAY)*DAY;
  const reasons=new Map();
  const allowed=[];
+ // Diagnostic only: what publisher dates NOW claim existed, with NO proof
+ // that the present-day page body was historically available. NEVER passed
+ // to the decision/detection engine.
+ const claimedPublicationTimes=events.map(e=>isoMs(e?.original_published_at_utc))
+  .filter(Number.isFinite).sort((a,b)=>a-b);
  for(const e of events){
   const issue=eventProblem(e);
   if(issue)reasons.set(issue,(reasons.get(issue)||0)+1);
@@ -96,6 +101,7 @@ export function runDailyBlindReplay({scenario_id,window_start_utc,window_end_utc
   days.push({day_utc:isoDay(day),available_archived_events:available.length,
    possible_verified_pool_identities:candidates.length,
    candidates_with_market_and_two_hosts:ready.length,
+   retrospective_publication_date_claims_NOT_ADMISSIBLE:claimedPublicationTimes.filter(t=>t<=at).length,
    research_recommendations:0,
    simulated_buy_orders:0,simulated_sell_orders:0,
    reserved_test_usdc:0,
@@ -107,6 +113,8 @@ export function runDailyBlindReplay({scenario_id,window_start_utc,window_end_utc
   labels_accessible_to_detector:false,
   total_days:allDays,start_date_utc:isoDay(first),end_date_utc:isoDay(last),
   submitted_evidence:events.length,admitted_historical_captures:allowed.length,
+  earliest_retrospective_publication_claim_utc:claimedPublicationTimes.length?
+    new Date(claimedPublicationTimes[0]).toISOString():null,
   rejected_evidence:Object.fromEntries([...reasons].sort()),
   first_pool_discovered_at_utc:Object.fromEntries([...firstDiscovered].sort()),
   ever_discovered_pools:firstDiscovered.size,
