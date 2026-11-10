@@ -8,7 +8,8 @@ const mint='EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 const account=(program,amount='1234567',state='initialized')=>({
  account:{owner:program,data:{program:program===TOKEN_2022_PROGRAM?'spl-token-2022':'spl-token',
  parsed:{type:'account',
- info:{owner,mint,state,tokenAmount:{amount,decimals:6}}}}}});
+ info:{owner,mint,state,tokenAmount:{amount,decimals:6,
+ uiAmountString:amount==='250000'?'0.25':amount==='100000'?'0.1':'1.234567'}}}}}});
 function server({invalidOwner=false,freezeSecond=false}={}){
  const calls=[];
  const fetcher=async(url,opts)=>{
@@ -65,4 +66,33 @@ test('Solana RPC parsed program label at data.program must agree with actual own
    context:{slot:123},value}}),{status:200});
  };
  await assert.rejects(readSolanaOwnedTokens(owner,{fetcher}),/INVALID_SOLANA_TOKEN_ACCOUNT/);
+});
+
+test('scaled Token-2022 UI amount is taken from explicit RPC display, not base decimals',async()=>{
+ const fetcher=async(url,options)=>{
+  const program=JSON.parse(options.body).params[1].programId;
+  const entry=account(program,'10000000');
+  if(program===TOKEN_2022_PROGRAM)
+   entry.account.data.parsed.info.tokenAmount.uiAmountString='20';
+  const value=program===TOKEN_2022_PROGRAM?[entry]:[];
+  return new Response(JSON.stringify({jsonrpc:'2.0',id:1,result:{
+   context:{slot:42},value}}),{status:200});
+ };
+ const r=await readSolanaOwnedTokens(owner,{fetcher});
+ assert.equal(r.tokens.length,1);
+ assert.equal(r.tokens[0].amount_raw,'10000000');
+ assert.equal(r.tokens[0].ui_amount,'20');
+ assert.equal(r.tokens[0].ui_amount_source,'RPC_REPORTED_UI_AMOUNT');
+});
+test('unknown Token-2022 scaled display is explicitly unknown, never guessed',async()=>{
+ const fetcher=async(url,options)=>{
+  const program=JSON.parse(options.body).params[1].programId;
+  const entry=account(program,'10000000');
+  delete entry.account.data.parsed.info.tokenAmount.uiAmountString;
+  return new Response(JSON.stringify({jsonrpc:'2.0',id:1,result:{
+   context:{slot:42},value:program===TOKEN_2022_PROGRAM?[entry]:[]}}),{status:200});
+ };
+ const r=await readSolanaOwnedTokens(owner,{fetcher});
+ assert.equal(r.tokens[0].ui_amount,null);
+ assert.equal(r.tokens[0].ui_amount_source,'UNKNOWN_TOKEN_2022_SCALED_DISPLAY');
 });
