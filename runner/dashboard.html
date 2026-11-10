@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>Meme Sniper AI · PAPER</title>
+<title>Meme Sniper AI · Paper & Echtgeld</title>
 <style>
 :root{--bg:#0b1119;--panel:#141d28;--panel2:#1b2734;--line:#2b3b4c;--fg:#eff5fb;--muted:#94a3b7;--mint:#6ce5be;--yellow:#edc47b;--red:#f098a5}
 *{box-sizing:border-box}
@@ -106,6 +106,26 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
 .dot-error{color:var(--red);font-size:11px}
 @media(max-width:900px){.overview{grid-template-columns:1fr}.header-right{flex-wrap:wrap;justify-content:flex-end}.brand h1{font-size:18px}}
 @media(max-width:630px){main{padding:0 13px 30px}.topbar{align-items:flex-start;flex-wrap:wrap}.header-right{width:100%;justify-content:space-between}.dot-widget{width:100%;order:2}.dot-popup{position:static;width:100%;max-width:none;box-shadow:none;margin-top:8px}.lower{grid-template-columns:1fr}.equity{font-size:31px}.panel{padding:16px}.summary-grid{gap:9px}.metric{padding:12px}details.panel>summary{padding:15px}details.panel .details-body{padding:15px}.position-row{align-items:flex-start}.position-value strong{font-size:14px}}
+
+/* V0.18: Paper and live wallet are separate, never shared visual balances. */
+.workspace-switch{display:flex;gap:8px;background:var(--panel);padding:7px;border-radius:14px;border:1px solid var(--line);margin-top:18px}
+.workspace-tab{flex:1;border:0;border-radius:10px;color:var(--muted);background:transparent;padding:13px 16px;font:inherit;font-weight:750;cursor:pointer}
+.workspace-tab[aria-selected="true"]{background:#244236;color:var(--mint);box-shadow:inset 0 0 0 1px #4a9078}
+.workspace-tab[aria-selected="false"]:hover{background:var(--panel2)}
+.workspace-pane[hidden]{display:none!important}
+.workspace-advanced{margin-top:16px;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:3px 16px 14px}
+.workspace-advanced>summary{padding:14px 0;cursor:pointer;font-weight:750}
+.workspace-advanced .panel{margin-top:13px}
+.mode-block{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin:12px 0;padding:13px;border:1px solid var(--line);border-radius:12px}
+.mode-block input[type=checkbox]{width:23px;height:23px;cursor:not-allowed}
+.live-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.live-metric{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:13px;overflow-wrap:anywhere}
+.live-metric small{color:var(--muted);font-size:11px;display:block;margin-bottom:6px}
+.live-metric strong{font-size:20px}
+.workspace-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:16px}
+.workspace-actions a{display:inline-flex;align-items:center;text-decoration:none}
+@media(max-width:630px){.workspace-switch{margin-top:10px}.workspace-tab{padding:11px 7px}.live-grid{grid-template-columns:1fr 1fr}.live-grid .live-metric:first-child{grid-column:span 2}}
+
 </style>
 </head>
 <body>
@@ -133,6 +153,57 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
     </details>
   </div>
 </header>
+
+<nav class="workspace-switch" role="tablist" aria-label="Paper- oder Echtgeldbereich">
+  <button id="paperWorkspaceTab" class="workspace-tab" type="button" role="tab"
+    aria-selected="true" aria-controls="paperWorkspace">Paper-Trading</button>
+  <button id="realWorkspaceTab" class="workspace-tab" type="button" role="tab"
+    aria-selected="false" aria-controls="realWorkspace">Echtgeld</button>
+</nav>
+<div id="paperWorkspace" class="workspace-pane" role="tabpanel" aria-labelledby="paperWorkspaceTab"></div>
+<div id="realWorkspace" class="workspace-pane" role="tabpanel" aria-labelledby="realWorkspaceTab" hidden>
+  <section class="panel section" aria-label="Echtgeld-Wallet Überblick">
+    <div class="section-heading">
+      <h2>Meine echte Wallet</h2><span id="liveModeBadge" class="tag offline">ECHTGELDHANDEL GESPERRT</span>
+    </div>
+    <p>Hier werden ausschließlich echte, finalisierte Solana-Blockchain-Bestände angezeigt.
+      Virtuelle Paper-Euro und TEST-USDC erscheinen niemals als Echtgeld.</p>
+    <div class="live-grid">
+      <div class="live-metric"><small>Wert in Euro</small><strong id="realEurTotal">— €</strong><div class="subtle">Kein geprüfter EUR-Kurs</div></div>
+      <div class="live-metric"><small>Echtes SOL</small><strong id="realSolTotal">— SOL</strong></div>
+      <div class="live-metric"><small>Echtes USDC auf Solana</small><strong id="realUsdcTotal">— USDC</strong></div>
+    </div>
+    <p id="realBalancesInfo" class="subtle">Guthaben noch nicht bei der Blockchain abgefragt.</p>
+    <div class="workspace-actions">
+      <button id="realRefreshOverview" type="button" class="btn">Blockchain-Guthaben aktualisieren</button>
+      <a class="btn" id="realFundingExternal" href="https://www.moonpay.com/buy/sol"
+        target="_blank" rel="noopener noreferrer">Einzahlen – Zahlungsanbieter</a>
+      <a class="btn" id="realWithdrawExternal" href="https://www.moonpay.com/sell"
+        target="_blank" rel="noopener noreferrer">Auszahlen – Zahlungsanbieter</a>
+    </div>
+    <p class="warning">Ein- und Auszahlung führen zu einer externen Anbieter-Seite; es gibt
+      noch keine direkte PayPal-Anbindung. Keine Entwicklungs-Wallet finanzieren, bevor
+      Wiederherstellung und Auszahlung auf deinem Laptop unabhängig abgenommen sind.</p>
+    <div class="mode-block">
+      <div><strong>Echtgeldhandel</strong><div class="subtle">AN / AUS – derzeit wegen fehlendem geprüften DEX-Executor gesperrt</div></div>
+      <label class="check" for="realLiveSwitch">
+        <span id="liveSwitchLabel">AUS</span>
+        <input id="realLiveSwitch" type="checkbox" role="switch"
+          aria-label="Echtgeldhandel aktivieren oder deaktivieren" aria-checked="false" disabled>
+      </label>
+    </div>
+    <div class="workspace-actions">
+      <button id="liveModeForceOff" type="button" class="btn">Echtgeldhandel sicher AUS</button>
+    </div>
+    <p id="liveModeStatus" class="subtle">Prüfe Backend-Freigabe. Echtgeld-Trades bleiben AUS.</p>
+    <h3 style="margin-top:17px">Echte Positionen und Gewinne</h3>
+    <p id="realOpenPositions" class="subtle">Keine durch den Bot bestätigten Live-Fills. Positionen und P&amp;L werden nicht aus bloßen Kursabfragen erzeugt.</p>
+  </section>
+</div>
+<details id="workspaceAdvanced" class="workspace-advanced">
+  <summary>Erweitert: Forschung, GitHub-Zentrale und technische Diagnose</summary>
+  <div id="workspaceAdvancedContent"></div>
+</details>
 
 <section class="overview" aria-label="Bot-Übersicht">
   <div class="panel">
@@ -483,6 +554,132 @@ Bisher keine signierten Aufträge abgerufen. Alle Live-Trades sind deaktiviert.<
 <script>
 let lastState=null,lastHealth=null,waiting=false,initialized=false;
 const $=id=>document.getElementById(id);
+
+function initializeWorkspaces(){
+ const paper=$('paperWorkspace'),real=$('realWorkspace');
+ const overview=document.querySelector('section.overview');
+ const research=document.querySelector('section[aria-label="Gemeinsame Cloud-Forschung"]');
+ const diagnostics=document.querySelector('details.panel.section');
+ const system=document.querySelector('section[aria-label="V0.9 Status und Finanzierungs-Vorschau"]');
+ const devices=document.querySelector('section[aria-label="Zentrale und verknüpfte Geräte"]');
+ const wallet=document.querySelector('section[aria-label="Eurokonto, PayPal und Wallet"]');
+ const router=document.querySelector('section[aria-label="Tokenunabhängiger Routenprüfer"]');
+ const positions=$('positions')?.closest('section.panel.section');
+ const lower=document.querySelector('div.lower');
+ if(!overview||!research||!system||!devices||!wallet||!router||!positions||!lower)
+  throw Error('WORKSPACE_LAYOUT_MISSING_REQUIRED_SECTION');
+ const paperCash=document.createElement('section');
+ paperCash.className='panel section';
+ paperCash.setAttribute('aria-label','Ausschließlich virtuelle Paper-Einzahlungen');
+ paperCash.innerHTML='<div class="section-heading"><h2>Virtuelles Testguthaben</h2><span class="tag paper">NUR PAPER</span></div>';
+ const paperHeading=wallet.querySelector('h3');
+ const paperHelp=paperHeading.nextElementSibling;
+ const paperControls=$('paperEurInput').closest('.controls');
+ const cashGrid=wallet.querySelector('.summary-grid');
+ paperCash.append(cashGrid,paperHeading,paperHelp,paperControls,$('paperEurResult'));
+ const realHeading=wallet.querySelector('.section-heading');
+ realHeading.querySelector('h2').textContent='Lokale Wallet und Zahlungsweg';
+ realHeading.querySelector('.tag').textContent='REAL-WALLET · LIVE AUS';
+ realHeading.querySelector('.tag').classList.remove('paper');
+ paper.append(overview,paperCash,positions,lower);
+ real.append(wallet);
+ // Existing research/Dot internals remain alive but do not dominate either page.
+ const routeAdvanced=document.createElement('details');
+ routeAdvanced.className='panel section';
+ routeAdvanced.innerHTML='<summary style="padding:5px 0;cursor:pointer;font-weight:700">Dynamische Coin-Routen und signierte Dot-Aufträge (nur Vorschau)</summary>';
+ routeAdvanced.append(router);
+ real.append(routeAdvanced);
+ $('workspaceAdvancedContent').append(research,system,devices,diagnostics);
+ // Move additional technical controls into an explicitly collapsed section.
+ const existing=$('walletExisting');
+ const tech=document.createElement('details');
+ tech.className='section';
+ tech.innerHTML='<summary style="cursor:pointer;font-weight:700">Wallet-Backup, Belege, Transaktionshistorie und technische Swap-Prüfungen</summary>';
+ const backupHeading=[...existing.querySelectorAll('h3')].find(e=>e.textContent.trim()==='Wallet sichern und Wiederherstellung testen');
+ const backupPanel=backupHeading?.parentElement;
+ const receiptArea=$('walletReceiptVerify')?.closest('div[style]');
+ const technicalSwap=[...existing.querySelectorAll('h3')].find(e=>e.textContent.startsWith('Neuen Solana-Coin:'));
+ if(backupPanel)tech.append(backupPanel);
+ if(receiptArea)tech.append(receiptArea);
+ tech.append($('walletActivityList'));
+ if(technicalSwap){
+  const controls=technicalSwap.nextElementSibling;
+  tech.append(technicalSwap,controls,$('walletQuoteResult'),$('walletUnsignedResult'));
+ }
+ existing.append(tech);
+ function chooseWorkspace(mode){
+  const onPaper=mode==='paper';
+  paper.hidden=!onPaper;real.hidden=onPaper;
+  $('paperWorkspaceTab').setAttribute('aria-selected',String(onPaper));
+  $('realWorkspaceTab').setAttribute('aria-selected',String(!onPaper));
+  document.title='Meme Sniper AI · '+(onPaper?'Paper-Trading':'Echtgeld (gesperrt)');
+ }
+ $('paperWorkspaceTab').onclick=()=>chooseWorkspace('paper');
+ $('realWorkspaceTab').onclick=()=>chooseWorkspace('real');
+ chooseWorkspace('paper');
+}
+async function refreshRealModePolicy(){
+ try{
+  const res=await fetch('/api/trading/live-mode',{cache:'no-store'});
+  const body=await res.json();
+  const gate=body.gate;
+  if(!res.ok||!body.ok||gate?.enabled!==false||gate?.can_enable!==false)
+   throw Error('Backend-Live-Sperre nicht bestätigt');
+  $('realLiveSwitch').checked=false;
+  $('realLiveSwitch').disabled=true;
+  $('realLiveSwitch').setAttribute('aria-checked','false');
+  $('liveSwitchLabel').textContent='AUS';
+  $('liveModeBadge').textContent='ECHTGELDHANDEL GESPERRT';
+  $('liveModeStatus').textContent=gate.message;
+ }catch(e){
+  $('realLiveSwitch').checked=false;$('realLiveSwitch').disabled=true;
+  $('liveModeBadge').textContent='LIVE-MODUS NICHT VERIFIZIERBAR';
+  $('liveModeStatus').textContent='Sicher AUS: '+e.message;
+ }
+}
+$('liveModeForceOff').onclick=async()=>{
+ try{
+  const res=await fetch('/api/trading/live-mode',{method:'POST',
+   headers:{'content-type':'application/json'},body:JSON.stringify({enabled:false})});
+  if(!res.ok)throw Error('Sperre konnte nicht bestätigt werden');
+  await refreshRealModePolicy();
+ }catch(e){$('liveModeStatus').textContent='Echtgeldmodus bleibt gesperrt; Server nicht verifizierbar: '+e.message}
+};
+$('realLiveSwitch').onchange=()=>{
+ $('realLiveSwitch').checked=false;
+ $('realLiveSwitch').disabled=true;
+ $('liveModeStatus').textContent='AN ist nicht möglich – das Backend sperrt echte Swap-Orders.';
+};
+async function refreshRealBalanceView(){
+ $('realBalancesInfo').textContent='Prüfe echte finalisierte Blockchain-Bestände …';
+ try{
+  const res=await fetch('/api/wallet/overview',{cache:'no-store'});
+  const data=await res.json();
+  if(!res.ok||!data.ok)throw Error(data.error||'Guthaben nicht unabhängig abrufbar');
+  const v=data.overview;
+  if(v?.paper_ledger_unchanged!==true||
+   v.live_trading_enabled!==false||v.paypal_deposit_confirmed!==false||
+   typeof v.sol_display!=='string'||typeof v.usdc_display!=='string')
+   throw Error('Ungültiger Blockchain-Bestandsnachweis');
+  $('realSolTotal').textContent=v.sol_display+' SOL';
+  $('realUsdcTotal').textContent=v.usdc_display+' USDC';
+  $('realEurTotal').textContent='— €';
+  $('realBalancesInfo').textContent='Echte Wallet: '+v.wallet_address+
+   ' · SOL finalisiert bei Slot '+v.sol_finalized_slot+
+   ', Token finalisiert bei Slot '+v.tokens_finalized_slot+
+   '. Euro-Gegenwert und Einstandskurse nicht nachgewiesen. Keine PayPal-Zahlungsbestätigung.';
+  $('realOpenPositions').textContent='Noch keine unabhängig bestätigten Bot-Live-Käufe oder Verkäufe.'+
+   ' Echte Tokenbestände sind keine automatisch berechneten Positionen.';
+ }catch(e){
+  $('realSolTotal').textContent='— SOL';
+  $('realUsdcTotal').textContent='— USDC';
+  $('realEurTotal').textContent='— €';
+  $('realBalancesInfo').textContent='Echtes Guthaben nicht verifiziert: '+e.message;
+ }
+}
+$('realRefreshOverview').onclick=refreshRealBalanceView;
+initializeWorkspaces();
+refreshRealModePolicy();
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=(x,d=2)=>Number.isFinite(Number(x))?Number(x).toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d}):'–';
 const t=x=>x&&Number.isFinite(Date.parse(x))?new Date(x).toLocaleString('de-DE'):'–';
