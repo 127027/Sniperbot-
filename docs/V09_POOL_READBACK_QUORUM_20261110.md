@@ -5,6 +5,8 @@
 1. `runner/research-network.mjs` holt die fünf vorhandenen öffentlichen Rollenberichte aus `codex/research-gateway-v04`. Hier wird **kein** BUY/SELL erzeugt.
 2. `runner/readback-batch.mjs` wählt höchstens drei priorisierte, nicht archivierte Watchlist-Kandidaten aus frischem Research. Der laufende Windows-Server ruft `runner/live-pool-readback.mjs` beim ersten gültigen GitHub-Forschungsabruf und anschließend höchstens alle 5 Minuten auf.
 3. `runner/live-pool-readback.mjs` fragt exakt angegebene Chain + Token + Pool bei **GeckoTerminal** und **DEX Screener** nach. HTTP-Abbruch, Größenbegrenzung (256 KiB je Antwort), Adressvalidierung, Preis- und Liquiditätskonflikt, Timeout, Quellenfehler. Stets `paper_entry_authorized:false`, `contract_status:'UNKNOWN'`, `sellability_status:'UNKNOWN'`, `executable_sell_quote:false`.
+**Ergänzung (RPC):** `runner/onchain-existence-readback.mjs` prüft parallel nur die **Existenz** öffentlicher Konten/Contract-Bytecodes via `getAccountInfo` (Solana) bzw. `eth_chainId`+`eth_getCode` (Ethereum, Base, BSC), ohne Transaktion, Keys, Wallet oder Buy-/Sell-Swap. Eine fehlende RPC-Antwort, falsche Chain-ID oder fehlender Contract-Code erzeugt `UNKNOWN`. Auch vorhandene Contracts erhalten **niemals** `contract_security:'PASS'` oder `sellability:'PASS'`. Das Chain-Ergebnis wird lediglich als `onchain_existence_status` in der streng begrenzten GitHub-Rückmeldung mitgegeben. Öffentliche RPC-Endpunkte können rate-limited oder nicht produktionsgeeignet sein.
+
 4. `runner/readback-history.mjs` speichert jedes Ergebnis in einem lokalen append-only UTC-Evidenzarchiv unter `.local/research-learning/pool-readbacks/history/` und die letzte gesicherte Momentaufnahme als `latest.json`. Kein Zugriff auf `%LOCALAPPDATA%\MemeSniperPaper`-Kontostände.
 5. `GET /api/v09/pool-readbacks` sowie das Dashboard **V0.9 · Systemprüfung** zeigen die **abgerufenen** oder ausdrücklich `UNVERIFIED` gebliebenen Poolidentitäten. Identität zweier Kursaggregatoren bedeutet keine unabhängige On-chain-Bestätigung, keine Sicherheitsfreigabe und keine ausführbare BUY-/SELL-Quote.
 6. Der bestehende separate Windows-Markt-Collector verwendet `runner/readback-public-bridge.mjs`, um aus `latest.json` höchstens drei bis 15 Minuten alte, streng auf öffentliche Felder reduzierte Pool-Notizen zurück in sein bereits bestehendes `research/market/latest.json` zu geben. Veröffentlichung erfolgt **nur wenn der bereits gesicherte optionale GitHub-Publishing-Modus eingeschaltet ist**; kein Passwort, Seed, PayPal, Saldo oder Signal mit Handelsfreigabe.
@@ -14,6 +16,8 @@
 ## Offizieller externer API-Stand
 - DEX Screener Pair API `GET /latest/dex/pairs/{chainId}/{pairId}`, URL, Base-Token-Adresse, Pair-Adresse, Preis und Liquidity (Aggregatordaten): https://docs.dexscreener.com/api/reference
 - GeckoTerminal `GET /networks/{network}/pools/{address}` ist eine öffentliche **Beta-API**, ungefähr 10 Requests/min, mit über die Plattform aggregierten Pools: https://api.geckoterminal.com/docs/index.html
+- Direkte, nur lesende RPC-Methoden: https://ethereum.org/developers/docs/apis/json-rpc/ ; https://basehub.org/api-reference/rpc-overview/ ; https://docs.bnbchain.org/bnb-smart-chain/developers/wallet-configuration/ ; https://solana.com/docs/references/clusters
+
 - Die neue zusätzliche 3er-Batch-Frequenz hat bewusst ein kleines eigenes Budget. Bestehende Quellen können Rate Limits, unterschiedliche Caches und widersprüchliche Poolreserven besitzen; bei Konflikt wird nicht gehandelt.
 
 ## Nachgewiesene Tests
