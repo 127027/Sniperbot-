@@ -49,6 +49,9 @@ export async function fetchIndicativeSolanaRoute({
 export async function fetchIndicativeSolanaQuote({outputMint,amountLamports,
  fetcher=fetch,now=new Date().toISOString()}={}){
  if(outputMint===SOL_MINT)throw Error('OUTPUT_TOKEN_MUST_DIFFER_FROM_SOL');
+ if(typeof amountLamports!=='string'||!UINT.test(amountLamports)||
+  BigInt(amountLamports)<10000n||BigInt(amountLamports)>100000000000n)
+  throw Error('INVALID_SOL_SWAP_AMOUNT');
  const q=await fetchIndicativeSolanaRoute({
   inputMint:SOL_MINT,outputMint,amountAtoms:amountLamports,fetcher,now});
  return {
