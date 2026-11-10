@@ -301,7 +301,9 @@ function render(force){
   const learning=lastHealth?.localLearning;
   $('localLearningStatus').textContent=learning?.available
     ? 'Lokale Pool-Nachbeobachtung: '+learning.monitored_active+' aktive · '+learning.completed+
-      ' abgeschlossene 14-Tage-Kohorten · Markt-Beschleunigungen beim letzten Scan: '+(learning.latest_market_alerts??0)+' · zuletzt '+t(learning.checked_at_utc)+
+      ' abgeschlossene 14-Tage-Kohorten · neue News der letzten Stunde: '+(learning.recent_public_news_leads??0)+
+      ' · lokal archivierte News: '+(learning.locally_archived_news_events??0)+
+      ' · Markt-Beschleunigungen beim letzten Scan: '+(learning.latest_market_alerts??0)+' · zuletzt '+t(learning.checked_at_utc)+
       (learning.stale?' · Daten veraltet':'')+
       (learning.warning?' · Fehler: '+learning.warning:'')
     : 'Lokale Pool-Nachbeobachtung: noch keine Messdaten im neuen Forschungsarchiv';
