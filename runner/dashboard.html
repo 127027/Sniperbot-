@@ -188,12 +188,13 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
   <details class="panel" id="settingsDetails">
     <summary>Einstellungen</summary>
     <div class="details-body">
-      <p>Die Grenzen gelten pro Paper-Kauf. Kleine Chancen dürfen beim Minimum bleiben; außergewöhnliche Chancen können nach fünf unabhängigen Prüfungen mehr freies Kapital erhalten. Forschungsscores bestimmen den Einsatz NICHT automatisch.</p>
+      <p><strong>V0.6 Gesamtbudget:</strong> Die erste Zahl ist der bevorzugte normale Einsatz, keine Mindestgrenze. Die zweite Zahl begrenzt den Einsatz aller offenen Positionen zusammen. Einzelne Testkäufe dürfen flexibel ab 50 USDC erfolgen. Keine feste Score-Prozent-zu-Betrag-Formel, kein Zwang zur Vollinvestition.</p>
       <div class="controls">
-        <label>Mindesteinsatz<input id="min" type="number" min="1" max="100000" step="0.01"></label>
-        <label>Höchsteinsatz<input id="max" type="number" min="1" max="100000" step="0.01"></label>
-        <button id="range" class="btn" type="button">Grenzen speichern</button>
+        <label>Bevorzugter Einsatz<input id="min" type="number" min="50" max="100000" step="0.01"></label>
+        <label>Gesamtbudget USDC<input id="max" type="number" min="50" max="100000" step="0.01"></label>
+        <button id="range" class="btn" type="button">Budget speichern</button>
       </div>
+      <p id="paperBudgetStatus" class="subtle">Papier-Budget wird eingelesen …</p>
       <label class="check"><input type="checkbox" id="centralFollow">Zentralen Paper-Follower aktivieren</label>
       <p class="subtle">Eingeschaltet bedeutet nicht, dass bereits signierte Orders zugestellt werden. Ohne Publisher, Contract- und Sellability-Prüfung bleiben externe automatische Käufe blockiert.</p>
     </div>
@@ -325,12 +326,17 @@ function render(force){
        '<div class="subtle">Signierte Paper-Käufe: GESPERRT (Contract, Exit-Quote, 5 unabhängige Freigaben fehlen)</div></details>';
     }).join('')
     : '';
+  const portfolioLimit=Number(s.portfolioBudgetUsdc??s.maxTrade);
+  const reservedCost=positions.reduce((a,p)=>a+number(p.amountUsdc),0);
+  const allocationFree=Math.max(0,Math.min(portfolioLimit-reservedCost,free));
+  $('paperBudgetStatus').textContent='Gesamtbudget: '+money(portfolioLimit)+' · offene Einsätze: '+money(reservedCost)+
+    ' · noch verfügbar: '+money(allocationFree)+' · Mindestgröße pro Kauf 50 USDC';
   $('centralFollow').checked=!!s.centralPaperFollow;
   $('accountStatus').textContent=(s.entriesEnabled||positions.length)?'Zum Ändern Bot ausschalten und Positionen schließen.':'Testkapital kann jetzt festgelegt werden.';
   $('setBalance').disabled=!!(s.entriesEnabled||positions.length);
   $('clearBalance').disabled=!!(s.entriesEnabled||positions.length);
   if(force||!initialized){
-    $('min').value=s.minTrade;$('max').value=s.maxTrade;
+    $('min').value=s.minTrade;$('max').value=s.portfolioBudgetUsdc??s.maxTrade;
     if(!initialized)$('paperBalance').value=Number(free.toFixed(2));
     initialized=true;
   }
