@@ -79,6 +79,14 @@ input[type=checkbox]{accent-color:var(--mint)}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:250px;overflow:auto;background:#0e151f;border:1px solid var(--line);padding:12px;border-radius:9px;font-size:11px}
 .statusline{min-height:22px;font-size:12px;color:var(--muted)}
 footer{font-size:11px;color:var(--muted);margin:22px 0}
+/* Match standard Windows/Edge input styles to the dark dashboard. */
+input[type=text],input[type=password],input[type=file],select,textarea{background:#0c141e;border:1px solid #3b4e60;border-radius:9px;color:var(--fg);min-height:42px;padding:9px 12px;font:inherit;max-width:100%}
+input[type=file]{height:auto;max-width:100%;width:100%;overflow-wrap:anywhere}
+label{min-width:0;max-width:100%}
+.controls label{max-width:100%}
+textarea{width:100%;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+
 /* Top-right Dot reception: local acknowledgements only. */
 .dot-widget{width:298px;max-width:100%;position:relative;flex-shrink:0;font-size:12px}
 .dot-toggle{list-style:none;display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);min-height:53px;cursor:pointer}
@@ -549,7 +557,7 @@ Bisher keine signierten Aufträge abgerufen. Alle Live-Trades sind deaktiviert.<
     <details><summary>Fünf-Agenten-Kommunikation · technische Diagnose</summary><div id="research"></div><pre id="researchLog"></pre></details>
   </div>
 </details>
-<footer>Paper-Trading-Prototyp · Kein Echtgeldhandel, keine PayPal-/Wallet-Anbindung, keine überprüften realen Swap- oder Sell-Routen. LIVE ist bewusst gesperrt.</footer>
+<footer>Sniperbot · Paper und echte lokale Solana-Wallet getrennt · Kein automatischer Echtgeldhandel oder direkter PayPal-Checkout · Live-Swaps gesperrt.</footer>
 </main>
 <script>
 let lastState=null,lastHealth=null,waiting=false,initialized=false;
