@@ -66,3 +66,26 @@ test('malicious address is refused before external network access',async()=>{
  assert.equal(r.reason,'INVALID_CHAIN_TOKEN_POOL');
  assert.equal(requests,0);
 });
+
+test('real Solana RPC-shaped 82-byte token mint header exposes authority risk only',async()=>{
+ const bytes=Buffer.alloc(82);
+ bytes.writeUInt32LE(1,0); // retained mint authority
+ bytes.writeBigUInt64LE(1000000000n,36);
+ bytes[44]=9;bytes[45]=1;bytes.writeUInt32LE(0,46);
+ const fetcher=async(url,options)=>{
+  const j=JSON.parse(options.body),mint=j.id===1;
+  if(mint)assert.equal(j.params[1].dataSlice.length,82);
+  else assert.equal(j.params[1].dataSlice.length,0);
+  const value={owner:'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+   executable:false,space:mint?82:165,
+   data:mint?[bytes.toString('base64'),'base64']:['','base64']};
+  return new Response(JSON.stringify({jsonrpc:'2.0',id:j.id,result:{context:{slot:42},value}}));
+ };
+ const r=await checkReadOnlyOnchainExistence(sol,{fetcher,now});
+ assert.equal(r.existence_status,'ACCOUNTS_REPORTED');
+ assert.equal(r.solana_mint_header.mint_authority,'RETAINED');
+ assert.equal(r.solana_mint_header.freeze_authority,'REVOKED');
+ assert.equal(r.solana_mint_header.observed_risk,'CAUTION');
+ assert.equal(r.solana_mint_header.sellability,'UNKNOWN');
+ assert.equal(r.paper_entry_authorized,false);
+});
