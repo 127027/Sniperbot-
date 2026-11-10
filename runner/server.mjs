@@ -15,6 +15,7 @@ import {readSolanaBalance} from './local-solana-balance.mjs';
 import {fetchIndicativeSolanaQuote} from './solana-swap-quote.mjs';
 import {previewSolanaSwapRoundtrip} from './solana-swap-roundtrip.mjs';
 import {readSolanaOwnedTokens} from './solana-owned-tokens.mjs';
+import {recentSolanaWalletActivity} from './solana-wallet-activity.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
@@ -227,6 +228,15 @@ const server=createServer(async(req,res)=>{
   }catch(e){return error(res,422,e?.code==='EEXIST'?
     'Vorhandene Wallet wird niemals überschrieben':
     String(e?.message||'BACKUP_NOT_VERIFIED').slice(0,100))}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/activity'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Blockchain-Historie');
+  if(!allowRequest('wallet-activity'))return error(res,429,'Zu viele Verlaufabfragen');
+  try{return reply(res,200,{ok:true,activity:await recentSolanaWalletActivity(wallet.address,{
+   wait:()=>new Promise(resolve=>setTimeout(resolve,1100))})})}
+  catch{return error(res,503,'Blockchain-Transaktionsverlauf nicht verifizierbar')}
  }
  if(req.method==='GET'&&route==='/api/wallet/tokens'){
   const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
