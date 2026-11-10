@@ -1,5 +1,5 @@
 // Durable, locally scoped first-seen evidence. Do not publish private archive to GitHub.
-// Each event is an immutable file in a month shard, created atomically on NTFS.
+// Each event is an immutable file in a stable ID-hash shard, created atomically on NTFS.
 // The bounded news journal is only a hot cache, not the historical source of truth.
 import {createHash,randomUUID} from 'node:crypto';
 import {readFile,writeFile,mkdir,link,unlink} from 'node:fs/promises';
@@ -17,9 +17,10 @@ function safeEvent(event){
 export function newsArchivePath(filename,event){
  if(typeof filename!=='string'||!path.isAbsolute(filename))throw Error('INVALID_NEWS_ARCHIVE_PATH');
  safeEvent(event);
- const month=event.first_observed_at_utc.slice(0,7);
  const hash=createHash('sha256').update(event.event_id).digest('hex');
- return path.join(path.dirname(filename),'news-archive',month,hash+'.json');
+ // Identity must not depend on observation month: a repeated RSS URL may
+ // reappear years later, but must resolve to its original immutable record.
+ return path.join(path.dirname(filename),'news-archive',hash.slice(0,2),hash+'.json');
 }
 async function existing(file,eventId){
  try{
