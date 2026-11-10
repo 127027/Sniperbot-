@@ -3,8 +3,7 @@
 param(
   [switch]$ResetToken,
   [switch]$SelfTest,
-  [switch]$NoBrowser,
-  [switch]$Background
+  [switch]$NoBrowser
 )
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -288,13 +287,7 @@ try {
   if(!$created){throw 'SNIPERBOT_ALREADY_STARTED: Zuerst die vorhandene zentrale Konsole schliessen.'}
   $ownsMutex=$true
   Assert-PortAvailable
-  if($Background){
-    if($ResetToken){throw 'BACKGROUND_CANNOT_RESET_CREDENTIALS'}
-    if(!(Test-Path -LiteralPath $tokenFile)){
-      throw 'BACKGROUND_SETUP_REQUIRED: GitHub-Token zuerst einmalig im normalen Fenster konfigurieren.'
-    }
-    Write-Host '[INFO] Hintergrundmodus – keine interaktive Anmeldung.'
-  }else{Initialize-ResearchToken}
+  Initialize-ResearchToken
   $job=[SniperWindowsJob]::OpenKillOnClose()
   $bot=Start-Child 'BOT' 'runner/server.mjs' $node $job
   $market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job
@@ -312,8 +305,7 @@ try {
   Write-Host ''
   Write-Host '[OK] Beide lokalen Komponenten gestartet. Github-Zugang nur fuer Markt-Collector.' -ForegroundColor Green
   Write-Host '[INFO] Die fuenf Cloud-Dots laufen weiterhin unabhaengig.'
-  if($Background){Write-Host '[INFO] Hintergrunddienst: Abmelden oder Autostart-Aufgabe stoppen.'}
-  else{Write-Host '[INFO] Zum Beenden Q druecken oder dieses Fenster schliessen.'}
+  Write-Host '[INFO] Zum Beenden Q druecken oder dieses Fenster schliessen.'
   $restarts=@{BOT=0;MARKET=0}
   while($true){
     if($bot.HasExited){
@@ -332,7 +324,7 @@ try {
       $market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job
     }
     try {
-      if(!$Background -and [Console]::KeyAvailable){
+      if([Console]::KeyAvailable){
         $key=[Console]::ReadKey($true)
         if($key.Key -eq 'Q'){Write-Host '[STOP] Vom Benutzer angefordert.';break}
       }
