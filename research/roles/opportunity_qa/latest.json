@@ -2,11 +2,37 @@
   "schema": "research_role_snapshot.v1",
   "role": "opportunity_qa",
   "producer": "Sniper Opportunity QA",
-  "snapshot_id": "opportunity-qa-20261110T015201Z-run13",
-  "published_at_utc": "2026-11-10T01:52:01Z",
+  "snapshot_id": "opportunity-qa-20261110T0252Z-run11",
+  "published_at_utc": "2026-11-10T02:52:00Z",
   "paper_only": true,
   "actionable": false,
-  "status": "NO_VERIFIED_CANDIDATE",
-  "candidates": [],
-  "summary": "QA 2026-11-10T01:52:01Z: Direct GitHub reads discovery playbook, ten cases/four negative controls, strategic paper capital, publisher specification, watchlist, Windows market and four foreign role snapshots. Watchlist 2026-11-10T01:41:52.951Z: 31 identities, 22 due, selected 5 HIGH priority IDs: base:0xaab8246746952d53ccc5a2c1fb0cfe39ed813b73:0x38503ccf9b2e6cf6c6136e646dd3ed7478cd2ab1 ; solana:7bBC3ovGtXH7aRbNeK3ZvJ56d8adzDmSp9hJG1gzpump:2vSnmAnJseFyaZPjjPB7tZQHL3pszr28UH65SPHEDF6E ; eth:0x1c8aae0e7b8d6a39dae2fe340b545ea875e4bfaa:0x6d034a0fb2e1b3a6c86f065badec940fa0a13ab5 ; solana:3ZXWh6gKbAA36uFk2cfnHCtNBBBpWCZaKkFn81kTpump:2VDTuodGD58d5fjbyjFwtJxr3JJG9ayLyed4uiw1qYmk ; base:0x8523c6b26059ced32dc42e0171b971ac5a7c1cf3:0x3792010f80107f695f369b5e86c848424d090676. Market research_market_snapshot.v1 2026-11-10T01:49:51.065Z, 45 rotating identities, 7 collector cross-provider identities, fresh at run (~2min); collector is correlated with watchlist/news, not independent QA validation. Own HTTPS exact DANA Base pair https://api.dexscreener.com/latest/dex/pairs/base/0x3792010f80107f695f369b5e86c848424d090676 SOURCE_UNAVAILABLE. Foreign onchain/social/contract roles have candidates=[]; news reports four collector-derived IDs but no independent security or saleability evidence. DANA Dexonomics 46 buys/0 sells vs DexPaprika 0 buys/24 sells (foreign social report) have incomparable or unspecified windows, not proof of honeypot or safe exits. Same-window swaps, independent explorer token/pool identity, LP ownership/reserve history, contract mint/freeze/proxy rights, holder clusters, wash trades, paid promotions, unique organic authors, nonexecuting size-specific sell quotes UNKNOWN. Rotating market sample omissions are not rug proof. 14d 2x/5x/10x/50x/200x probabilities NOT_CALIBRATED absent full launch cohorts including failures. No independently QA-verified candidate, NO_VERIFIED_CANDIDATE candidates=[]. Next: recheck selected due IDs via independent chain logs and matched-window transactions; DANA conflict highest counterhypothesis. No orders, signatures, risk PASS, capital or other repo changes."
+  "status": "CANDIDATE_OBSERVED",
+  "candidates": [
+    {
+      "chain": "base",
+      "token_address": "0x8523c6b26059ced32dc42e0171b971ac5a7c1cf3",
+      "pool_address": "0x3792010f80107f695f369b5e86c848424d090676",
+      "candidate_id": "base:0x8523c6b26059ced32dc42e0171b971ac5a7c1cf3:0x3792010f80107f695f369b5e86c848424d090676",
+      "observed_at_utc": "2026-11-10T02:52:00Z",
+      "source_urls": [
+        "https://dexpaprika.com/base/pool/0x3792010f80107f695f369b5e86c848424d090676"
+      ],
+      "evidence_summary": "Own direct HTTPS DexPaprika page readback identifies Base Uniswap V2 WETH/DANA token 0x8523c6b26059ced32dc42e0171b971ac5a7c1cf3 and pool 0x3792010f80107f695f369b5e86c848424d090676, created 2026-11-09 block 55323241. Displayed 24h metrics $29.88K liquidity, $25.28K volume, 1 buy/47 sells are explicitly anchored 2026-11-09 20:37 UTC in FAQ and cannot establish live 02:52 UTC conditions. Foreign onchain/social role reports Dexonomics $177.2K and 46 buys/0 sells, exact metric window unspecified; provider methodologies and timestamps not aligned. Single direct QA provider confirms research identity only; no independent chain RPC or sell route.",
+      "risk_flags": [
+        "LIQUIDITY_PROVIDER_CONFLICT",
+        "BUY_SELL_CLASSIFICATION_CONFLICT",
+        "METRICS_STALE_OR_UNTIMED",
+        "SOURCE_CORRELATION_UNKNOWN",
+        "CONTRACT_SECURITY_UNKNOWN",
+        "LP_CONTROL_UNKNOWN",
+        "HOLDER_CONCENTRATION_UNKNOWN",
+        "UNIQUE_BUYERS_UNKNOWN",
+        "ORGANIC_SOCIAL_UNKNOWN",
+        "PAID_PROMOTION_UNKNOWN",
+        "WASH_TRADING_UNKNOWN",
+        "SELLABILITY_NOT_VERIFIED"
+      ]
+    }
+  ],
+  "summary": "2026-11-10 02:52 UTC QA: Direct GitHub reads discovery playbook, historical 10 cases/4 negatives, strategic paper capital, publisher spec, 35-ID HIGH watchlist, all four foreign role snapshots and optional 44-ID market collector snapshot published 02:38:23 UTC (fresh ~14m). Prioritized DANA Base exact identity, own independent direct public HTTPS DexPaprika readback verifies token+pool+chain, therefore CANDIDATE_OBSERVED research only. Collector/news snapshots are correlated, not independent confirmations. Foreign onchain/social Dexonomics reports materially contradictory $177.2K liquidity and 46 buys/0 sells vs DexPaprika $29.88K and 1 buy/47 sells, but timestamps/methodologies incompatible; neither honeypot nor saleability inferred. Five other due HIGH/DEEP_REVIEW IDs lack own independent pair and security confirmation; next recheck DEEP_REVIEW after 03:24 UTC, WATCH after 04:41 UTC. No same-window swap logs, contract/mint/freeze/proxy rights, LP custody/reserves, holder/deployer clustering, unique organic social authors, paid-boost attribution or nonexecuting size-specific sell quote. 14d 2x/5x/10x/50x/200x probabilities NOT_CALIBRATED absent full historical cohorts including failures. No real validator, publisher, orders, keys, capital or signatures."
 }
