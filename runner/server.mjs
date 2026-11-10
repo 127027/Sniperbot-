@@ -46,7 +46,11 @@ function localResearchLearning(){
     checked_at_utc:m.last_check_at_utc,stale:Date.now()-Date.parse(m.last_check_at_utc)>600000,
     monitored_active:f.monitored_active,completed:f.completed,admitted_last_cycle:f.admitted,
     omitted_capacity_last_cycle:f.omitted_capacity,followup_ok_last_cycle:f.followup_ok,
-    followup_failed_last_cycle:f.followup_failed,disclaimer:f.disclaimer,
+    followup_failed_last_cycle:f.followup_failed,
+    latest_market_alerts:m.market_alerts?.events_found??0,
+    evaluated_market_pairs:m.market_alerts?.compared_pairs??0,
+    local_alert_archive_error:m.market_alerts?.local_alert_error??null,
+    disclaimer:f.disclaimer,
     warning:m.followup_error||null};
  }catch{return {available:false,paper_only:true,actionable:false,error:'LOCAL_FOLLOWUP_DATA_UNAVAILABLE'}}
 }
