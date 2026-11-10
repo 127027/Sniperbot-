@@ -114,6 +114,8 @@ try{
  assert.equal(offlineActivity.status,503);
  const offlineUnsigned=await fetch(base+'/api/wallet/unsigned-order?outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amountLamports=10000000');
  assert.equal(offlineUnsigned.status,503);
+ const outside=await fetch(base+'/api/wallet/external-observe?address=So11111111111111111111111111111111111111112');
+ assert.equal(outside.status,503,'no external wallet readback in offline CI');
  const offlineWalletBalance=await fetch(base+'/api/wallet/balance');
  assert.equal(offlineWalletBalance.status,503);
 

@@ -206,6 +206,32 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
     <p><a href="https://support.moonpay.com/en/articles/381271-paypal-faqs" target="_blank" rel="noopener noreferrer">PayPal-Einzahlungen und Auszahlungen: Anbieterinformationen</a></p>
     <p class="warning">Die lokale Echtgeld-Wallet ist noch nicht erstellt. Ohne verifizierte eigene Wallet-Adresse und realen Zahlungsstatus hier noch keine Zahlung ausführen.</p>
   </details>
+  <details id="externalWalletReadOnly" style="margin-top:14px">
+    <summary>50 € heute testen – externe Wallet mit PayPal (nur beobachten)</summary>
+    <p>Die lokale Bot-Wallet ist noch <strong>nicht</strong> für echte Swaps freigegeben.
+       Für einen separaten Praxistest kannst du in einer selbstverwalteten Wallet wie Phantom
+       bei einem zugelassenen Anbieter 50 € SOL mit PayPal kaufen und danach auf Jupiter
+       selbst einen Swap bestätigen. Hier wird lediglich der öffentliche Kontostand beobachtet:
+       <strong>Der Bot kauft/verkauft dabei nichts.</strong></p>
+    <p>
+      <a href="https://phantom.com/download" target="_blank" rel="noopener noreferrer">Phantom – offizielle Wallet</a> ·
+      <a href="https://www.moonpay.com/buy/sol" target="_blank" rel="noopener noreferrer">MoonPay – SOL-Kauf</a> ·
+      <a href="https://jup.ag/" target="_blank" rel="noopener noreferrer">Jupiter – manueller Token-Tausch</a>
+    </p>
+    <p class="warning">Niemals die Entwicklungs-Wallet-Adresse für Echtgeld nutzen, bevor
+       privates Schlüsselmaterial, unabhängige Wiederherstellung und reale Ausführung geprüft sind.
+       Für diesen Test ausschließlich eine separate, von dir kontrollierte externe Wallet verwenden.
+       Keine Seedphrase/Privatschlüssel hier eingeben oder an Dots senden.</p>
+    <div class="controls">
+      <label>Öffentliche externe Solana-Walletadresse
+        <input id="externalWalletAddress" type="text" placeholder="Nur Solana-Adresse, kein Private Key">
+      </label>
+      <button class="btn" id="externalWalletObserve" type="button">Externes Guthaben prüfen</button>
+    </div>
+    <p id="externalWalletResult" class="subtle">
+      Beobachtung erst nach Eingabe einer externen Adresse. Keine Verbindung, Überweisung oder Freigabe der Wallet.
+    </p>
+  </details>
   <div style="margin-top:16px">
   <h3>Eigene Solana-Wallet auf diesem Rechner</h3>
   <p id="walletSafetyStatus" class="subtle">Prüfe lokale Wallet. Kein echter Kauf und kein Live-Swap aktiviert.</p>
@@ -580,7 +606,54 @@ async function refreshV09Dossiers(){
    }).join('');
  }catch(e){$('v09Dossiers').textContent='Entscheidungsakten: '+e.message}
 }
-refreshV09Dossiers();let currentRealWallet=null;
+refreshV09Dossiers();let lastExternalObservation=null;
+$('externalWalletObserve').onclick=async()=>{
+ const address=$('externalWalletAddress').value.trim();
+ $('externalWalletResult').textContent='Lese öffentliche SOL- und SPL-Bestände der externen Wallet …';
+ try{
+  if(!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address))
+   throw Error('Bitte nur die öffentliche Solana-Empfangsadresse eingeben.');
+  const resp=await fetch('/api/wallet/external-observe?address='+encodeURIComponent(address),
+   {cache:'no-store'});
+  const data=await resp.json();
+  if(!resp.ok)throw Error(data.error||'Wallet nicht verifizierbar');
+  if(data.external?.wallet_owned_by_bot!==false||
+     data.external?.swap_executed_by_bot!==false)
+   throw Error('Ungültige externe Wallet-Daten');
+  const holdings=Array.isArray(data.external.observed_tokens)?
+   data.external.observed_tokens.slice(0,12):[];
+  const last=lastExternalObservation?.address===data.external.address?
+   lastExternalObservation:null;
+  let changes='';
+  if(last){
+   const solDelta=BigInt(data.external.observed_sol_lamports)-
+    BigInt(last.observed_sol_lamports);
+   const before=new Map(last.observed_tokens.map(x=>[x.mint+':'+x.program_id,x]));
+   const moving=[];
+   for(const x of data.external.observed_tokens){
+    const old=before.get(x.mint+':'+x.program_id);
+    const delta=BigInt(x.amount_raw)-BigInt(old?.amount_raw||'0');
+    if(delta!==0n)moving.push(x.mint.slice(0,9)+'…: '+delta+' Token-Atome');
+    before.delete(x.mint+':'+x.program_id);
+   }
+   for(const x of before.values())moving.push(x.mint.slice(0,9)+'…: -'+x.amount_raw+' Token-Atome');
+   changes='<div>Veränderung seit letzter Abfrage: SOL '+esc(
+    (Number(solDelta)/1e9).toFixed(9))+
+    ', Tokenbewegungen: '+esc(moving.length?moving.join('; '):'keine erkannt')+'</div>';
+  }
+  lastExternalObservation=data.external;
+  $('externalWalletResult').innerHTML=
+   '<strong>Externe Wallet, nur lesen: '+esc(data.external.observed_sol_balance)+' SOL</strong>'+
+   changes+
+   '<div>Öffentlich beobachtete SPL-Token: '+holdings.length+'</div>'+
+   holdings.map(x=>'<div style="word-break:break-all;margin:7px 0">'+
+    esc(x.mint)+' · '+esc(x.display_amount===null?'Anzeige ungeklärt':x.display_amount)+
+    (x.frozen?' · EINGEFROREN':'')+'</div>').join('')+
+   '<small>Kein Nachweis einer PayPal-Zahlung und kein vom Bot ausgeführter Swap. '+
+   'TEST-USDC und Bot-Wallet bleiben unverändert.</small>';
+ }catch(e){$('externalWalletResult').textContent='Beobachtung nicht möglich: '+e.message}
+};
+let currentRealWallet=null;
 async function refreshLocalWallet(){
  try{
   const response=await fetch('/api/wallet/status',{cache:'no-store'});

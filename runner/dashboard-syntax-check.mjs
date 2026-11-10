@@ -9,7 +9,7 @@ const scripts=[...html.matchAll(/<script(?: [^>]*)?>([\s\S]*?)<\/script>/g)];
 if(scripts.length!==1)throw Error('DASHBOARD_INLINE_SCRIPT_COUNT_INVALID');
 new Script(scripts[0][1],{filename:'runner/dashboard.html'});
 for(const marker of ['walletCreate','walletBackupDownload','walletBackupVerify',
- 'walletRestore','walletRefresh','walletQuote','walletTokens','walletActivity','walletUnsignedOrder','walletReceiptVerify',
+ 'walletRestore','walletRefresh','walletQuote','walletTokens','walletActivity','walletUnsignedOrder','walletReceiptVerify','externalWalletObserve',
  'paperEurDeposit','paperEurWithdraw']){
  if(!html.includes('id="'+marker+'"'))throw Error('MISSING_DASHBOARD_CONTROL_'+marker);
 }
