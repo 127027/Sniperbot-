@@ -99,7 +99,7 @@ export function buildResearchAdvisories({roles=[],watchlist=null,settings=null,
     RESEARCH_ROLE_IDS.indexOf(a)-RESEARCH_ROLE_IDS.indexOf(b)),
     role_count:n.roles_reporting.length,independent_source_hosts:providers.length,
     correlated_evidence_warning:correlated,required_checks:checks,
-    research_status:skipped?'ARCHIVED_OR_REJECTED':n.role_count>=3?'PRIORITIZED_REVIEW':'WATCH',
+    research_status:skipped?'ARCHIVED_OR_REJECTED':n.roles_reporting.length>=3?'PRIORITIZED_REVIEW':'WATCH',
     breakout_probability_pct:null,calibration_status:'NOT_CALIBRATED',
     paper_entry_authorized:false,actionable:false,paper_only:true,
     // Illustrative local user envelope only; not a recommendation or instruction.
