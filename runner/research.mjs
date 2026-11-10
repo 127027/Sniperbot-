@@ -1,4 +1,4 @@
-import {allocatePaper} from './allocation.mjs';
+import {allocatePortfolioPaper,MIN_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
 // Untrusted research is stored, never treated as an executable order.
 import {createHash, randomUUID} from 'node:crypto';
 import {validTokenAddress} from './market.mjs';
@@ -92,8 +92,7 @@ export function positionSize(s,c){
  // Explicit unanimous allocation judgement; an uncalibrated score NEVER sizes the trade.
  const conviction=ROLES.every(role=>c.votes.some(v=>v.role===role&&
   v.vote==='YES'&&v.allocation_intent==='HIGH_CONVICTION'));
- return allocatePaper({intent:conviction?'HIGH_CONVICTION':'EXPLORATORY',
-  min:s.minTrade,max:s.maxTrade,free:s.cashUsdc+s.cashEur,capacity:c.risk.max_amount_usdc});
+ return allocatePortfolioPaper({state:s,intent:conviction?'HIGH_CONVICTION':'EXPLORATORY',capacity:c.risk.max_amount_usdc});
 }
 export function evaluate(state,now=Date.now()){
  let s={...state,research:structuredClone(state.research||emptyResearch())};
@@ -102,7 +101,7 @@ export function evaluate(state,now=Date.now()){
   if(a.status==='PAPER_ELIGIBLE'){
    const amount=positionSize(s,c);
    if(!s.entriesEnabled||!s.automaticPaperBuys){a.status='WAITING';a.reason='Bot oder Paper-Autokauf AUS'}
-   else if(amount<s.minTrade){a.status='WAITING';a.reason='Guthaben oder technische Verkaufsgrenze unter Mindestbetrag'}
+   else if(amount<MIN_PAPER_ENTRY_USDC){a.status='WAITING';a.reason='Gesamtbudget, Guthaben oder technische Verkaufsgrenze unter Mindestbetrag'}
    else{
     const candidate={...paperSignal(),id:c.id,tokenAddress:c.tokenAddress,poolAddress:c.poolAddress,symbol:c.symbol};
     const before=s.positions.length;
