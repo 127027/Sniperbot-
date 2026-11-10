@@ -170,6 +170,7 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
   <div class="section-heading"><h2>V0.9 · Systemprüfung</h2><span class="tag">PAPER ONLY</span></div>
   <p id="v09Status" class="subtle">Prüfe lokale V0.9-Komponenten …</p>
   <p id="v09Readbacks" class="subtle">Prüfe unabhängige Pool-Nachkontrollen …</p>
+  <div id="v09Dossiers" class="subtle">Prüfe Entscheidungsakten und fehlende Risikonachweise …</div>
   <details>
     <summary>50 € Einzahlung nur simulieren (ohne Guthabenänderung)</summary>
     <div class="controls" style="padding-top:12px">
@@ -423,8 +424,28 @@ async function refreshV09Readbacks(){
     '. Auch bei Treffer: Sicherheit, echte Verkaufbarkeit und Paper-Kauf weiter UNGEPRÜFT.';
  }catch(e){$('v09Readbacks').textContent='Pool-Nachkontrolle: '+e.message}
 }
-refreshV09();refreshV09Readbacks();
-setInterval(refreshV09,30000);setInterval(refreshV09Readbacks,30000);
+async function refreshV09Dossiers(){
+ try{
+  const response=await fetch('/api/v09/dossiers',{cache:'no-store'});
+  if(!response.ok)throw Error('Entscheidungsakten nicht verfügbar');
+  const data=await response.json();
+  const candidates=Array.isArray(data.dossiers?.candidates)?data.dossiers.candidates:[];
+  $('v09Dossiers').innerHTML='<strong>Aktuelle Entscheidungsakten: '+candidates.length+
+   ' · Paper-Käufe weiterhin blockiert</strong>'+
+   candidates.slice(0,3).map(c=>{
+    const flags=Array.isArray(c.blockers)?c.blockers.slice(0,6).join(' · '):'Fehlende Prüfungen';
+    return '<div class="activity-row"><strong>'+esc(c.chain)+' / '+
+      esc(String(c.candidate_id).split(':')[1]?.slice(0,9)||'')+'…</strong>'+
+      '<div>'+esc(c.roles_reporting_count)+'/5 Forschungsrollen erwähnt · signierte Stimmen: 0'+
+      ' · Pool: '+esc(c.provider_identity_status)+'</div>'+
+      '<div>Mintrecht: '+esc(c.solana_mint_authority)+
+      ' · Einfrierrecht: '+esc(c.solana_freeze_authority)+'</div>'+
+      '<div class="warning">BLOCKIERT · '+esc(flags)+'</div></div>';
+   }).join('');
+ }catch(e){$('v09Dossiers').textContent='Entscheidungsakten: '+e.message}
+}
+refreshV09Dossiers();refreshV09();refreshV09Readbacks();
+setInterval(refreshV09,30000);setInterval(refreshV09Readbacks,30000);setInterval(refreshV09Dossiers,30000);
 refresh(true);setInterval(()=>refresh(false),3000);
 </script>
 </body></html>
