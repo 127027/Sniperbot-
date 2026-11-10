@@ -2,6 +2,7 @@
 // budget envelope. This module NEVER generates commands, signed decisions,
 // probabilities, portfolio mutations, fills or wallet actions.
 import {candidateId} from './research-watchlist.mjs';
+import {portfolioBudget,MIN_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
 
 export const RESEARCH_ROLE_IDS=Object.freeze([
  'news_discovery','social_acceleration','onchain_liquidity','contract_security','opportunity_qa'
@@ -41,13 +42,13 @@ function candidateEntry(c){
   pool_address:c.pool_address};
 }
 function envelope(settings){
- const min=settings?.minTrade,max=settings?.maxTrade;
- const free=(settings?.cashUsdc??0)+(settings?.cashEur??0);
- if(!Number.isFinite(min)||!Number.isFinite(max)||!Number.isFinite(free)||
-  min<=0||max<min||free<0)return {minimum_test_usdc:null,maximum_test_usdc:null,available:false};
- const lower=free>=min?min:null;
- const upper=free>=min?Math.floor(Math.min(free,max)*100)/100:null;
- return {minimum_test_usdc:lower,maximum_test_usdc:upper,available:lower!==null};
+ const b=portfolioBudget(settings);
+ return {minimum_test_usdc:b.free_to_allocate_test_usdc>=MIN_PAPER_ENTRY_USDC?MIN_PAPER_ENTRY_USDC:null,
+ maximum_test_usdc:b.free_to_allocate_test_usdc>=MIN_PAPER_ENTRY_USDC?b.free_to_allocate_test_usdc:null,
+ preferred_test_usdc:b.preferred_test_usdc,
+ total_budget_test_usdc:b.cap_test_usdc,
+ reserved_in_open_positions_test_usdc:b.reserved_test_usdc,
+ available:b.valid&&b.free_to_allocate_test_usdc>=MIN_PAPER_ENTRY_USDC};
 }
 export function buildResearchAdvisories({roles=[],watchlist=null,settings=null,
  now=Date.now(),limit=REVIEW_LIMIT}={}){
