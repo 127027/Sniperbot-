@@ -206,7 +206,38 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
     <p><a href="https://support.moonpay.com/en/articles/381271-paypal-faqs" target="_blank" rel="noopener noreferrer">PayPal-Einzahlungen und Auszahlungen: Anbieterinformationen</a></p>
     <p class="warning">Die lokale Echtgeld-Wallet ist noch nicht erstellt. Ohne verifizierte eigene Wallet-Adresse und realen Zahlungsstatus hier noch keine Zahlung ausführen.</p>
   </details>
-  <p class="subtle" id="walletSafetyStatus">Lokale Wallet: noch nicht eingerichtet · private Schlüssel: keine · Live-Signierung: aus.</p>
+  <div style="margin-top:16px">
+  <h3>Eigene Solana-Wallet auf diesem Rechner</h3>
+  <p id="walletSafetyStatus" class="subtle">Prüfe lokale Wallet. Kein echter Kauf und kein Live-Swap aktiviert.</p>
+  <div id="walletNew">
+    <p>Erstellt eine neue Solana-Mainnet-Adresse. Der private Schlüssel bleibt verschlüsselt im lokalen Windows-Benutzerordner. Passwort und verschlüsselte Wallet-Datei müssen getrennt gesichert werden.</p>
+    <div class="controls">
+      <label>Wallet-Passwort (mindestens 16 Zeichen)<input id="walletPwd1" type="password" autocomplete="new-password" maxlength="256"></label>
+      <label>Passwort wiederholen<input id="walletPwd2" type="password" autocomplete="new-password" maxlength="256"></label>
+      <button class="btn strong" type="button" id="walletCreate">Wallet lokal erstellen</button>
+    </div>
+  </div>
+  <div id="walletExisting" style="display:none">
+    <p class="subtle">Deine Solana-Empfangsadresse (nur Solana-Netzwerk, keine andere Chain):</p>
+    <code id="walletAddress" style="display:block;word-break:break-all;margin:9px 0">–</code>
+    <div class="controls">
+      <button class="btn" type="button" id="walletCopy">Adresse kopieren</button>
+      <button class="btn" type="button" id="walletRefresh">SOL-Guthaben auf Blockchain prüfen</button>
+    </div>
+    <p id="walletBalance" class="subtle">Noch keine Blockchain-Abfrage. TEST-USDC ist davon getrennt.</p>
+    <h3 style="margin-top:16px">SOL mit 50 € über PayPal kaufen</h3>
+    <p>Der Einkauf erfolgt auf der offiziellen MoonPay-Website. Dort <strong>50 €</strong>, <strong>SOL auf Solana</strong>, <strong>PayPal</strong> und unbedingt die oben angezeigte eigene Empfangsadresse auswählen. Gebühren und KYC beim Anbieter prüfen. Der Bot erhält keinen Zahlungszugang.</p>
+    <a href="https://www.moonpay.com/buy/sol" target="_blank" rel="noopener noreferrer">MoonPay: SOL kaufen – externe Zahlungsseite öffnen</a>
+    <p class="warning">Bevor du echtes Geld an diese selbst erstellte Wallet schickst: verschlüsselte Wallet-Datei offline sichern und Wiederherstellung mit deinem Passwort unabhängig testen. Dieser Entwicklungsstand besitzt noch keinen Echtgeld-Verkauf.</p>
+    <h3 style="margin-top:16px">Neuen Solana-Coin auf Tauschroute prüfen</h3>
+    <div class="controls">
+      <label>Ziel-Token (Mint-Adresse)<input id="walletTargetMint" type="text" placeholder="Solana-Mint-Adresse"></label>
+      <label>Einsatz (SOL)<input id="walletSwapSol" type="number" min="0.00001" max="100" step="0.001" value="0.1"></label>
+      <button class="btn" type="button" id="walletQuote">Echten Kurs prüfen – nicht kaufen</button>
+    </div>
+    <p id="walletQuoteResult" class="subtle">Tausch wird nicht ausgelöst. Ausführbare Swap-Signierung bleibt deaktiviert.</p>
+  </div>
+</div>
 </section>
 
 <section class="panel section">
@@ -514,7 +545,77 @@ async function refreshV09Dossiers(){
    }).join('');
  }catch(e){$('v09Dossiers').textContent='Entscheidungsakten: '+e.message}
 }
-refreshV09Dossiers();refreshV09();refreshV09Readbacks();
+refreshV09Dossiers();let currentRealWallet=null;
+async function refreshLocalWallet(){
+ try{
+  const response=await fetch('/api/wallet/status',{cache:'no-store'});
+  if(!response.ok)throw Error('Wallet-Datensatz nicht verfügbar');
+  const result=await response.json();
+  currentRealWallet=result.wallet;
+  const active=result.wallet?.exists===true;
+  $('walletNew').style.display=active?'none':'block';
+  $('walletExisting').style.display=active?'block':'none';
+  $('walletAddress').textContent=active?result.wallet.address:'–';
+  $('walletSafetyStatus').textContent=active?
+   'Solana-Mainnet-Wallet lokal und verschlüsselt angelegt. Live-Trading AUS. Passwort und verschlüsselte Datei offline sichern.':
+   'Noch keine echte lokale Wallet. Solana-Adresse nur nach eigener ausdrücklicher Einrichtung.';
+ }catch(e){$('walletSafetyStatus').textContent='Wallet nicht verifizierbar: '+e.message}
+}
+$('walletCreate').onclick=async()=>{
+ const pass=$('walletPwd1').value;
+ const confirmPass=$('walletPwd2').value;
+ try{
+  if(pass.length<16)throw Error('Passwort muss mindestens 16 Zeichen haben.');
+  if(pass!==confirmPass)throw Error('Passwörter stimmen nicht überein.');
+  if(!confirm('Echte Solana-Mainnet-Wallet lokal und verschlüsselt erstellen? Ohne Passwort und offline gesicherte Vault-Datei ist eine Wiederherstellung unmöglich.'))return;
+  const resp=await fetch('/api/wallet/create',{method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({password:pass})});
+  const result=await resp.json();
+  if(!resp.ok)throw Error(result.error||'Wallet nicht erstellt');
+  await refreshLocalWallet();
+  alert('Wallet angelegt. Bitte noch KEIN Echtgeld überweisen, bevor die Wiederherstellung separat geprüft wurde.');
+ }catch(e){$('walletSafetyStatus').textContent='Wallet-Einrichtung: '+e.message}
+ finally{$('walletPwd1').value='';$('walletPwd2').value=''}
+};
+$('walletCopy').onclick=async()=>{
+ if(!currentRealWallet?.exists)return;
+ try{await navigator.clipboard.writeText(currentRealWallet.address);
+  $('walletBalance').textContent='Solana-Adresse kopiert. Prüfe sie beim Anbieter Zeichen für Zeichen.'}
+ catch{$('walletBalance').textContent='Kopieren nicht möglich – Adresse oben manuell markieren.'}
+};
+$('walletRefresh').onclick=async()=>{
+ if(!currentRealWallet?.exists)return;
+ $('walletBalance').textContent='Frage das öffentlich bestätigte Solana-Hauptnetz ab …';
+ try{
+  const resp=await fetch('/api/wallet/balance',{cache:'no-store'});
+  const result=await resp.json();
+  if(!resp.ok)throw Error(result.error||'Guthaben nicht verfügbar');
+  $('walletBalance').textContent='Echtes Solana-Guthaben: '+result.balance.sol_balance+
+   ' SOL · finalisierter Slot '+result.balance.finalized_slot+
+   '. Keine PayPal-Bestätigung, keine TEST-USDC-Buchung.';
+ }catch(e){$('walletBalance').textContent=e.message}
+};
+$('walletQuote').onclick=async()=>{
+ $('walletQuoteResult').textContent='Prüfe echte Jupiter-Kursdaten …';
+ try{
+  const amount=Number($('walletSwapSol').value);
+  if(!Number.isFinite(amount)||amount<0.00001||amount>100)throw Error('Bitte 0,00001 bis 100 SOL eingeben.');
+  const lamports=String(Math.round(amount*1e9));
+  const mint=$('walletTargetMint').value.trim();
+  const url='/api/wallet/swap-quote?outputMint='+encodeURIComponent(mint)+
+   '&amountLamports='+encodeURIComponent(lamports);
+  const resp=await fetch(url,{cache:'no-store'});
+  const result=await resp.json();
+  if(!resp.ok)throw Error(result.error||'Keine sichere Quote');
+  $('walletQuoteResult').textContent='Nur Kurs: '+result.quote.input_lamports+
+   ' Lamports → '+result.quote.output_token_atoms+' Ziel-Token-Atome (Dezimalstellen noch nicht verifiziert).'+
+   ' Anbieter: Jupiter · Route: '+result.quote.router+' · Gebühr: '+result.quote.fee_bps+
+   ' bps. KEIN Kauf. Token-Sicherheit und Verkaufbarkeit nicht bestätigt.';
+ }catch(e){$('walletQuoteResult').textContent='Quote blockiert: '+e.message}
+};
+refreshLocalWallet();setInterval(refreshLocalWallet,60000);
+refreshV09();refreshV09Readbacks();
 setInterval(refreshV09,30000);setInterval(refreshV09Readbacks,30000);setInterval(refreshV09Dossiers,30000);
 refresh(true);setInterval(()=>refresh(false),3000);
 </script>
