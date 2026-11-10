@@ -133,3 +133,42 @@ export async function checkSolanaVaultPassword({filename,password}={}){
  }catch{throw Error('WALLET_PASSWORD_OR_INTEGRITY_FAILED')}
  finally{key.fill(0);secret?.fill(0)}
 }
+
+// A user-initiated encrypted backup is a copy of ciphertext only, not a seed export.
+// Never auto-sync the backup or send it to GitHub, dots or payment services.
+export async function encryptedSolanaBackup(filename){
+ if(typeof filename!=='string'||!path.isAbsolute(filename))throw Error('INVALID_WALLET_LOCATION');
+ const raw=await readFile(filename);
+ if(raw.length>MAX_VAULT)throw Error('WALLET_FILE_TOO_LARGE');
+ return validVault(JSON.parse(raw.toString('utf8')));
+}
+async function validateProvidedEncryptedBackup({filename,record,password}){
+ passwordCheck(password);
+ if(typeof filename!=='string'||!path.isAbsolute(filename)||!filename.endsWith('.json'))
+  throw Error('INVALID_WALLET_LOCATION');
+ const json=JSON.stringify(record)+'\n';
+ if(Buffer.byteLength(json,'utf8')>MAX_VAULT)throw Error('WALLET_FILE_TOO_LARGE');
+ const payload=validVault(JSON.parse(json));
+ await mkdir(path.dirname(filename),{recursive:true});
+ const temp=filename+'.backup-verify-'+randomBytes(8).toString('hex');
+ try{
+  await writeFile(temp,json,{flag:'wx',mode:0o600});
+  const verified=await checkSolanaVaultPassword({filename:temp,password});
+  if(verified.address!==payload.address)throw Error('INVALID_BACKUP_ADDRESS');
+  return {json,address:payload.address};
+ }finally{await unlink(temp).catch(()=>{})}
+}
+export async function verifyEncryptedSolanaBackup({filename,record,password}={}){
+ const checked=await validateProvidedEncryptedBackup({filename,record,password});
+ return {valid:true,address:checked.address,
+  encrypted:true,restored:false,private_key_exposed:false};
+}
+export async function restoreEncryptedSolanaBackup({filename,record,password}={}){
+ const checked=await validateProvidedEncryptedBackup({filename,record,password});
+ // Exclusive create: refuses overwriting an already funded wallet.
+ const f=await open(filename,'wx',0o600);
+ try{await f.writeFile(checked.json);await f.sync()}
+ finally{await f.close()}
+ return {restored:true,address:checked.address,
+  encrypted:true,signing_enabled:false,live_trading_enabled:false};
+}
