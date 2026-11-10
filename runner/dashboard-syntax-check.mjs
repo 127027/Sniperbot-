@@ -14,7 +14,16 @@ for(const marker of ['walletCreate','walletBackupDownload','walletBackupVerify',
  'masterStartPublishing','masterStopPublishing',
  'walletNativePreview','walletNativeSend','walletNativeHistory',
  'dynamicRouteCheck','dynamicInboxRefresh',
+ 'paperWorkspaceTab','realWorkspaceTab','paperWorkspace','realWorkspace',
+ 'realEurTotal','realSolTotal','realUsdcTotal','realRefreshOverview',
+ 'realLiveSwitch','liveModeForceOff','liveModeStatus',
  'paperEurDeposit','paperEurWithdraw']){
  if(!html.includes('id="'+marker+'"'))throw Error('MISSING_DASHBOARD_CONTROL_'+marker);
 }
-console.log('DASHBOARD_SCRIPT_PARSE_OK (wallet, backup, payment, quote, paper UI)');
+if(!html.includes('initializeWorkspaces();')||!html.includes('refreshRealModePolicy();'))
+ throw Error('WORKSPACE_INITIALIZATION_MISSING');
+if(!/<input id="realLiveSwitch"[^>]*type="checkbox"[^>]*disabled>/.test(html.replace(/\s+/g,' ')))
+ throw Error('LIVE_SWITCH_MUST_START_DISABLED');
+if(!html.includes('AUSSCHLIESSLICH')&&!html.includes('Ausschließlich'))
+ throw Error('PAPER_FUNDS_WARNING_MISSING');
+console.log('DASHBOARD_SCRIPT_PARSE_OK (separate Paper/Real tabs, real balance, locked live switch and diagnostics)');

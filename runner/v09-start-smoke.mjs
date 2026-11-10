@@ -73,6 +73,30 @@ try{
  // Real local master-laptop onboarding in an entirely isolated test directory.
  const identity=(await read('/api/device/identity')).device;
  assert.match(identity.device_id,/^device_[a-f0-9]{32}$/);
+ const gate=(await read('/api/trading/live-mode')).gate;
+ assert.equal(gate.mode,'LOCKED');
+ assert.equal(gate.enabled,false);
+ assert.equal(gate.can_enable,false);
+ assert.equal(gate.paypal_checkout_enabled,false);
+ const enableLive=await fetch(base+'/api/trading/live-mode',{method:'POST',
+  headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({enabled:true})});
+ assert.equal(enableLive.status,423,'browser may NEVER enable live cryptocurrency trading');
+ const unsupportedLive=await fetch(base+'/api/trading/live-mode',{method:'POST',
+  headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({enabled:'true'})});
+ assert.equal(unsupportedLive.status,422);
+ const crossOriginLive=await fetch(base+'/api/trading/live-mode',{method:'POST',
+  headers:{origin:'https://hostile.invalid','content-type':'application/json'},
+  body:JSON.stringify({enabled:false})});
+ assert.equal(crossOriginLive.status,403,'cross-origin live mode requests denied');
+ const disableLive=await fetch(base+'/api/trading/live-mode',{method:'POST',
+  headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({enabled:false})});
+ assert.equal(disableLive.status,200);
+ assert.equal((await disableLive.json()).gate.enabled,false);
+ const realOverviewOffline=await fetch(base+'/api/wallet/overview');
+ assert.equal(realOverviewOffline.status,503,'cannot claim real balance offline');
  const unpaired=(await read('/api/coordination/status'));
  assert.equal(unpaired.topology_role,'UNPAIRED');
  assert.equal(unpaired.live_trading_enabled,false);
