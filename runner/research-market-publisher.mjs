@@ -53,6 +53,25 @@ function assertResearch(s){
          Object.keys(e).some(k=>!allowed.has(k))))
       throw Error('Unsafe public news research payload');
   }
+  // Only sanitized local readback provenance may be sent to the public Dot feed.
+  // No keys, balances, wallet material, orders, risk PASS or executable quotes.
+  if(s.pool_readbacks!==undefined){
+    const allowed=new Set(['candidate_id','checked_at_utc','status',
+      'market_identity_verified','reason','source_names','contract_status',
+      'sellability_status','executable_sell_quote','paper_entry_authorized',
+      'paper_only','actionable']);
+    if(!Array.isArray(s.pool_readbacks)||s.pool_readbacks.length>3||
+      s.pool_readbacks.some(e=>!e||Object.keys(e).length!==allowed.size||
+        Object.keys(e).some(k=>!allowed.has(k))||
+        e.paper_only!==true||e.actionable!==false||
+        e.contract_status!=='UNKNOWN'||e.sellability_status!=='UNKNOWN'||
+        e.executable_sell_quote!==false||e.paper_entry_authorized!==false||
+        !Array.isArray(e.source_names)||e.source_names.join(',')!=='GECKOTERMINAL,DEXSCREENER'||
+        !['IDENTITY_MATCHED','UNVERIFIED'].includes(e.status)||
+        (e.status==='IDENTITY_MATCHED')!==(e.market_identity_verified===true)||
+        typeof e.candidate_id!=='string'||!Number.isFinite(Date.parse(e.checked_at_utc))))
+      throw Error('Unsafe public pool readback payload');
+  }
   if(s.news_coverage!==undefined&&
      (!Array.isArray(s.news_coverage)||s.news_coverage.length>3))
     throw Error('Unsafe public news provider status');
