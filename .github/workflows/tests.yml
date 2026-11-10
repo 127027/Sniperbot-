@@ -22,6 +22,8 @@ jobs:
         run: node runner/solana-unsigned-order-live-probe.mjs
       - name: Observe public Jupiter real SOL to USDC rate (non-blocking, no swap)
         run: node runner/solana-quote-live-probe.mjs
+      - name: Observe actual public dynamic 50 USDC to SOL indicative quote (no trade)
+        run: node runner/dynamic-usdc-live-probe.mjs
       - run: node --check runner/core.mjs
       - run: node --check runner/market.mjs
       - run: node runner/test.mjs
