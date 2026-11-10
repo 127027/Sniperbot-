@@ -5,6 +5,7 @@ import {buildDecisionDossiers} from './candidate-dossiers.mjs';
 import {saveReadbackBatch} from './readback-history.mjs';
 import {createReceiver} from './research-inbox.mjs';
 import {getDotDocument,putDotDocument,listDotDocuments} from './dot-workspace.mjs';
+import {getLocalWalletStatus,createLocalWallet,exportLocalWalletBackup,restoreLocalWalletBackup} from './local-wallet-vault.mjs';
 import {buildDotStatus} from './dot-status.mjs';
 import {fetchResearchNetwork} from './research-network.mjs';
 import {storage} from './storage.mjs';
@@ -156,6 +157,36 @@ const server=createServer(async(req,res)=>{
    }
    return error(res,405,'Methode nicht erlaubt');
   }catch(e){return error(res,422,String(e?.message||'WORKSPACE_UNAVAILABLE').slice(0,120))}
+ }
+ if(route.startsWith('/api/wallet/')){
+  if(req.method==='GET'&&route==='/api/wallet/status'){
+   try{return reply(res,200,{ok:true,wallet:await getLocalWalletStatus({dir:store.dir})})}
+   catch(e){return error(res,422,String(e?.message||'WALLET_UNAVAILABLE').slice(0,120))}
+  }
+  // Only a real same-origin browser interaction may initialize/export/restore keys.
+  if(req.method!=='POST'||req.headers.origin!=='http://127.0.0.1:'+port)
+   return error(res,403,'Wallet-Operation nur lokal nach Browserbestaetigung');
+  if(!allowRequest('wallet-operations'))return error(res,429,'Rate-Limit');
+  try{
+   const payload=await body(req);
+   if(route==='/api/wallet/create'){
+    if(!payload||Object.keys(payload).length!==0)return error(res,422,'Wallet-Create benoetigt keine Schluessel');
+    return reply(res,200,{ok:true,wallet:await createLocalWallet({dir:store.dir})});
+   }
+   if(route==='/api/wallet/backup'){
+    if(!payload||Object.keys(payload).length!==1||typeof payload.passphrase!=='string')
+     return error(res,422,'Backup-Passphrase erforderlich');
+    const backup=await exportLocalWalletBackup({dir:store.dir,passphrase:payload.passphrase});
+    return reply(res,200,{ok:true,backup});
+   }
+   if(route==='/api/wallet/restore'){
+    if(!payload||Object.keys(payload).length!==2||typeof payload.passphrase!=='string')
+     return error(res,422,'Verschluesseltes Backup und Passphrase erforderlich');
+    return reply(res,200,{ok:true,wallet:await restoreLocalWalletBackup({
+     dir:store.dir,passphrase:payload.passphrase,backup:payload.backup})});
+   }
+   return error(res,404,'Unbekannte Wallet-Operation');
+  }catch(e){return error(res,422,String(e?.message||'WALLET_OPERATION_BLOCKED').slice(0,120))}
  }
  if(req.method==='GET'&&route==='/api/health')return reply(res,200,{ok:true,mode:'PAPER_ONLY',uptimeSec:Math.round(process.uptime())});
  if(route==='/api/research'||route==='/api/research/events'){
