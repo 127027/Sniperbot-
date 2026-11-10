@@ -10,9 +10,13 @@ import {storage} from './storage.mjs';
 import {createAgentScratchpad} from './agent-scratchpad.mjs';
 import {createLocalSolanaVault,readLocalSolanaVault,
  encryptedSolanaBackup,verifyEncryptedSolanaBackup,
- restoreEncryptedSolanaBackup} from './local-solana-vault.mjs';
+ restoreEncryptedSolanaBackup,checkSolanaVaultPassword} from './local-solana-vault.mjs';
 import {readSolanaBalance} from './local-solana-balance.mjs';
 import {fetchIndicativeSolanaQuote} from './solana-swap-quote.mjs';
+import {previewSolanaSwapRoundtrip} from './solana-swap-roundtrip.mjs';
+import {readSolanaOwnedTokens} from './solana-owned-tokens.mjs';
+import {recentSolanaWalletActivity} from './solana-wallet-activity.mjs';
+import {previewJupiterUnsignedOrder} from './solana-unsigned-order.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
@@ -188,10 +192,20 @@ const server=createServer(async(req,res)=>{
    return reply(res,200,{ok:true,balance});
   }catch{return error(res,503,'Blockchain-Guthaben derzeit nicht verifizierbar')}
  }
- if(req.method==='GET'&&route==='/api/wallet/encrypted-backup'){
-  try{return reply(res,200,{ok:true,encrypted_backup:await encryptedSolanaBackup(walletFile),
-   warning:'Nur verschlüsselte Kopie. Passwort getrennt offline aufbewahren. Nicht in Cloud/Chat/GitHub teilen.'})}
-  catch{return error(res,409,'Keine gültige Wallet für Sicherung')}
+ if(req.method==='POST'&&route==='/api/wallet/encrypted-backup'){
+  if(!req.headers.origin||!corsAllowed(req))
+   return error(res,403,'Wallet-Backup nur aus der lokalen Oberfläche');
+  if(!allowRequest('wallet-export-backup'))return error(res,429,'Zu viele Export-Anfragen');
+  try{
+   const input=await body(req);
+   if(!input||Object.keys(input).sort().join(',')!=='password'||
+      typeof input.password!=='string')
+    return error(res,422,'Passwort erforderlich');
+   await checkSolanaVaultPassword({filename:walletFile,password:input.password});
+   const sealed=await encryptedSolanaBackup(walletFile);
+   return reply(res,200,{ok:true,encrypted_backup:sealed,
+    warning:'Verschlüsselte Kopie nur nach Passwortprüfung. Passwort getrennt offline aufbewahren.'});
+  }catch{return error(res,422,'WALLET_BACKUP_PASSWORD_OR_INTEGRITY_FAILED')}
  }
  if(req.method==='POST'&&['/api/wallet/verify-backup','/api/wallet/restore-backup'].includes(route)){
   if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Benutzeroberfläche');
@@ -215,6 +229,49 @@ const server=createServer(async(req,res)=>{
   }catch(e){return error(res,422,e?.code==='EEXIST'?
     'Vorhandene Wallet wird niemals überschrieben':
     String(e?.message||'BACKUP_NOT_VERIFIED').slice(0,100))}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/activity'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Blockchain-Historie');
+  if(!allowRequest('wallet-activity'))return error(res,429,'Zu viele Verlaufabfragen');
+  try{return reply(res,200,{ok:true,activity:await recentSolanaWalletActivity(wallet.address,{
+   wait:()=>new Promise(resolve=>setTimeout(resolve,1100))})})}
+  catch{return error(res,503,'Blockchain-Transaktionsverlauf nicht verifizierbar')}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/tokens'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Token-Guthaben');
+  if(!allowRequest('wallet-owned-tokens'))return error(res,429,'Zu viele Guthabenabfragen');
+  try{return reply(res,200,{ok:true,holdings:await readSolanaOwnedTokens(wallet.address)})}
+  catch{return error(res,503,'Token-Guthaben nicht zuverlässig verifizierbar')}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/unsigned-order'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Order-Vorbereitung');
+  if(!allowRequest('wallet-unsigned-preflight'))return error(res,429,'Zu viele Order-Vorprüfungen');
+  const u=new URL(req.url,'http://127.0.0.1:'+port);
+  try{
+   const preflight=await previewJupiterUnsignedOrder({
+    wallet:wallet.address,targetMint:u.searchParams.get('outputMint'),
+    amountLamports:u.searchParams.get('amountLamports')});
+   return reply(res,200,{ok:true,preflight});
+  }catch{return error(res,422,'Ungültige Wallet- oder Tokenadresse')}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/swap-roundtrip'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Kurse');
+  if(!allowRequest('wallet-roundtrip'))return error(res,429,'Zu viele Tauschprüfungen');
+  const u=new URL(req.url,'http://127.0.0.1:'+port);
+  const targetMint=u.searchParams.get('outputMint');
+  const amountLamports=u.searchParams.get('amountLamports');
+  const preview=await previewSolanaSwapRoundtrip({
+   targetMint,amountLamports,wait:()=>new Promise(resolve=>setTimeout(resolve,2200))});
+  // Only public quote metadata, never a transaction, signing key or PayPal receipt.
+  return reply(res,200,{ok:true,preview});
  }
  if(req.method==='GET'&&route==='/api/wallet/swap-quote'){
   if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine echten Swap-Quotes');

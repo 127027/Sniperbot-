@@ -231,8 +231,12 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
     <div class="controls">
       <button class="btn" type="button" id="walletCopy">Adresse kopieren</button>
       <button class="btn" type="button" id="walletRefresh">SOL-Guthaben auf Blockchain prüfen</button>
+      <button class="btn" type="button" id="walletTokens">Token-Guthaben prüfen</button>
+      <button class="btn" type="button" id="walletActivity">Letzte Blockchain-Bewegungen</button>
     </div>
     <p id="walletBalance" class="subtle">Noch keine Blockchain-Abfrage. TEST-USDC ist davon getrennt.</p>
+    <p id="walletTokenList" class="subtle">Noch keine SPL-Token-Konten abgefragt.</p>
+    <div id="walletActivityList" class="subtle">Bisher noch keine öffentlichen Blockchain-Bewegungen abgefragt.</div>
     <h3 style="margin-top:16px">SOL mit 50 € über PayPal kaufen</h3>
     <p>Der Einkauf erfolgt auf der offiziellen MoonPay-Website. Dort <strong>50 €</strong>, <strong>SOL auf Solana</strong>, <strong>PayPal</strong> und unbedingt die oben angezeigte eigene Empfangsadresse auswählen. Gebühren und KYC beim Anbieter prüfen. Der Bot erhält keinen Zahlungszugang.</p>
     <a href="https://www.moonpay.com/buy/sol" target="_blank" rel="noopener noreferrer">MoonPay: SOL kaufen – externe Zahlungsseite öffnen</a>
@@ -240,6 +244,7 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
       <h3>Wallet sichern und Wiederherstellung testen</h3>
       <p>Die heruntergeladene Datei enthält nur verschlüsselte Wallet-Schlüsseldaten. Sichere sie auf einem separaten, nicht mit OneDrive synchronisierten Datenträger. Passwort getrennt aufbewahren.</p>
       <div class="controls">
+        <label>Wallet-Passwort für sicheren Export<input id="walletBackupExportPassword" type="password" autocomplete="off"></label>
         <button id="walletBackupDownload" class="btn" type="button">Verschlüsselte Sicherung herunterladen</button>
       </div>
       <label>Backup-Datei für Prüfung<input id="walletBackupFile" type="file" accept=".json,application/json"></label>
@@ -248,13 +253,15 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
       <p id="walletBackupResult" class="subtle">Eine heruntergeladene Sicherung ist erst nach erfolgreicher Prüfung als getestet anzusehen.</p>
     </div>
     <p class="warning">Bevor du echtes Geld an diese selbst erstellte Wallet schickst: verschlüsselte Wallet-Datei offline sichern und Wiederherstellung mit deinem Passwort unabhängig testen. Dieser Entwicklungsstand besitzt noch keinen Echtgeld-Verkauf.</p>
-    <h3 style="margin-top:16px">Neuen Solana-Coin auf Tauschroute prüfen</h3>
+    <h3 style="margin-top:16px">Neuen Solana-Coin: Kauf- und Rücktauschroute prüfen</h3>
     <div class="controls">
       <label>Ziel-Token (Mint-Adresse)<input id="walletTargetMint" type="text" placeholder="Solana-Mint-Adresse"></label>
       <label>Einsatz (SOL)<input id="walletSwapSol" type="number" min="0.00001" max="100" step="0.001" value="0.1"></label>
-      <button class="btn" type="button" id="walletQuote">Echten Kurs prüfen – nicht kaufen</button>
+      <button class="btn" type="button" id="walletQuote">Kauf + Rücktausch prüfen – keine Order</button>
+      <button class="btn" type="button" id="walletUnsignedOrder">Jupiter-Transaktion prüfen (NICHT signieren)</button>
     </div>
     <p id="walletQuoteResult" class="subtle">Tausch wird nicht ausgelöst. Ausführbare Swap-Signierung bleibt deaktiviert.</p>
+    <p id="walletUnsignedResult" class="subtle">Die konkrete Transaktion wird nicht ausgeführt und niemals signiert.</p>
   </div>
 </div>
 </section>
@@ -615,23 +622,92 @@ $('walletRefresh').onclick=async()=>{
    '. Keine PayPal-Bestätigung, keine TEST-USDC-Buchung.';
  }catch(e){$('walletBalance').textContent=e.message}
 };
+$('walletActivity').onclick=async()=>{
+ if(!currentRealWallet?.exists)return;
+ $('walletActivityList').textContent='Prüfe die letzten finalisierten SOL-Bewegungen …';
+ try{
+  const resp=await fetch('/api/wallet/activity',{cache:'no-store'});
+  const data=await resp.json();
+  if(!resp.ok)throw Error(data.error||'Verlauf nicht erreichbar');
+  const events=data.activity?.events;
+  if(!Array.isArray(events))throw Error('Ungültige Blockchain-Daten');
+  if(events.length===0){
+   $('walletActivityList').textContent='Keine aktuellen bestätigten Wallet-Bewegungen gefunden.';
+   return;
+  }
+  $('walletActivityList').innerHTML='<strong>Letzte finalisierte SOL-Kontobewegungen</strong>'+
+   events.map(e=>'<div style="margin:8px 0;word-break:break-all">'+
+    esc(e.block_time_utc||'Zeit unbekannt')+' · '+esc(e.direction)+' · '+
+    esc(e.sol_lamports_delta??'Betrag ungeklärt')+' Lamports · '+esc(e.signature.slice(0,15))+
+    '…</div>').join('')+
+   '<small>Kein Nachweis für eine PayPal-/MoonPay-Zahlung; nur Blockchain-Transaktionen.</small>';
+ }catch(e){$('walletActivityList').textContent='Blockchain-Verlauf nicht verifizierbar: '+e.message}
+};
+$('walletTokens').onclick=async()=>{
+ if(!currentRealWallet?.exists)return;
+ $('walletTokenList').textContent='Prüfe SOLANA SPL Token / Token-2022 Konten …';
+ try{
+  const resp=await fetch('/api/wallet/tokens',{cache:'no-store'});
+  const result=await resp.json();
+  if(!resp.ok)throw Error(result.error||'Keine verlässlichen Token-Bestände');
+  const h=result.holdings;
+  if(!Array.isArray(h.tokens))throw Error('Ungültige Token-Bestandsdaten');
+  if(h.tokens.length===0){$('walletTokenList').textContent='Keine positiven Tokenbestände gefunden (finalisierter Stand '+h.finalized_slot+').';return}
+  $('walletTokenList').innerHTML='<strong>Finalisiert beobachtete Token-Konten: '+h.count+'</strong>'+
+   h.tokens.slice(0,12).map(t=>'<div style="word-break:break-all;margin:7px 0">'+
+    esc(t.mint)+' · '+esc(t.ui_amount===null?'Anzeige unbekannt (Rohmenge '+t.amount_raw+')':t.ui_amount)+' Token · '+esc(t.account_state)+
+    (t.account_state==='frozen'?' (EINGEFROREN)':'')+'</div>').join('')+
+   '<small>Reine Onchain-Bestände; weder PayPal-Eingang noch Handelsfreigabe.</small>';
+ }catch(e){$('walletTokenList').textContent='Token-Guthaben nicht verfügbar: '+e.message}
+};
+$('walletUnsignedOrder').onclick=async()=>{
+ $('walletUnsignedResult').textContent='Prüfe lediglich eine unsignierte Jupiter-Transaktion …';
+ try{
+  const amount=Number($('walletSwapSol').value);
+  if(!Number.isFinite(amount)||amount<0.00001||amount>100)throw Error('Ungültiger SOL-Betrag.');
+  const url='/api/wallet/unsigned-order?outputMint='+
+   encodeURIComponent($('walletTargetMint').value.trim())+
+   '&amountLamports='+encodeURIComponent(String(Math.round(amount*1e9)));
+  const resp=await fetch(url,{cache:'no-store'});
+  const data=await resp.json();
+  if(!resp.ok)throw Error(data.error||'Kein Order-Vorprüfungsdienst');
+  const p=data.preflight;
+  if(p?.status!=='UNSIGNED_TRANSACTION_OBSERVED'){
+   $('walletUnsignedResult').textContent='BLOCKIERT: '+(p?.reason||'Kein signierbarer Auftrag vom Anbieter')+
+    '. Kein Kauf.';
+   return;
+  }
+  $('walletUnsignedResult').textContent='Nur eine ununterschriebene Transaktion erkannt: '+
+    p.inspection.transaction_version+' · Wallet-Signaturposition '+
+    p.inspection.wallet_signer_index+' · Kaufmenge in Token-Atomen '+p.expected_target_atoms+
+    '. Instruktionen/Sicherheit noch NICHT auditiert. Signieren und Senden GESPERRT.';
+ }catch(e){$('walletUnsignedResult').textContent='Order-Vorprüfung blockiert: '+e.message}
+};
 $('walletQuote').onclick=async()=>{
- $('walletQuoteResult').textContent='Prüfe echte Jupiter-Kursdaten …';
+ $('walletQuoteResult').textContent='Prüfe Jupiter-Hin- und Rückkursdaten (keine Transaktion) …';
  try{
   const amount=Number($('walletSwapSol').value);
   if(!Number.isFinite(amount)||amount<0.00001||amount>100)throw Error('Bitte 0,00001 bis 100 SOL eingeben.');
   const lamports=String(Math.round(amount*1e9));
   const mint=$('walletTargetMint').value.trim();
-  const url='/api/wallet/swap-quote?outputMint='+encodeURIComponent(mint)+
+  const url='/api/wallet/swap-roundtrip?outputMint='+encodeURIComponent(mint)+
    '&amountLamports='+encodeURIComponent(lamports);
   const resp=await fetch(url,{cache:'no-store'});
   const result=await resp.json();
-  if(!resp.ok)throw Error(result.error||'Keine sichere Quote');
-  $('walletQuoteResult').textContent='Nur Kurs: '+result.quote.input_lamports+
-   ' Lamports → '+result.quote.output_token_atoms+' Ziel-Token-Atome (Dezimalstellen noch nicht verifiziert).'+
-   ' Anbieter: Jupiter · Route: '+result.quote.router+' · Gebühr: '+result.quote.fee_bps+
-   ' bps. KEIN Kauf. Token-Sicherheit und Verkaufbarkeit nicht bestätigt.';
- }catch(e){$('walletQuoteResult').textContent='Quote blockiert: '+e.message}
+  if(!resp.ok)throw Error(result.error||'Kursprüfung nicht möglich');
+  const p=result.preview;
+  if(p.status!=='TWO_QUOTES_OBSERVED'){
+   $('walletQuoteResult').textContent='BLOCKIERT: '+(p.reason||'Rückkurs fehlt')+
+    ' · '+(p.details||'')+'. Nicht kaufen.';
+   return;
+  }
+  $('walletQuoteResult').textContent='ZWEI KURSAUSKÜNFTE: '+num(Number(p.input_sol_lamports)/1e9,6)+
+   ' SOL → '+p.intermediate_target_token_atoms+
+   ' Token-Atome → '+num(Number(p.indicative_return_sol_lamports)/1e9,6)+
+   ' SOL. Geschätzte Rundreise-Veränderung: '+num(p.approximate_roundtrip_change_bps/100,2)+
+   ' %. Kaufroute: '+p.buy_router+' · Verkaufroute: '+p.sell_router+
+   '. KEIN Handel; tatsächliche Verkaufbarkeit, Sicherheit, Gas und Slippage unbewiesen.';
+ }catch(e){$('walletQuoteResult').textContent='Kursprüfung blockiert: '+e.message}
 };
 async function getEncryptedWalletFile(id){
  const file=$(id)?.files?.[0];
@@ -639,8 +715,11 @@ async function getEncryptedWalletFile(id){
  return JSON.parse(await file.text());
 }
 $('walletBackupDownload').onclick=async()=>{
+ const password=$('walletBackupExportPassword').value;
  try{
-  const r=await fetch('/api/wallet/encrypted-backup',{cache:'no-store'});
+  if(password.length<16)throw Error('Wallet-Passwort erforderlich.');
+  const r=await fetch('/api/wallet/encrypted-backup',{method:'POST',
+   headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});
   const d=await r.json();if(!r.ok)throw Error(d.error||'Keine Sicherung verfügbar');
   const blob=new Blob([JSON.stringify(d.encrypted_backup,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');
@@ -648,6 +727,7 @@ $('walletBackupDownload').onclick=async()=>{
   document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
   $('walletBackupResult').textContent='Verschlüsselte Sicherung angeboten. Bitte extern offline sichern und danach testen.';
  }catch(e){$('walletBackupResult').textContent='Sicherung fehlgeschlagen: '+e.message}
+ finally{$('walletBackupExportPassword').value=''}
 };
 $('walletBackupVerify').onclick=async()=>{
  const password=$('walletBackupPassword').value;
