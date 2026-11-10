@@ -59,7 +59,8 @@ function assertResearch(s){
     const allowed=new Set(['candidate_id','checked_at_utc','status',
       'market_identity_verified','reason','source_names','contract_status',
       'sellability_status','executable_sell_quote','paper_entry_authorized',
-      'onchain_existence_status',
+      'onchain_existence_status','solana_mint_program','solana_mint_authority',
+      'solana_freeze_authority','solana_mint_header_risk',
       'paper_only','actionable']);
     if(!Array.isArray(s.pool_readbacks)||s.pool_readbacks.length>3||
       s.pool_readbacks.some(e=>!e||Object.keys(e).length!==allowed.size||
@@ -68,6 +69,18 @@ function assertResearch(s){
         e.contract_status!=='UNKNOWN'||e.sellability_status!=='UNKNOWN'||
         e.executable_sell_quote!==false||e.paper_entry_authorized!==false||
         !['UNKNOWN','CODE_PRESENT','ACCOUNTS_REPORTED'].includes(e.onchain_existence_status)||
+        !['UNKNOWN','SPL_TOKEN_LEGACY','TOKEN_2022'].includes(e.solana_mint_program)||
+        !['UNKNOWN','RETAINED','REVOKED'].includes(e.solana_mint_authority)||
+        !['UNKNOWN','RETAINED','REVOKED'].includes(e.solana_freeze_authority)||
+        !['UNKNOWN','CAUTION','HEADER_ONLY_NO_KNOWN_AUTHORITY'].includes(e.solana_mint_header_risk)||
+        (e.solana_mint_program==='UNKNOWN'&&
+         (e.solana_mint_authority!=='UNKNOWN'||e.solana_freeze_authority!=='UNKNOWN'||
+          e.solana_mint_header_risk!=='UNKNOWN'))||
+        (e.solana_mint_program==='TOKEN_2022'&&
+         e.solana_mint_header_risk!=='CAUTION')||
+        (e.solana_mint_header_risk==='HEADER_ONLY_NO_KNOWN_AUTHORITY'&&
+         (e.solana_mint_program!=='SPL_TOKEN_LEGACY'||
+          e.solana_mint_authority!=='REVOKED'||e.solana_freeze_authority!=='REVOKED'))||
         !Array.isArray(e.source_names)||e.source_names.join(',')!=='GECKOTERMINAL,DEXSCREENER'||
         !['IDENTITY_MATCHED','UNVERIFIED'].includes(e.status)||
         (e.status==='IDENTITY_MATCHED')!==(e.market_identity_verified===true)||
