@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inspectUnsignedSolanaOrder,previewJupiterUnsignedOrder} from './solana-unsigned-order.mjs';
-import {decodeBase58,SOLANA_MAINNET_RPC} from './local-solana-vault.mjs';
+import {decodeBase58} from './local-solana-vault.mjs';
 const wallet='So11111111111111111111111111111111111111112';
 const target='EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 function unsignedWire(key=wallet,{alreadySigned=false,unsupportedVersion=false}={}){
