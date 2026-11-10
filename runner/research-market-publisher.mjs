@@ -9,6 +9,20 @@ const URL='https://api.github.com/repos/'+REPO+'/contents/'+FILE;
 function assertResearch(s){
   if(!s||s.schema!=='research_market_snapshot.v1'||s.paper_only!==true||
      s.actionable!==false||!Array.isArray(s.candidates)||s.candidates.length>96)throw Error('Unsafe market research snapshot');
+  if(s.research_alerts!==undefined){
+    const allowed=new Set(['event_id','event_type','candidate_id','chain',
+      'token_address','pool_address','observed_at_utc','previous_observed_at_utc',
+      'previous_volume_m5_usd','current_volume_m5_usd','m5_volume_ratio',
+      'current_liquidity_usd','buy_transactions_m5','sell_transactions_m5',
+      'indicative_price_ratio','source_urls','paper_only','actionable',
+      'probability_pct','recommended_action','unknown_checks','warning']);
+    if(!Array.isArray(s.research_alerts)||s.research_alerts.length>24||
+       s.research_alerts.some(e=>!e||e.paper_only!==true||e.actionable!==false||
+         e.probability_pct!==null||e.event_type!=='MARKET_ACCELERATION'||
+         e.recommended_action!=='INDEPENDENT_FIVE_ROLE_REVIEW'||
+         Object.keys(e).some(k=>!allowed.has(k))))
+      throw Error('Unsafe public research alert payload');
+  }
 }
 async function readJson(resp){
   const raw=await resp.json().catch(()=>null);
