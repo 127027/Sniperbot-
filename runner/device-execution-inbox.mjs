@@ -81,11 +81,21 @@ function verifyInbox(doc,deviceId){
   doc.target_device_id!==deviceId||doc.live_execution_enabled!==false||
   doc.paper_only!==false||!Array.isArray(doc.records)||doc.records.length>MAX_RECORDS)
   throw Error('INVALID_EXECUTION_INBOX_STORE');
+ const receiptFields=['action','chain','command_id','duplicate','execution_status',
+  'input_mint','output_mint','payload_sha256','received_at_utc',
+  'target_device_id','transaction_sent','transaction_signed','wallet_debited'].sort().join(',');
  for(const x of doc.records){
-  if(!UUID.test(x.command_id)||typeof x.payload_sha256!=='string'||
+  if(!x||typeof x!=='object'||Array.isArray(x)||
+   Object.keys(x).sort().join(',')!==receiptFields||
+   !UUID.test(x.command_id)||typeof x.payload_sha256!=='string'||
    !/^[a-f0-9]{64}$/.test(x.payload_sha256)||
+   !['BUY','SELL'].includes(x.action)||x.chain!=='solana'||
+   typeof x.received_at_utc!=='string'||!Number.isFinite(Date.parse(x.received_at_utc))||
    x.execution_status!=='BLOCKED_LIVE_EXECUTION_NOT_ENABLED'||
-   x.target_device_id!==deviceId)throw Error('CORRUPT_EXECUTION_INBOX_RECORD');
+   x.target_device_id!==deviceId||
+   x.transaction_sent!==false||x.transaction_signed!==false||
+   x.wallet_debited!==false||x.duplicate!==false)
+   throw Error('CORRUPT_EXECUTION_INBOX_RECORD');
  }
  if(new Set(doc.records.map(x=>x.command_id)).size!==doc.records.length)
   throw Error('DUPLICATE_EXECUTION_INBOX_ID');
