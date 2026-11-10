@@ -12,6 +12,8 @@ jobs:
           node-version: '22'
       - run: node --check runner/server.mjs
       - run: node runner/dashboard-syntax-check.mjs
+      - name: Check actual public SOL to USDC to SOL roundtrip quotes (non-blocking)
+        run: node runner/solana-roundtrip-live-probe.mjs
       - name: Observe public Jupiter real SOL to USDC rate (non-blocking, no swap)
         run: node runner/solana-quote-live-probe.mjs
       - run: node --check runner/core.mjs
