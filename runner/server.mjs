@@ -77,6 +77,7 @@ const walletFile=path.join(store.dir,'wallet','solana-mainnet.v1.json');
 let walletCreationBusy=false,lastWalletBalanceAt=0,walletBalanceCache=null;
 const nativeTransferJournal=path.join(store.dir,'wallet','outgoing-sol-transfers');
 let nativeTransferChallenge=null,nativeTransferBusy=false;
+let walletBackupVerifiedAddress=null;
 let state=store.state,scanning=false,pricing=false;
 const allowRequest=limiter();
 let researchNetwork={schema:'research_network_status.v1',transport:'PUBLIC_GITHUB_PULL_ONLY',
@@ -356,6 +357,7 @@ const server=createServer(async(req,res)=>{
    if(!input||Object.keys(input).sort().join(',')!=='password'||
       typeof input.password!=='string')return error(res,422,'Nur Wallet-Passwort erlaubt');
    const result=await createLocalSolanaVault({filename:walletFile,password:input.password});
+   walletBackupVerifiedAddress=null;
    return reply(res,201,{ok:true,wallet:result});
   }catch(e){return error(res,422,e?.code==='EEXIST'?
    'Wallet bereits angelegt. Niemals überschreiben.':
@@ -403,9 +405,11 @@ const server=createServer(async(req,res)=>{
     result=await verifyEncryptedSolanaBackup({filename:walletFile,
      record:entry.record,password:entry.password});
     if(result.address!==installed.address)return error(res,422,'Backup gehört zu einer anderen Wallet');
+    walletBackupVerifiedAddress=installed.address;
    }else{
     result=await restoreEncryptedSolanaBackup({filename:walletFile,
      record:entry.record,password:entry.password});
+    walletBackupVerifiedAddress=null;
    }
    return reply(res,200,{ok:true,backup:result});
   }catch(e){return error(res,422,e?.code==='EEXIST'?
@@ -423,6 +427,7 @@ const server=createServer(async(req,res)=>{
   if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – Echtgeld gesperrt');
   if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Browseraktion');
   if(!allowRequest('native-sol-transfer-preview'))return error(res,429,'Zu viele Überweisungsvorbereitungen');
+  if(walletBackupVerifiedAddress===null)return error(res,409,'Wallet-Backup zunächst mit Passwort prüfen');
   if(nativeTransferBusy)return error(res,409,'Andere Überweisung aktiv');
   try{
    const d=await body(req);
@@ -445,6 +450,7 @@ const server=createServer(async(req,res)=>{
   if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – Echtgeld gesperrt');
   if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Browseraktion');
   if(!allowRequest('native-sol-transfer-send'))return error(res,429,'Zu viele Überweisungsversuche');
+  if(walletBackupVerifiedAddress===null)return error(res,409,'Wallet-Backup muss vor echter SOL-Überweisung geprüft sein');
   if(nativeTransferBusy)return error(res,409,'Eine Überweisung läuft bereits');
   nativeTransferBusy=true;
   try{
@@ -461,6 +467,8 @@ const server=createServer(async(req,res)=>{
    const wallet=await readLocalSolanaVault(walletFile);
    if(!wallet.exists||wallet.address!==pending.source)
     return error(res,409,'Wallet seit Bestätigung verändert');
+   if(wallet.address!==walletBackupVerifiedAddress)
+    return error(res,409,'Gesicherte Wallet und aktuelle Wallet passen nicht zusammen');
    const result=await submitLocalNativeSolTransfer({
     walletFile,folder:nativeTransferJournal,destination:pending.destination,
     lamports:pending.lamports,password:d.password});
