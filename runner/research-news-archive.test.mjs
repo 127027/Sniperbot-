@@ -46,7 +46,7 @@ test('duplicate URL preserves first seen; later snapshot never replaces immutabl
   const first=example();
   const a=await archiveNewsEvent(filename,first);
   assert.equal(a.created,true);
-  const b=await archiveNewsEvent(filename,{...first,first_observed_at_utc:plusDays(2),title:'New title changed later'});
+  const b=await archiveNewsEvent(filename,{...first,first_observed_at_utc:plusDays(46),title:'New title changed later'});
   assert.equal(b.created,false);
   assert.equal(b.event.first_observed_at_utc,day0);
   assert.equal(b.event.title,first.title);
@@ -68,7 +68,7 @@ test('corrupt durable record fails closed and does not silently overwrite hot jo
   assert.equal(await readFile(cash,'utf8'),'{"cashUsdc":123}');
  }finally{await rm(dir,{recursive:true,force:true})}
 });
-test('large historical event sequence survives month partitioning, even if hot journal caps at 1000',async()=>{
+test('large historical event sequence survives identity-hash partitioning, even when hot journal caps at 1000',async()=>{
  const dir=await mkdtemp(path.join(tmpdir(),'sniper-archive-many-'));
  const filename=path.join(dir,'news.json');
  try{
