@@ -209,6 +209,14 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
   <div style="margin-top:16px">
   <h3>Eigene Solana-Wallet auf diesem Rechner</h3>
   <p id="walletSafetyStatus" class="subtle">Prüfe lokale Wallet. Kein echter Kauf und kein Live-Swap aktiviert.</p>
+  <details id="walletRecoveryPanel">
+    <summary>Verschlüsselte bestehende Wallet auf einem neuen Gerät wiederherstellen</summary>
+    <p>Nur wenn noch keine Wallet auf diesem Gerät vorhanden ist. Das ursprüngliche Wallet-Passwort und die Offline-Sicherungsdatei werden benötigt.</p>
+    <label>Verschlüsselte Backup-Datei<input id="walletRestoreFile" type="file" accept=".json,application/json"></label>
+    <label>Wallet-Passwort<input id="walletRestorePassword" type="password" autocomplete="off"></label>
+    <button id="walletRestore" class="btn" type="button">Verschlüsselte Wallet wiederherstellen</button>
+    <p class="subtle" id="walletRestoreResult"></p>
+  </details>
   <div id="walletNew">
     <p>Erstellt eine neue Solana-Mainnet-Adresse. Der private Schlüssel bleibt verschlüsselt im lokalen Windows-Benutzerordner. Passwort und verschlüsselte Wallet-Datei müssen getrennt gesichert werden.</p>
     <div class="controls">
@@ -228,6 +236,17 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
     <h3 style="margin-top:16px">SOL mit 50 € über PayPal kaufen</h3>
     <p>Der Einkauf erfolgt auf der offiziellen MoonPay-Website. Dort <strong>50 €</strong>, <strong>SOL auf Solana</strong>, <strong>PayPal</strong> und unbedingt die oben angezeigte eigene Empfangsadresse auswählen. Gebühren und KYC beim Anbieter prüfen. Der Bot erhält keinen Zahlungszugang.</p>
     <a href="https://www.moonpay.com/buy/sol" target="_blank" rel="noopener noreferrer">MoonPay: SOL kaufen – externe Zahlungsseite öffnen</a>
+    <div style="margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:10px">
+      <h3>Wallet sichern und Wiederherstellung testen</h3>
+      <p>Die heruntergeladene Datei enthält nur verschlüsselte Wallet-Schlüsseldaten. Sichere sie auf einem separaten, nicht mit OneDrive synchronisierten Datenträger. Passwort getrennt aufbewahren.</p>
+      <div class="controls">
+        <button id="walletBackupDownload" class="btn" type="button">Verschlüsselte Sicherung herunterladen</button>
+      </div>
+      <label>Backup-Datei für Prüfung<input id="walletBackupFile" type="file" accept=".json,application/json"></label>
+      <label>Wallet-Passwort<input id="walletBackupPassword" type="password" autocomplete="off"></label>
+      <button id="walletBackupVerify" class="btn" type="button">Sicherung und Passwort prüfen</button>
+      <p id="walletBackupResult" class="subtle">Eine heruntergeladene Sicherung ist erst nach erfolgreicher Prüfung als getestet anzusehen.</p>
+    </div>
     <p class="warning">Bevor du echtes Geld an diese selbst erstellte Wallet schickst: verschlüsselte Wallet-Datei offline sichern und Wiederherstellung mit deinem Passwort unabhängig testen. Dieser Entwicklungsstand besitzt noch keinen Echtgeld-Verkauf.</p>
     <h3 style="margin-top:16px">Neuen Solana-Coin auf Tauschroute prüfen</h3>
     <div class="controls">
@@ -613,6 +632,50 @@ $('walletQuote').onclick=async()=>{
    ' Anbieter: Jupiter · Route: '+result.quote.router+' · Gebühr: '+result.quote.fee_bps+
    ' bps. KEIN Kauf. Token-Sicherheit und Verkaufbarkeit nicht bestätigt.';
  }catch(e){$('walletQuoteResult').textContent='Quote blockiert: '+e.message}
+};
+async function getEncryptedWalletFile(id){
+ const file=$(id)?.files?.[0];
+ if(!file||file.size>4096)throw Error('Bitte gültige verschlüsselte Wallet-Datei bis 4 KiB auswählen.');
+ return JSON.parse(await file.text());
+}
+$('walletBackupDownload').onclick=async()=>{
+ try{
+  const r=await fetch('/api/wallet/encrypted-backup',{cache:'no-store'});
+  const d=await r.json();if(!r.ok)throw Error(d.error||'Keine Sicherung verfügbar');
+  const blob=new Blob([JSON.stringify(d.encrypted_backup,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download='sniperbot-solana-wallet-VERSCHLUESSELT.json';
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  $('walletBackupResult').textContent='Verschlüsselte Sicherung angeboten. Bitte extern offline sichern und danach testen.';
+ }catch(e){$('walletBackupResult').textContent='Sicherung fehlgeschlagen: '+e.message}
+};
+$('walletBackupVerify').onclick=async()=>{
+ const password=$('walletBackupPassword').value;
+ try{
+  const record=await getEncryptedWalletFile('walletBackupFile');
+  if(password.length<16)throw Error('Passwort nicht vollständig');
+  const resp=await fetch('/api/wallet/verify-backup',{method:'POST',
+   headers:{'Content-Type':'application/json'},body:JSON.stringify({record,password})});
+  const data=await resp.json();
+  if(!resp.ok)throw Error(data.error||'Backup nicht gültig');
+  $('walletBackupResult').textContent='Sicherung erfolgreich geprüft: Adresse stimmt mit der installierten Wallet überein. Bewahre Datei und Passwort getrennt offline auf.';
+ }catch(e){$('walletBackupResult').textContent='Backup-Prüfung gescheitert: '+e.message}
+ finally{$('walletBackupPassword').value=''}
+};
+$('walletRestore').onclick=async()=>{
+ const password=$('walletRestorePassword').value;
+ try{
+  const record=await getEncryptedWalletFile('walletRestoreFile');
+  if(password.length<16)throw Error('Passwort nicht vollständig');
+  if(!confirm('Wallet nur auf leerer Installation wiederherstellen? Vorhandene Wallet wird nicht ersetzt.'))return;
+  const resp=await fetch('/api/wallet/restore-backup',{method:'POST',
+   headers:{'Content-Type':'application/json'},body:JSON.stringify({record,password})});
+  const data=await resp.json();
+  if(!resp.ok)throw Error(data.error||'Wiederherstellung blockiert');
+  $('walletRestoreResult').textContent='Wiederhergestellt: '+data.backup.address;
+  await refreshLocalWallet();
+ }catch(e){$('walletRestoreResult').textContent='Wiederherstellung gescheitert: '+e.message}
+ finally{$('walletRestorePassword').value=''}
 };
 refreshLocalWallet();setInterval(refreshLocalWallet,60000);
 refreshV09();refreshV09Readbacks();
