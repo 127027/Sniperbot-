@@ -4,7 +4,7 @@ import {mkdtemp,readFile,readdir,writeFile,utimes,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {gunzipSync} from 'node:zlib';
-import {saveHistory,pruneHistory,appendResearchAlerts} from './research-market-daemon.mjs';
+import {saveHistory,pruneHistory,appendResearchAlerts,recentResearchAlerts} from './research-market-daemon.mjs';
 import {publishResearchSnapshot,publishingEnabled} from './research-market-publisher.mjs';
 const now=Date.parse('2026-11-09T17:00:00.000Z');
 const snapshot={schema:'research_market_snapshot.v1',paper_only:true,actionable:false,
@@ -117,4 +117,24 @@ test('public publisher does not allow rogue trade instructions hidden in market 
  assert.equal(published.path,'research/market/latest.json');
  await assert.rejects(publishResearchSnapshot({...with96,candidates:[...with96.candidates,{}]},
     {token:'fake-test-token-not-a-secret'}),/Unsafe/);
+});
+
+test('GitHub hourly Dot sees last 60 minutes of local read-only market alerts',async()=>{
+ const dir=await mkdtemp(path.join(tmpdir(),'sniper-rolling-alerts-'));
+ const filename=path.join(dir,'market-alerts.json');
+ const now=Date.parse('2026-11-10T07:00:00Z');
+ const event=(id,when)=>({
+  event_id:'research-alert-'+id.repeat(32),event_type:'MARKET_ACCELERATION',
+  paper_only:true,actionable:false,observed_at_utc:new Date(when).toISOString(),
+  candidate_id:'base:token:pool',recommended_action:'INDEPENDENT_FIVE_ROLE_REVIEW'
+ });
+ try{
+  const lastHour=event('1',now-15*60_000);
+  const yesterday=event('2',now-2*3600_000);
+  await appendResearchAlerts([lastHour,yesterday],{filename,now});
+  const shared=await recentResearchAlerts({filename,now});
+  assert.deepEqual(shared.map(e=>e.event_id),[lastHour.event_id]);
+  assert(shared.every(e=>e.paper_only===true&&e.actionable===false));
+  await assert.rejects(recentResearchAlerts({filename,now,windowMs:3*86400_000}),/WINDOW/);
+ }finally{await rm(dir,{recursive:true,force:true})}
 });
