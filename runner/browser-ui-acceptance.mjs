@@ -108,6 +108,30 @@ try{
  const after=(await httpGet(base,'/api/state')).state;
  assert.equal(after.cashEur,Number(before.cashEur)+50,
   'paper EUR deposit must only increase virtual cash by 50');
+ // More than a display: verify the four independent PAPER cash commands.
+ // These are simulated exchange movements, never actual SOL/USDC.
+ const waitPaper=async(eur,usdc)=>page.waitForFunction(async(expected)=>{
+  const r=await fetch('/api/state');
+  if(!r.ok)return false;
+  const json=await r.json();
+  return Math.abs(json.state.cashEur-expected.eur)<0.000001&&
+   Math.abs(json.state.cashUsdc-expected.usdc)<0.000001;
+ },{eur,usdc},{timeout:15000});
+ await page.locator('#paperEurInput').fill('20');
+ await page.locator('#paperEurExchange').click();
+ await waitPaper(Number(after.cashEur)-20,Number(after.cashUsdc)+20);
+ await page.locator('#paperEurInput').fill('10');
+ await page.locator('#paperUsdcExchangeBack').click();
+ await waitPaper(Number(after.cashEur)-10,Number(after.cashUsdc)+10);
+ await page.locator('#paperEurInput').fill('15');
+ await page.locator('#paperEurWithdraw').click();
+ await waitPaper(Number(after.cashEur)-25,Number(after.cashUsdc)+10);
+ const finalPaper=(await httpGet(base,'/api/state')).state;
+ assert.equal(finalPaper.cashEur,Number(after.cashEur)-25);
+ assert.equal(finalPaper.cashUsdc,Number(after.cashUsdc)+10);
+ // Confirm dark-form styling in real Microsoft Edge, not only CSS text.
+ assert.equal(await page.locator('#paperEurInput').evaluate(e=>getComputedStyle(e).color),
+  'rgb(239, 245, 251)');
  // Toggle the actual Paper bot and verify the UI remains functional.
  await page.locator('#toggle').click();
  await page.waitForFunction(beforeOn=>
@@ -166,8 +190,32 @@ try{
  assert.equal(await page.locator('#walletPwd1').inputValue(),'');
  assert.equal(await page.locator('#walletPwd2').inputValue(),'');
  assert.equal(await page.locator('#realEurTotal').textContent(),'— €');
- assert.equal((await httpGet(base,'/api/state')).state.cashEur,Number(after.cashEur),
+ assert.equal((await httpGet(base,'/api/state')).state.cashEur,Number(finalPaper.cashEur),
   'creating a crypto wallet must not alter paper cash');
+ // Click through encrypted backup export AND verify in the real browser.
+ // The backup is discarded with the ephemeral CI directory, never sent anywhere.
+ const techDetails=page.locator('#walletExisting > details.section');
+ assert.equal(await techDetails.count(),1);
+ await techDetails.locator('> summary').click();
+ await page.locator('#walletBackupExportPassword').fill(walletPassphrase);
+ const [download]=await Promise.all([
+  page.waitForEvent('download',{timeout:20000}),
+  page.locator('#walletBackupDownload').click()
+ ]);
+ assert.equal(download.suggestedFilename(),'sniperbot-solana-wallet-VERSCHLUESSELT.json');
+ const encryptedBackup=path.join(tmp,'ephemeral-encrypted-wallet-backup.json');
+ await download.saveAs(encryptedBackup);
+ await page.locator('#walletBackupFile').setInputFiles(encryptedBackup);
+ await page.locator('#walletBackupPassword').fill(walletPassphrase);
+ await page.locator('#walletBackupVerify').click();
+ await page.waitForFunction(()=>
+  document.getElementById('walletBackupResult')?.textContent?.includes('Sicherung erfolgreich geprüft'),
+  null,{timeout:20000});
+ assert.equal(await page.locator('#walletBackupExportPassword').inputValue(),'');
+ assert.equal(await page.locator('#walletBackupPassword').inputValue(),'');
+ assert.equal((await httpGet(base,'/api/wallet/status')).wallet.address,created.wallet.address);
+ assert.equal((await httpGet(base,'/api/state')).state.cashUsdc,Number(finalPaper.cashUsdc));
+ await techDetails.locator('> summary').click();
  await snapshot(page,'03-echtgeld-testwallet-local');
 
  // Technical controls are present but collapsed until explicitly requested.
@@ -193,6 +241,8 @@ try{
   mock_payment_sent:false,real_trade_executed:false,
   page_javascript_exceptions:0,
   paper_deposit_verified:true,
+  paper_exchange_and_withdrawal_verified:true,
+  local_encrypted_backup_export_and_verify_in_browser:true,
   paper_bot_toggle_verified:true,
   real_wallet_created_on_disposable_ci_only:true,
   real_trade_activation_blocked:true,
