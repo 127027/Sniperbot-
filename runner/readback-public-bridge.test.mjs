@@ -21,6 +21,7 @@ test('whitelist only releases public non-order pool facts; never money or secret
  assert.equal(result[0].candidate_id,id);
  assert.equal(result[0].paper_entry_authorized,false);
  assert.equal(result[0].sellability_status,'UNKNOWN');
+ assert.equal(result[0].onchain_existence_status,'UNKNOWN');
  assert.equal(result[0].executable_sell_quote,false);
  assert(!JSON.stringify(result).includes('MUST_NOT_ESCALATE'));
  assert(!JSON.stringify(result).includes('cashUsdc'));
@@ -68,4 +69,15 @@ test('public GitHub publisher sends exact sanitized readbacks and rejects inject
  await assert.rejects(publishResearchSnapshot(injected,{token:'TEST_GITHUB_NOT_REAL_SECRET_123456789',
   fetcher}),/Unsafe public pool readback payload/);
  assert.equal(calls,2,'invalid private payload rejected before network');
+});
+
+test('public bridge refuses to interpret forged onchain contract PASS as safety',()=>{
+ const b=batch();
+ b.results[0].onchain_existence={schema:'onchain_existence_readback.v1',
+  candidate_id:id,paper_only:true,actionable:false,
+  paper_entry_authorized:false,existence_status:'CODE_PRESENT',
+  contract_security:'PASS',sellability:'PASS',amount_specific_sell_quote:false};
+ const result=sanitizePoolReadbacks(b,{now});
+ assert.equal(result[0].onchain_existence_status,'UNKNOWN');
+ assert.equal(result[0].paper_entry_authorized,false);
 });
