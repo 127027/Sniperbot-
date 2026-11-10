@@ -4,11 +4,11 @@ import {freshState,action,applyExits,autoBuyCandidate} from './core.mjs';
 import {ROLES,simulate,evaluate,assess,ingest,identity,positionSize} from './research.mjs';
 const funded=()=>({...freshState(),cashUsdc:200,entriesEnabled:true,automaticPaperBuys:true});
 const pending=()=>simulate({...funded(),entriesEnabled:false});
-test('per-coin fixed amount: 200 means 200, including sixth position and >1000 total',()=>{
+test('200–200 now means one 200 preferred entry within 200 total exposure, not seven 200 entries',()=>{
  let s={...funded(),cashUsdc:1400,minTrade:200,maxTrade:200,maxPositions:5,maxExposure:1000,perPositionCap:50};
  for(let i=0;i<7;i++)s=simulate(s);
- assert.equal(s.positions.length,7);assert(s.positions.every(p=>p.amountUsdc===200));assert.equal(s.cashUsdc,0);
- s=simulate(s);assert.equal(s.positions.length,7);
+ assert.equal(s.positions.length,1);assert.equal(s.positions[0].amountUsdc,200);assert.equal(s.cashUsdc,1200);
+ s=simulate(s);assert.equal(s.positions.length,1,'No reopening after full total budget is reserved');
 });
 test('95-point agreement can allocate 1000 to one coin within 100–1000',()=>{
  const s=simulate({...funded(),cashUsdc:1200,minTrade:100,maxTrade:1000},false,95,'HIGH_CONVICTION');
@@ -21,10 +21,10 @@ test('allocation varies by rating; missing scores block, cash and sell limits st
  let s=simulate({...base,entriesEnabled:false}),c=s.research.candidates[0];
  c.votes.forEach(v=>delete v.score_0_100);assert.equal(positionSize(s,c),50,'Missing score does not turn into probability');
  c.votes.forEach(v=>v.allocation_intent='HIGH_CONVICTION');
- assert.equal(positionSize(s,c),200,'All five roles explicitly agree on high-conviction sizing');
+ assert.equal(positionSize(s,c),150,'Existing 50 cost basis reserves part of 200 total budget');
  s.cashUsdc=120;assert.equal(positionSize(s,c),120);
  c.risk.max_amount_usdc=75;assert.equal(positionSize(s,c),75);
- s.minTrade=200;s.maxTrade=200;assert.equal(positionSize(s,c),0,'fixed 200 never silently buys 75');
+ s.minTrade=200;s.maxTrade=200;assert.equal(positionSize(s,c),75,'200 is a preference, 50 minimum and budget remains hard');
 });
 test('five simulated roles + independent fixture buy 50 once; multiple new coins',()=>{
  let s=simulate(funded());assert.equal(s.positions.length,1);assert.equal(s.positions[0].amountUsdc,50);assert.equal(s.cashUsdc,150);
