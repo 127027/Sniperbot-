@@ -51,7 +51,7 @@ export function detectEarlyMarketAcceleration(previous,current){
   const priceRatio=isNum(c.price_usd)&&c.price_usd>0&&isNum(p.price_usd)&&p.price_usd>0?
    c.price_usd/p.price_usd:null;
   const liquidityRatio=c.liquidity_usd/p.liquidity_usd;
-  if((priceRatio===null||priceRatio<1.15)&&liquidityRatio<1.5)continue;
+  if(priceRatio===null||(priceRatio<1.15&&liquidityRatio<1.5))continue;
   const basis=c.candidate_id+'|'+current.published_at_utc+'|MARKET_ACCELERATION';
   const id=createHash('sha256').update(basis).digest('hex').slice(0,32);
   events.push({
