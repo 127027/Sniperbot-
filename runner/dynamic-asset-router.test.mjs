@@ -36,7 +36,7 @@ const makeMock=({sol=100000000,usdcAmount='50000000',newAmount='12345',
     account:{owner:program,data:{program:'spl-token',parsed:{type:'account',
      info:{owner,mint:t.mint,state:frozen&&t.mint===usdc?'frozen':'initialized',
       tokenAmount:{amount:t.amount,decimals:t.decimals,
-       uiAmountString:t.mint===usdc?'50':'0.000012345'}}}}}}
+       uiAmountString:t.mint===usdc?'50':'0.000012345'}}}}}
    }))};
   }else throw Error('UNEXPECTED_RPC_METHOD_'+req.method);
   return new Response(JSON.stringify({jsonrpc:'2.0',id:1,result}),{status:200});
