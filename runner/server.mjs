@@ -24,7 +24,7 @@ let networkBusy=false;
 async function refreshResearchNetwork(){
  if(networkBusy)return;networkBusy=true;
  try{
-  const next=await fetchResearchNetwork({settings:{minTrade:state.minTrade,maxTrade:state.maxTrade,cashUsdc:state.cashUsdc,cashEur:state.cashEur}});
+  const next=await fetchResearchNetwork({settings:{minTrade:state.minTrade,maxTrade:state.maxTrade,portfolioBudgetUsdc:state.portfolioBudgetUsdc,cashUsdc:state.cashUsdc,cashEur:state.cashEur,positions:state.positions.map(p=>({amountUsdc:p.amountUsdc}))}});
   researchNetwork=next;
   // Public summaries only; never put portfolio, tokens or signing keys in the cache.
   const target=path.join(root,'.local','research-network','status.json');
