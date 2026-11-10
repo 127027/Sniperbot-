@@ -159,6 +159,9 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
   <div class="section-heading"><h2>Forschungsnetzwerk</h2><span class="tag">NUR FORSCHUNG</span></div>
   <div id="researchNetworkStatus" class="subtle">Prüfe fünf GitHub-Forschungsberichte …</div>
   <div id="researchNetworkRoles" class="subtle"></div>
+  <h3>Gemeinsame Kandidatenprüfung</h3>
+  <div id="researchAdvisoryCount" class="subtle">Die Forschungswarteschlange wird geladen …</div>
+  <div id="researchAdvisoryList" class="subtle"></div>
   <div id="localLearningStatus" class="subtle">Lokales Memecoin-Lernarchiv wird geprüft …</div>
   <p class="notice">Forschung: neue Coins und historische 2×/5×/10×/50×/200×-Kursbewegungen innerhalb von 14 Tagen. Ohne vollständige, unabhängig validierte Kohorten keine echte Prozentwahrscheinlichkeit. Angezeigte DEX-Kurse sind kein Beweis eines verkaufbaren 50×- oder 200×-Gewinns. Forschungsberichte autorisieren keine Paper-Käufe.</p>
 </section>
@@ -301,6 +304,27 @@ function render(force){
       (learning.stale?' · Daten veraltet':'')+
       (learning.warning?' · Fehler: '+learning.warning:'')
     : 'Lokale Pool-Nachbeobachtung: noch keine Messdaten im neuen Forschungsarchiv';
+  const review=network?.advisories;
+  $('researchAdvisoryCount').textContent=review?.schema==='research_advisories.v1'
+    ? 'Gespeicherte Pool-Identitäten: '+review.total_unique_candidates+
+      ' · sichtbare Prüfaufträge: '+review.candidates.length+
+      ' · NIEMALS automatische Kauf-Freigabe'
+    : 'Noch keine zusammengeführten Prüfaufträge';
+  $('researchAdvisoryList').innerHTML=review?.schema==='research_advisories.v1'
+    ? review.candidates.slice(0,8).map(c=>{
+      const scope=c.hypothetical_paper_range||{};
+      const budget=scope.available?
+        'Nur Rechenrahmen: '+num(scope.minimum_test_usdc,0)+'–'+num(scope.maximum_test_usdc,0)+' TEST-USDC (KEINE Empfehlung)':
+        'Kein freier Mindestbetrag';
+      const label=esc(c.chain)+' / '+esc((c.token_address||'').slice(0,8))+'…';
+      const risk=Array.isArray(c.required_checks)?c.required_checks.slice(0,5).map(esc).join(' · '):'Sicherheitsprüfungen fehlen';
+      return '<details class="activity-row"><summary><strong>'+label+'</strong> · '+c.role_count+'/5 Rollen nennen den Pool · '+esc(c.priority)+' · '+esc(c.research_status)+'</summary>'+
+       '<div class="subtle">Coin/Pool: '+esc(c.candidate_id)+'</div>'+
+       '<div class="subtle">'+esc(budget)+'</div>'+
+       '<div class="subtle">Offen: '+risk+'</div>'+
+       '<div class="subtle">Signierte Paper-Käufe: GESPERRT (Contract, Exit-Quote, 5 unabhängige Freigaben fehlen)</div></details>';
+    }).join('')
+    : '';
   $('centralFollow').checked=!!s.centralPaperFollow;
   $('accountStatus').textContent=(s.entriesEnabled||positions.length)?'Zum Ändern Bot ausschalten und Positionen schließen.':'Testkapital kann jetzt festgelegt werden.';
   $('setBalance').disabled=!!(s.entriesEnabled||positions.length);
