@@ -195,6 +195,8 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
     <label>Euro-Betrag (nur Test)<input id="paperEurInput" type="number" min="0.01" max="100000" step="0.01" value="50"></label>
     <button class="btn strong" id="paperEurDeposit" type="button">Test-Einzahlung</button>
     <button class="btn" id="paperEurWithdraw" type="button">Test-Auszahlung</button>
+    <button class="btn" id="paperEurExchange" type="button">Test-EUR → USDC</button>
+    <button class="btn" id="paperUsdcExchangeBack" type="button">Test-USDC → EUR</button>
   </div>
   <p id="paperEurResult" class="statusline"></p>
   <details style="margin-top:13px">
@@ -426,6 +428,24 @@ $('paperEurWithdraw').onclick=()=>{
   if(!confirm(num(eur)+' virtuelle Euro TESTWEISE abheben? Keine echte Auszahlung.'))return;
   api({type:'WITHDRAW',eur});
   $('paperEurResult').textContent='Test-Auszahlung angefragt. Kontostand wird aktualisiert.';
+ }catch(e){$('paperEurResult').textContent=e.message}
+};
+$('paperEurExchange').onclick=()=>{
+ try{
+  const eur=paperEurAmount();
+  if(eur>Number(lastState?.cashEur||0))throw Error('Zu wenig virtuelle Euro vorhanden.');
+  if(!confirm(num(eur)+' Demo-EUR 1:1 in TEST-USDC umwandeln? Das ist KEIN realer Wechselkurs.'))return;
+  api({type:'EXCHANGE',eur});
+  $('paperEurResult').textContent='Umwandlung beantragt – TEST, 1:1, keine echten Coins.';
+ }catch(e){$('paperEurResult').textContent=e.message}
+};
+$('paperUsdcExchangeBack').onclick=()=>{
+ try{
+  const usdc=paperEurAmount();
+  if(usdc>Number(lastState?.cashUsdc||0))throw Error('Zu wenig TEST-USDC vorhanden.');
+  if(!confirm(num(usdc)+' TEST-USDC 1:1 in Demo-EUR umwandeln? Keine echte Auszahlung.'))return;
+  api({type:'EXCHANGE_BACK',usdc});
+  $('paperEurResult').textContent='Rückumwandlung beantragt – TEST, 1:1, keine Bankzahlung.';
  }catch(e){$('paperEurResult').textContent=e.message}
 };
 $('setBalance').onclick=()=>{
