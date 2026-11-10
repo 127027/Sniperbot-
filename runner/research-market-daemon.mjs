@@ -89,6 +89,21 @@ export async function appendResearchAlerts(events,{filename=alertFile,now=Date.n
  }
  return {added:added.length,retained:kept.length};
 }
+export async function recentResearchAlerts({filename=alertFile,now=Date.now(),windowMs=60*60_000}={}){
+ if(!Number.isFinite(now)||!Number.isFinite(windowMs)||windowMs<=0||windowMs>24*3600_000)
+  throw Error('INVALID_RESEARCH_ALERT_WINDOW');
+ let journal;
+ try{
+  const bytes=await readFile(filename);
+  if(bytes.length>4*1024*1024)throw Error('RESEARCH_ALERT_JOURNAL_TOO_LARGE');
+  journal=JSON.parse(bytes.toString('utf8'));
+ }catch(e){if(e.code==='ENOENT')return [];throw e}
+ if(journal?.schema!=='research_alert_history.v1'||journal.paper_only!==true||
+    journal.actionable!==false||!Array.isArray(journal.events))throw Error('INVALID_RESEARCH_ALERT_JOURNAL');
+ return journal.events.filter(e=>e?.paper_only===true&&e.actionable===false&&
+   Number.isFinite(Date.parse(e.observed_at_utc))&&Date.parse(e.observed_at_utc)<=now&&
+   Date.parse(e.observed_at_utc)>=now-windowMs).slice(-24);
+}
 async function acquireLock(){
   await mkdir(cache,{recursive:true});
   const filename=path.join(cache,'collector.pid');
@@ -124,12 +139,15 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     try{previous=JSON.parse(await readFile(latestFile,'utf8'))}
     catch(e){if(e.code!=='ENOENT')alertError='PREVIOUS_SNAPSHOT_UNREADABLE'}
     marketAlerts=detectEarlyMarketAcceleration(previous,snapshot);
-    // Public GitHub relay carries ONLY non-actionable market observations.
-    snapshot.research_alerts=marketAlerts.events;
     if(marketAlerts.events.length){
       try{alertJournal=await appendResearchAlerts(marketAlerts.events,{now:Date.parse(now)})}
       catch(e){alertError=String(e?.message||'ALERT_JOURNAL_FAILED').replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,100)}
     }
+    // An hourly Dot would otherwise miss most 2-minute-trigger events.
+    // Share a bounded rolling 60-minute window, not merely this scan's alerts.
+    try{snapshot.research_alerts=await recentResearchAlerts({now:Date.parse(now)})}
+    catch(e){snapshot.research_alerts=marketAlerts.events;
+      alertError=String(e?.message||'ALERT_READ_FAILED').replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,100)}
     await writeSnapshot(snapshot,latestFile);
     await saveHistory(snapshot);
   }
@@ -152,7 +170,9 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     coverage:snapshot.coverage,history:clean,followups,followup_error:followupError,
     market_alerts:{events_found:marketAlerts.events.length,
       compared_pairs:marketAlerts.evaluated_pairs,
-      new_local_alerts:alertJournal?.added??0,local_alert_error:alertError},
+      new_local_alerts:alertJournal?.added??0,
+      rolling_public_research_alerts:snapshot.research_alerts?.length??0,
+      local_alert_error:alertError},
     publishing_enabled:publishingEnabled(),published_commit:published?.commit_sha||null,
     publish_error:publishError
   });
