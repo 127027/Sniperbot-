@@ -13,6 +13,12 @@ on:
       - "runner/research-market-collector.mjs"
       - "runner/research-market-collector.test.mjs"
       - "runner/research-market-daemon.mjs"
+      - "runner/research-advisories.mjs"
+      - "runner/research-advisories.test.mjs"
+      - "runner/research-hype-triggers.mjs"
+      - "runner/research-hype-triggers.test.mjs"
+      - "runner/research-network.mjs"
+      - "runner/central-decisions.test.mjs"
       - ".github/workflows/tests.yml"
       - ".github/workflows/windows-supervisor.yml"
   workflow_dispatch:
@@ -30,7 +36,7 @@ jobs:
       - name: Validate V0.5 research-only longitudinal tracking on Windows
         shell: powershell
         run: |
-          node --test runner/memecoin-followups.test.mjs runner/memecoin-outcomes.test.mjs runner/memecoin-learning.test.mjs runner/research-market-collector.test.mjs runner/research-market-daemon.test.mjs
+          node --test runner/memecoin-followups.test.mjs runner/memecoin-outcomes.test.mjs runner/memecoin-learning.test.mjs runner/research-market-collector.test.mjs runner/research-market-daemon.test.mjs runner/research-advisories.test.mjs runner/research-hype-triggers.test.mjs runner/research-network.test.mjs runner/central-decisions.test.mjs
       - name: Test Windows DPAPI, JobObject and private stdin stop without real token
         shell: powershell
         run: |
