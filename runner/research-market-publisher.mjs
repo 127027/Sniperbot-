@@ -8,7 +8,7 @@ const URL='https://api.github.com/repos/'+REPO+'/contents/'+FILE;
 
 function assertResearch(s){
   if(!s||s.schema!=='research_market_snapshot.v1'||s.paper_only!==true||
-     s.actionable!==false||!Array.isArray(s.candidates)||s.candidates.length>48)throw Error('Unsafe market research snapshot');
+     s.actionable!==false||!Array.isArray(s.candidates)||s.candidates.length>96)throw Error('Unsafe market research snapshot');
 }
 async function readJson(resp){
   const raw=await resp.json().catch(()=>null);
