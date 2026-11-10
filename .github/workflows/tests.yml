@@ -37,5 +37,7 @@ jobs:
         run: |
           node --check runner/wallet-readiness.mjs
           node --check runner/paper-fiat-onramp.mjs
+          node --check runner/v09-integration.mjs
+          node --check runner/server.mjs
       - name: Verify strict no-secret watch-only policy and synthetic fiat only
-        run: node --test runner/wallet-readiness.test.mjs runner/paper-fiat-onramp.test.mjs
+        run: node --test runner/wallet-readiness.test.mjs runner/paper-fiat-onramp.test.mjs runner/v09-integration.test.mjs
