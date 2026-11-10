@@ -2,7 +2,7 @@ import {createHash,createPublicKey,verify} from 'node:crypto';
 import {action} from './core.mjs';
 import {identity} from './research.mjs';
 import {validTokenAddress} from './market.mjs';
-import {allocatePaper} from './allocation.mjs';
+import {allocatePortfolioPaper} from './portfolio-budget.mjs';
 export const DOMAIN='MemeSniper/paper_execution_decision.v1\n';
 export function canonical(value){
  if(value===null||typeof value!=='object')return JSON.stringify(value);
@@ -65,8 +65,8 @@ export function receiveDecision(state,d,keys,options={}){
    else if(!quote.riskPass||!quote.quorumPass){reason='CENTRAL_PROOF_UNAVAILABLE';}
    else if(d.allocation_intent==='HIGH_CONVICTION'&&quote.convictionPass!==true){reason='INDEPENDENT_CONVICTION_PROOF_UNAVAILABLE';}
    else{
-    amount=allocatePaper({intent:d.allocation_intent||'EXPLORATORY',targetUsdc:d.target_test_usdc??null,min:state.minTrade,max:state.maxTrade,free:state.cashEur+state.cashUsdc,capacity:quote.maxGross});
-    if(!amount){reason='Score/Guthaben unter Mindestbetrag';}
+    amount=allocatePortfolioPaper({state,intent:d.allocation_intent||'EXPLORATORY',targetUsdc:d.target_test_usdc??null,capacity:quote.maxGross});
+    if(!amount){reason='Paper-Gesamtbudget oder sichere Ausführungskapazität erschöpft';}
     else{
      const candidate={id:d.candidate_id,chain:d.chain,tokenAddress:d.token_address,poolAddress:d.pool_address,symbol:'SYNTHETIC',name:'Synthetischer Ausführungstest',priceUsd:quote.priceUsd,asOf:new Date(now).toISOString(),isDemo:true,source:'SYNTHETIC_QUOTE'};
      const prepared={...state,candidates:[candidate,...state.candidates.filter(c=>c.id!==candidate.id)]};
