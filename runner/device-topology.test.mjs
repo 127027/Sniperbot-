@@ -41,6 +41,15 @@ test('fresh master signed status is informational, never a trading authorization
  assert.equal(followerStatus({topology:cfg,presence:proof,now:now+91000}).message,
   'Keine Verbindung – ruf Andreas an');
 });
+test('private master PEM can never be pasted into a follower as public key',()=>{
+ const dir=mkdtempSync(path.join(os.tmpdir(),'sniper-private-key-reject-'));
+ try{
+  const secret=privateKey.export({format:'pem',type:'pkcs8'});
+  assert.throws(()=>installLocalDeviceTopology({
+   dir,deviceId:B,mode:'FOLLOWER',masterDeviceId:A,
+   masterPublicKeyPem:secret}),/INVALID_MASTER_PUBLIC_KEY/);
+ }finally{rmSync(dir,{recursive:true,force:true})}
+});
 test('stale, tampered, forged and wrong-device master heartbeats reject',()=>{
  const cfg={mode:'FOLLOWER',master_device_id:A,master_public_key_pem:pem};
  const hb=createSignedMasterPresence({masterDeviceId:A,sequence:3,
