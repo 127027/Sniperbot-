@@ -61,6 +61,8 @@ jobs:
         run: node runner/dashboard-syntax-check.mjs
       - name: Validate real local encrypted Solana wallet and public onchain readbacks
         run: node --test runner/local-solana-vault.test.mjs runner/local-solana-balance.test.mjs runner/solana-swap-quote.test.mjs runner/solana-swap-roundtrip.test.mjs runner/solana-owned-tokens.test.mjs runner/solana-wallet-activity.test.mjs runner/solana-unsigned-order.test.mjs runner/solana-wire-audit.test.mjs runner/solana-wallet-spend-preflight.test.mjs runner/solana-unsigned-simulation.test.mjs runner/solana-finalized-receipt.test.mjs
+      - name: Separate external PayPal/Phantom observable wallet from bot wallet and paper funds
+        run: node --test runner/external-wallet-observer.test.mjs
       - name: Verify actual native Windows supervisor and protected test secret handling
         shell: powershell
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File runner/windows-supervisor.ps1 -SelfTest
