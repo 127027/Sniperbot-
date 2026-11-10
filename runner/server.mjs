@@ -10,6 +10,7 @@ import {storage} from './storage.mjs';
 import {loadOrCreateDeviceIdentity} from './device-identity.mjs';
 import {createExecutionInbox} from './device-execution-inbox.mjs';
 import {createDynamicTradeInbox} from './dynamic-trade-inbox.mjs';
+import {readLiveTradingGate,requestLiveTradingMode} from './live-mode-policy.mjs';
 import {previewDynamicAssetRoute} from './dynamic-asset-router.mjs';
 import {loadLocalDeviceTopology,installLocalDeviceTopology,
  followerStatus,operationAllowedWhenMasterOffline} from './device-topology.mjs';
@@ -373,6 +374,23 @@ const server=createServer(async(req,res)=>{
    const summary=await observeExternalSolanaWallet(publicAddress);
    return reply(res,200,{ok:true,external:summary});
   }catch{return error(res,503,'Externe Wallet-Adresse oder Blockchain-Daten nicht verifizierbar')}
+ }
+ if(req.method==='GET'&&route==='/api/trading/live-mode')
+  return reply(res,200,{ok:true,gate:readLiveTradingGate()});
+ if(req.method==='POST'&&route==='/api/trading/live-mode'){
+  if(!req.headers.origin||!corsAllowed(req))
+   return error(res,403,'Nur sichtbare lokale Benutzeroberfläche');
+  if(!allowRequest('laptop-live-mode-policy'))
+   return error(res,429,'Zu viele Live-Modus-Anfragen');
+  try{
+   const settings=await body(req);
+   const gate=requestLiveTradingMode(settings);
+   return reply(res,200,{ok:true,gate});
+  }catch(e){
+   if(e?.message==='LIVE_TRADING_NOT_AVAILABLE')
+    return error(res,423,'Echtgeldhandel ist gesperrt: geprüfter Swap-Executor und Zahlungsanbieter fehlen');
+   return error(res,422,'Ungültige Echtgeldhandels-Einstellung');
+  }
  }
  if(req.method==='GET'&&route==='/api/wallet/status'){
   try{return reply(res,200,{ok:true,wallet:await readLocalSolanaVault(walletFile),
