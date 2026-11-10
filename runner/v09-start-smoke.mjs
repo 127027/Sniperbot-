@@ -108,6 +108,8 @@ try{
  assert.equal(offlineTokens.status,503);
  const offlineRoundtrip=await fetch(base+'/api/wallet/swap-roundtrip?outputMint=So11111111111111111111111111111111111111112&amountLamports=100000000');
  assert.equal(offlineRoundtrip.status,503);
+ const offlineReceipt=await fetch(base+'/api/wallet/receipt?signature=INVALID');
+ assert.equal(offlineReceipt.status,503);
  const offlineActivity=await fetch(base+'/api/wallet/activity');
  assert.equal(offlineActivity.status,503);
  const offlineUnsigned=await fetch(base+'/api/wallet/unsigned-order?outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amountLamports=10000000');
