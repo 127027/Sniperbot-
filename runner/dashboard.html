@@ -258,8 +258,10 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
       <label>Ziel-Token (Mint-Adresse)<input id="walletTargetMint" type="text" placeholder="Solana-Mint-Adresse"></label>
       <label>Einsatz (SOL)<input id="walletSwapSol" type="number" min="0.00001" max="100" step="0.001" value="0.1"></label>
       <button class="btn" type="button" id="walletQuote">Kauf + Rücktausch prüfen – keine Order</button>
+      <button class="btn" type="button" id="walletUnsignedOrder">Jupiter-Transaktion prüfen (NICHT signieren)</button>
     </div>
     <p id="walletQuoteResult" class="subtle">Tausch wird nicht ausgelöst. Ausführbare Swap-Signierung bleibt deaktiviert.</p>
+    <p id="walletUnsignedResult" class="subtle">Die konkrete Transaktion wird nicht ausgeführt und niemals signiert.</p>
   </div>
 </div>
 </section>
@@ -657,6 +659,29 @@ $('walletTokens').onclick=async()=>{
     (t.account_state==='frozen'?' (EINGEFROREN)':'')+'</div>').join('')+
    '<small>Reine Onchain-Bestände; weder PayPal-Eingang noch Handelsfreigabe.</small>';
  }catch(e){$('walletTokenList').textContent='Token-Guthaben nicht verfügbar: '+e.message}
+};
+$('walletUnsignedOrder').onclick=async()=>{
+ $('walletUnsignedResult').textContent='Prüfe lediglich eine unsignierte Jupiter-Transaktion …';
+ try{
+  const amount=Number($('walletSwapSol').value);
+  if(!Number.isFinite(amount)||amount<0.00001||amount>100)throw Error('Ungültiger SOL-Betrag.');
+  const url='/api/wallet/unsigned-order?outputMint='+
+   encodeURIComponent($('walletTargetMint').value.trim())+
+   '&amountLamports='+encodeURIComponent(String(Math.round(amount*1e9)));
+  const resp=await fetch(url,{cache:'no-store'});
+  const data=await resp.json();
+  if(!resp.ok)throw Error(data.error||'Kein Order-Vorprüfungsdienst');
+  const p=data.preflight;
+  if(p?.status!=='UNSIGNED_TRANSACTION_OBSERVED'){
+   $('walletUnsignedResult').textContent='BLOCKIERT: '+(p?.reason||'Kein signierbarer Auftrag vom Anbieter')+
+    '. Kein Kauf.';
+   return;
+  }
+  $('walletUnsignedResult').textContent='Nur eine ununterschriebene Transaktion erkannt: '+
+    p.inspection.transaction_version+' · Wallet-Signaturposition '+
+    p.inspection.wallet_signer_index+' · Kaufmenge in Token-Atomen '+p.expected_target_atoms+
+    '. Instruktionen/Sicherheit noch NICHT auditiert. Signieren und Senden GESPERRT.';
+ }catch(e){$('walletUnsignedResult').textContent='Order-Vorprüfung blockiert: '+e.message}
 };
 $('walletQuote').onclick=async()=>{
  $('walletQuoteResult').textContent='Prüfe Jupiter-Hin- und Rückkursdaten (keine Transaktion) …';
