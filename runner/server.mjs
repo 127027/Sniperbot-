@@ -160,7 +160,7 @@ const server=createServer(async(req,res)=>{
  commit(evaluate(n));return reply(res,200,{ok:true,state});
 });
 server.requestTimeout=10000;server.headersTimeout=10000;
-server.listen(port,'127.0.0.1',()=>console.log(`MEME SNIPER V0.4 GATEWAY (nur TEST) http://127.0.0.1:${port}`));
+server.listen(port,'127.0.0.1',()=>console.log(`MEME SNIPER V0.9 PAPER GATEWAY (kein LIVE) http://127.0.0.1:${port}`));
 // Safe, low-frequency public polling; independent of browser. No private keys, no live execution.
 if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_LOCAL_DISCOVERY==='1')setInterval(()=>{void scan()},90000);
 if(process.env.SNIPER_OFFLINE!=='1')setInterval(()=>{void prices()},30000);
