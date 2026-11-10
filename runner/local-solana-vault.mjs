@@ -182,6 +182,7 @@ function checkedNativeTransfer({destination,amountLamports,blockhash,source}={})
  const from=decodeBase58(source),to=decodeBase58(destination),block=decodeBase58(blockhash);
  if(from.equals(to))throw Error('SENDER_AND_DESTINATION_IDENTICAL');
  if(to.equals(SYSTEM_PROGRAM))throw Error('SYSTEM_PROGRAM_CANNOT_BE_RECIPIENT');
+ if(block.equals(SYSTEM_PROGRAM))throw Error('INVALID_RECENT_BLOCKHASH');
  if(typeof amountLamports!=='string'||!/^[1-9][0-9]{0,18}$/.test(amountLamports))
   throw Error('INVALID_LAMPORT_AMOUNT');
  const n=BigInt(amountLamports);
