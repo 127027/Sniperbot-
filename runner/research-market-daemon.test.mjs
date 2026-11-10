@@ -4,7 +4,7 @@ import {mkdtemp,readFile,readdir,writeFile,utimes,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {gunzipSync} from 'node:zlib';
-import {saveHistory,pruneHistory} from './research-market-daemon.mjs';
+import {saveHistory,pruneHistory,appendResearchAlerts} from './research-market-daemon.mjs';
 import {publishResearchSnapshot,publishingEnabled} from './research-market-publisher.mjs';
 const now=Date.parse('2026-11-09T17:00:00.000Z');
 const snapshot={schema:'research_market_snapshot.v1',paper_only:true,actionable:false,
@@ -78,4 +78,43 @@ test('publisher refuses a concurrent GitHub SHA update and never retries blindly
     {status:200,ok:true,json:async()=>({type:'file',sha:'old'})}:
     {status:409,ok:false,json:async()=>({message:'conflict'})};
   await assert.rejects(publishResearchSnapshot(snapshot,{token:'fake-test-token-not-a-secret',fetcher}),/SHA_CONFLICT/);
+});
+
+test('local market alert journal deduplicates and never touches virtual paper ledger',async()=>{
+ const dir=await mkdtemp(path.join(tmpdir(),'sniper-market-alerts-'));
+ const file=path.join(dir,'research-learning','market-alerts.json');
+ const ledger=path.join(dir,'paper-state-v03.json');
+ const now=Date.parse('2026-11-10T07:00:00Z');
+ const e={event_id:'research-alert-'+'1'.repeat(32),
+   event_type:'MARKET_ACCELERATION',paper_only:true,actionable:false,
+   observed_at_utc:new Date(now).toISOString(),candidate_id:'base:token:pool'};
+ try{
+  await writeFile(ledger,'{"cashUsdc":5000}');
+  const a=await appendResearchAlerts([e],{filename:file,now});
+  const b=await appendResearchAlerts([e],{filename:file,now});
+  assert.equal(a.added,1);assert.equal(b.added,0);
+  const j=JSON.parse(await readFile(file,'utf8'));
+  assert.equal(j.events.length,1);
+  assert.equal(j.actionable,false);
+  assert.equal(await readFile(ledger,'utf8'),'{"cashUsdc":5000}');
+  await assert.rejects(appendResearchAlerts([{...e,actionable:true}],{filename:file,now}),/READ_ONLY/);
+  assert.equal((JSON.parse(await readFile(file,'utf8'))).events.length,1);
+ }finally{await rm(dir,{recursive:true,force:true})}
+});
+test('public publisher does not allow rogue trade instructions hidden in market alerts',async()=>{
+ const alert={event_id:'research-alert-'+'2'.repeat(32),
+   event_type:'MARKET_ACCELERATION',paper_only:true,actionable:false,probability_pct:null,
+   recommended_action:'INDEPENDENT_FIVE_ROLE_REVIEW'};
+ const bad={...snapshot,research_alerts:[{...alert,amount:1000,action:'PAPER_BUY'}]};
+ await assert.rejects(publishResearchSnapshot(bad,{token:'fake-test-token-not-a-secret'}),/Unsafe/);
+ const fake={...snapshot,research_alerts:[{...alert,probability_pct:95}]};
+ await assert.rejects(publishResearchSnapshot(fake,{token:'fake-test-token-not-a-secret'}),/Unsafe/);
+ const with96={...snapshot,candidates:Array.from({length:96},(_,i)=>({candidate_id:'demo-'+i}))};
+ const published=await publishResearchSnapshot(with96,{token:'fake-test-token-not-a-secret',
+   fetcher:async(url,o)=>o.method==='GET'?
+    {status:404,ok:false,json:async()=>({})}:
+    {status:201,ok:true,json:async()=>({commit:{sha:'new-commit'}})}});
+ assert.equal(published.path,'research/market/latest.json');
+ await assert.rejects(publishResearchSnapshot({...with96,candidates:[...with96.candidates,{}]},
+    {token:'fake-test-token-not-a-secret'}),/Unsafe/);
 });
