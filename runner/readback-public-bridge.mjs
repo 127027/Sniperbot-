@@ -27,12 +27,22 @@ export function sanitizePoolReadbacks(value,{now=Date.now()}={}){
     typeof x.market_identity_verified!=='boolean'||
     (x.status==='IDENTITY_MATCHED')!==x.market_identity_verified||
     (x.status==='IDENTITY_MATCHED'&&x.reason!=='IDENTITY_ONLY_RISK_AND_SELL_QUOTE_STILL_UNKNOWN'))return [];
+  // On-chain existence remains a public observation only; never risk PASS.
+  const chain=x.onchain_existence;
+  const chainStatus=chain?.candidate_id===x.candidate_id&&
+   chain?.schema==='onchain_existence_readback.v1'&&chain.paper_only===true&&
+   chain.actionable===false&&chain.paper_entry_authorized===false&&
+   chain.contract_security==='UNKNOWN'&&chain.sellability==='UNKNOWN'&&
+   chain.amount_specific_sell_quote===false&&
+   ['UNKNOWN','CODE_PRESENT','ACCOUNTS_REPORTED'].includes(chain.existence_status)?
+    chain.existence_status:'UNKNOWN';
   // Defensive output whitelist: no input extras, no prices, no identifiers beyond pool ID.
   return [{
    candidate_id:x.candidate_id,
    checked_at_utc:value.checked_at_utc,
    status:x.status,market_identity_verified:x.market_identity_verified,
    reason:x.reason,source_names:['GECKOTERMINAL','DEXSCREENER'],
+   onchain_existence_status:chainStatus,
    contract_status:'UNKNOWN',sellability_status:'UNKNOWN',
    executable_sell_quote:false,paper_entry_authorized:false,
    paper_only:true,actionable:false
