@@ -1,3 +1,5 @@
+> **Hinweis (10.11.2026):** Dieser ältere Gateway-Stand beschreibt historische Signatur-/Score-Verträge. Für aktuelle Kapitalgrenzen gilt ausschließlich [V0.6 – Gesamtbudget statt pro-Kauf-Höchstbetrag](V06_TOTAL_BUDGET_AND_MULTI_SOURCE_DISCOVERY_20261110.md). Alle realen externen autonomen Paper-Käufe bleiben weiterhin gesperrt.
+
 > Ergänzung 07.11.2026: Historische Scout-Nachricht über GitHub im Windows-Bot empfangen; kein direkter Dot-POST. Siehe [Empfangsnachweis](SCOUT_INBOX_PROOF.md) und [informativer Eingang](RESEARCH_INBOX.md). Der folgende Stand beschreibt insbesondere den bisherigen direkten Gateway-Zugang.
 
 # Lokaler Research-Gateway V0.4
