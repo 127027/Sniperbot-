@@ -300,7 +300,7 @@ function render(force){
   const learning=lastHealth?.localLearning;
   $('localLearningStatus').textContent=learning?.available
     ? 'Lokale Pool-Nachbeobachtung: '+learning.monitored_active+' aktive · '+learning.completed+
-      ' abgeschlossene 14-Tage-Kohorten · zuletzt '+t(learning.checked_at_utc)+
+      ' abgeschlossene 14-Tage-Kohorten · Markt-Beschleunigungen beim letzten Scan: '+(learning.latest_market_alerts??0)+' · zuletzt '+t(learning.checked_at_utc)+
       (learning.stale?' · Daten veraltet':'')+
       (learning.warning?' · Fehler: '+learning.warning:'')
     : 'Lokale Pool-Nachbeobachtung: noch keine Messdaten im neuen Forschungsarchiv';
