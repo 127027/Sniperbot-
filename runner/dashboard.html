@@ -237,6 +237,15 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
     <p id="walletBalance" class="subtle">Noch keine Blockchain-Abfrage. TEST-USDC ist davon getrennt.</p>
     <p id="walletTokenList" class="subtle">Noch keine SPL-Token-Konten abgefragt.</p>
     <div id="walletActivityList" class="subtle">Bisher noch keine öffentlichen Blockchain-Bewegungen abgefragt.</div>
+    <div style="margin:10px 0">
+      <h3>Einzelnen Blockchain-Beleg prüfen</h3>
+      <p>Solana-Transaktionssignatur eingeben. Beweist ausschließlich den finalisierten Blockchain-Vorgang, keine PayPal-Abrechnung.</p>
+      <div class="controls">
+        <label>Solana-Transaktionssignatur<input id="walletReceiptSignature" type="text" placeholder="Signatur von Solscan, MoonPay oder deiner Wallet"></label>
+        <button class="btn" id="walletReceiptVerify" type="button">Blockchain-Beleg unabhängig prüfen</button>
+      </div>
+      <p id="walletReceiptResult" class="subtle">Keine Transaktion geprüft.</p>
+    </div>
     <h3 style="margin-top:16px">SOL mit 50 € über PayPal kaufen</h3>
     <p>Der Einkauf erfolgt auf der offiziellen MoonPay-Website. Dort <strong>50 €</strong>, <strong>SOL auf Solana</strong>, <strong>PayPal</strong> und unbedingt die oben angezeigte eigene Empfangsadresse auswählen. Gebühren und KYC beim Anbieter prüfen. Der Bot erhält keinen Zahlungszugang.</p>
     <a href="https://www.moonpay.com/buy/sol" target="_blank" rel="noopener noreferrer">MoonPay: SOL kaufen – externe Zahlungsseite öffnen</a>
@@ -621,6 +630,26 @@ $('walletRefresh').onclick=async()=>{
    ' SOL · finalisierter Slot '+result.balance.finalized_slot+
    '. Keine PayPal-Bestätigung, keine TEST-USDC-Buchung.';
  }catch(e){$('walletBalance').textContent=e.message}
+};
+$('walletReceiptVerify').onclick=async()=>{
+ const signature=$('walletReceiptSignature').value.trim();
+ $('walletReceiptResult').textContent='Prüfe die angegebene Solana-Transaktion im finalisierten Hauptnetz …';
+ try{
+  if(!/^[1-9A-HJ-NP-Za-km-z]{80,90}$/.test(signature))throw Error('Ungültige Solana-Transaktionssignatur');
+  const r=await fetch('/api/wallet/receipt?signature='+encodeURIComponent(signature),{cache:'no-store'});
+  const data=await r.json();
+  if(!r.ok)throw Error(data.error||'Blockchain-Beleg nicht erreichbar');
+  const proof=data.receipt;
+  if(proof?.status!=='FINALIZED_ONCHAIN_ONLY'){
+   $('walletReceiptResult').textContent='NICHT BESTÄTIGT: '+(proof?.reason||'Kein gültiger Beleg');
+   return;
+  }
+  const tokens=Array.isArray(proof.token_atoms_changes)?
+   proof.token_atoms_changes.slice(0,5).map(t=>' Token '+t.mint.slice(0,8)+'…: '+t.token_atoms_delta+' Atome.').join(''):'';
+  $('walletReceiptResult').textContent='BLOCKCHAIN BESTÄTIGT: Slot '+proof.slot+
+   ' · SOL-Änderung '+proof.sol_lamports_delta+' Lamports.'+tokens+
+   ' WICHTIG: Keine PayPal-/MoonPay-Bestätigung und keine vom Bot ausgeführte Order.';
+ }catch(e){$('walletReceiptResult').textContent='Belegprüfung gesperrt: '+e.message}
 };
 $('walletActivity').onclick=async()=>{
  if(!currentRealWallet?.exists)return;
