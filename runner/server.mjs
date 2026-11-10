@@ -4,6 +4,7 @@ import {runPoolReadbackBatch,READBACK_INTERVAL_MS} from './readback-batch.mjs';
 import {buildDecisionDossiers} from './candidate-dossiers.mjs';
 import {saveReadbackBatch} from './readback-history.mjs';
 import {createReceiver} from './research-inbox.mjs';
+import {getDotDocument,putDotDocument,listDotDocuments} from './dot-workspace.mjs';
 import {buildDotStatus} from './dot-status.mjs';
 import {fetchResearchNetwork} from './research-network.mjs';
 import {storage} from './storage.mjs';
@@ -132,6 +133,30 @@ const server=createServer(async(req,res)=>{
  if(req.method==='GET'&&route==='/api/v09/status')return reply(res,200,{ok:true,v09:buildV09Status({state,network:researchNetwork})});
  if(req.method==='GET'&&route==='/api/v09/pool-readbacks')return reply(res,200,{ok:true,readbacks:poolReadbacks});
  if(req.method==='GET'&&route==='/api/v09/dossiers')return reply(res,200,{ok:true,dossiers:buildDecisionDossiers({network:researchNetwork,batch:poolReadbacks})});
+ if(route==='/api/dots/workspace'){
+  // Scope = authenticated Dot principal's role. No portfolio, secrets or order access.
+  if(req.headers.origin)return error(res,403,'Nur lokale authentifizierte Clients');
+  const principal=authenticate(req.headers.authorization,store.credentials);
+  if(!principal)return error(res,401,'Dot-Schreib-/Lesezugang erforderlich');
+  if(!allowRequest(principal.id+':workspace'))return error(res,429,'Rate-Limit');
+  const u=new URL(req.url,'http://127.0.0.1:'+port),key=u.searchParams.get('key');
+  try{
+   if(req.method==='GET'&&key)return reply(res,200,{ok:true,role:principal.role,
+    document:await getDotDocument({dir:store.dir,role:principal.role,key})});
+   if(req.method==='GET'&&!key)return reply(res,200,{ok:true,role:principal.role,
+    documents:await listDotDocuments({dir:store.dir,role:principal.role})});
+   if(req.method==='POST'&&key){
+    const request=await body(req);
+    if(!request||Object.keys(request).length!==2||
+       !Object.hasOwn(request,'value')||!Object.hasOwn(request,'expectedRevision'))
+       return error(res,422,'Workspace-Nachricht unvollstaendig');
+    const receipt=await putDotDocument({dir:store.dir,role:principal.role,
+     key,value:request.value,expectedRevision:request.expectedRevision});
+    return reply(res,200,{ok:true,role:principal.role,receipt});
+   }
+   return error(res,405,'Methode nicht erlaubt');
+  }catch(e){return error(res,422,String(e?.message||'WORKSPACE_UNAVAILABLE').slice(0,120))}
+ }
  if(req.method==='GET'&&route==='/api/health')return reply(res,200,{ok:true,mode:'PAPER_ONLY',uptimeSec:Math.round(process.uptime())});
  if(route==='/api/research'||route==='/api/research/events'){
   if(req.headers.origin)return error(res,403,'Gateway ist nur für lokale Clients');
