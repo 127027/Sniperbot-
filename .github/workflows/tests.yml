@@ -16,6 +16,8 @@ jobs:
       - run: node runner/test.mjs
       - run: node --test runner/*.test.mjs
       - run: node runner/v09-start-smoke.mjs
+      - name: Observe one real public pool readback (non-blocking, read-only)
+        run: node runner/readback-live-probe.mjs
   windows-v08-paper-lab:
     runs-on: windows-latest
     steps:
