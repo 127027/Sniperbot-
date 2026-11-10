@@ -232,9 +232,11 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
       <button class="btn" type="button" id="walletCopy">Adresse kopieren</button>
       <button class="btn" type="button" id="walletRefresh">SOL-Guthaben auf Blockchain prüfen</button>
       <button class="btn" type="button" id="walletTokens">Token-Guthaben prüfen</button>
+      <button class="btn" type="button" id="walletActivity">Letzte Blockchain-Bewegungen</button>
     </div>
     <p id="walletBalance" class="subtle">Noch keine Blockchain-Abfrage. TEST-USDC ist davon getrennt.</p>
     <p id="walletTokenList" class="subtle">Noch keine SPL-Token-Konten abgefragt.</p>
+    <div id="walletActivityList" class="subtle">Bisher noch keine öffentlichen Blockchain-Bewegungen abgefragt.</div>
     <h3 style="margin-top:16px">SOL mit 50 € über PayPal kaufen</h3>
     <p>Der Einkauf erfolgt auf der offiziellen MoonPay-Website. Dort <strong>50 €</strong>, <strong>SOL auf Solana</strong>, <strong>PayPal</strong> und unbedingt die oben angezeigte eigene Empfangsadresse auswählen. Gebühren und KYC beim Anbieter prüfen. Der Bot erhält keinen Zahlungszugang.</p>
     <a href="https://www.moonpay.com/buy/sol" target="_blank" rel="noopener noreferrer">MoonPay: SOL kaufen – externe Zahlungsseite öffnen</a>
@@ -617,6 +619,27 @@ $('walletRefresh').onclick=async()=>{
    ' SOL · finalisierter Slot '+result.balance.finalized_slot+
    '. Keine PayPal-Bestätigung, keine TEST-USDC-Buchung.';
  }catch(e){$('walletBalance').textContent=e.message}
+};
+$('walletActivity').onclick=async()=>{
+ if(!currentRealWallet?.exists)return;
+ $('walletActivityList').textContent='Prüfe die letzten finalisierten SOL-Bewegungen …';
+ try{
+  const resp=await fetch('/api/wallet/activity',{cache:'no-store'});
+  const data=await resp.json();
+  if(!resp.ok)throw Error(data.error||'Verlauf nicht erreichbar');
+  const events=data.activity?.events;
+  if(!Array.isArray(events))throw Error('Ungültige Blockchain-Daten');
+  if(events.length===0){
+   $('walletActivityList').textContent='Keine aktuellen bestätigten Wallet-Bewegungen gefunden.';
+   return;
+  }
+  $('walletActivityList').innerHTML='<strong>Letzte finalisierte SOL-Kontobewegungen</strong>'+
+   events.map(e=>'<div style="margin:8px 0;word-break:break-all">'+
+    esc(e.block_time_utc||'Zeit unbekannt')+' · '+esc(e.direction)+' · '+
+    esc(e.sol_lamports_delta??'Betrag ungeklärt')+' Lamports · '+esc(e.signature.slice(0,15))+
+    '…</div>').join('')+
+   '<small>Kein Nachweis für eine PayPal-/MoonPay-Zahlung; nur Blockchain-Transaktionen.</small>';
+ }catch(e){$('walletActivityList').textContent='Blockchain-Verlauf nicht verifizierbar: '+e.message}
 };
 $('walletTokens').onclick=async()=>{
  if(!currentRealWallet?.exists)return;
