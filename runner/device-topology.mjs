@@ -22,7 +22,9 @@ export function presencePayload(x){
  return PRESENCE_DOMAIN+canonical(rest);
 }
 function validPublicKey(pem){
- if(typeof pem!=='string'||pem.length>2048||pem.length<90)
+ if(typeof pem!=='string'||pem.length>2048||pem.length<90||
+  !pem.startsWith('-----BEGIN PUBLIC KEY-----')||
+  !pem.includes('-----END PUBLIC KEY-----')||pem.includes('PRIVATE KEY'))
   throw Error('INVALID_MASTER_PUBLIC_KEY');
  let key;
  try{key=createPublicKey(pem)}catch{throw Error('INVALID_MASTER_PUBLIC_KEY')}
@@ -98,7 +100,8 @@ export function createSignedMasterPresence({masterDeviceId,sequence,privateKey,
  if(!DEVICE.test(masterDeviceId||'')||!Number.isSafeInteger(sequence)||sequence<1||
   !Number.isFinite(now)||lifetimeMs>120000||lifetimeMs<5000)
   throw Error('INVALID_MASTER_PRESENCE_PARAMETERS');
- const key=createPrivateKey(privateKey);
+ const key=privateKey?.type==='private'&&privateKey?.asymmetricKeyType==='ed25519'?
+  privateKey:createPrivateKey(privateKey);
  if(key.asymmetricKeyType!=='ed25519')throw Error('NOT_MASTER_ED25519');
  const data={schema:PRESENCE_SCHEMA,master_device_id:masterDeviceId,
   sequence,issued_at_utc:new Date(now).toISOString(),
