@@ -17,6 +17,7 @@ import {previewSolanaSwapRoundtrip} from './solana-swap-roundtrip.mjs';
 import {readSolanaOwnedTokens} from './solana-owned-tokens.mjs';
 import {recentSolanaWalletActivity} from './solana-wallet-activity.mjs';
 import {previewJupiterUnsignedOrder} from './solana-unsigned-order.mjs';
+import {assessWalletSolSpend} from './solana-wallet-spend-preflight.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
@@ -253,12 +254,24 @@ const server=createServer(async(req,res)=>{
   if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Order-Vorbereitung');
   if(!allowRequest('wallet-unsigned-preflight'))return error(res,429,'Zu viele Order-Vorprüfungen');
   const u=new URL(req.url,'http://127.0.0.1:'+port);
+  const amountLamports=u.searchParams.get('amountLamports');
   try{
+   // A quote alone MUST NOT cause a Jupiter order request if the real wallet
+   // lacks enough finalized SOL. Simulated TEST-USDC cannot be spent here.
+   const balance=await readSolanaBalance(wallet.address);
+   const funding=assessWalletSolSpend({balance,amountLamports});
+   if(!funding.unsigned_order_request_allowed)
+    return reply(res,200,{ok:true,preflight:{
+     schema:'jupiter_unsigned_order_preflight.v1',status:'BLOCKED',
+     reason:funding.reason,prepared_transaction_present:false,
+     transaction_signed:false,transaction_sent:false,
+     signing_permitted:false,live_trading_enabled:false},
+     funding});
    const preflight=await previewJupiterUnsignedOrder({
     wallet:wallet.address,targetMint:u.searchParams.get('outputMint'),
-    amountLamports:u.searchParams.get('amountLamports')});
-   return reply(res,200,{ok:true,preflight});
-  }catch{return error(res,422,'Ungültige Wallet- oder Tokenadresse')}
+    amountLamports});
+   return reply(res,200,{ok:true,preflight,funding});
+  }catch{return error(res,503,'Blockchain-Bestand oder Jupiter-Order derzeit nicht unabhängig prüfbar')}
  }
  if(req.method==='GET'&&route==='/api/wallet/swap-roundtrip'){
   const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
