@@ -9,6 +9,8 @@ import {fetchResearchNetwork} from './research-network.mjs';
 import {storage} from './storage.mjs';
 import {loadOrCreateDeviceIdentity} from './device-identity.mjs';
 import {createExecutionInbox} from './device-execution-inbox.mjs';
+import {createDynamicTradeInbox} from './dynamic-trade-inbox.mjs';
+import {previewDynamicAssetRoute} from './dynamic-asset-router.mjs';
 import {loadLocalDeviceTopology,installLocalDeviceTopology,
  followerStatus,operationAllowedWhenMasterOffline} from './device-topology.mjs';
 import {fetchMasterPresence} from './github-master-presence.mjs';
@@ -74,6 +76,11 @@ const agentExecutionInbox=await createExecutionInbox({
 });
 const scratchpad=await createAgentScratchpad(path.join(store.dir,'research-scratchpad','notes.json'));
 const walletFile=path.join(store.dir,'wallet','solana-mainnet.v1.json');
+const dynamicTradeInbox=await createDynamicTradeInbox({
+ filename:path.join(store.dir,'execution','dynamic-trades-v2.json'),
+ trustFile:path.join(store.dir,'trusted-execution-publishers.json'),
+ deviceId:localDevice.device_id,solanaWalletFile:walletFile
+});
 let walletCreationBusy=false,lastWalletBalanceAt=0,walletBalanceCache=null;
 const nativeTransferJournal=path.join(store.dir,'wallet','outgoing-sol-transfers');
 let nativeTransferChallenge=null,nativeTransferBusy=false;
@@ -293,6 +300,32 @@ const server=createServer(async(req,res)=>{
   return reply(res,200,{ok:true,device:localDevice,
    wallet_location:'LOCAL_INSTALLATION_ONLY',
    device_hardware_fingerprint_collected:false});
+ if(req.method==='GET'&&route==='/api/execution/route-v2'){
+  try{return reply(res,200,{ok:true,
+   inbox:await dynamicTradeInbox.summary(),
+   live_trading_enabled:false,
+   note:'Only verified agent instructions and public quotes. No buy/sell transaction.'})}
+  catch{return error(res,503,'Signierter dynamischer Befehlsspeicher nicht lesbar')}
+ }
+ if(req.method==='POST'&&route==='/api/execution/route-v2'){
+  if(req.headers.origin)return error(res,403,'Nur lokaler autorisierter Agentenadapter');
+  const principal=authenticate(req.headers.authorization,store.credentials);
+  if(principal?.role!=='risk_controller')
+   return error(res,401,'Risk-Controller-Zugang erforderlich');
+  if(!allowRequest('dynamic-execution-'+principal.id))
+   return error(res,429,'Zu viele signierte Handelsaufträge');
+  if(deviceTopology.mode!=='MASTER')
+   return error(res,409,'Auf dieser Entwicklungsstufe nur der Laptop-Master');
+  if(process.env.SNIPER_OFFLINE==='1')
+   return error(res,503,'Offline – Kursprüfung und Handel gesperrt');
+  try{
+   const command=await body(req);
+   const receipt=await dynamicTradeInbox.submit(command);
+   return reply(res,200,{ok:true,receipt,
+    live_trading_enabled:false,transaction_sent:false,
+    note:'Signierter Geräteauftrag nur gespeichert/quotiert. Kein Kauf/Verkauf.'});
+  }catch(e){return error(res,422,String(e?.message||'DYNAMIC_TRADE_INSTRUCTION_REJECTED').slice(0,120))}
+ }
  if(req.method==='GET'&&route==='/api/execution/inbox'){
   try{return reply(res,200,{ok:true,inbox:await agentExecutionInbox.summary()})}
   catch{return error(res,503,'Befehlseingang nicht lesbar; keine Orders')}
@@ -544,6 +577,28 @@ const server=createServer(async(req,res)=>{
    targetMint,amountLamports,wait:()=>new Promise(resolve=>setTimeout(resolve,2200))});
   // Only public quote metadata, never a transaction, signing key or PayPal receipt.
   return reply(res,200,{ok:true,preview});
+ }
+ if(req.method==='GET'&&route==='/api/wallet/dynamic-route'){
+  if(process.env.SNIPER_OFFLINE==='1')
+   return error(res,503,'Offline – keine dynamische Handelsroute');
+  if(!allowRequest('dynamic-wallet-route'))
+   return error(res,429,'Zu viele Routenabfragen');
+  const u=new URL(req.url,'http://127.0.0.1:'+port);
+  const chain=u.searchParams.get('chain');
+  const inputAsset=u.searchParams.get('inputAsset');
+  const outputAsset=u.searchParams.get('outputAsset');
+  const amountAtoms=u.searchParams.get('amountAtoms');
+  const minReceiveAtoms=u.searchParams.get('minReceiveAtoms')||'1';
+  let owner=null;
+  if(chain==='solana'){
+   const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+   if(!wallet?.exists)return error(res,409,'Eigene Solana-Wallet fehlt oder beschädigt');
+   owner=wallet.address;
+  }
+  const plan=await previewDynamicAssetRoute({
+   chain,inputAsset,outputAsset,amountAtoms,minReceiveAtoms,owner});
+  return reply(res,200,{ok:true,plan,
+   actual_swap_enabled:false,automatic_fiat_conversion_enabled:false});
  }
  if(req.method==='GET'&&route==='/api/wallet/swap-quote'){
   if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine echten Swap-Quotes');
