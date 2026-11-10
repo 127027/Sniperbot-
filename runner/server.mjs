@@ -269,7 +269,7 @@ const server=createServer(async(req,res)=>{
      funding});
    const preflight=await previewJupiterUnsignedOrder({
     wallet:wallet.address,targetMint:u.searchParams.get('outputMint'),
-    amountLamports});
+    amountLamports,simulate:true});
    return reply(res,200,{ok:true,preflight,funding});
   }catch{return error(res,503,'Blockchain-Bestand oder Jupiter-Order derzeit nicht unabhängig prüfbar')}
  }
