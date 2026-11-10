@@ -11,6 +11,9 @@ jobs:
         with:
           node-version: '22'
       - run: node --check runner/server.mjs
+      - run: node runner/dashboard-syntax-check.mjs
+      - name: Observe public Jupiter real SOL to USDC rate (non-blocking, no swap)
+        run: node runner/solana-quote-live-probe.mjs
       - run: node --check runner/core.mjs
       - run: node --check runner/market.mjs
       - run: node runner/test.mjs
@@ -50,6 +53,10 @@ jobs:
         run: node --test runner/live-pool-readback.test.mjs runner/readback-batch.test.mjs runner/readback-history.test.mjs runner/signed-research-quorum.test.mjs runner/readback-public-bridge.test.mjs runner/onchain-existence-readback.test.mjs runner/solana-mint-risk.test.mjs runner/candidate-dossiers.test.mjs
       - name: Test local shared memory role permissions, expiry, corruption and paper isolation
         run: node --test runner/agent-scratchpad.test.mjs
+      - name: Parse wallet/payment HTML dashboard and bind all expected controls
+        run: node runner/dashboard-syntax-check.mjs
+      - name: Validate real local encrypted Solana wallet and public onchain readbacks
+        run: node --test runner/local-solana-vault.test.mjs runner/local-solana-balance.test.mjs runner/solana-swap-quote.test.mjs
       - name: Verify actual native Windows supervisor and protected test secret handling
         shell: powershell
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File runner/windows-supervisor.ps1 -SelfTest

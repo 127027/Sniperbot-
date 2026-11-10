@@ -8,6 +8,11 @@ import {buildDotStatus} from './dot-status.mjs';
 import {fetchResearchNetwork} from './research-network.mjs';
 import {storage} from './storage.mjs';
 import {createAgentScratchpad} from './agent-scratchpad.mjs';
+import {createLocalSolanaVault,readLocalSolanaVault,
+ encryptedSolanaBackup,verifyEncryptedSolanaBackup,
+ restoreEncryptedSolanaBackup} from './local-solana-vault.mjs';
+import {readSolanaBalance} from './local-solana-balance.mjs';
+import {fetchIndicativeSolanaQuote} from './solana-swap-quote.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
@@ -20,6 +25,8 @@ import {CHAINS,lookupToken,scanNewPools,tokenQuote,validTokenAddress} from './ma
 const root=path.join(path.dirname(fileURLToPath(import.meta.url)),'..');
 const store=storage(root);
 const scratchpad=await createAgentScratchpad(path.join(store.dir,'research-scratchpad','notes.json'));
+const walletFile=path.join(store.dir,'wallet','solana-mainnet.v1.json');
+let walletCreationBusy=false,lastWalletBalanceAt=0,walletBalanceCache=null;
 let state=store.state,scanning=false,pricing=false;
 const allowRequest=limiter();
 let researchNetwork={schema:'research_network_status.v1',transport:'PUBLIC_GITHUB_PULL_ONLY',
@@ -146,6 +153,81 @@ const server=createServer(async(req,res)=>{
    }
    return error(res,405,'Methode nicht erlaubt');
   }catch(e){return error(res,422,String(e?.message||'INVALID_SCRATCHPAD_REQUEST').slice(0,140))}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/status'){
+  try{return reply(res,200,{ok:true,wallet:await readLocalSolanaVault(walletFile),
+   mode:'READ_ONLY_REAL_CHAIN',payment_provider_connected:false,
+   real_swap_enabled:false,private_keys_exposed:false})}
+  catch{return error(res,503,'Wallet-Datei kann nicht validiert werden. Kein Reset durchführen.')}
+ }
+ if(req.method==='POST'&&route==='/api/wallet/create'){
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Wallet-Einrichtung nur aus der lokalen Oberfläche');
+  if(!allowRequest('local-wallet-create'))return error(res,429,'Zu viele Wallet-Anfragen');
+  if(walletCreationBusy)return error(res,409,'Wallet-Erstellung bereits aktiv');
+  walletCreationBusy=true;
+  try{
+   const input=await body(req);
+   if(!input||Object.keys(input).sort().join(',')!=='password'||
+      typeof input.password!=='string')return error(res,422,'Nur Wallet-Passwort erlaubt');
+   const result=await createLocalSolanaVault({filename:walletFile,password:input.password});
+   return reply(res,201,{ok:true,wallet:result});
+  }catch(e){return error(res,422,e?.code==='EEXIST'?
+   'Wallet bereits angelegt. Niemals überschreiben.':
+   String(e?.message||'WALLET_CREATE_BLOCKED').slice(0,130))}
+  finally{walletCreationBusy=false}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/balance'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline-Modus – keine Blockchain-Abfrage');
+  if(walletBalanceCache&&Date.now()-lastWalletBalanceAt<12000)
+   return reply(res,200,{ok:true,balance:walletBalanceCache});
+  try{
+   const balance=await readSolanaBalance(wallet.address);
+   walletBalanceCache=balance;lastWalletBalanceAt=Date.now();
+   return reply(res,200,{ok:true,balance});
+  }catch{return error(res,503,'Blockchain-Guthaben derzeit nicht verifizierbar')}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/encrypted-backup'){
+  try{return reply(res,200,{ok:true,encrypted_backup:await encryptedSolanaBackup(walletFile),
+   warning:'Nur verschlüsselte Kopie. Passwort getrennt offline aufbewahren. Nicht in Cloud/Chat/GitHub teilen.'})}
+  catch{return error(res,409,'Keine gültige Wallet für Sicherung')}
+ }
+ if(req.method==='POST'&&['/api/wallet/verify-backup','/api/wallet/restore-backup'].includes(route)){
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Benutzeroberfläche');
+  if(!allowRequest('wallet-backup-operation'))return error(res,429,'Zu viele Backup-Anfragen');
+  try{
+   const entry=await body(req);
+   if(!entry||Object.keys(entry).sort().join(',')!=='password,record')
+    return error(res,422,'Backup-Daten erforderlich');
+   let result;
+   if(route==='/api/wallet/verify-backup'){
+    const installed=await readLocalSolanaVault(walletFile);
+    if(!installed.exists)return error(res,409,'Wallet zum Vergleichen nicht vorhanden');
+    result=await verifyEncryptedSolanaBackup({filename:walletFile,
+     record:entry.record,password:entry.password});
+    if(result.address!==installed.address)return error(res,422,'Backup gehört zu einer anderen Wallet');
+   }else{
+    result=await restoreEncryptedSolanaBackup({filename:walletFile,
+     record:entry.record,password:entry.password});
+   }
+   return reply(res,200,{ok:true,backup:result});
+  }catch(e){return error(res,422,e?.code==='EEXIST'?
+    'Vorhandene Wallet wird niemals überschrieben':
+    String(e?.message||'BACKUP_NOT_VERIFIED').slice(0,100))}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/swap-quote'){
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine echten Swap-Quotes');
+  if(!allowRequest('wallet-swap-quote'))return error(res,429,'Quote-Ratenlimit');
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  try{
+   const u=new URL(req.url,'http://127.0.0.1:'+port);
+   const outputMint=u.searchParams.get('outputMint');
+   const amountLamports=u.searchParams.get('amountLamports');
+   const quote=await fetchIndicativeSolanaQuote({outputMint,amountLamports});
+   return reply(res,200,{ok:true,quote});
+  }catch(e){return error(res,422,String(e?.message||'NO_QUOTE_AVAILABLE').slice(0,120))}
  }
  if(req.method==='GET'&&route==='/api/v09/status')return reply(res,200,{ok:true,v09:buildV09Status({state,network:researchNetwork})});
  if(req.method==='GET'&&route==='/api/v09/pool-readbacks')return reply(res,200,{ok:true,readbacks:poolReadbacks});
