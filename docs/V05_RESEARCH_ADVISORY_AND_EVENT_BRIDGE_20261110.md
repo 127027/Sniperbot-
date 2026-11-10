@@ -1,3 +1,5 @@
+> **Archiv V0.5:** Seit V0.6 ist die ursprüngliche pro-Trade Min/Max-Semantik überholt. Gültig sind ein bevorzugter Einsatz und ein **hartes Gesamt-Exposure-Budget**; neue lokal beobachtete Profil-/Takeover-/Boost-Hinweise sind zusätzlich verfügbar. Siehe [V0.6](V06_TOTAL_BUDGET_AND_MULTI_SOURCE_DISCOVERY_20261110.md).
+
 # Sniperbot V0.5 – neue Memecoin-Hypes → fünf Dots → lokale Prüfwarteschlange
 
 **Stand:** 10.11.2026. **Nur Paper, keine Wallets, keine echten Orders, kein main-Merge.**
