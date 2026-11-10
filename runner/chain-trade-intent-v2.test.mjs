@@ -14,6 +14,7 @@ function signed(mods={}){
  const base={schema:TRADE_V2_SCHEMA,target_device_id:device,
   command_id:'cmd_'+'1'.repeat(32),issuer:'research-control',key_id:'central-2026',
   chain:'solana',action:'BUY',token_address:first,pool_address:null,
+  target_wallet:encodeBase58(Buffer.alloc(32,8)),
   input_asset:usdc,output_asset:first,
   input_amount_atoms:'50000000',min_receive_atoms:'2000',
   max_slippage_bps:300,created_at_utc:new Date(at-2000).toISOString(),
@@ -40,7 +41,7 @@ test('agent sell can return dynamic new token to user-chosen output asset withou
 test('future Base/Ethereum/BNB contract-based orders validate identity but never gain live status',()=>{
  for(const chain of ['eth','base','bsc']){
   const token='0x'+'a'.repeat(40),input='0x'+'b'.repeat(40);
-  const cmd=signed({chain,input_asset:input,output_asset:token,
+  const cmd=signed({chain,target_wallet:'0x'+'d'.repeat(40),input_asset:input,output_asset:token,
    token_address:token,pool_address:'0x'+'c'.repeat(40)});
   const v=verifySignedTradeIntent(cmd,registry,{deviceId:device,now:at});
   assert.equal(v.network,chain==='base'?'eip155:8453':chain==='eth'?'eip155:1':'eip155:56');
@@ -52,7 +53,7 @@ test('wrong device, modified coin, tampering, expired or unknown publisher block
  assert.throws(()=>verifySignedTradeIntent(cmd,registry,{deviceId:other,now:at}),/DIFFERENT_DEVICE/);
  for(const update of [
   {input_amount_atoms:'50000001'},{min_receive_atoms:'1'},
-  {token_address:second},{output_asset:second},{action:'SELL'},
+  {token_address:second},{target_wallet:encodeBase58(Buffer.alloc(32,7))},{output_asset:second},{action:'SELL'},
   {chain:'base'},{pool_address:'javascript:attack'},
   {max_slippage_bps:1500},{signature:'invalid'},
   {extra_field:'BAD'},{expires_at_utc:new Date(at-5).toISOString()}
