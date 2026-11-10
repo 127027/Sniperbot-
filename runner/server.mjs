@@ -16,6 +16,7 @@ import {fetchIndicativeSolanaQuote} from './solana-swap-quote.mjs';
 import {previewSolanaSwapRoundtrip} from './solana-swap-roundtrip.mjs';
 import {readSolanaOwnedTokens} from './solana-owned-tokens.mjs';
 import {recentSolanaWalletActivity} from './solana-wallet-activity.mjs';
+import {previewJupiterUnsignedOrder} from './solana-unsigned-order.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
@@ -245,6 +246,19 @@ const server=createServer(async(req,res)=>{
   if(!allowRequest('wallet-owned-tokens'))return error(res,429,'Zu viele Guthabenabfragen');
   try{return reply(res,200,{ok:true,holdings:await readSolanaOwnedTokens(wallet.address)})}
   catch{return error(res,503,'Token-Guthaben nicht zuverlässig verifizierbar')}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/unsigned-order'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Order-Vorbereitung');
+  if(!allowRequest('wallet-unsigned-preflight'))return error(res,429,'Zu viele Order-Vorprüfungen');
+  const u=new URL(req.url,'http://127.0.0.1:'+port);
+  try{
+   const preflight=await previewJupiterUnsignedOrder({
+    wallet:wallet.address,targetMint:u.searchParams.get('outputMint'),
+    amountLamports:u.searchParams.get('amountLamports')});
+   return reply(res,200,{ok:true,preflight});
+  }catch{return error(res,422,'Ungültige Wallet- oder Tokenadresse')}
  }
  if(req.method==='GET'&&route==='/api/wallet/swap-roundtrip'){
   const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
