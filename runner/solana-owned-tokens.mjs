@@ -27,7 +27,8 @@ async function rpcOwner(owner,programId,fetcher){
   const a=entry?.account;
   if(a?.owner!==programId)throw Error('INVALID_SOLANA_TOKEN_PROGRAM_OWNER');
   const parsed=a?.data?.parsed;
-  if(parsed?.type!=='account'||parsed?.program!=='spl-token')
+  const expectedProgram=programId===TOKEN_2022_PROGRAM?'spl-token-2022':'spl-token';
+  if(parsed?.type!=='account'||a?.data?.program!==expectedProgram)
    throw Error('INVALID_SOLANA_TOKEN_ACCOUNT');
   const info=parsed?.info;
   if(info?.owner!==owner)throw Error('TOKEN_ACCOUNT_DIFFERENT_OWNER');
