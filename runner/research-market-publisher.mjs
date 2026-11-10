@@ -37,6 +37,25 @@ function assertResearch(s){
          Object.keys(e).some(k=>!allowed.has(k))))
       throw Error('Unsafe public narrative lead payload');
   }
+  if(s.news_leads!==undefined){
+    const allowed=new Set(['event_id','source_name','source_url','title',
+      'original_published_at_utc','first_observed_at_utc',
+      'source_timestamp_quality','signal_categories',
+      'chain','token_address','pool_address','candidate_id',
+      'original_post_content_independently_verified','paper_only','actionable']);
+    if(!Array.isArray(s.news_leads)||s.news_leads.length>16||
+       s.news_leads.some(e=>!e||e.paper_only!==true||e.actionable!==false||
+         e.candidate_id!==null||e.chain!==null||e.pool_address!==null||
+         e.token_address!==null||e.original_post_content_independently_verified!==false||
+         typeof e.title!=='string'||e.title.length>700||
+         typeof e.source_url!=='string'||!e.source_url.startsWith('https://')||
+         !Array.isArray(e.signal_categories)||e.signal_categories.length>4||
+         Object.keys(e).some(k=>!allowed.has(k))))
+      throw Error('Unsafe public news research payload');
+  }
+  if(s.news_coverage!==undefined&&
+     (!Array.isArray(s.news_coverage)||s.news_coverage.length>3))
+    throw Error('Unsafe public news provider status');
   if(s.narrative_coverage!==undefined&&
      (!Array.isArray(s.narrative_coverage)||s.narrative_coverage.length>3))
     throw Error('Unsafe narrative provider status');
