@@ -1,6 +1,7 @@
 // V0.9 autonomous READ-ONLY cross-provider research step.
 // Exactly three candidates per bounded 5-minute batch; no paper actions.
 import {readbackExactPool} from './live-pool-readback.mjs';
+import {checkReadOnlyOnchainExistence} from './onchain-existence-readback.mjs';
 export const READBACK_INTERVAL_MS=5*60_000;
 export const READBACK_BATCH_LIMIT=3;
 
@@ -22,7 +23,11 @@ export async function runPoolReadbackBatch({network,fetcher=fetch,now=new Date()
  }
  const results=[];
  for(const c of selected){
-  try{results.push(await readbackExactPool(c,{fetcher,now:at}))}
+  try{
+   const pool=await readbackExactPool(c,{fetcher,now:at});
+   const onchain=await checkReadOnlyOnchainExistence(c,{fetcher,now:at});
+   results.push({...pool,onchain_existence:onchain});
+  }
   catch(e){results.push({schema:'exact_pool_readback.v1',paper_only:true,actionable:false,
     candidate_id:c.candidate_id||null,checked_at_utc:at,
     status:'UNVERIFIED',reason:'READBACK_EXCEPTION',market_identity_verified:false,
