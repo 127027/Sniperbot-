@@ -12,6 +12,9 @@ import {createExecutionInbox} from './device-execution-inbox.mjs';
 import {loadLocalDeviceTopology,installLocalDeviceTopology,
  followerStatus,operationAllowedWhenMasterOffline} from './device-topology.mjs';
 import {fetchMasterPresence} from './github-master-presence.mjs';
+import {createMasterCoordinationKey,unlockMasterCoordinationKey,
+ getMasterCoordinationPublicKey} from './master-coordination-key.mjs';
+import {publishMasterPresence} from './github-master-publisher.mjs';
 import {createAgentScratchpad} from './agent-scratchpad.mjs';
 import {createLocalSolanaVault,readLocalSolanaVault,
  encryptedSolanaBackup,verifyEncryptedSolanaBackup,
@@ -39,13 +42,20 @@ const store=storage(root);
 const localDevice=loadOrCreateDeviceIdentity(store.dir);
 let deviceTopology=loadLocalDeviceTopology(store.dir,localDevice.device_id);
 let masterConnection=followerStatus({topology:deviceTopology});
+const masterCoordinationDir=path.join(store.dir,'coordination');
+let masterPublisher=null;
+
 async function refreshMasterConnection(){
  if(deviceTopology.mode!=='FOLLOWER')return;
  masterConnection=await fetchMasterPresence(deviceTopology);
 }
 function masterStatus(){
  const now=Date.now();
- if(deviceTopology.mode!=='FOLLOWER')return followerStatus({topology:deviceTopology,now});
+ if(deviceTopology.mode!=='FOLLOWER'){
+  const active=masterPublisher!==null&&
+   now-masterPublisher.lastSuccessfulPublishAt<90000;
+  return followerStatus({topology:deviceTopology,now,masterPublishingActive:active});
+ }
  // Even a previously successful HTTP poll stops being valid after TTL expires.
  const expired=masterConnection?.expires_at_utc?
   Date.parse(masterConnection.expires_at_utc)<=now:true;
@@ -174,6 +184,70 @@ const server=createServer(async(req,res)=>{
   if(req.headers.origin)return error(res,403,'Nur lokale signierte Clients');
   if(!allowRequest('central-paper-publisher'))return error(res,429,'Rate-Limit');
   try{const d=await body(req),next=receiveDecision(state,d,decisionKeys());const duplicate=next===state;commit(next);return reply(res,200,{ok:true,duplicate,receipt:state.paperDecisions.receipts.find(r=>r.signal_id===d.signal_id)});}catch(e){return error(res,422,e.message)}
+ }
+ if(req.method==='GET'&&route==='/api/master/signing-public-key'){
+  if(deviceTopology.mode!=='MASTER')return error(res,409,'Nur auf dem Laptop-Master');
+  try{return reply(res,200,{ok:true,
+   public_key_pem:await getMasterCoordinationPublicKey(masterCoordinationDir),
+   master_device_id:localDevice.device_id,
+   github_publishing_active:masterStatus().coordination_online})}
+  catch{return reply(res,200,{ok:true,initialized:false,
+   master_device_id:localDevice.device_id,github_publishing_active:false})}
+ }
+ if(req.method==='POST'&&route==='/api/master/signing-key/create'){
+  if(deviceTopology.mode!=='MASTER')return error(res,409,'Nur auf dem Laptop-Master');
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Benutzeraktion');
+  if(!allowRequest('master-signing-key-create'))return error(res,429,'Zu viele Schlüssel-Anfragen');
+  try{
+   const d=await body(req);
+   if(!d||Object.keys(d).sort().join(',')!=='passphrase')return error(res,422,'Passphrase erforderlich');
+   const created=await createMasterCoordinationKey({folder:masterCoordinationDir,passphrase:d.passphrase});
+   return reply(res,201,{ok:true,public_key_pem:created.master_public_key_pem,
+    private_key_encrypted:true});
+  }catch(e){return error(res,422,e?.code==='EEXIST'?
+   'Master-Schlüssel bereits vorhanden – nicht überschrieben':
+   String(e?.message||'MASTER_KEY_NOT_CREATED').slice(0,110))}
+ }
+ if(req.method==='POST'&&route==='/api/master/presence/start'){
+  if(deviceTopology.mode!=='MASTER')return error(res,409,'Nur auf dem Laptop-Master');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline-Testmodus');
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Benutzeraktion');
+  if(!allowRequest('master-github-publisher-start'))return error(res,429,'Zu viele Startanfragen');
+  if(masterPublisher)return error(res,409,'Laptop-Zentrale veröffentlicht bereits');
+  try{
+   const d=await body(req);
+   if(!d||Object.keys(d).sort().join(',')!=='github_token,passphrase')
+    return error(res,422,'Signaturpassphrase und GitHub-Token erforderlich');
+   const key=await unlockMasterCoordinationKey({folder:masterCoordinationDir,
+    passphrase:d.passphrase});
+   const auth=d.github_token;
+   const publish=()=>publishMasterPresence({
+    masterDeviceId:localDevice.device_id,privateKey:key,githubToken:auth});
+   const first=await publish();
+   let busy=false;
+   const writer={lastSuccessfulPublishAt:Date.now(),timer:null};
+   writer.timer=setInterval(async()=>{
+    if(busy)return;busy=true;
+    try{
+     await publish();
+     writer.lastSuccessfulPublishAt=Date.now();
+    }catch{
+     // No secrets are logged; connection status expires without fresh GitHub publication.
+    }finally{busy=false}
+   },45000);
+   masterPublisher=writer;
+   return reply(res,200,{ok:true,published:true,
+    expires_at_utc:first.expires_at_utc,
+    wallet_keys_uploaded:false,trading_enabled:false,
+    message:'Laptop sendet nur signierten Online-Status; Schließen des Fensters stoppt weitere Meldungen.'});
+  }catch(e){return error(res,503,String(e?.message||'MASTER_GITHUB_PUBLISH_FAILED').slice(0,120))}
+ }
+ if(req.method==='POST'&&route==='/api/master/presence/stop'){
+  if(deviceTopology.mode!=='MASTER')return error(res,409,'Nur auf dem Laptop-Master');
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Benutzeraktion');
+  if(masterPublisher){clearInterval(masterPublisher.timer);masterPublisher=null}
+  return reply(res,200,{ok:true,publishing_active:false,
+   warning:'Bereits bei GitHub gespeicherter Status läuft spätestens mit Ablauf seiner Signatur ab.'});
  }
  if(req.method==='GET'&&route==='/api/coordination/status')
   return reply(res,200,{ok:true,
@@ -481,6 +555,7 @@ setInterval(()=>{if(deviceTopology.mode==='FOLLOWER')return;try{commit(evaluate(
 let shuttingDown=false;
 function shutdownServer(){
  if(shuttingDown)return;
+ if(masterPublisher){clearInterval(masterPublisher.timer);masterPublisher=null}
  shuttingDown=true;
  try{save()}catch(e){console.error('Paper-state save on shutdown:',e.message)}
  server.close(()=>process.exit(0));
