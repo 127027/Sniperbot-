@@ -21,7 +21,7 @@ const batch=()=>({schema:'pool_readback_batch.v1',paper_only:true,actionable:fal
    contract_security:'UNKNOWN',sellability:'UNKNOWN',existence_status:'ACCOUNTS_REPORTED',
    solana_mint_header:{schema:'solana_mint_header_risk.v1',paper_only:true,actionable:false,
     paper_entry_authorized:false,contract_security:'UNKNOWN',sellability:'UNKNOWN',
-    mint_program:'SPL_TOKEN_LEGACY',mint_authority:'RETAINED',freeze_authority:'REVOKED'}}}]});
+    mint_program:'SPL_TOKEN_LEGACY',mint_authority:'RETAINED',freeze_authority:'REVOKED',observed_risk:'CAUTION'}}}]});
 test('five visible roles and confirmed pool/onchain evidence still reject all trades',()=>{
  const r=buildDecisionDossiers({network:network(),batch:batch(),now});
  assert.equal(r.candidates.length,1);
@@ -57,4 +57,12 @@ test('bad source or candidate ID cannot produce a dossier',()=>{
  assert.equal(buildDecisionDossiers({network:null,batch:batch(),now}).candidates.length,0);
  const n=network();n.advisories.candidates[0].candidate_id='bad';
  assert.equal(buildDecisionDossiers({network:n,batch:batch(),now}).candidates.length,0);
+});
+
+test('unverified or incomplete Solana risk payload cannot be presented as trusted authority evidence',()=>{
+ const b=batch();
+ delete b.results[0].onchain_existence.solana_mint_header.observed_risk;
+ const r=buildDecisionDossiers({network:network(),batch:b,now});
+ assert.equal(r.candidates[0].solana_mint_authority,'UNKNOWN');
+ assert.equal(r.candidates[0].paper_entry_authorized,false);
 });
