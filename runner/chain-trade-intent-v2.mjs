@@ -15,7 +15,7 @@ export const SUPPORTED_CHAIN_IDENTITIES=Object.freeze({
  bsc:{network:'eip155:56',wallet:'evm-secp256k1',quote:null,live:false}
 });
 const FIELDS=['schema','target_device_id','command_id','issuer','key_id',
- 'chain','action','token_address','pool_address','input_asset','output_asset',
+ 'chain','action','token_address','pool_address','target_wallet','input_asset','output_asset',
  'input_amount_atoms','min_receive_atoms','max_slippage_bps',
  'created_at_utc','expires_at_utc','signature'];
 const DEVICE=/^device_[0-9a-f]{32}$/;
@@ -48,6 +48,7 @@ export function verifySignedTradeIntent(cmd,keys,{deviceId,now=Date.now()}={}){
  if(!COMMAND.test(cmd.command_id)||!IDENT.test(cmd.issuer)||!IDENT.test(cmd.key_id)||
   !Object.hasOwn(SUPPORTED_CHAIN_IDENTITIES,cmd.chain)||
   !['BUY','SELL'].includes(cmd.action))throw Error('INVALID_TRADE_IDENTIFIERS');
+ const targetWallet=validateChainAsset(cmd.chain,cmd.target_wallet);
  const token=validateChainAsset(cmd.chain,cmd.token_address);
  const from=validateChainAsset(cmd.chain,cmd.input_asset);
  const to=validateChainAsset(cmd.chain,cmd.output_asset);
@@ -85,7 +86,7 @@ export function verifySignedTradeIntent(cmd,keys,{deviceId,now=Date.now()}={}){
  return {schema:TRADE_V2_SCHEMA,
   verified:true,device_id:deviceId,chain:cmd.chain,network:SUPPORTED_CHAIN_IDENTITIES[cmd.chain].network,
   command_id:cmd.command_id,action:cmd.action,
-  token_address:token,input_asset:from,output_asset:to,
+  token_address:token,target_wallet:targetWallet,input_asset:from,output_asset:to,
   pool_address:cmd.pool_address,amount_atoms:cmd.input_amount_atoms,
   min_receive_atoms:cmd.min_receive_atoms,
   max_slippage_bps:cmd.max_slippage_bps,
