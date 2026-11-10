@@ -105,9 +105,14 @@ export function createSignedMasterPresence({masterDeviceId,sequence,privateKey,
   expires_at_utc:new Date(now+lifetimeMs).toISOString(),state:'ONLINE'};
  return {...data,signature:sign(null,Buffer.from(presencePayload(data)),key).toString('base64')};
 }
-export function followerStatus({topology,presence=null,lastFetchError=null,now=Date.now()}={}){
- if(topology?.mode==='MASTER')return {role:'MASTER',coordination_online:true,
-  trade_authorized:false,message:'Dieser Laptop ist die Zentrale; Live-Handel noch nicht freigegeben'};
+export function followerStatus({topology,presence=null,lastFetchError=null,now=Date.now(),
+ masterPublishingActive=false}={}){
+ if(topology?.mode==='MASTER')return {role:'MASTER',
+  coordination_online:masterPublishingActive===true,
+  trade_authorized:false,
+  message:masterPublishingActive?
+   'Laptop-Zentrale sendet signierte GitHub-Meldungen; Echtgeldhandel gesperrt':
+   'Laptop-Zentrale; GitHub-Verbindung noch nicht gestartet'};
  if(topology?.mode!=='FOLLOWER')return {role:'UNPAIRED',coordination_online:false,
   trade_authorized:false,message:'Keine Verbindung – ruf Andreas an'};
  if(lastFetchError||!presence||!Number.isFinite(Date.parse(presence.expires_at_utc))||
