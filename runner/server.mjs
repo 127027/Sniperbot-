@@ -1,5 +1,7 @@
 import {receiveDecision} from './central-decisions.mjs';
 import {buildV09Status,previewFundingV09} from './v09-integration.mjs';
+import {runPoolReadbackBatch,READBACK_INTERVAL_MS} from './readback-batch.mjs';
+import {saveReadbackBatch} from './readback-history.mjs';
 import {createReceiver} from './research-inbox.mjs';
 import {buildDotStatus} from './dot-status.mjs';
 import {fetchResearchNetwork} from './research-network.mjs';
@@ -21,12 +23,28 @@ let researchNetwork={schema:'research_network_status.v1',transport:'PUBLIC_GITHU
  paper_only:true,actionable:false,current_roles:0,total_roles:5,
  roles:[],watchlist:{candidate_count:null,stale:true},local_execution:'BLOCKED_REAL_VALIDATOR_UNAVAILABLE',
  checked_at_utc:null,message:'Awaiting first public GitHub research readback'};
-let networkBusy=false;
+let networkBusy=false,poolReadbackBusy=false,lastPoolReadbackAt=0;
+let poolReadbacks={schema:'pool_readback_batch.v1',paper_only:true,actionable:false,
+ status:'NOT_CHECKED',checked_at_utc:null,attempted:0,results:[]};
+async function refreshPoolReadbacks(){
+ const now=Date.now();
+ if(poolReadbackBusy||now-lastPoolReadbackAt<READBACK_INTERVAL_MS)return;
+ poolReadbackBusy=true;lastPoolReadbackAt=now;
+ try{
+  const result=await runPoolReadbackBatch({network:researchNetwork});
+  await saveReadbackBatch({folder:path.join(root,'.local','research-learning','pool-readbacks'),batch:result});
+  poolReadbacks=result;
+ }catch(e){
+  // No research fault may alter virtual balances, positions or order policy.
+  console.error('Public exact-pool readback:',String(e?.message||'UNAVAILABLE').slice(0,150));
+ }finally{poolReadbackBusy=false}
+}
 async function refreshResearchNetwork(){
  if(networkBusy)return;networkBusy=true;
  try{
   const next=await fetchResearchNetwork({settings:{minTrade:state.minTrade,maxTrade:state.maxTrade,portfolioBudgetUsdc:state.portfolioBudgetUsdc,cashUsdc:state.cashUsdc,cashEur:state.cashEur,positions:state.positions.map(p=>({amountUsdc:p.amountUsdc}))}});
   researchNetwork=next;
+  if(process.env.SNIPER_OFFLINE!=='1')void refreshPoolReadbacks();
   // Public summaries only; never put portfolio, tokens or signing keys in the cache.
   const target=path.join(root,'.local','research-network','status.json');
   mkdirSync(path.dirname(target),{recursive:true});
@@ -111,6 +129,7 @@ const server=createServer(async(req,res)=>{
   try{const d=await body(req),next=receiveDecision(state,d,decisionKeys());const duplicate=next===state;commit(next);return reply(res,200,{ok:true,duplicate,receipt:state.paperDecisions.receipts.find(r=>r.signal_id===d.signal_id)});}catch(e){return error(res,422,e.message)}
  }
  if(req.method==='GET'&&route==='/api/v09/status')return reply(res,200,{ok:true,v09:buildV09Status({state,network:researchNetwork})});
+ if(req.method==='GET'&&route==='/api/v09/pool-readbacks')return reply(res,200,{ok:true,readbacks:poolReadbacks});
  if(req.method==='GET'&&route==='/api/health')return reply(res,200,{ok:true,mode:'PAPER_ONLY',uptimeSec:Math.round(process.uptime())});
  if(route==='/api/research'||route==='/api/research/events'){
   if(req.headers.origin)return error(res,403,'Gateway ist nur für lokale Clients');
