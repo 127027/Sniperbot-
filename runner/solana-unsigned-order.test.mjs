@@ -7,8 +7,10 @@ const target='EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 function unsignedWire(key=wallet,{alreadySigned=false,unsupportedVersion=false}={}){
  const sign=Buffer.alloc(64,alreadySigned?1:0);
  const msg=Buffer.concat([
-  Buffer.from([unsupportedVersion?0x81:0x80,1,0,0,1]),decodeBase58(key),
-  Buffer.alloc(32,3),Buffer.from([0,0])]);
+  Buffer.from([unsupportedVersion?0x81:0x80,1,0,1,2]),
+  decodeBase58(key),decodeBase58('ComputeBudget111111111111111111111111111111'),
+  Buffer.alloc(32,3),
+  Buffer.from([1,1,1,0,1,0x37,0])]);
  return Buffer.concat([Buffer.from([1]),sign,msg]).toString('base64');
 }
 function provider(base64){
@@ -26,6 +28,9 @@ test('unsigned wallet required-signer structure is inspected, not executed',asyn
  assert.equal(i.signer_count,1);
  assert.equal(i.wallet_signer_index,0);
  assert.equal(i.fee_payer_is_wallet,true);
+ assert.equal(i.instruction_count,1);
+ assert.equal(i.address_table_reference_count,0);
+ assert.equal(i.instructions_audited,false);
  assert.equal(i.signing_permitted,false);
  const fake=provider(valid);
  const r=await previewJupiterUnsignedOrder({
@@ -62,4 +67,28 @@ test('quote-only response and provider failure cannot be mistaken for executable
   amountLamports:'100000000',fetcher:async()=>new Response('{}',{status:503})});
  assert.equal(refused.reason,'ORDER_PROVIDER_UNAVAILABLE');
  assert.equal(refused.live_trading_enabled,false);
+});
+
+test('Jupiter unsigned preflight can attach RPC simulation without signing or broadcasting',async()=>{
+ let count=0;
+ const rpcFetcher=async (url,opts)=>{
+  count++;
+  const request=JSON.parse(opts.body);
+  assert.equal(request.method,'simulateTransaction');
+  assert.equal(request.params[1].sigVerify,false);
+  return new Response(JSON.stringify({jsonrpc:'2.0',id:1,
+   result:{context:{slot:789},value:{err:null,fee:6000,unitsConsumed:90000}}}));
+ };
+ const f=provider(unsignedWire());
+ const r=await previewJupiterUnsignedOrder({
+  wallet,targetMint:target,amountLamports:'100000000',
+  fetcher:f.fetcher,simulate:true,rpcFetcher});
+ assert.equal(r.status,'UNSIGNED_TRANSACTION_OBSERVED');
+ assert.equal(count,1);
+ assert.equal(r.simulation.status,'SIMULATED_NO_EXECUTION');
+ assert.equal(r.simulation.estimated_fee_lamports,'6000');
+ assert.equal(r.simulation.transaction_signed,false);
+ assert.equal(r.simulation.wallet_spend_approved,false);
+ assert.equal(r.signing_permitted,false);
+ assert.equal(r.transaction_sent,false);
 });
