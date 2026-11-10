@@ -7,8 +7,10 @@ const target='EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 function unsignedWire(key=wallet,{alreadySigned=false,unsupportedVersion=false}={}){
  const sign=Buffer.alloc(64,alreadySigned?1:0);
  const msg=Buffer.concat([
-  Buffer.from([unsupportedVersion?0x81:0x80,1,0,0,1]),decodeBase58(key),
-  Buffer.alloc(32,3),Buffer.from([0,0])]);
+  Buffer.from([unsupportedVersion?0x81:0x80,1,0,1,2]),
+  decodeBase58(key),decodeBase58('ComputeBudget111111111111111111111111111111'),
+  Buffer.alloc(32,3),
+  Buffer.from([1,1,1,0,1,0x37,0])]);
  return Buffer.concat([Buffer.from([1]),sign,msg]).toString('base64');
 }
 function provider(base64){
@@ -26,6 +28,9 @@ test('unsigned wallet required-signer structure is inspected, not executed',asyn
  assert.equal(i.signer_count,1);
  assert.equal(i.wallet_signer_index,0);
  assert.equal(i.fee_payer_is_wallet,true);
+ assert.equal(i.instruction_count,1);
+ assert.equal(i.address_table_reference_count,0);
+ assert.equal(i.instructions_audited,false);
  assert.equal(i.signing_permitted,false);
  const fake=provider(valid);
  const r=await previewJupiterUnsignedOrder({
