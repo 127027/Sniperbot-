@@ -68,3 +68,27 @@ test('quote-only response and provider failure cannot be mistaken for executable
  assert.equal(refused.reason,'ORDER_PROVIDER_UNAVAILABLE');
  assert.equal(refused.live_trading_enabled,false);
 });
+
+test('Jupiter unsigned preflight can attach RPC simulation without signing or broadcasting',async()=>{
+ let count=0;
+ const rpcFetcher=async (url,opts)=>{
+  count++;
+  const request=JSON.parse(opts.body);
+  assert.equal(request.method,'simulateTransaction');
+  assert.equal(request.params[1].sigVerify,false);
+  return new Response(JSON.stringify({jsonrpc:'2.0',id:1,
+   result:{context:{slot:789},value:{err:null,fee:6000,unitsConsumed:90000}}}));
+ };
+ const f=provider(unsignedWire());
+ const r=await previewJupiterUnsignedOrder({
+  wallet,targetMint:target,amountLamports:'100000000',
+  fetcher:f.fetcher,simulate:true,rpcFetcher});
+ assert.equal(r.status,'UNSIGNED_TRANSACTION_OBSERVED');
+ assert.equal(count,1);
+ assert.equal(r.simulation.status,'SIMULATED_NO_EXECUTION');
+ assert.equal(r.simulation.estimated_fee_lamports,'6000');
+ assert.equal(r.simulation.transaction_signed,false);
+ assert.equal(r.simulation.wallet_spend_approved,false);
+ assert.equal(r.signing_permitted,false);
+ assert.equal(r.transaction_sent,false);
+});
