@@ -48,7 +48,7 @@ export async function getDotDocument({dir,role,key}={}){
  validObject(doc.value);
  return {revision:doc.revision,updated_at_utc:doc.updated_at_utc,value:doc.value};
 }
-export async function putDotDocument({dir,role,key,value,expectedRevision=0,now=Date.now()}={}){
+async function putDotDocumentUnlocked({dir,role,key,value,expectedRevision=0,now=Date.now()}={}){
  const filename=file(dir,role,key),folder=path.dirname(filename);
  validObject(value);
  if(!Number.isSafeInteger(expectedRevision)||expectedRevision<0||!Number.isFinite(now))throw Error('WORKSPACE_REVISION_INVALID');
@@ -69,6 +69,16 @@ export async function putDotDocument({dir,role,key,value,expectedRevision=0,now=
  finally{await unlink(temp).catch(e=>{if(e?.code!=='ENOENT')throw e})}
  return {revision:next.revision,updated_at_utc:next.updated_at_utc,
   sha256:createHash('sha256').update(raw).digest('hex'),paper_only:true,actionable:false};
+}
+// Serialize same-key writes: simultaneous callers cannot both commit revision N+1.
+const pendingWrites=new Map();
+export function putDotDocument(args={}){
+ const id=file(args.dir,args.role,args.key);
+ const predecessor=pendingWrites.get(id)||Promise.resolve();
+ const request=predecessor.catch(()=>{}).then(()=>putDotDocumentUnlocked(args));
+ pendingWrites.set(id,request);
+ request.finally(()=>{if(pendingWrites.get(id)===request)pendingWrites.delete(id)}).catch(()=>{});
+ return request;
 }
 export async function listDotDocuments({dir,role}={}){
  const folder=base(dir,role);
