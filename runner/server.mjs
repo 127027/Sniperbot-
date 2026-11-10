@@ -218,7 +218,7 @@ for(const sig of ['SIGINT','SIGTERM'])process.on(sig,shutdownServer);
 attachSupervisedStop(shutdownServer);
 
 // Read-only five-role GitHub research mirror, separate from portfolio and action handlers.
-if(process.env.SNIPER_OFFLINE!=='1'){
+if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_RESEARCH_READ==='1'){
  void refreshResearchNetwork();
  setInterval(()=>{void refreshResearchNetwork()},120000);
 }
