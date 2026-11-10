@@ -1,7 +1,6 @@
 // Read-only buy + reverse sell quote for a new SPL token. Two quotes
 // are only market indications, NOT proof the token can be sold for real.
 import {fetchIndicativeSolanaRoute,SOL_MINT} from './solana-swap-quote.mjs';
-const MAX_SLIPPAGE_BPS=1000;
 const MAX_INPUT=100000000000n;
 const failure=(reason,detail=null)=>({
  schema:'solana_swap_roundtrip_preview.v1',
@@ -43,7 +42,8 @@ export async function previewSolanaSwapRoundtrip({
   return failure('REVERSE_QUOTE_INCONSISTENT');
  const returned=BigInt(sell.output_atoms);
  const delta=returned-amount;
- const deltaBps=Number(delta*10000n/amount);
+ // 0.01 bps precision; integer bps would round small real roundtrip losses to 0.
+ const deltaBps=Number(delta*1000000n/amount)/100;
  return {
   schema:'solana_swap_roundtrip_preview.v1',paper_only:false,
   live_enabled:false,actionable:false,status:'TWO_QUOTES_OBSERVED',
