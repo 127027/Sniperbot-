@@ -1,3 +1,4 @@
+import {publishResearchSnapshot} from './research-market-publisher.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,writeFile,rm} from 'node:fs/promises';
@@ -44,4 +45,27 @@ test('GitHub-ready result readback is local only and missing file is harmless',a
   await writeFile(f,'INVALID JSON');
   await assert.rejects(readPublicPoolReadbacks({filename:f,now}),SyntaxError);
  }finally{await rm(dir,{recursive:true,force:true})}
+});
+
+test('public GitHub publisher sends exact sanitized readbacks and rejects injected keys',async()=>{
+ const safe=sanitizePoolReadbacks(batch(),{now});
+ const snapshot={schema:'research_market_snapshot.v1',paper_only:true,actionable:false,
+  candidates:[],pool_readbacks:safe};
+ let published=null,calls=0;
+ const fetcher=async (url,options)=>{
+  calls++;
+  if(options.method==='GET')return {status:404,ok:false};
+  published=JSON.parse(options.body);
+  return {status:201,ok:true,json:async()=>({commit:{sha:'test-commit-sha'}})};
+ };
+ const result=await publishResearchSnapshot(snapshot,{
+  token:'TEST_GITHUB_NOT_REAL_SECRET_123456789',fetcher});
+ assert.equal(result.commit_sha,'test-commit-sha');
+ assert.equal(calls,2);
+ const output=JSON.parse(Buffer.from(published.content,'base64').toString('utf8'));
+ assert.deepEqual(output.pool_readbacks,safe);
+ const injected={...snapshot,pool_readbacks:[{...safe[0],private_key:'MUST_NOT_LEAK'}]};
+ await assert.rejects(publishResearchSnapshot(injected,{token:'TEST_GITHUB_NOT_REAL_SECRET_123456789',
+  fetcher}),/Unsafe public pool readback payload/);
+ assert.equal(calls,2,'invalid private payload rejected before network');
 });
