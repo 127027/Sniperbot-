@@ -4,7 +4,7 @@
 // semantics still require independent verification and risk-policy enforcement.
 import {decodeBase58,encodeBase58} from './local-solana-vault.mjs';
 
-const LIMIT=4096;
+const LIMIT=1232; // Legacy and v0 maximum packet size; v1 is NOT supported here.
 const MARK='solana_unsigned_wire_audit.v1';
 function invalid(code){throw Error(code)}
 function shortvec(raw,pos){
