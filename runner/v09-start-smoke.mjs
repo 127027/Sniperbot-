@@ -2,7 +2,7 @@
 // paper account, with ALL outbound research / market polling disabled.
 // Verifies V0.9 endpoints and ensures a funding preview changes no balances.
 import {spawn} from 'node:child_process';
-import {mkdtemp,rm} from 'node:fs/promises';
+import {mkdtemp,rm,readFile} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
@@ -42,6 +42,32 @@ try{
   const r=await fetch(base+p,{headers:{host:'127.0.0.1:'+port}});
   assert.equal(r.status,200,p);return r.json();
  };
+
+ // The REAL local executor serves private research notes only with a scoped agent token.
+ const registry=JSON.parse(await readFile(path.join(tmp,'gateway-credentials.json'),'utf8'));
+ const r1=registry.find(x=>x.role==='news_discovery'),r2=registry.find(x=>x.role==='opportunity_qa');
+ assert(r1&&r2);
+ const unauth=await fetch(base+'/api/agent/scratchpad');
+ assert.equal(unauth.status,401);
+ const put=await fetch(base+'/api/agent/scratchpad',{method:'POST',
+  headers:{authorization:'Bearer '+r1.token,'content-type':'application/json'},
+  body:JSON.stringify({key:'test-research',visibility:'shared',
+    ttl_minutes:10,value:{candidate_id:'base:fake_test',observation:'not an order'}})});
+ assert.equal(put.status,200);
+ const putResult=await put.json();
+ assert.equal(putResult.receipt.actionable,false);
+ const notesResponse=await fetch(base+'/api/agent/scratchpad',
+  {headers:{authorization:'Bearer '+r2.token}});
+ assert.equal(notesResponse.status,200);
+ const notes=await notesResponse.json();
+ assert.equal(notes.scratchpad.records.length,1);
+ assert.equal(notes.scratchpad.records[0].key,'test-research');
+ const reject=await fetch(base+'/api/agent/scratchpad',{method:'POST',
+  headers:{authorization:'Bearer '+r1.token,'content-type':'application/json'},
+  body:JSON.stringify({key:'bad',visibility:'shared',ttl_minutes:10,
+   value:{private_key:'MUST_NOT_STORE'}})});
+ assert.equal(reject.status,422);
+
  const before=await read('/api/state');
  const status=await read('/api/v09/status');
  const dossiers=await read('/api/v09/dossiers');
