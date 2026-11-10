@@ -12,8 +12,13 @@ function key(c){
  }catch{return null}
 }
 function safeSources(c){
- return Array.isArray(c?.source_urls)?c.source_urls.filter(x=>typeof x==='string'&&
-  x.length<900&&/^https:\/\/[^\s@/]+/i.test(x)).slice(0,5):[];
+ if(!Array.isArray(c?.source_urls))return [];
+ return c.source_urls.filter(x=>{
+  if(typeof x!=='string'||x.length>900||/\s/.test(x))return false;
+  try{const url=new URL(x);
+   return url.protocol==='https:'&&!!url.hostname&&!url.username&&!url.password;
+  }catch{return false}
+ }).slice(0,5);
 }
 function change(current,previous){
  return Math.round((current/previous)*100)/100;
