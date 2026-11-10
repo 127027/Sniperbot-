@@ -15,10 +15,12 @@ test('only three candidates per batch; external data never becomes a buy',async(
  const fetcher=async()=>{requests++;throw Error('EXPECTED_NETWORK_DOWN')};
  const r=await runPoolReadbackBatch({network:base(),fetcher,now});
  assert.equal(r.attempted,READBACK_BATCH_LIMIT);
- assert.equal(requests,6);
+ assert.equal(requests,9);
  assert.equal(r.status,'COMPLETED_READ_ONLY');
  assert(r.results.every(x=>x.market_identity_verified===false&&x.paper_entry_authorized===false));
  assert(r.results.every(x=>x.contract_status==='UNKNOWN'));
+ assert(r.results.every(x=>x.onchain_existence?.contract_security==='UNKNOWN'));
+ assert(r.results.every(x=>x.onchain_existence?.paper_entry_authorized===false));
 });
 test('stale, invalid, actionable research never triggers provider requests',async()=>{
  let count=0;
@@ -38,6 +40,6 @@ test('archived and rejected candidates are skipped',async()=>{
  let count=0;
  const r=await runPoolReadbackBatch({network:n,now,fetcher:async()=>{count++;throw Error('UNAVAILABLE')}});
  assert.equal(r.attempted,3);
- assert.equal(count,6);
+ assert.equal(count,9);
  assert(!r.results.some(x=>x.candidate_id===id));
 });
