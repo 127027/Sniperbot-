@@ -32,7 +32,7 @@ async function setup(){
  const trustFile=path.join(dir,'trusted-execution-publishers.json');
  const filename=path.join(dir,'dynamic','inbox.json');
  await writeFile(trustFile,JSON.stringify(keys));
- return {dir,wallet,walletFile,trustFile,filename};
+ return {dir,wallet,walletFile,solanaWalletFile:walletFile,trustFile,filename};
 }
 test('signed 50 USDC BUY for any new token produces durable NON-executing receipt',async()=>{
  const f=await setup();
