@@ -76,6 +76,8 @@ jobs:
         run: node --test runner/solana-native-transfer.test.mjs
       - name: Validate arbitrary new mint dynamic routing on Solana and signed multichain trade intents
         run: node --test runner/dynamic-asset-router.test.mjs runner/chain-trade-intent-v2.test.mjs
+      - name: Verify durable signed dynamic V2 command inbox, exact wallet matching and replay blocking
+        run: node --test runner/dynamic-trade-inbox.test.mjs
       - name: Verify actual native Windows supervisor and protected test secret handling
         shell: powershell
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File runner/windows-supervisor.ps1 -SelfTest
