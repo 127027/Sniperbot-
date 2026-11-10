@@ -2,8 +2,8 @@
   "schema": "research_role_snapshot.v1",
   "role": "onchain_liquidity",
   "producer": "Sniper Onchain Research",
-  "snapshot_id": "onchain-liquidity-20261110T024812Z-run11",
-  "published_at_utc": "2026-11-10T02:48:12Z",
+  "snapshot_id": "onchain-liquidity-20261110T0346Z-run12",
+  "published_at_utc": "2026-11-10T03:46:08Z",
   "paper_only": true,
   "actionable": false,
   "status": "CANDIDATE_OBSERVED",
@@ -13,16 +13,15 @@
       "token_address": "0x8523c6b26059ced32dc42e0171b971ac5a7c1cf3",
       "pool_address": "0x3792010f80107f695f369b5e86c848424d090676",
       "candidate_id": "base:0x8523c6b26059ced32dc42e0171b971ac5a7c1cf3:0x3792010f80107f695f369b5e86c848424d090676",
-      "observed_at_utc": "2026-11-10T02:48:12Z",
+      "observed_at_utc": "2026-11-10T03:46:08Z",
       "source_urls": [
-        "https://dexpaprika.com/base/pool/0x3792010f80107f695f369b5e86c848424d090676",
-        "https://dexonomics.io/base/dana/0x3792010f80107f695f369b5e86c848424d090676"
+        "https://dexpaprika.com/base/pool/0x3792010f80107f695f369b5e86c848424d090676"
       ],
-      "evidence_summary": "Independent direct HTTPS page readback verifies DANA token, Base chain and Uniswap V2 pool identity on DexPaprika; page states pool created 2026-11-09 block 55323241 and reports liquidity $29.88K, 24h volume $25.28K, 1 buy/47 sells, but numerical FAQ anchored 2026-11-09 20:37 UTC and must not be treated as current 02:48 UTC live metrics. Separate Dexonomics indexed page (last updated Nov 10, 2026, exact measurement time unspecified) shows liquidity $177.2K and 46 buys/0 sells, a material contradiction in liquidity and transaction direction. Provider-specific windows/methodologies cannot be aligned. Independent live API readbacks of DEX Screener and GeckoTerminal unavailable; explorer inaccessible. Identity observed only; neither LP withdrawal nor honeypot nor executable sale established.",
+      "evidence_summary": "Own direct HTTPS DexPaprika readback during 2026-11-10 03:46 UTC verifies Base/Uniswap V2 pool 0x3792010f80107f695f369b5e86c848424d090676 and DANA token 0x8523c6b26059ced32dc42e0171b971ac5a7c1cf3, pool created 2026-11-09 block 55323241. Displayed $29.88K liquidity, $25.28K 24h volume, 1 buy/47 sells are explicitly anchored 2026-11-09 20:37 UTC, NOT fresh measurements. Prior Dexonomics $177.2K and 46 buys/0 sells are derived from previous role snapshot, not independently retrieved this run; mismatched time/methodology. Direct DEX Screener and Dexonomics attempts SOURCE_UNAVAILABLE. No chain RPC logs or objective sell quote.",
       "risk_flags": [
-        "LIQUIDITY_PROVIDER_CONFLICT",
-        "BUY_SELL_CLASSIFICATION_CONFLICT",
         "METRICS_STALE_OR_UNTIMED",
+        "LIQUIDITY_PROVIDER_CONFLICT_UNRESOLVED",
+        "BUY_SELL_CLASSIFICATION_CONFLICT_UNRESOLVED",
         "ONE_MINUTE_VOLUME_UNKNOWN",
         "FIVE_MINUTE_VOLUME_UNKNOWN",
         "FIFTEEN_MINUTE_VOLUME_UNKNOWN",
@@ -36,5 +35,5 @@
       ]
     }
   ],
-  "summary": "2026-11-10 02:48 UTC automation: GitHub read discovery playbook, historical cases, capital strategy, publisher spec, market bridge, watchlist and news/social/QA/onchain snapshots. Market bridge research_market_snapshot.v1 published 02:38:23.196Z, fresh (~10min), 44 collector identities on four chains; derivative data, not independent confirmation. Watchlist HIGH DEEP_REVIEW DANA Base and peers next due 03:24:16Z; prior HIGH WATCH next due 04:41:52Z. Independent direct public HTTPS readback DexPaprika DANA exact token+pool+Base identity succeeds, meeting CANDIDATE_OBSERVED threshold, with dated 2026-11-09 20:37 UTC figures: $29.88K liquidity, $25.28K 24h volume, 1 buy/47 sells, pool created Nov 9 block 55323241. Dexonomics separately accessible with same identity but $177.2K liquidity and 46 buys/0 sells (Nov 10 updated; precise metric time not provided). Material contradiction, not a confirmed honeypot or LP removal; provider data potentially correlated and incomparable. DEX Screener and GeckoTerminal exact-pool API direct attempts SOURCE_UNAVAILABLE; BaseScan SOURCE_UNAVAILABLE. Current 1/5/15/60m volumes, unique funded buyers, holder/deployer clusters, reserve/LP log changes, wash volume, gas/price impact and objective executable sell quote UNKNOWN. No live risk clearance, no order or signature. Next verify matched-time reserve and swap logs and other due watchlist IDs."
+  "summary": "2026-11-10 03:46 UTC: Read required GitHub docs, 38-ID watchlist (last known news snapshot 03:10 UTC), market bridge research_market_snapshot.v1 published 03:43:08.469 UTC (fresh ~3min), news/social/QA/onchain snapshots. Four chains solana/base/bsc/eth covered by collector; derived only, not independent confirmation. Prioritized due HIGH DEEP_REVIEW IDs including DANA; direct independent HTTPS DexPaprika DANA identity confirmed, page metrics dated 2026-11-09 20:37 UTC and stale for present. Direct DEX Screener and Dexonomics failed SOURCE_UNAVAILABLE; other priority IDs lack independent confirmation. 1/5/15/60m volumes, unique funded buyers, holder clusters, LP reserve changes, wash trading, gas/price impact, sellability UNKNOWN. Earlier collector Base LP anomaly not proven. No order, signature, risk clearance or other file changes."
 }
