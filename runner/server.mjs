@@ -7,6 +7,8 @@ import {createReceiver} from './research-inbox.mjs';
 import {buildDotStatus} from './dot-status.mjs';
 import {fetchResearchNetwork} from './research-network.mjs';
 import {storage} from './storage.mjs';
+import {loadOrCreateDeviceIdentity} from './device-identity.mjs';
+import {createExecutionInbox} from './device-execution-inbox.mjs';
 import {createAgentScratchpad} from './agent-scratchpad.mjs';
 import {createLocalSolanaVault,readLocalSolanaVault,
  encryptedSolanaBackup,verifyEncryptedSolanaBackup,
@@ -31,6 +33,12 @@ import {action,applyExits,autoBuyCandidate,freshState,log,paperSignal,updateCand
 import {CHAINS,lookupToken,scanNewPools,tokenQuote,validTokenAddress} from './market.mjs';
 const root=path.join(path.dirname(fileURLToPath(import.meta.url)),'..');
 const store=storage(root);
+const localDevice=loadOrCreateDeviceIdentity(store.dir);
+const agentExecutionInbox=await createExecutionInbox({
+ filename:path.join(store.dir,'execution','instructions.v1.json'),
+ trustFile:path.join(store.dir,'trusted-execution-publishers.json'),
+ deviceId:localDevice.device_id
+});
 const scratchpad=await createAgentScratchpad(path.join(store.dir,'research-scratchpad','notes.json'));
 const walletFile=path.join(store.dir,'wallet','solana-mainnet.v1.json');
 let walletCreationBusy=false,lastWalletBalanceAt=0,walletBalanceCache=null;
@@ -144,6 +152,27 @@ const server=createServer(async(req,res)=>{
   if(req.headers.origin)return error(res,403,'Nur lokale signierte Clients');
   if(!allowRequest('central-paper-publisher'))return error(res,429,'Rate-Limit');
   try{const d=await body(req),next=receiveDecision(state,d,decisionKeys());const duplicate=next===state;commit(next);return reply(res,200,{ok:true,duplicate,receipt:state.paperDecisions.receipts.find(r=>r.signal_id===d.signal_id)});}catch(e){return error(res,422,e.message)}
+ }
+ if(req.method==='GET'&&route==='/api/device/identity')
+  return reply(res,200,{ok:true,device:localDevice,
+   wallet_location:'LOCAL_INSTALLATION_ONLY',
+   device_hardware_fingerprint_collected:false});
+ if(req.method==='GET'&&route==='/api/execution/inbox'){
+  try{return reply(res,200,{ok:true,inbox:await agentExecutionInbox.summary()})}
+  catch{return error(res,503,'Befehlseingang nicht lesbar; keine Orders')}
+ }
+ if(req.method==='POST'&&route==='/api/execution/instructions'){
+  // Two independent requirements: local role token AND trusted Ed25519 publisher.
+  // Absolutely no trade action here, not even a paper execution.
+  if(req.headers.origin)return error(res,403,'Nur autorisierte lokale Adapter');
+  const principal=authenticate(req.headers.authorization,store.credentials);
+  if(principal?.role!=='risk_controller')return error(res,401,'Lokaler Executor-Rollen-Token erforderlich');
+  if(!allowRequest('execution-inbox-'+principal.id))return error(res,429,'Befehlsrate begrenzt');
+  try{
+   const command=await body(req);
+   const receipt=await agentExecutionInbox.submit(command);
+   return reply(res,200,{ok:true,receipt,live_execution_enabled:false});
+  }catch(e){return error(res,422,String(e?.message||'EXECUTION_INSTRUCTION_REJECTED').slice(0,120))}
  }
  if(route==='/api/agent/scratchpad'){
   const principal=authenticate(req.headers.authorization,store.credentials);
