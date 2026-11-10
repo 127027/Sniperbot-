@@ -70,6 +70,8 @@ jobs:
         run: node --test runner/device-identity.test.mjs runner/device-execution-inbox.test.mjs runner/device-topology.test.mjs runner/github-master-presence.test.mjs runner/master-coordination.test.mjs
       - name: Verify real Windows follower cannot trade while master laptop is offline
         run: node runner/follower-offline-start-smoke.mjs
+      - name: Verify native SOL locally signed transactions never send without a successful preflight and durable journal
+        run: node --test runner/solana-native-transfer.test.mjs
       - name: Verify actual native Windows supervisor and protected test secret handling
         shell: powershell
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File runner/windows-supervisor.ps1 -SelfTest
