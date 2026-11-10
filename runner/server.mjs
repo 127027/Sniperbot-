@@ -8,7 +8,9 @@ import {buildDotStatus} from './dot-status.mjs';
 import {fetchResearchNetwork} from './research-network.mjs';
 import {storage} from './storage.mjs';
 import {createAgentScratchpad} from './agent-scratchpad.mjs';
-import {createLocalSolanaVault,readLocalSolanaVault} from './local-solana-vault.mjs';
+import {createLocalSolanaVault,readLocalSolanaVault,
+ encryptedSolanaBackup,verifyEncryptedSolanaBackup,
+ restoreEncryptedSolanaBackup} from './local-solana-vault.mjs';
 import {readSolanaBalance} from './local-solana-balance.mjs';
 import {fetchIndicativeSolanaQuote} from './solana-swap-quote.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
@@ -185,6 +187,34 @@ const server=createServer(async(req,res)=>{
    walletBalanceCache=balance;lastWalletBalanceAt=Date.now();
    return reply(res,200,{ok:true,balance});
   }catch{return error(res,503,'Blockchain-Guthaben derzeit nicht verifizierbar')}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/encrypted-backup'){
+  try{return reply(res,200,{ok:true,encrypted_backup:await encryptedSolanaBackup(walletFile),
+   warning:'Nur verschlüsselte Kopie. Passwort getrennt offline aufbewahren. Nicht in Cloud/Chat/GitHub teilen.'})}
+  catch{return error(res,409,'Keine gültige Wallet für Sicherung')}
+ }
+ if(req.method==='POST'&&['/api/wallet/verify-backup','/api/wallet/restore-backup'].includes(route)){
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Benutzeroberfläche');
+  if(!allowRequest('wallet-backup-operation'))return error(res,429,'Zu viele Backup-Anfragen');
+  try{
+   const entry=await body(req);
+   if(!entry||Object.keys(entry).sort().join(',')!=='password,record')
+    return error(res,422,'Backup-Daten erforderlich');
+   let result;
+   if(route==='/api/wallet/verify-backup'){
+    const installed=await readLocalSolanaVault(walletFile);
+    if(!installed.exists)return error(res,409,'Wallet zum Vergleichen nicht vorhanden');
+    result=await verifyEncryptedSolanaBackup({filename:walletFile,
+     record:entry.record,password:entry.password});
+    if(result.address!==installed.address)return error(res,422,'Backup gehört zu einer anderen Wallet');
+   }else{
+    result=await restoreEncryptedSolanaBackup({filename:walletFile,
+     record:entry.record,password:entry.password});
+   }
+   return reply(res,200,{ok:true,backup:result});
+  }catch(e){return error(res,422,e?.code==='EEXIST'?
+    'Vorhandene Wallet wird niemals überschrieben':
+    String(e?.message||'BACKUP_NOT_VERIFIED').slice(0,100))}
  }
  if(req.method==='GET'&&route==='/api/wallet/swap-quote'){
   if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine echten Swap-Quotes');
