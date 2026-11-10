@@ -314,6 +314,41 @@ footer{font-size:11px;color:var(--muted);margin:22px 0}
       <button class="btn" type="button" id="walletTokens">Token-Guthaben prüfen</button>
       <button class="btn" type="button" id="walletActivity">Letzte Blockchain-Bewegungen</button>
     </div>
+    <details style="margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:9px">
+      <summary><strong>Beta: echte SOL-Überweisung vorbereiten (kein Token-Tausch)</strong></summary>
+      <p>Nur für deine eigene Solana-Wallet auf diesem Laptop. Bis 2 SOL pro Überweisung, 0,005 SOL bleiben als Schutzreserve.
+         Kein automatischer Handel. Für PayPal-Auszahlung zuerst beim Anbieter einen neuen Verkaufsauftrag erstellen:
+         <a href="https://www.moonpay.com/sell" target="_blank" rel="noopener noreferrer">MoonPay verkaufen</a>.
+         Verwende ausschließlich die <strong>aktuelle, einmalige</strong> SOL-Empfangsadresse dieses Auftrags;
+         Netzwerk, Betrag, Gebühren, Mindestbetrag und Auszahlungsart dort kontrollieren.</p>
+      <div class="controls">
+        <label>Empfängeradresse (Solana Mainnet)
+          <input id="walletNativeDest" type="text" placeholder="Öffentliche Solana-Empfangsadresse">
+        </label>
+        <label>SOL senden (max. 2)
+          <input id="walletNativeSol" type="text" inputmode="decimal" value="0.01">
+        </label>
+        <button class="btn" id="walletNativePreview" type="button">Echte SOL-Überweisung prüfen</button>
+      </div>
+      <p class="subtle" id="walletNativePreviewResult">Noch keine Überweisung geprüft. Eine Vorschau sendet keine Coins.</p>
+      <div id="walletNativeConfirm" style="display:none;border:1px solid var(--line);padding:10px;border-radius:8px">
+        <p><strong>Nur nach eigener Freigabe:</strong> Kontrolliere Empfänger und Betrag oben Zeichen für Zeichen.
+          Ein Blockchain-Transfer lässt sich nicht rückgängig machen.</p>
+        <label>Wallet-Passwort
+          <input id="walletNativePassword" type="password" autocomplete="off">
+        </label>
+        <label>Zur Bestätigung exakt ICH SENDE SOL eintippen
+          <input id="walletNativePhrase" type="text" autocomplete="off" placeholder="ICH SENDE SOL">
+        </label>
+        <button class="btn" id="walletNativeSend" type="button">SOL jetzt wirklich senden</button>
+      </div>
+      <p id="walletNativeSendResult" class="subtle">Noch keine Überweisung gesendet.</p>
+      <button class="btn" id="walletNativeHistory" type="button">Eigene Überweisungen anzeigen</button>
+      <div id="walletNativeHistoryList" class="subtle">Noch kein Journal geprüft.</div>
+      <p class="warning">Das ist ein Entwicklungsbaustein, noch keine unabhängig geprüfte Echtgeld-Wallet.
+         Es ist weder ein automatischer SOL→USDC-Tausch noch eine PayPal-Auszahlung.
+         Bei unbekannter Bestätigung niemals einfach erneut senden.</p>
+    </details>
     <p id="walletBalance" class="subtle">Noch keine Blockchain-Abfrage. TEST-USDC ist davon getrennt.</p>
     <p id="walletTokenList" class="subtle">Noch keine SPL-Token-Konten abgefragt.</p>
     <div id="walletActivityList" class="subtle">Bisher noch keine öffentlichen Blockchain-Bewegungen abgefragt.</div>
@@ -793,6 +828,82 @@ $('masterStopPublishing').onclick=async()=>{
  }catch(e){$('masterPublishResult').textContent='Stopp: '+e.message}
 };
 refreshDeviceTopology();setInterval(refreshDeviceTopology,30000);
+let pendingNativeTransfer=null;
+function solToLamports(raw){
+ const value=String(raw||'').trim().replace(',','.');
+ if(!/^(0|[1-9][0-9]{0,1})([.][0-9]{1,9})?$/.test(value))
+  throw Error('Ungültiger SOL-Betrag; höchstens 9 Dezimalstellen.');
+ const [whole,fraction='']=value.split('.');
+ const lamports=BigInt(whole)*1000000000n+
+  BigInt((fraction||'').padEnd(9,'0'));
+ if(lamports<10000n||lamports>2000000000n)
+  throw Error('Erlaubt sind 0,00001 bis 2 SOL.');
+ return lamports.toString();
+}
+$('walletNativePreview').onclick=async()=>{
+ pendingNativeTransfer=null;
+ $('walletNativeConfirm').style.display='none';
+ $('walletNativePassword').value='';
+ $('walletNativePhrase').value='';
+ $('walletNativeSendResult').textContent='Noch nicht gesendet.';
+ try{
+  const destination=$('walletNativeDest').value.trim();
+  const lamports=solToLamports($('walletNativeSol').value);
+  const r=await fetch('/api/wallet/sol-transfer/prepare',{method:'POST',
+   headers:{'content-type':'application/json'},
+   body:JSON.stringify({destination,lamports})});
+  const d=await r.json();if(!r.ok)throw Error(d.error||'Überweisungsvorschau gesperrt');
+  if(d.preview?.authorized!==false||d.preview?.transaction_sent!==false)
+   throw Error('Ungültige Sicherheitsvorschau');
+  pendingNativeTransfer={
+   confirmation_id:d.confirmation_id,from:d.preview.from,
+   destination:d.preview.to,lamports:d.preview.lamports,
+   expires_at_utc:d.preview.expires_at_utc
+  };
+  $('walletNativePreviewResult').textContent=
+   'VORSCHAU: '+d.preview.sol_amount+' SOL aus '+d.preview.from+
+   ' an '+d.preview.to+' auf Solana-Mainnet. Schutzreserve: 0,005 SOL.'+
+   ' Erst nach Passwort und ausdrücklicher Bestätigung wird die Blockchain-Überweisung gesendet.'+
+   ' Vorschau gültig bis '+d.preview.expires_at_utc+'.';
+  $('walletNativeConfirm').style.display='block';
+ }catch(e){$('walletNativePreviewResult').textContent='Vorschau BLOCKIERT: '+e.message}
+};
+$('walletNativeSend').onclick=async()=>{
+ const p=pendingNativeTransfer;
+ if(!p){$('walletNativeSendResult').textContent='Keine gültige Vorschau';return}
+ const pass=$('walletNativePassword').value;
+ try{
+  if($('walletNativePhrase').value!=='ICH SENDE SOL')
+   throw Error('Bitte ICH SENDE SOL exakt eingeben.');
+  if(pass.length<16)throw Error('Wallet-Passwort erforderlich.');
+  if(Date.now()>=Date.parse(p.expires_at_utc))
+   throw Error('Vorschau abgelaufen. Bitte neu prüfen.');
+  if(!confirm('ECHTE IRREVERSIBLE SOL-ÜBERWEISUNG: '+p.lamports+
+   ' Lamports an '+p.destination+'? Dies ist KEINE PayPal-Auszahlung.'))return;
+  pendingNativeTransfer=null;
+  $('walletNativeConfirm').style.display='none';
+  $('walletNativeSendResult').textContent='Transaktion wird lokal signiert und auf Solana übertragen …';
+  const r=await fetch('/api/wallet/sol-transfer/send',{method:'POST',
+   headers:{'content-type':'application/json'},
+   body:JSON.stringify({confirmation_id:p.confirmation_id,
+    confirmation_phrase:'ICH SENDE SOL',password:pass})});
+  const d=await r.json();if(!r.ok)throw Error(d.error||'Nicht gesendet');
+  $('walletNativeSendResult').textContent='Transaktion: '+d.transfer.signature+
+   ' · Status: '+d.transfer.status+
+   '. '+d.transfer.warning+' Kein Token-Swap und keine PayPal-Bestätigung.';
+ }catch(e){$('walletNativeSendResult').textContent='Überweisung: '+e.message}
+ finally{$('walletNativePassword').value='';$('walletNativePhrase').value=''}
+};
+$('walletNativeHistory').onclick=async()=>{
+ try{
+  const r=await fetch('/api/wallet/sol-transfer/history',{cache:'no-store'});
+  const d=await r.json();if(!r.ok)throw Error(d.error||'Journal nicht lesbar');
+  $('walletNativeHistoryList').textContent=(d.transfers||[]).length?
+   d.transfers.map(t=>t.lamports+' Lamports an '+t.destination+
+    ' · '+t.state+' · Signatur '+t.signature).join('\n'):
+   'Noch keine lokalen SOL-Überweisungen.';
+ }catch(e){$('walletNativeHistoryList').textContent='Journalfehler: '+e.message}
+};
 let currentRealWallet=null;
 async function refreshLocalWallet(){
  try{
