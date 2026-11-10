@@ -13,6 +13,8 @@ import {createLocalSolanaVault,readLocalSolanaVault,
  restoreEncryptedSolanaBackup} from './local-solana-vault.mjs';
 import {readSolanaBalance} from './local-solana-balance.mjs';
 import {fetchIndicativeSolanaQuote} from './solana-swap-quote.mjs';
+import {previewSolanaSwapRoundtrip} from './solana-swap-roundtrip.mjs';
+import {readSolanaOwnedTokens} from './solana-owned-tokens.mjs';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
@@ -215,6 +217,27 @@ const server=createServer(async(req,res)=>{
   }catch(e){return error(res,422,e?.code==='EEXIST'?
     'Vorhandene Wallet wird niemals überschrieben':
     String(e?.message||'BACKUP_NOT_VERIFIED').slice(0,100))}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/tokens'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Token-Guthaben');
+  if(!allowRequest('wallet-owned-tokens'))return error(res,429,'Zu viele Guthabenabfragen');
+  try{return reply(res,200,{ok:true,holdings:await readSolanaOwnedTokens(wallet.address)})}
+  catch{return error(res,503,'Token-Guthaben nicht zuverlässig verifizierbar')}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/swap-roundtrip'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Kurse');
+  if(!allowRequest('wallet-roundtrip'))return error(res,429,'Zu viele Tauschprüfungen');
+  const u=new URL(req.url,'http://127.0.0.1:'+port);
+  const targetMint=u.searchParams.get('outputMint');
+  const amountLamports=u.searchParams.get('amountLamports');
+  const preview=await previewSolanaSwapRoundtrip({
+   targetMint,amountLamports,wait:()=>new Promise(resolve=>setTimeout(resolve,2200))});
+  // Only public quote metadata, never a transaction, signing key or PayPal receipt.
+  return reply(res,200,{ok:true,preview});
  }
  if(req.method==='GET'&&route==='/api/wallet/swap-quote'){
   if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine echten Swap-Quotes');
