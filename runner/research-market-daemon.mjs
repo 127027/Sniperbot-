@@ -3,6 +3,7 @@
 import {collectSnapshot,writeSnapshot} from './research-market-collector.mjs';
 import {runFollowups} from './memecoin-followups.mjs';
 import {detectEarlyMarketAcceleration} from './research-hype-triggers.mjs';
+import {collectNarrativeLeads} from './research-narrative-radar.mjs';
 import {publishResearchSnapshot,publishingEnabled} from './research-market-publisher.mjs';
 import {mkdir,readdir,stat,unlink,open,readFile,writeFile,rename} from 'node:fs/promises';
 import path from 'node:path';
@@ -134,6 +135,7 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
   let marketAlerts={schema:'research_market_triggers.v1',paper_only:true,actionable:false,
    events:[],evaluated_pairs:0,reason:'NO_LIVE_SNAPSHOT'};
   let alertJournal=null,alertError=null;
+  let narrative={leads:[],coverage:[]},narrativeError=null;
   if(success){
     let previous=null;
     try{previous=JSON.parse(await readFile(latestFile,'utf8'))}
@@ -148,6 +150,12 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     try{snapshot.research_alerts=await recentResearchAlerts({now:Date.parse(now)})}
     catch(e){snapshot.research_alerts=marketAlerts.events;
       alertError=String(e?.message||'ALERT_READ_FAILED').replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,100)}
+    // Metadata and public paid-promotion signals complement chart-only discovery.
+    // Match exact chain/token/pool only; never infer social virality or buy permission.
+    try{narrative=await collectNarrativeLeads({fetcher,now,pools:snapshot.candidates})}
+    catch(e){narrativeError=String(e?.message||'NARRATIVE_UNAVAILABLE').slice(0,90)}
+    snapshot.narrative_leads=narrative.leads;
+    snapshot.narrative_coverage=narrative.coverage;
     await writeSnapshot(snapshot,latestFile);
     await saveHistory(snapshot);
   }
@@ -168,6 +176,7 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     status:success?'RUNNING_RESEARCH':'BLOCKED_RESEARCH_DATA_ACCESS',
     candidate_count:snapshot.candidates.length,
     coverage:snapshot.coverage,history:clean,followups,followup_error:followupError,
+    narrative_radar:{lead_count:narrative.leads.length,coverage:narrative.coverage,error:narrativeError},
     market_alerts:{events_found:marketAlerts.events.length,
       compared_pairs:marketAlerts.evaluated_pairs,
       new_local_alerts:alertJournal?.added??0,
