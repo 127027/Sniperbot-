@@ -98,6 +98,33 @@ try{
  assert.equal(after.state.cashUsdc,before.state.cashUsdc);
  assert.equal(after.state.cashEur,before.state.cashEur);
  assert.deepEqual(after.state.positions,before.state.positions);
+ const command=async payload=>{
+  const resp=await fetch(base+'/api/command',{method:'POST',
+   headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+  assert.equal(resp.status,200,JSON.stringify(payload));return resp.json();
+ };
+ // Real local server exercises clickable PAPER Euro controls end to end.
+ await command({type:'DEPOSIT',eur:50});
+ let acct=(await read('/api/state')).state;
+ assert.equal(acct.cashEur,50);
+ await command({type:'EXCHANGE',eur:40});
+ acct=(await read('/api/state')).state;
+ assert.equal(acct.cashEur,10);
+ assert.equal(acct.cashUsdc,40);
+ await command({type:'EXCHANGE_BACK',usdc:10});
+ acct=(await read('/api/state')).state;
+ assert.equal(acct.cashEur,20);
+ assert.equal(acct.cashUsdc,30);
+ await command({type:'WITHDRAW',eur:15});
+ acct=(await read('/api/state')).state;
+ assert.equal(acct.cashEur,5);
+ assert.equal(acct.cashUsdc,30);
+ assert.equal(acct.positions.length,0);
+ const noFunds=await fetch(base+'/api/command',{method:'POST',
+  headers:{'content-type':'application/json'},body:JSON.stringify({type:'WITHDRAW',eur:500})});
+ assert.equal(noFunds.status,422);
+ assert.equal((await read('/api/state')).state.cashEur,5);
+ console.log('BOT_VISIBLE_PAPER_EUR_50_DEPOSIT_EXCHANGE_WITHDRAW_OK: no actual payment or trade');
  console.log('V09_WINDOWS_COMPATIBLE_START_SMOKE_OK: status, funding preview, paper ledger unchanged');
 }finally{
  if(child){
