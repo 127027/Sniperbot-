@@ -35,10 +35,16 @@ test('1000 Test-USDC is set exactly, user can explicitly reset free account to z
   assert.equal(s.history.length,2);
 });
 
-test('capital may only change when Bot OFF and no open positions',()=>{
+test('positive capital change requires Bot OFF, zero auto-stops with no positions, no open position may vanish',()=>{
   let s=action(freshState(),{type:'SET_PAPER_BALANCE',amount:1000});
   s=action(s,{type:'TOGGLE_BOT'});
-  assert.equal(action(s,{type:'SET_PAPER_BALANCE',amount:0}),s);
+  const zeroed=action(s,{type:'SET_PAPER_BALANCE',amount:0});
+  assert.notEqual(zeroed,s,'zero is an explicit safe pause-and-clear action');
+  assert.equal(zeroed.entriesEnabled,false);
+  assert.equal(zeroed.cashUsdc,0);
+  assert.equal(zeroed.positions.length,0);
+  assert.equal(action(s,{type:'SET_PAPER_BALANCE',amount:3000}),s,
+   'positive amount remains blocked while Paper bot is running');
   const flat=action(s,{type:'TOGGLE_BOT'});
   const filled={...flat,positions:[{id:'paper-position'}]};
   assert.equal(action(filled,{type:'SET_PAPER_BALANCE',amount:0}),filled);
