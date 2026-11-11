@@ -13,6 +13,7 @@ import {createDynamicTradeInbox} from './dynamic-trade-inbox.mjs';
 import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
 import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
 import {enrollPaperPublisherPublicKey} from './paper-publisher-trust.mjs';
+import {summarizePaperPipeline} from './pipeline-health.mjs';
 import {readLiveTradingGate,requestLiveTradingMode} from './live-mode-policy.mjs';
 import {summarizeRealWallet} from './real-wallet-overview.mjs';
 import {previewDynamicAssetRoute} from './dynamic-asset-router.mjs';
@@ -244,6 +245,16 @@ const server=createServer(async(req,res)=>{
    source_status:'SIGNED_LOCAL_ADAPTER_OR_GITHUB_COURIER',
    research_dots_direct_publisher_connected:false,
    github_feed:githubAgentFeedStatus,
+   pipeline:summarizePaperPipeline({
+    research:researchNetwork,
+    readEnabled:process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_RESEARCH_READ!=='0',
+    courier:githubAgentFeedStatus,
+    publishers:Array.isArray(keys)?keys:[],
+    receipts,
+    positions:state.positions,
+    topology:deviceTopology.mode,
+    offline:process.env.SNIPER_OFFLINE==='1'
+   }),
    message:'Signierte lokale Agentenadapter können echte Paper-Fills auslösen. Die fünf Cloud-Forschungs-Dots publizieren bislang nur lesbare Research-Snapshots, nicht signierte Order-Kommandos.'});
  }
  if(req.method==='POST'&&route==='/api/paper/publisher/trust'){
@@ -823,7 +834,7 @@ for(const sig of ['SIGINT','SIGTERM'])process.on(sig,shutdownServer);
 attachSupervisedStop(shutdownServer);
 
 // Read-only five-role GitHub research mirror, separate from portfolio and action handlers.
-if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_RESEARCH_READ==='1'){
+if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_RESEARCH_READ!=='0'){
  void refreshResearchNetwork();
  setInterval(()=>{void refreshResearchNetwork()},120000);
 }
