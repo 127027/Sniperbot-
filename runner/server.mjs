@@ -176,7 +176,7 @@ async function scan(){if(deviceTopology.mode==='FOLLOWER')return;if(scanning)ret
 }
 async function prices(){if(deviceTopology.mode==='FOLLOWER')return;if(pricing || state.positions.length===0)return;pricing=true;
  const quotes={};
- try{for(const p of state.positions){if(p.isDemo)continue;try{const quote=await tokenQuote(p.chain,p.tokenAddress);if(quote)quotes[p.id]=quote}catch(e){console.log('Kursabfrage',p.symbol,e.message)}}
+ try{for(const p of state.positions){if(p.isDemo)continue;try{const quote=await tokenQuote(p.chain,p.tokenAddress,fetch,p.poolAddress||null);if(quote)quotes[p.id]=quote}catch(e){console.log('Kursabfrage',p.symbol,e.message)}}
   if(Object.keys(quotes).length)commit(updateQuotes(state,quotes));
  }finally{pricing=false}
 }
@@ -196,7 +196,7 @@ function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_A
    state.agentOrderReceipts.find(r=>r.signal_id===signed.signal_id):null;
   let quote=qaQuote;
   if(!quote&&!old){
-   try{quote=await lookupToken(signed.chain,signed.token_address)}
+   try{quote=await lookupToken(signed.chain,signed.token_address,fetch,signed.pool_address||null)}
    catch(e){console.log('Signed Paper order quote:',String(e?.message||'MARKET_DOWN').slice(0,100))}
   }
   try{
