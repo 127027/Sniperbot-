@@ -106,6 +106,12 @@ try{
  assert.equal(summary.received,2);
  assert.equal(summary.signed_publisher_configured,true);
  assert.equal(summary.research_dots_direct_publisher_connected,false);
+ assert.equal(summary.pipeline.schema,'sniper_paper_pipeline_health.v1');
+ assert.equal(summary.pipeline.stages.dot_research.status,'DISABLED');
+ assert.equal(summary.pipeline.stages.paper_execution.executed_paper_orders,2);
+ assert.equal(summary.pipeline.stages.paper_execution.signed_local_receipts,2);
+ assert.equal(summary.pipeline.verified_dot_publisher_connected,false);
+ assert.equal(summary.pipeline.real_dot_research_to_order_execution_proven,false);
  const gate=(await request('/api/trading/live-mode')).data.gate;
  assert.equal(gate.enabled,false);
  const forbidden=await request('/api/trading/live-mode',{method:'POST',
