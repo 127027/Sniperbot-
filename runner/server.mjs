@@ -11,6 +11,7 @@ import {loadOrCreateDeviceIdentity} from './device-identity.mjs';
 import {createExecutionInbox} from './device-execution-inbox.mjs';
 import {createDynamicTradeInbox} from './dynamic-trade-inbox.mjs';
 import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
+import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
 import {readLiveTradingGate,requestLiveTradingMode} from './live-mode-policy.mjs';
 import {summarizeRealWallet} from './real-wallet-overview.mjs';
 import {previewDynamicAssetRoute} from './dynamic-asset-router.mjs';
@@ -180,6 +181,35 @@ async function prices(){if(deviceTopology.mode==='FOLLOWER')return;if(pricing ||
  }finally{pricing=false}
 }
 let paperAgentOrderQueue=Promise.resolve();
+let githubAgentFeedStatus={checked_at_utc:null,received_last:0,
+ status:'NOT_CHECKED',last_error:null};
+function submitSignedAgentPaperOrder(signed,{qaQuote=null}={}){
+ const job=async()=>{
+  let keys;
+  try{
+   const file=path.join(store.dir,'trusted-execution-publishers.json');
+   if(!existsSync(file))return {error:'Kein autorisierter signierender Agenten-Publisher eingerichtet',code:409};
+   keys=JSON.parse(readFileSync(file,'utf8'));
+   verifyAgentSignal(signed,keys,{deviceId:localDevice.device_id});
+  }catch(e){return {error:String(e?.message||'INVALID_SIGNATURE').slice(0,120),code:422}}
+  const old=Array.isArray(state.agentOrderReceipts)?
+   state.agentOrderReceipts.find(r=>r.signal_id===signed.signal_id):null;
+  let quote=qaQuote;
+  if(!quote&&!old){
+   try{quote=await lookupToken(signed.chain,signed.token_address)}
+   catch(e){console.log('Signed Paper order quote:',String(e?.message||'MARKET_DOWN').slice(0,100))}
+  }
+  try{
+   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote});
+   commit(result.next);
+   return {ok:true,receipt:result.receipt,real_trade_executed:false,live_trading_enabled:false};
+  }catch(e){return {error:String(e?.message||'AGENT_PAPER_PIPELINE_BLOCKED').slice(0,120),code:422}}
+ };
+ const pending=paperAgentOrderQueue.then(job);
+ paperAgentOrderQueue=pending.catch(()=>{});
+ return pending;
+}
+
 const port=Number(process.env.SNIPER_PORT)||3030;
 const server=createServer(async(req,res)=>{
  if(req.headers.host!==`127.0.0.1:${port}`||!corsAllowed(req))return error(res,403,'Host/Origin blockiert');
@@ -212,6 +242,7 @@ const server=createServer(async(req,res)=>{
    live_trading_enabled:false,
    source_status:'SIGNED_LOCAL_ADAPTER_ONLY',
    research_dots_direct_publisher_connected:false,
+   github_feed:githubAgentFeedStatus,
    message:'Signierte lokale Agentenadapter können echte Paper-Fills auslösen. Die fünf Cloud-Forschungs-Dots publizieren bislang nur lesbare Research-Snapshots, nicht signierte Order-Kommandos.'});
  }
  if(req.method==='POST'&&route==='/api/paper/agent-orders'){
@@ -225,41 +256,14 @@ const server=createServer(async(req,res)=>{
    return error(res,429,'Zu viele signierte Paper-Aufträge');
   let message;
   try{message=await body(req)}
-  catch(e){return error(res,422,'Ungültiges Agentensignal')}
+  catch{return error(res,422,'Ungültiges Agentensignal')}
   const qa=process.env.SNIPER_OFFLINE==='1'&&
    process.env.SNIPER_PIPELINE_QA==='1';
   const signed=qa&&message?.command?message.command:message;
   if(!qa&&message?.qa_quote)
    return error(res,422,'Kein Fremdkurs für produktiven Paper-Eingang erlaubt');
-  const job=async()=>{
-   let keys;
-   try{
-    const file=path.join(store.dir,'trusted-execution-publishers.json');
-    if(!existsSync(file))return {error:'Kein autorisierter signierender Agenten-Publisher eingerichtet',code:409};
-    keys=JSON.parse(readFileSync(file,'utf8'));
-    verifyAgentSignal(signed,keys,{deviceId:localDevice.device_id});
-   }catch(e){return {error:String(e?.message||'INVALID_SIGNATURE').slice(0,120),code:422}}
-   const previous=Array.isArray(state.agentOrderReceipts)?
-    state.agentOrderReceipts.find(r=>r.signal_id===signed.signal_id):null;
-   // Existing signed signal gets a NO-MUTATION replay receipt from the pure policy.
-   let quote=null;
-   if(qa&&message?.qa_quote){
-    quote=message.qa_quote;
-   }else if(!previous){
-    try{quote=await lookupToken(signed.chain,signed.token_address)}
-    catch(e){console.log('Signed Paper order quote:',String(e?.message||'MARKET_DOWN').slice(0,100))}
-   }
-   try{
-    const result=applyAgentSignal(state,signed,keys,{
-     deviceId:localDevice.device_id,quote});
-    commit(result.next);
-    return {ok:true,receipt:result.receipt,
-     real_trade_executed:false,live_trading_enabled:false};
-   }catch(e){return {error:String(e?.message||'AGENT_PAPER_PIPELINE_BLOCKED').slice(0,120),code:422}}
-  };
-  const result=paperAgentOrderQueue.then(job);
-  paperAgentOrderQueue=result.catch(()=>{});
-  const outcome=await result;
+  const outcome=await submitSignedAgentPaperOrder(signed,{
+   qaQuote:qa?message?.qa_quote:null});
   if(outcome.code)return error(res,outcome.code,outcome.error);
   return reply(res,200,outcome);
  }
@@ -803,6 +807,34 @@ attachSupervisedStop(shutdownServer);
 if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_RESEARCH_READ==='1'){
  void refreshResearchNetwork();
  setInterval(()=>{void refreshResearchNetwork()},120000);
+}
+
+// PUBLIC research/order courier is not a trusted signer. Each message must
+// pass local Ed25519 key registry plus local paper budget and market validation.
+// Only PAPER, never a real swap or wallet debit.
+if(process.env.SNIPER_OFFLINE!=='1'&&
+ process.env.SNIPER_AGENT_PAPER_FEED!=='0'){
+ let reading=false;
+ const poll=async()=>{
+  if(reading||deviceTopology.mode!=='MASTER')return;
+  reading=true;
+  try{
+   const result=await pollSignedPaperOrderFeed({consume:async command=>{
+    const outcome=await submitSignedAgentPaperOrder(command);
+    return outcome.code?{signal_id:command?.signal_id||null,
+     status:'REJECTED',reason:outcome.error}:outcome.receipt;
+   }});
+   githubAgentFeedStatus={checked_at_utc:new Date().toISOString(),
+    received_last:result.received,status:'FETCHED_SIGNED_COURIER',
+    last_error:null};
+  }catch(e){
+   githubAgentFeedStatus={checked_at_utc:new Date().toISOString(),
+    received_last:0,status:'COURIER_UNAVAILABLE',
+    last_error:String(e?.message||'UNKNOWN').slice(0,100)};
+  }finally{reading=false}
+ };
+ setTimeout(()=>{void poll()},5000);
+ setInterval(()=>{void poll()},40000);
 }
 
 // Opt-in, outbound-only, informational feed. Never calls ingest/evaluate/action.
