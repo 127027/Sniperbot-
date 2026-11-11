@@ -65,7 +65,8 @@ function validQuote(q,order,now){
   now-Date.parse(q.asOf)<=90000&&
   typeof q.symbol==='string'&&q.symbol.length<=32;
 }
-export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null}={}){
+export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER'}={}){
+ if(!['SIGNED_LOCAL_ADAPTER','GITHUB_SIGNED_COURIER'].includes(source))throw Error('INVALID_AGENT_TRANSPORT_SOURCE');
  const verified=verifyAgentSignal(order,keys,{deviceId,now});
  const receipts=state.agentOrderReceipts||[];
  if(!Array.isArray(receipts)||receipts.length>250)throw Error('PAPER_AGENT_RECEIPTS_INVALID');
@@ -120,7 +121,7 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   }
  }
  const receipt={
-  signal_id:order.signal_id,command_source:'SIGNED_AGENT_LOCAL_ADAPTER',
+  signal_id:order.signal_id,command_source:source,
   issuer:order.issuer,action:actionType,
   chain:order.chain,token_address:order.token_address,
   pool_address:quote?.poolAddress||order.pool_address,
