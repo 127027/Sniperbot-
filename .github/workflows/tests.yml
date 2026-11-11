@@ -32,6 +32,8 @@ jobs:
       - run: node runner/v09-start-smoke.mjs
       - name: Actual local signed agent Paper BUY/SELL 50 EUR pipeline without real trade
         run: node runner/paper-agent-loopback-e2e.mjs
+      - name: Observe REAL public Dot research and signed order courier separately (read-only)
+        run: node runner/dot-public-feed-live-probe.mjs
       - name: Observe one real public pool readback (non-blocking, read-only)
         run: node runner/readback-live-probe.mjs
   windows-v08-paper-lab:
