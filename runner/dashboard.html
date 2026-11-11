@@ -605,7 +605,7 @@ function initializeWorkspaces(){
     '<div class="metric"><small>Empfangene Aufträge</small><b id="agentReceived">–</b></div>'+
     '<div class="metric"><small>Ausgeführte Paper-Trades</small><b id="agentFilled">–</b></div>'+
   '</div><div id="agentReceipts" class="subtle">Noch keine bestätigten Agenten-Orders.</div>'+
-  '<p class="subtle">Die fünf Cloud-Dots liefern derzeit Forschungsberichte. Eine echte Order-Zustellung benötigt zusätzlich einen verbundenen signierenden Agentenadapter. Keine ungeprüfte Nachricht wird automatisch zu einem Echtgeld-Kauf.</p>';
+  '<p class="subtle">Die fünf Cloud-Dots liefern derzeit Forschungsberichte. Eine echte Order-Zustellung benötigt zusätzlich einen verbundenen signierenden Agentenadapter. Keine ungeprüfte Nachricht wird automatisch zu einem Echtgeld-Kauf.</p>'+\n  '<button id="agentSetupMaster" class="btn" type="button">Dieses Gerät als Laptop-Zentrale einrichten</button>';
  const realHeading=wallet.querySelector('.section-heading');
  realHeading.querySelector('h2').textContent='Meine Wallet';
  realHeading.querySelector('.tag').textContent='REAL-WALLET · LIVE AUS';
@@ -619,6 +619,38 @@ function initializeWorkspaces(){
  routeAdvanced.append(router);
  real.append(routeAdvanced);
  $('workspaceAdvancedContent').append(research,system,devices,diagnostics);
+ const publisherConnect=document.createElement('details');
+ publisherConnect.className='panel section';
+ publisherConnect.id='paperPublisherSetup';
+ publisherConnect.innerHTML='<summary>Cloud-Dot für Paper-Orders verbinden (nur öffentlicher Schlüssel)</summary>'+
+  '<div class="details-body">'+
+  '<p>Damit ein Dot BUY/SELL-Orders senden darf, muss sein öffentliches Ed25519-Publisher-Zertifikat auf diesem Laptop freigegeben sein. Niemals private Schlüssel, Seeds oder Wallet-Passwörter hier eingeben.</p>'+
+  '<div class="controls"><label>Dot-Absenderkennung<input id="paperPublisherIssuer" type="text" placeholder="mein-dot-publisher"></label>'+
+  '<label>Signaturschlüssel-ID<input id="paperPublisherKeyId" type="text" placeholder="key-2026"></label></div>'+
+  '<label>Öffentlicher Ed25519-Schlüssel (PEM)<textarea id="paperPublisherPublicPem" rows="5" spellcheck="false" placeholder="-----BEGIN PUBLIC KEY-----"></textarea></label>'+
+  '<button id="paperPublisherPair" type="button" class="btn">Öffentlichen Dot-Schlüssel einmalig freigeben</button>'+
+  '<p id="paperPublisherPairResult" class="subtle">Noch kein zusätzlicher Absender freigegeben.</p>'+
+  '<p class="warning">Das ist die Vertrauenskopplung für PAPER. Der Cloud-Dot muss zusätzlich selbst eine signierte BUY/SELL-Nachricht über GitHub veröffentlichen oder über einen autorisierten lokalen Adapter zustellen. Forschungsberichte sind keine Order.</p>'+
+  '</div>';
+ $('workspaceAdvancedContent').prepend(publisherConnect);
+ $('paperPublisherPair').onclick=async()=>{
+  const issuer=$('paperPublisherIssuer').value.trim();
+  const keyId=$('paperPublisherKeyId').value.trim();
+  const pem=$('paperPublisherPublicPem').value.trim();
+  if(!confirm('Diesen öffentlichen Dot-Signaturschlüssel für Paper-Orders vertrauen? Ein fremder Schlüssel darf dein virtuelles Testguthaben handeln, niemals echte Wallet-Assets.'))return;
+  try{
+   const response=await fetch('/api/paper/publisher/trust',{
+    method:'POST',headers:{'content-type':'application/json'},
+    body:JSON.stringify({issuer,key_id:keyId,public_key_pem:pem})});
+   const data=await response.json();
+   if(!response.ok)throw Error(data.error||'Kein freigegebener Signaturschlüssel');
+   $('paperPublisherPairResult').textContent='Öffentlicher Dot-Schlüssel freigegeben: '+
+    data.receipt.public_key_fingerprint_sha256+'. Private Schlüssel niemals übertragen.';
+   $('paperPublisherPublicPem').value='';
+   await refreshAgentOrders();
+  }catch(e){$('paperPublisherPairResult').textContent='Dot nicht freigegeben: '+e.message}
+ };
+ $('agentSetupMaster').onclick=()=>$('deviceChooseMaster').click();
  // Move additional technical controls into an explicitly collapsed section.
  const existing=$('walletExisting');
  const tech=document.createElement('details');
@@ -656,6 +688,11 @@ async function refreshAgentOrders(){
   if(!r.ok||!data.ok)throw Error(data.error||'Paper-Eingang nicht verfügbar');
   $('agentReceived').textContent=String(data.received);
   $('agentFilled').textContent=String(data.paper_filled);
+  const topologyRes=await fetch('/api/coordination/status',{cache:'no-store'});
+  if(topologyRes.ok){
+   const topology=await topologyRes.json();
+   $('agentSetupMaster').hidden=topology.topology_role!=='UNPAIRED';
+  }
   $('agentSignalStatus').textContent=data.signed_publisher_configured?
    'Signierender lokaler Agentenadapter eingerichtet. '+data.paper_filled+
     ' bestätigte Paper-Fills. Direkter Cloud-Dot-Order-Publisher noch nicht verifiziert.':
