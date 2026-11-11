@@ -183,7 +183,7 @@ async function prices(){if(deviceTopology.mode==='FOLLOWER')return;if(pricing ||
 let paperAgentOrderQueue=Promise.resolve();
 let githubAgentFeedStatus={checked_at_utc:null,received_last:0,
  status:'NOT_CHECKED',last_error:null};
-function submitSignedAgentPaperOrder(signed,{qaQuote=null}={}){
+function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_ADAPTER'}={}){
  const job=async()=>{
   let keys;
   try{
@@ -200,7 +200,7 @@ function submitSignedAgentPaperOrder(signed,{qaQuote=null}={}){
    catch(e){console.log('Signed Paper order quote:',String(e?.message||'MARKET_DOWN').slice(0,100))}
   }
   try{
-   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote});
+   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source});
    commit(result.next);
    return {ok:true,receipt:result.receipt,real_trade_executed:false,live_trading_enabled:false};
   }catch(e){return {error:String(e?.message||'AGENT_PAPER_PIPELINE_BLOCKED').slice(0,120),code:422}}
@@ -240,7 +240,7 @@ const server=createServer(async(req,res)=>{
    blocked:receipts.filter(r=>r.status==='BLOCKED').length,
    recent:receipts.slice(-30).reverse(),
    live_trading_enabled:false,
-   source_status:'SIGNED_LOCAL_ADAPTER_ONLY',
+   source_status:'SIGNED_LOCAL_ADAPTER_OR_GITHUB_COURIER',
    research_dots_direct_publisher_connected:false,
    github_feed:githubAgentFeedStatus,
    message:'Signierte lokale Agentenadapter können echte Paper-Fills auslösen. Die fünf Cloud-Forschungs-Dots publizieren bislang nur lesbare Research-Snapshots, nicht signierte Order-Kommandos.'});
@@ -820,7 +820,7 @@ if(process.env.SNIPER_OFFLINE!=='1'&&
   reading=true;
   try{
    const result=await pollSignedPaperOrderFeed({consume:async command=>{
-    const outcome=await submitSignedAgentPaperOrder(command);
+    const outcome=await submitSignedAgentPaperOrder(command,{source:'GITHUB_SIGNED_COURIER'});
     return outcome.code?{signal_id:command?.signal_id||null,
      status:'REJECTED',reason:outcome.error}:outcome.receipt;
    }});
