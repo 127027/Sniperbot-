@@ -734,6 +734,8 @@ async function refreshAgentOrders(){
   if(dotStage){
    $('agentResearchStage').textContent='Echte GitHub-Forschung: '+
     dotStage.fresh_roles+'/'+dotStage.total_roles+' aktuelle Rollenberichte. '+
+    (dotStage.watchlist_observed_candidates===null?'Watchlist unbekannt. ':
+     dotStage.watchlist_observed_candidates+' nur beobachtete Watchlist-Kandidaten (keine Kaufempfehlungen). ')+
     'Signierter Order-Publisher: '+(signedStage?.keys_configured?'öffentlicher Schlüssel registriert':'noch nicht verbunden')+
     '. Empfangene Paper-Orders: '+(executedStage?.total_signed_order_receipts||0)+
     ', ausgeführte Paper-Trades: '+(executedStage?.executed_paper_orders||0)+
