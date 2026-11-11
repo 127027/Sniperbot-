@@ -21,7 +21,10 @@ export async function fetchSignedPaperOrderFeed({fetcher=fetch,now=Date.now()}={
   !Array.isArray(feed.signals)||feed.signals.length>8)
   throw Error('GITHUB_AGENT_FEED_INVALID_SCHEMA');
  const t=Date.parse(feed.published_at_utc);
- if(!Number.isFinite(t)||t>now+30000||now-t>180000)
+ // An unchanged EMPTY courier is healthy; only actual trade commands need
+ // a fresh feed timestamp. Each signed signal is separately TTL checked.
+ if(!Number.isFinite(t)||t>now+30000||
+  (feed.signals.length>0&&now-t>180000))
   throw Error('GITHUB_AGENT_FEED_STALE');
  const ids=new Set();
  for(const command of feed.signals){
