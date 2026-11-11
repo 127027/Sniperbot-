@@ -52,6 +52,8 @@ export function summarizePaperPipeline({
    dot_research:{
     status:!readEnabled||offline?'DISABLED':researched?'RESEARCH_DATA_RECEIVED':'NO_CURRENT_RESEARCH',
     fresh_roles:researched,total_roles:roles.length,
+    watchlist_observed_candidates:research?.watchlist?.candidate_count??null,
+    watchlist_is_trade_authorization:false,
     last_public_read_at_utc:research?.checked_at_utc||null,
     roles,
     direct_trade_instructions:false
