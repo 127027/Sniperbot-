@@ -161,10 +161,19 @@ try{
  const pub=generateKeyPairSync('ed25519');
  const credentials=JSON.parse(await readFile(path.join(tmp,'gateway-credentials.json'),'utf8'));
  const secret=credentials.find(x=>x.role==='risk_controller').token;
- await writeFile(path.join(tmp,'trusted-execution-publishers.json'),JSON.stringify([{
-  issuer:'ephemeral-browser-dot',key_id:'ephemeral-browser-signing',
-  scope:'agent_execution',public_key_pem:pub.publicKey.export({format:'pem',type:'spki'})
- }]),{mode:0o600});
+ await page.locator('#workspaceAdvanced > summary').click();
+ await page.locator('#paperPublisherSetup > summary').click();
+ await page.locator('#paperPublisherIssuer').fill('ephemeral-browser-dot');
+ await page.locator('#paperPublisherKeyId').fill('ephemeral-browser-signing');
+ await page.locator('#paperPublisherPublicPem').fill(pub.publicKey.export({format:'pem',type:'spki'}));
+ await page.locator('#paperPublisherPair').click();
+ await page.waitForFunction(()=>document.querySelector('#paperPublisherPairResult')?.textContent?.includes('freigegeben:'),
+  null,{timeout:20000});
+ const trust=JSON.parse(await readFile(path.join(tmp,'trusted-execution-publishers.json'),'utf8'));
+ assert.equal(trust.length,1);
+ assert.equal(trust[0].scope,'agent_execution');
+ await page.locator('#paperPublisherSetup > summary').click();
+ await page.locator('#workspaceAdvanced > summary').click();
  const mint=encodeBase58(Buffer.alloc(32,42));
  const pool=encodeBase58(Buffer.alloc(32,43));
  const build=kind=>{
@@ -316,6 +325,7 @@ try{
   paper_exchange_and_withdrawal_verified:true,
   local_encrypted_backup_export_and_verify_in_browser:true,
   signed_ephemeral_dot_buy_sell_and_visible_paper_pnl:true,
+  browser_paired_dot_public_key_without_secret:true,
   paper_bot_toggle_verified:true,
   real_wallet_created_on_disposable_ci_only:true,
   real_trade_activation_blocked:true,
