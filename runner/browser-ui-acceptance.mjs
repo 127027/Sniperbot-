@@ -91,7 +91,8 @@ try{
  if(failures.length)die('JavaScript errors at load: '+failures.join(' | '));
  assert.equal(await hasVisible(page,'#paperWorkspace'),true);
  assert.equal(await hasVisible(page,'#realWorkspace'),false);
- assert.equal(await hasVisible(page,'#paperEurAmount'),true);
+ assert.equal(await hasVisible(page,'#paperSpendable'),true);
+ assert.equal(await hasVisible(page,'#agentSignalStatus'),true);
  assert.equal(await hasVisible(page,'#realSolTotal'),false);
  assert.equal(await page.locator('#realLiveSwitch').isDisabled(),true);
  await expectViewportFit(page,'paper desktop');
@@ -103,11 +104,12 @@ try{
  await page.locator('#paperEurInput').fill('50');
  await page.locator('#paperEurDeposit').click();
  await page.waitForFunction(expected=>
-  document.getElementById('paperEurAmount')?.textContent?.includes(expected),
+  document.getElementById('paperSpendable')?.textContent?.includes(expected),
   '50,00',{timeout:20000});
  const after=(await httpGet(base,'/api/state')).state;
  assert.equal(after.cashEur,Number(before.cashEur)+50,
   'paper EUR deposit must only increase virtual cash by 50');
+ await page.locator('#paperWorkspace section[aria-label="Ausschließlich virtuelle Paper-Einzahlungen"] details > summary').click();
  // More than a display: verify the four independent PAPER cash commands.
  // These are simulated exchange movements, never actual SOL/USDC.
  const waitPaper=async(eur,usdc)=>page.waitForFunction(async(expected)=>{
@@ -126,6 +128,7 @@ try{
  await page.locator('#paperEurInput').fill('15');
  await page.locator('#paperEurWithdraw').click();
  await waitPaper(Number(after.cashEur)-25,Number(after.cashUsdc)+10);
+ await page.locator('#paperWorkspace section[aria-label="Ausschließlich virtuelle Paper-Einzahlungen"] details > summary').click();
  const finalPaper=(await httpGet(base,'/api/state')).state;
  assert.equal(finalPaper.cashEur,Number(after.cashEur)-25);
  assert.equal(finalPaper.cashUsdc,Number(after.cashUsdc)+10);
@@ -234,7 +237,9 @@ try{
  await page.locator('#realWorkspaceTab').click();
  assert.equal(await page.locator('#realWorkspace #walletAddress').count(),1);
  assert.equal(await page.locator('#realWorkspace #paperEurAmount').count(),0);
+ assert.equal(await page.locator('#realWorkspace #paperSpendable').count(),0);
  assert.equal(await page.locator('#paperWorkspace #paperEurAmount').count(),1);
+ assert.equal(await page.locator('#paperWorkspace #paperSpendable').count(),1);
  if(failures.length)die('Browser JS exceptions: '+failures.join(' | '));
  console.log('BROWSER_UI_ACCEPTANCE_OK',{
   browser:engine,real_wallet_is_test_only:true,
