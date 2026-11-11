@@ -184,6 +184,7 @@ async function prices(){if(deviceTopology.mode==='FOLLOWER')return;if(pricing ||
 }
 let paperAgentOrderQueue=Promise.resolve();
 let githubAgentFeedStatus={checked_at_utc:null,received_last:0,
+ accepted_last:0,rejected_last:0,last_rejection:null,
  status:'NOT_CHECKED',last_error:null};
 function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_ADAPTER'}={}){
  const job=async()=>{
@@ -855,11 +856,15 @@ if(process.env.SNIPER_OFFLINE!=='1'&&
      status:'REJECTED',reason:outcome.error}:outcome.receipt;
    }});
    githubAgentFeedStatus={checked_at_utc:new Date().toISOString(),
-    received_last:result.received,status:'FETCHED_SIGNED_COURIER',
-    last_error:null};
+    received_last:result.received,
+    accepted_last:result.receipts.filter(x=>x.status!=='REJECTED').length,
+    rejected_last:result.receipts.filter(x=>x.status==='REJECTED').length,
+    last_rejection:result.receipts.filter(x=>x.status==='REJECTED').slice(-1)[0]?.reason||null,
+    status:'FETCHED_SIGNED_COURIER',last_error:null};
   }catch(e){
    githubAgentFeedStatus={checked_at_utc:new Date().toISOString(),
-    received_last:0,status:'COURIER_UNAVAILABLE',
+    received_last:0,accepted_last:0,rejected_last:0,last_rejection:null,
+    status:'COURIER_UNAVAILABLE',
     last_error:String(e?.message||'UNKNOWN').slice(0,100)};
   }finally{reading=false}
  };
