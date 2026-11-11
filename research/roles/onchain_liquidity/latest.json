@@ -2,32 +2,11 @@
   "schema": "research_role_snapshot.v1",
   "role": "onchain_liquidity",
   "producer": "Sniper Onchain Research",
-  "snapshot_id": "onchain-liquidity-20261111T124101Z-run11",
-  "published_at_utc": "2026-11-11T12:41:01Z",
+  "snapshot_id": "onchain-liquidity-20261111T134102Z-run11",
+  "published_at_utc": "2026-11-11T13:41:02Z",
   "paper_only": true,
   "actionable": false,
-  "status": "CANDIDATE_OBSERVED",
-  "candidates": [
-    {
-      "chain": "base",
-      "token_address": "0x930b0df1944b1818482c32befb11cf78c7959138",
-      "pool_address": "0xeb544792a701ffba87dd706b866bd1f73c35a9f1",
-      "candidate_id": "base:0x930b0df1944b1818482c32befb11cf78c7959138:0xeb544792a701ffba87dd706b866bd1f73c35a9f1",
-      "observed_at_utc": "2026-11-11T12:41:01Z",
-      "source_urls": [
-        "https://www.geckoterminal.com/de/base/pools/0xeb544792a701ffba87dd706b866bd1f73c35a9f1"
-      ],
-      "evidence_summary": "Freshly accessed GeckoTerminal exact Base Uniswap V2 LIQUIDBGT/WETH pool page identifies token prefix 0x930...9138 and pair 0xeb5...a9f1, matching existing watchlist full identity; provider reports ~$0.00012 pool liquidity (rounded $0), reserves 3.07bn LIQUIDBGT (~$0.00005943) and 0.00000002801 WETH (~$0.00005943), age ~1 day, 16 holders, 24h volume $0 / transactions 0 on opened page. This is a critical near-zero-liquidity observation, NOT independently verified LP withdrawal or onchain reserves; cached search excerpt differed (24h volume $2222.36/64 tx), demonstrating timestamp/cache mismatch. No direct RPC/DEX-Screener exact-pair JSON access; 1/5/15/60m volumes, unique buyers, clusters, LP removal transaction, executable sell quote UNKNOWN. Source provider security/honeypot assertions NOT independently accepted.",
-      "risk_flags": [
-        "NEAR_ZERO_REPORTED_POOL_LIQUIDITY",
-        "PROVIDER_ONLY",
-        "POSSIBLE_STALE_OR_INCONSISTENT_PROVIDER_24H_STATISTICS",
-        "LP_WITHDRAWAL_UNCONFIRMED",
-        "UNIQUE_BUYERS_UNKNOWN",
-        "HOLDER_CLUSTERS_UNKNOWN",
-        "SELLABILITY_UNKNOWN"
-      ]
-    }
-  ],
-  "summary": "2026-11-11 12:41 UTC: Read discovery playbook, case studies, publisher blocker, capital, historical blind replay, 137-entry watchlist, market snapshot and four peer snapshots. News_discovery 12:07:43Z NO_VERIFIED_CANDIDATE, no shared new candidate; peer snapshots DERIVED. Market collector 02:44:43Z STALE (~10h), partial Base/BSC HTTP429. Five overdue HIGH IDs considered (Solana pools 3kNaw... and 27Qnj..., Base pools 0xeb544... and 0xca890..., ETH pool 0x2b078...). Independent public GeckoTerminal exact-pool HTML readback for existing Base watchlist ID 0xeb544... showed ~0.00012 USD pool liquidity and 0 24h volume/transactions, 16 holders, age ~1d; cached search excerpt conflicted with opened page, so timestamp-sensitive 24h trade values unreliable. Strong negative liquidity finding, not confirmed LP drain. Two direct structured API attempts (GeckoTerminal Solana exact pool and DEX Screener Base exact pair) SOURCE_UNAVAILABLE. Remaining HIGH IDs not independently read back. All minute volumes, unique funded buyers, holder/deployer clusters, LP-removal causation, slippage, independent sell quote UNKNOWN. Provider-only observation not risk PASS, not a trade. Next: verify Base pool reserves/LP transfer logs through chain explorer/RPC and time-synchronized independent provider, then other four HIGH IDs. No other files, orders, keys or signatures."
+  "status": "NO_VERIFIED_CANDIDATE",
+  "candidates": [],
+  "summary": "2026-11-11 13:41 UTC: Read discovery playbook, historical case study, publisher blocker, capital note, historical blind replay, watchlist, market feed, news_discovery and prior onchain report. news_discovery at 13:41:26Z reports NO_VERIFIED_CANDIDATE and candidates empty. Market snapshot published 02:44:43Z is STALE (~10h56m); partial Base/BSC coverage previously HTTP429. Prior onchain Base LIQUIDBGT/WETH pool 0xeb544792a701ffba87dd706b866bd1f73c35a9f1 reported near-zero provider liquidity (~$0.00012) at 12:41Z, but this run cannot reproduce it or prove LP withdrawal. Attempted fresh independent exact-pool HTTPS reads at GeckoTerminal, BaseScan and DEX Screener; all returned tool access errors SOURCE_UNAVAILABLE. Thus no newly independently verified current candidate in this run. Exact 1/5/15/60m volume, unique buyer wallets, clusters, reserves, LP withdrawal logs, slippage and sellability remain UNKNOWN; prior provider-only risk finding is not rescinded, merely unconfirmed on this run. Continue next run with direct Base explorer/RPC and synchronized pool/DEX readings; no trade signal, no signatures, no other files changed."
 }
