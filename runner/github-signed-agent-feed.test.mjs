@@ -23,6 +23,8 @@ test('empty cloud courier does NOT invent any real Dot or Paper execution',async
  assert.equal(r.received,0);
  assert.equal(r.authenticated_by_transport,false);
  assert.equal(received,0);
+ const oldEmpty=make([],{published_at_utc:new Date(now-86400000).toISOString()});
+ assert.equal((await fetchSignedPaperOrderFeed({fetcher:transport(oldEmpty),now})).signal_count,0);
 });
 test('GitHub is untrusted transport only: still delegates every signed command to local consumer',async()=>{
  const a={signal_id:'sig_'+'a'.repeat(32),untrusted_claim:'BUY'};
@@ -38,7 +40,7 @@ test('GitHub is untrusted transport only: still delegates every signed command t
 });
 test('stale, duplicated, oversized, malformed and unexpected feeds fail closed',async()=>{
  const cases=[
-  make([],{published_at_utc:new Date(now-300001).toISOString()}),
+  make([{signal_id:'old-signal'}],{published_at_utc:new Date(now-300001).toISOString()}),
   make([{signal_id:'abc'},{signal_id:'abc'}]),
   make([],{schema:'different'}),
   make([],{extra:'unexpected'}),
