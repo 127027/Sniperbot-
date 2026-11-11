@@ -528,7 +528,7 @@ Bisher keine signierten Aufträge abgerufen. Alle Live-Trades sind deaktiviert.<
         <button class="btn strong" id="setBalance" type="button">Testkapital festlegen</button>
         <button class="btn danger" id="clearBalance" type="button">Auf 0 setzen</button>
       </div>
-      <p class="notice">Änderungen nur bei Bot AUS und ohne offene Positionen. Bestehendes Guthaben wird ersetzt, nicht zusätzlich eingezahlt.</p>
+      <p class="notice">Auf null setzen ist auch bei eingeschaltetem Paper-Bot möglich, wenn keine Positionen offen sind. Der Bot wird dabei automatisch ausgeschaltet. Bestehende offene Positionen werden niemals gelöscht.</p>
       <p class="statusline" id="accountStatus"></p>
     </div>
   </details>
@@ -542,7 +542,7 @@ Bisher keine signierten Aufträge abgerufen. Alle Live-Trades sind deaktiviert.<
         <button id="range" class="btn" type="button">Budget speichern</button>
       </div>
       <p id="paperBudgetStatus" class="subtle">Papier-Budget wird eingelesen …</p>
-      <label class="check"><input type="checkbox" id="centralFollow">Zentralen Paper-Follower aktivieren</label>
+      <label class="check"><input type="checkbox" id="centralFollow">Älteren zentralen Paper-Kanal zusätzlich aktivieren (optional)</label>
       <p class="subtle">Eingeschaltet bedeutet nicht, dass bereits signierte Orders zugestellt werden. Ohne Publisher, Contract- und Sellability-Prüfung bleiben externe automatische Käufe blockiert.</p>
     </div>
   </details>
@@ -584,12 +584,33 @@ function initializeWorkspaces(){
  const paperHelp=paperHeading.nextElementSibling;
  const paperControls=$('paperEurInput').closest('.controls');
  const cashGrid=wallet.querySelector('.summary-grid');
- paperCash.append(cashGrid,paperHeading,paperHelp,paperControls,$('paperEurResult'));
+ const paperSpend=document.createElement('div');
+ paperSpend.className='metric';
+ paperSpend.innerHTML='<small>Frei verfügbares Testguthaben (EUR/USDC automatisch verrechnet)</small><b id="paperSpendable">–</b>';
+ const primaryActions=document.createElement('div');
+ primaryActions.className='controls';
+ primaryActions.append($('paperEurInput').closest('label'),
+  $('paperEurDeposit'),$('paperEurWithdraw'));
+ const hiddenConversions=document.createElement('details');
+ hiddenConversions.innerHTML='<summary>Technisch: Test-EUR und TEST-USDC (normalerweise nicht nötig)</summary>';
+ hiddenConversions.append(cashGrid,paperControls);
+ paperCash.append(paperSpend,primaryActions,$('paperEurResult'),hiddenConversions);
+ paperHeading.remove();paperHelp.remove();
+ const agentPanel=document.createElement('section');
+ agentPanel.className='panel section';
+ agentPanel.setAttribute('aria-label','Eingehende signierte Agentenorders');
+ agentPanel.innerHTML='<div class="section-heading"><h2>Orders der Forschungs-Bots</h2><span class="tag paper">PAPER</span></div>'+
+  '<p id="agentSignalStatus" class="subtle">Prüfe, ob ein signierter Agenten-Publisher verbunden ist …</p>'+
+  '<div class="summary-grid" style="height:auto;margin:12px 0">'+
+    '<div class="metric"><small>Empfangene Aufträge</small><b id="agentReceived">–</b></div>'+
+    '<div class="metric"><small>Ausgeführte Paper-Trades</small><b id="agentFilled">–</b></div>'+
+  '</div><div id="agentReceipts" class="subtle">Noch keine bestätigten Agenten-Orders.</div>'+
+  '<p class="subtle">Die fünf Cloud-Dots liefern derzeit Forschungsberichte. Eine echte Order-Zustellung benötigt zusätzlich einen verbundenen signierenden Agentenadapter. Keine ungeprüfte Nachricht wird automatisch zu einem Echtgeld-Kauf.</p>';
  const realHeading=wallet.querySelector('.section-heading');
- realHeading.querySelector('h2').textContent='Lokale Wallet und Zahlungsweg';
+ realHeading.querySelector('h2').textContent='Meine Wallet';
  realHeading.querySelector('.tag').textContent='REAL-WALLET · LIVE AUS';
  realHeading.querySelector('.tag').classList.remove('paper');
- paper.append(overview,paperCash,positions,lower);
+ paper.append(overview,positions,paperCash,agentPanel,lower);
  real.append(wallet);
  // Existing research/Dot internals remain alive but do not dominate either page.
  const routeAdvanced=document.createElement('details');
@@ -621,10 +642,34 @@ function initializeWorkspaces(){
   $('paperWorkspaceTab').setAttribute('aria-selected',String(onPaper));
   $('realWorkspaceTab').setAttribute('aria-selected',String(!onPaper));
   document.title='Meme Sniper AI · '+(onPaper?'Paper-Trading':'Echtgeld (gesperrt)');
+  if(!onPaper){void refreshRealBalanceView();void refreshRealModePolicy();}
+  else void refreshAgentOrders();
  }
  $('paperWorkspaceTab').onclick=()=>chooseWorkspace('paper');
  $('realWorkspaceTab').onclick=()=>chooseWorkspace('real');
  chooseWorkspace('paper');
+}
+async function refreshAgentOrders(){
+ try{
+  const r=await fetch('/api/paper/agent-orders',{cache:'no-store'});
+  const data=await r.json();
+  if(!r.ok||!data.ok)throw Error(data.error||'Paper-Eingang nicht verfügbar');
+  $('agentReceived').textContent=String(data.received);
+  $('agentFilled').textContent=String(data.paper_filled);
+  $('agentSignalStatus').textContent=data.signed_publisher_configured?
+   'Signierender lokaler Agentenadapter eingerichtet. '+data.paper_filled+
+    ' bestätigte Paper-Fills. Direkter Cloud-Dot-Order-Publisher noch nicht verifiziert.':
+   'Noch kein signierender Agenten-Publisher eingerichtet. Cloud-Dot-Forschung allein autorisiert keine Orders.';
+  const rows=data.recent||[];
+  $('agentReceipts').innerHTML=rows.length?rows.slice(0,12).map(r=>
+   '<div class="activity-row"><strong>'+esc(r.action)+' · '+esc(r.chain)+
+   ' · '+esc(r.token_address?.slice(0,13)||'')+'…</strong> · '+
+   esc(r.status)+' · '+esc(r.reason)+
+   (r.requested_test_usdc?' · '+esc(r.requested_test_usdc)+' Test-USDC':'')+
+   (r.closed_pnl_test_usdc!==null?' · P&L '+esc(r.closed_pnl_test_usdc):'')+
+   '<small>'+esc(t(r.received_at_utc))+' · '+esc(r.issuer||'kein Absender')+'</small></div>').join(''):
+   'Noch keine signierte Agenten-Order empfangen.';
+ }catch(e){$('agentSignalStatus').textContent='Order-Kanal nicht erreichbar: '+e.message}
 }
 async function refreshRealModePolicy(){
  try{
@@ -753,19 +798,20 @@ function render(force){
   const s=lastState,positions=Array.isArray(s.positions)?s.positions:[];
   $('paperEurAmount').textContent=num(s.cashEur)+' €';
   $('paperUsdcAmount').textContent=num(s.cashUsdc)+' TEST-USDC';
+  $('paperSpendable').textContent=num(number(s.cashEur)+number(s.cashUsdc))+' € (virtuell)';
   const free=number(s.cashUsdc)+number(s.cashEur);
   const marked=positions.reduce((sum,p)=>sum+number(p.qty)*number(p.priceUsd)*0.99,0);
-  $('capitalValue').textContent=money(free+marked);
-  $('freeCash').textContent=money(free);
+  $('capitalValue').textContent=num(free+marked)+' € (TEST)';
+  $('freeCash').textContent=num(free)+' € (TEST)';
   $('eurNote').textContent=number(s.cashEur)>0?num(s.cashEur)+' virtuelle EUR (nur 1:1-Demo-Umrechnung)':'Für neue Paper-Einsätze';
   $('positionCount').textContent=String(positions.length);
   $('botState').textContent=s.entriesEnabled?'Bot eingeschaltet':'Bot ausgeschaltet';
   $('botInfo').textContent=s.entriesEnabled?'Neue Paper-Einstiege grundsätzlich erlaubt':'Neue Einstiege gestoppt; laufende Überwachung nur bei gestartetem Runner';
   $('toggle').textContent=s.entriesEnabled?'Bot ausschalten':'Bot einschalten';
   $('toggle').className='btn '+(s.entriesEnabled?'on':'strong');
-  $('decisionState').textContent=s.centralPaperFollow?'Paper-Folge aktiviert':'Paper-Folge deaktiviert';
+  $('decisionState').textContent='Signierte Paper-Aufträge';
   const central=lastHealth?.central;
-  $('decisionInfo').textContent=central?.publisherConfigured?'Signierter Publisher konfiguriert · externe Fills bleiben ohne echte Validatoren blockiert':'Publisher und reale Ausführungsprüfungen fehlen – keine externen Autokäufe';
+  $('decisionInfo').textContent='Eingehende BUY/SELL-Orders werden bei gültiger Signatur und unabhängigem DEX-Kurs im Paper-Konto verarbeitet. Echtgeld bleibt aus.';
   const network=lastHealth?.researchNetwork;
   $('researchNetworkStatus').textContent=network?.checked_at_utc
     ? 'GitHub-Forschung: '+network.current_roles+'/5 aktuelle Rollen · Watchlist: '+(network.watchlist?.candidate_count??'unbekannt')+' · Abfrage: '+t(network.checked_at_utc)
@@ -1406,6 +1452,8 @@ $('walletRestore').onclick=async()=>{
  finally{$('walletRestorePassword').value=''}
 };
 refreshLocalWallet();setInterval(refreshLocalWallet,60000);
+refreshAgentOrders();setInterval(refreshAgentOrders,6000);
+setInterval(()=>{if(!$('realWorkspace').hidden)void refreshRealBalanceView()},30000);
 refreshV09();refreshV09Readbacks();
 setInterval(refreshV09,30000);setInterval(refreshV09Readbacks,30000);setInterval(refreshV09Dossiers,30000);
 refresh(true);setInterval(()=>refresh(false),3000);
