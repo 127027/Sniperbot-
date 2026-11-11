@@ -12,6 +12,7 @@ import {createExecutionInbox} from './device-execution-inbox.mjs';
 import {createDynamicTradeInbox} from './dynamic-trade-inbox.mjs';
 import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
 import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
+import {enrollPaperPublisherPublicKey} from './paper-publisher-trust.mjs';
 import {readLiveTradingGate,requestLiveTradingMode} from './live-mode-policy.mjs';
 import {summarizeRealWallet} from './real-wallet-overview.mjs';
 import {previewDynamicAssetRoute} from './dynamic-asset-router.mjs';
@@ -244,6 +245,24 @@ const server=createServer(async(req,res)=>{
    research_dots_direct_publisher_connected:false,
    github_feed:githubAgentFeedStatus,
    message:'Signierte lokale Agentenadapter können echte Paper-Fills auslösen. Die fünf Cloud-Forschungs-Dots publizieren bislang nur lesbare Research-Snapshots, nicht signierte Order-Kommandos.'});
+ }
+ if(req.method==='POST'&&route==='/api/paper/publisher/trust'){
+  if(!req.headers.origin||!corsAllowed(req))
+   return error(res,403,'Nur ausdrückliche lokale Benutzeraktion');
+  if(deviceTopology.mode!=='MASTER')
+   return error(res,409,'Zuerst dieses Gerät als Laptop-Zentrale einrichten');
+  if(!allowRequest('paper-publisher-enrollment'))
+   return error(res,429,'Zu viele Schlüsselregistrierungen');
+  try{
+   const data=await body(req);
+   if(!data||typeof data!=='object'||Array.isArray(data)||
+    Object.keys(data).sort().join(',')!=='issuer,key_id,public_key_pem')
+    return error(res,422,'Genau Issuer, Key-ID und öffentlicher PEM-Schlüssel erforderlich');
+   const receipt=await enrollPaperPublisherPublicKey({
+    filename:path.join(store.dir,'trusted-execution-publishers.json'),
+    issuer:data.issuer,keyId:data.key_id,publicKeyPem:data.public_key_pem});
+   return reply(res,201,{ok:true,receipt});
+  }catch(e){return error(res,422,String(e?.message||'PUBLISHER_NOT_TRUSTED').slice(0,120))}
  }
  if(req.method==='POST'&&route==='/api/paper/agent-orders'){
   if(req.headers.origin)return error(res,403,'Nur autorisierter lokaler Agentenadapter');
