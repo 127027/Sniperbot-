@@ -4,7 +4,10 @@
 // money only. Never connect a real wallet, PayPal account or remote agent.
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-import {mkdir,mkdtemp,rm} from 'node:fs/promises';
+import {mkdir,mkdtemp,rm,writeFile,readFile} from 'node:fs/promises';
+import {generateKeyPairSync,sign} from 'node:crypto';
+import {encodeBase58} from './local-solana-vault.mjs';
+import {AGENT_SIGNAL_SCHEMA,unsignedAgentSignal} from './paper-agent-pipeline.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
@@ -69,7 +72,7 @@ try{
   cwd:root,windowsHide:true,stdio:['ignore','pipe','pipe'],
   env:{...process.env,
    SNIPER_DATA_DIR:tmp,SNIPER_PORT:String(port),
-   SNIPER_OFFLINE:'1',SNIPER_LOCAL_DISCOVERY:'0',
+   SNIPER_OFFLINE:'1',SNIPER_PIPELINE_QA:'1',SNIPER_LOCAL_DISCOVERY:'0',
    SNIPER_RESEARCH_FEED:'0',SNIPER_RESEARCH_READ:'0'}
  });
  let stderr='';
@@ -148,6 +151,70 @@ try{
   Boolean(before.entriesEnabled),{timeout:20000});
  if(failures.length)die('JavaScript errors after PAPER controls: '+failures.join(' | '));
 
+ // Real browser + HTTP acceptance of the signed agent signal to Paper trade
+ // pipeline. This is a TEST EMITTER only, never the user's actual Cloud Dots.
+ const device=(await httpGet(base,'/api/device/identity')).device.device_id;
+ const master=await fetch(base+'/api/device/topology',{method:'POST',
+  headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({mode:'MASTER'})});
+ assert.equal(master.status,201);
+ const pub=generateKeyPairSync('ed25519');
+ const credentials=JSON.parse(await readFile(path.join(tmp,'gateway-credentials.json'),'utf8'));
+ const secret=credentials.find(x=>x.role==='risk_controller').token;
+ await writeFile(path.join(tmp,'trusted-execution-publishers.json'),JSON.stringify([{
+  issuer:'ephemeral-browser-dot',key_id:'ephemeral-browser-signing',
+  scope:'agent_execution',public_key_pem:pub.publicKey.export({format:'pem',type:'spki'})
+ }]),{mode:0o600});
+ const mint=encodeBase58(Buffer.alloc(32,42));
+ const pool=encodeBase58(Buffer.alloc(32,43));
+ const build=kind=>{
+  const now=Date.now(),data={schema:AGENT_SIGNAL_SCHEMA,target_device_id:device,
+   signal_id:'sig_'+(kind==='BUY'?'7':'8').repeat(32),
+   issuer:'ephemeral-browser-dot',key_id:'ephemeral-browser-signing',
+   chain:'solana',action:kind,token_address:mint,pool_address:pool,
+   size_test_usdc:kind==='BUY'?'50.00':null,
+   created_at_utc:new Date(now-500).toISOString(),
+   expires_at_utc:new Date(now+60000).toISOString()};
+  return {...data,signature:sign(null,Buffer.from(unsignedAgentSignal(data)),pub.privateKey).toString('base64')};
+ };
+ const order=async(kind,price)=>{
+  const response=await fetch(base+'/api/paper/agent-orders',{method:'POST',
+   headers:{authorization:'Bearer '+secret,'content-type':'application/json'},
+   body:JSON.stringify({command:build(kind),qa_quote:{chain:'solana',
+    tokenAddress:mint,poolAddress:pool,priceUsd:price,liquidityUsd:50000,
+    symbol:'DOT-E2E',name:'Browser Pipeline Test Memecoin',
+    asOf:new Date().toISOString()}})});
+  const body=await response.json();
+  assert.equal(response.status,200,JSON.stringify(body));
+  assert.equal(body.receipt.status,'PAPER_FILLED');
+  assert.equal(body.receipt.real_trade_executed,false);
+ };
+ await page.locator('#paperEurInput').fill('50');
+ await page.locator('#paperEurDeposit').click();
+ await page.waitForFunction(beforeEur=>
+  document.getElementById('paperSpendable')?.textContent?.includes(
+   (beforeEur+50).toFixed(2).replace('.',',')),Number(finalPaper.cashEur+finalPaper.cashUsdc),
+  {timeout:15000});
+ await page.locator('#toggle').click();
+ await page.waitForFunction(()=>document.getElementById('toggle')?.textContent==='Bot ausschalten',
+  null,{timeout:15000});
+ await order('BUY',0.05);
+ await page.waitForFunction(()=>document.querySelector('#positions')?.textContent?.includes('DOT-E2E'),
+  null,{timeout:15000});
+ await page.waitForFunction(()=>document.querySelector('#agentReceived')?.textContent==='1',
+  null,{timeout:18000});
+ assert.equal((await httpGet(base,'/api/state')).state.positions.length,1);
+ await order('SELL',0.1);
+ await page.waitForFunction(()=>document.querySelector('#agentFilled')?.textContent==='2',
+  null,{timeout:18000});
+ await page.waitForFunction(()=>document.querySelector('#positionCount')?.textContent==='0',
+  null,{timeout:15000});
+ const agentSellPaper=(await httpGet(base,'/api/state')).state;
+ assert.equal(agentSellPaper.positions.length,0);
+ assert(agentSellPaper.closedPnl>0);
+ await page.locator('#toggle').click();
+ await page.waitForFunction(()=>document.getElementById('toggle')?.textContent==='Bot einschalten',
+  null,{timeout:15000});
  // Switch to ECHTGELD: no cross-account virtual balances in the visible UI.
  await page.locator('#realWorkspaceTab').click();
  assert.equal(await hasVisible(page,'#paperWorkspace'),false);
@@ -193,7 +260,7 @@ try{
  assert.equal(await page.locator('#walletPwd1').inputValue(),'');
  assert.equal(await page.locator('#walletPwd2').inputValue(),'');
  assert.equal(await page.locator('#realEurTotal').textContent(),'— €');
- assert.equal((await httpGet(base,'/api/state')).state.cashEur,Number(finalPaper.cashEur),
+ assert.equal((await httpGet(base,'/api/state')).state.cashEur,Number(agentSellPaper.cashEur),
   'creating a crypto wallet must not alter paper cash');
  // Click through encrypted backup export AND verify in the real browser.
  // The backup is discarded with the ephemeral CI directory, never sent anywhere.
@@ -217,7 +284,7 @@ try{
  assert.equal(await page.locator('#walletBackupExportPassword').inputValue(),'');
  assert.equal(await page.locator('#walletBackupPassword').inputValue(),'');
  assert.equal((await httpGet(base,'/api/wallet/status')).wallet.address,created.wallet.address);
- assert.equal((await httpGet(base,'/api/state')).state.cashUsdc,Number(finalPaper.cashUsdc));
+ assert.equal((await httpGet(base,'/api/state')).state.cashUsdc,Number(agentSellPaper.cashUsdc));
  await techDetails.locator('> summary').click();
  await snapshot(page,'03-echtgeld-testwallet-local');
 
@@ -248,6 +315,7 @@ try{
   paper_deposit_verified:true,
   paper_exchange_and_withdrawal_verified:true,
   local_encrypted_backup_export_and_verify_in_browser:true,
+  signed_ephemeral_dot_buy_sell_and_visible_paper_pnl:true,
   paper_bot_toggle_verified:true,
   real_wallet_created_on_disposable_ci_only:true,
   real_trade_activation_blocked:true,
