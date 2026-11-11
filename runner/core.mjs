@@ -5,7 +5,7 @@ const round=(x)=>Math.round((x+Number.EPSILON)*1e8)/1e8;
 const time=()=>new Date().toISOString();
 export function freshState(){return {version:3,entriesEnabled:false,automaticPaperBuys:false,centralPaperFollow:false,
  minTrade:50,maxTrade:50,portfolioBudgetUsdc:null,takeProfit:15,stopLoss:10,defaultExitMode:'HOLD',trailingPercent:25,
- cashEur:0,cashUsdc:0,positions:[],candidates:[],history:[],closedPnl:0,
+ cashEur:0,cashUsdc:0,positions:[],candidates:[],history:[],agentOrderReceipts:[],closedPnl:0,
  lastScan:null,scanErrors:[],priceUpdatedAt:null,scanRunning:false,lastError:null};}
 export function log(s,title,detail){return [{id:`${Date.now()}-${Math.random().toString(16).slice(2)}`,at:time(),title,detail},...s.history].slice(0,150)};
 const isAmount=x=>Number.isFinite(x)&&x>0&&x<=100000;
@@ -21,17 +21,30 @@ export function action(s,a){if(!a||typeof a!=='object')return s;
   // No open positions may be discarded and entries must be paused during the reset.
   const amount=a.amount;
   if(typeof amount!=='number'||!Number.isFinite(amount)||amount<0||amount>100000||Math.abs(amount*100-Math.round(amount*100))>1e-6)return s;
-  if(s.entriesEnabled||!Array.isArray(s.positions)||s.positions.length>0)return s;
+  // Explicit "set to zero" must always work with no open positions, even
+  // when the Paper bot was running. Atomically stop new entries first.
+  if(!Array.isArray(s.positions)||s.positions.length>0||
+    (s.entriesEnabled&&amount!==0))return s;
   const next=Math.round(amount*100)/100,old=round(s.cashEur+s.cashUsdc);
-  if(s.cashEur===0&&s.cashUsdc===next)return s;
-  return {...s,cashEur:0,cashUsdc:next,history:log(s,'Testkapital festgelegt',`Virtuelles Guthaben gesamt ${old.toFixed(2)} → ${next.toFixed(2)} TEST-USDC; keine Einzahlung, Auszahlung oder echte Umwandlung`)};
+  if(s.cashEur===0&&s.cashUsdc===next&&!s.entriesEnabled)return s;
+  return {...s,entriesEnabled:amount===0?false:s.entriesEnabled,cashEur:0,cashUsdc:next,history:log(s,'Testkapital festgelegt',`Virtuelles Guthaben gesamt ${old.toFixed(2)} → ${next.toFixed(2)} TEST-USDC; keine Einzahlung, Auszahlung oder echte Umwandlung`)};
  }
  case 'SET_RANGE': {const min=numeric(a.min),max=numeric(a.max);if(!isAmount(min)||!isAmount(max)||min<50||min>max||max<50)return s;return {...s,minTrade:min,maxTrade:max,portfolioBudgetUsdc:max,history:log(s,'Paper-Budget eingestellt',`Wunsch-Einsatz ${min} Test-USDC; Gesamtbudget ${max} Test-USDC; flexible Käufe ab 50, offene Positionen bleiben unverändert`)}};
  case 'SET_EXITS':{const profit=numeric(a.profit),loss=numeric(a.loss),mode=a.mode;
  if(!isAmount(profit)||!isAmount(loss)||loss>=100||profit>500||!['HOLD','AUTO','TRAILING'].includes(mode)|| (mode==='TRAILING'&&(!isAmount(Number(a.trailing))||Number(a.trailing)>=100)))return s;
  return {...s,takeProfit:profit,stopLoss:loss,trailingPercent:mode==='TRAILING'?Number(a.trailing):s.trailingPercent,defaultExitMode:mode,positions:s.positions.map(p=>({...p,exitMode:mode,highWaterPrice:p.highWaterPrice||p.priceUsd})),history:log(s,'Exit-Regel',mode==='HOLD'?'Halten bis manuell verkauft wird':mode==='TRAILING'?`Paper-Trailing ${a.trailing}%, Stop-Loss ${loss}%`: `Legacy-Exit bei +${profit}% / -${loss}% (auch bei Bot AUS)`)}};
  case 'DEPOSIT': {const eur=numeric(a.eur);if(!isAmount(eur))return s;return {...s,cashEur:round(s.cashEur+eur),history:log(s,'Testguthaben eingezahlt',`${eur.toFixed(2)} virtuelle EUR; KEINE Paypal-/Bankzahlung`)}};
- case 'WITHDRAW':{const eur=numeric(a.eur);if(!isAmount(eur)||s.cashEur<eur)return s;return {...s,cashEur:round(s.cashEur-eur),history:log(s,'Testguthaben abgehoben',`${eur.toFixed(2)} virtuelle EUR; KEINE Auszahlung`)}};
+ case 'WITHDRAW':{
+  const eur=numeric(a.eur);
+  // Users see ONE free paper balance, not a cumbersome fake EUR/USDC exchange.
+  // The internal conversion remains 1:1 TEST ONLY; no real FX, wallet or PayPal.
+  if(!isAmount(eur)||eur>round(s.cashEur+s.cashUsdc))return s;
+  const fromEur=Math.min(s.cashEur,eur),fromUsdc=round(eur-fromEur);
+  return {...s,cashEur:round(s.cashEur-fromEur),
+   cashUsdc:round(s.cashUsdc-fromUsdc),
+   history:log(s,'Testguthaben abgehoben',
+    `${eur.toFixed(2)} virtuelles Gesamtguthaben abgehoben; KEINE Auszahlung; ${fromUsdc>0?'TEST-USDC automatisch verrechnet':''}`)};
+ }
  case 'EXCHANGE':{const eur=numeric(a.eur);if(!isAmount(eur)||s.cashEur<eur)return s;const usdc=round(eur*PAPER_EUR_TO_TEST_USDC);return {...s,cashEur:round(s.cashEur-eur),cashUsdc:round(s.cashUsdc+usdc),history:log(s,'TEST-Umwandlung',`${eur.toFixed(2)} Demo-EUR → ${usdc.toFixed(2)} Test-USDC; Kurs 1:1 ist kein Wechselkurs`)}};
  case 'EXCHANGE_BACK':{const usdc=numeric(a.usdc);if(!isAmount(usdc)||s.cashUsdc<usdc)return s;return {...s,cashUsdc:round(s.cashUsdc-usdc),cashEur:round(s.cashEur+usdc/PAPER_EUR_TO_TEST_USDC),history:log(s,'TEST-Rückumwandlung',`${usdc.toFixed(2)} Test-USDC → ${(usdc/PAPER_EUR_TO_TEST_USDC).toFixed(2)} virtuelle EUR; KEIN echter Kurs`)}};
  case 'BUY':{
