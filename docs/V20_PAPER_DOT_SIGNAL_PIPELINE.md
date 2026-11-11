@@ -66,6 +66,8 @@ Pro Nachricht `sniper_agent_trade_signal.v1`, mit genau diesen Feldern:
 
 Ein `SELL` benötigt dieselbe eindeutige Coin-Identität, `action:"SELL"` und **`size_test_usdc:null`**; derzeit wird ausschließlich die **gesamte passende Paper-Position** geschlossen. Die Kombination Chain + Mint/Contract + optionaler Pool ist die Identität, niemals ein Coin-Symbol. Signiert wird die UTF-8-Domain `MemeSniper/agent_trade_signal.v1\n` gefolgt von dem alphabetisch nach Schlüsseln kanonisierten JSON **ohne** `signature`, siehe `unsignedAgentSignal()`.
 
+**Neu in der UI:** Unter **Erweitert → Cloud-Dot für Paper-Orders verbinden** kann der Nutzer Absenderkennung, Schlüssel-ID und den **öffentlichen** PEM-Schlüssel eingeben und ausdrücklich freigeben. Der Bot prüft dabei, dass es wirklich ein Ed25519-Public-Key ist; private Schlüssel und Wallet-Passwörter werden nicht akzeptiert. Falls die Gerätekopplung noch fehlt, erscheint im Paper-Bereich **„Dieses Gerät als Laptop-Zentrale einrichten“**. Eine öffentliche Signatur-Kopplung allein bedeutet noch nicht, dass der Cloud-Dot bereits Aufträge veröffentlicht.
+
 Die vom Nutzer lokal autorisierten öffentlichen Ed25519-Schlüssel werden im Windows-Benutzerprofil unter `%LOCALAPPDATA%\MemeSniperPaper\trusted-execution-publishers.json` verwaltet (bzw. unter `SNIPER_DATA_DIR`). Format z.B.:
 
 ```json
