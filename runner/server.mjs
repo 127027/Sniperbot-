@@ -14,6 +14,7 @@ import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
 import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
 import {enrollPaperPublisherPublicKey} from './paper-publisher-trust.mjs';
 import {summarizePaperPipeline} from './pipeline-health.mjs';
+import {runIsolatedPaperAgentSelfTest} from './isolated-paper-pipeline-selftest.mjs';
 import {readLiveTradingGate,requestLiveTradingMode} from './live-mode-policy.mjs';
 import {summarizeRealWallet} from './real-wallet-overview.mjs';
 import {previewDynamicAssetRoute} from './dynamic-asset-router.mjs';
@@ -227,6 +228,21 @@ const server=createServer(async(req,res)=>{
  if(req.method==='GET'&&route==='/api/research/advisories')return reply(res,200,{ok:true,advisories:researchNetwork.advisories||null});
  if(req.method==='GET'&&route==='/api/research/learning')return reply(res,200,{ok:true,learning:localResearchLearning()});
  if(req.method==='GET'&&route==='/api/research/inbox')return reply(res,200,{ok:true,mode:'PAPER_ONLY',enabled:process.env.SNIPER_RESEARCH_FEED==='1',inbox:state.researchInbox||{receipts:[]}});
+ if(req.method==='POST'&&route==='/api/paper/pipeline-selftest'){
+  if(!req.headers.origin||!corsAllowed(req))
+   return error(res,403,'Nur bewusst gestarteter lokaler Paper-Test');
+  if(!allowRequest('isolated-paper-pipeline-selftest'))
+   return error(res,429,'Zu viele isolierte Paper-Tests');
+  try{
+   const data=await body(req);
+   if(!data||typeof data!=='object'||Array.isArray(data)||
+    Object.keys(data).length!==0)
+    return error(res,422,'Der isolierte Test akzeptiert keine Beträge oder Agentenaufträge');
+   const proof=runIsolatedPaperAgentSelfTest({deviceId:localDevice.device_id});
+   return reply(res,200,{ok:true,proof,
+    live_trading_enabled:false,paper_state_unchanged:true});
+  }catch{return error(res,503,'Isolierter Paper-Pipeline-Test nicht bestanden')}
+ }
  if(req.method==='GET'&&route==='/api/paper/agent-orders'){
   const receipts=Array.isArray(state.agentOrderReceipts)?state.agentOrderReceipts:[];
   let keys=[];try{
