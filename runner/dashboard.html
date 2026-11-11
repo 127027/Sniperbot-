@@ -609,7 +609,9 @@ function initializeWorkspaces(){
   '<div id="agentDotRoles" class="subtle">Noch keine Rollenberichte geladen.</div>'+
   '<p id="agentCourierHealth" class="subtle">Noch kein GitHub-Kurierstatus.</p></details>'+
   '<div id="agentReceipts" class="subtle">Noch keine bestätigten Agenten-Orders.</div>'+
-  '<p class="subtle">Die fünf Cloud-Dots liefern derzeit Forschungsberichte. Eine echte Order-Zustellung benötigt zusätzlich einen verbundenen signierenden Agentenadapter. Keine ungeprüfte Nachricht wird automatisch zu einem Echtgeld-Kauf.</p>'
+  '<p class="subtle">Die fünf Cloud-Dots liefern derzeit Forschungsberichte. Eine echte Order-Zustellung benötigt zusätzlich einen verbundenen signierenden Agentenadapter. Keine ungeprüfte Nachricht wird automatisch zu einem Echtgeld-Kauf.</p>'+
+  '<button id="paperPipelineSelftest" class="btn" type="button">BUY/SELL-Pipeline testen (nur lokaler Testsender)</button>'+
+  '<p id="paperPipelineSelftestResult" class="subtle">Ein Klick prüft die Paper-Ausführung mit steigendem und fallendem Testkurs – ohne dein Konto, Wallet oder echte Dots zu verändern.</p>'
   + '<button id="agentSetupMaster" class="btn" type="button">Dieses Gerät als Laptop-Zentrale einrichten</button>';
  const realHeading=wallet.querySelector('.section-heading');
  realHeading.querySelector('h2').textContent='Meine Wallet';
@@ -654,6 +656,28 @@ function initializeWorkspaces(){
    $('paperPublisherPublicPem').value='';
    await refreshAgentOrders();
   }catch(e){$('paperPublisherPairResult').textContent='Dot nicht freigegeben: '+e.message}
+ };
+ $('paperPipelineSelftest').onclick=async()=>{
+  $('paperPipelineSelftestResult').textContent='Lokal signierte Test-BUY/SELL-Orders werden geprüft …';
+  try{
+   const response=await fetch('/api/paper/pipeline-selftest',{
+    method:'POST',headers:{'content-type':'application/json'},body:'{}'});
+   const data=await response.json();
+   const proof=data.proof;
+   if(!response.ok||!data.ok||proof?.status!=='PASSED'||
+    proof.existing_paper_account_changed!==false||
+    proof.cloud_dot_order_received!==false||
+    proof.existing_wallet_accessed!==false)
+    throw Error(data.error||'Testnachweis ungültig');
+   $('paperPipelineSelftestResult').textContent=
+    'BESTANDEN – isolierter TESTSENDER, nicht die fünf echten Dots. '+
+    'Signierter Kauf + Verkauf bei steigendem Kurs: '+
+    proof.rising_market.pnl_test_usdc+' TEST-USDC. '+
+    'Bei fallendem Kurs: '+proof.falling_market.pnl_test_usdc+
+    ' TEST-USDC. Keine Änderung an deinem Paper-Guthaben, keine Wallet-Transaktion.';
+  }catch(e){
+   $('paperPipelineSelftestResult').textContent='Pipeline-Test NICHT bestanden: '+e.message;
+  }
  };
  $('agentSetupMaster').onclick=()=>$('deviceChooseMaster').click();
  // Move additional technical controls into an explicitly collapsed section.
