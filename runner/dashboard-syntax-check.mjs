@@ -17,7 +17,7 @@ for(const marker of ['walletCreate','walletBackupDownload','walletBackupVerify',
  'paperWorkspaceTab','realWorkspaceTab','paperWorkspace','realWorkspace',
  'realEurTotal','realSolTotal','realUsdcTotal','realRefreshOverview',
  'realLiveSwitch','liveModeForceOff','liveModeStatus',
- 'paperEurDeposit','paperEurWithdraw']){
+ 'paperEurDeposit','paperEurWithdraw','agentResearchStage','agentDotRoles','agentCourierHealth']){
  if(!html.includes('id="'+marker+'"'))throw Error('MISSING_DASHBOARD_CONTROL_'+marker);
 }
 if(!html.includes('initializeWorkspaces();')||!html.includes('refreshRealModePolicy();'))
