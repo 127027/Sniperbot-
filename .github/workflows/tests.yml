@@ -30,6 +30,10 @@ jobs:
       - run: node --test runner/*.test.mjs
       - run: node runner/follower-offline-start-smoke.mjs
       - run: node runner/v09-start-smoke.mjs
+      - name: Actual local signed agent Paper BUY/SELL 50 EUR pipeline without real trade
+        run: node runner/paper-agent-loopback-e2e.mjs
+      - name: Observe REAL public Dot research and signed order courier separately (read-only)
+        run: node runner/dot-public-feed-live-probe.mjs
       - name: Observe one real public pool readback (non-blocking, read-only)
         run: node runner/readback-live-probe.mjs
   windows-v08-paper-lab:
@@ -104,6 +108,10 @@ jobs:
         run: node --test runner/dynamic-trade-inbox.test.mjs
       - name: Verify independent Paper and real wallet balances and disabled live trading gate
         run: node --test runner/live-mode-policy.test.mjs runner/real-wallet-overview.test.mjs
+      - name: Validate real signed agent to Windows Paper BUY/SELL receipts and profit/loss
+        run: |
+          node --test runner/paper-agent-pipeline.test.mjs
+          node runner/paper-agent-loopback-e2e.mjs
       - name: Verify actual native Windows supervisor and protected test secret handling
         shell: powershell
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File runner/windows-supervisor.ps1 -SelfTest

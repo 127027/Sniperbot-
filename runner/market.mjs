@@ -55,16 +55,16 @@ export function parseDexPair(pair,expectedChain,tokenAddress){
  const p=finite(pair.priceUsd); if(p===null||p<=0)return null;
  return {priceUsd:p,liquidityUsd:finite(pair.liquidity?.usd),asOf:new Date().toISOString(),source:'DEX Screener',pairAddress:pair.pairAddress};
 }
-export async function tokenQuote(chain,addr,fetcher=fetch){
+export async function tokenQuote(chain,addr,fetcher=fetch,selectedPool=null){
  if(!validTokenAddress(chain,addr))throw Error('Ungültige Token-Adresse');
  const pairs=await jsonGet(`https://api.dexscreener.com/token-pairs/v1/${DS_CHAIN[chain]}/${encodeURIComponent(addr)}`,fetcher);
- const available=(Array.isArray(pairs)?pairs:[]).map(p=>parseDexPair(p,chain,addr)).filter(Boolean).sort((a,b)=>(b.liquidityUsd||0)-(a.liquidityUsd||0));
+ const available=(Array.isArray(pairs)?pairs:[]).map(p=>parseDexPair(p,chain,addr)).filter(q=>q&&(!selectedPool||q.pairAddress?.toLowerCase()===selectedPool.toLowerCase())).sort((a,b)=>(b.liquidityUsd||0)-(a.liquidityUsd||0));
  return available[0]||null;
 }
-export async function lookupToken(chain,addr,fetcher=fetch){
+export async function lookupToken(chain,addr,fetcher=fetch,selectedPool=null){
  if(!validTokenAddress(chain,addr))throw Error('Ungültige Token-Adresse');
  const pairs=await jsonGet(`https://api.dexscreener.com/token-pairs/v1/${DS_CHAIN[chain]}/${encodeURIComponent(addr)}`,fetcher);
- const raw=(Array.isArray(pairs)?pairs:[]).filter(p=>p?.chainId===DS_CHAIN[chain]&&p.baseToken?.address?.toLowerCase()===addr.toLowerCase());
+ const raw=(Array.isArray(pairs)?pairs:[]).filter(p=>p?.chainId===DS_CHAIN[chain]&&p.baseToken?.address?.toLowerCase()===addr.toLowerCase()&&(!selectedPool||p.pairAddress?.toLowerCase()===selectedPool.toLowerCase()));
  raw.sort((a,b)=>(finite(b?.liquidity?.usd)||0)-(finite(a?.liquidity?.usd)||0));
  const p=raw[0];if(!p)throw Error('Kein verifizierbarer DEX-Pool gefunden');
  const price=finite(p.priceUsd),liq=finite(p.liquidity?.usd),vol=finite(p.volume?.m5),buys=finite(p.txns?.m5?.buys),sells=finite(p.txns?.m5?.sells);

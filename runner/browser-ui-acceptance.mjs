@@ -4,7 +4,10 @@
 // money only. Never connect a real wallet, PayPal account or remote agent.
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-import {mkdir,mkdtemp,rm} from 'node:fs/promises';
+import {mkdir,mkdtemp,rm,writeFile,readFile} from 'node:fs/promises';
+import {generateKeyPairSync,sign} from 'node:crypto';
+import {encodeBase58} from './local-solana-vault.mjs';
+import {AGENT_SIGNAL_SCHEMA,unsignedAgentSignal} from './paper-agent-pipeline.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
@@ -69,7 +72,7 @@ try{
   cwd:root,windowsHide:true,stdio:['ignore','pipe','pipe'],
   env:{...process.env,
    SNIPER_DATA_DIR:tmp,SNIPER_PORT:String(port),
-   SNIPER_OFFLINE:'1',SNIPER_LOCAL_DISCOVERY:'0',
+   SNIPER_OFFLINE:'1',SNIPER_PIPELINE_QA:'1',SNIPER_LOCAL_DISCOVERY:'0',
    SNIPER_RESEARCH_FEED:'0',SNIPER_RESEARCH_READ:'0'}
  });
  let stderr='';
@@ -91,8 +94,22 @@ try{
  if(failures.length)die('JavaScript errors at load: '+failures.join(' | '));
  assert.equal(await hasVisible(page,'#paperWorkspace'),true);
  assert.equal(await hasVisible(page,'#realWorkspace'),false);
- assert.equal(await hasVisible(page,'#paperEurAmount'),true);
+ assert.equal(await hasVisible(page,'#paperSpendable'),true);
+ assert.equal(await hasVisible(page,'#agentSignalStatus'),true);
+ await page.waitForFunction(()=>document.getElementById('agentResearchStage')?.textContent?.includes('Echte GitHub-Forschung'),
+  null,{timeout:15000});
+ assert.equal(await page.locator('#agentDotRoles .activity-row').count(),5);
+ assert.match(await page.locator('#agentResearchStage').textContent(),/Forschungsberichte allein sind KEINE Handelsaufträge/);
  assert.equal(await hasVisible(page,'#realSolTotal'),false);
+ const beforeIsolated=(await httpGet(base,'/api/state')).state;
+ await page.locator('#paperPipelineSelftest').click();
+ await page.waitForFunction(()=>document.getElementById('paperPipelineSelftestResult')?.textContent?.startsWith('BESTANDEN'),
+  null,{timeout:15000});
+ assert.match(await page.locator('#paperPipelineSelftestResult').textContent(),/nicht die fünf echten Dots/);
+ const afterIsolated=(await httpGet(base,'/api/state')).state;
+ assert.equal(afterIsolated.cashEur,beforeIsolated.cashEur);
+ assert.equal(afterIsolated.cashUsdc,beforeIsolated.cashUsdc);
+ assert.deepEqual(afterIsolated.positions,beforeIsolated.positions);
  assert.equal(await page.locator('#realLiveSwitch').isDisabled(),true);
  await expectViewportFit(page,'paper desktop');
  await snapshot(page,'01-paper-desktop');
@@ -103,11 +120,12 @@ try{
  await page.locator('#paperEurInput').fill('50');
  await page.locator('#paperEurDeposit').click();
  await page.waitForFunction(expected=>
-  document.getElementById('paperEurAmount')?.textContent?.includes(expected),
+  document.getElementById('paperSpendable')?.textContent?.includes(expected),
   '50,00',{timeout:20000});
  const after=(await httpGet(base,'/api/state')).state;
  assert.equal(after.cashEur,Number(before.cashEur)+50,
   'paper EUR deposit must only increase virtual cash by 50');
+ await page.locator('#paperWorkspace section[aria-label="Ausschließlich virtuelle Paper-Einzahlungen"] details > summary').click();
  // More than a display: verify the four independent PAPER cash commands.
  // These are simulated exchange movements, never actual SOL/USDC.
  const waitPaper=async(eur,usdc)=>page.waitForFunction(async(expected)=>{
@@ -126,6 +144,7 @@ try{
  await page.locator('#paperEurInput').fill('15');
  await page.locator('#paperEurWithdraw').click();
  await waitPaper(Number(after.cashEur)-25,Number(after.cashUsdc)+10);
+ await page.locator('#paperWorkspace section[aria-label="Ausschließlich virtuelle Paper-Einzahlungen"] details > summary').click();
  const finalPaper=(await httpGet(base,'/api/state')).state;
  assert.equal(finalPaper.cashEur,Number(after.cashEur)-25);
  assert.equal(finalPaper.cashUsdc,Number(after.cashUsdc)+10);
@@ -145,6 +164,79 @@ try{
   Boolean(before.entriesEnabled),{timeout:20000});
  if(failures.length)die('JavaScript errors after PAPER controls: '+failures.join(' | '));
 
+ // Real browser + HTTP acceptance of the signed agent signal to Paper trade
+ // pipeline. This is a TEST EMITTER only, never the user's actual Cloud Dots.
+ const device=(await httpGet(base,'/api/device/identity')).device.device_id;
+ const master=await fetch(base+'/api/device/topology',{method:'POST',
+  headers:{origin:base,'content-type':'application/json'},
+  body:JSON.stringify({mode:'MASTER'})});
+ assert.equal(master.status,201);
+ const pub=generateKeyPairSync('ed25519');
+ const credentials=JSON.parse(await readFile(path.join(tmp,'gateway-credentials.json'),'utf8'));
+ const secret=credentials.find(x=>x.role==='risk_controller').token;
+ await page.locator('#workspaceAdvanced > summary').click();
+ await page.locator('#paperPublisherSetup > summary').click();
+ await page.locator('#paperPublisherIssuer').fill('ephemeral-browser-dot');
+ await page.locator('#paperPublisherKeyId').fill('ephemeral-browser-signing');
+ await page.locator('#paperPublisherPublicPem').fill(pub.publicKey.export({format:'pem',type:'spki'}));
+ await page.locator('#paperPublisherPair').click();
+ await page.waitForFunction(()=>document.querySelector('#paperPublisherPairResult')?.textContent?.includes('freigegeben:'),
+  null,{timeout:20000});
+ const trust=JSON.parse(await readFile(path.join(tmp,'trusted-execution-publishers.json'),'utf8'));
+ assert.equal(trust.length,1);
+ assert.equal(trust[0].scope,'agent_execution');
+ await page.locator('#paperPublisherSetup > summary').click();
+ await page.locator('#workspaceAdvanced > summary').click();
+ const mint=encodeBase58(Buffer.alloc(32,42));
+ const pool=encodeBase58(Buffer.alloc(32,43));
+ const build=kind=>{
+  const now=Date.now(),data={schema:AGENT_SIGNAL_SCHEMA,target_device_id:device,
+   signal_id:'sig_'+(kind==='BUY'?'7':'8').repeat(32),
+   issuer:'ephemeral-browser-dot',key_id:'ephemeral-browser-signing',
+   chain:'solana',action:kind,token_address:mint,pool_address:pool,
+   size_test_usdc:kind==='BUY'?'50.00':null,
+   created_at_utc:new Date(now-500).toISOString(),
+   expires_at_utc:new Date(now+60000).toISOString()};
+  return {...data,signature:sign(null,Buffer.from(unsignedAgentSignal(data)),pub.privateKey).toString('base64')};
+ };
+ const order=async(kind,price)=>{
+  const response=await fetch(base+'/api/paper/agent-orders',{method:'POST',
+   headers:{authorization:'Bearer '+secret,'content-type':'application/json'},
+   body:JSON.stringify({command:build(kind),qa_quote:{chain:'solana',
+    tokenAddress:mint,poolAddress:pool,priceUsd:price,liquidityUsd:50000,
+    symbol:'DOT-E2E',name:'Browser Pipeline Test Memecoin',
+    asOf:new Date().toISOString()}})});
+  const body=await response.json();
+  assert.equal(response.status,200,JSON.stringify(body));
+  assert.equal(body.receipt.status,'PAPER_FILLED');
+  assert.equal(body.receipt.real_trade_executed,false);
+ };
+ await page.locator('#paperEurInput').fill('50');
+ await page.locator('#paperEurDeposit').click();
+ await page.waitForFunction(beforeEur=>
+  document.getElementById('paperSpendable')?.textContent?.includes(
+   (beforeEur+50).toFixed(2).replace('.',',')),Number(finalPaper.cashEur+finalPaper.cashUsdc),
+  {timeout:15000});
+ await page.locator('#toggle').click();
+ await page.waitForFunction(()=>document.getElementById('toggle')?.textContent==='Bot ausschalten',
+  null,{timeout:15000});
+ await order('BUY',0.05);
+ await page.waitForFunction(()=>document.querySelector('#positions')?.textContent?.includes('DOT-E2E'),
+  null,{timeout:15000});
+ await page.waitForFunction(()=>document.querySelector('#agentReceived')?.textContent==='1',
+  null,{timeout:18000});
+ assert.equal((await httpGet(base,'/api/state')).state.positions.length,1);
+ await order('SELL',0.1);
+ await page.waitForFunction(()=>document.querySelector('#agentFilled')?.textContent==='2',
+  null,{timeout:18000});
+ await page.waitForFunction(()=>document.querySelector('#positionCount')?.textContent==='0',
+  null,{timeout:15000});
+ const agentSellPaper=(await httpGet(base,'/api/state')).state;
+ assert.equal(agentSellPaper.positions.length,0);
+ assert(agentSellPaper.closedPnl>0);
+ await page.locator('#toggle').click();
+ await page.waitForFunction(()=>document.getElementById('toggle')?.textContent==='Bot einschalten',
+  null,{timeout:15000});
  // Switch to ECHTGELD: no cross-account virtual balances in the visible UI.
  await page.locator('#realWorkspaceTab').click();
  assert.equal(await hasVisible(page,'#paperWorkspace'),false);
@@ -190,7 +282,7 @@ try{
  assert.equal(await page.locator('#walletPwd1').inputValue(),'');
  assert.equal(await page.locator('#walletPwd2').inputValue(),'');
  assert.equal(await page.locator('#realEurTotal').textContent(),'— €');
- assert.equal((await httpGet(base,'/api/state')).state.cashEur,Number(finalPaper.cashEur),
+ assert.equal((await httpGet(base,'/api/state')).state.cashEur,Number(agentSellPaper.cashEur),
   'creating a crypto wallet must not alter paper cash');
  // Click through encrypted backup export AND verify in the real browser.
  // The backup is discarded with the ephemeral CI directory, never sent anywhere.
@@ -214,7 +306,7 @@ try{
  assert.equal(await page.locator('#walletBackupExportPassword').inputValue(),'');
  assert.equal(await page.locator('#walletBackupPassword').inputValue(),'');
  assert.equal((await httpGet(base,'/api/wallet/status')).wallet.address,created.wallet.address);
- assert.equal((await httpGet(base,'/api/state')).state.cashUsdc,Number(finalPaper.cashUsdc));
+ assert.equal((await httpGet(base,'/api/state')).state.cashUsdc,Number(agentSellPaper.cashUsdc));
  await techDetails.locator('> summary').click();
  await snapshot(page,'03-echtgeld-testwallet-local');
 
@@ -234,7 +326,9 @@ try{
  await page.locator('#realWorkspaceTab').click();
  assert.equal(await page.locator('#realWorkspace #walletAddress').count(),1);
  assert.equal(await page.locator('#realWorkspace #paperEurAmount').count(),0);
+ assert.equal(await page.locator('#realWorkspace #paperSpendable').count(),0);
  assert.equal(await page.locator('#paperWorkspace #paperEurAmount').count(),1);
+ assert.equal(await page.locator('#paperWorkspace #paperSpendable').count(),1);
  if(failures.length)die('Browser JS exceptions: '+failures.join(' | '));
  console.log('BROWSER_UI_ACCEPTANCE_OK',{
   browser:engine,real_wallet_is_test_only:true,
@@ -243,6 +337,8 @@ try{
   paper_deposit_verified:true,
   paper_exchange_and_withdrawal_verified:true,
   local_encrypted_backup_export_and_verify_in_browser:true,
+  signed_ephemeral_dot_buy_sell_and_visible_paper_pnl:true,
+  browser_paired_dot_public_key_without_secret:true,
   paper_bot_toggle_verified:true,
   real_wallet_created_on_disposable_ci_only:true,
   real_trade_activation_blocked:true,

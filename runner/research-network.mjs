@@ -5,25 +5,26 @@ export const RESEARCH_ROLES=Object.freeze([
  'news_discovery','social_acceleration','onchain_liquidity','contract_security','opportunity_qa'
 ]);
 const BASE='https://raw.githubusercontent.com/127027/Sniperbot-/codex/research-gateway-v04/research/';
-const MAX_BODY=128*1024;
+const MAX_ROLE_BODY=128*1024;
+const MAX_WATCHLIST_BODY=512*1024; // Public live watchlist now > 128 KiB (137 IDs).
 const MAX_AGE_MS=90*60_000;
 function timestamp(value){return Date.parse(value)}
-async function readJson(url,fetcher){
+async function readJson(url,fetcher,maxBytes=MAX_ROLE_BODY){
  const response=await fetcher(url,{redirect:'error',headers:{accept:'application/json','cache-control':'no-cache'},signal:AbortSignal.timeout(10000)});
  if(!response.ok)throw Error('RESEARCH_HTTP_'+response.status);
  const declared=Number(response.headers?.get?.('content-length'));
- if(Number.isFinite(declared)&&declared>MAX_BODY)throw Error('RESEARCH_TOO_LARGE');
+ if(Number.isFinite(declared)&&declared>maxBytes)throw Error('RESEARCH_TOO_LARGE');
  let raw='',size=0;
  if(response.body){
   const dec=new TextDecoder();
   for await(const chunk of response.body){
-   size+=chunk.length;if(size>MAX_BODY)throw Error('RESEARCH_TOO_LARGE');
+   size+=chunk.length;if(size>maxBytes)throw Error('RESEARCH_TOO_LARGE');
    raw+=dec.decode(chunk,{stream:true});
   }
   raw+=dec.decode();
  }else{
   raw=await response.text();
-  if(Buffer.byteLength(raw)>MAX_BODY)throw Error('RESEARCH_TOO_LARGE');
+  if(Buffer.byteLength(raw)>maxBytes)throw Error('RESEARCH_TOO_LARGE');
  }
  return JSON.parse(raw);
 }
@@ -54,7 +55,7 @@ export async function fetchResearchNetwork({fetcher=fetch,now=Date.now(),setting
  }));
  let watchlist,rawWatchlist=null;
  try{
-  rawWatchlist=await readJson(BASE+'watchlist/current.json',fetcher);
+  rawWatchlist=await readJson(BASE+'watchlist/current.json',fetcher,MAX_WATCHLIST_BODY);
   watchlist=validateWatchlist(rawWatchlist,now);
  }catch(e){watchlist={candidate_count:null,stale:true,error:String(e?.message||'READ_FAILED').slice(0,100)}}
  const current=items.filter(r=>!r.stale).length;
