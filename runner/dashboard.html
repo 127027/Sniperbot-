@@ -604,7 +604,11 @@ function initializeWorkspaces(){
   '<div class="summary-grid" style="height:auto;margin:12px 0">'+
     '<div class="metric"><small>Empfangene Aufträge</small><b id="agentReceived">–</b></div>'+
     '<div class="metric"><small>Ausgeführte Paper-Trades</small><b id="agentFilled">–</b></div>'+
-  '</div><div id="agentReceipts" class="subtle">Noch keine bestätigten Agenten-Orders.</div>'+
+  '</div><div id="agentResearchStage" class="subtle">Prüfe echten GitHub-Forschungsverkehr …</div>'+
+  '<details><summary>Die fünf Forschungsrollen und GitHub-Kurierstatus</summary>'+
+  '<div id="agentDotRoles" class="subtle">Noch keine Rollenberichte geladen.</div>'+
+  '<p id="agentCourierHealth" class="subtle">Noch kein GitHub-Kurierstatus.</p></details>'+
+  '<div id="agentReceipts" class="subtle">Noch keine bestätigten Agenten-Orders.</div>'+
   '<p class="subtle">Die fünf Cloud-Dots liefern derzeit Forschungsberichte. Eine echte Order-Zustellung benötigt zusätzlich einen verbundenen signierenden Agentenadapter. Keine ungeprüfte Nachricht wird automatisch zu einem Echtgeld-Kauf.</p>'
   + '<button id="agentSetupMaster" class="btn" type="button">Dieses Gerät als Laptop-Zentrale einrichten</button>';
  const realHeading=wallet.querySelector('.section-heading');
@@ -698,6 +702,29 @@ async function refreshAgentOrders(){
    'Signierender lokaler Agentenadapter eingerichtet. '+data.paper_filled+
     ' bestätigte Paper-Fills. Direkter Cloud-Dot-Order-Publisher noch nicht verifiziert.':
    'Noch kein signierender Agenten-Publisher eingerichtet. Cloud-Dot-Forschung allein autorisiert keine Orders.';
+  const pipeline=data.pipeline;
+  const dotStage=pipeline?.stages?.dot_research;
+  const signedStage=pipeline?.stages?.signed_order_publisher;
+  const courierStage=pipeline?.stages?.public_github_courier;
+  const executedStage=pipeline?.stages?.paper_execution;
+  if(dotStage){
+   $('agentResearchStage').textContent='Echte GitHub-Forschung: '+
+    dotStage.fresh_roles+'/'+dotStage.total_roles+' aktuelle Rollenberichte. '+
+    'Signierter Order-Publisher: '+(signedStage?.keys_configured?'öffentlicher Schlüssel registriert':'noch nicht verbunden')+
+    '. Empfangene Paper-Orders: '+(executedStage?.total_signed_order_receipts||0)+
+    ', ausgeführte Paper-Trades: '+(executedStage?.executed_paper_orders||0)+
+    '. Forschungsberichte allein sind KEINE Handelsaufträge.';
+   $('agentDotRoles').innerHTML=(dotStage.roles||[]).map(role=>
+    '<div class="activity-row"><strong>'+esc(role.label)+'</strong> · '+
+    esc(role.status)+' · Kandidaten: '+esc(role.candidate_count)+
+    '<small>Bericht: '+esc(role.published_at_utc?t(role.published_at_utc):'nicht empfangen')+
+    ' · nur Recherche, kein BUY/SELL</small></div>').join('');
+   $('agentCourierHealth').textContent=
+    'GitHub-Orderkurier: '+String(courierStage?.status||'NICHT GEPRÜFT')+
+    (courierStage?.last_checked_at_utc?' · zuletzt '+t(courierStage.last_checked_at_utc):'')+
+    (courierStage?.last_error?' · Fehler '+courierStage.last_error:'')+
+    '. Ein vorhandener Kurier beweist noch keinen echten Dot-Sendeauftrag.';
+  }
   const rows=data.recent||[];
   $('agentReceipts').innerHTML=rows.length?rows.slice(0,12).map(r=>
    '<div class="activity-row"><strong>'+esc(r.action)+' · '+esc(r.chain)+
