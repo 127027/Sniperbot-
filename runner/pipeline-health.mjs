@@ -66,7 +66,10 @@ export function summarizePaperPipeline({
     status:offline?'OFFLINE':courier?.status||'NOT_CHECKED',
     last_checked_at_utc:courier?.checked_at_utc||null,
     last_error:courier?.last_error||null,
-    last_feed_signal_count:courier?.received_last||0
+    last_feed_signal_count:courier?.received_last||0,
+    verified_or_processed_last:courier?.accepted_last||0,
+    rejected_last:courier?.rejected_last||0,
+    last_rejection:courier?.last_rejection||null
    },
    paper_execution:{
     status:executedPaper?'PAPER_FILLS_CONFIRMED':'NO_PAPER_FILL',
