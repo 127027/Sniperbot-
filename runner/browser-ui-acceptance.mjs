@@ -101,6 +101,15 @@ try{
  assert.equal(await page.locator('#agentDotRoles .activity-row').count(),5);
  assert.match(await page.locator('#agentResearchStage').textContent(),/Forschungsberichte allein sind KEINE Handelsaufträge/);
  assert.equal(await hasVisible(page,'#realSolTotal'),false);
+ const beforeIsolated=(await httpGet(base,'/api/state')).state;
+ await page.locator('#paperPipelineSelftest').click();
+ await page.waitForFunction(()=>document.getElementById('paperPipelineSelftestResult')?.textContent?.startsWith('BESTANDEN'),
+  null,{timeout:15000});
+ assert.match(await page.locator('#paperPipelineSelftestResult').textContent(),/nicht die fünf echten Dots/);
+ const afterIsolated=(await httpGet(base,'/api/state')).state;
+ assert.equal(afterIsolated.cashEur,beforeIsolated.cashEur);
+ assert.equal(afterIsolated.cashUsdc,beforeIsolated.cashUsdc);
+ assert.deepEqual(afterIsolated.positions,beforeIsolated.positions);
  assert.equal(await page.locator('#realLiveSwitch').isDisabled(),true);
  await expectViewportFit(page,'paper desktop');
  await snapshot(page,'01-paper-desktop');
