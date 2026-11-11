@@ -40,3 +40,28 @@ test('read access errors fail closed with no synthetic trade signal',async()=>{
  assert(network.roles.every(r=>r.status==='UNAVAILABLE'));
  assert.equal(network.actionable,false);
 });
+
+test('current large public GitHub watchlist is still readable while remaining research-only',async()=>{
+ const huge={...fixture('watchlist'),
+  candidates:Array.from({length:137},(_,i)=>({
+   state:'WATCH',candidate_id:'unverified-watch-'+i,
+   reason:'public-watchlist-history-'.repeat(65)
+  }))};
+ assert(Buffer.byteLength(JSON.stringify(huge))>128*1024);
+ assert(Buffer.byteLength(JSON.stringify(huge))<512*1024);
+ const network=await fetchResearchNetwork({fetcher:mock({watchlist:huge}),now});
+ assert.equal(network.watchlist.candidate_count,137);
+ assert.equal(network.actionable,false);
+ assert.equal(network.local_execution,'BLOCKED_REAL_VALIDATOR_UNAVAILABLE');
+ assert.equal(network.advisories?.actionable,false);
+});
+test('overlarge individual research role and overlarge watchlist stay fail-closed',async()=>{
+ const massiveRole={...fixture('news_discovery'),noise:'X'.repeat(129*1024)};
+ const oversizedWatchlist={...fixture('watchlist'),noise:'W'.repeat(513*1024)};
+ const n=await fetchResearchNetwork({fetcher:mock({
+  news_discovery:massiveRole,watchlist:oversizedWatchlist}),now});
+ assert.equal(n.current_roles,4);
+ assert.equal(n.roles.find(r=>r.role==='news_discovery').status,'UNAVAILABLE');
+ assert.equal(n.watchlist.candidate_count,null);
+ assert.equal(n.actionable,false);
+});
