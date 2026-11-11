@@ -9,7 +9,8 @@ const deviceId='device_'+'a'.repeat(32);
 const pool=encodeBase58(Buffer.alloc(32,11));
 const token=encodeBase58(Buffer.alloc(32,12));
 const token2=encodeBase58(Buffer.alloc(32,13));
-const at=Date.parse('2026-11-11T10:00:00Z');
+// Core's paper ledger intentionally uses the wall clock to reject stale marks.
+const at=Date.now()-2000;
 const {privateKey,publicKey}=generateKeyPairSync('ed25519');
 const keys=[{issuer:'sniper-dot-publisher',key_id:'test-controller-2026',
  scope:'agent_execution',public_key_pem:publicKey.export({format:'pem',type:'spki'})}];
