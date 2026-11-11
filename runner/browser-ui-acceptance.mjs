@@ -96,6 +96,10 @@ try{
  assert.equal(await hasVisible(page,'#realWorkspace'),false);
  assert.equal(await hasVisible(page,'#paperSpendable'),true);
  assert.equal(await hasVisible(page,'#agentSignalStatus'),true);
+ await page.waitForFunction(()=>document.getElementById('agentResearchStage')?.textContent?.includes('Echte GitHub-Forschung'),
+  null,{timeout:15000});
+ assert.equal(await page.locator('#agentDotRoles .activity-row').count(),5);
+ assert.match(await page.locator('#agentResearchStage').textContent(),/Forschungsberichte allein sind KEINE Handelsaufträge/);
  assert.equal(await hasVisible(page,'#realSolTotal'),false);
  assert.equal(await page.locator('#realLiveSwitch').isDisabled(),true);
  await expectViewportFit(page,'paper desktop');
