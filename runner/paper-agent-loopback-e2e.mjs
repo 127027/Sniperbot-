@@ -75,6 +75,21 @@ try{
  const unauth=await request('/api/paper/agent-orders',{
   method:'POST',obj:{command:signed('BUY','0','50.00'),qa_quote:quote(0.05)}});
  assert.equal(unauth.status,401);
+ const startingPaper=(await request('/api/state')).data.state;
+ const selfTest=await request('/api/paper/pipeline-selftest',{
+  method:'POST',headers:{origin:base},obj:{}});
+ assert.equal(selfTest.status,200);
+ assert.equal(selfTest.data.proof.status,'PASSED');
+ assert.equal(selfTest.data.proof.cloud_dot_order_received,false);
+ assert.equal(selfTest.data.proof.existing_paper_account_changed,false);
+ assert.equal((await request('/api/state')).data.state.cashEur,startingPaper.cashEur);
+ assert.equal((await request('/api/state')).data.state.positions.length,0);
+ const selfTestParam=await request('/api/paper/pipeline-selftest',{
+  method:'POST',headers:{origin:base},obj:{eur:1000}});
+ assert.equal(selfTestParam.status,422);
+ const selfTestSpoof=await request('/api/paper/pipeline-selftest',{
+  method:'POST',headers:{origin:'https://evil.invalid'},obj:{}});
+ assert.equal(selfTestSpoof.status,403);
  const deposit=await request('/api/command',{method:'POST',
   headers:{origin:base},obj:{type:'DEPOSIT',eur:50}});
  assert.equal(deposit.status,200);
