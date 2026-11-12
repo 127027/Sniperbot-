@@ -28,10 +28,14 @@ Jede Rolle soll als **einmaliges, klar mit R07 gekennzeichnetes Testergebnis** i
 {
   "schema": "research_historical_r07_role.v1",
   "role": "<role>",
-  "period": ["2024-09-10", "2024-11-09"],
+  "period": {"start_utc": "2024-09-10T00:00:00Z", "end_utc": "2024-11-09T23:59:59Z", "days": 61},
+  "state": "COMPLETED",
+  "paper_only": true,
+  "actionable": false,
+  "original_result_created_at_utc": "UTC-Ausführungszeitpunkt",
   "historical_research_only": true,
   "actually_ran_five_dots_in_2024": false,
-  "coverage": {"days_in_window": 61, "days_with_verified_asof_evidence": 0},
+  "coverage": {"virtual_days_reviewed": 61, "independently_verified_asof_events": 0},
   "daily_findings": [
     {"virtual_day_utc": "YYYY-MM-DD", "candidates": [], "new_narratives": [],
      "source_urls_with_capture_timestamps": [], "unverified_or_later_sources": []}
@@ -48,7 +52,7 @@ Jede Rolle soll als **einmaliges, klar mit R07 gekennzeichnetes Testergebnis** i
 ```
 Abweichungen oder fehlende vollständige Tageslisten ehrlich benennen; keine 61 Einträge erfinden, wenn nur wenige Tage belegbar sind. Bei fehlender Möglichkeit, tatsächlich fünf separat laufende Modellinstanzen zu starten, `RUN_BLOCKED` statt KI-Rollen vorgaukeln.
 
-## Score nach Abschluss
+**Schema-Vertrag:** Die vorhandenen PENDING-Dateien unter research/historical/R07/{role}.json sind verbindliche Vorlage. Beim Update die bestehenden Feldnamen und den period-Objekttyp beibehalten; nur role-spezifische Forschungsinhalte ausfüllen. Vorhandene Prüfung runner/dot-r07-report-audit.mjs muss bestehen.\n\n## Score nach Abschluss
 Die geheime Gewinner-/Verlierer-Wahrheit und historische Rendite-Daten werden erst NACH der Original-Recherche separat von einem unabhängigen Auswerter geladen. Diese R07-Datei **enthält bewusst keine Coinliste oder TARGET-/Winner-Marker**. Ein Zeitraum wird nachträglich nach Coinlisten gewählt (Selection Bias) und ist noch kein repräsentativer Live-Erfolgsnachweis. Wiedergabe dient der Diagnose, nicht einer rückwirkend garantierten Gewinnquote.
 
 ## Trennung zu LIVE
