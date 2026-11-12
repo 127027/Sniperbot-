@@ -14,12 +14,38 @@
   "paper_only": true,
   "actionable": false,
   "independent_automation_run_confirmed": false,
-  "provenance": "NOT_YET_EXECUTED",
-  "source_checks": [],
+  "provenance": "AUTOMATION_RESEARCH_ATTEMPT_2026-11-12; NO_VERIFIED_HISTORICAL_CHAIN_TX",
+  "source_checks": [
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://docs.bitquery.io/docs/start/endpoints/",
+      "evidence_class": "MODERN_PROVIDER_DOCUMENTATION_ONLY",
+      "result": "V1/V2 historical GraphQL endpoint documented; no authenticated historical transaction query executed; not an as-of coin discovery."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://www.bitquery.io/pricing",
+      "evidence_class": "MODERN_PROVIDER_DOCUMENTATION_ONLY",
+      "result": "2024 archive DEX history requires archive access/add-on; no authorized credentials or purchase; liquidity historical window not freely proven."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://trawl.run/data/pumpfun",
+      "evidence_class": "MODERN_ARCHIVE_DISCOVERY_ONLY",
+      "result": "Pump.fun decoded historic instruction archive advertised; paid archive scan not run; no original TX verified."
+    }
+  ],
   "early_narratives": [],
   "token_identities": [],
   "hypothetical_decisions": [],
-  "risk_unknowns": [],
-  "failure_reasons": [],
-  "summary": "Pending independent historical research; this is not an observed result."
+  "risk_unknowns": [
+    "2024-09-10: no immutable mint/pool/swap signature and block/slot time retrieved for any of solana/base/bsc/eth",
+    "Historic liquidity, buyer-wallet distinctness, holder clusters, LP withdrawal, trade quotes and sellability UNKNOWN for all chains",
+    "No 2024 original capture or ledger state reconstruction available; no hypothetical executable entry or exit"
+  ],
+  "failure_reasons": [
+    "Historical archive API access not authenticated; no authorized paid archival dataset",
+    "Search results describe archive products rather than original 2024 transactions; cannot infer identities or prices"
+  ],
+  "summary": "Progress checkpoint: examined archival access documentation for virtual day 2024-09-10 only (not a verified complete scan of that day). 0 original onchain transactions verified, 0 chain:mint:pool identities, 0 hypothetically executable BUY/SELL decisions, 0 confirmed negative launches. All outcomes NO_BUY/UNKNOWN due to evidence gaps. Remaining 60 virtual days not yet investigated. No live research or bot handoff."
 }
