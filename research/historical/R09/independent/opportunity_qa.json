@@ -1,18 +1,91 @@
 {
   "schema": "sniper_r09_independent_role.v1",
   "role": "opportunity_qa",
-  "state": "PENDING",
+  "state": "COMPLETED",
   "experiment_id": "R09-INDEPENDENT-2024-09-10--2024-11-09",
   "paper_only": true,
   "actionable": false,
-  "execution_provenance": "NOT_YET_EXECUTED",
-  "independent_research_completed": false,
-  "source_items_checked": 0,
-  "first_observations": [],
-  "independent_queries": [],
+  "execution_provenance": "INDEPENDENT_SCHEDULED_DOT_RUN",
+  "independent_research_completed": true,
+  "source_items_checked": 10,
+  "first_observations": [
+    {
+      "day_utc": "2024-10-04",
+      "source_id": "s01",
+      "classification": "PROVISIONAL_NEGATIVE_CONTROL",
+      "notes": "Creator reports failed pump.fun graduation; no unique mint/pool; platform date only."
+    },
+    {
+      "day_utc": "2024-10-09",
+      "source_id": "s02",
+      "classification": "PROVISIONAL_MULTIPLE_SYMBOLS",
+      "symbols": [
+        "HORSEMEAT",
+        "POPCAT",
+        "RETARDIO"
+      ],
+      "notes": "HORSEMEAT claimed mint, no verified historical pool, not new independent first discovery."
+    },
+    {
+      "day_utc": "2024-10-13",
+      "source_ids": [
+        "s05",
+        "s06",
+        "s07"
+      ],
+      "classification": "PROVISIONAL_PROMOTIONAL_OR_ESTABLISHED",
+      "symbols": [
+        "KENDU",
+        "SLOTH",
+        "BRETT"
+      ],
+      "notes": "Paid/organic independence not established; BRETT already described as large-cap."
+    },
+    {
+      "day_utc": "2024-11-05",
+      "source_id": "s09",
+      "classification": "PROVISIONAL_MINT_AND_POOL_HINT",
+      "symbols": [
+        "MAU"
+      ],
+      "notes": "2024 platform date; mint/pool claim not independently reconstructed at 2024 chain slot; sales pitch."
+    },
+    {
+      "day_utc": "2024-10-10",
+      "url": "https://www.reddit.com/r/u_Book_of_DYOR/comments/1g08qal",
+      "classification": "INDEPENDENT_SEARCH_PROVISIONAL_PROMOTIONAL",
+      "notes": "Memetropolis self-promotion, no exact verified pool; not organic evidence."
+    },
+    {
+      "day_utc": "2024-11-07",
+      "url": "https://www.reddit.com/r/memecoins/comments/1glzb4q",
+      "classification": "INDEPENDENT_SEARCH_PROVISIONAL_NEGATIVE_CONTROL",
+      "notes": "General rug/promotion warnings; no exact token identity."
+    }
+  ],
+  "independent_queries": [
+    {
+      "query": "site:reddit.com/r/solana/comments/ October 2024 pump.fun scam new launch",
+      "outcome": "Relevant general and self-promotional posts; no immutable as-of capture"
+    },
+    {
+      "query": "site:reddit.com/r/memecoins/comments/ November 2024 new coin rug",
+      "outcome": "Nov-07 generic negative-control post; no historical pool proof"
+    },
+    {
+      "query": "2024 archived immutable onchain original pool transactions",
+      "outcome": "No historical slot/transaction dataset accessed or validated; SOURCE_UNAVAILABLE"
+    }
+  ],
   "strict_asof_findings": [],
   "buy_advisories": [],
-  "data_gaps": [],
-  "executed_at_utc": null,
-  "summary": "A separate scheduled-role test must actually run; do not count previous in-chat role output."
+  "data_gaps": [
+    "Ten 2026-curated corpus posts are not representative of 61 UTC days and have no immutable 2024 original-byte archives.",
+    "Independent web posts show 2024 platform timestamps but contents may have been edited; provisional only.",
+    "No independent 2024 onchain slots for pool identity, LP and size-specific SELL quote.",
+    "Independent peer status at QA execution: social_acceleration and contract_security COMPLETED, news_discovery and onchain_liquidity PENDING; 4/4 independent attestation unavailable.",
+    "No holdout including negative launches, so no historical hit rate or calibrated outcome probabilities."
+  ],
+  "executed_at_utc": "2026-11-12T19:52:00Z",
+  "summary": "Independent scheduled QA source-grade audit completed as a bounded diagnostic, NOT a complete historical replay. 10 corpus items checked, two additional 2024-platform-dated Reddit negative/promotional posts found via independent untargeted search; zero strict as-of verified coin+pool+sellability findings, zero qualified advisories. Other independent roles only 2/4 completed at read; R09 ensemble NOT ATTESTED. No retrospective winners injected, no orders. Research-only."
 }
