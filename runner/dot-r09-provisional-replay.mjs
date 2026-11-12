@@ -22,8 +22,9 @@ export function runR09SourceReplay(corpus){
      e.text_historically_archived!==false)
    throw Error('SOURCE_INVALID_OR_RETROACTIVE');
   seenSources.add(e.id);
-  for(const a of e.token_addresses)if(!validMint(a.token)||a.chain!=='solana')
-    throw Error('INVALID_TOKEN_ADDRESS');
+  for(const a of e.token_addresses)if(!validMint(a.token)||a.chain!=='solana'||
+     typeof a.linked_symbol!=='string'||!e.mentioned_symbols.includes(a.linked_symbol))
+    throw Error('INVALID_TOKEN_ADDRESS_OR_UNBOUND_SYMBOL');
  }
  const days=[],provisional=new Map(),identities=new Map();
  const startDay=Math.floor(first/DAY)*DAY,endDay=Math.floor(last/DAY)*DAY;
@@ -36,7 +37,7 @@ export function runR09SourceReplay(corpus){
    for(const adr of src.token_addresses){
     const id=adr.chain+':'+adr.token;
     if(!identities.has(id))identities.set(id,{first_platform_day_utc:src.day_utc,source_url:src.url,
-      candidate_id:id,provenance:'PLATFORM_DATE_ONLY_CONTRACT_NOT_ONCHAIN_VERIFIED'});
+      candidate_id:id,linked_symbol:adr.linked_symbol,provenance:'PLATFORM_DATE_ONLY_CONTRACT_NOT_ONCHAIN_VERIFIED'});
    }
   }
   const todays=corpus.sources.filter(s=>s.day_utc===day);
