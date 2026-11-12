@@ -27,7 +27,7 @@ export function sourceUsable(src,at,mode){
 }
 export function dayView({mode,days},at){
  assert(timestamp(at),'INVALID_CUTOFF');
- const all=days.flatMap(day=>(day.sources||[]));
+ const all=days.filter(day=>day.day_utc<=at.slice(0,10)).flatMap(day=>(day.sources||[]));
  const sources=all.filter(s=>sourceUsable(s,at,mode));
  const ids=new Set(sources.map(s=>s.id));
  const usable=x=>timestamp(x.at_utc)&&ms(x.at_utc)<=ms(at)&&ids.has(x.source_id);
@@ -50,7 +50,8 @@ export function runCausalTimeMachine(input){
     !unique.has(day.day_utc)&&day.day_utc>=start_utc.slice(0,10)&&day.day_utc<=end_utc.slice(0,10),'DUPLICATE_OR_OUTSIDE_DAY');
   unique.add(day.day_utc);
   for(const src of day.sources||[]){
-   assert(src&&typeof src.id==='string'&&!ids.has(src.id),'DUPLICATE_SOURCE');
+   assert(src&&timestamp(src.available_at_utc)&&src.available_at_utc.slice(0,10)===day.day_utc,'SOURCE_WRONG_PACKET_DAY');
+   assert(typeof src.id==='string'&&!ids.has(src.id),'DUPLICATE_SOURCE');
    ids.add(src.id);
   }
   for(const x of [...day.quotes||[],...day.risks||[]])
