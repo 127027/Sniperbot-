@@ -14,7 +14,7 @@
   "paper_only": true,
   "actionable": false,
   "independent_automation_run_confirmed": false,
-  "provenance": "AUTOMATION_RESEARCH_ATTEMPT_2026-11-12; PARTIAL_DAY_2024-09-10; NO_VERIFIED_HISTORICAL_CHAIN_TX",
+  "provenance": "AUTOMATION_RESEARCH_ATTEMPT_2026-11-12; PARTIAL_DAY_2024-09-10; SOLARCHIVE_PARTITION_ACCESS_BLOCKED; NO_VERIFIED_HISTORICAL_CHAIN_TX",
   "source_checks": [
     {
       "virtual_date_utc": "2024-09-10",
@@ -45,6 +45,24 @@
       "source": "https://en.wikipedia.org/w/index.php?oldid=1245075863&title=Portal:Current_events/2024_September_10",
       "evidence_class": "HISTORICAL_SECONDARY_REVISION_ONLY",
       "result": "R13 historical secondary news anchor identified, but no original blockchain TX, mint, pool, or swap in this source. Not an onchain discovery or complete day scan."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://solarchive.org/search.php",
+      "evidence_class": "MODERN_ARCHIVE_INDEX_DISCOVERY_ONLY",
+      "result": "New source lead: Solarchive advertises free daily transaction Parquet partitions and monthly token/account snapshots including September 2024. This is a 2026-visible provider statement, not an independently downloaded 2024 original TX, mint or pool."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://data.solarchive.org/txs/2024-09-10/index.json",
+      "evidence_class": "ARCHIVE_PARTITION_ACCESS_BLOCKED",
+      "result": "Exact historical Solana daily transaction partition requested using web open: inaccessible (internal error). Separate container HTTPS request failed DNS resolution. No index manifest, checksum, Parquet bytes, original signature or slot verified. This is a concrete access failure, not evidence that the archive day has no transactions."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://data.solarchive.org/tokens/2024-09/index.json",
+      "evidence_class": "ARCHIVE_PARTITION_ACCESS_BLOCKED",
+      "result": "Exact September 2024 token snapshot index attempted via container HTTPS; DNS resolution failure. No historic mint/pool or reserves inferred."
     }
   ],
   "early_narratives": [],
@@ -54,11 +72,12 @@
     "2024-09-10: no immutable mint/pool/swap signature and block/slot time retrieved for any of solana/base/bsc/eth",
     "Historic liquidity, buyer-wallet distinctness, holder clusters, LP withdrawal, trade quotes and sellability UNKNOWN for all chains",
     "No 2024 original capture or ledger state reconstruction available; no hypothetical executable entry or exit",
-    "2024-09-10: independent broad search for archived Solana/Ethereum mint and DEX PairCreated TX yielded no verified original signature/block; Base/BSC original TX scan not completed. Day remains PARTIAL_DATA_GAP."
+    "2024-09-10: independent broad search for archived Solana/Ethereum mint and DEX PairCreated TX yielded no verified original signature/block; Base/BSC original TX scan not completed. Day remains PARTIAL_DATA_GAP.",
+    "2024-09-10 Solana: neutral daily archive lead exists but manifest download blocked; 2024-09-10 Base/BSC/Ethereum: no original block or pool transaction verified in this checkpoint. No day-complete coverage."
   ],
   "failure_reasons": [
     "Historical archive API access not authenticated; no authorized paid archival dataset",
     "Search results describe archive products rather than original 2024 transactions; cannot infer identities or prices"
   ],
-  "summary": "2026-11-12 training checkpoint: 2024-09-10 remains partially researched, not day-complete; checked one additional historical-launch archive project and the R13 neutral secondary revision. No original 2024 mint/pool/swap TX with verified slot/blocktime recovered on solana/base/bsc/eth. 0 verified chain:mint:pool identities; 0 verified liquidity/sell quotes; 0 executable hypothetical entries/exits. NO_BUY/UNKNOWN solely for lack of evidence, not a negative launch finding. No later days unlocked or asserted covered. No bot handoff."
+  "summary": "2026-11-12 additional TRAINING_ONLY checkpoint: discovered a concrete free Solana daily transaction archive partition for virtual day 2024-09-10, but index.json access failed (web internal error; container DNS resolution failure). No historical transaction payload read. Newly verified full UTC days: 0; partial day investigated: 2024-09-10 only. Confirmed mint/pool/swap original TX: 0; confirmed chain:mint:pool IDs: 0; historical liquidity/size-specific quotes/sellability: UNKNOWN; hypothetical decision NO_BUY for lack of proven executable route (not evidence of an unsuccessful launch). Remaining 60 days unexamined. Next: independently retrieve and checksum the 2024-09-10 Solarchive manifest/Parquet and verify raw signatures, slot and reconstructed pool state before advancing. No bot handoff."
 }
