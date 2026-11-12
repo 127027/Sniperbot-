@@ -42,3 +42,9 @@ test('no post-hoc promotion of platform date to high-certainty market signal',()
  assert.equal(r.calibrated_probability_available,false);
  assert(r.daily.every(d=>d.original_byte_verified_sources===0&&d.historically_verified_early_trades===0));
 });
+
+test('mint association to a neighboring symbol is rejected',()=>{
+ const c=readR09SourceCorpus();
+ c.sources[1].token_addresses[0].linked_symbol='MAU';
+ assert.throws(()=>runR09SourceReplay(c),/INVALID_TOKEN_ADDRESS_OR_UNBOUND_SYMBOL/);
+});
