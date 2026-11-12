@@ -111,3 +111,36 @@ test('never accept an unaudited synthetic source as a real historical original',
  assert.equal(sourceUsable(s,t1,'HISTORICAL_RESEARCH'),false);
  assert.equal(sourceUsable(s,'2024-09-10T11:00:00Z','SYNTHETIC_FIXTURE'),false);
 });
+
+
+test('two distinct synthetic coins can hold positions without capital being counted twice',()=>{
+ const x=sample();
+ const second='synthetic:SAMPLE_MINT_BETA:SAMPLE_POOL_BETA';
+ x.days[1].risks.push({token_key:second,at_utc:'2024-09-11T09:40:00Z',source_id:'s02',status:'PASS'});
+ for(const side of ['BUY','SELL'])
+   x.days[1].quotes.push({token_key:second,source_id:'s02',side,
+     at_utc:'2024-09-11T09:45:00Z',price_usdc:8,max_notional_usdc:300,fee_bps:0,slippage_bps:0});
+ x.decisions=[
+  {at_utc:t2,token_key:token,action:'BUY',requested_usdc:93,evidence_ids:['s02']},
+  {at_utc:t2,token_key:second,action:'BUY',requested_usdc:146,evidence_ids:['s02']},
+  {at_utc:t2,token_key:second,action:'ADD',requested_usdc:100,evidence_ids:['s02']}
+ ];
+ const r=runCausalTimeMachine(x);
+ assert.equal(r.simulated_fills,2);
+ assert.equal(r.open_positions.length,2);
+ assert.equal(r.cash_test_usdc,491);
+ assert.equal(r.journal[2].status,'BLOCKED_BUDGET_OR_CAPACITY');
+ assert.equal(r.realized_pnl_test_usdc,0);
+});
+test('future packet cannot inject a source claiming an earlier publication date',()=>{
+ const x=sample();const future={id:'s_future',event_at_utc:t1,
+   available_at_utc:t1,grade:'SYNTHETIC_FIXTURE',synthetic_only:true};
+ x.days[2].sources.push(future);
+ const at='2024-09-11T23:59:59Z';
+ assert(!dayView(x,at).sources.some(s=>s.id==='s_future'));
+ assert.throws(()=>runCausalTimeMachine(x),/SOURCE_WRONG_PACKET_DAY/);
+});
+test('future sources in a present-day packet cannot bypass event availability gate',()=>{
+ const x=sample();const now='2024-09-11T07:00:00Z';
+ assert(!dayView(x,now).sources.some(s=>s.id==='s02'));
+});
