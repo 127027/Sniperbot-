@@ -1,0 +1,79 @@
+{
+  "schema": "sniper_r09_role_result.v1",
+  "experiment_id": "R09-2024-09-10--2024-11-09",
+  "role": "contract_security",
+  "state": "COMPLETED",
+  "test_window": {
+    "start": "2024-09-10",
+    "end": "2024-11-09"
+  },
+  "paper_only": true,
+  "actionable": false,
+  "target_coin_not_supplied": true,
+  "source_corpus_items_checked": 10,
+  "provisional_first_discovers": [
+    {
+      "day_utc": "2024-10-09",
+      "source_id": "s02",
+      "symbol": "HORSEMEAT",
+      "claimed_mint": "2FprjEk4MTSY9CxpKuENbGDdy69R15GHhtHpG5Durdbq",
+      "historical_security_status": "UNKNOWN",
+      "risk_gate": "BLOCK_TRADE_REVIEW",
+      "missing": [
+        "HISTORICAL_MINT_AUTHORITY",
+        "FREEZE_AUTHORITY",
+        "LP_CONTROL",
+        "HOLDER_CONCENTRATION",
+        "SELL_ROUTE",
+        "HISTORICAL_POOL_ID"
+      ]
+    },
+    {
+      "day_utc": "2024-11-05",
+      "source_id": "s09",
+      "symbol": "MAU",
+      "claimed_mint": "7icRizvozWEg4TFqt1D8T8prTzCbG5Um8fU8MDYkpump",
+      "claimed_pool_hint": "fu56dhgwmuemnqbpnntnm59zfynvud2wwyd8pqxqhbh7",
+      "historical_security_status": "UNKNOWN",
+      "risk_gate": "BLOCK_TRADE_REVIEW",
+      "missing": [
+        "HISTORICAL_MINT_AUTHORITY",
+        "FREEZE_AUTHORITY",
+        "LP_CONTROL",
+        "HOLDER_CONCENTRATION",
+        "SELL_ROUTE",
+        "INDEPENDENT_POOL_CONFIRMATION"
+      ]
+    }
+  ],
+  "strictly_verified_first_discovers": [],
+  "independent_searches": [
+    {
+      "source": "https://www.alchemy.com/docs/solana/account-archive",
+      "finding": "Documented historical Solana account state service covers July 2025 onward and historical parameters require paid tiers; cannot directly validate 2024 mint/LP state via this service",
+      "result": "COVERAGE_GAP_2024"
+    },
+    {
+      "source": "https://solana.com/docs/intro/quick-start/reading-from-network",
+      "finding": "Current Solana mint account includes mint and freeze authority; present-day account read cannot establish its past 2024 authority state",
+      "result": "PRESENT_STATE_NOT_HISTORICAL_PROOF"
+    },
+    {
+      "source": "https://www.alchemy.com/overviews/solana-archival-data",
+      "finding": "Historical block and transaction readback may help reconstruct 2024 if provider includes complete ledger; no actual verified historical transactions returned in this run",
+      "result": "POSSIBLE_FOLLOW_UP_NOT_EXECUTED"
+    }
+  ],
+  "qualified_historical_buy_advisories": [],
+  "data_gaps": [
+    "No 2024 account-state history for two provisional mints from verified archive",
+    "No independently validated 2024 pool init slot or ledger execution events",
+    "No 2024 sell-simulation route with size specific quotes and slippage",
+    "No historic pre/post authority transitions, creator/LP ownership, freeze/mint status",
+    "No real safety review on blockchain; neither 'safe' nor 'rug' verdict supported",
+    "Risk UNKNOWN blocks trading validation only; early provisional coin mention remains a valid extraction clue"
+  ],
+  "summary": "R09 inline-in-chat security role execution: inspected all ten corpus records, identified only two provisional named Solana mints without independent 2024 slot-backed mint/LP/holder/security state. Historic safety and sellability are UNKNOWN for both; no security PASS, no buy advisory. Alchemy Solana Account Archive currently starts July 2025, so cannot supply Sep-Nov 2024 point-in-time account states.",
+  "execution_provenance": "INLINE_RUN_IN_THIS_CHAT_NOT_INDEPENDENT_CLOUD_DOT",
+  "original_result_created_at_utc": "2026-11-12"
+}

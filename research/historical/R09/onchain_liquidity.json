@@ -1,0 +1,104 @@
+{
+  "schema": "sniper_r09_role_result.v1",
+  "experiment_id": "R09-2024-09-10--2024-11-09",
+  "role": "onchain_liquidity",
+  "state": "COMPLETED",
+  "test_window": {
+    "start": "2024-09-10",
+    "end": "2024-11-09"
+  },
+  "paper_only": true,
+  "actionable": false,
+  "target_coin_not_supplied": true,
+  "source_corpus_items_checked": 10,
+  "provisional_first_discovers": [
+    {
+      "day_utc": "2024-10-09",
+      "source_id": "s02",
+      "symbol": "HORSEMEAT",
+      "chain": "solana",
+      "token_address": "2FprjEk4MTSY9CxpKuENbGDdy69R15GHhtHpG5Durdbq",
+      "pool_address": null,
+      "grade": "PROVISIONAL_MINT",
+      "risk": "Current Reddit content not independently archived as-of; no pool identity or swap proof"
+    },
+    {
+      "day_utc": "2024-10-09",
+      "source_id": "s02",
+      "symbols": [
+        "POPCAT",
+        "RETARDIO"
+      ],
+      "grade": "PROVISIONAL_NARRATIVE_OR_TOKEN_MENTION",
+      "risk": "Symbols ambiguous; no verified mint/pool"
+    },
+    {
+      "day_utc": "2024-10-13",
+      "source_ids": [
+        "s05",
+        "s06",
+        "s07"
+      ],
+      "symbols": [
+        "KENDU",
+        "SLOTH",
+        "BRETT"
+      ],
+      "grade": "PROVISIONAL_PROMOTIONAL_OR_ESTABLISHED",
+      "risk": "Promotional or already-large, not fresh verified pools"
+    },
+    {
+      "day_utc": "2024-11-05",
+      "source_id": "s09",
+      "symbol": "MAU",
+      "chain": "solana",
+      "token_address": "7icRizvozWEg4TFqt1D8T8prTzCbG5Um8fU8MDYkpump",
+      "pool_hint": "fu56dhgwmuemnqbpnntnm59zfynvud2wwyd8pqxqhbh7",
+      "grade": "PROVISIONAL_MINT_AND_POOL_HINT",
+      "risk": "Promotional Reddit source; pool hint not independently confirmed as 2024 chain state"
+    },
+    {
+      "day_utc": "2024-11-05",
+      "source_id": "s10",
+      "symbol": "HORSEMEAT",
+      "grade": "REPEATED_PROVISIONAL_MENTION",
+      "risk": "Not independent new first discovery"
+    }
+  ],
+  "strictly_verified_first_discovers": [],
+  "independent_searches": [
+    {
+      "source": "https://www.reddit.com/r/solana/comments/1fhhmvu",
+      "platform_date_utc": "2024-09-15",
+      "finding": "Negative cohort: post claims 87/7697 launches graduated and only 4 active a week later; figures unverified, no exact mint/pool, provisional context only"
+    },
+    {
+      "source": "https://www.reddit.com/r/solana/comments/1fvu6cg",
+      "platform_date_utc": "2024-10-04",
+      "finding": "Negative launch cohort: creator reports repeated failure to graduate; no unique mint/pool, mutable Reddit text"
+    },
+    {
+      "source": "https://www.reddit.com/r/solana/comments/1fv4si1/pumpfun_founder_ama/",
+      "platform_date_utc": "2024-10-03",
+      "finding": "Platform narrative only; no independently verifiable coin/pool"
+    },
+    {
+      "source": "https://docs.bitquery.io/docs/graphql/data-coverage-retention/",
+      "finding": "Provider archive coverage documentation reachable; no authenticated historical DEXTradeByTokens query executed, no 2024 transaction or slot returned"
+    },
+    {
+      "source": "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1",
+      "finding": "Current pool discovery endpoint available; cannot establish historical September-November 2024 state"
+    }
+  ],
+  "qualified_historical_buy_advisories": [],
+  "data_gaps": [
+    "All 10 corpus items are 2026-collected platform-date observations, not immutable historical text.",
+    "No 2024 verified mint creation TX, pool initialization TX, slot/block time, liquidity snapshot, unique buyer count, LP movement or holder cluster.",
+    "No independently confirmed 2024 pool for provisional HORSEMEAT or MAU identifiers.",
+    "Bitquery docs reachable but historical GraphQL API query not authenticated/executed; historical coverage not validated.",
+    "No archived size-dependent 50/100/1000/10000 USDC buy/sell quotes, risk validator, gas or slippage.",
+    "61-day exhaustive historical universe coverage NOT established."
+  ],
+  "summary": "R09 dual-grade extraction completed on 2026-11-12: 10/10 small neutral corpus records inspected; multiple provisional social/token mentions and independent negative launch discussions, zero strict as-of chain+token+pool discoveries and zero qualified historical buy advisories. Current platform text is not proven unedited 2024 text. No retrospective profit claims. Paper-only, non-actionable."
+}

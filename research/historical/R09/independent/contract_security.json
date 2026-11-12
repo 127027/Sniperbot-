@@ -1,0 +1,76 @@
+{
+  "schema": "sniper_r09_independent_role.v1",
+  "role": "contract_security",
+  "state": "COMPLETED",
+  "experiment_id": "R09-INDEPENDENT-2024-09-10--2024-11-09",
+  "paper_only": true,
+  "actionable": false,
+  "execution_provenance": "INDEPENDENT_SCHEDULED_DOT_RUN",
+  "independent_research_completed": true,
+  "source_items_checked": 10,
+  "first_observations": [
+    {
+      "day_utc": "2024-10-09",
+      "source_id": "s02",
+      "symbol": "HORSEMEAT",
+      "mint": "2FprjEk4MTSY9CxpKuENbGDdy69R15GHhtHpG5Durdbq",
+      "grade": "PROVISIONAL_PLATFORM_DATE_ONLY",
+      "historical_contract_security": "UNKNOWN",
+      "pool": "UNKNOWN",
+      "sellability": "UNKNOWN"
+    },
+    {
+      "day_utc": "2024-11-05",
+      "source_id": "s09",
+      "symbol": "MAU",
+      "mint": "7icRizvozWEg4TFqt1D8T8prTzCbG5Um8fU8MDYkpump",
+      "pool_hint": "fu56dhgwmuemnqbpnntnm59zfynvud2wwyd8pqxqhbh7",
+      "grade": "PROVISIONAL_PLATFORM_DATE_ONLY",
+      "historical_contract_security": "UNKNOWN",
+      "pool_verification": "UNKNOWN",
+      "sellability": "UNKNOWN"
+    }
+  ],
+  "independent_queries": [
+    {
+      "query": "2024 Sep-Nov Solana mint freeze liquidity original platform Reddit historical search",
+      "result": "Search results predominantly May-July 2024 or 2025, outside 61-day window; rejected",
+      "urls": [
+        "https://www.reddit.com/r/solana/comments/1cpokla",
+        "https://www.reddit.com/r/solana/comments/1dv7ap4"
+      ]
+    },
+    {
+      "query": "2024 Sep-Nov memecoin liquidity locked original posts",
+      "result": "No independently as-of-archived eligible coin+pool+historical risk proof found",
+      "urls": []
+    },
+    {
+      "query": "Solana official historical RPC coverage",
+      "result": "getBlock/getTransaction can inspect historical immutable events if provider retains requested slots; no actual 2024 transactions fetched",
+      "urls": [
+        "https://solana.com/docs/rpc/providers",
+        "https://solana.com/de/docs/rpc/http/getblock"
+      ]
+    },
+    {
+      "query": "Bitquery Solana 2024 archived DEX trades",
+      "result": "Aggregates available from 2024-06-01 under paid historical add-on; individual trade backfill toward 2024 incomplete; no historical dataset queried",
+      "urls": [
+        "https://docs.bitquery.io/docs/blockchain/Solana/historical-aggregate-data/",
+        "https://docs.bitquery.io/docs/blockchain/Solana/solana-dextrades/"
+      ]
+    }
+  ],
+  "strict_asof_findings": [],
+  "buy_advisories": [],
+  "data_gaps": [
+    "All ten sample Reddit records are 2024 platform-dated but have no verified original-byte captures",
+    "No 2024 slot/signature-backed mint/freeze/holder/LP snapshots for either provisional mint",
+    "No independently verified pool identity and no size-specific historical SELL route or quote",
+    "Archive access and historic coverage not established; no API credentials connected",
+    "61-day universe not exhaustively scanned; only ten supplied sample records and targeted independent search"
+  ],
+  "executed_at_utc": "2026-11-12T19:25:31.687Z",
+  "summary": "Independent scheduled research checked all 10 neutral corpus items and independently searched historical security/archive sources. Two provisional mint mentions (HORSEMEAT, MAU), zero independently strict-as-of-verified contract/LP/security findings, zero verified executable sell routes, zero qualified historical buy advisories. Current state never projected into 2024. No trading or other files modified."
+}
