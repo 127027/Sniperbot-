@@ -14,7 +14,7 @@ export function marketFeedFreshness(publishedAt,now,{maxAgeMs=45*60_000}={}){
  const age=Math.round((n-p)/60_000);
  return {fresh:n-p<=maxAgeMs,reason:n-p<=maxAgeMs?'FRESH':'STALE',age_minutes:age};
 }
-export function classifyResearchLead(input={}){
+export function classifyResearchLead(input={},now){
  // These are upstream verified *research flags*, never independently
  // verified by this function. Do not confuse a passed flag with evidence.
  if(input.original_event_verified!==true&&input.pool_identity_verified!==true)
@@ -22,7 +22,8 @@ export function classifyResearchLead(input={}){
  if(input.pool_identity_verified!==true)return 'NARRATIVE_WATCH';
  if(input.security_verified!==true||input.sell_quote_verified!==true)
   return 'TOKEN_IDENTIFIED';
- if(input.quote_observed_at_utc===undefined)
+ const quote=stamp(input.quote_observed_at_utc),time=stamp(now);
+ if(quote===null||time===null||quote>time||time-quote>90_000)
   return 'RISK_REVIEW';
  return 'BOT_REVIEW_CANDIDATE_RESEARCH_ONLY';
 }
@@ -62,7 +63,7 @@ export function planResearchRound({newLeads=[],dueWatchlist=[],marketSnapshotPub
   ms(a.observed_at_utc)-ms(b.observed_at_utc)||a.key.localeCompare(b.key));
  const selected=fresh.slice(0,maxNew).map(x=>({
    key:x.key,kind:x.kind,observed_at_utc:x.observed_at_utc,
-   stage:classifyResearchLead(x),source_urls:x.source_urls.slice(0,5),
+   stage:classifyResearchLead(x,now),source_urls:x.source_urls.slice(0,5),
    // A narrative without a contract is kept as a valid early-warning stage.
    actionable:false}));
  const rechecks=dueWatchlist
