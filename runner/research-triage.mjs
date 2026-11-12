@@ -60,8 +60,17 @@ export function planResearchRound({newLeads=[],dueWatchlist=[],marketSnapshotPub
  const {unique,rejected}=sanitizeFresh(newLeads,n);
  const priority={TOKEN:0,NARRATIVE:1};
  const fresh=unique.sort((a,b)=>(priority[a.kind]??2)-(priority[b.kind]??2)||
-  ms(a.observed_at_utc)-ms(b.observed_at_utc)||a.key.localeCompare(b.key));
- const selected=fresh.slice(0,maxNew).map(x=>({
+  ms(b.observed_at_utc)-ms(a.observed_at_utc)||a.key.localeCompare(b.key));
+ // Reserve room for up to two pre-token narratives even when many pool leads exist.
+ const narrative=fresh.filter(x=>x.kind==='NARRATIVE');
+ const token=fresh.filter(x=>x.kind==='TOKEN');
+ const reserved=Math.min(2,maxNew,narrative.length);
+ const picked=[...narrative.slice(0,reserved),...token.slice(0,maxNew-reserved)];
+ if(picked.length<maxNew)for(const x of fresh){
+  if(picked.length>=maxNew)break;
+  if(!picked.some(p=>p.key===x.key))picked.push(x);
+ }
+ const selected=picked.map(x=>({
    key:x.key,kind:x.kind,observed_at_utc:x.observed_at_utc,
    stage:classifyResearchLead(x,now),source_urls:x.source_urls.slice(0,5),
    // A narrative without a contract is kept as a valid early-warning stage.
