@@ -13,13 +13,53 @@
   "trade_execution": false,
   "paper_only": true,
   "actionable": false,
-  "independent_automation_run_confirmed": false,
-  "provenance": "NOT_YET_EXECUTED",
-  "source_checks": [],
-  "early_narratives": [],
+  "independent_automation_run_confirmed": true,
+  "provenance": "SCHEDULED_AUTOMATION_RUN_2026-11-12; historical source discovery only; no 2024 live observation",
+  "source_checks": [
+    {
+      "checked_at_utc": "2026-11-12",
+      "source_url": "https://www.reddit.com/r/solana/comments/1gjt69d",
+      "platform_date_label": "2024-11-04",
+      "classification": "PROVISIONAL_PLATFORM_DATE",
+      "finding": "Solana discussion about drivers of price growth; not a coin launch or original meme; 2024 immutable capture not established; current votes/comments not historic trajectory."
+    },
+    {
+      "checked_at_utc": "2026-11-12",
+      "source_url": "https://www.reddit.com/r/solana/comments/1goh12w/investing_in_solana_not_meme_coins/",
+      "platform_date_label": "2024-11-11",
+      "classification": "OUT_OF_WINDOW_REJECT",
+      "finding": "Outside training cutoff 2024-11-09; excluded entirely from day-D input."
+    },
+    {
+      "checked_at_utc": "2026-11-12",
+      "source_url": "https://www.reddit.com/r/solana/comments/1df4yb7",
+      "platform_date_label": "2024-06-13",
+      "classification": "PRE_WINDOW_BACKGROUND_NOT_D_EVENT",
+      "finding": "Outside window, cannot establish acceleration inside window."
+    }
+  ],
+  "early_narratives": [
+    {
+      "day_utc": "2024-11-04",
+      "type": "GENERAL_MEMECOIN_DISCUSSION_NOT_ORIGINAL_MEME",
+      "source_url": "https://www.reddit.com/r/solana/comments/1gjt69d",
+      "evidence_class": "PROVISIONAL_PLATFORM_DATE",
+      "meme_event_before_token": "UNKNOWN",
+      "coin_mention": "GENERAL_MEMECOIN_CATEGORY",
+      "independent_authors": "UNKNOWN_ASOF",
+      "social_acceleration_5m_1h_24h": "UNKNOWN_ASOF",
+      "paid_shill_bots": "UNKNOWN_ASOF",
+      "token_pool_identity": "UNKNOWN",
+      "decision": "WATCH_RESEARCH_ONLY_NO_TRADE",
+      "counterhypothesis": "General Solana market discussion rather than emergent original meme; no proof of new token or pre-pump signal."
+    }
+  ],
   "token_identities": [],
   "hypothetical_decisions": [],
-  "risk_unknowns": [],
+  "risk_unknowns": [
+    "No independently archived 2024 original bytes or historical engagement time series for the 2024-11-04 thread.",
+    "No verified chain:mint:pool, contemporaneous liquidity, sellability or executable quote; hypothetical BUY/SELL not supportable."
+  ],
   "failure_reasons": [],
-  "summary": "Pending independent historical research; this is not an observed result."
+  "summary": "Incremental historical social source discovery: checked one in-window 2024-11-04 platform-dated Reddit thread, one post-window item excluded (2024-11-11), and one pre-window background item excluded (2024-06-13). In-window thread is PROVISIONAL_PLATFORM_DATE only, generic Solana/memecoin discussion, not verified original meme/coin acceleration. No strict as-of original capture, no token/pool identity, no historically executable theoretical trade. Only 2024-11-04 has an inspected provisional source; remaining virtual days unexamined in this run. Prior decisions unchanged; training remains PENDING. LIVE work paused, no bot handoff."
 }
