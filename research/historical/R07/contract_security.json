@@ -2,7 +2,7 @@
   "schema": "research_historical_r07_role.v1",
   "experiment_id": "R07-2024-09-10--2024-11-09",
   "role": "contract_security",
-  "state": "PENDING",
+  "state": "BLOCKED",
   "period": {
     "start_utc": "2024-09-10T00:00:00Z",
     "end_utc": "2024-11-09T23:59:59Z",
@@ -11,14 +11,21 @@
   "paper_only": true,
   "actionable": false,
   "target_coin_not_supplied": true,
-  "original_result_created_at_utc": null,
+  "original_result_created_at_utc": "2026-11-12T16:22:08Z",
   "coverage": {
-    "virtual_days_reviewed": 0,
+    "virtual_days_reviewed": 61,
     "independently_verified_asof_events": 0
   },
   "daily_findings": [],
   "first_discovers": [],
   "qualified_paper_buy_advisories": [],
-  "data_limitations": [],
-  "conclusion": "Not yet executed. This marker is not evidence of research or predictive performance."
+  "data_limitations": [
+    "All 61 virtual days 2024-09-10 through 2024-11-09: UNAVAILABLE_ASOF for independent day-specific token:pool identities, original archived text/posts, historical mint/freeze/holder/LP state, and amount-specific executable sell routes. Virtual days reviewed for evidence sufficiency, NOT 61 daily onchain audits.",
+    "NO TARGET COIN and no hindsight winners imported. No 2026 retrospective source admitted as an input for historical day D.",
+    "Alchemy Solana Account Archive primary documentation https://www.alchemy.com/docs/solana/account-archive states coverage begins July 2025; therefore cannot reconstruct Sep-Nov 2024 account state with that service. Historical account reads are paid-tier only; no purchase authorized.",
+    "Official Solana current getAccountInfo https://solana.com/docs/rpc/http/getaccountinfo does not expose arbitrary historical account state by slot. Current mint/freeze or LP state cannot prove 2024 state.",
+    "No authenticated 2024 WARC/Wayback original captures or historical chain-slot transaction/reserve evidence were obtained in this run. No verified historical sellability, no security PASS.",
+    "Five independent model agents were NOT run in 2024. Historical research cannot certify historical performance."
+  ],
+  "conclusion": "R07 contract_security BLOCKED for evidence sufficiency, not an assertion that historical launches did not occur. Zero independently verified AS-OF candidate IDs and zero qualified research-only paper buy advisories. All 61 days UNAVAILABLE_ASOF; no fabricated daily events, risk clearance or executable quotes. To unblock: obtain dated archived originals and contemporaneous block/slot-specific token/pool/LP/holder state plus size-specific historical route/fee evidence for several independently discovered candidates and failed launches, then conduct forward-only day-by-day replay without future data. No wallet, keys, order, bot or other repo change."
 }
