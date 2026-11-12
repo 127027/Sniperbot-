@@ -14,7 +14,7 @@
   "paper_only": true,
   "actionable": false,
   "independent_automation_run_confirmed": false,
-  "provenance": "AUTOMATION_RESEARCH_ATTEMPT_2026-11-12; PARTIAL_DAY_2024-09-10; SOLARCHIVE_PARTITION_ACCESS_BLOCKED; NO_VERIFIED_HISTORICAL_CHAIN_TX",
+  "provenance": "AUTOMATION_RESEARCH_ATTEMPT_2026-11-12; PARTIAL_DAY_2024-09-10; SOLARCHIVE_PARTITION_ACCESS_BLOCKED; NO_VERIFIED_HISTORICAL_CHAIN_TX; 2026-11-13_SOLARCHIVE_2024_TX_NOT_MARKED_READY",
   "source_checks": [
     {
       "virtual_date_utc": "2024-09-10",
@@ -63,6 +63,12 @@
       "source": "https://data.solarchive.org/tokens/2024-09/index.json",
       "evidence_class": "ARCHIVE_PARTITION_ACCESS_BLOCKED",
       "result": "Exact September 2024 token snapshot index attempted via container HTTPS; DNS resolution failure. No historic mint/pool or reserves inferred."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://solarchive.org/search.php",
+      "evidence_class": "PROVIDER_COVERAGE_MATRIX_CURRENT_NOT_ASOF",
+      "result": "2026-11-13 source readback: Historical Data Readiness table explicitly marks 2024-09 (and 2024-10/11) Accounts and Tokens, but NOT Transactions. Transactions are marked only for 2020-10 through 2022-03 and 2025-11/12 in the displayed matrix. Thus the assumed 2024-09-10 transaction Parquet partition is NOT advertised as published; inaccessible tx index is a COVERAGE_GAP, not merely DNS. Token/account monthly snapshots alone do not establish 2024-09-10 pool creation, swap signatures, intraday liquidity or executable sell quotes. No original TX retrieved."
     }
   ],
   "early_narratives": [],
@@ -73,11 +79,12 @@
     "Historic liquidity, buyer-wallet distinctness, holder clusters, LP withdrawal, trade quotes and sellability UNKNOWN for all chains",
     "No 2024 original capture or ledger state reconstruction available; no hypothetical executable entry or exit",
     "2024-09-10: independent broad search for archived Solana/Ethereum mint and DEX PairCreated TX yielded no verified original signature/block; Base/BSC original TX scan not completed. Day remains PARTIAL_DATA_GAP.",
-    "2024-09-10 Solana: neutral daily archive lead exists but manifest download blocked; 2024-09-10 Base/BSC/Ethereum: no original block or pool transaction verified in this checkpoint. No day-complete coverage."
+    "2024-09-10 Solana: neutral daily archive lead exists but manifest download blocked; 2024-09-10 Base/BSC/Ethereum: no original block or pool transaction verified in this checkpoint. No day-complete coverage.",
+    "2026-11-13: Solarchive 2024-09 transaction dataset NOT marked ready by provider coverage matrix; 2024-09 monthly tokens/accounts are NOT transaction-level day D evidence."
   ],
   "failure_reasons": [
     "Historical archive API access not authenticated; no authorized paid archival dataset",
     "Search results describe archive products rather than original 2024 transactions; cannot infer identities or prices"
   ],
-  "summary": "2026-11-12 additional TRAINING_ONLY checkpoint: discovered a concrete free Solana daily transaction archive partition for virtual day 2024-09-10, but index.json access failed (web internal error; container DNS resolution failure). No historical transaction payload read. Newly verified full UTC days: 0; partial day investigated: 2024-09-10 only. Confirmed mint/pool/swap original TX: 0; confirmed chain:mint:pool IDs: 0; historical liquidity/size-specific quotes/sellability: UNKNOWN; hypothetical decision NO_BUY for lack of proven executable route (not evidence of an unsuccessful launch). Remaining 60 days unexamined. Next: independently retrieve and checksum the 2024-09-10 Solarchive manifest/Parquet and verify raw signatures, slot and reconstructed pool state before advancing. No bot handoff."
+  "summary": "2026-11-13 TRAINING_ONLY source-coverage correction for partial virtual day 2024-09-10: Solarchive's publicly read 2026 Historical Data Readiness matrix marks Sep-Nov 2024 Accounts/Tokens but not Transactions. The presumed 2024-09-10 tx partition is not advertised as published; previous failed index requests are therefore not evidence of merely transient access. No original mint/pool/swap TX, slot/block time, historical pool reserves, distinct buyers, or executable buy/sell quotes independently recovered. Newly fully checked UTC days: 0; only 2024-09-10 remains partial DATA_GAP; other 60 days not scanned. Confirmed chain:mint:pool identities: 0. Hypothetical NO_BUY due to insufficient historical execution evidence, not a failed-coin finding. Next: identify genuinely published original block/transaction archive for 2024-09-10 on Solana/Base/BSC/ETH before day progression. No bot handoff."
 }
