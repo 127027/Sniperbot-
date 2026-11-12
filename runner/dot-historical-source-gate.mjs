@@ -34,7 +34,8 @@ export function classifyHistoricalSource(source,cutoff){
  if(source.proof_type==='VERIFIED_2024_ARCHIVE'){
   if(!isUtc(source.capture_at_utc)||millis(source.capture_at_utc)>millis(cutoff)||
       millis(source.capture_at_utc)!==millis(source.available_from_utc)||
-      !validUrl(source.archive_url)||!source.archive_url.startsWith('https://web.archive.org/web/')||
+      !validUrl(source.archive_url)||!/^https:\/\/web\.archive\.org\/web\/\d{14}\//.test(source.archive_url)||
+      source.archive_url.slice('https://web.archive.org/web/'.length,'https://web.archive.org/web/'.length+14)!==source.capture_at_utc.replace(/[-:TZ]/g,'').slice(0,14)||
       source.archived_original_bytes_verified!==true||
       typeof source.original_bytes!=='string'||source.original_bytes.length===0||
       source.original_sha256!==hash(source.original_bytes))
