@@ -13,13 +13,88 @@
   "trade_execution": false,
   "paper_only": true,
   "actionable": false,
-  "independent_automation_run_confirmed": false,
-  "provenance": "NOT_YET_EXECUTED",
-  "source_checks": [],
-  "early_narratives": [],
-  "token_identities": [],
-  "hypothetical_decisions": [],
-  "risk_unknowns": [],
-  "failure_reasons": [],
-  "summary": "Pending independent historical research; this is not an observed result."
+  "independent_automation_run_confirmed": true,
+  "provenance": "INDEPENDENT_SCHEDULED_DOT_RUN",
+  "source_checks": [
+    {
+      "virtual_day": "2024-09-10",
+      "url": "https://www.reddit.com/r/SolanaMemeCoins/comments/1fduswg",
+      "grade": "PROVISIONAL_PLATFORM_DATE",
+      "finding": "Solanacrash promotion; claimed mint Crashu2xZABC37wX3cs3rMQAe7RpdyLU8qyhRcDehpDs; no pool address, no immutable as-of content or slot proof."
+    },
+    {
+      "virtual_day": "2024-10-05",
+      "url": "https://www.reddit.com/r/memecoinmoonshots/comments/1fwrpw7",
+      "grade": "PROVISIONAL_PLATFORM_DATE",
+      "finding": "Contemporaneous complaint about many similarly named MOODENG pools; no unique pool identity."
+    },
+    {
+      "virtual_day": "2024-10-08",
+      "url": "https://www.reddit.com/r/solana/comments/1fzaigx",
+      "grade": "PROVISIONAL_PLATFORM_DATE",
+      "finding": "October 9 comment claims HORSEMEAT mint 2FprjEk4MTSY9CxpKuENbGDdy69R15GHhtHpG5Durdbq; original comment bytes and pool unknown."
+    },
+    {
+      "virtual_day": "2024-10-28",
+      "url": "https://www.reddit.com/r/memecoinmoonshots/comments/1ge7b94",
+      "grade": "PROVISIONAL_PLATFORM_DATE",
+      "finding": "DAFFY promotional narrative, no uniquely verified mint/pool or archived original bytes."
+    }
+  ],
+  "early_narratives": [
+    {
+      "date": "2024-10-05",
+      "name": "MOODENG impersonation / multi-pool ambiguity",
+      "grade": "PROVISIONAL_PLATFORM_DATE"
+    },
+    {
+      "date": "2024-10-28",
+      "name": "Halloween-themed DAFFY promotion",
+      "grade": "PROVISIONAL_PLATFORM_DATE"
+    }
+  ],
+  "token_identities": [
+    {
+      "name": "Solanacrash",
+      "mint_claim": "Crashu2xZABC37wX3cs3rMQAe7RpdyLU8qyhRcDehpDs",
+      "pool": "UNKNOWN",
+      "grade": "PROVISIONAL_PLATFORM_DATE",
+      "onchain_verified": false
+    },
+    {
+      "name": "HORSEMEAT",
+      "mint_claim": "2FprjEk4MTSY9CxpKuENbGDdy69R15GHhtHpG5Durdbq",
+      "pool": "UNKNOWN",
+      "grade": "PROVISIONAL_PLATFORM_DATE",
+      "onchain_verified": false
+    }
+  ],
+  "hypothetical_decisions": [
+    {
+      "date": "2024-09-10",
+      "subject": "Solanacrash",
+      "decision": "WATCH",
+      "buy_advisory": false,
+      "reason": "Mint claim not chain verified; pool, LP, mint/freeze, holder distribution and sell route UNKNOWN"
+    },
+    {
+      "date": "2024-10-09",
+      "subject": "HORSEMEAT",
+      "decision": "WATCH",
+      "buy_advisory": false,
+      "reason": "Unverified social mint claim; no as-of security and executable sell route"
+    }
+  ],
+  "risk_unknowns": [
+    "Mint/freeze authority at historical slot UNKNOWN for 2 mint claims",
+    "Historical holder concentration and LP ownership UNKNOWN",
+    "Blacklist/tax restrictions and executable sell route at 50/200/400 USDC UNKNOWN",
+    "No archived original post bytes or verified pool creation TX"
+  ],
+  "failure_reasons": [
+    "Two identical Solanacrash posts are correlated cross-post promotion, not independent verification",
+    "Multiple MOODENG names/pools indicate identity collision risk, not proof of fraud",
+    "No negative control has a verified historical onchain loss/LP-drain in this run"
+  ],
+  "summary": "Incremental historical training: checked 3 virtual dates with provisional platform posts (Sep 10, Oct 5, Oct 9) and Oct 28 narrative (4 date anchors); 4 source URLs; 2 claimed mints, 0 independently confirmed chain:mint:pool IDs; 0 historical onchain risk proofs, 0 proven sell routes, 0 qualified hypothetical buys/exits, 0 verified fraud labels. Next run should reconstruct earliest mint/pool creation TX and historical pool reserves, using archival providers if available. Remaining virtual days not assessed."
 }
