@@ -21,7 +21,7 @@ test('cannot treat 61 generic UNAVAILABLE_ASOF lines as 61 market-data days',()=
 });
 test('historical immutable chain transaction can be admissible without Wayback HTML when its ledger facts are replayed',()=>{
  const source={provenance_class:'IMMUTABLE_LEDGER_TX',event_at_utc:'2024-10-11T09:00:00Z',
- historical_observed_at_utc:'2024-10-11T09:00:00Z',content_verified:true,content_sha256:'a'.repeat(64),
+ available_from_utc:'2024-10-11T09:00:00Z',content_verified:true,content_sha256:'a'.repeat(64),
  chain:'solana',block_slot:294444444,tx_id:'ExampleOnlyDoNotTradeAAAA1111111',
  original_tx_retrieved:true,historical_state_replayed:true};
  assert.equal(asOfResearchEvidence(source,'2024-10-10T23:59:59Z').admissible,false);
@@ -30,11 +30,12 @@ test('historical immutable chain transaction can be admissible without Wayback H
 });
 test('unverified retro article, fabricated archive and later source timestamps fail closed',()=>{
  const common={provenance_class:'WARC_CAPTURE',event_at_utc:'2024-10-11T09:00:00Z',
- historical_observed_at_utc:'2024-10-12T09:00:00Z',content_verified:true,content_sha256:'a'.repeat(64),
+ available_from_utc:'2024-10-12T09:00:00Z',content_verified:true,content_sha256:'a'.repeat(64),
  capture_url:'https://web.archive.org/web/20241012090000/https://example.org',archived_bytes_verified:true};
  assert.equal(asOfResearchEvidence(common,'2024-10-10T23:59:59Z').admissible,false);
  assert.equal(asOfResearchEvidence({...common,archived_bytes_verified:false},'2024-10-13T23:59:59Z').admissible,false);
  assert.equal(asOfResearchEvidence({...common,provenance_class:'PUBLISHED_DATE_ONLY'},'2024-10-13T23:59:59Z').admissible,false);
+ assert.equal(asOfResearchEvidence({...common,capture_url:'https://web.archive.org/web/20241011090000/https://example.org'},'2024-10-13T23:59:59Z').reason,'ARCHIVE_CAPTURE_TIME_MISMATCH');
  assert.equal(asOfResearchEvidence(common,'2024-10-13T23:59:59Z').admissible,true);
 });
 test('narrative first and coin identity are research events, security is a later gate',()=>{
