@@ -48,15 +48,22 @@ export function assessReplayCoverage(reports,{days=61}={}){
  */
 export function asOfResearchEvidence(source,virtualDate){
  const d=Date.parse(virtualDate);
- const at=Date.parse(source?.event_at_utc),observed=Date.parse(source?.historical_observed_at_utc);
- if(!Number.isFinite(d)||!Number.isFinite(at)||!Number.isFinite(observed)||at>d||observed>d||observed<at)
+ const at=Date.parse(source?.event_at_utc),available=Date.parse(source?.available_from_utc);
+ // available_from is independently evidenced earliest PUBLIC availability; it is NOT
+ // a claim that the research Dots actually observed this source in the past.
+ if(!Number.isFinite(d)||!Number.isFinite(at)||!Number.isFinite(available)||at>d||available>d||available<at)
   return {admissible:false,reason:'FUTURE_OR_UNVERIFIED_OBSERVATION_TIME'};
  if(source?.content_verified!==true||typeof source.content_sha256!=='string'||!/^[0-9a-f]{64}$/.test(source.content_sha256))
   return {admissible:false,reason:'CONTENT_NOT_VERIFIED'};
  if(source.provenance_class==='WARC_CAPTURE'){
-   if(!source.capture_url?.startsWith('https://')||source.archived_bytes_verified!==true)
+   const match=/^https:\/\/web\.archive\.org\/web\/(\d{14})\/https?:\/\//.exec(source.capture_url||'');
+   if(!match||source.archived_bytes_verified!==true)
      return {admissible:false,reason:'ARCHIVE_BYTES_NOT_VERIFIED'};
-   return {admissible:true,reason:'ORIGINAL_ARCHIVE'};
+   const t=match[1];
+   const capture=Date.UTC(+t.slice(0,4),+t.slice(4,6)-1,+t.slice(6,8),+t.slice(8,10),+t.slice(10,12),+t.slice(12,14));
+   if(!Number.isFinite(capture)||Math.abs(capture-available)>1000)
+     return {admissible:false,reason:'ARCHIVE_CAPTURE_TIME_MISMATCH'};
+   return {admissible:true,reason:'ORIGINAL_ARCHIVE_METADATA_ONLY'};
  }
  if(source.provenance_class==='IMMUTABLE_LEDGER_TX'){
    if(source.chain!=='solana'&&!['eth','base','bsc'].includes(source.chain))
