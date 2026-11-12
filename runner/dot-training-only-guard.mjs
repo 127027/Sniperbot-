@@ -34,9 +34,17 @@ export function validateDotTrainingReport(report) {
  for(const d of report.hypothetical_decisions){
   if(!['WATCH','PAPER_BUY_HYPOTHESIS','HOLD_HYPOTHESIS','SELL_HYPOTHESIS','REJECT','UNTESTABLE'].includes(d?.decision))
    reject('UNKNOWN_HYPOTHETICAL_DECISION');
-  if(d?.paper_only!==true||d?.actionable!==false)reject('HYPOTHESIS_NOT_RESEARCH_ONLY');
-  if(typeof d?.virtual_day_utc!=='string'||!(/^\d{4}-\d\d-\d\d$/.test(d.virtual_day_utc))||
-     d.virtual_day_utc<expected.start_utc.slice(0,10)||d.virtual_day_utc>expected.end_utc.slice(0,10))
+  // Historical notes from an existing independent Dot sometimes use a compact
+  // observational WATCH shape. Accept ONLY non-buy WATCH with an explicit
+  // buy_advisory:false inherited from the enclosing TRAINING_ONLY envelope;
+  // actual BUY/SELL hypotheses still require explicit per-decision flags.
+  const legacyResearchWatch=d.decision==='WATCH'&&d.buy_advisory===false&&
+   d.paper_only===undefined&&d.actionable===undefined;
+  if(!legacyResearchWatch&&(d?.paper_only!==true||d?.actionable!==false))
+   reject('HYPOTHESIS_NOT_RESEARCH_ONLY');
+  const day=legacyResearchWatch?d.date:d.virtual_day_utc;
+  if(typeof day!=='string'||!(/^\d{4}-\d\d-\d\d$/.test(day))||
+     day<expected.start_utc.slice(0,10)||day>expected.end_utc.slice(0,10))
    reject('OUTSIDE_HISTORICAL_WINDOW');
   if(d.decision==='PAPER_BUY_HYPOTHESIS'||d.decision==='SELL_HYPOTHESIS'){
    if(!['STRICT_ASOF','PROVISIONAL_ONLY','UNTESTABLE'].includes(d?.evidence_grade))
