@@ -50,6 +50,13 @@
       "type": "CORRELATED_NEWS",
       "evidence_grade": "PUBLICATION_METADATA_NOT_ORIGINAL_BYTES",
       "finding": "Same vacuum-cat story, not independent meme virality evidence; no 2024 archival capture"
+    },
+    {
+      "virtual_day": "2024-09-10",
+      "source_url": "https://en.wikipedia.org/w/index.php?oldid=1245075863&title=Portal:Current_events/2024_September_10",
+      "type": "HISTORICAL_SECONDARY_REVISION_R13_DERIVED",
+      "evidence_grade": "HISTORICAL_SECONDARY_REVISION_METADATA_NOT_PRIMARY_EVENT",
+      "finding": "R13 neutral corpus records Wikipedia oldid 1245075863 at 2024-09-10T21:46:00Z, covering geopolitics, EU tech rulings, border policy and UK parliament. Secondary historical revision only; original upstream articles and viral original posts not verified independently in this run. No token/pool evidence."
     }
   ],
   "early_narratives": [
@@ -108,12 +115,28 @@
   "risk_unknowns": [
     "Historical social original-byte archives for 2024-09-10/11 unverified",
     "Mint/pool identities and historical security/liquidity/sellability UNKNOWN",
-    "No authenticated 2024 capture or ledger reconstruction; dates are metadata only"
+    "No authenticated 2024 capture or ledger reconstruction; dates are metadata only",
+    "R13 Wikipedia historical revision is secondary news digest, not first original viral post or complete Sep 10 coverage; 2024-09-12 onward still UNEXAMINED."
   ],
   "failure_reasons": [
     "DATA_GAP: only first two virtual dates investigated, not 61",
     "STRICT_ASOF_INPUT count 0",
-    "No confirmed token or tradable historical quote"
+    "No confirmed token or tradable historical quote",
+    "2024-09-10 debate reaction chronology defect recorded as append-only QA discrepancy; historical social/pool source coverage still incomplete."
   ],
-  "summary": "Partial chronological research on Sep 10-11 2024 only. Five publicly accessible source pages checked; 2 provisional narrative clusters plus 1 negative-control news story. Zero strict as-of original captures, zero verified chain:token:pool, zero hypothetical executable buys/exits. Other 59 days UNEXAMINED (not zero-event days). No hindsight winner inputs, no bot handoff."
+  "summary": "Training-only incremental audit: Sep 10 historical secondary Wikipedia revision (21:46Z) cross-referenced from R13; primary sources not independently verified. UTC-day discrepancy explicitly appended: US debate began Sep 11 01:00Z, so Sep 10 reaction memes are FUTURE_BLOCKED, not eligible as-of inputs. Previously checked Sep 10-11 remain partial point research, not full-day coverage. Newly fully covered days 0; new strict original primary sources 0; new verified chain:token:pool 0; executable hypothetical trades 0. Sep 12-Nov 09 remain UNEXAMINED. No live research or bot handoff.",
+  "qa_discrepancies": [
+    {
+      "recorded_at_utc": "2026-11-12T22:31:03.766Z",
+      "affected_virtual_day": "2024-09-10",
+      "type": "UTC_DAY_LOOKAHEAD_WARNING",
+      "prior_record": "US presidential debate and contemporaneous reaction memes",
+      "finding": "Debate scheduled 2024-09-10 21:00 EDT = 2024-09-11 01:00 UTC. Any debate reaction assigned to 2024-09-10 UTC is FUTURE_BLOCKED; Sep 10 can contain only advance announcements. Prior provisional entry retained unchanged for audit.",
+      "source_urls": [
+        "https://github.com/127027/Sniperbot-/blob/codex/dots-r13-neutral-archive-intake-20261112/docs/DOT_R13_QA_UTC_DAY_GUARD.md",
+        "https://www.reuters.com/world/us/when-where-is-trump-harris-presidential-debate-2024-08-28/"
+      ],
+      "decision": "RESEARCH_WATCH_ONLY; no token identity, no quote, no trade"
+    }
+  ]
 }
