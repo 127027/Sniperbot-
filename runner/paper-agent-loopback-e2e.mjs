@@ -27,12 +27,13 @@ const freePort=async()=>{
 };
 try{
  const port=await freePort(),base='http://127.0.0.1:'+port;
- child=spawn(process.execPath,[path.join(root,'runner','server.mjs')],{
+ const launch=()=>spawn(process.execPath,[path.join(root,'runner','server.mjs')],{
   cwd:root,windowsHide:true,stdio:['ignore','pipe','pipe'],
   env:{...process.env,SNIPER_PORT:String(port),SNIPER_DATA_DIR:dir,
    SNIPER_OFFLINE:'1',SNIPER_PIPELINE_QA:'1',
    SNIPER_LOCAL_DISCOVERY:'0',SNIPER_RESEARCH_READ:'0',SNIPER_RESEARCH_FEED:'0'}
  });
+ child=launch();
  child.stderr.on('data',x=>{lastErr=(lastErr+x.toString()).slice(-3000)});
  const request=async(p,{method='GET',obj=null,headers={}}={})=>{
   const r=await fetch(base+p,{method,headers:{
@@ -109,7 +110,8 @@ try{
  const duplicate=await submit(signal,0.05);
  assert.equal(duplicate.data.receipt.duplicate,true);
  assert.equal((await request('/api/state')).data.state.positions.length,1);
- const sell=await submit(signed('SELL','2',null),0.1);
+ const sellSignal=signed('SELL','2',null);
+ const sell=await submit(sellSignal,0.1);
  assert.equal(sell.status,200,JSON.stringify(sell.data));
  assert.equal(sell.data.receipt.status,'PAPER_FILLED');
  const afterSell=(await request('/api/state')).data.state;
@@ -132,11 +134,30 @@ try{
  const forbidden=await request('/api/trading/live-mode',{method:'POST',
   headers:{origin:base},obj:{enabled:true}});
  assert.equal(forbidden.status,423);
+ // Restart the actual HTTP process with the same disposable persisted ledger.
+ const exited=new Promise(resolve=>child.once('exit',resolve));
+ child.kill('SIGTERM');await exited;
+ child=launch();child.stderr.on('data',x=>{lastErr=(lastErr+x.toString()).slice(-3000)});
+ let restarted=false;
+ for(let i=0;i<100;i++){
+  if(child.exitCode!==null)throw Error('RESTART_FAILED '+lastErr);
+  try{if((await request('/api/health')).status===200){restarted=true;break}}catch{}
+  await new Promise(r=>setTimeout(r,100));
+ }
+ assert(restarted);
+ const replayAfterRestart=await submit(sellSignal,.1);
+ assert.equal(replayAfterRestart.data.receipt.duplicate,true);
+ const restored=(await request('/api/state')).data.state;
+ assert.equal(restored.positions.length,0);
+ assert.equal(restored.cashUsdc,afterSell.cashUsdc);
+ assert.equal(restored.closedPnl,afterSell.closedPnl);
+ assert.equal(restored.agentOrderReceipts.length,2);
  console.log('SIGNED_AGENT_REAL_SERVER_PAPER_ROUNDTRIP_OK',JSON.stringify({
   temporary_publisher:true,direct_real_dots_connected:false,real_money_spent:false,
   signal_count:summary.received,paper_fills:summary.paper_filled,
   buy_receipt:buy.data.receipt.status,sell_receipt:sell.data.receipt.status,
-  paper_closed_pnl:afterSell.closedPnl,live_remains_locked:true}));
+  paper_closed_pnl:afterSell.closedPnl,live_remains_locked:true,
+  restart_replay_protected:true}));
 }catch(e){
  console.error('SIGNED_AGENT_PAPER_E2E_FAIL',e?.stack||e,lastErr);
  process.exitCode=1;

@@ -5,7 +5,7 @@ const round=(x)=>Math.round((x+Number.EPSILON)*1e8)/1e8;
 const time=()=>new Date().toISOString();
 export function freshState(){return {version:3,entriesEnabled:false,automaticPaperBuys:false,centralPaperFollow:false,
  minTrade:50,maxTrade:50,portfolioBudgetUsdc:null,takeProfit:15,stopLoss:10,defaultExitMode:'HOLD',trailingPercent:25,
- cashEur:0,cashUsdc:0,positions:[],candidates:[],history:[],agentOrderReceipts:[],closedPnl:0,
+ cashEur:0,cashUsdc:0,positions:[],candidates:[],history:[],agentOrderReceipts:[],agentSignalReplay:{},closedPnl:0,
  lastScan:null,scanErrors:[],priceUpdatedAt:null,scanRunning:false,lastError:null};}
 export function log(s,title,detail){return [{id:`${Date.now()}-${Math.random().toString(16).slice(2)}`,at:time(),title,detail},...s.history].slice(0,150)};
 const isAmount=x=>Number.isFinite(x)&&x>0&&x<=100000;

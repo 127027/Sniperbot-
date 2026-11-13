@@ -7,6 +7,16 @@ const cents=n=>Math.floor((n+1e-8)*100)/100;
 export const STAGNATION_MIN_HOLD_MS=48*60*60*1000;
 export const STAGNATION_EVIDENCE_WINDOW_MS=24*60*60*1000;
 export const STAGNATION_MIN_SAMPLE_GAP_MS=6*60*60*1000;
+export const INACTIVITY_REVIEW_MS=45*24*60*60*1000;
+
+// A reminder to reassess the investment thesis, never a timed sell order.
+export function inactivityReview({position,now=Date.now()}={}){
+ const opened=Date.parse(position?.openedAt);
+ if(!finite(now)||!Number.isFinite(opened)||opened>now)
+  return {status:'DATA_GAP',actionable:false};
+ return {status:now-opened>=INACTIVITY_REVIEW_MS?'REVIEW_DUE':'HOLD',
+  actionable:false,review_at_utc:new Date(opened+INACTIVITY_REVIEW_MS).toISOString()};
+}
 
 /**
  * Return a NON-EXECUTABLE suggested order amount. pct is allocation of AVAILABLE

@@ -37,11 +37,11 @@ export function runIsolatedPaperAgentSelfTest({deviceId,now=Date.now()}={}){
   cashEur:50,minTrade:50,maxTrade:100,portfolioBudgetUsdc:100});
  const roundTrip=exitPrice=>{
   const buy=applyAgentSignal(createLedger(),message('BUY'),trust,{
-   deviceId,now,quote:quote(0.05,now)});
+   syntheticTest:true,deviceId,now,quote:quote(0.05,now)});
   if(buy.receipt.status!=='PAPER_FILLED'||buy.next.positions.length!==1)
    throw Error('SELFTEST_SIGNED_BUY_NOT_FILLED');
   const sell=applyAgentSignal(buy.next,message('SELL'),trust,{
-   deviceId,now,quote:quote(exitPrice,now)});
+   syntheticTest:true,deviceId,now,quote:quote(exitPrice,now)});
   if(sell.receipt.status!=='PAPER_FILLED'||sell.next.positions.length!==0||
    sell.next.agentOrderReceipts.length!==2)
    throw Error('SELFTEST_SIGNED_SELL_NOT_FILLED');

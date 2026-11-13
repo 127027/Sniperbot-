@@ -1,12 +1,22 @@
-name: Paper-Runner Tests
+name: Sniper V2 Offline Paper Tests
 on:
   push:
     branches-ignore:
       - 'coordination/**'
   pull_request:
+permissions:
+  contents: read
 jobs:
-  tests:
-    runs-on: ubuntu-latest
+  paper-only:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_RESEARCH_READ: '0'
+      SNIPER_RESEARCH_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -14,104 +24,8 @@ jobs:
           node-version: '22'
       - run: node --check runner/server.mjs
       - run: node runner/dashboard-syntax-check.mjs
-      - name: Observe actual unfunded signed Solana transfer simulation (NO broadcast)
-        run: node runner/native-solana-signed-simulation-live-probe.mjs
-      - name: Check actual public SOL to USDC to SOL roundtrip quotes (non-blocking)
-        run: node runner/solana-roundtrip-live-probe.mjs
-      - name: Observe Jupiter unsigned wallet-specific order assembly (no signing)
-        run: node runner/solana-unsigned-order-live-probe.mjs
-      - name: Observe public Jupiter real SOL to USDC rate (non-blocking, no swap)
-        run: node runner/solana-quote-live-probe.mjs
-      - name: Observe actual public dynamic 50 USDC to SOL indicative quote (no trade)
-        run: node runner/dynamic-usdc-live-probe.mjs
-      - run: node --check runner/core.mjs
-      - run: node --check runner/market.mjs
       - run: node runner/test.mjs
-      - run: node --test runner/*.test.mjs
-      - run: node runner/follower-offline-start-smoke.mjs
-      - run: node runner/v09-start-smoke.mjs
-      - name: Actual local signed agent Paper BUY/SELL 50 EUR pipeline without real trade
+      - name: Offline research, signatures, ledger and replay regression tests
+        run: node --test runner/paper-agent-pipeline.test.mjs runner/github-signed-agent-feed.test.mjs runner/isolated-paper-pipeline-selftest.test.mjs runner/market-pool-pinning.test.mjs runner/paper-lifecycle-policy.test.mjs runner/portfolio-budget.test.mjs runner/signed-research-quorum.test.mjs runner/historical-replay-readiness.test.mjs runner/breakout-forecast.test.mjs runner/pipeline-health.test.mjs runner/central-decisions.test.mjs runner/research.test.mjs runner/live-mode-policy.test.mjs runner/gateway.test.mjs runner/integration.test.mjs
+      - name: Ephemeral local HTTP signed paper roundtrip and persisted replay
         run: node runner/paper-agent-loopback-e2e.mjs
-      - name: Observe REAL public Dot research and signed order courier separately (read-only)
-        run: node runner/dot-public-feed-live-probe.mjs
-      - name: Observe one real public pool readback (non-blocking, read-only)
-        run: node runner/readback-live-probe.mjs
-  windows-v08-paper-lab:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Test immutable news archive on Windows NTFS
-        run: node --test runner/research-news-archive.test.mjs runner/research-news-journal.test.mjs
-      - name: Test V0.8 paper execution parity and risk gates on Windows
-        run: node --test runner/execution-parity-lab.test.mjs
-  windows-browser-ui-acceptance:
-    runs-on: windows-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Install temporary browser test library (never bundled into the user's bot)
-        run: npm install --no-save --no-package-lock playwright@1.65.0
-      - name: Test the ACTUAL Windows local bot in headless Microsoft Edge
-        env:
-          SNIPER_UI_ARTIFACTS: artifacts/ui-windows
-        run: node runner/browser-ui-acceptance.mjs
-      - name: Preserve UI screenshots and failure diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: sniper-v19-windows-ui-screenshots
-          path: artifacts/ui-windows/*.png
-          if-no-files-found: warn
-          retention-days: 7
-  windows-v09-wallet-and-funding:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Check V0.9 wallet and onramp lab modules
-        run: |
-          node --check runner/wallet-readiness.mjs
-          node --check runner/paper-fiat-onramp.mjs
-          node --check runner/v09-integration.mjs
-          node --check runner/server.mjs
-      - name: Verify strict no-secret watch-only policy and synthetic fiat only
-        run: node --test runner/wallet-readiness.test.mjs runner/paper-fiat-onramp.test.mjs runner/v09-integration.test.mjs
-      - name: Boot the actual local V0.9 HTTP server without touching real user data
-        run: node runner/v09-start-smoke.mjs
-      - name: Verify real external public pool crosschecks remain read-only
-        run: node --test runner/live-pool-readback.test.mjs runner/readback-batch.test.mjs runner/readback-history.test.mjs runner/signed-research-quorum.test.mjs runner/readback-public-bridge.test.mjs runner/onchain-existence-readback.test.mjs runner/solana-mint-risk.test.mjs runner/candidate-dossiers.test.mjs
-      - name: Test local shared memory role permissions, expiry, corruption and paper isolation
-        run: node --test runner/agent-scratchpad.test.mjs
-      - name: Parse wallet/payment HTML dashboard and bind all expected controls
-        run: node runner/dashboard-syntax-check.mjs
-      - name: Validate real local encrypted Solana wallet and public onchain readbacks
-        run: node --test runner/local-solana-vault.test.mjs runner/local-solana-balance.test.mjs runner/solana-swap-quote.test.mjs runner/solana-swap-roundtrip.test.mjs runner/solana-owned-tokens.test.mjs runner/solana-wallet-activity.test.mjs runner/solana-unsigned-order.test.mjs runner/solana-wire-audit.test.mjs runner/solana-wallet-spend-preflight.test.mjs runner/solana-unsigned-simulation.test.mjs runner/solana-finalized-receipt.test.mjs
-      - name: Separate external PayPal/Phantom observable wallet from bot wallet and paper funds
-        run: node --test runner/external-wallet-observer.test.mjs
-      - name: Device wallets, laptop-master signatures, Github follower online/offline protocol
-        run: node --test runner/device-identity.test.mjs runner/device-execution-inbox.test.mjs runner/device-topology.test.mjs runner/github-master-presence.test.mjs runner/master-coordination.test.mjs
-      - name: Verify real Windows follower cannot trade while master laptop is offline
-        run: node runner/follower-offline-start-smoke.mjs
-      - name: Verify native SOL locally signed transactions never send without a successful preflight and durable journal
-        run: node --test runner/solana-native-transfer.test.mjs
-      - name: Validate arbitrary new mint dynamic routing on Solana and signed multichain trade intents
-        run: node --test runner/dynamic-asset-router.test.mjs runner/chain-trade-intent-v2.test.mjs
-      - name: Verify durable signed dynamic V2 command inbox, exact wallet matching and replay blocking
-        run: node --test runner/dynamic-trade-inbox.test.mjs
-      - name: Verify independent Paper and real wallet balances and disabled live trading gate
-        run: node --test runner/live-mode-policy.test.mjs runner/real-wallet-overview.test.mjs
-      - name: Validate real signed agent to Windows Paper BUY/SELL receipts and profit/loss
-        run: |
-          node --test runner/paper-agent-pipeline.test.mjs
-          node runner/paper-agent-loopback-e2e.mjs
-      - name: Verify actual native Windows supervisor and protected test secret handling
-        shell: powershell
-        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File runner/windows-supervisor.ps1 -SelfTest

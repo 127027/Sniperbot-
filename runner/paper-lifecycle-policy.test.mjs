@@ -1,12 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {freshState} from './core.mjs';
-import {suggestPaperAllocation,assessStagnation} from './paper-lifecycle-policy.mjs';
+import {suggestPaperAllocation,assessStagnation,inactivityReview} from './paper-lifecycle-policy.mjs';
 const h=3600000;
 const t=Date.parse('2026-11-12T08:00:00.000Z');
 function s(){return {...freshState(),cashUsdc:450,minTrade:50,maxTrade:500,
  portfolioBudgetUsdc:500,positions:[{id:'first',amountUsdc:50}]}}
 const opts={liquidityUsd:200000,riskApproved:true,sellRouteVerified:true};
+test('45 days triggers a review, never an automatic sale',()=>{
+ const position={openedAt:new Date(t-45*24*h).toISOString()};
+ assert.equal(inactivityReview({position,now:t-1}).status,'HOLD');
+ assert.deepEqual(inactivityReview({position,now:t}),{
+  status:'REVIEW_DUE',actionable:false,review_at_utc:new Date(t).toISOString()});
+ assert.equal(inactivityReview({position:{openedAt:'bad'},now:t}).status,'DATA_GAP');
+});
 test('50 invested + 450 available => 100% proposal is 450, NOT 500',()=>{
  const r=suggestPaperAllocation({state:s(),percent:100,...opts});
  assert.equal(r.status,'ADVISORY_ONLY');assert.equal(r.amount_test_usdc,450);

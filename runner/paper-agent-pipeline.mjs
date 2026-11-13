@@ -17,7 +17,9 @@ const DEV=/^device_[0-9a-f]{32}$/;
 const ID=/^sig_[0-9a-f]{32}$/;
 const LABEL=/^[a-zA-Z0-9_.-]{3,80}$/;
 const CENTS=/^(?:[1-9][0-9]{0,4})(?:\.[0-9]{1,2})?$/;
-function eqAddress(a,b){return a?.toLowerCase()===b?.toLowerCase()}
+function eqAddress(chain,a,b){
+ try{return validateChainAsset(chain,a)===validateChainAsset(chain,b)}catch{return false}
+}
 export function unsignedAgentSignal(order){
  if(!order||typeof order!=='object')throw Error('AGENT_SIGNAL_REQUIRED');
  const {signature,...data}=order;
@@ -56,33 +58,48 @@ export function verifyAgentSignal(order,keys,{deviceId,now=Date.now()}={}){
  return {token,pool,amount:order.action==='BUY'?Number(order.size_test_usdc):null};
 }
 function validQuote(q,order,now){
- return q&&q.chain===order.chain&&eqAddress(q.tokenAddress,order.token_address)&&
-  (!order.pool_address||eqAddress(q.poolAddress,order.pool_address))&&
-  typeof q.poolAddress==='string'&&typeof q.priceUsd==='number'&&
+ return q&&q.chain===order.chain&&eqAddress(order.chain,q.tokenAddress,order.token_address)&&
+  (!order.pool_address||eqAddress(order.chain,q.poolAddress,order.pool_address))&&
+  eqAddress(order.chain,q.poolAddress,q.poolAddress)&&typeof q.priceUsd==='number'&&
   Number.isFinite(q.priceUsd)&&q.priceUsd>0&&q.priceUsd<1e10&&
   Number.isFinite(q.liquidityUsd)&&q.liquidityUsd>=1000&&
   Number.isFinite(Date.parse(q.asOf))&&Date.parse(q.asOf)<=now&&
   now-Date.parse(q.asOf)<=90000&&
   typeof q.symbol==='string'&&q.symbol.length<=32;
 }
-export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER'}={}){
+export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER',syntheticTest=false}={}){
  if(!['SIGNED_LOCAL_ADAPTER','GITHUB_SIGNED_COURIER'].includes(source))throw Error('INVALID_AGENT_TRANSPORT_SOURCE');
  const verified=verifyAgentSignal(order,keys,{deviceId,now});
  const receipts=state.agentOrderReceipts||[];
  if(!Array.isArray(receipts)||receipts.length>250)throw Error('PAPER_AGENT_RECEIPTS_INVALID');
  const digest=createHash('sha256').update(unsignedAgentSignal(order)).digest('hex');
+ // Durable tombstones are independent of the bounded UI receipt history.
+ // Never evict an accepted ID: the same ID must not buy again after restart.
+ const seen=state.agentSignalReplay===undefined?{}:state.agentSignalReplay;
+ if(!seen||typeof seen!=='object'||Array.isArray(seen)||
+  Object.entries(seen).some(([id,d])=>!ID.test(id)||!/^[a-f0-9]{64}$/.test(d)))
+  throw Error('PAPER_AGENT_REPLAY_INVALID');
  const previous=receipts.find(x=>x.signal_id===order.signal_id);
+ if(Object.hasOwn(seen,order.signal_id)&&seen[order.signal_id]!==digest)
+  throw Error('AGENT_SIGNAL_REPLAY_CONFLICT');
  if(previous){
   if(previous.payload_sha256!==digest)throw Error('AGENT_SIGNAL_REPLAY_CONFLICT');
   return {next:state,receipt:{...previous,duplicate:true}};
  }
+ if(Object.hasOwn(seen,order.signal_id))return {next:state,receipt:{
+  signal_id:order.signal_id,status:'DUPLICATE',duplicate:true,
+  reason:'DURABLE_REPLAY_BLOCKED',real_trade_executed:false}};
+ if(Object.keys(seen).length>=100000)throw Error('PAPER_AGENT_REPLAY_CAPACITY_REACHED');
  let next=state,status='BLOCKED',reason='MARKET_QUOTE_UNAVAILABLE';
  const amount=verified.amount,actionType=order.action;
  let positionId=null,pnl=null;
  if(!state.entriesEnabled&&actionType==='BUY')reason='PAPER_BOT_OFF';
  else if(!validQuote(quote,order,now))reason='MARKET_QUOTE_INVALID_OR_STALE';
+ else if(syntheticTest!==true)reason='INDEPENDENT_EXECUTION_VALIDATOR_UNAVAILABLE';
  else if(actionType==='BUY'){
-  if(!isWithinPortfolioBudget(state,amount))reason='PAPER_BUDGET_OR_FUNDS_INSUFFICIENT';
+  if(state.positions.some(p=>p.chain===order.chain&&
+   eqAddress(order.chain,p.tokenAddress,order.token_address)))reason='POSITION_ALREADY_OPEN_OR_LEDGER_BLOCKED';
+  else if(!isWithinPortfolioBudget(state,amount))reason='PAPER_BUDGET_OR_FUNDS_INSUFFICIENT';
   else{
    const id=order.chain+':'+quote.poolAddress;
    const candidate={
@@ -99,14 +116,14 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
    if(attempted.positions.length>state.positions.length){
     next=attempted;status='PAPER_FILLED';reason='SIGNED_AGENT_BUY_PAPER_ONLY';
     positionId=attempted.positions.find(p=>p.chain===order.chain&&
-     eqAddress(p.tokenAddress,order.token_address))?.id||null;
+     eqAddress(order.chain,p.tokenAddress,order.token_address))?.id||null;
    }else reason='POSITION_ALREADY_OPEN_OR_LEDGER_BLOCKED';
   }
  }
  else{
   const matching=state.positions.filter(p=>p.chain===order.chain&&
-   eqAddress(p.tokenAddress,order.token_address)&&
-   (!order.pool_address||eqAddress(p.poolAddress,order.pool_address)));
+   eqAddress(order.chain,p.tokenAddress,order.token_address)&&
+   (!order.pool_address||eqAddress(order.chain,p.poolAddress,order.pool_address)));
   if(matching.length===0){status='NOOP';reason='NO_MATCHING_PAPER_POSITION'}
   else if(matching.length!==1)reason='AMBIGUOUS_PAPER_POSITION';
   else{
@@ -130,9 +147,13 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   status,reason,quote_price_usd:validQuote(quote,order,now)?quote.priceUsd:null,
   received_at_utc:new Date(now).toISOString(),
   payload_sha256:digest,duplicate:false,
+  synthetic_test:syntheticTest===true,
+  execution_evidence:syntheticTest===true?'SYNTHETIC_FIXTURE':'UNVERIFIED',
   real_trade_executed:false,wallet_debited:false,
   externally_funded:false,live_trading_enabled:false
  };
- next={...next,agentOrderReceipts:[...receipts,receipt].slice(-250)};
+ const migrated=Object.fromEntries(receipts.map(r=>[r.signal_id,r.payload_sha256]));
+ next={...next,agentSignalReplay:{...migrated,...seen,[order.signal_id]:digest},
+  agentOrderReceipts:[...receipts,receipt].slice(-250)};
  return {next,receipt};
 }

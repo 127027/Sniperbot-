@@ -12,6 +12,18 @@ const pairs=[
   priceUsd:'99',liquidity:{usd:10000000},pairAddress:poolFake}
 ];
 const fetcher=async()=>new Response(JSON.stringify(pairs),{status:200});
+
+test('Solana mint and pool addresses are case sensitive, EVM remains case insensitive',async()=>{
+ const mint='So11111111111111111111111111111111111111112';
+ const pool='So11111111111111111111111111111111111111113';
+ const fake=async()=>new Response(JSON.stringify([{chainId:'solana',
+  baseToken:{address:mint},pairAddress:pool,priceUsd:'1',liquidity:{usd:10000}}]));
+ assert.equal(await tokenQuote('solana',mint.toLowerCase(),fake,pool),null);
+ assert.equal(await tokenQuote('solana',mint,fake,pool.toLowerCase()),null);
+ await assert.rejects(lookupToken('solana',mint.toLowerCase(),fake,pool),/Pool/);
+ assert.equal((await tokenQuote('solana',mint,fake,pool)).priceUsd,1);
+ assert.equal((await tokenQuote(chain,addr,fetcher,'0x'+'B'.repeat(40))).priceUsd,2);
+});
 test('independent paper mark uses exact signed pool, not silently switch to more liquid unrelated route',async()=>{
  const largest=await tokenQuote(chain,addr,fetcher);
  assert.equal(largest.priceUsd,1);
