@@ -14,7 +14,7 @@
   "paper_only": true,
   "actionable": false,
   "independent_automation_run_confirmed": false,
-  "provenance": "AUTOMATION_RESEARCH_ATTEMPT_2026-11-12; PARTIAL_DAY_2024-09-10; SOLARCHIVE_PARTITION_ACCESS_BLOCKED; NO_VERIFIED_HISTORICAL_CHAIN_TX; 2026-11-13_SOLARCHIVE_2024_TX_NOT_MARKED_READY; 2026-11-13_ETH_BLOCK_20722063_HEADER_ANCHOR_ONLY; 2026-11-13_FUTURE_DATED_SWAP_EXCLUDED_NO_NEW_DAY_COVERAGE; 2026-11-13_ETH_TWO_ADDITIONAL_HEADER_SPOTCHECKS_NO_RECEIPTS; 2026-11-13_ETH_2024_09_10_TX_INDEXED_TOKEN_PAIR_AND_SWAP_LEAD_RECEIPT_403",
+  "provenance": "AUTOMATION_RESEARCH_ATTEMPT_2026-11-12; PARTIAL_DAY_2024-09-10; SOLARCHIVE_PARTITION_ACCESS_BLOCKED; NO_VERIFIED_HISTORICAL_CHAIN_TX; 2026-11-13_SOLARCHIVE_2024_TX_NOT_MARKED_READY; 2026-11-13_ETH_BLOCK_20722063_HEADER_ANCHOR_ONLY; 2026-11-13_FUTURE_DATED_SWAP_EXCLUDED_NO_NEW_DAY_COVERAGE; 2026-11-13_ETH_TWO_ADDITIONAL_HEADER_SPOTCHECKS_NO_RECEIPTS; 2026-11-13_ETH_2024_09_10_TX_INDEXED_TOKEN_PAIR_AND_SWAP_LEAD_RECEIPT_403; 2026-11-13_INDEPENDENT_CURRENT_POOL_MAPPING_ONLY_HINDSIGHT_BLOCKED",
   "source_checks": [
     {
       "virtual_date_utc": "2024-09-10",
@@ -159,6 +159,12 @@
       "source": "https://eth.blockscout.com/api/v2/transactions/0xcb9c803f1768db0c6a1ffa7a2e5f649bf3fdc03d2369b1dc275634376cb7494d/logs",
       "evidence_class": "DIRECT_ALTERNATIVE_SWAP_LOG_API_ACCESS_BLOCKED_2026_11_13",
       "result": "Attempted specific Blockscout v2 logs endpoint for indexed 2024-09-10 swap; URL not accessible. No original swap log, reserves, token direction, historical quote or executable exit confirmed."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://www.geckoterminal.com/es/eth/pools/0x76a411f14a704099ba476ce8dffc288a53295218",
+      "evidence_class": "INDEPENDENT_CURRENT_POOL_ADDRESS_CROSS_REFERENCE_HINDSIGHT_EXCLUDED",
+      "result": "New second named independent pool index GeckoTerminal identifies Ethereum Uniswap V2 pool 0x76a411f14a704099ba476ce8dffc288a53295218 paired with token 0xf280b16ef293d8e534e370794ef26bf312694126 and WETH. This corroborates address mapping only at retrieval time (2026-11-13), NOT 2024-09-10 original PairCreated receipt, original pool balances, contemporaneous quote or discovery. All current market prices, reserves, safety scores and volume were excluded from simulated 2024 input. Existing Etherscan creation TX 0xfb06820f674a5a0cd821848393b3838fb8c5871554c19fa9e99cb4a4e8a07395 at block 20719570 remains indexed lead, raw logs inaccessible."
     }
   ],
   "early_narratives": [],
@@ -193,11 +199,12 @@
     "2026-11-13 checkpoint: targeted neutral Base/Ethereum pool-creation original-TX search returned only future-dated examples (2025); excluded. No 2024-09-10 original receipts/PairCreated logs found; Solana/BSC not newly verified. No complete-day coverage.",
     "2024-09-10 ETH: first concrete token+pool indexed creation TX found, but direct explorer receipt HTTP 403; full raw logs, historical initial liquidity, holder/deployer links, and contemporaneous sell route UNKNOWN. No completed day scan.",
     "2026-11-13 receipt verification retry: Etherscan 403 for creation and swap TX; Blockscout alternative inaccessible. No newly verified onchain identity, reserves, sell quote or historical coverage. Existing NO_BUY unchanged.",
-    "2026-11-13: Blockscout v2 machine-readable original deployment receipt and swap log endpoints both inaccessible via available web interface; no new historical chain evidence. 2024-09-10 remains PARTIAL_DATA_GAP; no day-complete scan."
+    "2026-11-13: Blockscout v2 machine-readable original deployment receipt and swap log endpoints both inaccessible via available web interface; no new historical chain evidence. 2024-09-10 remains PARTIAL_DATA_GAP; no day-complete scan.",
+    "2026-11-13 independent GeckoTerminal current pool-address cross-reference corroborates mapping only; retrospective current reserves/prices/safety NOT admissible as 2024 evidence. Original PairCreated receipt, block-height reserves and historical exit route still BLOCKED_INPUT_DATA; requires authenticated archive eth_getTransactionReceipt for 0xfb06820f... and 0xcb9c803f..., plus archive eth_call/getStorageAt at block 20719570/20719609."
   ],
   "failure_reasons": [
     "Historical archive API access not authenticated; no authorized paid archival dataset",
     "Search results describe archive products rather than original 2024 transactions; cannot infer identities or prices"
   ],
-  "summary": "TRAINING_ONLY: New 2024-09-10 Ethereum original-transaction indexed lead: block 20719570 at 10:18:23Z created token 0xf280... and pair 0x76a4... (full addresses in token_identities); later same-day indexed swap block 20719609 at 10:26:11Z. Full receipt/log fetch 403, so STRICT raw-ledger validation and initial pool reserve reconstruction pending. Failed unrelated ETH swap at 23:01:11Z documented as negative control without token identity. 0 newly fully covered UTC days, 1 provisional full chain:token:pool identity, 0 strict independently receipt-verified identities, 0 demonstrated executable historical buy/sell quotes. Hypothetical NO_BUY; historical liquidity and sellability UNKNOWN. No live research or bot handoff. Follow-up 2026-11-13: original Ethereum creation/swap receipts re-requested, both HTTP 403; Blockscout alternate TX pages inaccessible. No new verified day or strict candidate; NO_BUY unchanged. Additional Blockscout v2 JSON receipt and swap-log API requests were inaccessible; no new original ledger evidence or verified day, historical liquidity/exit UNKNOWN."
+  "summary": "TRAINING_ONLY: New 2024-09-10 Ethereum original-transaction indexed lead: block 20719570 at 10:18:23Z created token 0xf280... and pair 0x76a4... (full addresses in token_identities); later same-day indexed swap block 20719609 at 10:26:11Z. Full receipt/log fetch 403, so STRICT raw-ledger validation and initial pool reserve reconstruction pending. Failed unrelated ETH swap at 23:01:11Z documented as negative control without token identity. 0 newly fully covered UTC days, 1 provisional full chain:token:pool identity, 0 strict independently receipt-verified identities, 0 demonstrated executable historical buy/sell quotes. Hypothetical NO_BUY; historical liquidity and sellability UNKNOWN. No live research or bot handoff. Follow-up 2026-11-13: original Ethereum creation/swap receipts re-requested, both HTTP 403; Blockscout alternate TX pages inaccessible. No new verified day or strict candidate; NO_BUY unchanged. Additional Blockscout v2 JSON receipt and swap-log API requests were inaccessible; no new original ledger evidence or verified day, historical liquidity/exit UNKNOWN. New independent current GeckoTerminal pool-address cross-reference agrees on token/pool mapping but provides no 2024-as-of liquidity or raw receipt; all contemporary market metrics withheld. No newly fully covered UTC day, no new strict original receipt, NO_BUY unchanged."
 }
