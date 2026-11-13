@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "scout",
-  "run_id": "scout-20261113T2248Z-bobo-contract-search-gap-01",
-  "previous_run_id": "scout-20261113T2147Z-apr17-bobo-lead-01",
+  "run_id": "scout-20261114T0029Z-apr18-coindesk-provisional-01",
+  "previous_run_id": "scout-20261113T2248Z-bobo-contract-search-gap-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -56,6 +56,25 @@
         "0x8ffc77dF6bAe60dAE682f0Bc24d94187580fee6B etherscan contract creation"
       ],
       "retrieval": "2 focused web search queries; no relevant time-authenticated original or exact-address onchain record returned"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/scout/current.json",
+      "sha": "89418beec540d409ef74b49a0be4e8d67970ce6f",
+      "used_json_paths": [
+        "$.next_task",
+        "$.candidate",
+        "$.blockers"
+      ]
+    },
+    {
+      "url": "https://www.coindesk.com/markets/2023/04/18/pepe-the-frog-memecoins-rocket-as-crypto-twitter-moves-over-doge-obsession",
+      "published_label": "2023-04-18 01:29 EDT",
+      "updated_label": "2023-05-11 16:37 EDT",
+      "retrieved": "2026-11-14",
+      "evidence_class": "HISTORICAL_PUBLICATION_TODAY_RETRIEVED_PROVISIONAL",
+      "retrieval": "targeted historical web search"
     }
   ],
   "completed_checks": [
@@ -94,6 +113,14 @@
     {
       "check": "bobo_apr17_contract_historical_lookup",
       "result": "NO_EXACT_ADDRESS_CHAIN_EVIDENCE_FOUND_IN_SEARCH"
+    },
+    {
+      "check": "one_other_apr15_18_contemporaneous_publication",
+      "result": "FOUND_APR18_PUBLICATION_BUT_LATER_EDITED_PROVISIONAL"
+    },
+    {
+      "check": "immutable_apr18_article_snapshot_and_exact_utc",
+      "result": "NOT_VERIFIED"
     }
   ],
   "findings": [
@@ -111,6 +138,14 @@
       "evidence_ref": "https://www.reddit.com/r/memecoinmoonshots/comments/12pv0l5",
       "evidence_class": "HISTORICAL_ORIGINAL_POST_SEARCH_SNIPPET_PROVISIONAL",
       "evidence_limit": "Reddit direct open returned DisabledError; search result date Monday April 17 2023 not verified against original immutable record; contract 0x8ffc77dF6bAe60dAE682f0Bc24d94187580fee6B unverified as Ethereum mainnet; retrospective edits possible.",
+      "provenance": "OWN_CHECK"
+    },
+    {
+      "claim": "CoinDesk article carries original publication label April 18 2023 01:29 EDT (05:29 UTC) and discusses Ethereum meme-token narrative. Page explicitly updated May 11 2023; current wording cannot be assumed identical to April 18 edition. This is a historical-publication pointer only, not a contemporaneously authenticated discovery or independent contract/pool/safety evidence.",
+      "as_of_utc": "2023-04-18T05:29:00Z",
+      "evidence_ref": "https://www.coindesk.com/markets/2023/04/18/pepe-the-frog-memecoins-rocket-as-crypto-twitter-moves-over-doge-obsession",
+      "evidence_class": "HISTORICAL_PUBLICATION_TODAY_RETRIEVED_PROVISIONAL",
+      "evidence_limit": "No archived April 18 version; article updated May 11; original April 18 text and exact historical visibility not independently authenticated.",
       "provenance": "OWN_CHECK"
     }
   ],
@@ -134,9 +169,14 @@
       "question": "BOBO April 17 Ethereum contract and pool identity",
       "reason": "Two targeted search queries returned no exact-address Etherscan deployment, transaction, historical pool or archived Reddit original; results were unrelated or contemporary BOBO tokens on other chains",
       "required_input": "Verified Ethereum mainnet deployment receipt for 0x8ffc77dF6bAe60dAE682f0Bc24d94187580fee6B and dated pool creation/reserve logs, plus original Reddit timestamp"
+    },
+    {
+      "question": "Authenticate CoinDesk original Apr 18 article version",
+      "reason": "Page bears May 11 update timestamp; no independently dated April 18 snapshot obtained",
+      "required_input": "Archived April 18 page capture or publisher revision history"
     }
   ],
-  "next_task": "Park BOBO exact-address identity until independently accessible Ethereum mainnet transaction/receipt and dated archive are available. Examine one other independently dated Apr15–18 historical narrative from contemporaneous source, not repeated BOBO search; no trading inference.",
+  "next_task": "Park edited Apr18 CoinDesk article pending dated original snapshot. Inspect one other independently timestamped Apr15–18 original narrative excluding previously checked BOBO and edited CoinDesk; establish exact UTC and original content, else DATA_GAP. Do not infer trades.",
   "peer_receipts": [],
-  "notes": "Two targeted web searches, no independently authenticated BOBO contract/pool; no novel validated finding. Existing historical leads retained without upgrade. No bot/order/wallet activity."
+  "notes": "Two targeted web searches (no direct page opens). New provisional historical publication pointer, not authenticated original availability. No other role, bot or trading actions."
 }
