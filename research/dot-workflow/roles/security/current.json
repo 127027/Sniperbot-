@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "security",
-  "run_id": "security-20261113-owner-deploy-rpc-blocker-2019",
-  "previous_run_id": "security-20261113-owner-limited-readback-01",
+  "run_id": "security-20261113-contract-source-2033",
+  "previous_run_id": "security-20261113-owner-deploy-rpc-blocker-2019",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -11,7 +11,7 @@
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
-  "status": "BLOCKED",
+  "status": "PARTIAL_VERIFIED",
   "input_refs": [
     {
       "repository": "127027/Sniperbot-",
@@ -34,13 +34,25 @@
         "responses[2].error.code",
         "responses[2].error.message"
       ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/blockscout_contract.json",
+      "json_paths": [
+        "source_code",
+        "verified_at",
+        "is_partially_verified",
+        "is_fully_verified"
+      ]
     }
   ],
   "completed_checks": [
     "2023-04-14 end-of-day sources.owner.result decoded as zero address",
     "2023-04-14 end-of-day sources.limited.result decoded as false",
     "errors=[] and rpc_fallback=true confirmed",
-    "Stored deployment-block owner_deploy RPC request and response inspected; provider returned archive-token error -32602"
+    "Stored deployment-block owner_deploy RPC request and response inspected; provider returned archive-token error -32602",
+    "Stored verified Solidity source examined: blacklist, setRule and _beforeTokenTransfer semantics; verification timestamp assessed"
   ],
   "findings": [
     {
@@ -70,6 +82,13 @@
       "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/initial_rpc_batch.json#responses[2]",
       "evidence_limit": "Provider failure only; no conclusion about historical owner or OwnershipTransferred event chronology.",
       "verification": "OWN_REVIEW_OF_STORED_JSON"
+    },
+    {
+      "claim": "Stored Solidity source shows owner-only blacklist(address,bool) and setRule(bool,address,uint256,uint256). _beforeTokenTransfer rejects blacklisted senders or recipients; when uniswapV2Pair is zero, only transfers involving owner pass; when limited and from equals pair, recipient holding bounds apply. These are theoretical code capabilities, not proven historical storage state.",
+      "as_of_utc": "2023-04-14T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_contract.json#source_code",
+      "evidence_limit": "Source verification timestamp 2023-06-05T22:32:32.393496Z is after historical evaluation window; is_partially_verified=true and is_fully_verified=false; historical runtime bytecode equivalence and contract storage not established.",
+      "verification": "OWN_REVIEW_OF_STORED_JSON"
     }
   ],
   "blockers": [
@@ -82,8 +101,13 @@
       "question": "Blacklist, LP permissions, tax, bytecode at historical entry",
       "status": "UNKNOWN",
       "reason": "No historical entry-state evidence checked"
+    },
+    {
+      "question": "Source availability and historical bytecode identity",
+      "status": "UNKNOWN",
+      "reason": "Blockscout verified_at=2023-06-05T22:32:32.393496Z (after research window), is_partially_verified=true; no historical runtime bytecode comparison in this run."
     }
   ],
-  "next_task": "Obtain bounded OwnershipTransferred token logs from deployment block 17046105 through a specified evaluated entry block using archival event logs (not Publicnode eth_call); decode owner transitions. Keep entry-block cutoff UNKNOWN until defined.",
+  "next_task": "Park OwnershipTransferred until bounded token event logs and evaluated entry block are available. Next independently examine stored pool/token transaction receipts for historical LP control evidence, without interpreting later verified source as contemporaneously public.",
   "peer_receipts": []
 }
