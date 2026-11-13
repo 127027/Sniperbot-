@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "social",
-  "run_id": "seed-20261113-social",
-  "previous_run_id": null,
+  "run_id": "social-20261113T184350Z-process-readback",
+  "previous_run_id": "seed-20261113-social",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -11,18 +11,44 @@
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
-  "status": "ASSIGNED_NOT_EXECUTED",
+  "status": "NO_PROGRESS",
   "input_refs": [
     {
       "repository": "127027/Sniperbot-",
       "ref": "0713332",
       "path": "research/pepe-replay-2023/"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md"
     }
   ],
-  "completed_checks": [],
-  "findings": [],
-  "blockers": [],
-  "next_task": "Übernimm dieselbe Kandidaten-ID. Dokumentiere fehlende historische Interaktionszeitreihen konkret; ZOOMER/BEN sind gesonderte ungeklärte Hinweise, keine PEPE-Evidenz. Kein neuer Forschungsfortschritt ohne echten Quellenabruf oder belegte lokale Auswertung.",
-  "peer_receipts": [],
-  "seeded_by": "master_not_role"
+  "completed_checks": [
+    {
+      "check": "Protocol/current readback",
+      "result": "PASS"
+    },
+    {
+      "check": "Historical social time series",
+      "result": "NOT_PERFORMED"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Process-only run written; no historical social evidence acquired",
+      "as_of_utc": "2026-11-13T18:43:50Z",
+      "evidence_ref": "research/dot-workflow/roles/social/runs/social-20261113T184350Z-process-readback.json",
+      "evidence_limit": "No historical social source retrieval; no trading signal",
+      "origin": "OWN_PROCESS_CHECK"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "MISSING_HISTORICAL_ENGAGEMENT_SNAPSHOTS",
+      "detail": "No authenticated historical interaction snapshots supplied or retrieved"
+    }
+  ],
+  "next_task": "Prüfe Verfügbarkeit authentifizierter historischer Social-Interaktionszeitreihen zur Kandidaten-ID; falls nicht verfügbar Frage parken und andere offene Frage bearbeiten; keine retrospektive Gewinnerkalibrierung.",
+  "peer_receipts": []
 }
