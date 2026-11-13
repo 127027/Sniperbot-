@@ -93,6 +93,18 @@
       "source": "https://etherscan.io/block/20722290",
       "evidence_class": "IMMUTABLE_ETHEREUM_BLOCK_HEADER_ONLY",
       "result": "Independent spot-check: Ethereum block 20722290 timestamp 2024-09-10T19:26:59Z, hash 0xd7ed4d36bbbd331c87ca7ca4f0e5f22eaaaa8430acca9af1f28bcd88e7db5406, 54 transactions reported. No receipt/event log or token/pool identity extracted; not a complete-day scan."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://basescan.org/tx/0x7e2cf77b663661e510726fc404074500ae0dbffe231655029efa1c319164a556",
+      "evidence_class": "FUTURE_BLOCKED_SEARCH_RESULT",
+      "result": "Neutral search for original Base pool-creation receipts returned a transaction timestamped 2025-02-04T08:52:07Z; excluded as later than virtual day D and outside entire 2024 test. No 2024-09-10 Base original receipt obtained."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://basescan.org/tx/0xdd38cb7b88f775e635b7cda947a64934119d5af8c8d77b99468300183a1f5337",
+      "evidence_class": "FUTURE_BLOCKED_SEARCH_RESULT",
+      "result": "Neutral search for Base Uniswap pool factory event returned 2025-08-16T19:23:17Z transaction; excluded from 2024 blind training. No dated 2024-09-10 PoolCreated receipt established."
     }
   ],
   "early_narratives": [],
@@ -107,11 +119,12 @@
     "2026-11-13: Solarchive 2024-09 transaction dataset NOT marked ready by provider coverage matrix; 2024-09 monthly tokens/accounts are NOT transaction-level day D evidence.",
     "2024-09-10 ETH: independent historical block-header anchor recovered (20722063 at 18:41:23Z), but no mint/pool/swap event receipt or historical liquidity reconstructed; Solana/Base/BSC unchanged DATA_GAP.",
     "2026-11-13 follow-up: neutral search found an actual dated Ethereum swap URL for 2024-09-18, excluded as FUTURE_BLOCKED for 2024-09-10; original receipt logs and pair creation were not verified. No new 2024-09-10 chain:mint:pool ID.",
-    "2026-11-13 ETH 2024-09-10: two additional historical block headers independently located, but transaction receipts/logs inaccessible in this check; no PairCreated/Swap/mint confirmed. Solana/Base/BSC no new checks. Day still PARTIAL_DATA_GAP."
+    "2026-11-13 ETH 2024-09-10: two additional historical block headers independently located, but transaction receipts/logs inaccessible in this check; no PairCreated/Swap/mint confirmed. Solana/Base/BSC no new checks. Day still PARTIAL_DATA_GAP.",
+    "2026-11-13 checkpoint: targeted neutral Base/Ethereum pool-creation original-TX search returned only future-dated examples (2025); excluded. No 2024-09-10 original receipts/PairCreated logs found; Solana/BSC not newly verified. No complete-day coverage."
   ],
   "failure_reasons": [
     "Historical archive API access not authenticated; no authorized paid archival dataset",
     "Search results describe archive products rather than original 2024 transactions; cannot infer identities or prices"
   ],
-  "summary": "TRAINING_ONLY checkpoint: 2024-09-10 remains PARTIAL_DATA_GAP. Two additional independently located Ethereum block-header anchors (20720956 at 14:58:47Z; 20722290 at 19:26:59Z) extend point sampling, but no original TX receipts/logs were extracted and no complete chain:mint:pool identity was confirmed. Newly fully covered UTC days 0; spot-researched day 2024-09-10 only. Historical liquidity, sellability, quotes UNKNOWN; hypothetical NO_BUY. All prior day decisions and source checks preserved. No live or bot activity."
+  "summary": "TRAINING_ONLY checkpoint 2026-11-13: neutral original-receipt searches for early Base/Ethereum pool creation produced only 2025-dated results; excluded as FUTURE_BLOCKED. No new valid historical 2024-09-10 mint/pool/swap TX, no complete chain:mint:pool identity, no newly fully covered UTC days. 2024-09-10 remains PARTIAL_DATA_GAP; historical liquidity, sell quotes and sellability UNKNOWN; hypothetical NO_BUY. Prior records preserved; no live research or bot handoff."
 }
