@@ -80,7 +80,9 @@ export function assessBridge({frame,votes={},roleStates={},corpusAudit={},mode='
   missing_persisted_role_states:missingPersistence,
   corpus_reasons:readinessReasons,
   cross_role_validation:combinedValidation,
-  ready_for_controller_advance:validFiveVotes,
+  // The original controller itself refuses BLIND initialization while source/context blockers exist.
+  five_role_votes_valid:validFiveVotes,
+  ready_for_controller_advance:validFiveVotes&&(mode==='DIAGNOSTIC'||blockers.length===0),
   ready_for_blind_evaluation:false,
   status:mode==='BLIND'&&blockers.length?'BLIND_BLOCKED':
     !validFiveVotes?'WAITING_FOR_FIVE_VALID_ROLE_VOTES':'STRUCTURALLY_READY_DIAGNOSTIC_ONLY',
