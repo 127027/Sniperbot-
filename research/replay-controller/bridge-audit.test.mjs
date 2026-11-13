@@ -70,7 +70,8 @@ test('known winner pre-exposure is separately recorded as a blind blocker',()=>{
  s.qa.candidate.selection='KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY';
  const d=assessBridge({frame:f,votes:v,roleStates:s,mode:'BLIND',
   corpusAudit:{readiness:{reasons:['NO_DOCUMENTED_ASOF_COHORT']}}});
- assert.equal(d.ready_for_controller_advance,true);
+ assert.equal(d.five_role_votes_valid,true);
+ assert.equal(d.ready_for_controller_advance,false);
  assert.equal(d.ready_for_blind_evaluation,false);
  assert.equal(d.status,'BLIND_BLOCKED');
  assert.ok(d.blockers.includes('KNOWN_TARGET_IN_CONTEXT:qa'));
