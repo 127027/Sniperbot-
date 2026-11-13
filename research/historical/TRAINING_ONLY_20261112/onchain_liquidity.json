@@ -14,7 +14,7 @@
   "paper_only": true,
   "actionable": false,
   "independent_automation_run_confirmed": false,
-  "provenance": "AUTOMATION_RESEARCH_ATTEMPT_2026-11-12; PARTIAL_DAY_2024-09-10; SOLARCHIVE_PARTITION_ACCESS_BLOCKED; NO_VERIFIED_HISTORICAL_CHAIN_TX; 2026-11-13_SOLARCHIVE_2024_TX_NOT_MARKED_READY",
+  "provenance": "AUTOMATION_RESEARCH_ATTEMPT_2026-11-12; PARTIAL_DAY_2024-09-10; SOLARCHIVE_PARTITION_ACCESS_BLOCKED; NO_VERIFIED_HISTORICAL_CHAIN_TX; 2026-11-13_SOLARCHIVE_2024_TX_NOT_MARKED_READY; 2026-11-13_ETH_BLOCK_20722063_HEADER_ANCHOR_ONLY",
   "source_checks": [
     {
       "virtual_date_utc": "2024-09-10",
@@ -69,6 +69,12 @@
       "source": "https://solarchive.org/search.php",
       "evidence_class": "PROVIDER_COVERAGE_MATRIX_CURRENT_NOT_ASOF",
       "result": "2026-11-13 source readback: Historical Data Readiness table explicitly marks 2024-09 (and 2024-10/11) Accounts and Tokens, but NOT Transactions. Transactions are marked only for 2020-10 through 2022-03 and 2025-11/12 in the displayed matrix. Thus the assumed 2024-09-10 transaction Parquet partition is NOT advertised as published; inaccessible tx index is a COVERAGE_GAP, not merely DNS. Token/account monthly snapshots alone do not establish 2024-09-10 pool creation, swap signatures, intraday liquidity or executable sell quotes. No original TX retrieved."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://etherscan.io/block/20722063",
+      "evidence_class": "IMMUTABLE_ETHEREUM_BLOCK_HEADER_VERIFIED_NO_TOKEN_POOL_TX",
+      "result": "Ethereum mainnet block 20722063, timestamp 2024-09-10T18:41:23Z, block hash 0xe7f01912830be6b54365b36202c3fc05523c058e461ca64b388eaaedc3963188, 116 transactions according to explorer. Verifies historical block and time only; no transaction receipt/log examined to establish mint, PairCreated, Swap or reserves. Single block is not full-day coverage; no candidate identity."
     }
   ],
   "early_narratives": [],
@@ -80,11 +86,12 @@
     "No 2024 original capture or ledger state reconstruction available; no hypothetical executable entry or exit",
     "2024-09-10: independent broad search for archived Solana/Ethereum mint and DEX PairCreated TX yielded no verified original signature/block; Base/BSC original TX scan not completed. Day remains PARTIAL_DATA_GAP.",
     "2024-09-10 Solana: neutral daily archive lead exists but manifest download blocked; 2024-09-10 Base/BSC/Ethereum: no original block or pool transaction verified in this checkpoint. No day-complete coverage.",
-    "2026-11-13: Solarchive 2024-09 transaction dataset NOT marked ready by provider coverage matrix; 2024-09 monthly tokens/accounts are NOT transaction-level day D evidence."
+    "2026-11-13: Solarchive 2024-09 transaction dataset NOT marked ready by provider coverage matrix; 2024-09 monthly tokens/accounts are NOT transaction-level day D evidence.",
+    "2024-09-10 ETH: independent historical block-header anchor recovered (20722063 at 18:41:23Z), but no mint/pool/swap event receipt or historical liquidity reconstructed; Solana/Base/BSC unchanged DATA_GAP."
   ],
   "failure_reasons": [
     "Historical archive API access not authenticated; no authorized paid archival dataset",
     "Search results describe archive products rather than original 2024 transactions; cannot infer identities or prices"
   ],
-  "summary": "2026-11-13 TRAINING_ONLY source-coverage correction for partial virtual day 2024-09-10: Solarchive's publicly read 2026 Historical Data Readiness matrix marks Sep-Nov 2024 Accounts/Tokens but not Transactions. The presumed 2024-09-10 tx partition is not advertised as published; previous failed index requests are therefore not evidence of merely transient access. No original mint/pool/swap TX, slot/block time, historical pool reserves, distinct buyers, or executable buy/sell quotes independently recovered. Newly fully checked UTC days: 0; only 2024-09-10 remains partial DATA_GAP; other 60 days not scanned. Confirmed chain:mint:pool identities: 0. Hypothetical NO_BUY due to insufficient historical execution evidence, not a failed-coin finding. Next: identify genuinely published original block/transaction archive for 2024-09-10 on Solana/Base/BSC/ETH before day progression. No bot handoff."
+  "summary": "2026-11-13 TRAINING_ONLY partial-day checkpoint 2024-09-10: independent immutable Ethereum block header anchor verified at 18:41:23Z (block 20722063, hash 0xe7f01912830be6b54365b36202c3fc05523c058e461ca64b388eaaedc3963188, Etherscan). This is genuine 2024 ledger time anchoring, NOT verified token mint/pool/swap event and NOT a whole-day scan. New fully checked UTC days: 0; partial 2024-09-10 only. Historical pool/mint/swap original TX: 0; complete chain:mint:pool identities: 0; original meme first finds: 0; hypothetical executable buys/exits: 0; false alarms verified: 0 (not proof none occurred). Liquidity, reserves, buyer-wallet clusters, sellability and quotes UNKNOWN. Hypothetical NO_BUY (insufficient execution evidence). Next neutral work: inspect original transaction receipts/logs within dated blocks for factory PairCreated/PoolCreated and initial swaps, with non-survivor cohort; verify 2024 historical states. No bot handoff."
 }
