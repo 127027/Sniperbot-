@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "social",
-  "run_id": "social-20261113T184350Z-process-readback",
-  "previous_run_id": "seed-20261113-social",
+  "run_id": "social-20261113T194240Z-source-access-audit",
+  "previous_run_id": "social-20261113T184350Z-process-readback",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -11,44 +11,77 @@
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
-  "status": "NO_PROGRESS",
+  "status": "STALLED",
   "input_refs": [
     {
       "repository": "127027/Sniperbot-",
-      "ref": "0713332",
-      "path": "research/pepe-replay-2023/"
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md",
+      "json_paths": []
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/dot-workflow/PROTOCOL.md"
+      "path": "research/dot-workflow/roles/social/current.json",
+      "json_paths": [
+        "$.next_task",
+        "$.blockers",
+        "$.run_id"
+      ]
+    },
+    {
+      "url": "https://www.reddit.com/r/Devvit/comments/134tm7a",
+      "as_of_utc": "2023-05-01T00:00:00Z",
+      "note": "Historical dated platform announcement; not a snapshot of candidate engagement"
+    },
+    {
+      "url": "https://www.reddit.com/r/pushshift/comments/13ce04n",
+      "as_of_utc": "2023-05-09T00:00:00Z",
+      "note": "Historical discussion of dump availability, not verified candidate engagement"
+    },
+    {
+      "url": "https://support.archive-it.org/hc/en-us/articles/115001790023-Access-Archive-It-s-Wayback-index-with-the-CDX-C-API",
+      "note": "Archive CDX methodology; retrospective documentation"
     }
   ],
   "completed_checks": [
     {
-      "check": "Protocol/current readback",
+      "check": "Read full PROTOCOL.md and current.json on moving branch",
       "result": "PASS"
     },
     {
-      "check": "Historical social time series",
-      "result": "NOT_PERFORMED"
+      "check": "Targeted historical source-access discovery (2 search queries)",
+      "result": "PASS",
+      "evidence": "Web search results: dated Reddit/Pushshift service notices and archive CDX documentation"
+    },
+    {
+      "check": "Authenticated as-of 2023 candidate interaction time series",
+      "result": "NOT_VERIFIED",
+      "evidence": "No candidate-specific timestamped capture or historical engagement record retrieved"
     }
   ],
   "findings": [
     {
-      "statement": "Process-only run written; no historical social evidence acquired",
-      "as_of_utc": "2026-11-13T18:43:50Z",
-      "evidence_ref": "research/dot-workflow/roles/social/runs/social-20261113T184350Z-process-readback.json",
-      "evidence_limit": "No historical social source retrieval; no trading signal",
-      "origin": "OWN_PROCESS_CHECK"
+      "statement": "A dated 2023-05-01 Reddit notice reports Pushshift API access termination; this constrains archive discovery but does not establish absence of historical snapshots.",
+      "as_of_utc": "2023-05-01T00:00:00Z",
+      "evidence_ref": "https://www.reddit.com/r/Devvit/comments/134tm7a",
+      "evidence_limit": "Platform access announcement, not candidate-level social record; publication date not capture date",
+      "origin": "OWN_SOURCE_ACCESS_CHECK"
+    },
+    {
+      "statement": "Archive CDX indexes expose capture timestamps, but no candidate-specific pre-movement capture was obtained in this run.",
+      "as_of_utc": "2026-11-13T19:42:40Z",
+      "evidence_ref": "https://support.archive-it.org/hc/en-us/articles/115001790023-Access-Archive-It-s-Wayback-index-with-the-CDX-C-API",
+      "evidence_limit": "Methodology only; no authenticated as-of social engagement snapshot",
+      "origin": "OWN_SOURCE_ACCESS_CHECK"
     }
   ],
   "blockers": [
     {
       "code": "MISSING_HISTORICAL_ENGAGEMENT_SNAPSHOTS",
-      "detail": "No authenticated historical interaction snapshots supplied or retrieved"
+      "detail": "Second consecutive run without authenticated candidate-specific 2023 as-of engagement data. Need timestamped original archive capture or authorized historical dataset with recorded_at/capture time and author interactions."
     }
   ],
-  "next_task": "Prüfe Verfügbarkeit authentifizierter historischer Social-Interaktionszeitreihen zur Kandidaten-ID; falls nicht verfügbar Frage parken und andere offene Frage bearbeiten; keine retrospektive Gewinnerkalibrierung.",
+  "next_task": "Park candidate-specific engagement time-series question pending authenticated 2023 as-of snapshots; next independent open question: verify a dated original social post and its actual archive capture timestamp without using winner identity as blind discovery input.",
   "peer_receipts": []
 }
