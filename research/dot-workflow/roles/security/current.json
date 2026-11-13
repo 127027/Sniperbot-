@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "security",
-  "run_id": "security-20261113-frame0-sell-receipt-2306",
-  "previous_run_id": "security-20261113-buy-receipt-lp-scope-2213",
+  "run_id": "security-20261114-runtime-bytecode-scope-0005",
+  "previous_run_id": "security-20261113-frame0-sell-receipt-2306",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -78,6 +78,17 @@
         "result.transactionHash",
         "result.logs[0..6]"
       ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/daily-raw/2023-04-14.json",
+      "json_paths": [
+        "sources.bytecode.result",
+        "block",
+        "sources.owner.result",
+        "sources.limited.result"
+      ]
     }
   ],
   "completed_checks": [
@@ -88,7 +99,8 @@
     "Stored verified Solidity source examined: blacklist, setRule and _beforeTokenTransfer semantics; verification timestamp assessed",
     "Inspected first five logs of stored third-party BUY receipt; distinguishes swap/reserve activity from LP token ownership proof",
     "Frame 0 security decision written and read back: no events, no candidates, no orders",
-    "Stored SELL receipt reviewed: status 0x1, PEPE Transfer seller-to-pool and WETH Transfer pool-to-router"
+    "Stored SELL receipt reviewed: status 0x1, PEPE Transfer seller-to-pool and WETH Transfer pool-to-router",
+    "Read historical day-end sources.bytecode.result and block=17048771; bytecode is present but entry-block equivalence and source matching remain unverified"
   ],
   "findings": [
     {
@@ -146,6 +158,13 @@
       "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/receipt_SELL_PEPE.json#result",
       "evidence_limit": "Stored receipt only, no independent RPC replay; precise timestamp and net seller proceeds not independently established.",
       "verification": "OWN_REVIEW_OF_STORED_JSON"
+    },
+    {
+      "claim": "Stored 2023-04-14 day-end raw record contains nonempty runtime bytecode for PEPE at block 17048771; this is a bounded bytecode observation, not a comparison against verified source or proof of identical code at an earlier entry block.",
+      "as_of_utc": "2023-04-14T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/daily-raw/2023-04-14.json#sources.bytecode.result",
+      "evidence_limit": "Stored RPC response only; source-to-runtime equivalence, exact earlier entry-block bytecode, and independent provider validation remain unverified.",
+      "verification": "OWN_REVIEW_OF_STORED_JSON"
     }
   ],
   "blockers": [
@@ -170,6 +189,6 @@
       "reason": "BUY receipt pool Sync/Transfer events alone do not prove LP holder, lock, burn or withdrawal rights; need historical LP-token Transfer/Mint/Burn events and holder state through evaluated entry block."
     }
   ],
-  "next_task": "Park ownership and LP controls pending entry-block cutoff and historical logs. Inspect historical blacklist/limited storage and runtime bytecode at an evaluated entry block when bounded original evidence becomes available; do not extrapolate from successful SELL receipt.",
+  "next_task": "Compare stored historical runtime bytecode against compiled/source bytecode only with a reproducible compiler and matching metadata; establish exact entry-block cutoff and bounded blacklist/limited/LP state independently. Park ownership logs until entry block and archived logs are available.",
   "peer_receipts": []
 }
