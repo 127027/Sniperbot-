@@ -41,6 +41,12 @@ Am14.04.Tagesende weist der archivierte Pool rund8,388WETH Reserve auf. Owner un
 
 Fehlend bleiben unabhängige historische Contract-/Blacklist-/LP-Freigabe, zeitgerechte Social-Messreihen, vollständiges damaliges Kandidatenuniversum einschließlich Fehlschlägen, verbindliche Einstiegsregel und größenabhängige ausführbare Ein-/Ausstiegsquote. Ohne diese Grundlagen wird weder ein Fill noch eine85%-Prognose erfunden. Der Tageslauf enthält deshalb0Paper-BUY und0Paper-SELL.
 
+## Bestandene Prüfung
+
+62 von62 Tagesendblöcken sind zeitlich geprüft:31 Tage ohne deployten PEPE-Contract und31 Tage mit historischen Poolreserven. Für sämtliche Reservezeilen ist die PEPE/WETH-Tokenreihenfolge validiert. Alle116 Rohdatei-Prüfsummen stimmen mit den gespeicherten Git-Dateien überein. Die beiden ausgewählten historischen Swap-Receipts wurden erfolgreich gegengeprüft.
+
+Die NO_BUY-Zeilen sind ausdrücklich das Ergebnis der übergeordneten fehlenden Freigaben; das Skript enthält keinen trainierten Kaufentscheider. Damit ist die Datenrekonstruktion abgeschlossen, aber keine vollständige Handelsstrategie simuliert oder als erfolgreich bestätigt.
+
 ## Dateien und Grenzen
 
 daily-ledger.csv/json:62 Tageszeilen mit Entscheidung und Begründung. daily-raw/: originale Antworten einschließlich Zugriffslimits und späterer Ersatzabfragen. daily-manifest.json: SHA256-Prüfsummen. validation-result.json: tatsächlich bestandene Offline-Prüfungen und Datenabdeckung. replay.py, repair_days.py, verify_events.py, validate.py: nachvollziehbare read-only Rekonstruktion und Prüfungen; keine Botimporte, Schlüssel oder Orderaufrufe.
