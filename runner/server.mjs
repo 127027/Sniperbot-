@@ -204,7 +204,9 @@ function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_A
    catch(e){console.log('Signed Paper order quote:',String(e?.message||'MARKET_DOWN').slice(0,100))}
   }
   try{
-   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source});
+   const syntheticTest=process.env.SNIPER_OFFLINE==='1'&&
+    process.env.SNIPER_PIPELINE_QA==='1'&&qaQuote!==null;
+   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source,syntheticTest});
    commit(result.next);
    return {ok:true,receipt:result.receipt,real_trade_executed:false,live_trading_enabled:false};
   }catch(e){return {error:String(e?.message||'AGENT_PAPER_PIPELINE_BLOCKED').slice(0,120),code:422}}

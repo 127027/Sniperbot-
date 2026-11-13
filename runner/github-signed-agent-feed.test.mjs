@@ -81,7 +81,7 @@ test('a SIGNED public GitHub courier message reaches the same PAPER BUY/SELL led
     published_at_utc:new Date(moment).toISOString(),signals:[signal]}),
    consume:async cmd=>{
     const applied=applyAgentSignal(state,cmd,keys,{
-     deviceId:device,now:moment+2000,
+     syntheticTest:true,deviceId:device,now:moment+2000,
      source:'GITHUB_SIGNED_COURIER',quote:{
       chain:'solana',tokenAddress:token,poolAddress:pool,priceUsd:price,
       liquidityUsd:100000,symbol:'REMOTE',name:'Remote Signed Paper Coin',
