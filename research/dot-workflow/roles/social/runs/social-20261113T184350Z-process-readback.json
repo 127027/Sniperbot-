@@ -1,0 +1,62 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "social",
+  "run_id": "social-20261113T184350Z-process-readback",
+  "previous_run_id": "seed-20261113-social",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "NO_PROGRESS",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md",
+      "json_paths": []
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/social/current.json",
+      "json_paths": [
+        "$.next_task",
+        "$.candidate.id",
+        "$.status"
+      ]
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "Read current branch protocol and seeded social current.json",
+      "result": "PASS",
+      "evidence": "GitHub fetch_file; current blob bb8b9183f0ea7ec8c8ef272308b1571d739c058f"
+    },
+    {
+      "check": "Historical social engagement time series",
+      "result": "NOT_PERFORMED",
+      "evidence": "No historical social source fetched in this run"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "No independently verified historical interaction time series was obtained in this run; seeded candidate is a handoff diagnostic, not a newly discovered social signal.",
+      "as_of_utc": "2026-11-13T18:43:50Z",
+      "evidence_ref": "research/dot-workflow/roles/social/current.json@bb8b9183f0ea7ec8c8ef272308b1571d739c058f",
+      "evidence_limit": "Process readback only; no new historical source or trading inference",
+      "origin": "OWN_PROCESS_CHECK"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "MISSING_HISTORICAL_ENGAGEMENT_SNAPSHOTS",
+      "detail": "No authenticated 2023 as-of interaction snapshots or independent author propagation records in current inputs; no source retrieval attempted in this run."
+    }
+  ],
+  "next_task": "Prüfe als nächste offene Frage die Verfügbarkeit datierter historischer Social-Interaktionszeitreihen für die Kandidaten-ID, ohne retrospektive Gewinnerdaten als Blindtest-Input zu nutzen; falls keine Originaldaten erreichbar, BLOCKED und Frage parken. ZOOMER/BEN bleiben getrennte ungeklärte Hinweise.",
+  "peer_receipts": []
+}
