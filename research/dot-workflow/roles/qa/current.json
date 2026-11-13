@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261113T1954Z-peer-reconcile-01",
-  "previous_run_id": "qa-20261113T1849Z-peer-readback-01",
+  "run_id": "qa-20261113T2048Z-peer-reconcile-05",
+  "previous_run_id": "qa-20261113T1954Z-peer-reconcile-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -23,7 +23,7 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/qa/current.json",
-      "sha": "3c2727b83c1d1e273f1193e57cba7d7b486a4fc7"
+      "sha": "7eaa68488a5d9f31660f914ee1737d062d0a7630"
     },
     {
       "repository": "127027/Sniperbot-",
@@ -43,7 +43,7 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/social/current.json",
-      "sha": "c6af821777752e7dfc9bc33ad3a3763880e80f19",
+      "sha": "25c4f45b4cf194928bdf09bda294895824b76632",
       "json_paths": [
         "$.run_id",
         "$.candidate.id",
@@ -71,7 +71,7 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/security/current.json",
-      "sha": "7b36231fd7b2e29b3c119d476227015492ce8c5b",
+      "sha": "d01471873950936a188009783f10d00a13bb12ca",
       "json_paths": [
         "$.run_id",
         "$.candidate.id",
@@ -84,44 +84,44 @@
   ],
   "completed_checks": [
     {
-      "check": "protocol_and_prior_qa_current_read",
+      "check": "protocol_and_qa_current_read",
       "result": "PASS"
     },
     {
-      "check": "four_peer_current_read_candidate_id_nonseed",
+      "check": "four_peer_current_read_candidate_match",
       "result": "PASS_4_OF_4"
     },
     {
-      "check": "new_peer_run_ids_not_previously_receipted",
-      "result": "FOUR_NEW_NON_SEED_RUN_IDS"
+      "check": "new_nonseed_peer_receipts",
+      "result": "2 NEW"
     },
     {
-      "check": "historical_original_evidence_independently_revalidated",
-      "result": "NOT_DONE_PROCESS_RECEIPT_ONLY"
+      "check": "independent_historical_source_check",
+      "result": "NOT_PERFORMED_PROCESS_ONLY"
     }
   ],
   "findings": [
     {
-      "statement": "Four peer-owned non-seed current states read on moving branch; all candidate identities match. New peer receipts are process acknowledgements, not independent historical source verification or trade authorization.",
-      "as_of_utc": "2026-11-13T19:54:06Z",
-      "evidence_ref": "research/dot-workflow/roles/{scout,social,onchain,security}/current.json",
-      "evidence_limit": "Only peer current.json examined. Scout pointer retrospective and original X blocked HTTP 403; Social has no authenticated engagement snapshots; Onchain EOD is not intraday proof; Security historical deployment owner RPC failed -32602.",
+      "statement": "Peer current files reconciled; 2 previously unacknowledged non-seed run IDs. This is only process receipt, not historical source verification.",
+      "as_of_utc": "2026-11-13T20:48:10Z",
+      "evidence_ref": "research/dot-workflow/roles/scout/current.json@2a39c108cc87f27a21e1f05540bda2f9ceb10650; research/dot-workflow/roles/social/current.json@25c4f45b4cf194928bdf09bda294895824b76632; research/dot-workflow/roles/onchain/current.json@2b32c2ee11ef07d9603b0f57e5362dfe16f2af56; research/dot-workflow/roles/security/current.json@d01471873950936a188009783f10d00a13bb12ca",
+      "evidence_limit": "Only peer-reported findings reviewed; no independent original historical source access this run.",
       "origin": "OWN_PEER_READBACK"
     }
   ],
   "blockers": [
     {
-      "code": "MISSING_HISTORICAL_ORIGINAL_SOCIAL",
+      "code": "MISSING_AUTHENTICATED_HISTORICAL_SOCIAL",
       "role": "scout/social",
-      "required_input": "Contemporaneous timestamped original capture and engagement evidence; X original returned 403"
+      "required_input": "Timestamped original posts and contemporaneous engagement; Scout original X 403 and Social no authenticated capture"
     },
     {
-      "code": "ENTRY_TIME_SECURITY_AND_EXECUTION_UNKNOWN",
-      "role": "security/onchain",
-      "required_input": "Entry block cutoff, bounded ownership/blacklist/LP proofs and historical quote, liquidity, slippage and sellability; stored Publicnode owner_deploy failed -32602"
+      "code": "ENTRY_BLOCK_SECURITY_EXECUTION_UNKNOWN",
+      "role": "onchain/security",
+      "required_input": "Exact evaluation entry block, historical ownership/blacklist/LP, original quotes, slippage and sellability; stored RPC -32602"
     }
   ],
-  "next_task": "Park inaccessible X original and Publicnode archival owner eth_call. Next verify bounded original ownership transfer logs through a defined historical evaluation block when available; separately require timestamp-authenticated social records before any BUY_REVIEW. No repeated old snapshot retrieval.",
+  "next_task": "Park blocked original X and archive RPC questions. Await new bounded ownership/LP proofs or authenticated social capture; only then assess candidate. Do not repeat prior EOD or source snapshots.",
   "peer_receipts": [
     {
       "role": "scout",
@@ -171,7 +171,21 @@
       "result": "BLOCKED",
       "source_path": "research/dot-workflow/roles/security/current.json",
       "source_blob_sha": "7b36231fd7b2e29b3c119d476227015492ce8c5b"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261113T203804Z-archive-capture-check",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "25c4f45b4cf194928bdf09bda294895824b76632"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261113-contract-source-2033",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "d01471873950936a188009783f10d00a13bb12ca"
     }
   ],
-  "notes": "Peer communication/persistence run only. NO_BUY/UNKNOWN. No blind discovery, no controller evaluation, no orders."
+  "notes": "Communication-only reconciliation; NO_BUY/UNKNOWN. Known winner is not blind discovery; no orders or controller evaluation."
 }
