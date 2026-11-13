@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "scout",
-  "run_id": "scout-20261113T1915Z-tweet-id-lead-01",
-  "previous_run_id": "scout-20261113T1823Z-protocol-readback-01",
+  "run_id": "scout-20261113T2050Z-archive-access-gap-01",
+  "previous_run_id": "scout-20261113T1915Z-tweet-id-lead-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -40,6 +40,17 @@
       "url": "https://twitter.com/pepecoineth/status/1646856584625020928",
       "fetch_error": "HTTP 403 Forbidden",
       "status_id_derived_utc": "2023-04-14T12:43:01.547Z"
+    },
+    {
+      "url": "https://web.archive.org/cdx/search/cdx?url=twitter.com/pepecoineth/status/1646856584625020928",
+      "retrieval": "web.open",
+      "result": "INACCESSIBLE_TOOL_INTERNAL_ERROR",
+      "used_for": "archival capture verification; no archive record returned"
+    },
+    {
+      "url": "https://xarchive.net/",
+      "retrieval": "web.search",
+      "result": "tool description only, no actual snapshot of target status"
     }
   ],
   "completed_checks": [
@@ -58,6 +69,14 @@
     {
       "check": "snowflake_id_timestamp_decode",
       "result": "DERIVED_NOT_AUTHENTICATED"
+    },
+    {
+      "check": "independent_archive_discovery",
+      "result": "NO_TARGET_SNAPSHOT_FOUND_SEARCH_RESULTS"
+    },
+    {
+      "check": "direct_wayback_cdx_query",
+      "result": "BLOCKED_TOOL_INACCESSIBLE"
     }
   ],
   "findings": [
@@ -75,9 +94,14 @@
       "question": "Authenticate April 14 original social post content and public availability at inferred 12:43 UTC",
       "reason": "Direct Twitter URL HTTP 403; no independent April 14 archival snapshot retrieved",
       "required_input": "Original X post accessible via authenticated historical archive, Wayback capture with timestamp, or contemporaneous independent preservation"
+    },
+    {
+      "question": "Independent original April 14 archive capture for status 1646856584625020928",
+      "reason": "Wayback CDX URL inaccessible via web tool (Internal Error); search returned generic archive tools only, no target snapshot",
+      "required_input": "Accessible dated Wayback CDX record/snapshot or independently preserved contemporaneous post"
     }
   ],
-  "next_task": "Seek an independently timestamped archived original of status/1646856584625020928 or contemporaneous April 14 preservation. Do not repeat the blocked X URL without new access. If absent, park this question and check independent April 15–18 contemporaneous original narrative; no trade claim.",
+  "next_task": "Park inaccessible tweet-archive query; examine one independent April 15–18 contemporaneous original narrative with date-stamped preservation, without relying on later retrospective PEPE reporting. No trading claim.",
   "peer_receipts": [],
-  "notes": "Only historical-source research. Derived tweet-ID timestamp is a lead, not evidence of predeployment discovery or buy. No live trading actions."
+  "notes": "Two targeted web searches and one archive URL attempt; no original archived target verified. Prior provisional finding unchanged. No bot/order/wallet action."
 }
