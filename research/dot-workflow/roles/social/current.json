@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "social",
-  "run_id": "social-20261113T203804Z-archive-capture-check",
-  "previous_run_id": "social-20261113T194240Z-source-access-audit",
+  "run_id": "social-20261113T214132Z-cdx-endpoint-blocked",
+  "previous_run_id": "social-20261113T203804Z-archive-capture-check",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -24,54 +24,59 @@
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/social/current.json",
       "json_paths": [
-        "$.next_task",
         "$.run_id",
+        "$.next_task",
         "$.blockers"
       ]
     },
     {
-      "url": "https://xarchive.net/reddit-archive-search",
-      "note": "2026 retrieval of archive-search methodology, not 2023 as-of capture"
+      "url": "https://web.archive.org/cdx/search/cdx?url=old.reddit.com%2Fr%2Fethtrader%2Fcomments%2F11x442c%2F%26output=json%26from=2023%26to=2023",
+      "note": "Attempted direct archive query; tool returned URL inaccessible; no CDX records obtained"
     },
     {
-      "url": "https://www.reddit.com/r/ethtrader/comments/11x442c",
-      "note": "Previously mentioned dated platform post; no archive capture verified in this run"
+      "url": "https://xarchive.net/archive-reddit",
+      "note": "Search result describing CDX methodology, 2026 view, not historical capture"
     }
   ],
   "completed_checks": [
     {
-      "check": "Read full moving-branch PROTOCOL.md and social/current.json",
+      "check": "Read full PROTOCOL.md and current.json from moving branch",
       "result": "PASS"
     },
     {
-      "check": "Targeted search for verifiable archive capture of historical Reddit thread (one web search query)",
-      "result": "PARTIAL",
-      "evidence": "Search returned archive search methodology, not an authenticated timestamped capture for the selected original post"
+      "check": "Targeted archive index discovery query",
+      "result": "NO_HISTORICAL_CAPTURE",
+      "evidence": "Web search returned methodology only"
     },
     {
-      "check": "Verify as-of 2023 capture timestamp and original post body",
+      "check": "Direct archive CDX endpoint request",
+      "result": "BLOCKED",
+      "evidence": "web open returned Internal Error: URL not accessible via this tool"
+    },
+    {
+      "check": "Verify original 2023 archived post body and timestamp",
       "result": "NOT_VERIFIED"
     }
   ],
   "findings": [
     {
-      "statement": "A direct-URL archive lookup workflow is described, but no dated 2023 archive capture for the example Reddit post was returned or verified; therefore no new social signal is established.",
-      "as_of_utc": "2026-11-13T20:38:04Z",
-      "evidence_ref": "https://xarchive.net/reddit-archive-search",
-      "evidence_limit": "Retrospective archive-search guidance, not a 2023 archived original; no historic engagement, author independence, token or pool identity verified",
-      "origin": "OWN_ARCHIVE_ACCESS_CHECK"
+      "statement": "No authenticated 2023 CDX capture and matching archived post body was obtained; no independent social candidate was established.",
+      "as_of_utc": "2026-11-13T21:41:32Z",
+      "evidence_ref": "https://web.archive.org/cdx/search/cdx?url=old.reddit.com%2Fr%2Fethtrader%2Fcomments%2F11x442c%2F",
+      "evidence_limit": "CDX request inaccessible; methodology pages do not prove historical capture, author, engagement or pool identity",
+      "origin": "OWN_ACCESS_CHECK"
     }
   ],
   "blockers": [
     {
       "code": "MISSING_AS_OF_CAPTURE",
-      "detail": "Need an actual CDX record with 14-digit capture timestamp and retrievable archived original post body dated no later than the evaluated movement. Search results exposed methodology only."
+      "detail": "Direct Wayback CDX request inaccessible in web tool; no timestamped 2023 capture plus retrievable original body."
     },
     {
       "code": "MISSING_HISTORICAL_ENGAGEMENT_SNAPSHOTS",
-      "detail": "Parked from previous run; no candidate-specific authenticated 2023 interaction time series."
+      "detail": "Parked from previous runs; no authenticated 2023 snapshots."
     }
   ],
-  "next_task": "Obtain and validate one actual timestamped 2023 CDX capture plus archived original post body for an independently selected historical social post; if unavailable park and pursue another open evidence question. Do not use known-winner identity as blind discovery input.",
+  "next_task": "Park inaccessible direct CDX endpoint; independently test alternative archived-source provider for a dated original and its as-of capture, then require matching original body. Do not reuse methodology-only pages as proof.",
   "peer_receipts": []
 }
