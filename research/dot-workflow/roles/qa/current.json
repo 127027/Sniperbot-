@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261113T1849Z-peer-readback-01",
-  "previous_run_id": "seed-20261113-qa",
+  "run_id": "qa-20261113T1954Z-peer-reconcile-01",
+  "previous_run_id": "qa-20261113T1849Z-peer-readback-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -11,7 +11,7 @@
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
-  "status": "BLOCKED_WAITING_FOR_PEERS",
+  "status": "NO_PROGRESS",
   "input_refs": [
     {
       "repository": "127027/Sniperbot-",
@@ -22,68 +22,106 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/qa/current.json",
+      "sha": "3c2727b83c1d1e273f1193e57cba7d7b486a4fc7"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/scout/current.json",
-      "sha": "1900993a3fa2717cb24dfb4b458a065409c91064"
+      "sha": "2a39c108cc87f27a21e1f05540bda2f9ceb10650",
+      "json_paths": [
+        "$.run_id",
+        "$.candidate.id",
+        "$.status",
+        "$.findings",
+        "$.blockers",
+        "$.next_task"
+      ]
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/social/current.json",
-      "sha": "186b2eb25006996130b6e61388aadb23f88af08e"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/dot-workflow/roles/security/current.json",
-      "sha": "ee9aef23bf26c80d2358fbd8ea852d04870a6d60"
+      "sha": "c6af821777752e7dfc9bc33ad3a3763880e80f19",
+      "json_paths": [
+        "$.run_id",
+        "$.candidate.id",
+        "$.status",
+        "$.findings",
+        "$.blockers",
+        "$.next_task"
+      ]
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/onchain/current.json",
-      "sha": "0982e6cb6bf8e19bfbb73a48976756d6bb374296"
+      "sha": "2b32c2ee11ef07d9603b0f57e5362dfe16f2af56",
+      "json_paths": [
+        "$.run_id",
+        "$.candidate.id",
+        "$.status",
+        "$.findings",
+        "$.blockers",
+        "$.next_task"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/security/current.json",
+      "sha": "7b36231fd7b2e29b3c119d476227015492ce8c5b",
+      "json_paths": [
+        "$.run_id",
+        "$.candidate.id",
+        "$.status",
+        "$.findings",
+        "$.blockers",
+        "$.next_task"
+      ]
     }
   ],
   "completed_checks": [
     {
-      "check": "protocol_read",
+      "check": "protocol_and_prior_qa_current_read",
       "result": "PASS"
     },
     {
-      "check": "peer_current_read",
+      "check": "four_peer_current_read_candidate_id_nonseed",
       "result": "PASS_4_OF_4"
     },
     {
-      "check": "non_seed_peer_receipts",
-      "result": "3_CONFIRMED_1_SEED_NOT_RECEIVED"
+      "check": "new_peer_run_ids_not_previously_receipted",
+      "result": "FOUR_NEW_NON_SEED_RUN_IDS"
     },
     {
-      "check": "candidate_id_and_training_mode",
-      "result": "PASS_ALL_4"
+      "check": "historical_original_evidence_independently_revalidated",
+      "result": "NOT_DONE_PROCESS_RECEIPT_ONLY"
     }
   ],
   "findings": [
     {
-      "statement": "Three peer-owned non-seed current.json runs verified; scout and social are process-only NO_PROGRESS; security reports historical day-end owner/limited checks but no entry-time clearance.",
-      "as_of_utc": "2026-11-13T18:49:20Z",
-      "evidence_ref": "research/dot-workflow/roles/{scout,social,security}/current.json",
-      "evidence_limit": "Peer current.json readback only; underlying historical original-source evidence not independently revalidated in this process test",
+      "statement": "Four peer-owned non-seed current states read on moving branch; all candidate identities match. New peer receipts are process acknowledgements, not independent historical source verification or trade authorization.",
+      "as_of_utc": "2026-11-13T19:54:06Z",
+      "evidence_ref": "research/dot-workflow/roles/{scout,social,onchain,security}/current.json",
+      "evidence_limit": "Only peer current.json examined. Scout pointer retrospective and original X blocked HTTP 403; Social has no authenticated engagement snapshots; Onchain EOD is not intraday proof; Security historical deployment owner RPC failed -32602.",
       "origin": "OWN_PEER_READBACK"
     }
   ],
   "blockers": [
     {
-      "code": "WAITING_FOR_ONCHAIN_NON_SEED_RUN",
-      "role": "onchain",
-      "observed_run_id": "seed-20261113-onchain",
-      "required_input": "Peer-owned new run and updated current.json; seed is not receipt"
+      "code": "MISSING_HISTORICAL_ORIGINAL_SOCIAL",
+      "role": "scout/social",
+      "required_input": "Contemporaneous timestamped original capture and engagement evidence; X original returned 403"
     },
     {
-      "code": "NO_ACTIONABLE_RESEARCH_EVIDENCE",
-      "reason": "Scout and Social process tests have no original social evidence; Security has no historical entry-time safety clearance"
+      "code": "ENTRY_TIME_SECURITY_AND_EXECUTION_UNKNOWN",
+      "role": "security/onchain",
+      "required_input": "Entry block cutoff, bounded ownership/blacklist/LP proofs and historical quote, liquidity, slippage and sellability; stored Publicnode owner_deploy failed -32602"
     }
   ],
-  "next_task": "Read onchain non-seed current.json when written, verify its run_id and candidate id, append peer receipt in a new immutable QA run; then reconcile evidence gaps without repeating old snapshots.",
+  "next_task": "Park inaccessible X original and Publicnode archival owner eth_call. Next verify bounded original ownership transfer logs through a defined historical evaluation block when available; separately require timestamp-authenticated social records before any BUY_REVIEW. No repeated old snapshot retrieval.",
   "peer_receipts": [
     {
       "role": "scout",
@@ -105,7 +143,35 @@
       "result": "PARTIAL_VERIFIED",
       "source_path": "research/dot-workflow/roles/security/current.json",
       "source_blob_sha": "ee9aef23bf26c80d2358fbd8ea852d04870a6d60"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261113T1915Z-tweet-id-lead-01",
+      "result": "DATA_GAP",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "2a39c108cc87f27a21e1f05540bda2f9ceb10650"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261113T194240Z-source-access-audit",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "c6af821777752e7dfc9bc33ad3a3763880e80f19"
+    },
+    {
+      "role": "onchain",
+      "run_id": "onchain-20261113T1823Z-protocol-readback-01",
+      "result": "NO_PROGRESS",
+      "source_path": "research/dot-workflow/roles/onchain/current.json",
+      "source_blob_sha": "2b32c2ee11ef07d9603b0f57e5362dfe16f2af56"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261113-owner-deploy-rpc-blocker-2019",
+      "result": "BLOCKED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "7b36231fd7b2e29b3c119d476227015492ce8c5b"
     }
   ],
-  "notes": "Protocol persistence and handoff test only. No bot, orders, wallets, live research or trades."
+  "notes": "Peer communication/persistence run only. NO_BUY/UNKNOWN. No blind discovery, no controller evaluation, no orders."
 }
