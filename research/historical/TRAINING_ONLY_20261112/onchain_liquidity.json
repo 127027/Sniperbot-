@@ -14,7 +14,7 @@
   "paper_only": true,
   "actionable": false,
   "independent_automation_run_confirmed": false,
-  "provenance": "AUTOMATION_RESEARCH_ATTEMPT_2026-11-12; PARTIAL_DAY_2024-09-10; SOLARCHIVE_PARTITION_ACCESS_BLOCKED; NO_VERIFIED_HISTORICAL_CHAIN_TX; 2026-11-13_SOLARCHIVE_2024_TX_NOT_MARKED_READY; 2026-11-13_ETH_BLOCK_20722063_HEADER_ANCHOR_ONLY; 2026-11-13_FUTURE_DATED_SWAP_EXCLUDED_NO_NEW_DAY_COVERAGE",
+  "provenance": "AUTOMATION_RESEARCH_ATTEMPT_2026-11-12; PARTIAL_DAY_2024-09-10; SOLARCHIVE_PARTITION_ACCESS_BLOCKED; NO_VERIFIED_HISTORICAL_CHAIN_TX; 2026-11-13_SOLARCHIVE_2024_TX_NOT_MARKED_READY; 2026-11-13_ETH_BLOCK_20722063_HEADER_ANCHOR_ONLY; 2026-11-13_FUTURE_DATED_SWAP_EXCLUDED_NO_NEW_DAY_COVERAGE; 2026-11-13_ETH_TWO_ADDITIONAL_HEADER_SPOTCHECKS_NO_RECEIPTS",
   "source_checks": [
     {
       "virtual_date_utc": "2024-09-10",
@@ -81,6 +81,18 @@
       "source": "https://blockscan.com/tx/0x49e50674747fcd507b973b7d55f4652b10b3db7fd7f29744b7f72e122a252fa6",
       "evidence_class": "FUTURE_BLOCKED_TRANSACTION_NOT_DAY_D",
       "result": "Neutral historical EVM transaction search surfaced an Ethereum swap explicitly timestamped 2024-09-18T07:24:00Z, AFTER simulated day 2024-09-10. Excluded from day-D input. It does not independently establish a newly created mint/pool, original pool state, or 2024-09-10 trade. Not a verified candidate, not a day scan."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://etherscan.io/block/20720956",
+      "evidence_class": "IMMUTABLE_ETHEREUM_BLOCK_HEADER_ONLY",
+      "result": "Independent spot-check: Ethereum block 20720956 timestamp 2024-09-10T14:58:47Z, hash 0x80f6ae4d257d33ba17a9517ddf535036b7d82b730da7b157155a82633dd38fd0, 137 transactions reported. No receipt/event log or token/pool identity extracted; not a complete-day scan."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://etherscan.io/block/20722290",
+      "evidence_class": "IMMUTABLE_ETHEREUM_BLOCK_HEADER_ONLY",
+      "result": "Independent spot-check: Ethereum block 20722290 timestamp 2024-09-10T19:26:59Z, hash 0xd7ed4d36bbbd331c87ca7ca4f0e5f22eaaaa8430acca9af1f28bcd88e7db5406, 54 transactions reported. No receipt/event log or token/pool identity extracted; not a complete-day scan."
     }
   ],
   "early_narratives": [],
@@ -94,11 +106,12 @@
     "2024-09-10 Solana: neutral daily archive lead exists but manifest download blocked; 2024-09-10 Base/BSC/Ethereum: no original block or pool transaction verified in this checkpoint. No day-complete coverage.",
     "2026-11-13: Solarchive 2024-09 transaction dataset NOT marked ready by provider coverage matrix; 2024-09 monthly tokens/accounts are NOT transaction-level day D evidence.",
     "2024-09-10 ETH: independent historical block-header anchor recovered (20722063 at 18:41:23Z), but no mint/pool/swap event receipt or historical liquidity reconstructed; Solana/Base/BSC unchanged DATA_GAP.",
-    "2026-11-13 follow-up: neutral search found an actual dated Ethereum swap URL for 2024-09-18, excluded as FUTURE_BLOCKED for 2024-09-10; original receipt logs and pair creation were not verified. No new 2024-09-10 chain:mint:pool ID."
+    "2026-11-13 follow-up: neutral search found an actual dated Ethereum swap URL for 2024-09-18, excluded as FUTURE_BLOCKED for 2024-09-10; original receipt logs and pair creation were not verified. No new 2024-09-10 chain:mint:pool ID.",
+    "2026-11-13 ETH 2024-09-10: two additional historical block headers independently located, but transaction receipts/logs inaccessible in this check; no PairCreated/Swap/mint confirmed. Solana/Base/BSC no new checks. Day still PARTIAL_DATA_GAP."
   ],
   "failure_reasons": [
     "Historical archive API access not authenticated; no authorized paid archival dataset",
     "Search results describe archive products rather than original 2024 transactions; cannot infer identities or prices"
   ],
-  "summary": "TRAINING_ONLY checkpoint: earliest unresolved virtual day 2024-09-10 remains PARTIAL_DATA_GAP. New neutral historical search yielded one dated Ethereum swap URL for 2024-09-18, excluded from 2024-09-10 inputs under no-lookahead. Newly verified historical original Mint/Pool/Swap TX with complete chain:mint:pool: 0. Newly fully covered UTC days: 0; newly partially researched UTC days: 0 (continued spot check on 2024-09-10 only). Historic liquidity, original pool reserves, unique buyers, LP changes, execution quotes and sellability UNKNOWN. Hypothetical NO_BUY. Existing immutable block header anchor and all prior entries retained; no trade, bot handoff or live research."
+  "summary": "TRAINING_ONLY checkpoint: 2024-09-10 remains PARTIAL_DATA_GAP. Two additional independently located Ethereum block-header anchors (20720956 at 14:58:47Z; 20722290 at 19:26:59Z) extend point sampling, but no original TX receipts/logs were extracted and no complete chain:mint:pool identity was confirmed. Newly fully covered UTC days 0; spot-researched day 2024-09-10 only. Historical liquidity, sellability, quotes UNKNOWN; hypothetical NO_BUY. All prior day decisions and source checks preserved. No live or bot activity."
 }
