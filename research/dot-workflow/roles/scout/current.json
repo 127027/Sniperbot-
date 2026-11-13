@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "scout",
-  "run_id": "scout-20261113T2147Z-apr17-bobo-lead-01",
-  "previous_run_id": "scout-20261113T2050Z-archive-access-gap-01",
+  "run_id": "scout-20261113T2248Z-bobo-contract-search-gap-01",
+  "previous_run_id": "scout-20261113T2147Z-apr17-bobo-lead-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -21,12 +21,6 @@
     },
     {
       "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/dot-workflow/roles/scout/current.json",
-      "sha": "8d8a03da9c338d120928ad0a1373d8805648072d"
-    },
-    {
-      "repository": "127027/Sniperbot-",
       "ref": "0713332",
       "path": "research/pepe-replay-2023/",
       "usage": "immutable historical reference, not accessed this run"
@@ -40,6 +34,28 @@
       "url": "https://www.reddit.com/r/TokenFinders/comments/12pukvg",
       "retrieval": "web.search result dated Monday April 17 2023; similar BOBO narrative, independent authorship unknown",
       "evidence_class": "PROVISIONAL"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/scout/current.json",
+      "sha": "b060092748f8092f0e05047a77ad6080bc227306",
+      "used_json_paths": [
+        "$.next_task",
+        "$.candidate",
+        "$.blockers"
+      ]
+    },
+    {
+      "url": "https://www.reddit.com/r/memecoinmoonshots/comments/12pv0l5",
+      "evidence_class": "PRIOR_PROVISIONAL_LEAD_NOT_RETRIEVED_THIS_RUN"
+    },
+    {
+      "search_queries": [
+        "reddit 12pv0l5 BOBO contract 0x8ffc77dF6bAe60dAE682f0Bc24d94187580fee6B April 17 2023",
+        "0x8ffc77dF6bAe60dAE682f0Bc24d94187580fee6B etherscan contract creation"
+      ],
+      "retrieval": "2 focused web search queries; no relevant time-authenticated original or exact-address onchain record returned"
     }
   ],
   "completed_checks": [
@@ -74,6 +90,10 @@
     {
       "check": "direct_original_reddit_open",
       "result": "BLOCKED_DISABLED_ERROR"
+    },
+    {
+      "check": "bobo_apr17_contract_historical_lookup",
+      "result": "NO_EXACT_ADDRESS_CHAIN_EVIDENCE_FOUND_IN_SEARCH"
     }
   ],
   "findings": [
@@ -109,9 +129,14 @@
       "question": "Authenticate April 17 BOBO Reddit narrative as-of UTC and confirm chain/pool tradability",
       "reason": "Reddit direct source fetch DisabledError; search snippet alone cannot establish immutable original timestamp or chain evidence",
       "required_input": "Archived original Reddit post with UTC timestamp, verified Ethereum contract deployment and pool transactions at cutoff"
+    },
+    {
+      "question": "BOBO April 17 Ethereum contract and pool identity",
+      "reason": "Two targeted search queries returned no exact-address Etherscan deployment, transaction, historical pool or archived Reddit original; results were unrelated or contemporary BOBO tokens on other chains",
+      "required_input": "Verified Ethereum mainnet deployment receipt for 0x8ffc77dF6bAe60dAE682f0Bc24d94187580fee6B and dated pool creation/reserve logs, plus original Reddit timestamp"
     }
   ],
-  "next_task": "Park inaccessible Reddit original; independently validate dated April 17 BOBO post/contract as historical alternative via archival snapshot or onchain deployment/pool logs, without assuming it was tradeable. If unavailable move to another Apr15–18 dated original narrative.",
+  "next_task": "Park BOBO exact-address identity until independently accessible Ethereum mainnet transaction/receipt and dated archive are available. Examine one other independently dated Apr15–18 historical narrative from contemporaneous source, not repeated BOBO search; no trading inference.",
   "peer_receipts": [],
-  "notes": "3 targeted web search queries in one batch, 1 direct Reddit open returned DisabledError; zero authenticated original posts, no orders, known-winner diagnostic unchanged."
+  "notes": "Two targeted web searches, no independently authenticated BOBO contract/pool; no novel validated finding. Existing historical leads retained without upgrade. No bot/order/wallet activity."
 }
