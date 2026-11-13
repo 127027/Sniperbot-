@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "scout",
-  "run_id": "scout-20261113T1823Z-protocol-readback-01",
-  "previous_run_id": "seed-20261113-scout",
+  "run_id": "scout-20261113T1915Z-tweet-id-lead-01",
+  "previous_run_id": "scout-20261113T1823Z-protocol-readback-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -11,7 +11,7 @@
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
-  "status": "NO_PROGRESS",
+  "status": "DATA_GAP",
   "input_refs": [
     {
       "repository": "127027/Sniperbot-",
@@ -23,38 +23,61 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/scout/current.json",
-      "sha": "56ae199924ca6ed0edda8acffa6a0f9e0da89acf"
+      "sha": "1900993a3fa2717cb24dfb4b458a065409c91064"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "0713332",
       "path": "research/pepe-replay-2023/",
-      "usage": "unmodified raw-data reference"
+      "usage": "historical raw-data reference only, not read this run"
+    },
+    {
+      "url": "https://cointelegraph.com/news/memecoin-mania-social-relevance-speculation-drives-pepe-surge",
+      "published_date": "2023-05-05",
+      "retrieved_as": "historical publication today retrieved; not April 14 archive"
+    },
+    {
+      "url": "https://twitter.com/pepecoineth/status/1646856584625020928",
+      "fetch_error": "HTTP 403 Forbidden",
+      "status_id_derived_utc": "2023-04-14T12:43:01.547Z"
     }
   ],
   "completed_checks": [
     {
-      "check": "protocol_and_current_read",
+      "check": "current_protocol_read",
       "result": "PASS"
     },
     {
-      "check": "candidate_selection",
-      "result": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY"
+      "check": "focused_original_post_pointer_search",
+      "result": "FOUND_RETROSPECTIVE_EMBED"
     },
     {
-      "check": "earliest_public_report_2023-04-14_to_2023-04-18",
-      "result": "NOT_EXECUTED_NO_NEW_SOURCE_RETRIEVAL"
+      "check": "direct_original_post_read",
+      "result": "BLOCKED_HTTP_403"
+    },
+    {
+      "check": "snowflake_id_timestamp_decode",
+      "result": "DERIVED_NOT_AUTHENTICATED"
     }
   ],
-  "findings": [],
+  "findings": [
+    {
+      "claim": "Cointelegraph article dated 2023-05-05 embeds a purported @pepecoineth tweet dated 2023-04-14; linked status ID 1646856584625020928 decodes under Twitter Snowflake convention to 2023-04-14T12:43:01.547Z. This is a retrospective embedded pointer, NOT authenticated original post availability or content at that time; direct original X fetch returned HTTP 403.",
+      "as_of_utc": "2023-04-14T12:43:01.547Z",
+      "evidence_ref": "https://cointelegraph.com/news/memecoin-mania-social-relevance-speculation-drives-pepe-surge (May 5 article); https://twitter.com/pepecoineth/status/1646856584625020928 (403)",
+      "evidence_class": "RETROSPECTIVE_EMBEDDED_POINTER_PROVISIONAL",
+      "evidence_limit": "Twitter Snowflake time is derived from linked ID, not independent archival verification; post text, edits, public accessibility, and association with contract at time not verified.",
+      "provenance": "OWN_CHECK"
+    }
+  ],
   "blockers": [
     {
-      "question": "earliest time-authenticated original public report between 2023-04-14 and 2023-04-18",
-      "reason": "No original social archive or source retrieval performed in this minimal write/readback test; no timestamp claim possible",
-      "required_input": "time-authenticated original post or archived historical publication"
+      "question": "Authenticate April 14 original social post content and public availability at inferred 12:43 UTC",
+      "reason": "Direct Twitter URL HTTP 403; no independent April 14 archival snapshot retrieved",
+      "required_input": "Original X post accessible via authenticated historical archive, Wayback capture with timestamp, or contemporaneous independent preservation"
     }
   ],
-  "next_task": "Prüfe genau eine noch offene Frage: früheste belastbare öffentliche PEPE-Meldung 14.04.–18.04.2023 mit Originaltext, Veröffentlichungs-UTC und Archivbeleg getrennt; ohne Beleg DATA_GAP, keine Wiederholung alter Tagesendstände.",
+  "next_task": "Seek an independently timestamped archived original of status/1646856584625020928 or contemporaneous April 14 preservation. Do not repeat the blocked X URL without new access. If absent, park this question and check independent April 15–18 contemporaneous original narrative; no trade claim.",
   "peer_receipts": [],
-  "notes": "Minimal persistence/peer-handoff test only; not discovery, not research advancement; no bot/order/wallet actions."
+  "notes": "Only historical-source research. Derived tweet-ID timestamp is a lead, not evidence of predeployment discovery or buy. No live trading actions."
 }
