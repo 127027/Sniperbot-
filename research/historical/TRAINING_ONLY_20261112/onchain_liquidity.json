@@ -1,0 +1,217 @@
+{
+  "schema": "sniper_dots_training_only.v1",
+  "role": "onchain_liquidity",
+  "mode": "TRAINING_ONLY",
+  "state": "PENDING",
+  "period": {
+    "start_utc": "2024-09-10T00:00:00Z",
+    "end_utc": "2024-11-09T23:59:59Z",
+    "virtual_days": 61
+  },
+  "bot_handoff": "PAUSED",
+  "orders_sent": 0,
+  "trade_execution": false,
+  "paper_only": true,
+  "actionable": false,
+  "independent_automation_run_confirmed": false,
+  "provenance": "AUTOMATION_RESEARCH_ATTEMPT_2026-11-12; PARTIAL_DAY_2024-09-10; SOLARCHIVE_PARTITION_ACCESS_BLOCKED; NO_VERIFIED_HISTORICAL_CHAIN_TX; 2026-11-13_SOLARCHIVE_2024_TX_NOT_MARKED_READY; 2026-11-13_ETH_BLOCK_20722063_HEADER_ANCHOR_ONLY; 2026-11-13_FUTURE_DATED_SWAP_EXCLUDED_NO_NEW_DAY_COVERAGE; 2026-11-13_ETH_TWO_ADDITIONAL_HEADER_SPOTCHECKS_NO_RECEIPTS; 2026-11-13_ETH_2024_09_10_TX_INDEXED_TOKEN_PAIR_AND_SWAP_LEAD_RECEIPT_403; 2026-11-13_INDEPENDENT_CURRENT_POOL_MAPPING_ONLY_HINDSIGHT_BLOCKED",
+  "source_checks": [
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://docs.bitquery.io/docs/start/endpoints/",
+      "evidence_class": "MODERN_PROVIDER_DOCUMENTATION_ONLY",
+      "result": "V1/V2 historical GraphQL endpoint documented; no authenticated historical transaction query executed; not an as-of coin discovery."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://www.bitquery.io/pricing",
+      "evidence_class": "MODERN_PROVIDER_DOCUMENTATION_ONLY",
+      "result": "2024 archive DEX history requires archive access/add-on; no authorized credentials or purchase; liquidity historical window not freely proven."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://trawl.run/data/pumpfun",
+      "evidence_class": "MODERN_ARCHIVE_DISCOVERY_ONLY",
+      "result": "Pump.fun decoded historic instruction archive advertised; paid archive scan not run; no original TX verified."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://github.com/PumpArchive/PumpArchive",
+      "evidence_class": "MODERN_ARCHIVE_PROJECT_NOT_ORIGINAL_TX",
+      "result": "Neutral historical launch archive lead checked; project description supplies no independently read original 2024-09-10 mint signature, slot, pool address, or contemporaneous reserves. Not counted as day coverage."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://en.wikipedia.org/w/index.php?oldid=1245075863&title=Portal:Current_events/2024_September_10",
+      "evidence_class": "HISTORICAL_SECONDARY_REVISION_ONLY",
+      "result": "R13 historical secondary news anchor identified, but no original blockchain TX, mint, pool, or swap in this source. Not an onchain discovery or complete day scan."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://solarchive.org/search.php",
+      "evidence_class": "MODERN_ARCHIVE_INDEX_DISCOVERY_ONLY",
+      "result": "New source lead: Solarchive advertises free daily transaction Parquet partitions and monthly token/account snapshots including September 2024. This is a 2026-visible provider statement, not an independently downloaded 2024 original TX, mint or pool."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://data.solarchive.org/txs/2024-09-10/index.json",
+      "evidence_class": "ARCHIVE_PARTITION_ACCESS_BLOCKED",
+      "result": "Exact historical Solana daily transaction partition requested using web open: inaccessible (internal error). Separate container HTTPS request failed DNS resolution. No index manifest, checksum, Parquet bytes, original signature or slot verified. This is a concrete access failure, not evidence that the archive day has no transactions."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://data.solarchive.org/tokens/2024-09/index.json",
+      "evidence_class": "ARCHIVE_PARTITION_ACCESS_BLOCKED",
+      "result": "Exact September 2024 token snapshot index attempted via container HTTPS; DNS resolution failure. No historic mint/pool or reserves inferred."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://solarchive.org/search.php",
+      "evidence_class": "PROVIDER_COVERAGE_MATRIX_CURRENT_NOT_ASOF",
+      "result": "2026-11-13 source readback: Historical Data Readiness table explicitly marks 2024-09 (and 2024-10/11) Accounts and Tokens, but NOT Transactions. Transactions are marked only for 2020-10 through 2022-03 and 2025-11/12 in the displayed matrix. Thus the assumed 2024-09-10 transaction Parquet partition is NOT advertised as published; inaccessible tx index is a COVERAGE_GAP, not merely DNS. Token/account monthly snapshots alone do not establish 2024-09-10 pool creation, swap signatures, intraday liquidity or executable sell quotes. No original TX retrieved."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://etherscan.io/block/20722063",
+      "evidence_class": "IMMUTABLE_ETHEREUM_BLOCK_HEADER_VERIFIED_NO_TOKEN_POOL_TX",
+      "result": "Ethereum mainnet block 20722063, timestamp 2024-09-10T18:41:23Z, block hash 0xe7f01912830be6b54365b36202c3fc05523c058e461ca64b388eaaedc3963188, 116 transactions according to explorer. Verifies historical block and time only; no transaction receipt/log examined to establish mint, PairCreated, Swap or reserves. Single block is not full-day coverage; no candidate identity."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://blockscan.com/tx/0x49e50674747fcd507b973b7d55f4652b10b3db7fd7f29744b7f72e122a252fa6",
+      "evidence_class": "FUTURE_BLOCKED_TRANSACTION_NOT_DAY_D",
+      "result": "Neutral historical EVM transaction search surfaced an Ethereum swap explicitly timestamped 2024-09-18T07:24:00Z, AFTER simulated day 2024-09-10. Excluded from day-D input. It does not independently establish a newly created mint/pool, original pool state, or 2024-09-10 trade. Not a verified candidate, not a day scan."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://etherscan.io/block/20720956",
+      "evidence_class": "IMMUTABLE_ETHEREUM_BLOCK_HEADER_ONLY",
+      "result": "Independent spot-check: Ethereum block 20720956 timestamp 2024-09-10T14:58:47Z, hash 0x80f6ae4d257d33ba17a9517ddf535036b7d82b730da7b157155a82633dd38fd0, 137 transactions reported. No receipt/event log or token/pool identity extracted; not a complete-day scan."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://etherscan.io/block/20722290",
+      "evidence_class": "IMMUTABLE_ETHEREUM_BLOCK_HEADER_ONLY",
+      "result": "Independent spot-check: Ethereum block 20722290 timestamp 2024-09-10T19:26:59Z, hash 0xd7ed4d36bbbd331c87ca7ca4f0e5f22eaaaa8430acca9af1f28bcd88e7db5406, 54 transactions reported. No receipt/event log or token/pool identity extracted; not a complete-day scan."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://basescan.org/tx/0x7e2cf77b663661e510726fc404074500ae0dbffe231655029efa1c319164a556",
+      "evidence_class": "FUTURE_BLOCKED_SEARCH_RESULT",
+      "result": "Neutral search for original Base pool-creation receipts returned a transaction timestamped 2025-02-04T08:52:07Z; excluded as later than virtual day D and outside entire 2024 test. No 2024-09-10 Base original receipt obtained."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://basescan.org/tx/0xdd38cb7b88f775e635b7cda947a64934119d5af8c8d77b99468300183a1f5337",
+      "evidence_class": "FUTURE_BLOCKED_SEARCH_RESULT",
+      "result": "Neutral search for Base Uniswap pool factory event returned 2025-08-16T19:23:17Z transaction; excluded from 2024 blind training. No dated 2024-09-10 PoolCreated receipt established."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://etherscan.io/tx/0xfb06820f674a5a0cd821848393b3838fb8c5871554c19fa9e99cb4a4e8a07395",
+      "evidence_class": "HISTORICAL_ETH_TX_EXPLORER_INDEXED_PRIMARY_LEDGER_POINTER_DIRECT_READ_403",
+      "result": "Neutral date-filtered search returned Ethereum block 20719570 at 2024-09-10T10:18:23Z, successful deployment TX; Etherscan search excerpt lists token contract 0xf280b16ef293d8e534e370794ef26bf312694126 and Uniswap V2 pair 0x76a411f14a704099ba476ce8dffc288a53295218, both created in this TX. Full receipt/log independently unavailable (Etherscan open HTTP 403); pair factory token0/token1, first LP funding and historical reserves not reconstructed. Evidence is a transaction-indexed lead, not fully validated raw receipt."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://etherscan.io/tx/0xcb9c803f1768db0c6a1ffa7a2e5f649bf3fdc03d2369b1dc275634376cb7494d",
+      "evidence_class": "HISTORICAL_ETH_SWAP_LOG_EXCERPT_NOT_FULL_RECEIPT",
+      "result": "Same pair 0x76a411f14a704099ba476ce8dffc288a53295218 appears in Etherscan indexed transaction block 20719609 at 2024-09-10T10:26:11Z; search excerpt contains Swap topic0 0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822 and decoded reserves but full raw receipt could not be fetched (403). The page's displayed dollar equivalents are current retrospective valuations, not 2024 execution quotes. No first-trade or independent sellability proof."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://etherscan.io/tx/0xddffb07b73941887b3a6aefbda7f4d92f6c498d8eefcb0a4e1c2dbea5339cc69",
+      "evidence_class": "NEGATIVE_CONTROL_FAILED_ETH_SWAP_RECEIPT_POINTER",
+      "result": "Neutral 2024-09-10 Etherscan search returned failed Uniswap V2 swapExactTokensForETHSupportingFeeOnTransferTokens at 2024-09-10T23:01:11Z block 20723356, reverted execution. Underlying token/pair identity unknown; cannot infer honeypot or universal inability to sell. Failed swap is not successful fill or proof of liquidity."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://etherscan.io/tx/0xfb06820f674a5a0cd821848393b3838fb8c5871554c19fa9e99cb4a4e8a07395",
+      "evidence_class": "DIRECT_RECEIPT_FETCH_BLOCKED_HTTP_403_2026_11_13",
+      "result": "Re-attempted direct original Ethereum deployment receipt in this run: HTTP 403 Forbidden. No raw logs, pair factory PairCreated, or historical LP state retrieved; existing indexed candidate remains provisional, not independently confirmed."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://etherscan.io/tx/0xcb9c803f1768db0c6a1ffa7a2e5f649bf3fdc03d2369b1dc275634376cb7494d",
+      "evidence_class": "DIRECT_SWAP_RECEIPT_FETCH_BLOCKED_HTTP_403_2026_11_13",
+      "result": "Re-attempted direct same-day Ethereum swap receipt: HTTP 403 Forbidden. No original decoded logs independently checked, no reserve/quote/exit proof."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://eth.blockscout.com/tx/0xfb06820f674a5a0cd821848393b3838fb8c5871554c19fa9e99cb4a4e8a07395",
+      "evidence_class": "ALTERNATE_EXPLORER_UNAVAILABLE_2026_11_13",
+      "result": "Independent alternate Ethereum explorer original transaction URL inaccessible via available web tool; cannot cross-check raw receipt."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://eth.blockscout.com/tx/0xcb9c803f1768db0c6a1ffa7a2e5f649bf3fdc03d2369b1dc275634376cb7494d",
+      "evidence_class": "ALTERNATE_EXPLORER_UNAVAILABLE_2026_11_13",
+      "result": "Alternate explorer swap transaction URL inaccessible via available web tool. No independent receipt validation."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://eth.blockscout.com/api/v2/transactions/0xfb06820f674a5a0cd821848393b3838fb8c5871554c19fa9e99cb4a4e8a07395",
+      "evidence_class": "DIRECT_ALTERNATIVE_RECEIPT_API_ACCESS_BLOCKED_2026_11_13",
+      "result": "Attempted specific Blockscout v2 transaction JSON endpoint for previously indexed 2024-09-10 Ethereum deployment; web fetch returned internal error / URL not accessible. No receipt or factory logs acquired; no independent chain:mint:pool validation."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://eth.blockscout.com/api/v2/transactions/0xcb9c803f1768db0c6a1ffa7a2e5f649bf3fdc03d2369b1dc275634376cb7494d/logs",
+      "evidence_class": "DIRECT_ALTERNATIVE_SWAP_LOG_API_ACCESS_BLOCKED_2026_11_13",
+      "result": "Attempted specific Blockscout v2 logs endpoint for indexed 2024-09-10 swap; URL not accessible. No original swap log, reserves, token direction, historical quote or executable exit confirmed."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://www.geckoterminal.com/es/eth/pools/0x76a411f14a704099ba476ce8dffc288a53295218",
+      "evidence_class": "INDEPENDENT_CURRENT_POOL_ADDRESS_CROSS_REFERENCE_HINDSIGHT_EXCLUDED",
+      "result": "New second named independent pool index GeckoTerminal identifies Ethereum Uniswap V2 pool 0x76a411f14a704099ba476ce8dffc288a53295218 paired with token 0xf280b16ef293d8e534e370794ef26bf312694126 and WETH. This corroborates address mapping only at retrieval time (2026-11-13), NOT 2024-09-10 original PairCreated receipt, original pool balances, contemporaneous quote or discovery. All current market prices, reserves, safety scores and volume were excluded from simulated 2024 input. Existing Etherscan creation TX 0xfb06820f674a5a0cd821848393b3838fb8c5871554c19fa9e99cb4a4e8a07395 at block 20719570 remains indexed lead, raw logs inaccessible."
+    },
+    {
+      "virtual_date_utc": "2024-09-10",
+      "source": "https://ethereum-rpc.publicnode.com",
+      "evidence_class": "ALTERNATIVE_PUBLIC_ETHEREUM_JSON_RPC_DNS_BLOCKED_2026_11_13",
+      "result": "New independent raw-ledger route tested via HTTPS JSON-RPC POST eth_getTransactionReceipt for deployment TX 0xfb06820f674a5a0cd821848393b3838fb8c5871554c19fa9e99cb4a4e8a07395; container DNS resolution failed (NameResolutionError). No response or original receipt obtained. This is an execution-environment network blocker, not evidence of absent ledger event. Requires working Ethereum JSON-RPC endpoint capable of historical receipts and archive eth_call at block 20719570/20719609."
+    }
+  ],
+  "early_narratives": [],
+  "token_identities": [
+    {
+      "candidate_id": "eth:0xf280b16ef293d8e534e370794ef26bf312694126:0x76a411f14a704099ba476ce8dffc288a53295218",
+      "chain": "eth",
+      "token_address": "0xf280b16ef293d8e534e370794ef26bf312694126",
+      "pool_address": "0x76a411f14a704099ba476ce8dffc288a53295218",
+      "first_observed_utc": "2024-09-10T10:18:23Z",
+      "evidence_class": "EXPLORER_TX_INDEXED_UNVERIFIED_RAW_RECEIPT",
+      "creation_tx": "0xfb06820f674a5a0cd821848393b3838fb8c5871554c19fa9e99cb4a4e8a07395",
+      "block": 20719570,
+      "swap_tx": "0xcb9c803f1768db0c6a1ffa7a2e5f649bf3fdc03d2369b1dc275634376cb7494d",
+      "liquidity": "UNKNOWN",
+      "sellability": "UNKNOWN",
+      "hypothetical_decision": "NO_BUY",
+      "reason": "Deployment/pair and later swap linked by indexed Etherscan excerpts, but independent receipt verification, historical reserves, sell quote and safety not established; discovery retrospective, not proof of live 2024 discovery."
+    }
+  ],
+  "hypothetical_decisions": [],
+  "risk_unknowns": [
+    "2024-09-10: no immutable mint/pool/swap signature and block/slot time retrieved for any of solana/base/bsc/eth",
+    "Historic liquidity, buyer-wallet distinctness, holder clusters, LP withdrawal, trade quotes and sellability UNKNOWN for all chains",
+    "No 2024 original capture or ledger state reconstruction available; no hypothetical executable entry or exit",
+    "2024-09-10: independent broad search for archived Solana/Ethereum mint and DEX PairCreated TX yielded no verified original signature/block; Base/BSC original TX scan not completed. Day remains PARTIAL_DATA_GAP.",
+    "2024-09-10 Solana: neutral daily archive lead exists but manifest download blocked; 2024-09-10 Base/BSC/Ethereum: no original block or pool transaction verified in this checkpoint. No day-complete coverage.",
+    "2026-11-13: Solarchive 2024-09 transaction dataset NOT marked ready by provider coverage matrix; 2024-09 monthly tokens/accounts are NOT transaction-level day D evidence.",
+    "2024-09-10 ETH: independent historical block-header anchor recovered (20722063 at 18:41:23Z), but no mint/pool/swap event receipt or historical liquidity reconstructed; Solana/Base/BSC unchanged DATA_GAP.",
+    "2026-11-13 follow-up: neutral search found an actual dated Ethereum swap URL for 2024-09-18, excluded as FUTURE_BLOCKED for 2024-09-10; original receipt logs and pair creation were not verified. No new 2024-09-10 chain:mint:pool ID.",
+    "2026-11-13 ETH 2024-09-10: two additional historical block headers independently located, but transaction receipts/logs inaccessible in this check; no PairCreated/Swap/mint confirmed. Solana/Base/BSC no new checks. Day still PARTIAL_DATA_GAP.",
+    "2026-11-13 checkpoint: targeted neutral Base/Ethereum pool-creation original-TX search returned only future-dated examples (2025); excluded. No 2024-09-10 original receipts/PairCreated logs found; Solana/BSC not newly verified. No complete-day coverage.",
+    "2024-09-10 ETH: first concrete token+pool indexed creation TX found, but direct explorer receipt HTTP 403; full raw logs, historical initial liquidity, holder/deployer links, and contemporaneous sell route UNKNOWN. No completed day scan.",
+    "2026-11-13 receipt verification retry: Etherscan 403 for creation and swap TX; Blockscout alternative inaccessible. No newly verified onchain identity, reserves, sell quote or historical coverage. Existing NO_BUY unchanged.",
+    "2026-11-13: Blockscout v2 machine-readable original deployment receipt and swap log endpoints both inaccessible via available web interface; no new historical chain evidence. 2024-09-10 remains PARTIAL_DATA_GAP; no day-complete scan.",
+    "2026-11-13 independent GeckoTerminal current pool-address cross-reference corroborates mapping only; retrospective current reserves/prices/safety NOT admissible as 2024 evidence. Original PairCreated receipt, block-height reserves and historical exit route still BLOCKED_INPUT_DATA; requires authenticated archive eth_getTransactionReceipt for 0xfb06820f... and 0xcb9c803f..., plus archive eth_call/getStorageAt at block 20719570/20719609.",
+    "2026-11-13 alternative Ethereum PublicNode JSON-RPC eth_getTransactionReceipt attempt failed at DNS before any ledger response; BLOCKED_INPUT_DATA, no new raw receipt, pool reserves, or sellability. No new day coverage."
+  ],
+  "failure_reasons": [
+    "Historical archive API access not authenticated; no authorized paid archival dataset",
+    "Search results describe archive products rather than original 2024 transactions; cannot infer identities or prices"
+  ],
+  "summary": "TRAINING_ONLY: 2024-09-10 remains PARTIAL_DATA_GAP. Existing Ethereum indexed token/pool lead not independently receipt-verified. New alternative public Ethereum JSON-RPC raw receipt access attempt failed DNS resolution; no historical reserves/quotes/sell route established. NO_BUY; no new full days or verifiable launches."
+}
