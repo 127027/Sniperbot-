@@ -40,6 +40,15 @@ export function blindReadiness(d){
  if(d.data_class!=='HISTORICAL')reasons.push('SYNTHETIC_NOT_RESEARCH_EVIDENCE');
  if(d.universe?.selection!=='ASOF_COHORT'||d.universe?.complete!==true||!d.universe?.provenance)reasons.push('NO_DOCUMENTED_ASOF_COHORT');
  if(new Set(d.events.map(e=>e.candidate_id)).size<2)reasons.push('SINGLE_TARGET_SELECTION');
+ // Fresh chats do not erase historical knowledge embedded in an LLM's pretrained weights.
+ // Only apply this stronger gate to explicit time-windowed neutral simulations;
+ // legacy synthetic fixtures intentionally remain unchanged.
+ if(d.window&&(
+  d.blinding?.identities_pseudonymized!==true||
+  d.blinding?.pretraining_leakage_reviewed!==true||
+  typeof d.blinding?.independent_attestation!=='string'||
+  d.blinding.independent_attestation.length===0
+ ))reasons.push('PRETRAINING_KNOWLEDGE_LEAKAGE_NOT_CONTROLLED');
  for(const role of ROLES)if(d.contexts?.[role]?.fresh!==true||d.contexts?.[role]?.target_exposed!==false||!d.contexts?.[role]?.attestation)reasons.push('CONTEXT_NOT_ISOLATED:'+role);
  if(!d.events.some(e=>e.kind==='MARKET'&&e.execution_verified===true&&e.evidence.verified===true))reasons.push('NO_EXECUTION_EVIDENCE');
  return {eligible:reasons.length===0,reasons,limit:'Metadata gate only; attestations and source authenticity require independent verification.'};
