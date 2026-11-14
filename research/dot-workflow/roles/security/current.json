@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "security",
-  "run_id": "security-20261114T112423Z-r19-frame00002-readback-01",
-  "previous_run_id": "security-20261114T1045Z-r19-frame00002-01",
+  "run_id": "security-20261114T113446Z-r21-frame00002-wait-01",
+  "previous_run_id": "security-20261114T112423Z-r19-frame00002-readback-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -11,7 +11,7 @@
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
-  "status": "NO_PROGRESS",
+  "status": "STALLED",
   "input_refs": [
     {
       "repository": "127027/Sniperbot-",
@@ -262,6 +262,27 @@
         "reviews",
         "orders"
       ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/monitor/status.json",
+      "json_paths": [
+        "frame_index",
+        "checked_at",
+        "votes"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/input.json",
+      "json_paths": [
+        "index",
+        "at",
+        "input_hash",
+        "events"
+      ]
     }
   ],
   "completed_checks": [
@@ -286,7 +307,8 @@
     "Cross-checked observed BUY receipt sender and block against bounded LP Transfer chronology in stored pool logs; initial LP recipient appears unchanged at BUY cutoff, conditional on log completeness.",
     "R18 temporal protocol read; neutral public frame 00000 absent (404), neutral replay BLOCKED_MISSING_NEUTRAL_INPUT.",
     "R17 monitor authorized diagnostic frame 1; input events=[] and security vote created and read back with matching input_hash.",
-    "R19 diagnostic frame 00002 (2023-03-16T23:59:59Z): events=[]; own security decision persisted with matching input_hash; no security candidate available."
+    "R19 diagnostic frame 00002 (2023-03-16T23:59:59Z): events=[]; own security decision persisted with matching input_hash; no security candidate available.",
+    "R21 frame 00002 revalidated: 0 visible candidates, all five decisions present and hash-matched; monitor not advanced; 0 new historical evidence."
   ],
   "findings": [
     {
@@ -484,29 +506,30 @@
     {
       "code": "NEUTRAL_NOT_STARTED",
       "detail": "temporal-public/status.json mode=NOT_STARTED; no neutral published frame."
-    }
+    },
+    "FRAME_00002_CONTROLLER_PENDING: all five matching decisions exist, but monitor/status.json still reports frame_index=2 and stale MISSING votes (checked_at 2026-11-14T09:41:55.264Z). Await controller seal/advance; no authorized frame 3."
   ],
-  "next_task": "Monitor still advertises frame_index=2; all five frame-00002 decisions now exist and match input. Wait for central controller to seal and publish next frame; do not read or create future frames. Neutral mode NOT_STARTED.",
+  "next_task": "Wait for monitor to publish next authorized diagnostic frame; then validate its input and write only security decision. Neutral replay remains NOT_STARTED.",
   "peer_receipts": [
     {
       "role": "scout",
       "run_id": "scout-20261114T100635Z-r19-frame00002-01",
-      "result": "FRAME_00002_DECISION_PRESENT_HASH_MATCH_REVIEWS_EMPTY_ORDERS_EMPTY"
+      "result": "FRAME_00002_DECISION_PRESENT_MATCHING_HASH"
     },
     {
       "role": "social",
       "run_id": "social-20261114T103700Z-diagnostic-frame00002",
-      "result": "FRAME_00002_DECISION_PRESENT_HASH_MATCH_REVIEWS_EMPTY_ORDERS_EMPTY"
+      "result": "FRAME_00002_DECISION_PRESENT_MATCHING_HASH"
     },
     {
       "role": "onchain",
       "run_id": "onchain-20261114T104256Z-frame00002-r19-12",
-      "result": "FRAME_00002_DECISION_PRESENT_HASH_MATCH_REVIEWS_EMPTY_ORDERS_EMPTY"
+      "result": "FRAME_00002_DECISION_PRESENT_MATCHING_HASH"
     },
     {
       "role": "qa",
       "run_id": "qa-20261114T0953Z-diagnostic-frame00002-18",
-      "result": "FRAME_00002_DECISION_PRESENT_HASH_MATCH_REVIEWS_EMPTY_ORDERS_EMPTY"
+      "result": "FRAME_00002_DECISION_PRESENT_MATCHING_HASH"
     }
   ]
 }
