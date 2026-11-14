@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "security",
-  "run_id": "security-20261114T144931Z-r22-frame00004-01",
-  "previous_run_id": "security-20261114T132556Z-r22-frame00003-01",
+  "run_id": "security-20261114T151956Z-r22-frame00005-01",
+  "previous_run_id": "security-20261114T144931Z-r22-frame00004-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -315,6 +315,17 @@
         "input_hash",
         "events"
       ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00005/input.json",
+      "json_paths": [
+        "index",
+        "at",
+        "input_hash",
+        "events"
+      ]
     }
   ],
   "completed_checks": [
@@ -342,7 +353,8 @@
     "R19 diagnostic frame 00002 (2023-03-16T23:59:59Z): events=[]; own security decision persisted with matching input_hash; no security candidate available.",
     "R21 frame 00002 revalidated: 0 visible candidates, all five decisions present and hash-matched; monitor not advanced; 0 new historical evidence.",
     "R22: sealed commit 00002 confirmed, 00003 published, 00004 not published; frame 00003 events=[] and matching security decision readback",
-    "R22: consecutive sealed commit 00003 confirmed; published diagnostic frame 00004 (2023-03-18T23:59:59Z) events=[]; own decision created/read back; all five role decisions hash-matched."
+    "R22: consecutive sealed commit 00003 confirmed; published diagnostic frame 00004 (2023-03-18T23:59:59Z) events=[]; own decision created/read back; all five role decisions hash-matched.",
+    "R22 frame 00005 2023-03-19T23:59:59Z: published events=[]; own security decision created and read back with matching index, at, input_hash."
   ],
   "findings": [
     {
@@ -498,94 +510,19 @@
       "evidence_ref": "127027/Sniperbot-@codex/dots-pepe-replay-20261113:research/replay-controller/bridge/diagnostic-frames/00004/input.json#events",
       "evidence_limit": "Empty diagnostic frame only; not blind discovery, no evidence of token safety.",
       "verification": "OWN_REVIEW_OF_PUBLISHED_FRAME_AND_DECISION_READBACK"
+    },
+    {
+      "statement": "Frame 00005 contains zero visible events and zero candidates; no historical security inference or trade approval.",
+      "as_of_utc": "2023-03-19T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00005/input.json#events",
+      "proof_limit": "Diagnostic known-winner frame; empty evidence is not evidence of token safety.",
+      "origin": "OWN_FRAME_CHECK"
     }
   ],
   "blockers": [
-    {
-      "question": "OwnershipTransferred history through evaluated entry block",
-      "status": "UNKNOWN",
-      "reason": "Exact evaluated entry block not specified; existing owner_deploy eth_call failed with Publicnode archive-token requirement (-32602). Need timestamp-bounded token OwnershipTransferred logs or archived receipts and an entry-block cutoff."
-    },
-    {
-      "question": "Blacklist, LP permissions, tax, bytecode at historical entry",
-      "status": "UNKNOWN",
-      "reason": "No historical entry-state evidence checked"
-    },
-    {
-      "question": "Source availability and historical bytecode identity",
-      "status": "UNKNOWN",
-      "reason": "Blockscout verified_at=2023-06-05T22:32:32.393496Z (after research window), is_partially_verified=true; no historical runtime bytecode comparison in this run."
-    },
-    {
-      "question": "Historical LP control",
-      "status": "UNKNOWN",
-      "reason": "BUY receipt pool Sync/Transfer events alone do not prove LP holder, lock, burn or withdrawal rights; need historical LP-token Transfer/Mint/Burn events and holder state through evaluated entry block."
-    },
-    {
-      "question": "Reproducible source-to-runtime compiler comparison",
-      "status": "BLOCKED",
-      "reason": "Execution environment has no solc executable and no Python solcx module; solc v0.8.0 compilation not executed. Requires pinned solc v0.8.0 toolchain, complete source/dependencies and historical runtime hex comparison."
-    },
-    {
-      "question": "Bounded OwnershipTransferred event retrieval",
-      "status": "BLOCKED",
-      "reason": "Blockscout v1 logs URL inaccessible through available web retrieval; no returned logs. A deployment-to-pool block window is a diagnostic interval only, not an evaluated entry cutoff. No inference of absence of events is permitted."
-    },
-    {
-      "question": "Post-transfer LP recovery and actual lock status",
-      "status": "UNKNOWN",
-      "reason": "LP token moved to PEPE contract at block 17047786; require contract execution/recovery capability assessment and independently validated complete LP event history. Transfer is not a burn."
-    },
-    {
-      "question": "Prove inability to recover LP from PEPE contract at block 17047786",
-      "status": "UNKNOWN",
-      "reason": "No external LP recovery function found in later-verified source/ABI, but historical runtime/source equivalence and complete control-flow validation are missing; transfer to contract alone does not establish permanent lock."
-    },
-    {
-      "question": "Independent LP ownership at observed BUY block 17046900",
-      "status": "UNKNOWN",
-      "reason": "Stored pool logs imply initial LP recipient held non-minimum LP allocation at BUY, but completeness and balance at cutoff require independent archive receipt/log or balanceOf evidence."
-    },
-    {
-      "question": "R18 neutral replay first public frame",
-      "status": "BLOCKED_MISSING_NEUTRAL_INPUT",
-      "reason": "research/replay-controller/temporal-public/frames/00000/input.json returned GitHub 404. Requires neutral public frame publication with as-of evidence, independent pseudonymization audit and fresh model instances for blind evaluation."
-    },
-    {
-      "code": "NEUTRAL_NOT_STARTED",
-      "detail": "temporal-public/status.json mode=NOT_STARTED; no neutral published frame."
-    },
-    "FRAME_00002_CONTROLLER_PENDING: all five matching decisions exist, but monitor/status.json still reports frame_index=2 and stale MISSING votes (checked_at 2026-11-14T09:41:55.264Z). Await controller seal/advance; no authorized frame 3.",
-    {
-      "code": "FRAME_00003_PEER_AND_CONTROLLER_PENDING",
-      "detail": "Own security decision stored; remaining roles/controller seal require independent verification. Neutral replay mode NOT_STARTED."
-    },
-    {
-      "code": "FRAME_00004_CONTROLLER_PENDING",
-      "detail": "Five genuine matching role decisions now present; commit 00004 not yet sealed at check. Central controller must seal and publish next frame."
-    }
+    "DIAGNOSTIC_FRAME_00005_AWAITING_OTHER_ROLES_AND_CONTROLLER_SEAL",
+    "NEUTRAL_REPLAY_NOT_STARTED"
   ],
-  "next_task": "Verify consecutive seal for frame 00004 and next actually published frame; only then evaluate next security decision.",
-  "peer_receipts": [
-    {
-      "role": "scout",
-      "run_id": "scout-20261114T141512Z-r22-frame00004-01",
-      "result": "FRAME_00004_HASH_MATCH"
-    },
-    {
-      "role": "social",
-      "run_id": "social-20261114T133516Z-r22-frame00004",
-      "result": "FRAME_00004_HASH_MATCH"
-    },
-    {
-      "role": "onchain",
-      "run_id": "onchain-20261114T134730Z-frame00004-r22-15",
-      "result": "FRAME_00004_HASH_MATCH"
-    },
-    {
-      "role": "qa",
-      "run_id": "qa-20261114T1345Z-r22-frame00004-22",
-      "result": "FRAME_00004_HASH_MATCH"
-    }
-  ]
+  "next_task": "Check highest contiguous sealed commit and published successor frame; review only newly released frame, no future data.",
+  "peer_receipts": []
 }
