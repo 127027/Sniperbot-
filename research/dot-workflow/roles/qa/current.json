@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261114T0750Z-frame0-mismatch-audit-16",
-  "previous_run_id": "qa-20261114T0650Z-frame0-peer-reconcile-15",
+  "run_id": "qa-20261114T0849Z-frame1-empty-vote-17",
+  "previous_run_id": "qa-20261114T0750Z-frame0-mismatch-audit-16",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -23,128 +23,89 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/scout/current.json",
-      "sha": "38dd5c05807dee08d688daf52c1e67a48a600f5b",
-      "json_paths": [
-        "$.role",
-        "$.run_id",
-        "$.candidate.id",
-        "$.status",
-        "$.findings"
-      ]
+      "sha": "9901373e14fac7110e6fb6f9303dab9c9fc5940d"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/social/current.json",
-      "sha": "b5e1e4c063c546c7daa4cb1ea67cb30ad9d2d9f9",
-      "json_paths": [
-        "$.role",
-        "$.run_id",
-        "$.candidate.id",
-        "$.status",
-        "$.findings"
-      ]
+      "sha": "b5e1e4c063c546c7daa4cb1ea67cb30ad9d2d9f9"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/onchain/current.json",
-      "sha": "2b32c2ee11ef07d9603b0f57e5362dfe16f2af56",
-      "json_paths": [
-        "$.role",
-        "$.run_id",
-        "$.candidate.id",
-        "$.status",
-        "$.findings"
-      ]
+      "sha": "2b32c2ee11ef07d9603b0f57e5362dfe16f2af56"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/security/current.json",
-      "sha": "644eb38bf22a3fad80c3937154c3613988bde17a",
-      "json_paths": [
-        "$.role",
-        "$.run_id",
-        "$.candidate.id",
-        "$.status",
-        "$.findings"
-      ]
+      "sha": "974ac304d1fd6dbf6bdbbbe6346ca94f12220f1e"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-first-frame/input.json",
-      "sha": "b20c20572ce2ee36c95ae4b05db1f6bef3865b94",
-      "json_paths": [
-        "$.index",
-        "$.at",
-        "$.events",
-        "$.input_hash"
-      ]
+      "path": "research/replay-controller/monitor/status.json",
+      "sha": "c5d630a383ca21d59c8aec85afd0eb987d60d28e"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-first-frame/decisions/qa.json",
-      "sha": "5e284a4179836939ea156edac5697b548344ff05",
-      "json_paths": [
-        "$.role",
-        "$.run_id",
-        "$.index",
-        "$.at",
-        "$.input_hash",
-        "$.reviews",
-        "$.orders"
-      ]
+      "path": "research/replay-controller/bridge/diagnostic-frames/00001/input.json",
+      "sha": "091236f52311d9ca1a373f2bb5ab6c3e57baf18e"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00001/decisions/qa.json"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/qa/current.json",
-      "sha": "63c99944d8647bd69de648552e91933c0b02ceaa",
-      "json_paths": [
-        "$.run_id",
-        "$.peer_receipts",
-        "$.next_task"
-      ]
+      "sha": "418956805655a9888583c19cadec1bc10793a1fd"
     }
   ],
   "completed_checks": [
     {
-      "check": "protocol_and_qa_current",
+      "check": "protocol_and_current",
       "result": "PASS"
     },
     {
-      "check": "four_peer_states",
-      "result": "PASS; 2 new matching nonseed receipts; social candidate mismatch excluded"
+      "check": "peer_states",
+      "result": "PASS: scout/security new matching receipts; social CHAD excluded; onchain unchanged"
     },
     {
-      "check": "diagnostic_frame0_barrier",
-      "result": "PARTIAL_RECHECK: input and qa decision valid; four other votes not freshly read"
+      "check": "frame1_input",
+      "result": "PASS: index=1 at=2023-03-15T23:59:59Z events=[] input_hash verified"
     },
     {
-      "check": "chronological_replay",
-      "result": "0/62 in inspected frame input; no authorized frame1 verified"
+      "check": "frame1_qa_vote",
+      "result": "CREATED: empty reviews and orders"
     },
     {
-      "check": "original_historical_source_validation",
+      "check": "five_role_barrier",
+      "result": "NOT_COMPLETE: monitor snapshot showed all votes missing; other decisions not freshly read"
+    },
+    {
+      "check": "historical_market_validation",
       "result": "NOT_PERFORMED"
     }
   ],
   "findings": [
     {
-      "statement": "Two newly read peer states match PEPE candidate; Social current points to CHAD and is excluded from PEPE peer_receipts.",
-      "as_of_utc": "2026-11-14T07:50:00Z",
-      "evidence_ref": "scout:38dd5c05807dee08d688daf52c1e67a48a600f5b; social:b5e1e4c063c546c7daa4cb1ea67cb30ad9d2d9f9; onchain:2b32c2ee11ef07d9603b0f57e5362dfe16f2af56; security:644eb38bf22a3fad80c3937154c3613988bde17a",
-      "evidence_limit": "Only peer persisted state checked; no independent historical source verification.",
-      "origin": "OWN_GITHUB_READ"
+      "statement": "Monitor advanced to diagnostic frame 1/62. Frame 1 input contains no events, so QA decision has reviews=[] and orders=[].",
+      "as_of_utc": "2023-03-15T23:59:59Z",
+      "evidence_ref": "research/replay-controller/monitor/status.json; research/replay-controller/bridge/diagnostic-frames/00001/input.json; decisions/qa.json",
+      "evidence_limit": "Diagnostic known-winner replay only, not blind discovery; peer votes not independently inspected in this run.",
+      "origin": "OWN_GITHUB_READ_AND_QA_VOTE"
     },
     {
-      "statement": "Frame0 input and QA vote match index 0, at 2023-03-14T23:59:59Z and input_hash; remaining four controller votes not freshly reread under eight targeted retrieval limit.",
-      "as_of_utc": "2023-03-14T23:59:59Z",
-      "evidence_ref": "research/replay-controller/bridge/diagnostic-first-frame/input.json; decisions/qa.json",
-      "evidence_limit": "Cannot assert fresh 5/5 barrier; prior 5/5 is historical state only.",
+      "statement": "Scout and Security peer state run IDs match PEPE; Social state targets CHAD and is not a PEPE receipt.",
+      "as_of_utc": "2026-11-14T08:49:00Z",
+      "evidence_ref": "research/dot-workflow/roles/{scout,social,onchain,security}/current.json",
+      "evidence_limit": "Peer state read, not independent verification of underlying chain or social evidence.",
       "origin": "OWN_GITHUB_READ"
     }
   ],
@@ -152,25 +113,20 @@
     {
       "code": "BLOCKED_WAITING_FOR_PEERS",
       "role": "social",
-      "required_input": "Social current.json for matching PEPE candidate with own nonseed run_id; current state is CHAD, not PEPE."
+      "required_input": "Matching PEPE candidate peer state; current Social is CHAD."
     },
     {
-      "code": "CONTROLLER_NOT_ADVANCED",
+      "code": "MISSING_ROLE_VOTES",
       "role": "controller",
-      "required_input": "Authorized chronological frame1 with timestamp, hash and no future labels; current inspected frame index 0."
-    },
-    {
-      "code": "CONTROLLER_BARRIER_PARTIALLY_RECHECKED",
-      "role": "qa",
-      "required_input": "Fresh checks of scout/social/onchain/security decision JSON; only input and QA decision were freshly inspected in bounded run."
+      "required_input": "Frame 1 decisions for scout, social, onchain, security; monitor last snapshot reported all missing."
     },
     {
       "code": "HISTORICAL_EXECUTION_EVIDENCE_MISSING",
       "role": "all",
-      "required_input": "Contemporaneous social, safety, liquidity, quote, slippage, sellability proofs."
+      "required_input": "Contemporaneous safety, liquidity, social, quote, slippage, sellability proofs."
     }
   ],
-  "next_task": "Await authorized chronological frame1; check all five decision files within retrieval budget; reconcile social only if candidate identity matches; do not count CHAD as PEPE receipt.",
+  "next_task": "Check frame1 other four role decisions and updated monitor; await controller advance to frame2, do not inspect future frame inputs; no trading.",
   "peer_receipts": [
     {
       "role": "scout",
@@ -437,6 +393,20 @@
       "result": "PARTIAL_VERIFIED",
       "source_path": "research/dot-workflow/roles/security/current.json",
       "source_blob_sha": "644eb38bf22a3fad80c3937154c3613988bde17a"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0824Z-manifest-access-stalled-01",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "9901373e14fac7110e6fb6f9303dab9c9fc5940d"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261114T0818Z-buy-lp-holder-cutoff-01",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "974ac304d1fd6dbf6bdbbbe6346ca94f12220f1e"
     }
   ],
   "notes": "TRAINING_ONLY actionable=false NO_BUY/UNKNOWN; frame0 0/62; partial barrier recheck only."
