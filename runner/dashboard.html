@@ -596,10 +596,27 @@ function initializeWorkspaces(){
  hiddenConversions.append(cashGrid,paperControls);
  paperCash.append(paperSpend,primaryActions,$('paperEurResult'),hiddenConversions);
  paperHeading.remove();paperHelp.remove();
+ // V0.21: a single AI research scheduler supersedes the retired Dots.
+ const legacyDots=$('dotWidget');if(legacyDots)legacyDots.hidden=true;
+ const centralAiPanel=document.createElement('section');
+ centralAiPanel.className='panel section';
+ centralAiPanel.setAttribute('aria-label','Zentrale stündliche KI und Paper-Orders');
+ centralAiPanel.innerHTML='<div class="section-heading"><h2>Zentrale KI · stündliche Analyse</h2><span class="tag paper">PAPER ONLY</span></div>'+
+  '<p id="centralAiStatus" class="subtle">KI-Verbindung wird geprüft …</p>'+
+  '<p id="centralAiNext" class="mini-note">Nächste Analyse: –</p>'+
+  '<div class="summary-grid" style="height:auto;margin:12px 0">'+
+   '<div class="metric"><small>Letzte Analyse</small><b id="centralAiLast">–</b></div>'+
+   '<div class="metric"><small>Ergebnis</small><b id="centralAiResult">–</b></div></div>'+
+  '<p id="centralAiSummary" class="subtle"></p>'+
+  '<div id="centralAiRecommendations" class="subtle">Noch keine Empfehlungen.</div>'+
+  '<p class="mini-note">Der lokale KI-Prozess nutzt die separat abgerechnete OpenAI API. Alle Kurse und Ausführungen sind nur indikative Paper-Simulationen; keine echten Swaps.</p>';
+ const followLabel=$('centralFollow').closest('label');
+ followLabel.lastChild.textContent='Automatische KI-Paper-Orders erlauben (nur bei Bot AN)';
+ centralAiPanel.append(followLabel);
  const agentPanel=document.createElement('section');
  agentPanel.className='panel section';
  agentPanel.setAttribute('aria-label','Eingehende signierte Agentenorders');
- agentPanel.innerHTML='<div class="section-heading"><h2>Orders der Forschungs-Bots</h2><span class="tag paper">PAPER</span></div>'+
+ agentPanel.innerHTML='<div class="section-heading"><h2>Signierte Paper-Aufträge</h2><span class="tag paper">PAPER</span></div>'+
   '<p id="agentSignalStatus" class="subtle">Prüfe, ob ein signierter Agenten-Publisher verbunden ist …</p>'+
   '<div class="summary-grid" style="height:auto;margin:12px 0">'+
     '<div class="metric"><small>Empfangene Aufträge</small><b id="agentReceived">–</b></div>'+
@@ -609,7 +626,7 @@ function initializeWorkspaces(){
   '<div id="agentDotRoles" class="subtle">Noch keine Rollenberichte geladen.</div>'+
   '<p id="agentCourierHealth" class="subtle">Noch kein GitHub-Kurierstatus.</p></details>'+
   '<div id="agentReceipts" class="subtle">Noch keine bestätigten Agenten-Orders.</div>'+
-  '<p class="subtle">Die fünf Cloud-Dots liefern derzeit Forschungsberichte. Eine echte Order-Zustellung benötigt zusätzlich einen verbundenen signierenden Agentenadapter. Keine ungeprüfte Nachricht wird automatisch zu einem Echtgeld-Kauf.</p>'+
+  '<p class="subtle">Der zentrale KI-Prozess kann nur signierte PAPER-Aufträge erzeugen. Ohne aktivierte KI, ausdrücklich freigegebene Paper-Folgefunktion und aktuelle Marktdaten findet kein automatischer Kauf statt.</p>'+
   '<button id="paperPipelineSelftest" class="btn" type="button">BUY/SELL-Pipeline testen (nur lokaler Testsender)</button>'+
   '<p id="paperPipelineSelftestResult" class="subtle">Ein Klick prüft die Paper-Ausführung mit steigendem und fallendem Testkurs – ohne dein Konto, Wallet oder echte Dots zu verändern.</p>'
   + '<button id="agentSetupMaster" class="btn" type="button">Dieses Gerät als Laptop-Zentrale einrichten</button>';
@@ -617,7 +634,7 @@ function initializeWorkspaces(){
  realHeading.querySelector('h2').textContent='Meine Wallet';
  realHeading.querySelector('.tag').textContent='REAL-WALLET · LIVE AUS';
  realHeading.querySelector('.tag').classList.remove('paper');
- paper.append(overview,positions,paperCash,agentPanel,lower);
+ paper.append(overview,positions,paperCash,centralAiPanel,agentPanel,lower);
  real.append(wallet);
  // Existing research/Dot internals remain alive but do not dominate either page.
  const routeAdvanced=document.createElement('details');
@@ -709,6 +726,28 @@ function initializeWorkspaces(){
  $('paperWorkspaceTab').onclick=()=>chooseWorkspace('paper');
  $('realWorkspaceTab').onclick=()=>chooseWorkspace('real');
  chooseWorkspace('paper');
+}
+async function refreshCentralAi(){
+ try{
+  const response=await fetch('/api/central-ai/status',{cache:'no-store'});
+  const body=await response.json();if(!response.ok||!body.ok)throw Error('KI-Status nicht erreichbar');
+  const s=body.coordinator||{};
+  $('centralAiStatus').textContent=s.enabled?
+   'Zentraler KI-Prozess aktiv · API angebunden · KEIN direkter Zugriff dieser Chat-Unterhaltung':
+   'KI AUS: '+(s.reason||'kein API-Key oder nicht aktiviert');
+  $('centralAiNext').textContent=s.enabled&&s.next_due_utc?
+   'Nächste Analyse: '+t(s.next_due_utc):'Keine stündliche Aufgabe gestartet';
+  $('centralAiLast').textContent=s.last_run_utc?t(s.last_run_utc):'Noch nie';
+  $('centralAiResult').textContent=s.last_outcome||'AUS';
+  $('centralAiSummary').textContent=s.last_error?'Letzter Fehler: '+s.last_error:
+   (s.last_summary||'Noch keine KI-Analyse durchgeführt.');
+  const rows=Array.isArray(s.recommendations)?s.recommendations:[];
+  $('centralAiRecommendations').innerHTML=rows.length?rows.slice(0,8).map(r=>
+   '<div class="activity-row"><strong>'+esc(r.action)+' · '+
+    esc(r.candidate_id)+'</strong> · Score '+esc(r.score_0_100)+
+    '/100 · '+esc(r.portfolio_pct)+' % <small>'+esc(r.reason)+'</small></div>').join(''):
+   '<div class="empty">Noch keine Analyse-Kandidaten.</div>';
+ }catch(e){$('centralAiStatus').textContent='KI-Status: '+e.message}
 }
 async function refreshAgentOrders(){
  try{
@@ -1548,6 +1587,7 @@ $('walletRestore').onclick=async()=>{
 };
 refreshLocalWallet();setInterval(refreshLocalWallet,60000);
 refreshAgentOrders();setInterval(refreshAgentOrders,6000);
+refreshCentralAi();setInterval(refreshCentralAi,15000);
 setInterval(()=>{if(!$('realWorkspace').hidden)void refreshRealBalanceView()},30000);
 refreshV09();refreshV09Readbacks();
 setInterval(refreshV09,30000);setInterval(refreshV09Readbacks,30000);setInterval(refreshV09Dossiers,30000);
