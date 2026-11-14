@@ -13,12 +13,17 @@ export function validateDataset(d){
  assert(Array.isArray(d.ticks)&&d.ticks.length>0&&d.ticks.length<=10000,'TICKS');
  assert(d.ticks.every((t,i)=>Number.isFinite(time(t))&&(!i||time(t)>time(d.ticks[i-1]))),'TICK_ORDER');
  assert(Array.isArray(d.events),'EVENTS');
+ if(d.window!==undefined){
+  assert(d.window&&Number.isFinite(time(d.window.start))&&Number.isFinite(time(d.window.end))&&time(d.window.start)<=time(d.window.end),'TIME_WINDOW');
+  assert(d.ticks.every(t=>time(t)>=time(d.window.start)&&time(t)<=time(d.window.end)),'TICK_OUTSIDE_TIME_WINDOW');
+ }
  const ids=new Set();
  for(const e of d.events){
   assert(typeof e.id==='string'&&!ids.has(e.id),'EVENT_ID');ids.add(e.id);
   assert(['POOL','MARKET','SOCIAL','SECURITY'].includes(e.kind),'EVENT_KIND');
   assert(typeof e.candidate_id==='string'&&e.candidate_id.length>0,'CANDIDATE_ID');
   assert(Number.isFinite(time(e.event_at))&&Number.isFinite(time(e.available_at))&&time(e.event_at)<=time(e.available_at),'EVENT_TIME');
+  if(d.window)assert(time(e.event_at)>=time(d.window.start)&&time(e.available_at)<=time(d.window.end),'SOURCE_OUTSIDE_TIME_WINDOW');
   assert(e.evidence&&['LEDGER','ARCHIVE','FIXTURE'].includes(e.evidence.type)&&typeof e.evidence.ref==='string','EVIDENCE');
   assert(d.data_class==='SYNTHETIC'||e.evidence.type!=='FIXTURE','FIXTURE_IN_HISTORY');
   if(e.kind==='MARKET'){
@@ -35,6 +40,15 @@ export function blindReadiness(d){
  if(d.data_class!=='HISTORICAL')reasons.push('SYNTHETIC_NOT_RESEARCH_EVIDENCE');
  if(d.universe?.selection!=='ASOF_COHORT'||d.universe?.complete!==true||!d.universe?.provenance)reasons.push('NO_DOCUMENTED_ASOF_COHORT');
  if(new Set(d.events.map(e=>e.candidate_id)).size<2)reasons.push('SINGLE_TARGET_SELECTION');
+ // Fresh chats do not erase historical knowledge embedded in an LLM's pretrained weights.
+ // Only apply this stronger gate to explicit time-windowed neutral simulations;
+ // legacy synthetic fixtures intentionally remain unchanged.
+ if(d.window&&(
+  d.blinding?.identities_pseudonymized!==true||
+  d.blinding?.pretraining_leakage_reviewed!==true||
+  typeof d.blinding?.independent_attestation!=='string'||
+  d.blinding.independent_attestation.length===0
+ ))reasons.push('PRETRAINING_KNOWLEDGE_LEAKAGE_NOT_CONTROLLED');
  for(const role of ROLES)if(d.contexts?.[role]?.fresh!==true||d.contexts?.[role]?.target_exposed!==false||!d.contexts?.[role]?.attestation)reasons.push('CONTEXT_NOT_ISOLATED:'+role);
  if(!d.events.some(e=>e.kind==='MARKET'&&e.execution_verified===true&&e.evidence.verified===true))reasons.push('NO_EXECUTION_EVIDENCE');
  return {eligible:reasons.length===0,reasons,limit:'Metadata gate only; attestations and source authenticity require independent verification.'};
@@ -59,6 +73,7 @@ export function initialPortfolio(config={}){
 function latest(events,kind,id){return events.filter(e=>e.kind===kind&&e.candidate_id===id).sort((a,b)=>time(b.available_at)-time(a.available_at)||time(b.event_at)-time(a.event_at))[0];}
 export function frame(d,index,p){
  const at=d.ticks[index];assert(at,'FRAME_INDEX');
+ if(d.window)assert(time(at)>=time(d.window.start)&&time(at)<=time(d.window.end),'FRAME_OUTSIDE_TIME_WINDOW');
  const f={schema:'dot_replay_frame.v1',index,at,events:visibleEvents(d,at),portfolio:{cash:p.cash,quote_asset:p.config.quote_asset,positions:clone(p.positions)},data_class:d.data_class};
  return {...f,input_hash:digest(f)};
 }
