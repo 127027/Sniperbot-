@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261114T0345Z-frame0-peer-reconcile-12",
-  "previous_run_id": "qa-20261114T0352Z-frame0-peer-reconcile-11",
+  "run_id": "qa-20261114T0454Z-frame0-peer-reconcile-13",
+  "previous_run_id": "qa-20261114T0345Z-frame0-peer-reconcile-12",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -23,7 +23,7 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/qa/current.json",
-      "sha": "ca734f4a69ea35fb71e35689e4b6c9b35024869a",
+      "sha": "3b56470dda39d0738b1885f43e05728fded71248",
       "json_paths": [
         "$.run_id",
         "$.peer_receipts",
@@ -34,8 +34,8 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/scout/current.json",
-      "sha": "b8fbb60b5b36e643e2bf28098e5cc3a227fd6271",
       "json_paths": [
+        "$.role",
         "$.run_id",
         "$.candidate.id",
         "$.status"
@@ -45,8 +45,8 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/social/current.json",
-      "sha": "ac316dd4cb9e0963c367a5fce4946b9e52db393d",
       "json_paths": [
+        "$.role",
         "$.run_id",
         "$.candidate.id",
         "$.status"
@@ -56,8 +56,8 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/onchain/current.json",
-      "sha": "2b32c2ee11ef07d9603b0f57e5362dfe16f2af56",
       "json_paths": [
+        "$.role",
         "$.run_id",
         "$.candidate.id",
         "$.status"
@@ -67,8 +67,8 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/security/current.json",
-      "sha": "57e0fcc85737c3b89988d59f3bd8b40011b26728",
       "json_paths": [
+        "$.role",
         "$.run_id",
         "$.candidate.id",
         "$.status"
@@ -169,7 +169,7 @@
     },
     {
       "check": "four_peer_states",
-      "result": "2 NEW NONSEED"
+      "result": "3 NEW NONSEED; 4 roles read"
     },
     {
       "check": "diagnostic_frame0_barrier",
@@ -177,7 +177,7 @@
     },
     {
       "check": "chronological_replay",
-      "result": "0/62; no authorized frame1 supplied"
+      "result": "0/62; authorized frame1 not present in scoped inputs"
     },
     {
       "check": "original_historical_source_validation",
@@ -186,17 +186,17 @@
   ],
   "findings": [
     {
-      "statement": "Frame index=0, events=0; diagnostic votes 5/5; no chronological advancement or discovery.",
+      "statement": "Frame index=0, events=0, 5/5 valid diagnostic role votes; no evidence-backed reviews/orders; no chronological replay advancement.",
       "as_of_utc": "2023-03-14T23:59:59Z",
       "evidence_ref": "research/replay-controller/bridge/diagnostic-first-frame/input.json and decisions/{scout,social,onchain,security,qa}.json",
-      "evidence_limit": "Diagnostic only; no authorized next frame or historical trading proof.",
+      "evidence_limit": "Diagnostic only. No frame1 input verified; no independent market, social or trading evidence.",
       "origin": "OWN_GITHUB_READBACK"
     },
     {
-      "statement": "New peer receipts: scout:scout-20261114T0307Z-immutable-buy-receipt-01; social:social-20261114T033548Z-mea-original-audit",
-      "as_of_utc": "2026-11-14T03:45:46Z",
-      "evidence_ref": "research/dot-workflow/roles/scout/current.json@b8fbb60b5b36e643e2bf28098e5cc3a227fd6271; research/dot-workflow/roles/social/current.json@ac316dd4cb9e0963c367a5fce4946b9e52db393d",
-      "evidence_limit": "Peer-state persistence only, not independently verified original evidence.",
+      "statement": "New matching nonseed peer receipts: scout:scout-20261114T0413Z-pool-creation-log-01; social:social-20261114T044441Z-independent-capture-blocked; security:security-20261114T0434Z-initial-lp-mint-review-01",
+      "as_of_utc": "2026-11-14T04:54:22Z",
+      "evidence_ref": "research/dot-workflow/roles/scout/current.json@6b85da5ff49b88177bf49c61e68dd99a7ee0a5b6; research/dot-workflow/roles/social/current.json@90c5938fc2d14ebcbad13221e1bc161f1fe4f9bb; research/dot-workflow/roles/security/current.json@3e9113e96dd5423877c1c04c49b085948b0ca8dd",
+      "evidence_limit": "Peer current.json persistence only; original claims not independently verified.",
       "origin": "OWN_GITHUB_READBACK"
     }
   ],
@@ -204,15 +204,15 @@
     {
       "code": "CONTROLLER_NOT_ADVANCED",
       "role": "controller",
-      "required_input": "Authorized chronological frame 1, time-bounded events and no future labels."
+      "required_input": "Explicitly authorized chronological frame1 input, no future labels; controller advancement not performed by QA."
     },
     {
       "code": "HISTORICAL_EXECUTION_EVIDENCE_MISSING",
       "role": "scout/social/onchain/security",
-      "required_input": "Contemporaneous social, safety, liquidity, quote, slippage and sellability evidence."
+      "required_input": "Time-appropriate social, safety, liquidity, quote, slippage and sellability original evidence."
     }
   ],
-  "next_task": "Await authorized chronological frame 1; validate five role decisions against exact input hash, and reconcile only genuinely new nonseed peer run_ids.",
+  "next_task": "Wait for explicitly authorized chronological frame1; inspect exact frame input and five decisions if present, and reconcile only genuinely new matching nonseed peer run_ids.",
   "peer_receipts": [
     {
       "role": "scout",
@@ -409,7 +409,28 @@
       "result": "STALLED",
       "source_path": "research/dot-workflow/roles/social/current.json",
       "source_blob_sha": "ac316dd4cb9e0963c367a5fce4946b9e52db393d"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0413Z-pool-creation-log-01",
+      "result": "DATA_GAP",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "6b85da5ff49b88177bf49c61e68dd99a7ee0a5b6"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T044441Z-independent-capture-blocked",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "90c5938fc2d14ebcbad13221e1bc161f1fe4f9bb"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261114T0434Z-initial-lp-mint-review-01",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "3e9113e96dd5423877c1c04c49b085948b0ca8dd"
     }
   ],
-  "notes": "TRAINING_ONLY actionable=false; NO_BUY/UNKNOWN; diagnostic only; replay 0/62."
+  "notes": "TRAINING_ONLY; actionable=false; NO_BUY/UNKNOWN; diagnostic barrier only; chronological replay 0/62."
 }
