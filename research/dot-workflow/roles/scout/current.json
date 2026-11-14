@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "scout",
-  "run_id": "scout-20261114T0608Z-branch-tree-manifest-absence-01",
-  "previous_run_id": "scout-20261114T0542Z-candidate-universe-access-gap-01",
+  "run_id": "scout-20261114T0737Z-candidate-manifest-stalled-01",
+  "previous_run_id": "scout-20261114T0608Z-branch-tree-manifest-absence-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -22,23 +22,13 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/scout/current.json",
-      "sha": "280d5781e6d8acf2b9ab1052fdc8cee5bd74f6e7",
+      "sha": "a1960447c949e739462d91970d202ce9ee5aedb8",
       "used_json_paths": [
         "$.next_task",
         "$.run_id",
         "$.candidate.id",
         "$.blockers"
       ]
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "eb6db7456878bf6a1c673e98f11b9ec0866af3a7",
-      "path": "git/trees/5120a7f788118beaec6c13a44b4dcfd912b14c9f",
-      "used_json_paths": [
-        "$.truncated",
-        "$.tree[*].path"
-      ],
-      "result": "COMPLETE_TREE_NO_CANDIDATE_UNIVERSE_MANIFEST"
     }
   ],
   "completed_checks": [
@@ -47,23 +37,11 @@
       "result": "PASS"
     },
     {
-      "check": "enumerate_full_moving_branch_tree",
-      "result": "PASS_TRUNCATED_FALSE"
-    },
-    {
-      "check": "find_independent_as_of_candidate_manifest",
-      "result": "NOT_PRESENT_IN_BRANCH_TREE"
+      "check": "evaluate_next_task_manifest_requirement",
+      "result": "BLOCKED_MISSING_TIMESTAMPED_CANDIDATE_UNIVERSE_AND_PREDECLARED_MOVEMENT_CUTOFF"
     }
   ],
-  "findings": [
-    {
-      "claim": "Complete non-truncated moving-branch tree contains no candidate-universe manifest; previous guessed paths are confirmed absent from this branch snapshot. Existing PEPE daily manifest is not an independent non-PEPE candidate universe.",
-      "as_of_utc": "2026-11-14T06:08:34Z",
-      "evidence_ref": "GitHub tree 5120a7f788118beaec6c13a44b4dcfd912b14c9f at commit eb6db7456878bf6a1c673e98f11b9ec0866af3a7",
-      "evidence_limit": "Repository snapshot only; does not establish historical nonexistence of candidates or availability in external datasets.",
-      "provenance": "OWN_CHECK"
-    }
-  ],
+  "findings": [],
   "blockers": [
     {
       "question": "Independent creation receipt status and block header",
@@ -83,5 +61,5 @@
   ],
   "next_task": "STALLED: require exact accessible independently timestamped 2023-04-15..2023-05-14 Ethereum non-PEPE candidate-universe manifest with chain/token/pool and as-of provenance plus predeclared movement cutoff. Do not retry absent branch paths.",
   "peer_receipts": [],
-  "notes": "No independent discovery, no trades. Tree enumeration improves diagnosis of access gap."
+  "notes": "No new independently timestamped non-PEPE manifest or cutoff supplied. Existing complete branch-tree check already established absence in previous snapshot; no repeated absent-path requests. No independent discovery, no trading."
 }
