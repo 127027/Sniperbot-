@@ -1,13 +1,13 @@
 {
   "schema": "dot_research_state.v1",
   "role": "social",
-  "run_id": "social-20261114T093943Z-diagnostic-frame00001",
-  "previous_run_id": "social-20261114T073919Z-chad-pool-retrospective",
+  "run_id": "social-20261114T103700Z-diagnostic-frame00002",
+  "previous_run_id": "social-20261114T093943Z-diagnostic-frame00001",
   "candidate": {
     "id": "NONE_VISIBLE_IN_FRAME",
     "symbol": null,
-    "selection": "DIAGNOSTIC_FRAME_00001_NO_EVENTS",
-    "as_of_utc": "2023-03-15T23:59:59Z"
+    "selection": "DIAGNOSTIC_FRAME_00002_NO_EVENTS",
+    "as_of_utc": "2023-03-16T23:59:59Z"
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
@@ -29,13 +29,18 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/replay-controller/monitor/status.json",
-      "blob_sha": "c5d630a383ca21d59c8aec85afd0eb987d60d28e"
+      "blob_sha": "59b20cf799d578b6fa0e79d5f38ed233bc9fb609",
+      "json_paths": [
+        "$.frame_index",
+        "$.votes",
+        "$.mode"
+      ]
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/social/current.json",
-      "blob_sha": "b5e1e4c063c546c7daa4cb1ea67cb30ad9d2d9f9"
+      "blob_sha": "368f6788a6f2f520379b0c917c27047df2762706"
     },
     {
       "repository": "127027/Sniperbot-",
@@ -46,8 +51,8 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00001/input.json",
-      "blob_sha": "091236f52311d9ca1a373f2bb5ab6c3e57baf18e",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/input.json",
+      "blob_sha": "f458b55979ca082ebc356a7f40dab1a518874bcb",
       "json_paths": [
         "$.index",
         "$.at",
@@ -58,50 +63,50 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00001/decisions/social.json",
-      "blob_sha": "f08c5362ad22bcd4b8e3da873ddb7bead57cd895"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/social.json",
+      "blob_sha": "13dd79919d10748fe9f4fd4840d16aad758f19b9"
     }
   ],
   "completed_checks": [
     {
       "check": "Neutral replay status",
       "result": "NOT_STARTED",
-      "evidence": "mode=NOT_STARTED; no neutral public frames"
+      "evidence": "mode=NOT_STARTED; no neutral public frame"
     },
     {
       "check": "Diagnostic monitor current frame",
       "result": "PASS",
-      "evidence": "frame_index=1, total_frames=62, mode=DIAGNOSTIC_ONLY"
+      "evidence": "frame_index=2; total_frames=62; mode=DIAGNOSTIC_ONLY"
     },
     {
-      "check": "Frame 00001 social decision",
+      "check": "Frame 00002 social decision",
       "result": "PASS",
-      "evidence": "index=1; at=2023-03-15T23:59:59Z; events=[]; reviews=[]; orders=[]; input_hash matches; decision readback blob f08c5362ad22bcd4b8e3da873ddb7bead57cd895"
+      "evidence": "index=2; at=2023-03-16T23:59:59Z; events=[]; reviews=[]; orders=[]; input_hash matches; decision readback blob 13dd79919d10748fe9f4fd4840d16aad758f19b9"
     }
   ],
   "findings": [
     {
-      "statement": "Diagnostic frame 00001 contains zero visible events; no candidate can be reviewed and no social discovery is established.",
-      "as_of_utc": "2023-03-15T23:59:59Z",
-      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00001/input.json",
-      "evidence_limit": "Only a diagnostic frame; no neutral blind test, no evidence of historical social coverage or price movement.",
+      "statement": "Diagnostic frame 00002 contains zero visible events; no candidate can be reviewed and no social discovery is established.",
+      "as_of_utc": "2023-03-16T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00002/input.json",
+      "evidence_limit": "Diagnostic only; does not establish historical social coverage, neutral discovery or a tradable opportunity.",
       "origin": "OWN_FRAME_CHECK"
     }
   ],
   "blockers": [
     {
       "code": "NO_VISIBLE_SOCIAL_EVENTS",
-      "detail": "Current published diagnostic frame events=[]; reviews=[] and orders=[] are required."
+      "detail": "Published diagnostic frame 00002 has events=[]; empty reviews and orders required."
     },
     {
       "code": "NEUTRAL_REPLAY_NOT_STARTED",
-      "detail": "temporal-public/status.json mode=NOT_STARTED; no neutral frame available."
+      "detail": "temporal-public/status.json mode=NOT_STARTED."
     },
     {
       "code": "AWAITING_OTHER_ROLE_VOTES",
-      "detail": "Monitor reported scout, onchain, security, qa missing for frame 1 at read time."
+      "detail": "Monitor last read lists scout, onchain, security and qa as MISSING for frame 2; may be stale after writes."
     }
   ],
-  "next_task": "On next run read temporal-public/status.json and monitor/status.json anew; process only the newly published current frame. Do not revisit frame 00001 unless a new mismatch is reported.",
+  "next_task": "On next run reread neutral and monitor statuses; process only a newly published current frame; do not revisit frame 00002 unless a mismatch is reported.",
   "peer_receipts": []
 }
