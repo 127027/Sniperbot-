@@ -41,6 +41,26 @@ Datei: research/replay-controller/r23-merge-batches.mjs
 Die Sammlung deckt zunächst nur Ethereum Uniswap V2 ab. Für alle Chains
 müssen weitere regelbasiert ausgewählte Kohorten folgen.
 
+## Schluesselloser Quellen-Fallback (zunaechst unverifiziert)
+
+Datei: research/replay-controller/r23-blockscout-discovery.mjs
+
+Diese zweite READ_ONLY-Variante versucht, die historische Uniswap-V2-
+Factory ueber das offizielle kostenlose Blockscout-Instanz-API abzufragen.
+Es wird kein API-Schluessel und kein bezahltes Modell angefordert. Die
+Instanz kann dennoch historische Anfragen sperren oder begrenzen. Das
+Programm kennzeichnet alle Fundstellen als verified:false, bis ein
+unabhaengiger zweiter Ledgernachweis existiert. 50 gefundene Pools sind
+weiterhin NICHT 50 verifizierte Memecoins.
+
+    node research/replay-controller/r23-blockscout-discovery.mjs --output=PRIVATE/r23/blockscout-part1.json --max-chunks=50 --step=600
+
+Mit --resume-from-block=NUMMER und einer anderen Ausgabedatei kann der
+historische Scan ohne neues Stundensynchronisieren fortgesetzt werden.
+Die Batch-Merge-Regeln gelten auch fuer Blockscout-Ausgaben. Das GitHub-
+Workflow r23-free-archive-smoke.yml probiert den 14.04.2023 nur als
+quellengestempelte technische Probe; kein Modell und kein Echtgeld.
+
 ## Betrieb ohne gekaufte APIs
 
 Voraussetzung: Node 22 und ein erlaubter Ethereum Archive-RPC, der für 2023
