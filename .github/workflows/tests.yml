@@ -40,5 +40,9 @@ jobs:
           name: r20-synthetic-throughput
           path: r20-synthetic-benchmark.json
           retention-days: 14
+      - name: R21 multi-coin sealed evaluator, 50-case scheduler, read-only watchdog
+        run: node --test research/replay-controller/r21-evaluate.test.mjs research/replay-controller/r21-catalog.test.mjs research/replay-controller/r21-observer.test.mjs
+      - name: R21 verify 50-case catalog schema without pretending to have historical data
+        run: node research/replay-controller/r21-catalog.mjs research/replay-controller/r21-case-catalog.json
       - name: Ephemeral local HTTP signed paper roundtrip and persisted replay
         run: node runner/paper-agent-loopback-e2e.mjs
