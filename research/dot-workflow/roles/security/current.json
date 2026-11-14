@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "security",
-  "run_id": "security-20261114T0513Z-lp-transfer-to-token-contract-01",
-  "previous_run_id": "security-20261114T0434Z-initial-lp-mint-review-01",
+  "run_id": "security-20261114T0700Z-lp-recovery-interface-review-01",
+  "previous_run_id": "security-20261114T0513Z-lp-transfer-to-token-contract-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -164,6 +164,17 @@
         "result[162].data",
         "result[162].transactionHash"
       ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/blockscout_contract.json",
+      "json_paths": [
+        "source_code (PepeToken external methods and inherited ERC20 methods)",
+        "abi[*].name",
+        "is_partially_verified",
+        "verified_at"
+      ]
     }
   ],
   "completed_checks": [
@@ -182,7 +193,8 @@
     "Rechecked diagnostic frame 0 input and existing security decision: index=0, at=2023-03-14T23:59:59Z, matching input_hash, events=[], reviews=[], orders=[]; no replacement required.",
     "Attempted bounded Blockscout OwnershipTransferred log retrieval for deployment-to-pool interval 17046105..17046833; source tool returned inaccessible URL/internal error, no event data obtained.",
     "Inspected initial pool creation transaction logs: LP ERC20 Transfer mint to zero address (minimum liquidity) and to 0xfbfeaf0da0f2fde5c66df570133ae35f3eb58c9a; Mint event recipient is router; holder/lock history after mint not established.",
-    "Reviewed all 163 stored pool logs; three LP Transfer events found, including full initial LP allocation transfer from initial recipient to PEPE token contract at block 17047786."
+    "Reviewed all 163 stored pool logs; three LP Transfer events found, including full initial LP allocation transfer from initial recipient to PEPE token contract at block 17047786.",
+    "Reviewed stored later-verified PepeToken source and ABI for LP rescue, arbitrary external call, LP transfer and approval interfaces; no explicit recovery route identified; historical runtime equivalence remains unverified."
   ],
   "findings": [
     {
@@ -275,6 +287,13 @@
       "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_pool_logs.json#result[162]",
       "evidence_limit": "Retrospective stored Blockscout snapshot only; 163 logs end at block 17047786 and are not independently verified or proven complete beyond that block. LP sent to token contract is not proof of irrevocable burn, lock, absence of contract recovery functions, or pre-transfer safety.",
       "verification": "OWN_REVIEW_OF_STORED_POOL_LOGS"
+    },
+    {
+      "claim": "The stored later-verified PepeToken Solidity source and ABI expose no external arbitrary-call, generic token rescue, or LP-pair transfer function. ERC20 transfer/approve/transferFrom act on PEPE balances, and burn() burns caller's PEPE, not LP tokens held by the contract. Thus no explicit LP-token recovery route was identified in this source/ABI; this is not a proof that historically deployed runtime cannot recover LP or that LP is irrevocably locked.",
+      "as_of_utc": "2023-04-14T20:37:23Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_contract.json#source_code,abi",
+      "evidence_limit": "Source was verified only 2023-06-05 and is partially verified, not compiler-matched to 2023-04-14 runtime; ABI/source inspection does not prove absence of hidden dispatch, proxy behavior, delegatecall, or historical storage effects. No independent onchain call or exhaustive opcode control-flow analysis performed.",
+      "verification": "OWN_REVIEW_OF_STORED_SOURCE_AND_ABI"
     }
   ],
   "blockers": [
@@ -312,9 +331,14 @@
       "question": "Post-transfer LP recovery and actual lock status",
       "status": "UNKNOWN",
       "reason": "LP token moved to PEPE contract at block 17047786; require contract execution/recovery capability assessment and independently validated complete LP event history. Transfer is not a burn."
+    },
+    {
+      "question": "Prove inability to recover LP from PEPE contract at block 17047786",
+      "status": "UNKNOWN",
+      "reason": "No external LP recovery function found in later-verified source/ABI, but historical runtime/source equivalence and complete control-flow validation are missing; transfer to contract alone does not establish permanent lock."
     }
   ],
-  "next_task": "Assess whether PEPE contract can move/recover LP tokens received at block 17047786 using historical runtime code and callable interfaces, without assuming burn or permanent lock; keep earlier entry cutoff and OwnershipTransferred history parked until evidence arrives.",
+  "next_task": "Inspect stored 2023-04-14 runtime bytecode for externally callable generic call/delegatecall/LP transfer paths and compare bounded dispatcher selectors against later ABI, without claiming full equivalence; if no new evidence after two runs mark STALLED. Ownership-at-entry remains parked pending cutoff and logs.",
   "peer_receipts": [
     {
       "role": "scout",
