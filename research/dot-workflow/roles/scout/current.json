@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "scout",
-  "run_id": "scout-20261114T160554Z-r22-frame00006-01",
-  "previous_run_id": "scout-20261114T153720Z-r22-frame00005-01",
+  "run_id": "scout-20261114T170549Z-r22-frame00007-01",
+  "previous_run_id": "scout-20261114T160554Z-r22-frame00006-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY"
@@ -30,7 +30,8 @@
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/replay-controller/monitor/r20-progress.json",
       "used_json_paths": [
-        "$.completed_frames"
+        "$.completed_frames",
+        "$.previous_frame"
       ]
     },
     {
@@ -45,7 +46,7 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/runs/watch-20261114-diagnostic/commits/00005.json",
+      "path": "research/replay-controller/runs/watch-20261114-diagnostic/commits/00006.json",
       "used_json_paths": [
         "$.index",
         "$.decisions",
@@ -55,7 +56,7 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00006/input.json",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00007/input.json",
       "used_json_paths": [
         "$.index",
         "$.at",
@@ -66,7 +67,7 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00006/decisions/scout.json",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00007/decisions/scout.json",
       "used_json_paths": [
         "$.role",
         "$.run_id",
@@ -80,18 +81,17 @@
   ],
   "completed_checks": [
     {
-      "check": "sealed_contiguous_commit_00005",
+      "check": "sealed_contiguous_commit_00006",
       "result": "PASS"
     },
     {
-      "check": "published_frame_00006",
+      "check": "published_frame_00007",
       "result": "PASS_EMPTY_EVENTS"
     },
     {
-      "check": "scout_vote_00006",
+      "check": "scout_vote_00007",
       "result": "CREATED_AND_READBACK",
-      "commit_sha": "3facd3e5804839a56ee8647c6814712150c4a3b7",
-      "blob_sha": "a81c1a9638ce7b3d88c57f56c1820a0b272391bc"
+      "blob_sha": "8acaf8c13c76ffca542369fcb938df9c3715e2a1"
     },
     {
       "check": "peer_vote_presence",
@@ -101,26 +101,26 @@
   "findings": [
     {
       "origin": "OWN",
-      "statement": "Frame 00006 was published with events=[]; zero candidates and zero time-valid evidence; scout decision saved and verified.",
-      "as_of_utc": "2023-03-20T23:59:59Z",
-      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00006/input.json#$.events",
-      "limit": "Diagnostic known-winner case, not independent blind discovery."
+      "statement": "Published frame 00007 has events=[]; zero visible candidates, zero time-valid evidence, scout decision persisted and read back.",
+      "as_of_utc": "2023-03-21T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00007/input.json#$.events",
+      "limit": "Known-winner diagnostic only; not independent blind discovery."
     }
   ],
   "blockers": [
     {
       "code": "MISSING_PEER_DECISIONS",
-      "required_input": "research/replay-controller/bridge/diagnostic-frames/00006/decisions/{social,onchain,security,qa}.json"
+      "required_input": "research/replay-controller/bridge/diagnostic-frames/00007/decisions/{social,onchain,security,qa}.json"
     },
     {
       "code": "BLOCKED_MISSING_NEUTRAL_INPUT",
       "required_input": "Active neutral status and published neutral frame"
     }
   ],
-  "next_task": "Read current neutral status and highest contiguous sealed diagnostic commit; only decide a newly published frame, or verify the existing scout vote.",
+  "next_task": "Check neutral status and highest contiguous sealed diagnostic commit; process only newly published current frame, otherwise verify existing scout decision.",
   "peer_receipts": [],
   "kpis": {
-    "frame": "00006/62",
+    "frame": "00007/62",
     "visible_candidates": 0,
     "new_temporally_valid_evidence": 0,
     "own_vote_saved_this_run": true,
