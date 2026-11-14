@@ -44,16 +44,10 @@ export async function discoverBlockscout({base='https://eth.blockscout.com',from
  check(Number.isInteger(step)&&step>0&&step<=1500,'BAD_STEP');
  check(Number.isInteger(maxChunks)&&maxChunks>0&&maxChunks<=20000,'BAD_CHUNK_LIMIT');
  check(validTime(windowStart)&&validTime(windowEnd)&&Date.parse(windowStart)<=Date.parse(windowEnd),'BAD_WINDOW');
- const blockCache=new Map(),sources=[],chunks=[];
- async function blockInfo(n){
-  if(!blockCache.has(n)){
-   const x=await getJson(base,'/api/v2/blocks/'+n,{},fetchFn);
-   const date=new Date(x?.timestamp).toISOString();
-   check(/^0x[0-9a-fA-F]{64}$/.test(x?.hash||'')&&validTime(date),'INVALID_ARCHIVE_BLOCK_INFO');
-   blockCache.set(n,{at:date,hash:x.hash.toLowerCase()});
-  }
-  return blockCache.get(n);
- }
+ const sources=[],chunks=[];
+ // Legacy Blockscout getLogs contains the block's timestamp. Keeping the
+ // original timestamp avoids one rate-limited HTTP request per log and makes
+ // this an explicit SINGLE-SOURCE, UNVERIFIED first-pass dataset.
  let next=fromBlock;
  while(next<=toBlock&&chunks.length<maxChunks){
   const end=Math.min(toBlock,next+step-1);
@@ -85,23 +79,25 @@ export async function discoverBlockscout({base='https://eth.blockscout.com',from
    const blockNumber=parseUint(log.blockNumber,'BLOCK_NUMBER');
    const logIndex=parseUint(log.logIndex,'LOG_INDEX');
    check(blockNumber>=next&&blockNumber<=end,'ARCHIVE_LOG_OUTSIDE_RANGE');
-   const b=await blockInfo(blockNumber);
+   check(log.timeStamp!==undefined,'ARCHIVE_LOG_TIMESTAMP_MISSING');
+   const epochSeconds=parseUint(log.timeStamp,'EVENT_TIMESTAMP');
+   const at=new Date(epochSeconds*1000).toISOString();
+   check(validTime(at),'INVALID_EVENT_TIME');
    const normalized={...log,topics,blockNumber:'0x'+blockNumber.toString(16),
-    logIndex:'0x'+logIndex.toString(16),
-    blockHash:log.blockHash??b.hash};
-   const p=decodePair(normalized);
-   check(b.hash===p.block_hash,'ARCHIVE_BLOCK_HASH_CONFLICT');
-   if(Date.parse(b.at)<Date.parse(windowStart)||Date.parse(b.at)>Date.parse(windowEnd))continue;
+    logIndex:'0x'+logIndex.toString(16)};
+   const p=decodePair(normalized,{permitMissingBlockHash:true});
+   if(Date.parse(at)<Date.parse(windowStart)||Date.parse(at)>Date.parse(windowEnd))continue;
    const c=poolCandidate(p);
    if(!c)continue;
    const original=JSON.stringify({network:'ethereum',provider:'BLOCKSCOUT_ARCHIVE_UNVERIFIED',
     factory:FACTORY,block:p.block,block_hash:p.block_hash,tx_hash:p.tx_hash,log_index:p.log_index,
-    token0:p.token0,token1:p.token1,pool:p.pool,event_at:b.at,
-    block_hash_source:log.blockHash?'ARCHIVE_LOG_AND_BLOCK':'ARCHIVE_BLOCK_LOOKUP_ONLY'});
+    token0:p.token0,token1:p.token1,pool:p.pool,event_at:at,
+    timestamp_source:'LEGACY_EXPLORER_LOG_ONLY',
+    block_hash_source:log.blockHash?'LEGACY_EXPLORER_LOG_ONLY':'NOT_PROVIDED'});
    sources.push({id:'pair:'+p.tx_hash.slice(2)+':'+p.log_index,kind:'POOL',candidate_id:c.candidate_id,
-    event_at:b.at,payload:{chain:'ethereum',token:c.token,pool:p.pool},
+    event_at:at,payload:{chain:'ethereum',token:c.token,pool:p.pool},
     proof:{method:'ONCHAIN_LEDGER',original,sha256:sha(original),
-     ref:'https://eth.blockscout.com/tx/'+p.tx_hash,block_time:b.at,
+     ref:'https://eth.blockscout.com/tx/'+p.tx_hash,block_time:at,
      historical_ledger_verified:false,verified:false},
     quote_token:c.quote,block_number:p.block});
    included++;
