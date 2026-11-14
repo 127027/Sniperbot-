@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "scout",
-  "run_id": "scout-20261114T0542Z-candidate-universe-access-gap-01",
-  "previous_run_id": "scout-20261114T0413Z-pool-creation-log-01",
+  "run_id": "scout-20261114T0608Z-branch-tree-manifest-absence-01",
+  "previous_run_id": "scout-20261114T0542Z-candidate-universe-access-gap-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -16,14 +16,13 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/dot-workflow/PROTOCOL.md",
-      "sha": "2503f1dc2fd00ede9e03edc2a8270e1180b85457"
+      "path": "research/dot-workflow/PROTOCOL.md"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/scout/current.json",
-      "sha": "6b85da5ff49b88177bf49c61e68dd99a7ee0a5b6",
+      "sha": "280d5781e6d8acf2b9ab1052fdc8cee5bd74f6e7",
       "used_json_paths": [
         "$.next_task",
         "$.run_id",
@@ -33,21 +32,13 @@
     },
     {
       "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/dot-workflow/candidate-universe.json",
-      "result": "HTTP_404"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/dot-workflow/candidates.json",
-      "result": "HTTP_404"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/dot-workflow/candidate-universe/2023-04.json",
-      "result": "HTTP_404"
+      "ref": "eb6db7456878bf6a1c673e98f11b9ec0866af3a7",
+      "path": "git/trees/5120a7f788118beaec6c13a44b4dcfd912b14c9f",
+      "used_json_paths": [
+        "$.truncated",
+        "$.tree[*].path"
+      ],
+      "result": "COMPLETE_TREE_NO_CANDIDATE_UNIVERSE_MANIFEST"
     }
   ],
   "completed_checks": [
@@ -56,25 +47,20 @@
       "result": "PASS"
     },
     {
-      "check": "search_repository_index_for_candidate_universe",
-      "result": "NO_MATCH_DEFAULT_BRANCH_INDEX_NOT_BRANCH_COMPLETE"
+      "check": "enumerate_full_moving_branch_tree",
+      "result": "PASS_TRUNCATED_FALSE"
     },
     {
-      "check": "fetch_three_plausible_candidate_universe_paths_on_moving_branch",
-      "result": "THREE_HTTP_404"
-    },
-    {
-      "check": "non_pepe_candidate_chain_token_pool_and_first_as_of",
-      "result": "UNKNOWN_NO_CANDIDATE_RECORD"
+      "check": "find_independent_as_of_candidate_manifest",
+      "result": "NOT_PRESENT_IN_BRANCH_TREE"
     }
   ],
   "findings": [
     {
-      "claim": "No accessible candidate-universe dataset was identified through three exact-path fetches on the moving branch and three default-branch code-index queries. This is an access/discovery gap, not proof that no candidates existed in 2023 or that the repository has no such data.",
-      "as_of_utc": "2026-11-14T05:42:29Z",
-      "evidence_ref": "GitHub fetch_file 404 for research/dot-workflow/candidate-universe.json, candidates.json, candidate-universe/2023-04.json; GitHub search index zero matches",
-      "evidence_class": "OWN_CHECK_REPOSITORY_ACCESS",
-      "evidence_limit": "No recursive moving-branch tree listing available; code search indexes default branch only; cannot establish absence repository-wide.",
+      "claim": "Complete non-truncated moving-branch tree contains no candidate-universe manifest; previous guessed paths are confirmed absent from this branch snapshot. Existing PEPE daily manifest is not an independent non-PEPE candidate universe.",
+      "as_of_utc": "2026-11-14T06:08:34Z",
+      "evidence_ref": "GitHub tree 5120a7f788118beaec6c13a44b4dcfd912b14c9f at commit eb6db7456878bf6a1c673e98f11b9ec0866af3a7",
+      "evidence_limit": "Repository snapshot only; does not establish historical nonexistence of candidates or availability in external datasets.",
       "provenance": "OWN_CHECK"
     }
   ],
@@ -95,7 +81,7 @@
       "required_input": "Exact moving-branch path or read-only indexed manifest of timestamped 2023 Ethereum candidate-universe records, including contract/pool identifiers and source provenance."
     }
   ],
-  "next_task": "STALLED: await exact accessible as-of-safe candidate-universe manifest/path for 2023-04-15..2023-05-14; once available read one independently selected non-PEPE record, verify ethereum:token:pool and first timestamp before a predeclared movement cutoff. Do not retry guessed paths or convert known winners into discoveries.",
+  "next_task": "STALLED: require exact accessible independently timestamped 2023-04-15..2023-05-14 Ethereum non-PEPE candidate-universe manifest with chain/token/pool and as-of provenance plus predeclared movement cutoff. Do not retry absent branch paths.",
   "peer_receipts": [],
-  "notes": "No new candidate validated. PEPE candidate retained solely as previous diagnostic identity; no new discovery. No trades or modifications outside own scout state."
+  "notes": "No independent discovery, no trades. Tree enumeration improves diagnosis of access gap."
 }
