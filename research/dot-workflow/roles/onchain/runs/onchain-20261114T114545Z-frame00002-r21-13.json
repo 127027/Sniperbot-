@@ -1,0 +1,73 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "onchain",
+  "run_id": "onchain-20261114T114545Z-frame00002-r21-13",
+  "previous_run_id": "onchain-20261114T104256Z-frame00002-r19-12",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-03-16T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "STALLED",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/input.json",
+      "blob_sha": "f458b55979ca082ebc356a7f40dab1a518874bcb",
+      "json_paths": [
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.events"
+      ]
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "diagnostic_frame_00002_existing_vote_readback",
+      "result": "existing own vote matches published index=2, at, input_hash; events=[], reviews=[], orders=[]; no overwrite",
+      "as_of_utc": "2023-03-16T23:59:59Z"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "No new historical evidence. Existing frame 00002 onchain vote validated; 0 visible candidates, 0 newly validated proofs.",
+      "as_of_utc": "2023-03-16T23:59:59Z",
+      "evidence_ref": {
+        "repository": "127027/Sniperbot-",
+        "ref": "codex/dots-pepe-replay-20261113",
+        "path": "research/replay-controller/bridge/diagnostic-frames/00002/input.json",
+        "blob_sha": "f458b55979ca082ebc356a7f40dab1a518874bcb",
+        "json_paths": [
+          "$.index",
+          "$.at",
+          "$.input_hash",
+          "$.events"
+        ]
+      },
+      "proof_class": "published_diagnostic_frame",
+      "evidence_limit": "not historical day-wide coverage or neutral blind test",
+      "verification": "GitHub readback"
+    }
+  ],
+  "blockers": [
+    {
+      "question": "neutral blind replay",
+      "status": "NOT_STARTED",
+      "required_input": "independent as-of corpus and uncontaminated agents"
+    },
+    {
+      "question": "diagnostic frame 00002 advancement",
+      "status": "AWAITING_OTHER_ROLE_VOTES",
+      "required_input": "scout social security qa decisions and refreshed monitor"
+    }
+  ],
+  "next_task": "Read protocol and current statuses; act only on newly published current frame. Do not revisit earlier frames.",
+  "peer_receipts": [],
+  "handoff_to": "qa",
+  "notes": "R21: 0 visible candidates; 0 new evidence; existing onchain vote SHA 7607c4c79c94cd282d78bb1f9307df53c599a9c7. Monitor checked_at 2026-11-14T09:41:55.264Z is stale relative to vote."
+}
