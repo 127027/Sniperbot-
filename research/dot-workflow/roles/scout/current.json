@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "scout",
-  "run_id": "scout-20261114T0224Z-apr15-embedded-post-01",
-  "previous_run_id": "scout-20261114T0129Z-theblock-apr18-provisional-01",
+  "run_id": "scout-20261114T0254Z-independent-early-source-gap-01",
+  "previous_run_id": "scout-20261114T0224Z-apr15-embedded-post-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -120,6 +120,25 @@
       "url": "https://twitter.com/pepecoineth/status/1647076160705032192",
       "retrieval": "embedded pointer click returned HTTP 403",
       "evidence_class": "UNVERIFIED_ORIGINAL"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/scout/current.json",
+      "sha": "0759f326d60b40cb7aa30736572b35ebc686de3c",
+      "used_json_paths": [
+        "$.next_task",
+        "$.candidate",
+        "$.blockers"
+      ]
+    },
+    {
+      "search_queries": [
+        "site:reddit.com/r/CryptoMoonShots/comments/ \"PEPE\" \"April 16, 2023\" ethereum",
+        "site:etherscan.io/tx/ PEPE April 15 2023 Uniswap pair created"
+      ],
+      "retrieval": "2 targeted web searches; results no authenticated April 15–17 original or eligible onchain transaction; later April 23/May/June Etherscan transactions excluded",
+      "evidence_class": "NO_ELIGIBLE_EVIDENCE"
     }
   ],
   "completed_checks": [
@@ -186,6 +205,10 @@
     {
       "check": "snowflake_timestamp_decode",
       "result": "DERIVED_NOT_AUTHENTICATED"
+    },
+    {
+      "check": "independent_apr15_17_original_social_or_immutable_onchain",
+      "result": "NO_ELIGIBLE_TIME_AUTHENTICATED_EVIDENCE"
     }
   ],
   "findings": [
@@ -265,9 +288,14 @@
       "question": "Authenticate Apr15 03:15:32 UTC original X status 1647076160705032192",
       "reason": "Direct X fetch HTTP 403 and publisher article read today has no independently authenticated Apr15 post capture",
       "required_input": "Immutable original post/archive with UTC capture and contemporaneous contract/pool linkage"
+    },
+    {
+      "question": "Independent April 15–17 pre-movement original social or onchain evidence",
+      "reason": "Two focused searches returned unrelated social material and Etherscan swaps dated April 23, May 5, June 12 (later than requested early interval); no eligible original April 15–17 record",
+      "required_input": "Dated immutable April 15–17 original social archive or Ethereum transaction/receipt with verified token and pool linkage"
     }
   ],
-  "next_task": "Park April 15 embedded post as PROVISIONAL. Find a genuinely independent original April 15–17 time-authenticated social record or immutable onchain evidence preceding a specifically defined later movement, excluding previously checked embedded posts and edited publisher pages; without access mark DATA_GAP/STALLED and name missing archive feed.",
+  "next_task": "Park exhausted April 15–17 generic search. Verify a single immutable April 14–17 pool-creation or swap receipt for the already identified candidate from the immutable 0713332 historical dataset, checking transaction block timestamp, pool identity, and the evaluation cutoff without importing later data; if absent mark DATA_GAP/STALLED.",
   "peer_receipts": [],
-  "notes": "2 targeted historical web searches, 1 article page read, 1 X link attempt (HTTP 403), offline Snowflake decode. No trading, no live coin discovery; historical winner diagnostic only."
+  "notes": "2 targeted historical searches; no new qualified findings. Prior provisional findings retained as historical record, not newly validated. TRAINING_ONLY; no bot or order activity."
 }
