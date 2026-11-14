@@ -12,6 +12,8 @@ import {createExecutionInbox} from './device-execution-inbox.mjs';
 import {createDynamicTradeInbox} from './dynamic-trade-inbox.mjs';
 import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
 import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
+import {startCentralAiCoordinator} from './central-ai-coordinator.mjs';
+import {collectResearchNews} from './research-news-rss.mjs';
 import {enrollPaperPublisherPublicKey} from './paper-publisher-trust.mjs';
 import {summarizePaperPipeline} from './pipeline-health.mjs';
 import {runIsolatedPaperAgentSelfTest} from './isolated-paper-pipeline-selftest.mjs';
@@ -184,16 +186,22 @@ async function prices(){if(deviceTopology.mode==='FOLLOWER')return;if(pricing ||
  }finally{pricing=false}
 }
 let paperAgentOrderQueue=Promise.resolve();
+let centralAiService=null;
 let githubAgentFeedStatus={checked_at_utc:null,received_last:0,
  accepted_last:0,rejected_last:0,last_rejection:null,
  status:'NOT_CHECKED',last_error:null};
-function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_ADAPTER'}={}){
+function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_ADAPTER',localTrust=null,indicativePaper=false}={}){
  const job=async()=>{
   let keys;
   try{
-   const file=path.join(store.dir,'trusted-execution-publishers.json');
-   if(!existsSync(file))return {error:'Kein autorisierter signierender Agenten-Publisher eingerichtet',code:409};
-   keys=JSON.parse(readFileSync(file,'utf8'));
+   if(source==='CENTRAL_AI_LOCAL'&&Array.isArray(localTrust)&&localTrust.length===1){
+    // Session-only public trust: private signing key never leaves coordinator memory.
+    keys=localTrust;
+   }else{
+    const file=path.join(store.dir,'trusted-execution-publishers.json');
+    if(!existsSync(file))return {error:'Kein autorisierter signierender Agenten-Publisher eingerichtet',code:409};
+    keys=JSON.parse(readFileSync(file,'utf8'));
+   }
    verifyAgentSignal(signed,keys,{deviceId:localDevice.device_id});
   }catch(e){return {error:String(e?.message||'INVALID_SIGNATURE').slice(0,120),code:422}}
   const old=Array.isArray(state.agentOrderReceipts)?
@@ -206,7 +214,7 @@ function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_A
   try{
    const syntheticTest=process.env.SNIPER_OFFLINE==='1'&&
     process.env.SNIPER_PIPELINE_QA==='1'&&qaQuote!==null;
-   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source,syntheticTest});
+   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source,syntheticTest,indicativePaper});
    commit(result.next);
    return {ok:true,receipt:result.receipt,real_trade_executed:false,live_trading_enabled:false};
   }catch(e){return {error:String(e?.message||'AGENT_PAPER_PIPELINE_BLOCKED').slice(0,120),code:422}}
@@ -226,6 +234,11 @@ const server=createServer(async(req,res)=>{
   return res.end(readFileSync(path.join(root,'runner','dashboard.html')));
  }
  if(req.method==='GET'&&route==='/api/state')return reply(res,200,{ok:true,mode:'PAPER_ONLY',dataSource:'GeckoTerminal / DEX Screener (read only)',state,health:{online:true,scanRunning:scanning,pricing,uptimeSec:Math.round(process.uptime()),central:centralStatus(),researchNetwork,localLearning:localResearchLearning(),dotStatus:buildDotStatus(state.researchInbox,{enabled:process.env.SNIPER_RESEARCH_FEED==='1'})}});
+ if(req.method==='GET'&&route==='/api/central-ai/status')return reply(res,200,{ok:true,
+  coordinator:centralAiService?.status()||{schema:'sniper_central_ai_status.v1',enabled:false,
+   mode:'PAPER_ONLY',reason:process.env.SNIPER_OFFLINE==='1'?'OFFLINE_TEST':
+   'AI_API_KEY_OR_OPT_IN_NOT_CONFIGURED',remote_chat_session_connected:false,
+   real_wallet_reported:false,live_trading_enabled:false}});
  if(req.method==='GET'&&route==='/api/research/network')return reply(res,200,{ok:true,network:researchNetwork});
  if(req.method==='GET'&&route==='/api/research/advisories')return reply(res,200,{ok:true,advisories:researchNetwork.advisories||null});
  if(req.method==='GET'&&route==='/api/research/learning')return reply(res,200,{ok:true,learning:localResearchLearning()});
@@ -843,6 +856,7 @@ let shuttingDown=false;
 function shutdownServer(){
  if(shuttingDown)return;
  if(masterPublisher){clearInterval(masterPublisher.timer);masterPublisher=null}
+ if(centralAiService){centralAiService.stop();centralAiService=null}
  shuttingDown=true;
  try{save()}catch(e){console.error('Paper-state save on shutdown:',e.message)}
  server.close(()=>process.exit(0));
@@ -894,4 +908,18 @@ if(process.env.SNIPER_OFFLINE!=='1'&&
 if(process.env.SNIPER_RESEARCH_FEED==='1'){
  const pollResearch=createReceiver({getState:()=>state,commit});
  void pollResearch().catch(e=>console.error('Research inbox:',e.message));setInterval(()=>{void pollResearch().catch(e=>console.error('Research inbox:',e.message))},60000);
+}
+
+// V0.21 opt-in central AI: outbound-only model research from this local bot.
+// Model never receives wallet secrets. It cannot directly invoke a trade route.
+if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_CENTRAL_AI_ENABLED==='1'&&
+ typeof process.env.SNIPER_OPENAI_API_KEY==='string'&&process.env.SNIPER_OPENAI_API_KEY.length>20){
+ centralAiService=startCentralAiCoordinator({
+  apiKey:process.env.SNIPER_OPENAI_API_KEY,
+  deviceId:localDevice.device_id,dataDir:store.dir,getState:()=>state,
+  submit:(signed,options)=>submitSignedAgentPaperOrder(signed,options),
+  scan:()=>scanNewPools(),collectNews:()=>collectResearchNews()
+ });
+ // Avoid accidental API key inclusion in diagnostic environment dumps.
+ delete process.env.SNIPER_OPENAI_API_KEY;
 }
