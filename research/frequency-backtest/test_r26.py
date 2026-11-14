@@ -55,16 +55,16 @@ class FrequencyBacktestTests(unittest.TestCase):
         r,detailed=run(baseline)
         self.assertEqual(len(r["runs"]),4)
         self.assertTrue(any(x["buy_count"]>0 for x in r["runs"]))
-        for x in r["runs"]:
+        for x,detail in zip(r["runs"],detailed["runs"]):
             self.assertLessEqual(x["max_open_cost_test_usdc"],5000.000001)
             self.assertLessEqual(x["max_concurrent_positions"],5)
             self.assertGreaterEqual(x["ending_cash_test_usdc"],0)
             self.assertAlmostEqual(x["net_pnl_test_usdc"],
                x["realized_pnl_test_usdc"]+x["unrealized_net_pnl_test_usdc"],places=4)
-            for trade in x["buys"]:
+            for trade in detail["buys"]:
                 self.assertGreaterEqual(trade["size_test_usdc"],50)
                 self.assertLessEqual(trade["size_test_usdc"],5000)
-            for trade in x["sells"]:
+            for trade in detail["sells"]:
                 self.assertTrue(trade["simulated_not_real_fill"])
                 self.assertFalse("REAL_FILL" in trade["execution_evidence"])
         self.assertEqual(r["test_type"],"DETERMINISTIC_PRICE_ONLY_BASELINE_NOT_ACTUAL_AI_NEWS")
