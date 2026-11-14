@@ -54,7 +54,7 @@ jobs:
           node research/replay-controller/r23-onchain-discovery.mjs \
             --start=2023-04-12T14:00:00Z --end=2023-05-14T23:59:59Z \
             --from-block=17032888 --to-block=17300000 \
-            --max-chunks=50 --step=600 --output=r25-2023-archive-first.json
+            --max-chunks=50 --step=200 --output=r25-2023-archive-first.json
       - name: Audit real candidate counts and note partial coverage
         run: |
           node -e "const d=require('./r25-2023-archive-first.json'); console.log(JSON.stringify({status:'PARTIAL_REAL_HISTORICAL_COHORT',pool_candidates:d.distinct_pool_candidates,covered_to:d.completed_through_block,continuation:d.continuation_from_block,window_complete:d.complete_block_range,verified_memecoins:d.verified_memecoin_count,trades:0,second_source:d.independently_cross_checked}));if(d.verified_memecoin_count||d.asof_corpus.sources.some(s=>s.proof.verified))process.exit(2)"
