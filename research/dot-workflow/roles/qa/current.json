@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261114T0849Z-frame1-empty-vote-17",
-  "previous_run_id": "qa-20261114T0750Z-frame0-mismatch-audit-16",
+  "run_id": "qa-20261114T0953Z-diagnostic-frame00002-18",
+  "previous_run_id": "qa-20261114T0849Z-frame1-empty-vote-17",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -16,117 +16,115 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/TEMPORAL_REPLAY_PROTOCOL.md",
+      "sha": "274129bc2657e009dd98ad5427d6a43ab54314b3"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/temporal-public/status.json",
+      "sha": "5e46cc3d0ec48030d7a4733ae19f340d2ac3ece5"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/monitor/status.json",
+      "sha": "59b20cf799d578b6fa0e79d5f38ed233bc9fb609"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/PROTOCOL.md",
       "sha": "2503f1dc2fd00ede9e03edc2a8270e1180b85457"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/input.json",
+      "sha": "f458b55979ca082ebc356a7f40dab1a518874bcb"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/qa.json",
+      "sha": "1ac17372f52b1e203f3ae22ac5318f748cbade4c"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/scout/current.json",
-      "sha": "9901373e14fac7110e6fb6f9303dab9c9fc5940d"
+      "sha": "d41c9d3791faa9c5d015fb8018154f70f533258c"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/social/current.json",
-      "sha": "b5e1e4c063c546c7daa4cb1ea67cb30ad9d2d9f9"
+      "sha": "368f6788a6f2f520379b0c917c27047df2762706"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/onchain/current.json",
-      "sha": "2b32c2ee11ef07d9603b0f57e5362dfe16f2af56"
+      "sha": "33f9cbed798a24939f0428798dca65145de4edeb"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/security/current.json",
-      "sha": "974ac304d1fd6dbf6bdbbbe6346ca94f12220f1e"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/monitor/status.json",
-      "sha": "c5d630a383ca21d59c8aec85afd0eb987d60d28e"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00001/input.json",
-      "sha": "091236f52311d9ca1a373f2bb5ab6c3e57baf18e"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00001/decisions/qa.json"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/dot-workflow/roles/qa/current.json",
-      "sha": "418956805655a9888583c19cadec1bc10793a1fd"
+      "sha": "deac365078f52536c26ba6e3e4191ba0191cd51d"
     }
   ],
   "completed_checks": [
     {
-      "check": "protocol_and_current",
-      "result": "PASS"
+      "check": "temporal_public_status",
+      "result": "NOT_STARTED; diagnostic only"
     },
     {
-      "check": "peer_states",
-      "result": "PASS: scout/security new matching receipts; social CHAD excluded; onchain unchanged"
+      "check": "monitor",
+      "result": "frame_index=2 / 62"
     },
     {
-      "check": "frame1_input",
-      "result": "PASS: index=1 at=2023-03-15T23:59:59Z events=[] input_hash verified"
+      "check": "frame2_input",
+      "result": "index=2, at=2023-03-16T23:59:59Z, events=[]; input_hash copied from published input"
     },
     {
-      "check": "frame1_qa_vote",
-      "result": "CREATED: empty reviews and orders"
+      "check": "frame2_qa_vote",
+      "result": "CREATED_AND_READBACK; reviews=[] orders=[]; blob 1ac17372f52b1e203f3ae22ac5318f748cbade4c"
     },
     {
-      "check": "five_role_barrier",
-      "result": "NOT_COMPLETE: monitor snapshot showed all votes missing; other decisions not freshly read"
-    },
-    {
-      "check": "historical_market_validation",
-      "result": "NOT_PERFORMED"
+      "check": "frame2_peer_votes",
+      "result": "scout/social/onchain/security absent (404); QA only 1/5"
     }
   ],
   "findings": [
     {
-      "statement": "Monitor advanced to diagnostic frame 1/62. Frame 1 input contains no events, so QA decision has reviews=[] and orders=[].",
-      "as_of_utc": "2023-03-15T23:59:59Z",
-      "evidence_ref": "research/replay-controller/monitor/status.json; research/replay-controller/bridge/diagnostic-frames/00001/input.json; decisions/qa.json",
-      "evidence_limit": "Diagnostic known-winner replay only, not blind discovery; peer votes not independently inspected in this run.",
-      "origin": "OWN_GITHUB_READ_AND_QA_VOTE"
+      "statement": "Published diagnostic frame 00002 contains zero visible events. QA wrote a non-actionable empty decision and verified its content by readback.",
+      "as_of_utc": "2023-03-16T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00002/input.json; decisions/qa.json",
+      "evidence_limit": "Known-winner diagnostic, not blind discovery; hash value matched to input, no independent recomputation of controller hash.",
+      "origin": "OWN_GITHUB_READ_AND_WRITE"
     },
     {
-      "statement": "Scout and Security peer state run IDs match PEPE; Social state targets CHAD and is not a PEPE receipt.",
-      "as_of_utc": "2026-11-14T08:49:00Z",
-      "evidence_ref": "research/dot-workflow/roles/{scout,social,onchain,security}/current.json",
-      "evidence_limit": "Peer state read, not independent verification of underlying chain or social evidence.",
+      "statement": "Neutral temporal replay has not started; monitor shows diagnostic index 2/62. Four peer decision files for frame 2 returned 404 before QA write.",
+      "as_of_utc": "2026-11-14T09:41:55.264Z",
+      "evidence_ref": "research/replay-controller/temporal-public/status.json; research/replay-controller/monitor/status.json; diagnostic-frames/00002/decisions/",
+      "evidence_limit": "Snapshot may change after reads; peer current states are not frame-2 votes.",
       "origin": "OWN_GITHUB_READ"
     }
   ],
   "blockers": [
     {
       "code": "BLOCKED_WAITING_FOR_PEERS",
-      "role": "social",
-      "required_input": "Matching PEPE candidate peer state; current Social is CHAD."
+      "role": "scout,social,onchain,security",
+      "required_input": "Four matching role decisions for diagnostic frame 00002, index=2, at=2023-03-16T23:59:59Z, input_hash=e9a683c1806a4e460725c0c5c3ec861af320f381b5c8b46ef5351376610e422a"
     },
     {
-      "code": "MISSING_ROLE_VOTES",
+      "code": "NEUTRAL_REPLAY_NOT_STARTED",
       "role": "controller",
-      "required_input": "Frame 1 decisions for scout, social, onchain, security; monitor last snapshot reported all missing."
-    },
-    {
-      "code": "HISTORICAL_EXECUTION_EVIDENCE_MISSING",
-      "role": "all",
-      "required_input": "Contemporaneous safety, liquidity, social, quote, slippage, sellability proofs."
+      "required_input": "Independently audited neutral as-of corpus and clean agents; temporal-public mode currently NOT_STARTED."
     }
   ],
-  "next_task": "Check frame1 other four role decisions and updated monitor; await controller advance to frame2, do not inspect future frame inputs; no trading.",
+  "next_task": "Wait for genuine four peer decisions for frame 00002 and controller seal; next run read monitor first and only then published current frame. No future-frame reads.",
   "peer_receipts": [
     {
       "role": "scout",
@@ -409,5 +407,5 @@
       "source_blob_sha": "974ac304d1fd6dbf6bdbbbe6346ca94f12220f1e"
     }
   ],
-  "notes": "TRAINING_ONLY actionable=false NO_BUY/UNKNOWN; frame0 0/62; partial barrier recheck only."
+  "notes": "DIAGNOSTIC_ONLY; 2/62; frame2 QA decision 1/5, NO_BUY/UNKNOWN; no trades."
 }
