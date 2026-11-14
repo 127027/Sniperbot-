@@ -46,3 +46,15 @@ test('rejects missing sources and does not claim secondary attestation',()=>{
  x.observed_pair_events=2;
  assert.throws(()=>mergeBatches([x]),/SOURCE_COUNT_MISMATCH/);
 });
+
+test('consecutive partial checkpoints merge when every resumed block is present',()=>{
+ const first=b(100,110,{complete:false});
+ first.completed_through_block=105;
+ first.chunks=[{from_block:100,to_block:105}];
+ const second=b(106,110,{complete:true});
+ const joined=mergeBatches([first,second]);
+ assert.equal(joined.block_range_gaps,0);
+ assert.equal(joined.all_submitted_batches_complete,true);
+ const alone=mergeBatches([first]);
+ assert.equal(alone.all_submitted_batches_complete,false);
+});
