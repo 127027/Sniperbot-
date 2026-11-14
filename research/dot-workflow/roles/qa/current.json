@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261114T0153Z-frame0-peer-reconcile-10",
-  "previous_run_id": "qa-20261114T0049Z-frame0-peer-reconcile-09",
+  "run_id": "qa-20261114T0352Z-frame0-peer-reconcile-11",
+  "previous_run_id": "qa-20261114T0153Z-frame0-peer-reconcile-10",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -23,11 +23,11 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/qa/current.json",
-      "sha": "f6ea9391e32640f5acabe85586497ae08f0fd49c",
+      "sha": "aade28281d33b1ff9a22ca2c35224be12aa17c23",
       "json_paths": [
         "$.run_id",
-        "$.candidate.id",
-        "$.status"
+        "$.peer_receipts",
+        "$.next_task"
       ]
     },
     {
@@ -45,7 +45,7 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/social/current.json",
-      "sha": "d0df994468dd3274680005297d8d0d7c60ad5ab7",
+      "sha": "1892ca56f3a9c560a2d407811309772a57f1c552",
       "json_paths": [
         "$.run_id",
         "$.candidate.id",
@@ -67,7 +67,7 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/security/current.json",
-      "sha": "e5b6e72a2da6cded34c420774cbaea730a87f265",
+      "sha": "57e0fcc85737c3b89988d59f3bd8b40011b26728",
       "json_paths": [
         "$.run_id",
         "$.candidate.id",
@@ -169,7 +169,7 @@
     },
     {
       "check": "four_peer_states",
-      "result": "3 NEW NONSEED"
+      "result": "2 NEW NONSEED"
     },
     {
       "check": "diagnostic_frame0_barrier",
@@ -177,7 +177,7 @@
     },
     {
       "check": "chronological_replay",
-      "result": "0/62; no authorized frame1 provided"
+      "result": "0/62; no authorized frame1 supplied"
     },
     {
       "check": "original_historical_source_validation",
@@ -186,17 +186,17 @@
   ],
   "findings": [
     {
-      "statement": "Diagnostic input index 0, no events, all five decisions valid and empty; no advancement or discovery.",
+      "statement": "Frame index=0, events=0; diagnostic decisions 5/5 valid; no chronological advancement or discovery.",
       "as_of_utc": "2023-03-14T23:59:59Z",
       "evidence_ref": "research/replay-controller/bridge/diagnostic-first-frame/input.json and decisions/{scout,social,onchain,security,qa}.json",
-      "evidence_limit": "Only frame 0 diagnostic; no frame 1 or original historical market proof.",
+      "evidence_limit": "Diagnostic-only; no authorized next frame or historical trading proof.",
       "origin": "OWN_GITHUB_READBACK"
     },
     {
-      "statement": "New peer states: scout:scout-20261114T0224Z-apr15-embedded-post-01; social:social-20261114T013842Z-independent-social-negative; security:security-20261114-compiler-settings-0224",
-      "as_of_utc": "2026-11-14T01:53:15Z",
-      "evidence_ref": "research/dot-workflow/roles/scout/current.json@0759f326d60b40cb7aa30736572b35ebc686de3c; research/dot-workflow/roles/social/current.json@d0df994468dd3274680005297d8d0d7c60ad5ab7; research/dot-workflow/roles/security/current.json@e5b6e72a2da6cded34c420774cbaea730a87f265",
-      "evidence_limit": "Peer persistence and candidate identity only; no independent verification of peer historical claims.",
+      "statement": "New peer receipts: social:social-20261114T023659Z-erc20-source-audit; security:security-20261114-compiler-unavailable-0344",
+      "as_of_utc": "2026-11-14T02:52:47Z",
+      "evidence_ref": "research/dot-workflow/roles/social/current.json@1892ca56f3a9c560a2d407811309772a57f1c552; research/dot-workflow/roles/security/current.json@57e0fcc85737c3b89988d59f3bd8b40011b26728",
+      "evidence_limit": "Peer-state persistence only, not independent verification of peer evidence.",
       "origin": "OWN_GITHUB_READBACK"
     }
   ],
@@ -204,15 +204,15 @@
     {
       "code": "CONTROLLER_NOT_ADVANCED",
       "role": "controller",
-      "required_input": "Authorized chronological frame 1 with as-of events and no future labels."
+      "required_input": "Authorized chronological frame 1, as-of events only and no future labels."
     },
     {
       "code": "HISTORICAL_EXECUTION_EVIDENCE_MISSING",
       "role": "scout/social/onchain/security",
-      "required_input": "Contemporaneous social, safety, liquidity, quote, slippage and sellability proofs."
+      "required_input": "Contemporaneous social, safety, liquidity, quotes, slippage, sellability evidence."
     }
   ],
-  "next_task": "Await authorized chronological frame 1; validate five role votes on its exact input hash. Recheck peers for genuinely new nonseed run_ids; do not treat diagnostic frame as blind success.",
+  "next_task": "Await authorized chronological frame 1 and validate five decisions against its exact input hash; recheck only genuinely new nonseed peer run_ids.",
   "peer_receipts": [
     {
       "role": "scout",
@@ -381,7 +381,21 @@
       "result": "PARTIAL_VERIFIED",
       "source_path": "research/dot-workflow/roles/security/current.json",
       "source_blob_sha": "e5b6e72a2da6cded34c420774cbaea730a87f265"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T023659Z-erc20-source-audit",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "1892ca56f3a9c560a2d407811309772a57f1c552"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261114-compiler-unavailable-0344",
+      "result": "BLOCKED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "57e0fcc85737c3b89988d59f3bd8b40011b26728"
     }
   ],
-  "notes": "TRAINING_ONLY actionable=false; NO_BUY/UNKNOWN; diagnostic only, 0/62."
+  "notes": "TRAINING_ONLY actionable=false; NO_BUY/UNKNOWN; diagnostic only; replay 0/62."
 }
