@@ -67,8 +67,8 @@ function validQuote(q,order,now){
   now-Date.parse(q.asOf)<=90000&&
   typeof q.symbol==='string'&&q.symbol.length<=32;
 }
-export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER',syntheticTest=false}={}){
- if(!['SIGNED_LOCAL_ADAPTER','GITHUB_SIGNED_COURIER'].includes(source))throw Error('INVALID_AGENT_TRANSPORT_SOURCE');
+export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER',syntheticTest=false,indicativePaper=false}={}){
+ if(!['SIGNED_LOCAL_ADAPTER','GITHUB_SIGNED_COURIER','CENTRAL_AI_LOCAL'].includes(source))throw Error('INVALID_AGENT_TRANSPORT_SOURCE');
  const verified=verifyAgentSignal(order,keys,{deviceId,now});
  const receipts=state.agentOrderReceipts||[];
  if(!Array.isArray(receipts)||receipts.length>250)throw Error('PAPER_AGENT_RECEIPTS_INVALID');
@@ -95,7 +95,12 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
  let positionId=null,pnl=null;
  if(!state.entriesEnabled&&actionType==='BUY')reason='PAPER_BOT_OFF';
  else if(!validQuote(quote,order,now))reason='MARKET_QUOTE_INVALID_OR_STALE';
- else if(syntheticTest!==true)reason='INDEPENDENT_EXECUTION_VALIDATOR_UNAVAILABLE';
+ else if(syntheticTest!==true&&!(source==='CENTRAL_AI_LOCAL'&&indicativePaper===true&&
+  state.centralPaperFollow===true&&quote?.source==='DEX Screener'&&
+  quote.liquidityUsd>=25000&&
+  (actionType==='SELL'||(amount<=1000&&amount<=quote.liquidityUsd*.01&&
+   Number.isFinite(quote.volume5mUsd)&&quote.volume5mUsd>=1000))))
+  reason='INDEPENDENT_EXECUTION_VALIDATOR_UNAVAILABLE';
  else if(actionType==='BUY'){
   if(state.positions.some(p=>p.chain===order.chain&&
    eqAddress(order.chain,p.tokenAddress,order.token_address)))reason='POSITION_ALREADY_OPEN_OR_LEDGER_BLOCKED';
@@ -148,7 +153,11 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   received_at_utc:new Date(now).toISOString(),
   payload_sha256:digest,duplicate:false,
   synthetic_test:syntheticTest===true,
-  execution_evidence:syntheticTest===true?'SYNTHETIC_FIXTURE':'UNVERIFIED',
+  execution_evidence:syntheticTest===true?'SYNTHETIC_FIXTURE':
+   (status==='PAPER_FILLED'&&source==='CENTRAL_AI_LOCAL'&&indicativePaper===true?
+    'INDICATIVE_DEX_QUOTE_NOT_EXECUTABLE':'UNVERIFIED'),
+  indicative_only:syntheticTest!==true&&source==='CENTRAL_AI_LOCAL',
+  sellability_verified:false,slippage_verified:false,
   real_trade_executed:false,wallet_debited:false,
   externally_funded:false,live_trading_enabled:false
  };
