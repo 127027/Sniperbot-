@@ -1,0 +1,42 @@
+name: R23 free historical archive smoke - no models
+on:
+  push:
+    branches: ['codex/dots-pepe-replay-20261113']
+    paths:
+      - 'research/replay-controller/r23-blockscout-discovery.mjs'
+      - 'research/replay-controller/r23-blockscout-discovery.test.mjs'
+      - '.github/workflows/r23-free-archive-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: r23-free-archive-smoke
+  cancel-in-progress: true
+jobs:
+  historical-pools:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_RESEARCH_READ: '0'
+      SNIPER_RESEARCH_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify safe standalone source syntax and mock tests
+        run: |
+          node --check research/replay-controller/r23-blockscout-discovery.mjs
+          node --test research/replay-controller/r23-blockscout-discovery.test.mjs
+      - name: Try free public historical pool archive (April 14 2023, no paid APIs)
+        run: node research/replay-controller/r23-blockscout-discovery.mjs --start=2023-04-14T00:00:00Z --end=2023-04-14T23:59:59Z --max-chunks=20 --step=500 --output=r23-public-archive-smoke.json
+      - name: Upload source-only artifact (no wallet or key data)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r23-public-archive-smoke
+          path: r23-public-archive-smoke.json
+          if-no-files-found: ignore
+          retention-days: 7
