@@ -31,9 +31,10 @@ export function mergeBatches(batches,{target=50}={}){
   verified&&=b.independently_cross_checked===true;
   all.push(...b.asof_corpus.sources);
   prev=b.completed_through_block;coveredChunks+=b.chunks.length;
-  // Reject a partially processed batch followed by a later batch with an uncovered suffix.
-  if(!b.complete_block_range&&b.completed_through_block<b.requested_blocks.to)
-   check(b===sorted.at(-1),'PARTIAL_MIDDLE_BATCH');
+  // A bounded batch can end before its requested final block. Following
+  // batches are valid when they begin EXACTLY at the prior completed+1;
+  // the adjacency assertion above rejects any omitted/intersecting blocks.
+  // An incomplete final batch leaves the merged result incomplete.
  }
  const ids=new Set(),pairs=new Set(),candidates=new Set(),days=new Set();
  for(const s of all){
@@ -45,7 +46,7 @@ export function mergeBatches(batches,{target=50}={}){
   days.add(s.event_at.slice(0,10));
  }
  all.sort((a,b)=>a.event_at.localeCompare(b.event_at)||a.id.localeCompare(b.id));
- const complete=sorted.every(b=>b.complete_block_range)&&
+ const complete=sorted.at(-1).complete_block_range===true&&
   sorted[0].requested_blocks.from===first.requested_blocks.from;
  return {
   schema:'r23_merged_source_bundle.v1',mode:'RESEARCH_ONLY',window,
