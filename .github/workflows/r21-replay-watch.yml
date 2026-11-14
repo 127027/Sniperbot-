@@ -30,6 +30,24 @@ jobs:
           node-version: '22'
       - name: Read-only audit current day, five dots and historical cohort
         run: node watched/research/replay-controller/r21-observer.mjs watched watch-report/r21.json
+      - name: R25 read-only monitor for real dated sources and five role research batches
+        run: node watched/research/replay-controller/r25-monitor.mjs watched watch-report/r25.json
+      - name: R25 actionable blockers summary (no paid calls)
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const s=JSON.parse(fs.readFileSync('watch-report/r25.json','utf8'));
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+           '## R25 evidence-driven discovery monitoring\n'
+           +'Checked at: '+s.checked_at+'\n'
+           +'R25 independent role reports: '+s.r25_independent_reports+'\n'
+           +'2023 neutral pool candidates: '+(s.r25_sources?.uniswap_2023?.neutral_quote_pair_candidates||0)+'\n'
+           +'2023 entire 62d window covered: '+Boolean(s.r25_sources?.uniswap_2023?.complete_requested_window)+'\n'
+           +'2023 first missing timestamp: '+(s.r25_sources?.uniswap_2023?.blocking_gap_start||'UNKNOWN')+'\n'
+           +'Blockers: '+JSON.stringify(s.blockers)+'\n'
+           +'No synthetic role votes, no live orders or paper fills are created by this watcher.\n');
+          NODE
       - name: Summarize blockers and determine safe controller advance
         id: report
         shell: bash
@@ -59,7 +77,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: r21-replay-observation-${{ github.run_id }}
-          path: watch-report/r21.json
+          path: watch-report/
           if-no-files-found: error
           retention-days: 14
   safe-advance:
