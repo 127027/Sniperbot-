@@ -40,6 +40,13 @@ test('legacy archive extraneous factory events are filtered, not mistaken for Pa
  assert.equal(x.chunks[0].ignored_non_pair_logs,1);
  assert.equal(x.chunks[0].returned_log_count,2);
 });
+test('legacy explorer trailing null topic padding is normalized without accepting extra indexed topics',async()=>{
+ const padded={...log(1),topics:[...log(1).topics,null]};
+ const extra={...log(2),topics:[...log(2).topics,h(999)]};
+ const result=await discoverBlockscout({...opts,fetchFn:fake([padded,extra])});
+ assert.equal(result.distinct_pool_candidates,1);
+ assert.equal(result.chunks[0].ignored_non_pair_logs,1);
+});
 test('archive timestamp-to-block selection uses dates instead of winner IDs',async()=>{
  const x=await dateBlockRangeBlockscout(opts.base,opts.windowStart,opts.windowEnd,fake([]));
  assert.deepEqual(x,{fromBlock:100,toBlock:100});
