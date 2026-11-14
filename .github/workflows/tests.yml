@@ -31,6 +31,15 @@ jobs:
         run: node --test runner/central-ai-coordinator.test.mjs
       - name: V0.21 coordinator syntax and dashboard smoke
         run: node --check runner/central-ai-coordinator.mjs
+      - name: V0.21 Windows supervisor PowerShell parse check
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $tokens=$null
+          $parseErrors=$null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'runner/windows-supervisor.ps1').Path,[ref]$tokens,[ref]$parseErrors) | Out-Null
+          if($parseErrors.Count -gt 0) { $parseErrors | ForEach-Object { Write-Error $_.Message }; exit 1 }
+          Write-Host 'WINDOWS_SUPERVISOR_V021_PARSING_OK'
       - name: Chronological as-of intake, five-role barrier and isolated historical replay (offline)
         run: node --test research/replay-controller/controller.test.mjs research/replay-controller/asof-feed.test.mjs research/replay-controller/temporal-session.test.mjs research/replay-controller/role-task.test.mjs research/replay-controller/pseudonymize.test.mjs
       - name: R20 central fast replay - 8 isolated offline tests
