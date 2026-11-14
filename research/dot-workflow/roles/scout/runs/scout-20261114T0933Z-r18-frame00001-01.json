@@ -1,0 +1,97 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "scout",
+  "run_id": "scout-20261114T0933Z-r18-frame00001-01",
+  "previous_run_id": "scout-20261114T0824Z-manifest-access-stalled-01",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "BLOCKED_MISSING_NEUTRAL_INPUT",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/TEMPORAL_REPLAY_PROTOCOL.md"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/scout/current.json",
+      "used_json_paths": [
+        "$.next_task",
+        "$.run_id",
+        "$.status"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/monitor/status.json",
+      "used_json_paths": [
+        "$.frame_index",
+        "$.mode",
+        "$.status"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00001/input.json",
+      "used_json_paths": [
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.events",
+        "$.portfolio"
+      ]
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "read_R18_protocol_and_moving_scout_state",
+      "result": "PASS"
+    },
+    {
+      "check": "check_neutral_frame_00001",
+      "result": "BLOCKED_MISSING_NEUTRAL_INPUT"
+    },
+    {
+      "check": "diagnostic_frame_00001",
+      "result": "PASS_EMPTY_EVENTS_NO_ORDERS"
+    },
+    {
+      "check": "evaluate_existing_next_task",
+      "result": "STALLED_NO_INDEPENDENT_CANDIDATE_MANIFEST"
+    }
+  ],
+  "findings": [
+    {
+      "origin": "OWN",
+      "statement": "Diagnostic frame 00001 has no visible events; scout submitted empty reviews and orders.",
+      "as_of_utc": "2023-03-15T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00001/input.json#$.events",
+      "limit": "Diagnostic known-winner replay, not blind discovery."
+    }
+  ],
+  "blockers": [
+    {
+      "code": "BLOCKED_MISSING_NEUTRAL_INPUT",
+      "required_input": "research/replay-controller/temporal-public/frames/00001/input.json (or currently published neutral index)"
+    },
+    {
+      "code": "STALLED",
+      "required_input": "Independently timestamped non-PEPE Ethereum candidate universe and predeclared movement cutoff"
+    }
+  ],
+  "next_task": "Read latest R18 protocol and monitor; check only released neutral frame and current diagnostic frame. If neutral input remains missing, retain BLOCKED_MISSING_NEUTRAL_INPUT; independently assess newly available timestamped non-PEPE candidate data only if supplied.",
+  "peer_receipts": [],
+  "notes": "Diagnostic decision commit a654d0941ce45ce244d1c02716904ba5bb92a162, blob 7126cf06886ee30438e316864bfe7032cbb4c5cc. No QA receipt."
+}
