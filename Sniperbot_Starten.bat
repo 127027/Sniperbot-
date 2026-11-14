@@ -13,7 +13,7 @@ if errorlevel 1 (
  pause
  exit /b 1
 )
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0runner\windows-supervisor.ps1" %*
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0runner\windows-supervisor.ps1" -WithCentralAI %*
 set "rc=%ERRORLEVEL%"
 if not "%rc%"=="0" (
  echo.
