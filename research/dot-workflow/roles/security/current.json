@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "security",
-  "run_id": "security-20261114T0434Z-initial-lp-mint-review-01",
-  "previous_run_id": "security-20261114-ownership-cutoff-stalled-0458",
+  "run_id": "security-20261114T0513Z-lp-transfer-to-token-contract-01",
+  "previous_run_id": "security-20261114T0434Z-initial-lp-mint-review-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -151,6 +151,19 @@
         "result[3].blockNumber",
         "result[3].timeStamp"
       ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/blockscout_pool_logs.json",
+      "json_paths": [
+        "result[*].topics[0] (ERC20 Transfer filter)",
+        "result[162].blockNumber",
+        "result[162].timeStamp",
+        "result[162].topics[1..2]",
+        "result[162].data",
+        "result[162].transactionHash"
+      ]
     }
   ],
   "completed_checks": [
@@ -168,7 +181,8 @@
     "Checked execution environment for solc executable and Python solcx module; neither available; no compiler reproduction or historical source equivalence performed",
     "Rechecked diagnostic frame 0 input and existing security decision: index=0, at=2023-03-14T23:59:59Z, matching input_hash, events=[], reviews=[], orders=[]; no replacement required.",
     "Attempted bounded Blockscout OwnershipTransferred log retrieval for deployment-to-pool interval 17046105..17046833; source tool returned inaccessible URL/internal error, no event data obtained.",
-    "Inspected initial pool creation transaction logs: LP ERC20 Transfer mint to zero address (minimum liquidity) and to 0xfbfeaf0da0f2fde5c66df570133ae35f3eb58c9a; Mint event recipient is router; holder/lock history after mint not established."
+    "Inspected initial pool creation transaction logs: LP ERC20 Transfer mint to zero address (minimum liquidity) and to 0xfbfeaf0da0f2fde5c66df570133ae35f3eb58c9a; Mint event recipient is router; holder/lock history after mint not established.",
+    "Reviewed all 163 stored pool logs; three LP Transfer events found, including full initial LP allocation transfer from initial recipient to PEPE token contract at block 17047786."
   ],
   "findings": [
     {
@@ -254,6 +268,13 @@
       "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_pool_logs.json#result[0..3]",
       "evidence_limit": "Retrospectively stored Blockscout pool log snapshot; original receipt/block header not independently fetched; no complete LP Transfer history, no evidence of LP token holder at later entry cutoff.",
       "verification": "OWN_REVIEW_OF_STORED_POOL_LOGS"
+    },
+    {
+      "claim": "Stored pool-address logs contain three ERC20 Transfer events. At block 17047786 (2023-04-14T20:37:23Z), the initial recipient 0xfbfeaf0da0f2fde5c66df570133ae35f3eb58c9a transferred the exact initially minted LP amount 0x1726ad4325f321caa6ed95 to PEPE token contract 0x6982508145454ce325ddbe47a25d4ec3d2311933 in transaction 0x4b950490c13cee92d8fadb8280c6220dc414f5cc23835e9295ec4a836fe23c86. This transfer occurred after the observed 17:34:47 BUY and cannot support LP safety at that earlier time.",
+      "as_of_utc": "2023-04-14T20:37:23Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_pool_logs.json#result[162]",
+      "evidence_limit": "Retrospective stored Blockscout snapshot only; 163 logs end at block 17047786 and are not independently verified or proven complete beyond that block. LP sent to token contract is not proof of irrevocable burn, lock, absence of contract recovery functions, or pre-transfer safety.",
+      "verification": "OWN_REVIEW_OF_STORED_POOL_LOGS"
     }
   ],
   "blockers": [
@@ -286,9 +307,14 @@
       "question": "Bounded OwnershipTransferred event retrieval",
       "status": "BLOCKED",
       "reason": "Blockscout v1 logs URL inaccessible through available web retrieval; no returned logs. A deployment-to-pool block window is a diagnostic interval only, not an evaluated entry cutoff. No inference of absence of events is permitted."
+    },
+    {
+      "question": "Post-transfer LP recovery and actual lock status",
+      "status": "UNKNOWN",
+      "reason": "LP token moved to PEPE contract at block 17047786; require contract execution/recovery capability assessment and independently validated complete LP event history. Transfer is not a burn."
     }
   ],
-  "next_task": "Park undefined pre-movement entry cutoff and inaccessible OwnershipTransferred logs. Trace LP token Transfer events from block 17046833 to a defensible historical cutoff, distinguish initial recipient from later holder/lock; independently verify transaction receipt when accessible. Do not infer ownership or buy safety.",
+  "next_task": "Assess whether PEPE contract can move/recover LP tokens received at block 17047786 using historical runtime code and callable interfaces, without assuming burn or permanent lock; keep earlier entry cutoff and OwnershipTransferred history parked until evidence arrives.",
   "peer_receipts": [
     {
       "role": "scout",
