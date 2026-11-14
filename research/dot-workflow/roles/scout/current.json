@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "scout",
-  "run_id": "scout-20261114T0029Z-apr18-coindesk-provisional-01",
-  "previous_run_id": "scout-20261113T2248Z-bobo-contract-search-gap-01",
+  "run_id": "scout-20261114T0129Z-theblock-apr18-provisional-01",
+  "previous_run_id": "scout-20261114T0029Z-apr18-coindesk-provisional-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -75,6 +75,24 @@
       "retrieved": "2026-11-14",
       "evidence_class": "HISTORICAL_PUBLICATION_TODAY_RETRIEVED_PROVISIONAL",
       "retrieval": "targeted historical web search"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/scout/current.json",
+      "sha": "be007229823004336c7d6ff50a2e5b11aa8fe561",
+      "used_json_paths": [
+        "$.next_task",
+        "$.candidate",
+        "$.blockers"
+      ]
+    },
+    {
+      "url": "https://www.theblock.co/news/markets/2023-04-18-pepe-memecoin-rally-226817",
+      "published_label": "2023-04-18 10:08 AM EDT",
+      "as_of_utc": "2023-04-18T14:08:00Z",
+      "retrieval": "2026-11-14 web search result",
+      "evidence_class": "HISTORICAL_PUBLICATION_TODAY_RETRIEVED_PROVISIONAL"
     }
   ],
   "completed_checks": [
@@ -121,6 +139,14 @@
     {
       "check": "immutable_apr18_article_snapshot_and_exact_utc",
       "result": "NOT_VERIFIED"
+    },
+    {
+      "check": "one_other_independently_timestamped_apr15_18_publication",
+      "result": "THE_BLOCK_APR18_PUBLISHED_LABEL_FOUND_PROVISIONAL"
+    },
+    {
+      "check": "immutable_original_article_version",
+      "result": "NOT_AUTHENTICATED"
     }
   ],
   "findings": [
@@ -146,6 +172,14 @@
       "evidence_ref": "https://www.coindesk.com/markets/2023/04/18/pepe-the-frog-memecoins-rocket-as-crypto-twitter-moves-over-doge-obsession",
       "evidence_class": "HISTORICAL_PUBLICATION_TODAY_RETRIEVED_PROVISIONAL",
       "evidence_limit": "No archived April 18 version; article updated May 11; original April 18 text and exact historical visibility not independently authenticated.",
+      "provenance": "OWN_CHECK"
+    },
+    {
+      "claim": "The Block article bears April 18 2023 10:08 AM EDT publication label and discusses frog-themed Ethereum token narrative; reported price had already surged over 266-fold in four days. This is not a pre-surge discovery signal and original April 18 page version is not archived/authenticated in this run.",
+      "as_of_utc": "2023-04-18T14:08:00Z",
+      "evidence_ref": "https://www.theblock.co/news/markets/2023-04-18-pepe-memecoin-rally-226817",
+      "evidence_class": "HISTORICAL_PUBLICATION_TODAY_RETRIEVED_PROVISIONAL",
+      "evidence_limit": "Publication label found in current indexed page, no immutable April 18 capture; 266x move already occurred; no historical contract/pool/quote validation.",
       "provenance": "OWN_CHECK"
     }
   ],
@@ -174,9 +208,14 @@
       "question": "Authenticate CoinDesk original Apr 18 article version",
       "reason": "Page bears May 11 update timestamp; no independently dated April 18 snapshot obtained",
       "required_input": "Archived April 18 page capture or publisher revision history"
+    },
+    {
+      "question": "Authenticate The Block original April 18 edition",
+      "reason": "No independently timestamped immutable original snapshot read",
+      "required_input": "Publisher revision history or dated archived snapshot before evaluation cutoff"
     }
   ],
-  "next_task": "Park edited Apr18 CoinDesk article pending dated original snapshot. Inspect one other independently timestamped Apr15–18 original narrative excluding previously checked BOBO and edited CoinDesk; establish exact UTC and original content, else DATA_GAP. Do not infer trades.",
+  "next_task": "Park Apr18 The Block as late-stage PROVISIONAL coverage. Inspect a distinct original Apr15–17 source or immutable onchain/social timestamp that could precede a defined subsequent movement; do not reuse edited CoinDesk, BOBO, or The Block without new archival evidence. If unavailable report DATA_GAP/STALLED with required feed access.",
   "peer_receipts": [],
-  "notes": "Two targeted web searches (no direct page opens). New provisional historical publication pointer, not authenticated original availability. No other role, bot or trading actions."
+  "notes": "2 targeted historical web searches; The Block distinct April 18 publisher found but not early signal; no live market data or trading operations."
 }
