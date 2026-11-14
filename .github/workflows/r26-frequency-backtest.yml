@@ -1,0 +1,69 @@
+name: R26 15-day 1v4v12v24 frequency evidence backtest (one-shot)
+on:
+  push:
+    branches: ['codex/r26-15day-1v4v12v24-frequency-20261114']
+    paths:
+      - 'research/frequency-backtest/r26_acquire.py'
+      - 'research/frequency-backtest/r26_replay.py'
+      - 'research/frequency-backtest/test_r26.py'
+      - '.github/workflows/r26-frequency-backtest.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: r26-evidence-frequency-15days
+  cancel-in-progress: false
+jobs:
+  evidence-price-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_RESEARCH_READ: '0'
+      SNIPER_AGENT_PAPER_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test 615 clocks, future-leak prevention, paper budget and corrupt-source rejection
+        run: python research/frequency-backtest/test_r26.py -v
+      - name: Acquire public historical Binance SPOT 1-hour candles (read-only, no login)
+        run: |
+          python research/frequency-backtest/r26_acquire.py --output r26-output/source.json
+      - name: Execute four strict-clock independent portfolios, with all open/closed trades and uncertainty
+        run: |
+          python research/frequency-backtest/r26_replay.py --source r26-output/source.json --output-dir r26-output/results
+          cat r26-output/results/REPORT.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve complete source snapshot and every decision as GitHub Actions artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r26-actual-public-1h-price-only-15d-audit
+          path: r26-output/
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Commit only public aggregated result and source checksums, not user portfolio data
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p research/frequency-backtest/results
+          cp r26-output/results/summary.json research/frequency-backtest/results/summary.json
+          cp r26-output/results/REPORT.md research/frequency-backtest/results/REPORT.md
+          cp r26-output/results/sources-manifest.json research/frequency-backtest/results/sources-manifest.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/frequency-backtest/results/summary.json
+          git add -f research/frequency-backtest/results/REPORT.md
+          git add -f research/frequency-backtest/results/sources-manifest.json
+          if git diff --cached --quiet; then
+            echo 'No public result changes'
+          else
+            git commit -m "research(r26): save 15-day price-only frequency evidence, not actual AI inference"
+            git push origin HEAD:codex/r26-15day-1v4v12v24-frequency-20261114
+          fi
