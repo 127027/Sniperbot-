@@ -159,12 +159,12 @@ def evaluate(data,frequency):
                 remaining=max(0,CAPITAL-invested)
                 limit=min(cash,remaining,MAX_ORDER)
                 size=min(limit,CAPITAL*(.1+(signal["score"]-80)*.0125))
-                size=round(size,2)
+                size=math.floor(max(0.0,size)*100+1e-9)/100
                 if size<MIN_ORDER:continue
                 bar=symbols[symbol][ix]
                 if bar["o"]<=0:continue
                 # Never inspect future candle volume/high/low/close as a decision input.
-                size=min(round(size,2),round(remaining,2))
+                size=min(size, math.floor(max(0.0,remaining)*100+1e-9)/100)
                 entry_fee=size*FEE
                 entry_after_fee=size-entry_fee
                 entry_slip=entry_after_fee*SLIPPAGE/(1+SLIPPAGE)
@@ -194,7 +194,8 @@ def evaluate(data,frequency):
         worst_dd=max(worst_dd,(high_equity-current_eq)/high_equity*100)
         position_peak=max(position_peak,len(positions))
         open_cost_peak=max(open_cost_peak,sum(p["spent"] for p in positions.values()))
-        if cash< -1e-6 or open_cost_peak>CAPITAL+1e-6:raise ValueError("R26_BUDGET_BREACH")
+        if cash< -1e-6 or open_cost_peak>CAPITAL+1e-6:
+            raise ValueError(f"R26_BUDGET_BREACH frequency={frequency} hour={hour} cash={cash} open_cost={open_cost_peak}")
     end_index=data["warmup_hours"]+HOURS-1
     remaining=[{"symbol":s,"entry_at_utc":timestamp(p["entry_at"]),
         "cost_test_usdc":r(p["spent"]),"qty":r(p["qty"]),
