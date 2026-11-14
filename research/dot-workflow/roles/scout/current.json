@@ -1,20 +1,21 @@
 {
   "schema": "dot_research_state.v1",
   "role": "scout",
-  "run_id": "scout-20261114T100635Z-r19-frame00002-01",
-  "previous_run_id": "scout-20261114T0933Z-r18-frame00001-01",
+  "run_id": "scout-20261114T120532Z-r21-frame00002-vote-audit-01",
+  "previous_run_id": "scout-20261114T100635Z-r19-frame00002-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY"
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
-  "status": "PARTIAL_VERIFIED",
+  "status": "BLOCKED",
   "input_refs": [
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/TEMPORAL_REPLAY_PROTOCOL.md"
+      "path": "research/replay-controller/TEMPORAL_REPLAY_PROTOCOL.md",
+      "used_json_paths": []
     },
     {
       "repository": "127027/Sniperbot-",
@@ -22,7 +23,8 @@
       "path": "research/replay-controller/temporal-public/status.json",
       "used_json_paths": [
         "$.mode",
-        "$.public_frame_index"
+        "$.frame_index",
+        "$.votes"
       ]
     },
     {
@@ -30,9 +32,9 @@
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/replay-controller/monitor/status.json",
       "used_json_paths": [
+        "$.mode",
         "$.frame_index",
-        "$.votes",
-        "$.mode"
+        "$.votes"
       ]
     },
     {
@@ -52,51 +54,157 @@
         "$.index",
         "$.at",
         "$.input_hash",
-        "$.events",
-        "$.portfolio"
+        "$.events"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/scout.json",
+      "used_json_paths": [
+        "$.role",
+        "$.run_id",
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.reviews",
+        "$.orders"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/social.json",
+      "used_json_paths": [
+        "$.role",
+        "$.run_id",
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.reviews",
+        "$.orders"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/onchain.json",
+      "used_json_paths": [
+        "$.role",
+        "$.run_id",
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.reviews",
+        "$.orders"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/security.json",
+      "used_json_paths": [
+        "$.role",
+        "$.run_id",
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.reviews",
+        "$.orders"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/qa.json",
+      "used_json_paths": [
+        "$.role",
+        "$.run_id",
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.reviews",
+        "$.orders"
       ]
     }
   ],
   "completed_checks": [
     {
-      "check": "read_required_protocol_and_statuses",
+      "check": "required_protocol_and_status_read",
       "result": "PASS"
     },
     {
-      "check": "neutral_mode",
+      "check": "neutral_replay",
       "result": "NOT_STARTED"
     },
     {
-      "check": "diagnostic_frame_00002",
-      "result": "PASS_EMPTY_EVENTS"
+      "check": "monitor_current_frame",
+      "result": "00002_OF_62"
     },
     {
-      "check": "scout_decision_create_and_readback",
-      "result": "PASS",
-      "commit_sha": "f53125a3160840fc426ed6fe30825bf5555e56ad",
+      "check": "published_frame_00002",
+      "result": "PASS_EVENTS_EMPTY_CANDIDATES_0"
+    },
+    {
+      "check": "existing_scout_vote",
+      "result": "PASS_NO_OVERWRITE",
       "blob_sha": "dbefd1d4d17e6dc46f35893aabd7a82753e6ac62"
+    },
+    {
+      "check": "all_five_frame_00002_decisions",
+      "result": "PASS_MATCHING_INDEX_AT_HASH_EMPTY_REVIEWS_AND_ORDERS"
     }
   ],
   "findings": [
     {
       "origin": "OWN",
-      "statement": "Published diagnostic frame 00002 contains zero visible events; scout reviews=[] and orders=[] independently recorded.",
+      "statement": "Published frame 00002 has 0 visible events and 0 visible candidates; existing scout vote was read back unchanged. All five matching role decisions are now present in GitHub, although monitor/status.json remains at an earlier snapshot showing all missing.",
       "as_of_utc": "2023-03-16T23:59:59Z",
       "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00002/input.json#$.events",
-      "limit": "Known-winner diagnostic only; no neutral blind discovery or trading inference."
+      "limit": "Five matching votes do not prove controller sealing or advancement; no blind discovery or trades."
     }
   ],
   "blockers": [
     {
-      "code": "BLOCKED_MISSING_NEUTRAL_INPUT",
-      "required_input": "Neutral mode activation and a published research/replay-controller/temporal-public/frames/000NN/input.json"
+      "code": "AWAIT_CONTROLLER_ADVANCE",
+      "required_input": "Controller must seal five frame 00002 votes and publish a new monitor frame_index and input.json; scout cannot advance frames."
     },
     {
-      "code": "MISSING_ROLE_VOTES",
-      "required_input": "Frame 00002 decisions from social, onchain, security and qa; monitor snapshot listed all five missing before scout write."
+      "code": "BLOCKED_MISSING_NEUTRAL_INPUT",
+      "required_input": "Neutral mode activation and published neutral input frame."
     }
   ],
-  "next_task": "Read live monitor and temporal-public status; evaluate only the newly published frame. If frame 00002 remains active, verify scout decision and wait for the other four independent roles; do not resubmit.",
-  "peer_receipts": [],
-  "notes": "No blind-test success. No paper or real trades. Monitor snapshot before this run marked all five votes missing."
+  "next_task": "Re-read live temporal-public and monitor statuses; process only newly published frame if advanced; otherwise verify own existing vote without resubmission.",
+  "peer_receipts": [
+    {
+      "role": "social",
+      "run_id": "social-20261114T103700Z-diagnostic-frame00002",
+      "result": "EXISTS_MATCHING_FRAME_HASH_READBACK"
+    },
+    {
+      "role": "onchain",
+      "run_id": "onchain-20261114T104256Z-frame00002-r19-12",
+      "result": "EXISTS_MATCHING_FRAME_HASH_READBACK"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261114T1045Z-r19-frame00002-01",
+      "result": "EXISTS_MATCHING_FRAME_HASH_READBACK"
+    },
+    {
+      "role": "qa",
+      "run_id": "qa-20261114T0953Z-diagnostic-frame00002-18",
+      "result": "EXISTS_MATCHING_FRAME_HASH_READBACK"
+    }
+  ],
+  "kpis": {
+    "frame": "00002/62",
+    "visible_candidates": 0,
+    "new_temporally_valid_evidence": 0,
+    "own_vote_saved_this_run": false,
+    "own_vote_existing": true,
+    "missing_other_roles": [],
+    "controller_advanced": false
+  },
+  "notes": "No external web research; no other role files changed; no trade or paper account changes."
 }
