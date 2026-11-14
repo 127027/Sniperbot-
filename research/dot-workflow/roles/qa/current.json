@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261114T0953Z-diagnostic-frame00002-18",
-  "previous_run_id": "qa-20261114T0849Z-frame1-empty-vote-17",
+  "run_id": "qa-20261114T1048Z-frame00002-five-votes-19",
+  "previous_run_id": "qa-20261114T0953Z-diagnostic-frame00002-18",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -76,55 +76,44 @@
   ],
   "completed_checks": [
     {
-      "check": "temporal_public_status",
-      "result": "NOT_STARTED; diagnostic only"
+      "check": "temporal_public",
+      "result": "NOT_STARTED"
     },
     {
       "check": "monitor",
-      "result": "frame_index=2 / 62"
+      "result": "frame_index=2/62 (snapshot 2026-11-14T09:41:55Z)"
     },
     {
-      "check": "frame2_input",
-      "result": "index=2, at=2023-03-16T23:59:59Z, events=[]; input_hash copied from published input"
+      "check": "frame00002_qa",
+      "result": "EXISTING_READBACK_VERIFIED; index=2; at=2023-03-16T23:59:59Z; reviews=[]; orders=[]"
     },
     {
-      "check": "frame2_qa_vote",
-      "result": "CREATED_AND_READBACK; reviews=[] orders=[]; blob 1ac17372f52b1e203f3ae22ac5318f748cbade4c"
-    },
-    {
-      "check": "frame2_peer_votes",
-      "result": "scout/social/onchain/security absent (404); QA only 1/5"
+      "check": "frame00002_five_votes",
+      "result": "5/5 matching index, at, input_hash; scout/social/onchain/security/qa; no orders"
     }
   ],
   "findings": [
     {
-      "statement": "Published diagnostic frame 00002 contains zero visible events. QA wrote a non-actionable empty decision and verified its content by readback.",
+      "statement": "Existing QA vote and all four peer votes for published diagnostic frame 00002 are structurally consistent; empty frame, no actionable evidence.",
       "as_of_utc": "2023-03-16T23:59:59Z",
-      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00002/input.json; decisions/qa.json",
-      "evidence_limit": "Known-winner diagnostic, not blind discovery; hash value matched to input, no independent recomputation of controller hash.",
-      "origin": "OWN_GITHUB_READ_AND_WRITE"
-    },
-    {
-      "statement": "Neutral temporal replay has not started; monitor shows diagnostic index 2/62. Four peer decision files for frame 2 returned 404 before QA write.",
-      "as_of_utc": "2026-11-14T09:41:55.264Z",
-      "evidence_ref": "research/replay-controller/temporal-public/status.json; research/replay-controller/monitor/status.json; diagnostic-frames/00002/decisions/",
-      "evidence_limit": "Snapshot may change after reads; peer current states are not frame-2 votes.",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00002/input.json and decisions/{scout,social,onchain,security,qa}.json",
+      "evidence_limit": "Diagnostic known-winner case; no blind discovery, no independently audited historical source; monitor has not yet confirmed frame advancement.",
       "origin": "OWN_GITHUB_READ"
     }
   ],
   "blockers": [
     {
-      "code": "BLOCKED_WAITING_FOR_PEERS",
-      "role": "scout,social,onchain,security",
-      "required_input": "Four matching role decisions for diagnostic frame 00002, index=2, at=2023-03-16T23:59:59Z, input_hash=e9a683c1806a4e460725c0c5c3ec861af320f381b5c8b46ef5351376610e422a"
+      "code": "WAITING_FOR_CONTROLLER_ADVANCE",
+      "role": "controller",
+      "required_input": "Controller must seal all five frame 00002 votes and publish next frame; do not read unpublished future frame."
     },
     {
       "code": "NEUTRAL_REPLAY_NOT_STARTED",
       "role": "controller",
-      "required_input": "Independently audited neutral as-of corpus and clean agents; temporal-public mode currently NOT_STARTED."
+      "required_input": "Independently audited neutral as-of corpus and clean five-agent executor."
     }
   ],
-  "next_task": "Wait for genuine four peer decisions for frame 00002 and controller seal; next run read monitor first and only then published current frame. No future-frame reads.",
+  "next_task": "Read temporal-public and monitor first next run; process only then-published frame. Frame 00002 has five valid decisions; await controller advancement.",
   "peer_receipts": [
     {
       "role": "scout",
@@ -407,5 +396,5 @@
       "source_blob_sha": "974ac304d1fd6dbf6bdbbbe6346ca94f12220f1e"
     }
   ],
-  "notes": "DIAGNOSTIC_ONLY; 2/62; frame2 QA decision 1/5, NO_BUY/UNKNOWN; no trades."
+  "notes": "DIAGNOSTIC_ONLY; 2/62; 5/5 frame2 decisions observed; NO_BUY/UNKNOWN; no trades."
 }
