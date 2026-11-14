@@ -11,6 +11,7 @@ import {load,nextFrame,advance} from './controller.mjs';
 const base=path.dirname(fileURLToPath(import.meta.url));
 const repo=path.resolve(base,'../..');
 const output=path.join(base,'monitor','r20-progress.json');
+const legacyOutput=path.join(base,'monitor','status.json');
 const name='watch-20261114-diagnostic';
 const read=x=>JSON.parse(fs.readFileSync(x,'utf8'));
 const write=(x,v)=>{
@@ -75,6 +76,33 @@ export function fastForwardDiagnostic({maxFrames=62}={}){
   caveat:'Empty frames and valid files do not prove independent Dot inference. The real neutral blindtest has not started.'
  };
  write(output,report);
+ // Compatibility view for legacy Dot prompts: update it from the SAME
+ // sealed controller state, never independently decrement the frame index.
+ // This prevents a stale 2/62 watch file blocking a 3/62 published input.
+ if(fs.existsSync(legacyOutput)){
+  const legacy=read(legacyOutput);
+  if(legacy.schema==='pepe_replay_watch.v1'){
+   legacy.checked_at=report.checked_at;
+   legacy.previous_frame=before;
+   legacy.frame_index=s.index;
+   legacy.total_frames=s.dataset.ticks.length;
+   legacy.status=report.status==='DIAGNOSTIC_COMPLETED_NOT_BLIND'?
+    'DIAGNOSTIC_COMPLETE':steps.length?'FRAME_ADVANCED':'AWAITING_ROLE_VOTES';
+   legacy.trade_count=s.portfolio.trades.length;
+   legacy.positions=Object.keys(s.portfolio.positions).length;
+   legacy.votes=Object.fromEntries(ROLES.map(r=>[r,missing.includes(r)?'MISSING':'PRESENT']));
+   legacy.blockers=missing.length?[{frame:s.index,code:'MISSING_ROLE_VOTES',roles:missing}]:[];
+   for(const step of steps){
+    legacy.fixes=[...(legacy.fixes||[]),{action:'SEALED_REAL_FIVE_VOTES',frame:step.completed_frame}];
+    legacy.change_log=[...(legacy.change_log||[]),
+     {action:'SEALED_REAL_FIVE_VOTES',frame:step.completed_frame,at:report.checked_at}];
+   }
+   if(steps.length)legacy.last_frame_advance_at=report.checked_at;
+   legacy.stalled_minutes=legacy.last_frame_advance_at?
+    Math.max(0,Math.floor((Date.parse(report.checked_at)-Date.parse(legacy.last_frame_advance_at))/60000)):0;
+   write(legacyOutput,legacy);
+  }
+ }
  return report;
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
