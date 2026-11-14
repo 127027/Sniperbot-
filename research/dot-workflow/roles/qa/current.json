@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261114T1048Z-frame00002-five-votes-19",
-  "previous_run_id": "qa-20261114T0953Z-diagnostic-frame00002-18",
+  "run_id": "qa-20261114T1146Z-frame00002-monitor-wait-20",
+  "previous_run_id": "qa-20261114T1048Z-frame00002-five-votes-19",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -22,18 +22,6 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/temporal-public/status.json",
-      "sha": "5e46cc3d0ec48030d7a4733ae19f340d2ac3ece5"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/monitor/status.json",
-      "sha": "59b20cf799d578b6fa0e79d5f38ed233bc9fb609"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/PROTOCOL.md",
       "sha": "2503f1dc2fd00ede9e03edc2a8270e1180b85457"
     },
@@ -42,12 +30,6 @@
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/replay-controller/bridge/diagnostic-frames/00002/input.json",
       "sha": "f458b55979ca082ebc356a7f40dab1a518874bcb"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/qa.json",
-      "sha": "1ac17372f52b1e203f3ae22ac5318f748cbade4c"
     },
     {
       "repository": "127027/Sniperbot-",
@@ -72,6 +54,48 @@
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/security/current.json",
       "sha": "deac365078f52536c26ba6e3e4191ba0191cd51d"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/monitor/status.json",
+      "sha": "59b20cf799d578b6fa0e79d5f38ed233bc9fb609"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/temporal-public/status.json",
+      "sha": "5e46cc3d0ec48030d7a4733ae19f340d2ac3ece5"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/scout.json",
+      "sha": "dbefd1d4d17e6dc46f35893aabd7a82753e6ac62"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/social.json",
+      "sha": "13dd79919d10748fe9f4fd4840d16aad758f19b9"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/onchain.json",
+      "sha": "7607c4c79c94cd282d78bb1f9307df53c599a9c7"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/security.json",
+      "sha": "94684dfee98e689310c213c2e698156395362297"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/qa.json",
+      "sha": "1ac17372f52b1e203f3ae22ac5318f748cbade4c"
     }
   ],
   "completed_checks": [
@@ -81,23 +105,23 @@
     },
     {
       "check": "monitor",
-      "result": "frame_index=2/62 (snapshot 2026-11-14T09:41:55Z)"
+      "result": "frame_index=2/62; monitor checked_at=2026-11-14T09:41:55.264Z; no published next frame"
     },
     {
-      "check": "frame00002_qa",
-      "result": "EXISTING_READBACK_VERIFIED; index=2; at=2023-03-16T23:59:59Z; reviews=[]; orders=[]"
+      "check": "frame00002_input",
+      "result": "index=2; at=2023-03-16T23:59:59Z; events=[]; 0 candidates; input_hash=e9a683c1806a4e460725c0c5c3ec861af320f381b5c8b46ef5351376610e422a"
     },
     {
       "check": "frame00002_five_votes",
-      "result": "5/5 matching index, at, input_hash; scout/social/onchain/security/qa; no orders"
+      "result": "5/5 matching role/index/at/input_hash; qa existing, no orders; zero missing roles"
     }
   ],
   "findings": [
     {
-      "statement": "Existing QA vote and all four peer votes for published diagnostic frame 00002 are structurally consistent; empty frame, no actionable evidence.",
+      "statement": "Published diagnostic frame 00002 remains the current monitored frame; all five existing decisions match and no candidate events are visible. No new temporal evidence or research progress.",
       "as_of_utc": "2023-03-16T23:59:59Z",
       "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00002/input.json and decisions/{scout,social,onchain,security,qa}.json",
-      "evidence_limit": "Diagnostic known-winner case; no blind discovery, no independently audited historical source; monitor has not yet confirmed frame advancement.",
+      "evidence_limit": "Diagnostic only; monitor has not published frame 00003; no neutral blind test or independent evidence validation.",
       "origin": "OWN_GITHUB_READ"
     }
   ],
@@ -105,15 +129,15 @@
     {
       "code": "WAITING_FOR_CONTROLLER_ADVANCE",
       "role": "controller",
-      "required_input": "Controller must seal all five frame 00002 votes and publish next frame; do not read unpublished future frame."
+      "required_input": "Seal frame 00002 and publish frame 00003 via authorized monitor; do not inspect unpublished frames."
     },
     {
       "code": "NEUTRAL_REPLAY_NOT_STARTED",
       "role": "controller",
-      "required_input": "Independently audited neutral as-of corpus and clean five-agent executor."
+      "required_input": "Audited neutral as-of corpus and independent five-agent executor."
     }
   ],
-  "next_task": "Read temporal-public and monitor first next run; process only then-published frame. Frame 00002 has five valid decisions; await controller advancement.",
+  "next_task": "Read temporal-public/status and monitor/status on next run; only process the then-authorized frame, never an unpublished future frame.",
   "peer_receipts": [
     {
       "role": "scout",
@@ -396,5 +420,5 @@
       "source_blob_sha": "974ac304d1fd6dbf6bdbbbe6346ca94f12220f1e"
     }
   ],
-  "notes": "DIAGNOSTIC_ONLY; 2/62; 5/5 frame2 decisions observed; NO_BUY/UNKNOWN; no trades."
+  "notes": "DIAGNOSTIC_ONLY; 2/62; visible_candidates=0; new_asof_evidence=0; existing_qa_vote=true; five_votes=5/5; NO_PROGRESS/NO_BUY/UNKNOWN."
 }
