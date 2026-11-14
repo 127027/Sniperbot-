@@ -34,6 +34,23 @@ jobs:
           head -n 4 factory-events.csv | tail -n 3 | cut -c 1-220
           echo 'LATEST_ROWS:'
           tail -n 3 factory-events.csv | cut -c 1-220
+      - name: Inspect timestamp format and March-May 2023 coverage (without winner filter)
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv,collections
+          f=csv.DictReader(open('factory-events.csv',newline='',encoding='utf-8'))
+          first=None;last=None;fmt=None;months=collections.Counter();records=0
+          for row in f:
+              timestamp=row['timestamp']
+              if first is None: first=timestamp
+              last=timestamp
+              records+=1
+              if timestamp.startswith(('2023-03','2023-04','2023-05')):
+                  months[timestamp[:7]]+=1
+          print('FIRST_TIMESTAMP',first,'LAST_TIMESTAMP',last,'EVENT_ROWS',records)
+          print('2023_MAR_APR_MAY_MONTH_COUNTS',dict(months))
+          PY
       - name: Report archival source limitations
         shell: bash
         run: |
