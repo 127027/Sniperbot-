@@ -73,16 +73,31 @@ export async function discoverBlockscout({base='https://eth.blockscout.com',from
     ignoredNonPair++;
     continue;
    }
-   const p=decodePair({...log,topics});
-   check(p.block>=next&&p.block<=end,'ARCHIVE_LOG_OUTSIDE_RANGE');
-   const b=await blockInfo(p.block);
+   // Legacy logs do not necessarily include blockHash. Lookup that same
+   // block explicitly; this is single-explorer data, NOT independent proof.
+   const parseUint=(raw,name)=>{
+    check((typeof raw==='string'&&(/^(0x[0-9a-f]+|[0-9]+)$/i).test(raw))||
+     (Number.isSafeInteger(raw)&&raw>=0),'INVALID_'+name);
+    const n=BigInt(raw);
+    check(n>=0n&&n<=BigInt(Number.MAX_SAFE_INTEGER),'OVERFLOW_'+name);
+    return Number(n);
+   };
+   const blockNumber=parseUint(log.blockNumber,'BLOCK_NUMBER');
+   const logIndex=parseUint(log.logIndex,'LOG_INDEX');
+   check(blockNumber>=next&&blockNumber<=end,'ARCHIVE_LOG_OUTSIDE_RANGE');
+   const b=await blockInfo(blockNumber);
+   const normalized={...log,topics,blockNumber:'0x'+blockNumber.toString(16),
+    logIndex:'0x'+logIndex.toString(16),
+    blockHash:log.blockHash??b.hash};
+   const p=decodePair(normalized);
    check(b.hash===p.block_hash,'ARCHIVE_BLOCK_HASH_CONFLICT');
    if(Date.parse(b.at)<Date.parse(windowStart)||Date.parse(b.at)>Date.parse(windowEnd))continue;
    const c=poolCandidate(p);
    if(!c)continue;
    const original=JSON.stringify({network:'ethereum',provider:'BLOCKSCOUT_ARCHIVE_UNVERIFIED',
     factory:FACTORY,block:p.block,block_hash:p.block_hash,tx_hash:p.tx_hash,log_index:p.log_index,
-    token0:p.token0,token1:p.token1,pool:p.pool,event_at:b.at});
+    token0:p.token0,token1:p.token1,pool:p.pool,event_at:b.at,
+    block_hash_source:log.blockHash?'ARCHIVE_LOG_AND_BLOCK':'ARCHIVE_BLOCK_LOOKUP_ONLY'});
    sources.push({id:'pair:'+p.tx_hash.slice(2)+':'+p.log_index,kind:'POOL',candidate_id:c.candidate_id,
     event_at:b.at,payload:{chain:'ethereum',token:c.token,pool:p.pool},
     proof:{method:'ONCHAIN_LEDGER',original,sha256:sha(original),
