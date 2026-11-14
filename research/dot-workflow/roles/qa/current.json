@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261114T1549Z-r22-frame00005-24",
-  "previous_run_id": "qa-20261114T1445Z-frame00004-peer-barrier-23",
+  "run_id": "qa-20261114T1654Z-r22-frame00006-25",
+  "previous_run_id": "qa-20261114T1549Z-r22-frame00005-24",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -29,49 +29,49 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/replay-controller/monitor/r20-progress.json",
-      "sha": "528cae2d4f503b50321f40ab6a2836de0e37bcb5"
+      "sha": "689024f138de72f60d2cb7900c750cc5bbe5c97d"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/runs/watch-20261114-diagnostic/commits/00004.json",
-      "sha": "c3e365c1728ad9129792370395071f2daa728751"
+      "path": "research/replay-controller/runs/watch-20261114-diagnostic/commits/00005.json",
+      "sha": "fceee83eb2e8a8383c6fc6f3564ee4787d898878"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00005/input.json",
-      "sha": "4c2081d91cbe7f39041a6773ee79a617d3913863"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00006/input.json",
+      "sha": "480abd2a2bce69e7934ee1be5004ad6925d06041"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00005/decisions/scout.json",
-      "sha": "1c5d9545dfa1e8b541adf847c318303eb58f8413"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00006/decisions/scout.json",
+      "sha": "a81c1a9638ce7b3d88c57f56c1820a0b272391bc"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00005/decisions/social.json",
-      "sha": "cb16fe4b96c268c41b9861b9445ad6345ddae6f7"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00006/decisions/social.json",
+      "sha": "a2e3395f73ba32d8da49af31b9626f73cf11456a"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00005/decisions/onchain.json",
-      "sha": "21151062c1ab6c9692feb0bcb3c6659a8829adf1"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00006/decisions/onchain.json",
+      "sha": "b2a1b3cfc99a9f1b241fa0b695f8af178293d812"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00005/decisions/security.json",
-      "sha": "b8cb4a6f2450e54e2491230ec47baeb664986fb6"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00006/decisions/security.json",
+      "sha": "a779c6a05cb703fc1692ac4dc479759f591ce853"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00005/decisions/qa.json",
-      "sha": "c07aa0b743e13be97324fa80a7678bcb7e6fecc6"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00006/decisions/qa.json",
+      "sha": "06dad324abb7bcce13f878ebd20cfeb5da300a2b"
     }
   ],
   "completed_checks": [
@@ -81,27 +81,27 @@
     },
     {
       "check": "sealed_cursor",
-      "result": "00004 sealed; 00005 input published; 00005 seal not independently checked"
+      "result": "00005 sealed; 00006 published; 00006 seal not yet present"
     },
     {
-      "check": "frame00005",
-      "result": "index=5 at=2023-03-19T23:59:59Z; events=0 candidates=0; input_hash=648ba7f9296dc58dfb59b283a8d2e3d05b958592807d98a06c4330803c7db206"
+      "check": "frame00006",
+      "result": "index=6 at=2023-03-20T23:59:59Z; events=0 candidates=0; input_hash=57ecd37bca9be611c54abe412adcf39de28711d7e2d6ad026837490b375f330f"
     },
     {
       "check": "qa_vote",
-      "result": "New genuine QA decision committed and read back"
+      "result": "New QA decision committed and read back, reviews=[] orders=[]"
     },
     {
       "check": "peer_votes",
-      "result": "All five genuine role decisions read and matched; 5/5"
+      "result": "All five real frame decisions read, same index, at and hash; 5/5"
     }
   ],
   "findings": [
     {
-      "statement": "Published diagnostic frame 00005 contains no events or candidates; all five matching role decisions exist, no hypothetical orders or historical discovery.",
-      "as_of_utc": "2023-03-19T23:59:59Z",
-      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00005/input.json",
-      "evidence_limit": "Known-winner diagnostic, neutral NOT_STARTED; 5/5 decisions do not establish sealed controller advance",
+      "statement": "Frame 00006 has zero visible events and candidates; five valid diagnostic votes and no orders. This is not independent discovery.",
+      "as_of_utc": "2023-03-20T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00006/input.json",
+      "evidence_limit": "Known-winner diagnostic; no independently audited neutral corpus or verified historical execution",
       "origin": "OWN_GITHUB_READ"
     }
   ],
@@ -109,15 +109,15 @@
     {
       "code": "WAITING_FOR_CONTROLLER_ADVANCE",
       "role": "controller",
-      "required_input": "Controller must seal frame 00005 and publish next frame chronologically"
+      "required_input": "Seal 00006 and publish 00007 chronologically"
     },
     {
       "code": "NEUTRAL_REPLAY_NOT_STARTED",
       "role": "controller",
-      "required_input": "Independently audited neutral as-of corpus and clean executor"
+      "required_input": "Audited neutral as-of corpus and clean five-agent executor"
     }
   ],
-  "next_task": "Verify sealing of frame 00005 and process only next actually published frame; never infer future data.",
+  "next_task": "Verify 00006 seal and process only next actually published frame; never infer future data.",
   "peer_receipts": [
     {
       "role": "scout",
