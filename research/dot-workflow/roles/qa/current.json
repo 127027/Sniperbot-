@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261114T1345Z-r22-frame00004-22",
-  "previous_run_id": "qa-20261114T1251Z-r22-frame00003-21",
+  "run_id": "qa-20261114T1445Z-frame00004-peer-barrier-23",
+  "previous_run_id": "qa-20261114T1345Z-r22-frame00004-22",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -29,13 +29,7 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/replay-controller/monitor/r20-progress.json",
-      "sha": "94cf26445b4407ab57991189183153d6521cacf8"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/runs/watch-20261114-diagnostic/commits/00003.json",
-      "sha": "3c719bc2165a358b3c55b85dd87daf309ae08aca"
+      "sha": "a25688477f6a54e4c478be57ad4050c99909a155"
     },
     {
       "repository": "127027/Sniperbot-",
@@ -52,8 +46,20 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00004/decisions/scout.json",
+      "sha": "cd650afec3442d69ac450c6cc6383ee356de4267"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/replay-controller/bridge/diagnostic-frames/00004/decisions/social.json",
       "sha": "0e1b88785536cca3e096b78672bde292dc91b17b"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00004/decisions/onchain.json",
+      "sha": "2a9b42509fbd3929b63465f580c33847202fa179"
     }
   ],
   "completed_checks": [
@@ -63,7 +69,7 @@
     },
     {
       "check": "sealed_cursor",
-      "result": "00003 sealed; 00004 published; 00004 not sealed"
+      "result": "00004 seal absent (GitHub 404); 00005 input absent (GitHub 404); current published 00004"
     },
     {
       "check": "frame00004",
@@ -71,35 +77,35 @@
     },
     {
       "check": "qa_vote",
-      "result": "new decision created, readback verified; reviews=[], orders=[]; commit 58b93980ff79fc6141a9af2c24e9a7e6325734ac"
+      "result": "Existing qa decision readback valid; no overwrite"
     },
     {
       "check": "peer_votes",
-      "result": "social valid; scout/onchain/security missing; 2/5 including qa"
+      "result": "scout/social/onchain valid, security missing; 4/5"
     }
   ],
   "findings": [
     {
-      "statement": "Published diagnostic frame 00004 contains no visible events or candidates; QA empty decision persisted. No historical research finding.",
+      "statement": "Frame 00004 is published and empty; four matching genuine role votes including QA exist. No new historical research evidence.",
       "as_of_utc": "2023-03-18T23:59:59Z",
       "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00004/input.json",
-      "evidence_limit": "Known-winner diagnostic, not independent blind discovery; neutral replay NOT_STARTED.",
+      "evidence_limit": "Diagnostic known-winner case; neutral test NOT_STARTED; security vote missing",
       "origin": "OWN_GITHUB_READ"
     }
   ],
   "blockers": [
     {
       "code": "BLOCKED_WAITING_FOR_PEERS",
-      "role": "scout,onchain,security",
-      "required_input": "Own genuine frame 00004 decisions with matching index, at, input_hash"
+      "role": "security",
+      "required_input": "Genuine security decision for frame 00004 matching index=4, at and input_hash"
     },
     {
       "code": "NEUTRAL_REPLAY_NOT_STARTED",
       "role": "controller",
-      "required_input": "Audited neutral historical cohort and clean independent executor"
+      "required_input": "Independent audited neutral historical corpus and clean executor"
     }
   ],
-  "next_task": "Check genuine scout/onchain/security votes for frame 00004; allow existing controller to seal and publish next frame; do not revisit previous frames.",
+  "next_task": "Wait for genuine security vote on frame 00004 and controller sealing; check only next actually published frame.",
   "peer_receipts": [
     {
       "role": "scout",
@@ -382,5 +388,5 @@
       "source_blob_sha": "974ac304d1fd6dbf6bdbbbe6346ca94f12220f1e"
     }
   ],
-  "notes": "DIAGNOSTIC_ONLY; 2/62; visible_candidates=0; new_asof_evidence=0; existing_qa_vote=true; five_votes=5/5; NO_PROGRESS/NO_BUY/UNKNOWN."
+  "notes": "DIAGNOSTIC_ONLY; 4/62; visible_candidates=0; new_asof_evidence=0; existing_qa_vote=true; 4/5 votes; NO_PROGRESS/NO_BUY/UNKNOWN."
 }
