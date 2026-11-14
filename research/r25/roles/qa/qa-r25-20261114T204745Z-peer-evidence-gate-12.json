@@ -1,0 +1,81 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "qa",
+  "run_id": "qa-r25-20261114T204745Z-peer-evidence-gate-12",
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "asof_cutoff": "2023-03-14T00:00:00Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "evidence": [],
+  "decisions": [],
+  "unknowns": [
+    {
+      "code": "NO_NEUTRAL_CANDIDATE_IDS",
+      "detail": "Scout source audit has no extracted rows or independently verified candidate identities; a 95.6 MB retrospective CSV blob is not a validated candidate handoff."
+    },
+    {
+      "code": "ETHEREUM_CHAIN_PROOF_MISSING",
+      "detail": "No independently verified PairCreated block/log index, as-of liquidity/quote, swap flow or sellability; neither WOULD_BUY nor WOULD_SELL can be supported."
+    },
+    {
+      "code": "SOCIAL_ASOF_UNATTESTED",
+      "detail": "No candidate-linked contemporaneous social capture with independently verified available_at and source hash."
+    },
+    {
+      "code": "SOLANA_MINT_LEVEL_PROOF_MISSING",
+      "detail": "R24 reports 50 unique retrospective launch mints, but this QA run has no individually validated as-of mint/pool/social/security evidence; June 18 is a source gap."
+    }
+  ],
+  "peer_receipts": [
+    {
+      "role": "scout",
+      "path": "research/r25/roles/scout/scout-r25-20261114T202038Z-source-audit-11.json",
+      "candidate_count": 0
+    },
+    {
+      "role": "onchain",
+      "path": "research/r25/roles/onchain/onchain-r25-20261114T204311Z-source-audit-retry-12.json",
+      "candidate_count": 0
+    },
+    {
+      "role": "security",
+      "path": "research/r25/roles/security/security-20261114T201000Z-r25-source-gate-01.json",
+      "candidate_count": 0
+    },
+    {
+      "role": "social",
+      "path": "research/r25/roles/social/social-20261114T204325Z-r25-evidence-gate-audit.json",
+      "candidate_count": 0
+    }
+  ],
+  "qa_findings": [
+    {
+      "verdict": "DATA_GAP",
+      "detail": "All four current peer reports lack candidate-level evidence. Zero inspected candidates is not proof of zero launches or zero buy opportunities."
+    },
+    {
+      "verdict": "SOURCE_AUDIT",
+      "detail": "Scout identifies an epoch-seconds-versus-ISO-prefix bug in the workflow's month diagnostic; do not interpret its zero March count as coverage evidence."
+    },
+    {
+      "verdict": "NO_BUY",
+      "detail": "Security peer veto NO_BUY_UNTIL_VERIFIED; no R22 frame-bound five-role market/safety approval."
+    }
+  ],
+  "metrics": {
+    "new_candidates_checked": 0,
+    "new_valid_asof_events": 0,
+    "suspected_buy_signals": 0,
+    "proposed_paper_stake": 0,
+    "data_gaps": 4
+  },
+  "proposed_shadow_intents": [],
+  "historical_blind_success": false,
+  "wallet_or_paper_account_actions": 0,
+  "next_task": "Obtain a dated, neutrally selected CSV row batch with verified original Ethereum PairCreated block/log timestamps and stable candidate_id; then review all candidates for independently evidenced as-of market/security/social conditions, including unsuccessful launches. Do not run shadow intents without dot_replay_frame.v1."
+}
