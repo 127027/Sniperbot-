@@ -4,12 +4,15 @@ param(
   [switch]$ResetToken,
   [switch]$SelfTest,
   [switch]$NoBrowser,
-  [switch]$WithResearchCollector
+  [switch]$WithResearchCollector,
+  [switch]$WithCentralAI,
+  [switch]$ResetAiKey
 )
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $paperUrl = 'http://127.0.0.1:3030'
 $tokenFile = Join-Path $env:LOCALAPPDATA 'MemeSniperPaper\secrets\research-github-token.dpapi'
+$aiKeyFile = Join-Path $env:LOCALAPPDATA 'MemeSniperPaper\secrets\openai-api-key.dpapi'
 $job = [IntPtr]::Zero
 $mutex = $null
 $ownsMutex = $false
@@ -129,6 +132,43 @@ function Read-ResearchToken {
     throw 'Windows kann den GitHub-Token nicht entschluesseln. Erneut mit Sniperbot_Starten.bat -ResetToken einrichten.'
   }
 }
+function Initialize-AiKey {
+  if($ResetAiKey -and (Test-Path -LiteralPath $aiKeyFile)){
+    Remove-Item -LiteralPath $aiKeyFile -Force
+    Write-Host '[AI] Bisheriger API-Key-Eintrag entfernt.' -ForegroundColor Yellow
+  }
+  if(Test-Path -LiteralPath $aiKeyFile){return $true}
+  Write-Host ''
+  Write-Host '[AI] Optionale stündliche KI-Recherche (separate OpenAI-API-Kosten).' -ForegroundColor Cyan
+  Write-Host 'Der API-Key wird NUR lokal per Windows-DPAPI geschützt. Nicht im Chat mitteilen.'
+  Write-Host 'Zum Überspringen einfach ENTER drücken; der Paper-Bot startet dann ohne KI.'
+  $secure=Read-Host 'OpenAI API-Key (verdeckt, optional)' -AsSecureString
+  if($null -eq $secure -or $secure.Length -lt 20){
+    if($null -ne $secure){$secure.Dispose()}
+    Write-Host '[AI] Kein API-Key. Zentraler KI-Prozess bleibt AUS.' -ForegroundColor Yellow
+    return $false
+  }
+  $encrypted=ConvertFrom-SecureString -SecureString $secure
+  [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($aiKeyFile)) | Out-Null
+  [IO.File]::WriteAllText($aiKeyFile+'.pending',$encrypted,[Text.Encoding]::UTF8)
+  Move-Item -LiteralPath ($aiKeyFile+'.pending') -Destination $aiKeyFile -Force
+  $secure.Dispose()
+  Write-Host '[AI] API-Key Windows-DPAPI-gespeichert.' -ForegroundColor Green
+  return $true
+}
+function Read-AiKey {
+  if(!(Test-Path -LiteralPath $aiKeyFile)){throw 'Kein KI-API-Key gespeichert.'}
+  try{
+    $encrypted=[IO.File]::ReadAllText($aiKeyFile,[Text.Encoding]::UTF8).Trim()
+    $secret=ConvertTo-SecureString -String $encrypted
+    $ptr=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret)
+    try{
+      $value=[Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
+      if(!$value.StartsWith('sk-') -or $value.Length -lt 20){throw 'Invalid OpenAI API key'}
+      return $value
+    }finally{[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr);$secret.Dispose()}
+  }catch{throw 'API-Key konnte nicht entschlüsselt werden. Mit -ResetAiKey neu einrichten.'}
+}
 function Assert-PortAvailable {
   $tcp = New-Object Net.Sockets.TcpClient
   try {
@@ -154,7 +194,15 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
   # Remove inherited parent secrets from the Paper-Bot. Only the collector receives a copy.
   $info.EnvironmentVariables.Remove('SNIPER_MARKET_GITHUB_TOKEN')
   $info.EnvironmentVariables.Remove('SNIPER_MARKET_PUBLISH')
+  $info.EnvironmentVariables.Remove('SNIPER_OPENAI_API_KEY')
+  $info.EnvironmentVariables.Remove('SNIPER_CENTRAL_AI_ENABLED')
   if($role -eq 'BOT') {
+    if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){
+      $aiSecret=Read-AiKey
+      $info.EnvironmentVariables['SNIPER_OPENAI_API_KEY']=$aiSecret
+      $info.EnvironmentVariables['SNIPER_CENTRAL_AI_ENABLED']='1'
+      $aiSecret=$null
+    }
     $info.EnvironmentVariables['SNIPER_RESEARCH_FEED'] = $(if($WithResearchCollector){'1'}else{'0'})
     $info.EnvironmentVariables['SNIPER_RESEARCH_READ'] = $(if($WithResearchCollector){'1'}else{'0'})
     $info.EnvironmentVariables['SNIPER_LOCAL_DISCOVERY'] = '0'
@@ -291,6 +339,8 @@ try {
   Assert-PortAvailable
   if($WithResearchCollector){Initialize-ResearchToken}
   elseif($ResetToken){throw 'ResetToken nur im expliziten Forschungs-Collector-Modus verwenden.'}
+  if($WithCentralAI){[void](Initialize-AiKey)}
+  elseif($ResetAiKey){throw 'ResetAiKey nur im zentralen KI-Modus verwenden.'}
   $job=[SniperWindowsJob]::OpenKillOnClose()
   $bot=Start-Child 'BOT' 'runner/server.mjs' $node $job
   if($WithResearchCollector){$market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job}
@@ -308,6 +358,9 @@ try {
   Write-Host ''
   Write-Host '[OK] Lokaler Bot sichtbar gestartet; keine Anmeldung an GitHub erforderlich.' -ForegroundColor Green
   if($WithResearchCollector){Write-Host '[OPTIONAL] Separater Markt-Collector explizit gestartet.'}
+  if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){
+    Write-Host '[AI] EIN stündlicher lokaler Forschungsprozess aktiviert, nur PAPER.' -ForegroundColor Green
+  } else {Write-Host '[AI] Zentraler KI-Prozess AUS (fehlender API-Key oder nicht gewählt).'}
   Write-Host '[INFO] Zum Beenden Q druecken oder dieses Fenster schliessen.'
   $restarts=@{BOT=0;MARKET=0}
   while($true){
