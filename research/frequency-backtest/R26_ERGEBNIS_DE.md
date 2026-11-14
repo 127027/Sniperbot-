@@ -53,4 +53,4 @@ Ebenso sind die Börsen-Stundenkurse keine echten ausführbaren DEX-Kauf-/Verkau
 
 **Konsequenz:** Den vorhandenen stündlichen KI-Zeitplan des Sniperbots nicht allein aufgrund dieses Proxy-Tests ändern. Für eine Entscheidung über 1/4/12/24 echte KI-Recherchen sind langfristig kontinuierlich archivierte, zeitgestempelte Nachrichten- und Markt-Snapshots sowie echte Paper-Orderbelege erforderlich.
 
-[Ausführung und Rohdaten (GitHub Actions)](https://github.com/127027/Sniperbot-/actions/runs/43650566827) · [Maschinenlesbarer Ergebnisbericht](../results/summary.json)
+[Ausführung und Rohdaten (GitHub Actions)](https://github.com/127027/Sniperbot-/actions/runs/43650566827) · [Maschinenlesbarer Ergebnisbericht](results/summary.json)
