@@ -90,6 +90,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f research/replay-controller/monitor/r20-progress.json
+          git add -f research/replay-controller/monitor/status.json
           if [ -d research/replay-controller/runs/watch-20261114-diagnostic ]; then
             git add -f research/replay-controller/runs/watch-20261114-diagnostic
           fi
@@ -98,7 +99,7 @@ jobs:
           fi
           git diff --cached --name-only | while IFS= read -r file; do
             case "$file" in
-              research/replay-controller/monitor/r20-progress.json|research/replay-controller/runs/watch-20261114-diagnostic/*|research/replay-controller/bridge/diagnostic-frames/*/input.json) ;;
+              research/replay-controller/monitor/r20-progress.json|research/replay-controller/monitor/status.json|research/replay-controller/runs/watch-20261114-diagnostic/*|research/replay-controller/bridge/diagnostic-frames/*/input.json) ;;
               *) echo "Refusing unexpected file: $file" >&2; exit 1 ;;
             esac
           done
