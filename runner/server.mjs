@@ -918,7 +918,19 @@ if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_CENTRAL_AI_ENABLED==='1'
   apiKey:process.env.SNIPER_OPENAI_API_KEY,
   deviceId:localDevice.device_id,dataDir:store.dir,getState:()=>state,
   submit:(signed,options)=>submitSignedAgentPaperOrder(signed,options),
-  scan:()=>scanNewPools(),collectNews:()=>collectResearchNews()
+  scan:()=>scanNewPools(),collectNews:()=>collectResearchNews(),
+  collectRealWallet:async()=>{
+   const wallet=await readLocalSolanaVault(walletFile);
+   if(!wallet?.exists)return {verified:false,reason:'NO_LOCAL_SOLANA_WALLET'};
+   const [balance,holdings]=await Promise.all([
+    readSolanaBalance(wallet.address),readSolanaOwnedTokens(wallet.address)]);
+   const summary=summarizeRealWallet({wallet,balance,holdings});
+   return {verified:true,sol_display:summary.sol_display,
+    usdc_display:summary.usdc_display,
+    observed_positive_token_accounts:summary.observed_positive_token_accounts,
+    sol_finalized_slot:summary.sol_finalized_slot,
+    tokens_finalized_slot:summary.tokens_finalized_slot};
+  }
  });
  // Avoid accidental API key inclusion in diagnostic environment dumps.
  delete process.env.SNIPER_OPENAI_API_KEY;
