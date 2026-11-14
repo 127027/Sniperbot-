@@ -1,17 +1,17 @@
 {
   "schema": "dot_research_state.v1",
   "role": "social",
-  "run_id": "social-20261114T063517Z-chad-original-provisional",
-  "previous_run_id": "social-20261114T053600Z-distinct-original-audit",
+  "run_id": "social-20261114T073919Z-chad-pool-retrospective",
+  "previous_run_id": "social-20261114T063517Z-chad-original-provisional",
   "candidate": {
-    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
-    "symbol": "PEPE",
-    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
-    "as_of_utc": "2023-04-14T23:59:59Z"
+    "id": "ethereum:0xb4577d084f289e696ddfac178c11663e573900f1:0xf256a36b03ff5375a2c9b6861d31005efd2b2f8f",
+    "symbol": "CHAD",
+    "selection": "INDEPENDENT_PROVISIONAL_RESEARCH_NOT_BLIND_DISCOVERY",
+    "as_of_utc": null
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
-  "status": "STALLED",
+  "status": "BLOCKED",
   "input_refs": [
     {
       "repository": "127027/Sniperbot-",
@@ -23,11 +23,11 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/social/current.json",
-      "blob_sha": "d4a2e700dcd1142ed60c01972b1bf06e2dd337aa",
+      "blob_sha": "b49d3ceb4078e42e293a3e487c05ebd3e00ae7de",
       "json_paths": [
         "$.next_task",
-        "$.run_id",
-        "$.blockers"
+        "$.blockers",
+        "$.run_id"
       ]
     },
     {
@@ -46,57 +46,72 @@
       "original_url": "https://www.reddit.com/r/memecoinmoonshots/comments/13esjfx",
       "posted_date": "2023-05-11",
       "as_of_capture_verified": false
+    },
+    {
+      "original_url": "https://ethplorer.io/address/0xb4577d084f289e696ddfac178c11663e573900f1",
+      "verification_time_utc": "2026-11-14T07:39:19Z"
+    },
+    {
+      "original_url": "https://whattofarm.io/pairs/ethereum-uniswapv-chad-weth-created-2023-05-07",
+      "verification_time_utc": "2026-11-14T07:39:19Z"
     }
   ],
   "completed_checks": [
     {
-      "check": "Read moving protocol and own current",
+      "check": "Protocol and own moving current read",
       "result": "PASS",
-      "evidence": "protocol 2503f1dc2fd00ede9e03edc2a8270e1180b85457; current d4a2e700dcd1142ed60c01972b1bf06e2dd337aa"
+      "evidence": "protocol blob 2503f1dc2fd00ede9e03edc2a8270e1180b85457; current blob b49d3ceb4078e42e293a3e487c05ebd3e00ae7de"
     },
     {
-      "check": "Diagnostic frame 0 versus existing social decision",
+      "check": "Replay frame0 existing social decision",
       "result": "PASS",
-      "evidence": "index=0; at=2023-03-14T23:59:59Z; input_hash=13d342d14f3e19070a7eb0a0dc93ecc71c223c195cd754aaabbbd0135f7af0b1; events/reviews/orders empty; no overwrite"
+      "evidence": "index=0, at=2023-03-14T23:59:59Z, events=[], reviews=[], orders=[], matching input_hash; existing decision unchanged"
     },
     {
-      "check": "Independent candidate-specific historical original URL",
-      "result": "PROVISIONAL",
-      "evidence": "Search-indexed Reddit CHAD thesis dated 2023-05-11, token contract 0xb4577d084f289E696dDFAC178C11663E573900f1; no authenticated 2023 archive snapshot or pool contract; direct Reddit fetch DisabledError"
+      "check": "Independent Ethereum token and pool identity",
+      "result": "RETROSPECTIVE_CORROBORATION",
+      "evidence": "Ethplorer ERC20 token 0xb457...00f1 and WhatToFarm Ethereum Uniswap V3 CHAD/WETH pool 0xf256...2f8f; third-party index says created 2023-05-07, unverified against historical onchain event"
     },
     {
-      "check": "Historical capture search for exact Reddit URL",
+      "check": "Authenticated 2023 social snapshot and engagement",
       "result": "NOT_VERIFIED",
-      "evidence": "Search returned archive provider descriptions but no timestamped snapshot of the target URL"
+      "evidence": "No contemporaneous archive capture or historic engagement snapshot"
     }
   ],
   "findings": [
     {
-      "statement": "An independently indexed Reddit CHAD investment-thesis post dated 2023-05-11 identifies a purported Ethereum token contract 0xb4577d084f289E696dDFAC178C11663E573900f1 and claims Uniswap liquidity and LP burn. This is a provisional candidate-specific original social URL, not a validated discovery.",
-      "as_of_utc": "2026-11-14T06:35:17Z",
+      "statement": "Independent current third-party index identifies CHAD as Ethereum ERC20 at 0xb4577d084f289e696ddfac178c11663e573900f1, and another current index pairs it with Ethereum Uniswap V3 CHAD/WETH pool 0xf256a36b03ff5375a2c9b6861d31005efd2b2f8f.",
+      "as_of_utc": "2026-11-14T07:39:19Z",
+      "evidence_ref": "https://ethplorer.io/address/0xb4577d084f289e696ddfac178c11663e573900f1 ; https://whattofarm.io/pairs/ethereum-uniswapv-chad-weth-created-2023-05-07",
+      "evidence_limit": "Retrospective provider pages, not 2023 captures; pool creation date not independently validated via historical chain event; not evidence that social signal was available before price movement.",
+      "origin": "OWN_SOURCE_CHECK"
+    },
+    {
+      "statement": "Search-indexed Reddit post dated 2023-05-11 mentions the matching CHAD token contract, but no authenticated contemporaneous capture was retrieved.",
+      "as_of_utc": "2026-11-14T07:39:19Z",
       "evidence_ref": "https://www.reddit.com/r/memecoinmoonshots/comments/13esjfx",
-      "evidence_limit": "Date shown by present-day index is not a 2023 capture; token and pool identity not independently confirmed; pool address missing; no historical engagement or movement timing; tokenomics are unverified promotional claims.",
+      "evidence_limit": "Current index can reflect later edits; visible votes are not historical snapshots; not blindtest-eligible.",
       "origin": "OWN_SOURCE_CHECK"
     }
   ],
   "blockers": [
     {
       "code": "MISSING_AS_OF_CAPTURE",
-      "detail": "No authenticated 2023 archived snapshot for CHAD original post; archive-provider descriptions are not captures"
+      "detail": "No authenticated 2023 archive of original CHAD post"
     },
     {
       "code": "MISSING_HISTORICAL_ENGAGEMENT_SNAPSHOTS",
-      "detail": "No contemporaneous engagement snapshots; parked"
+      "detail": "No time-specific vote/comment measurements"
     },
     {
-      "code": "UNKNOWN_TOKEN_POOL_IDENTITY",
-      "detail": "CHAD contract is post-claimed only; pool address and chain identity not independently verified"
+      "code": "HISTORICAL_POOL_CREATION_NOT_VERIFIED",
+      "detail": "Third-party creation date 2023-05-07 needs onchain transaction/block-time validation"
     },
     {
-      "code": "DIRECT_REDDIT_FETCH_DISABLED",
-      "detail": "Direct source read failed DisabledError; indexed extract only"
+      "code": "MOVEMENT_TIMING_UNVERIFIED",
+      "detail": "No contemporaneous price/movement boundary to establish pre-movement signal"
     }
   ],
-  "next_task": "Park CHAD as provisional pending authentic dated 2023 snapshot of exact Reddit URL and independent onchain token+pool confirmation; if access remains unavailable, seek an independent contemporaneous evidence source without repeating the failed direct Reddit/CDX endpoints. Check signal timestamp versus evaluated movement only after these prerequisites.",
+  "next_task": "Park CHAD social as-of and engagement questions; validate the CHAD/WETH Uniswap V3 pool creation transaction/block timestamp independently using historical Ethereum chain data, then only if verified assess social-post timing against evaluated movement. Do not repeat blocked Reddit/CDX fetches.",
   "peer_receipts": []
 }
