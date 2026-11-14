@@ -39,3 +39,14 @@ Stündliche Auflösung ist möglich (1.488 Frames); schnelle Bewegungen erforder
 - Kein tatsächlicher erfolgreicher PEPE-Blindtest; kein echter Paper-Kauf/-Verkauf durch diesen Code.
 
 Darum setzt der Compiler Vollständigkeit und Agentenkontext bewusst NICHT selbst auf geprüft. Der Controller verweigert weiterhin BLIND, solange die Voraussetzungen fehlen. Die vorhandene historische Ergebnisliste darf ausschließlich nach Abschluss aller versiegelten Agentenentscheidungen von einem unabhängigen Evaluator verwendet werden.
+
+
+## Schutz gegen vortrainiertes Wissen über Gewinner
+
+Ein neuer Modellchat ist NICHT automatisch blind: GPT kann PEPE aus seinem Training kennen. Die temporale Datenfreigabe garantiert nur zeitgerechte EINGABEN, nicht die Löschung vortrainierten Wissens. Das optionale Modul pseudonymize.mjs ersetzt deshalb stabile Coin-IDs, Token-/Pooladressen und ausdrücklich aufgeführte Namen/Aliase vor dem Modellkontakt durch neutrale IDs. Die private Zuordnungstabelle darf nicht an Rollen oder in deren GitHub-Verzeichnisse gelangen. Anschließend MUSS ein unabhängiger Reviewer prüfen, ob unbekannte Namen, Bilder, Narrative oder indirekte Hinweise weiterhin Gewinner verraten.
+
+role-task.mjs stellt für jede der fünf Rollen einen auf einen einzigen öffentlichen Frame beschränkten Arbeitsauftrag für eine neue, externe, speicherfreie Modellinstanz zusammen. Das Modul startet KEIN GPT-Modell und kann Memory oder Pretraining nicht selbst deaktivieren.
+
+Für einen zeitfenstergebundenen BLIND-Modus verlangt die Readiness-Prüfung daher zusätzlich eine echte externe Attestierung der Pseudonymisierung und Untersuchung potenzieller Vortrainings-Leaks. Der Compiler setzt diese Freigabe bewusst nicht selbst. Dies ist kein Beweis, dass jede bekannte 2013–2026-Memecoin-Geschichte aus den Modellgewichten entfernt wäre.
+
+Die tatsächliche erste PEPE-Diagnose läuft getrennt unter codex/dots-pepe-replay-20261113. Ihr aktuelles Resultat darf nicht als unabhängiger Blindtreffer bezeichnet werden.
