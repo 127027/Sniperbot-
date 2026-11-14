@@ -1,18 +1,18 @@
 {
   "schema": "dot_research_state.v1",
   "role": "onchain",
-  "run_id": "onchain-20261114T164223Z-frame00006-r22-18",
-  "previous_run_id": "onchain-20261114T154506Z-frame00005-r22-17",
+  "run_id": "onchain-20261114T174356Z-frame00007-r22-19",
+  "previous_run_id": "onchain-20261114T164223Z-frame00006-r22-18",
+  "candidate": null,
   "mode": "TRAINING_ONLY",
   "actionable": false,
   "status": "WAITING_FOR_PEERS",
-  "candidate": null,
   "input_refs": [
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00006/input.json",
-      "blob_sha": "480abd2a2bce69e7934ee1be5004ad6925d06041",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00007/input.json",
+      "blob_sha": "604a3eadc8d2a3e5b65bfe082f160307ee05e211",
       "json_paths": [
         "$.index",
         "$.at",
@@ -23,52 +23,52 @@
   ],
   "completed_checks": [
     {
-      "check": "diagnostic_frame_00006_vote_readback",
-      "result": "Created and verified own decision; events=[]; candidates=0; reviews=[]; orders=[]",
-      "as_of_utc": "2023-03-20T23:59:59Z"
+      "check": "diagnostic_frame_00007_vote_readback",
+      "result": "Decision saved and read back, events=[]; 0 candidates; reviews=[]; orders=[]",
+      "as_of_utc": "2023-03-21T23:59:59Z"
     }
   ],
   "findings": [
     {
-      "statement": "Published diagnostic frame 00006 contains no visible events or candidates; no onchain trading evidence in this input.",
-      "as_of_utc": "2023-03-20T23:59:59Z",
-      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00006/input.json",
+      "statement": "Frame 00007 contains no visible candidates/events; no independent historical trading evidence established",
+      "as_of_utc": "2023-03-21T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00007/input.json",
       "proof_class": "published_diagnostic_frame",
-      "verification": "GitHub input and own decision readback",
-      "evidence_limit": "Not proof of absence of onchain activity or neutral blind discovery"
+      "evidence_limit": "Not proof of absence of chain activity or blind discovery"
     }
   ],
   "blockers": [
     {
       "question": "neutral blind replay",
       "status": "NOT_STARTED",
-      "required_input": "independently audited as-of corpus and clean agents"
+      "required_input": "audited neutral corpus and independent agents"
     },
     {
-      "question": "diagnostic frame 00006 sealing",
+      "question": "frame 00007 sealing",
       "status": "AWAITING_OTHER_ROLE_VOTES",
-      "required_input": "social and qa decisions, then controller seal"
+      "required_input": "social and qa decisions then controller seal"
     }
   ],
-  "next_task": "Await authentic social and qa decisions and controller seal; then inspect only next published frame.",
+  "next_task": "Wait for social and qa and controller seal, then only next published frame.",
   "peer_receipts": [
     {
       "role": "scout",
-      "status": "FILE_PRESENT_NOT_CONTENT_VALIDATED"
+      "run_id": "scout-20261114T170549Z-r22-frame00007-01",
+      "status": "MATCHING_FILE"
     },
     {
       "role": "security",
-      "status": "FILE_PRESENT_NOT_CONTENT_VALIDATED"
+      "run_id": "security-20261114T171039Z-r22-frame00007-01",
+      "status": "MATCHING_FILE"
     },
     {
       "role": "social",
-      "status": "MISSING"
+      "status": "MISSING_404"
     },
     {
       "role": "qa",
-      "status": "MISSING"
+      "status": "MISSING_404"
     }
   ],
-  "handoff_to": "social,qa",
-  "notes": "Frame 00005 sealed. Frame 00006 own vote commit 8a2e33b5bcd5bf0a4a09e5b0d21bede70a397d88; blob b2a1b3cfc99a9f1b241fa0b695f8af178293d812. 0 candidates, 0 new historical proofs, no orders."
+  "notes": "Decision commit 106a6dd0d0aea04f68303eed5d39bbc0b6487c45; blob 09ac63ea19e4f8ea253751bdf5b6548a4a648ff6."
 }
