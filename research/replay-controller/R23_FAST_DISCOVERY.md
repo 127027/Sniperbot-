@@ -60,10 +60,10 @@ Danach die angezeigte continuation_from_block ablesen:
 
 Nur wenn beide Pakete den Blockbereich lückenlos abdecken:
 
-    node research/replay-controller/r23-merge-batches.mjs PRIVATE/r23/merged.json PRIVATE/r23/part1.json PRIVATE/r23/part2.json
+    node research/replay-controller/r23-merge-batches.mjs PRIVATE/r23/merged.json PRIVATE/r23/part1.json PRIVATE/r23/part2.json --corpus-output=PRIVATE/r23/asof-corpus.json
 
-Der Merge-Output enthält eine Eigenschaft asof_corpus. Diese Eigenschaft als
-separate private JSON-Datei speichern und mit r22-intake.mjs intake verwenden.
+Der optionale Parameter --corpus-output schreibt automatisch eine separate
+private Datei im Schema asof_corpus.v1. Diese mit r22-intake.mjs intake verwenden.
 Die gesamte Merge-Hülle ist KEIN asof_corpus.v1. Die Quelle kann eine
 unabhängige Vollständigkeitsattestierung nicht selbst erzeugen: Ein neutraler
 BLIND-Test bleibt daher bis zur unabhängigen Prüfung blockiert.
