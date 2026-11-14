@@ -28,6 +28,6 @@ jobs:
       - name: Offline research, signatures, ledger and replay regression tests
         run: node --test runner/paper-agent-pipeline.test.mjs runner/github-signed-agent-feed.test.mjs runner/isolated-paper-pipeline-selftest.test.mjs runner/market-pool-pinning.test.mjs runner/paper-lifecycle-policy.test.mjs runner/portfolio-budget.test.mjs runner/signed-research-quorum.test.mjs runner/historical-replay-readiness.test.mjs runner/breakout-forecast.test.mjs runner/pipeline-health.test.mjs runner/central-decisions.test.mjs runner/research.test.mjs runner/live-mode-policy.test.mjs runner/gateway.test.mjs runner/integration.test.mjs
       - name: Chronological as-of intake, five-role barrier and isolated historical replay (offline)
-        run: node --test research/replay-controller/controller.test.mjs research/replay-controller/asof-feed.test.mjs research/replay-controller/temporal-session.test.mjs research/replay-controller/role-task.test.mjs
+        run: node --test research/replay-controller/controller.test.mjs research/replay-controller/asof-feed.test.mjs research/replay-controller/temporal-session.test.mjs research/replay-controller/role-task.test.mjs research/replay-controller/pseudonymize.test.mjs
       - name: Ephemeral local HTTP signed paper roundtrip and persisted replay
         run: node runner/paper-agent-loopback-e2e.mjs
