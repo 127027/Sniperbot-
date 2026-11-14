@@ -73,7 +73,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   const [output,...files]=process.argv.slice(2);
   check(output&&files.length>0,'USAGE: node r23-merge-batches.mjs OUTPUT.json BATCH1.json [BATCH2.json ...]');
   check(!fs.existsSync(output),'OUTPUT_ALREADY_EXISTS');
-  const result=mergeBatches(files.map(f=>JSON.parse(fs.readFileSync(f,'utf8')))));
+  const result=mergeBatches(files.map(f=>JSON.parse(fs.readFileSync(f,'utf8'))));
   fs.mkdirSync(path.dirname(path.resolve(output)),{recursive:true});
   fs.writeFileSync(output,JSON.stringify(result,null,2)+'\n',{flag:'wx'});
   console.log(JSON.stringify({pool_candidates:result.distinct_pool_candidates,
