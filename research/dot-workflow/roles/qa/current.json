@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261114T0550Z-frame0-peer-reconcile-14",
-  "previous_run_id": "qa-20261114T0454Z-frame0-peer-reconcile-13",
+  "run_id": "qa-20261114T0650Z-frame0-peer-reconcile-15",
+  "previous_run_id": "qa-20261114T0550Z-frame0-peer-reconcile-14",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -22,19 +22,8 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/dot-workflow/roles/qa/current.json",
-      "sha": "b93768c3d99b8c16709bf893abeaa38bbe0205dc",
-      "json_paths": [
-        "$.run_id",
-        "$.peer_receipts",
-        "$.next_task"
-      ]
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/scout/current.json",
-      "sha": "280d5781e6d8acf2b9ab1052fdc8cee5bd74f6e7",
+      "sha": "a1960447c949e739462d91970d202ce9ee5aedb8",
       "json_paths": [
         "$.role",
         "$.run_id",
@@ -47,7 +36,7 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/social/current.json",
-      "sha": "d4a2e700dcd1142ed60c01972b1bf06e2dd337aa",
+      "sha": "b49d3ceb4078e42e293a3e487c05ebd3e00ae7de",
       "json_paths": [
         "$.role",
         "$.run_id",
@@ -80,18 +69,6 @@
         "$.candidate.id",
         "$.status",
         "$.findings"
-      ]
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-first-frame/input.json",
-      "sha": "b20c20572ce2ee36c95ae4b05db1f6bef3865b94",
-      "json_paths": [
-        "$.index",
-        "$.at",
-        "$.events",
-        "$.input_hash"
       ]
     },
     {
@@ -168,6 +145,29 @@
         "$.reviews",
         "$.orders"
       ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-first-frame/input.json",
+      "sha": "b20c20572ce2ee36c95ae4b05db1f6bef3865b94",
+      "json_paths": [
+        "$.index",
+        "$.at",
+        "$.events",
+        "$.input_hash"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/qa/current.json",
+      "sha": "e85646b7b73d2de4c0c284ce25bd199e9fccc275",
+      "json_paths": [
+        "$.run_id",
+        "$.peer_receipts",
+        "$.next_task"
+      ]
     }
   ],
   "completed_checks": [
@@ -177,15 +177,15 @@
     },
     {
       "check": "four_peer_states",
-      "result": "3 NEW NONSEED; 4 roles read; matching candidate"
+      "result": "2 NEW NONSEED; 4 roles read; matching candidate"
     },
     {
       "check": "diagnostic_frame0_barrier",
-      "result": "5/5 STRUCTURALLY_READY_DIAGNOSTIC_ONLY; matching index/at/hash, no reviews or orders"
+      "result": "5/5 STRUCTURALLY_READY_DIAGNOSTIC_ONLY; empty events, reviews and orders"
     },
     {
       "check": "chronological_replay",
-      "result": "0/62; frame1 not authorized in scoped inputs"
+      "result": "0/62; no authorized frame1 in scoped inputs"
     },
     {
       "check": "original_historical_source_validation",
@@ -194,17 +194,17 @@
   ],
   "findings": [
     {
-      "statement": "Five persisted frame0 role decisions match empty input and each other; no evidence-backed reviews/orders; no chronological advancement.",
+      "statement": "Controller frame0 has 5/5 structurally valid votes; no events/reviews/orders; no replay advancement.",
       "as_of_utc": "2023-03-14T23:59:59Z",
       "evidence_ref": "research/replay-controller/bridge/diagnostic-first-frame/input.json and decisions/{scout,social,onchain,security,qa}.json",
-      "evidence_limit": "Diagnostic only; no independently checked historical market/social/quote evidence; frame1 not provided.",
+      "evidence_limit": "Diagnostic only; not blind discovery or independent historical market evidence.",
       "origin": "OWN_GITHUB_READBACK"
     },
     {
-      "statement": "New matching nonseed peer receipts: scout:scout-20261114T0542Z-candidate-universe-access-gap-01; social:social-20261114T053600Z-distinct-original-audit; security:security-20261114T0513Z-lp-transfer-to-token-contract-01",
-      "as_of_utc": "2026-11-14T05:50:16Z",
-      "evidence_ref": "research/dot-workflow/roles/scout/current.json@280d5781e6d8acf2b9ab1052fdc8cee5bd74f6e7; research/dot-workflow/roles/social/current.json@d4a2e700dcd1142ed60c01972b1bf06e2dd337aa; research/dot-workflow/roles/security/current.json@8615872e7e42d60beeab21c2910a663ea55659f6",
-      "evidence_limit": "Peer state persistence verified; underlying original evidence not independently verified by QA.",
+      "statement": "New nonseed peer receipts: scout:scout-20261114T0608Z-branch-tree-manifest-absence-01; social:social-20261114T063517Z-chad-original-provisional.",
+      "as_of_utc": "2026-11-14T06:50:38Z",
+      "evidence_ref": "research/dot-workflow/roles/scout/current.json@a1960447c949e739462d91970d202ce9ee5aedb8; research/dot-workflow/roles/social/current.json@b49d3ceb4078e42e293a3e487c05ebd3e00ae7de",
+      "evidence_limit": "Only persisted peer claims verified; original source claims not independently checked.",
       "origin": "OWN_GITHUB_READBACK"
     }
   ],
@@ -212,15 +212,15 @@
     {
       "code": "CONTROLLER_NOT_ADVANCED",
       "role": "controller",
-      "required_input": "Explicitly authorized chronological frame1 without future labels; QA cannot advance controller."
+      "required_input": "Explicitly authorized chronological frame1 with no future labels; QA cannot advance controller."
     },
     {
       "code": "HISTORICAL_EXECUTION_EVIDENCE_MISSING",
       "role": "scout/social/onchain/security",
-      "required_input": "Time-appropriate social, safety, liquidity, quote, slippage and sellability original evidence."
+      "required_input": "Time-appropriate original social, safety, liquidity, quote, slippage and sellability evidence."
     }
   ],
-  "next_task": "Await authorized chronological frame1; validate frame index/at/hash and role votes, then reconcile only new nonseed peer run_ids.",
+  "next_task": "Await authorized chronological frame1; check frame index/at/hash and five role votes, then reconcile only new nonseed peer run_ids.",
   "peer_receipts": [
     {
       "role": "scout",
@@ -459,7 +459,21 @@
       "result": "PARTIAL_VERIFIED",
       "source_path": "research/dot-workflow/roles/security/current.json",
       "source_blob_sha": "8615872e7e42d60beeab21c2910a663ea55659f6"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0608Z-branch-tree-manifest-absence-01",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "a1960447c949e739462d91970d202ce9ee5aedb8"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T063517Z-chad-original-provisional",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "b49d3ceb4078e42e293a3e487c05ebd3e00ae7de"
     }
   ],
-  "notes": "TRAINING_ONLY; actionable=false; NO_BUY/UNKNOWN; 5/5 diagnostic only; chronological replay 0/62."
+  "notes": "TRAINING_ONLY; actionable=false; NO_BUY/UNKNOWN; diagnostic 5/5 only; chronological replay 0/62."
 }
