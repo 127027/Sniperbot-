@@ -165,9 +165,16 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   const args=process.argv.slice(2),target=getArg(args,'output',null);
   const start=getArg(args,'start','2023-03-14T00:00:00Z'),end=getArg(args,'end','2023-05-14T23:59:59Z');
   const primary=process.env.RESEARCH_RPC_URL,secondary=process.env.RESEARCH_RPC_SECONDARY_URL||undefined;
-  need(target&&primary,'USAGE: RESEARCH_RPC_URL=https://... node r23-onchain-discovery.mjs --output=PATH [--start=ISO] [--end=ISO] [--max-chunks=50] [--step=1200]');
+  need(target&&primary,'USAGE: RESEARCH_RPC_URL=https://... node r23-onchain-discovery.mjs --output=PATH [--start=ISO] [--end=ISO] [--max-chunks=50] [--step=1200] [--resume-from-block=N]');
   need(!fs.existsSync(target),'OUTPUT_EXISTS_REFUSING_OVERWRITE');
   const range=await dateBlockRange(primary,start,end);
+  const resume=getArg(args,'resume-from-block',null);
+  if(resume!==null){
+   need(/^\d+$/.test(resume),'INVALID_RESUME_BLOCK');
+   range.fromBlock=Number(resume);
+   need(Number.isSafeInteger(range.fromBlock)&&range.fromBlock>=0&&range.fromBlock<=range.toBlock,
+    'RESUME_BLOCK_OUTSIDE_WINDOW');
+  }
   const result=await discoverPairs({primary,secondary,...range,
    step:Number(getArg(args,'step','1200')),maxChunks:Number(getArg(args,'max-chunks','50')),
    windowStart:start,windowEnd:end});
