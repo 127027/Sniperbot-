@@ -31,6 +31,8 @@ jobs:
         run: node --test research/replay-controller/controller.test.mjs research/replay-controller/asof-feed.test.mjs research/replay-controller/temporal-session.test.mjs research/replay-controller/role-task.test.mjs research/replay-controller/pseudonymize.test.mjs
       - name: R20 central fast replay - 8 isolated offline tests
         run: node --test research/replay-controller/continuous-runner.test.mjs research/replay-controller/r20-coverage.test.mjs
+      - name: R22 model adapter safety and intake (mock transport, not real inference)
+        run: node --test research/replay-controller/model-adapter.test.mjs
       - name: R20 throughput benchmark - 62 synthetic days with 310 fixture votes
         run: node research/replay-controller/r20-benchmark.mjs r20-synthetic-benchmark.json
       - name: Store measured R20 synthetic benchmark (Linux)

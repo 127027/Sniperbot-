@@ -29,9 +29,10 @@ export function prepareCorpus(corpus,{resolution='day'}={}){
   frames:compiled.dataset.ticks.length
  };
 }
-export function createSession(name,dataset,mode='DIAGNOSTIC'){
+export function createSession(name,dataset,mode='DIAGNOSTIC',{allowKnownWinnerDiagnostic=false}={}){
  if(!['DIAGNOSTIC','BLIND'].includes(mode))throw Error('INVALID_TEMPORAL_SESSION_MODE');
- if(dataset.window===undefined||dataset.universe?.selection!=='ASOF_COHORT')
+ if(!(allowKnownWinnerDiagnostic&&mode==='DIAGNOSTIC'&&dataset.universe?.selection==='KNOWN_WINNER')&&
+ (dataset.window===undefined||dataset.universe?.selection!=='ASOF_COHORT'))
   throw Error('NEUTRAL_WINDOW_LOCK_REQUIRED');
  // The existing controller blocks BLIND unless its complete as-of cohort,
  // execution evidence, clean-context metadata and other prerequisites pass.
@@ -39,7 +40,8 @@ export function createSession(name,dataset,mode='DIAGNOSTIC'){
 }
 export function publishCurrentFrame(name,publicRoot){
  const s=load(name);
- if(s.dataset.window===undefined||s.dataset.universe?.selection!=='ASOF_COHORT')
+ if(!(s.meta.mode==='DIAGNOSTIC'&&s.dataset.universe?.selection==='KNOWN_WINNER')&&
+ (s.dataset.window===undefined||s.dataset.universe?.selection!=='ASOF_COHORT'))
   throw Error('NOT_A_NEUTRAL_TEMPORAL_SESSION');
  if(s.index===s.dataset.ticks.length)return {status:'COMPLETE',index:s.index};
  const fInfo=nextFrame(name);

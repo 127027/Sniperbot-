@@ -85,7 +85,7 @@ export async function runContinuousReplay(opts){
   sessionName,dataset,publicRoot,invokeRole,
   mode='DIAGNOSTIC',providerLabel='EXTERNAL_UNATTESTED',
   maxFrames=10000,roleTimeoutMs=30000,onFrame,
-  failFast=false
+  failFast=false,allowKnownWinnerDiagnostic=false
  }=opts||{};
  if(!sessionName||!publicRoot||typeof invokeRole!=='function')throw Error('RUNNER_CONFIG_MISSING');
  if(!Number.isInteger(maxFrames)||maxFrames<1||maxFrames>10000)throw Error('INVALID_FRAME_LIMIT');
@@ -95,7 +95,7 @@ export async function runContinuousReplay(opts){
   throw Error('FIXTURE_ROLE_PROVIDER_FORBIDDEN_ON_HISTORICAL_DATA');
  validateDataset(dataset);
  const root=runPath(sessionName);
- if(!fs.existsSync(path.join(root,'meta.json')))createSession(sessionName,dataset,mode);
+ if(!fs.existsSync(path.join(root,'meta.json')))createSession(sessionName,dataset,mode,{allowKnownWinnerDiagnostic});
  else{
   const old=load(sessionName);
   if(old.meta.mode!==mode||digest(old.dataset)!==digest(dataset))
