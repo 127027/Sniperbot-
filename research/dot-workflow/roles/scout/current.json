@@ -1,15 +1,15 @@
 {
   "schema": "dot_research_state.v1",
   "role": "scout",
-  "run_id": "scout-20261114T0933Z-r18-frame00001-01",
-  "previous_run_id": "scout-20261114T0824Z-manifest-access-stalled-01",
+  "run_id": "scout-20261114T100635Z-r19-frame00002-01",
+  "previous_run_id": "scout-20261114T0933Z-r18-frame00001-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY"
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
-  "status": "BLOCKED_MISSING_NEUTRAL_INPUT",
+  "status": "PARTIAL_VERIFIED",
   "input_refs": [
     {
       "repository": "127027/Sniperbot-",
@@ -19,16 +19,10 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/dot-workflow/PROTOCOL.md"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/dot-workflow/roles/scout/current.json",
+      "path": "research/replay-controller/temporal-public/status.json",
       "used_json_paths": [
-        "$.next_task",
-        "$.run_id",
-        "$.status"
+        "$.mode",
+        "$.public_frame_index"
       ]
     },
     {
@@ -37,14 +31,23 @@
       "path": "research/replay-controller/monitor/status.json",
       "used_json_paths": [
         "$.frame_index",
-        "$.mode",
-        "$.status"
+        "$.votes",
+        "$.mode"
       ]
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00001/input.json",
+      "path": "research/dot-workflow/roles/scout/current.json",
+      "used_json_paths": [
+        "$.run_id",
+        "$.next_task"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/input.json",
       "used_json_paths": [
         "$.index",
         "$.at",
@@ -56,42 +59,44 @@
   ],
   "completed_checks": [
     {
-      "check": "read_R18_protocol_and_moving_scout_state",
+      "check": "read_required_protocol_and_statuses",
       "result": "PASS"
     },
     {
-      "check": "check_neutral_frame_00001",
-      "result": "BLOCKED_MISSING_NEUTRAL_INPUT"
+      "check": "neutral_mode",
+      "result": "NOT_STARTED"
     },
     {
-      "check": "diagnostic_frame_00001",
-      "result": "PASS_EMPTY_EVENTS_NO_ORDERS"
+      "check": "diagnostic_frame_00002",
+      "result": "PASS_EMPTY_EVENTS"
     },
     {
-      "check": "evaluate_existing_next_task",
-      "result": "STALLED_NO_INDEPENDENT_CANDIDATE_MANIFEST"
+      "check": "scout_decision_create_and_readback",
+      "result": "PASS",
+      "commit_sha": "f53125a3160840fc426ed6fe30825bf5555e56ad",
+      "blob_sha": "dbefd1d4d17e6dc46f35893aabd7a82753e6ac62"
     }
   ],
   "findings": [
     {
       "origin": "OWN",
-      "statement": "Diagnostic frame 00001 has no visible events; scout submitted empty reviews and orders.",
-      "as_of_utc": "2023-03-15T23:59:59Z",
-      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00001/input.json#$.events",
-      "limit": "Diagnostic known-winner replay, not blind discovery."
+      "statement": "Published diagnostic frame 00002 contains zero visible events; scout reviews=[] and orders=[] independently recorded.",
+      "as_of_utc": "2023-03-16T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00002/input.json#$.events",
+      "limit": "Known-winner diagnostic only; no neutral blind discovery or trading inference."
     }
   ],
   "blockers": [
     {
       "code": "BLOCKED_MISSING_NEUTRAL_INPUT",
-      "required_input": "research/replay-controller/temporal-public/frames/00001/input.json (or currently published neutral index)"
+      "required_input": "Neutral mode activation and a published research/replay-controller/temporal-public/frames/000NN/input.json"
     },
     {
-      "code": "STALLED",
-      "required_input": "Independently timestamped non-PEPE Ethereum candidate universe and predeclared movement cutoff"
+      "code": "MISSING_ROLE_VOTES",
+      "required_input": "Frame 00002 decisions from social, onchain, security and qa; monitor snapshot listed all five missing before scout write."
     }
   ],
-  "next_task": "Read latest R18 protocol and monitor; check only released neutral frame and current diagnostic frame. If neutral input remains missing, retain BLOCKED_MISSING_NEUTRAL_INPUT; independently assess newly available timestamped non-PEPE candidate data only if supplied.",
+  "next_task": "Read live monitor and temporal-public status; evaluate only the newly published frame. If frame 00002 remains active, verify scout decision and wait for the other four independent roles; do not resubmit.",
   "peer_receipts": [],
-  "notes": "Diagnostic decision commit a654d0941ce45ce244d1c02716904ba5bb92a162, blob 7126cf06886ee30438e316864bfe7032cbb4c5cc. No QA receipt."
+  "notes": "No blind-test success. No paper or real trades. Monitor snapshot before this run marked all five votes missing."
 }
