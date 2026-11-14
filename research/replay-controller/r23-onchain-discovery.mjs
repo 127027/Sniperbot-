@@ -171,7 +171,16 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   const primary=process.env.RESEARCH_RPC_URL,secondary=process.env.RESEARCH_RPC_SECONDARY_URL||undefined;
   need(target&&primary,'USAGE: RESEARCH_RPC_URL=https://... node r23-onchain-discovery.mjs --output=PATH [--start=ISO] [--end=ISO] [--max-chunks=50] [--step=1200] [--resume-from-block=N]');
   need(!fs.existsSync(target),'OUTPUT_EXISTS_REFUSING_OVERWRITE');
-  const range=await dateBlockRange(primary,start,end);
+  // For bounded archival scans, known block anchors can avoid repeated
+  // date-binary-search requests that public providers sometimes throttle.
+  const fromArg=getArg(args,'from-block',null),toArg=getArg(args,'to-block',null);
+  need((fromArg===null)===(toArg===null),'EXPLICIT_BLOCK_BOUNDS_REQUIRE_PAIR');
+  const explicit=fromArg!==null;
+  if(explicit)need(/^\d+$/.test(fromArg)&&/^\d+$/.test(toArg),'INVALID_EXPLICIT_BLOCKS');
+  const range=explicit?{fromBlock:Number(fromArg),toBlock:Number(toArg)}:
+    await dateBlockRange(primary,start,end);
+  need(Number.isSafeInteger(range.fromBlock)&&range.fromBlock>=0&&
+    Number.isSafeInteger(range.toBlock)&&range.toBlock>=range.fromBlock,'BAD_EXPLICIT_BLOCK_RANGE');
   const resume=getArg(args,'resume-from-block',null);
   if(resume!==null){
    need(/^\d+$/.test(resume),'INVALID_RESUME_BLOCK');
