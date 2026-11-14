@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261114T0352Z-frame0-peer-reconcile-11",
-  "previous_run_id": "qa-20261114T0153Z-frame0-peer-reconcile-10",
+  "run_id": "qa-20261114T0345Z-frame0-peer-reconcile-12",
+  "previous_run_id": "qa-20261114T0352Z-frame0-peer-reconcile-11",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -23,7 +23,7 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/qa/current.json",
-      "sha": "aade28281d33b1ff9a22ca2c35224be12aa17c23",
+      "sha": "ca734f4a69ea35fb71e35689e4b6c9b35024869a",
       "json_paths": [
         "$.run_id",
         "$.peer_receipts",
@@ -34,7 +34,7 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/scout/current.json",
-      "sha": "0759f326d60b40cb7aa30736572b35ebc686de3c",
+      "sha": "b8fbb60b5b36e643e2bf28098e5cc3a227fd6271",
       "json_paths": [
         "$.run_id",
         "$.candidate.id",
@@ -45,7 +45,7 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/dot-workflow/roles/social/current.json",
-      "sha": "1892ca56f3a9c560a2d407811309772a57f1c552",
+      "sha": "ac316dd4cb9e0963c367a5fce4946b9e52db393d",
       "json_paths": [
         "$.run_id",
         "$.candidate.id",
@@ -186,17 +186,17 @@
   ],
   "findings": [
     {
-      "statement": "Frame index=0, events=0; diagnostic decisions 5/5 valid; no chronological advancement or discovery.",
+      "statement": "Frame index=0, events=0; diagnostic votes 5/5; no chronological advancement or discovery.",
       "as_of_utc": "2023-03-14T23:59:59Z",
       "evidence_ref": "research/replay-controller/bridge/diagnostic-first-frame/input.json and decisions/{scout,social,onchain,security,qa}.json",
-      "evidence_limit": "Diagnostic-only; no authorized next frame or historical trading proof.",
+      "evidence_limit": "Diagnostic only; no authorized next frame or historical trading proof.",
       "origin": "OWN_GITHUB_READBACK"
     },
     {
-      "statement": "New peer receipts: social:social-20261114T023659Z-erc20-source-audit; security:security-20261114-compiler-unavailable-0344",
-      "as_of_utc": "2026-11-14T02:52:47Z",
-      "evidence_ref": "research/dot-workflow/roles/social/current.json@1892ca56f3a9c560a2d407811309772a57f1c552; research/dot-workflow/roles/security/current.json@57e0fcc85737c3b89988d59f3bd8b40011b26728",
-      "evidence_limit": "Peer-state persistence only, not independent verification of peer evidence.",
+      "statement": "New peer receipts: scout:scout-20261114T0307Z-immutable-buy-receipt-01; social:social-20261114T033548Z-mea-original-audit",
+      "as_of_utc": "2026-11-14T03:45:46Z",
+      "evidence_ref": "research/dot-workflow/roles/scout/current.json@b8fbb60b5b36e643e2bf28098e5cc3a227fd6271; research/dot-workflow/roles/social/current.json@ac316dd4cb9e0963c367a5fce4946b9e52db393d",
+      "evidence_limit": "Peer-state persistence only, not independently verified original evidence.",
       "origin": "OWN_GITHUB_READBACK"
     }
   ],
@@ -204,15 +204,15 @@
     {
       "code": "CONTROLLER_NOT_ADVANCED",
       "role": "controller",
-      "required_input": "Authorized chronological frame 1, as-of events only and no future labels."
+      "required_input": "Authorized chronological frame 1, time-bounded events and no future labels."
     },
     {
       "code": "HISTORICAL_EXECUTION_EVIDENCE_MISSING",
       "role": "scout/social/onchain/security",
-      "required_input": "Contemporaneous social, safety, liquidity, quotes, slippage, sellability evidence."
+      "required_input": "Contemporaneous social, safety, liquidity, quote, slippage and sellability evidence."
     }
   ],
-  "next_task": "Await authorized chronological frame 1 and validate five decisions against its exact input hash; recheck only genuinely new nonseed peer run_ids.",
+  "next_task": "Await authorized chronological frame 1; validate five role decisions against exact input hash, and reconcile only genuinely new nonseed peer run_ids.",
   "peer_receipts": [
     {
       "role": "scout",
@@ -395,6 +395,20 @@
       "result": "BLOCKED",
       "source_path": "research/dot-workflow/roles/security/current.json",
       "source_blob_sha": "57e0fcc85737c3b89988d59f3bd8b40011b26728"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0307Z-immutable-buy-receipt-01",
+      "result": "DATA_GAP",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "b8fbb60b5b36e643e2bf28098e5cc3a227fd6271"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T033548Z-mea-original-audit",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "ac316dd4cb9e0963c367a5fce4946b9e52db393d"
     }
   ],
   "notes": "TRAINING_ONLY actionable=false; NO_BUY/UNKNOWN; diagnostic only; replay 0/62."
