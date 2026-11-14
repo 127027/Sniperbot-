@@ -3,8 +3,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {ROLES,validateDecisions} from './engine.mjs';
-import {load,nextFrame} from './controller.mjs';
+import {ROLES,validateDecisions,settle,frame} from './engine.mjs';
+import {load} from './controller.mjs';
 const read=x=>JSON.parse(fs.readFileSync(x,'utf8'));
 const exists=x=>fs.existsSync(x);
 const pad=i=>String(i).padStart(5,'0');
@@ -61,8 +61,8 @@ export function observeR21(root,{at=new Date().toISOString()}={}){
  result.diagnostic.current_frame=state.index<state.dataset.ticks.length?state.index:null;
  result.diagnostic.actual_simulated_trades=state.portfolio.trades.length;
  if(state.index===state.dataset.ticks.length)return result;
- const input=nextFrame('watch-20261114-diagnostic');
- const f=read(input.input_path);
+ const nextPortfolio=settle(state.portfolio,state.dataset,state.dataset.ticks[state.index]);
+ const f=frame(state.dataset,state.index,nextPortfolio);
  const publicDir=path.join(base,'bridge',
   state.index===0?'diagnostic-first-frame':'diagnostic-frames/'+pad(state.index));
  const publicInput=path.join(publicDir,'input.json');
