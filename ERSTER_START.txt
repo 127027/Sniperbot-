@@ -1,27 +1,32 @@
-MEME SNIPER AI V0.4 - STARTANLEITUNG (PAPER ONLY)
-===================================
+MEME SNIPER V0.21 - ZENTRALE KI (PAPER ONLY)
+===================================================
 
-1. Installiere Node.js (LTS) von https://nodejs.org
-2. Entpacke die ZIP-Datei in einen Ordner, z.B. C:\MemeSniperAI
-3. Doppelklick auf Sniperbot_Starten.bat (einziger regulärer Starter)
-4. Falls der Browser nicht automatisch oeffnet: http://127.0.0.1:3030
-5. Beim ersten Start den GitHub-Token verdeckt im Fenster eingeben. Er wird per Windows-DPAPI verschluesselt gespeichert.
-6. Im Dashboard Bot bei Bedarf einschalten; nur Testguthaben und simulierte Positionen.
-7. Optional ein Demo-Testsignal erzeugen; keine echten Trades.
-8. Optional Testkauf aus virtuellem Guthaben simulieren.
-9. Zum geordneten Beenden im zentralen Fenster die Taste Q druecken.
+DIESER BRANCH: codex/sniper-central-ai-paper-v021-20261114
 
-NUR TESTGUTHABEN! NICHTS WIRD ECHT EINGEZAHLT ODER GEKAUFT.
+1. Node.js 22 LTS installieren: https://nodejs.org/
+2. Branch-ZIP in einen Ordner entpacken, z. B. C:\MemeSniperAI.
+3. Doppelklick auf Sniperbot_Starten.bat.
+4. Optional beim ersten Start den EIGENEN OpenAI-API-Key verdeckt eingeben.
+   Der Key wird lokal per Windows DPAPI gespeichert. API-Kosten sind
+   NICHT Teil des ChatGPT-Plus-Abos. Ohne Key startet der Paper-Bot ohne KI.
+5. Dashboard: http://127.0.0.1:3030
+6. Virtuelles Testguthaben setzen; Bot AN; "Automatische KI-Paper-Orders
+   erlauben" aktivieren. Keine Echtgeldkäufe oder Swaps!
+7. Die zentrale KI recherchiert bei laufendem Laptop stündlich und gibt
+   Empfehlungen an den lokalen Paper-Bot. Es sind keine 5 Dots.
+8. Status im Dashboard unter "Zentrale KI - stündliche Analyse" beobachten.
+   Bei Fehlern keine Order. Stündlicher Ablauf benötigt Internet und API-Key.
+9. Q zum Beenden; auch dann ist die stündliche Recherche beendet.
 
-Fuer GitHub / Codex:
-- Installiere Git https://git-scm.com/download/win
-- Installiere GitHub CLI https://cli.github.com/
-- Doppelklick auf GitHub_Private_Hochladen.bat.
-- Anmelden, privaten Namen waehlen, GitHub-Upload bestaetigen.
-- Gib Codex danach den Link des neuen Repositories und AGENTS.md.
+PAPIERGELD IST FIKTIV - ECHTGELD-WALLET BLEIBT GETRENNT.
+Signierte Paper-Fills beruhen auf INDIKATIVEN DEX-Screener-Kursen,
+nicht auf nachweislich ausführbaren Swap-Quotes oder Sellability-Checks.
 
-Paper-Konto und Einstellungen liegen unter %LOCALAPPDATA%\MemeSniperPaper.
-Markthistorie liegt im bestehenden Projektordner .local\research-market.
-Beim Aktualisieren diese beiden Speicherorte sichern und nicht ueberschreiben.
-Alle lokalen Komponenten laufen nur bei geoeffnetem zentralem Fenster.
-Windows darf nicht in den Energiesparmodus wechseln.
+WICHTIG: Diese laufende ChatGPT-Unterhaltung schickt NICHT automatisch
+alle 60 Minuten Befehle an den Laptop. Die separate OpenAI API im
+lokalen Bot übernimmt die Analyse. Sie sendet Status nur lokal zurück.
+Kein öffentliches GitHub-Upload von Portfolio/Wallettoken.
+
+Vollständige Anleitung: docs\V021_ZENTRALE_KI_START.md
+Lokales Guthaben: %LOCALAPPDATA%\MemeSniperPaper
+Daten bei Updates behalten und niemals ungeprüft überschreiben.
