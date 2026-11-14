@@ -10,6 +10,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: node --check .github/scripts/pepe-replay-watch.mjs
       - run: node --check runner/server.mjs
       - run: node --check runner/core.mjs
       - run: node --check runner/market.mjs
