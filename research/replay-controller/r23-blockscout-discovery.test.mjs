@@ -7,7 +7,8 @@ const a=n=>'0x'+n.toString(16).padStart(40,'0');
 const weth='0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
 const log=(i,block=100)=>({address:FACTORY,topics:[PAIR_TOPIC,h(BigInt(weth)),h(BigInt(a(i+1000)))],
  data:'0x'+a(i+2000).slice(2).padStart(64,'0')+h(1).slice(2),blockNumber:'0x'+block.toString(16),
- blockHash:h(block+40),transactionHash:h(i+1),logIndex:'0x0'});
+ blockHash:h(block+40),transactionHash:h(i+1),logIndex:'0x0',
+ timeStamp:'0x'+Math.floor(Date.parse('2023-04-14T12:00:00Z')/1000).toString(16)});
 function fake(events,{denied=false,missing=false}={}){
  return async(url,req)=>{
   const u=new URL(url);
@@ -52,7 +53,8 @@ test('legacy archive omits blockHash and uses decimal indices; still not indepen
  const x=await discoverBlockscout({...opts,fetchFn:fake([raw])});
  assert.equal(x.distinct_pool_candidates,1);
  assert.equal(x.asof_corpus.sources[0].proof.verified,false);
- assert.match(x.asof_corpus.sources[0].proof.original,/ARCHIVE_BLOCK_LOOKUP_ONLY/);
+ assert.match(x.asof_corpus.sources[0].proof.original,/LEGACY_EXPLORER_LOG_ONLY/);
+ assert.match(x.asof_corpus.sources[0].proof.original,/NOT_PROVIDED/);
 });
 test('archive timestamp-to-block selection uses dates instead of winner IDs',async()=>{
  const x=await dateBlockRangeBlockscout(opts.base,opts.windowStart,opts.windowEnd,fake([]));
