@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "social",
-  "run_id": "social-20261113T233519Z-alternative-archive-audit",
-  "previous_run_id": "social-20261113T224323Z-frame0-diagnostic",
+  "run_id": "social-20261114T003716Z-independent-url-discovery",
+  "previous_run_id": "social-20261113T233519Z-alternative-archive-audit",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -16,8 +16,7 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/dot-workflow/PROTOCOL.md",
-      "json_paths": []
+      "path": "research/dot-workflow/PROTOCOL.md"
     },
     {
       "repository": "127027/Sniperbot-",
@@ -25,57 +24,81 @@
       "path": "research/dot-workflow/roles/social/current.json",
       "json_paths": [
         "$.next_task",
-        "$.blockers",
-        "$.run_id"
+        "$.run_id",
+        "$.blockers"
       ]
     },
     {
-      "original_url": "https://cache.pw/de/",
-      "accessed_at_utc": "2026-11-13T23:35:19Z",
-      "purpose": "Alternative archive-provider discovery; no historical capture"
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-first-frame/input.json",
+      "json_paths": [
+        "$.index",
+        "$.at",
+        "$.events",
+        "$.input_hash"
+      ]
     },
     {
-      "original_url": "https://api.sh/wayback-machine-api",
-      "accessed_at_utc": "2026-11-13T23:35:19Z",
-      "purpose": "Third-party API capability description only; no archive payload"
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-first-frame/decisions/social.json",
+      "json_paths": [
+        "$.run_id",
+        "$.reviews",
+        "$.orders",
+        "$.input_hash"
+      ]
+    },
+    {
+      "original_url": "https://www.reddit.com/r/CryptoCurrency/comments/12a301e",
+      "purpose": "Independently found dated discussion, not token-specific; currently visible post only, no verified 2023 capture"
+    },
+    {
+      "original_url": "https://www.reddit.com/r/CryptoCurrency/comments/12658yj",
+      "purpose": "Independently found dated discussion, not token-specific; currently visible post only, no verified 2023 capture"
     }
   ],
   "completed_checks": [
     {
-      "check": "Read full PROTOCOL and current with SHA",
+      "check": "Read PROTOCOL and social current on moving branch",
       "result": "PASS",
-      "evidence": "current blob e6a31575e715967f29fdcff82b49626adf65bd8b"
+      "evidence": "current blob c48c7ab079420af2d8b4dc32371d633901cd5550"
     },
     {
-      "check": "Controller diagnostic decision exists and matches frame 0",
+      "check": "Replay diagnostic frame0 existing social decision matches input",
       "result": "PASS",
-      "evidence": "input b20c20572ce2ee36c95ae4b05db1f6bef3865b94; decision feb5afc26b7d12ccd701358985812edd5e191bca"
+      "evidence": "input blob b20c20572ce2ee36c95ae4b05db1f6bef3865b94; social decision blob feb5afc26b7d12ccd701358985812edd5e191bca"
     },
     {
-      "check": "Alternative archive-provider discovery",
+      "check": "Independent dated historical social URL discovery",
       "result": "PARTIAL",
-      "evidence": "cache.pw lists archive.today; api.sh describes Wayback wrapper. No candidate-specific capture, capture timestamp, or original body retrieved"
+      "evidence": "Two search queries returned dated 2023 Reddit general discussions, but no independent token+pool identity or pre-evaluation archived capture"
+    },
+    {
+      "check": "Authenticated 2023 as-of archive capture",
+      "result": "NOT_VERIFIED"
     }
   ],
   "findings": [
     {
-      "statement": "Alternative archive providers identified, but no 2023 as-of archived social original with matching body verified. No candidate discovery.",
-      "as_of_utc": "2026-11-13T23:35:19Z",
-      "evidence_ref": "https://cache.pw/de/; https://api.sh/wayback-machine-api",
-      "evidence_limit": "Provider descriptions only; no candidate-specific snapshot or historical social content",
-      "origin": "OWN_SOURCE_ACCESS_AUDIT"
+      "statement": "Two non-candidate-specific Reddit discussion URLs dated March 30 and April 3 2023 were located without winner-list targeting. Their present-day availability does not establish 2023 archived availability, historical engagement, or an Ethereum token/pool candidate.",
+      "as_of_utc": "2026-11-14T00:37:16Z",
+      "evidence_ref": "https://www.reddit.com/r/CryptoCurrency/comments/12658yj ; https://www.reddit.com/r/CryptoCurrency/comments/12a301e",
+      "evidence_limit": "Current indexed Reddit pages only; no as-of archive capture, no candidate, no independently verifiable original engagement snapshots",
+      "origin": "OWN_SOURCE_DISCOVERY"
     }
   ],
   "blockers": [
     {
       "code": "MISSING_AS_OF_CAPTURE",
-      "detail": "No candidate-specific 2023 archive capture with independently retrievable original body; archive.today not queried for a specific URL because no independently selected original URL is available"
+      "detail": "No independently selected candidate-specific original social URL with verified pre-evaluation archived capture and matching body"
     },
     {
       "code": "MISSING_HISTORICAL_ENGAGEMENT_SNAPSHOTS",
-      "detail": "Parked: no authenticated 2023 interaction snapshots"
+      "detail": "Parked; no authenticated historical engagement snapshots"
     }
   ],
-  "next_task": "Obtain an independently selected, date-bounded original social post URL (not from retrospective winner lists); query alternative archive for pre-evaluation capture timestamp and matching archived body; otherwise keep BLOCKED and move to independent historical URL discovery.",
+  "next_task": "Seek independently dated, candidate-specific original social post URLs from within the historical window without known-winner inputs; verify archived pre-evaluation capture timestamp and original body with an alternative provider. If no archive evidence, remain STALLED and park this question.",
   "peer_receipts": []
 }
