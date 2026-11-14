@@ -1,0 +1,389 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "security",
+  "run_id": "security-20261114T0818Z-buy-lp-holder-cutoff-01",
+  "previous_run_id": "security-20261114T0745Z-runtime-call-opcode-scan-01",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "PARTIAL_VERIFIED",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/daily-raw/2023-04-14.json",
+      "json_paths": [
+        "sources.owner.result",
+        "sources.limited.result",
+        "errors",
+        "rpc_fallback",
+        "prior_errors"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/initial_rpc_batch.json",
+      "json_paths": [
+        "requests[2]",
+        "responses[2].error.code",
+        "responses[2].error.message"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/blockscout_contract.json",
+      "json_paths": [
+        "source_code",
+        "verified_at",
+        "is_partially_verified",
+        "is_fully_verified"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/receipt_BUY_PEPE.json",
+      "json_paths": [
+        "result.blockNumber",
+        "result.status",
+        "result.logs[0..4].address",
+        "result.logs[0..4].topics"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-first-frame/input.json",
+      "json_paths": [
+        "index",
+        "at",
+        "events",
+        "input_hash"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/receipt_SELL_PEPE.json",
+      "json_paths": [
+        "result.status",
+        "result.blockNumber",
+        "result.transactionHash",
+        "result.logs[0..6]"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/daily-raw/2023-04-14.json",
+      "json_paths": [
+        "sources.bytecode.result",
+        "block",
+        "sources.owner.result",
+        "sources.limited.result"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/daily-raw/2023-04-14.json",
+      "json_paths": [
+        "sources.bytecode.result (static opcode/topic substring inspection, incomplete compiler comparison)"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/blockscout_contract.json",
+      "json_paths": [
+        "compiler_version",
+        "compiler_settings",
+        "optimization_enabled",
+        "optimization_runs",
+        "evm_version",
+        "is_fully_verified",
+        "verified_at"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/security/current.json",
+      "json_paths": [
+        "next_task",
+        "blockers",
+        "run_id"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-first-frame/decisions/security.json",
+      "json_paths": [
+        "role",
+        "run_id",
+        "index",
+        "at",
+        "input_hash",
+        "reviews",
+        "orders"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/blockscout_pool_logs.json",
+      "json_paths": [
+        "result[0].topics",
+        "result[0].data",
+        "result[1].topics",
+        "result[1].data",
+        "result[2].topics",
+        "result[3].topics",
+        "result[3].transactionHash",
+        "result[3].blockNumber",
+        "result[3].timeStamp"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/blockscout_pool_logs.json",
+      "json_paths": [
+        "result[*].topics[0] (ERC20 Transfer filter)",
+        "result[162].blockNumber",
+        "result[162].timeStamp",
+        "result[162].topics[1..2]",
+        "result[162].data",
+        "result[162].transactionHash"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/blockscout_contract.json",
+      "json_paths": [
+        "source_code (PepeToken external methods and inherited ERC20 methods)",
+        "abi[*].name",
+        "is_partially_verified",
+        "verified_at"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/daily-raw/2023-04-14.json",
+      "json_paths": [
+        "block",
+        "sources.code.result"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/receipt_BUY_PEPE.json",
+      "json_paths": [
+        "result.from",
+        "result.blockNumber",
+        "result.logs[0].blockTimestamp"
+      ]
+    }
+  ],
+  "completed_checks": [
+    "2023-04-14 end-of-day sources.owner.result decoded as zero address",
+    "2023-04-14 end-of-day sources.limited.result decoded as false",
+    "errors=[] and rpc_fallback=true confirmed",
+    "Stored deployment-block owner_deploy RPC request and response inspected; provider returned archive-token error -32602",
+    "Stored verified Solidity source examined: blacklist, setRule and _beforeTokenTransfer semantics; verification timestamp assessed",
+    "Inspected first five logs of stored third-party BUY receipt; distinguishes swap/reserve activity from LP token ownership proof",
+    "Frame 0 security decision written and read back: no events, no candidates, no orders",
+    "Stored SELL receipt reviewed: status 0x1, PEPE Transfer seller-to-pool and WETH Transfer pool-to-router",
+    "Read historical day-end sources.bytecode.result and block=17048771; bytecode is present but entry-block equivalence and source matching remain unverified",
+    "Bounded static inspection of historical runtime bytecode: OwnershipTransferred event topic and blacklist mapping slot-0x0a access patterns present; compiler/source equivalence not established",
+    "Recovered stored Blockscout compiler metadata: solc v0.8.0+commit.c7dfd78e, Istanbul EVM, optimizer enabled 200 runs, metadata bytecodeHash ipfs; no reproduction performed",
+    "Checked execution environment for solc executable and Python solcx module; neither available; no compiler reproduction or historical source equivalence performed",
+    "Rechecked diagnostic frame 0 input and existing security decision: index=0, at=2023-03-14T23:59:59Z, matching input_hash, events=[], reviews=[], orders=[]; no replacement required.",
+    "Attempted bounded Blockscout OwnershipTransferred log retrieval for deployment-to-pool interval 17046105..17046833; source tool returned inaccessible URL/internal error, no event data obtained.",
+    "Inspected initial pool creation transaction logs: LP ERC20 Transfer mint to zero address (minimum liquidity) and to 0xfbfeaf0da0f2fde5c66df570133ae35f3eb58c9a; Mint event recipient is router; holder/lock history after mint not established.",
+    "Reviewed all 163 stored pool logs; three LP Transfer events found, including full initial LP allocation transfer from initial recipient to PEPE token contract at block 17047786.",
+    "Reviewed stored later-verified PepeToken source and ABI for LP rescue, arbitrary external call, LP transfer and approval interfaces; no explicit recovery route identified; historical runtime equivalence remains unverified.",
+    "PUSH-aware scan of 4517-byte stored runtime: no executable CALL/CALLCODE/DELEGATECALL/STATICCALL/SELFDESTRUCT opcodes.",
+    "Cross-checked observed BUY receipt sender and block against bounded LP Transfer chronology in stored pool logs; initial LP recipient appears unchanged at BUY cutoff, conditional on log completeness."
+  ],
+  "findings": [
+    {
+      "claim": "Historical end-of-day owner() returned zero address; this does not prove earlier ownership at entry.",
+      "as_of_utc": "2023-04-14T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/daily-raw/2023-04-14.json#sources.owner.result",
+      "evidence_limit": "Historical day-end only; stored RPC result, no independent live RPC replay.",
+      "verification": "OWN_REVIEW_OF_STORED_JSON"
+    },
+    {
+      "claim": "Historical end-of-day limited() returned false (zero).",
+      "as_of_utc": "2023-04-14T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/daily-raw/2023-04-14.json#sources.limited.result",
+      "evidence_limit": "Historical day-end only; earlier entry status unknown.",
+      "verification": "OWN_REVIEW_OF_STORED_JSON"
+    },
+    {
+      "claim": "errors=[] and rpc_fallback=true; prior block_lookup rate limit did not invalidate successful fallback RPC fields.",
+      "as_of_utc": "2023-04-14T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/daily-raw/2023-04-14.json#errors",
+      "evidence_limit": "No independent confirmation of provider or full response outside referenced file.",
+      "verification": "OWN_REVIEW_OF_STORED_JSON"
+    },
+    {
+      "claim": "The stored deployment-block owner() call did not yield a historical owner value; Publicnode returned archive access error -32602.",
+      "as_of_utc": "2023-04-14T00:00:00Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/initial_rpc_batch.json#responses[2]",
+      "evidence_limit": "Provider failure only; no conclusion about historical owner or OwnershipTransferred event chronology.",
+      "verification": "OWN_REVIEW_OF_STORED_JSON"
+    },
+    {
+      "claim": "Stored Solidity source shows owner-only blacklist(address,bool) and setRule(bool,address,uint256,uint256). _beforeTokenTransfer rejects blacklisted senders or recipients; when uniswapV2Pair is zero, only transfers involving owner pass; when limited and from equals pair, recipient holding bounds apply. These are theoretical code capabilities, not proven historical storage state.",
+      "as_of_utc": "2023-04-14T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_contract.json#source_code",
+      "evidence_limit": "Source verification timestamp 2023-06-05T22:32:32.393496Z is after historical evaluation window; is_partially_verified=true and is_fully_verified=false; historical runtime bytecode equivalence and contract storage not established.",
+      "verification": "OWN_REVIEW_OF_STORED_JSON"
+    },
+    {
+      "claim": "Stored third-party BUY receipt at block 0x1041d74 includes WETH and PEPE Transfer logs and a pool Sync log; these observed events do not establish LP token ownership, liquidity lock, LP burn, or deployer withdrawal privileges.",
+      "as_of_utc": "2023-04-14T17:34:47Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/receipt_BUY_PEPE.json#result.logs[0..4]",
+      "evidence_limit": "Only first five receipt logs inspected; not a complete LP history or exhaustive receipt analysis; timestamp taken from stored blockTimestamp, not independently checked.",
+      "verification": "OWN_REVIEW_OF_STORED_JSON"
+    },
+    {
+      "claim": "Diagnostic frame 0 has events=[]; security reviews=[] and orders=[] were persisted and read back. No candidate discovery or security evaluation occurred.",
+      "as_of_utc": "2023-03-14T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@codex/dots-pepe-replay-20261113:research/replay-controller/bridge/diagnostic-first-frame/input.json#events",
+      "evidence_limit": "Controller acceptance only; no PEPE information at this frame.",
+      "verification": "OWN_REVIEW_OF_STORED_JSON_AND_GITHUB_READBACK"
+    },
+    {
+      "claim": "Stored SELL receipt transaction 0xd0546752815f9b096f9246e4f0f2bfe418f1564acbac06216b94531bc29d692f at block 0x10420da has status 0x1, a PEPE Transfer from 0x9348c754f5d95b2c5ae9facaa7d0732b3d56fc54 to pool 0xa43fe16908251ee70ef74718545e4fe6c5ccec9f, and WETH Transfer from pool to 0x8967ba97f39334c9e6f8e34b8a3d7556306af568. This supports one successful third-party sell path, not generalized sellability or LP ownership.",
+      "as_of_utc": "2023-04-14T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/receipt_SELL_PEPE.json#result",
+      "evidence_limit": "Stored receipt only, no independent RPC replay; precise timestamp and net seller proceeds not independently established.",
+      "verification": "OWN_REVIEW_OF_STORED_JSON"
+    },
+    {
+      "claim": "Stored 2023-04-14 day-end raw record contains nonempty runtime bytecode for PEPE at block 17048771; this is a bounded bytecode observation, not a comparison against verified source or proof of identical code at an earlier entry block.",
+      "as_of_utc": "2023-04-14T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/daily-raw/2023-04-14.json#sources.bytecode.result",
+      "evidence_limit": "Stored RPC response only; source-to-runtime equivalence, exact earlier entry-block bytecode, and independent provider validation remain unverified.",
+      "verification": "OWN_REVIEW_OF_STORED_JSON"
+    },
+    {
+      "claim": "Stored historical runtime bytecode includes the canonical OwnershipTransferred(address,address) event topic 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e and a storage mapping access using slot 0x0a near transfer-control logic. These are bytecode-level structural observations, not proof of an OwnershipTransferred event, a blacklisted address, or matching verified source.",
+      "as_of_utc": "2023-04-14T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/daily-raw/2023-04-14.json#sources.bytecode.result",
+      "evidence_limit": "Static inspection of stored RPC hex, not independently fetched bytecode, compiler reproduction, source-to-bytecode proof, entry-block storage proof, or historical logs.",
+      "verification": "OWN_STATIC_INSPECTION_OF_STORED_RUNTIME_HEX"
+    },
+    {
+      "claim": "Stored Blockscout contract metadata specifies Solidity compiler v0.8.0+commit.c7dfd78e, optimizer enabled with 200 runs, evmVersion istanbul and metadata.bytecodeHash ipfs. These are reproducibility inputs only, not proof that a fresh compile matches the historical runtime bytecode.",
+      "as_of_utc": "2023-04-14T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_contract.json#compiler_settings",
+      "evidence_limit": "Blockscout verification occurred 2023-06-05; is_fully_verified=false; compiler not executed and bytecode not compared. Metadata not assumed publicly available at historical cutoff.",
+      "verification": "OWN_REVIEW_OF_STORED_JSON"
+    },
+    {
+      "claim": "Stored pool-origin logs for transaction 0x273894b35d8c30d32e1ffa22ee6aa320cc9f55f2adbba0583594ed47c031f6f6 at block 17046833 show pool ERC20 Transfer mint from zero address: 1000 minimum-liquidity units to zero address and 0x1726ad4325f321caa6ed95 units to 0xfbfeaf0da0f2fde5c66df570133ae35f3eb58c9a. A pool Mint event also names router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d as sender. Initial minted LP recipient is identified; beneficial ownership, later transfer, lock, burn and withdrawal rights remain UNKNOWN.",
+      "as_of_utc": "2023-04-14T17:21:11Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_pool_logs.json#result[0..3]",
+      "evidence_limit": "Retrospectively stored Blockscout pool log snapshot; original receipt/block header not independently fetched; no complete LP Transfer history, no evidence of LP token holder at later entry cutoff.",
+      "verification": "OWN_REVIEW_OF_STORED_POOL_LOGS"
+    },
+    {
+      "claim": "Stored pool-address logs contain three ERC20 Transfer events. At block 17047786 (2023-04-14T20:37:23Z), the initial recipient 0xfbfeaf0da0f2fde5c66df570133ae35f3eb58c9a transferred the exact initially minted LP amount 0x1726ad4325f321caa6ed95 to PEPE token contract 0x6982508145454ce325ddbe47a25d4ec3d2311933 in transaction 0x4b950490c13cee92d8fadb8280c6220dc414f5cc23835e9295ec4a836fe23c86. This transfer occurred after the observed 17:34:47 BUY and cannot support LP safety at that earlier time.",
+      "as_of_utc": "2023-04-14T20:37:23Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_pool_logs.json#result[162]",
+      "evidence_limit": "Retrospective stored Blockscout snapshot only; 163 logs end at block 17047786 and are not independently verified or proven complete beyond that block. LP sent to token contract is not proof of irrevocable burn, lock, absence of contract recovery functions, or pre-transfer safety.",
+      "verification": "OWN_REVIEW_OF_STORED_POOL_LOGS"
+    },
+    {
+      "claim": "The stored later-verified PepeToken Solidity source and ABI expose no external arbitrary-call, generic token rescue, or LP-pair transfer function. ERC20 transfer/approve/transferFrom act on PEPE balances, and burn() burns caller's PEPE, not LP tokens held by the contract. Thus no explicit LP-token recovery route was identified in this source/ABI; this is not a proof that historically deployed runtime cannot recover LP or that LP is irrevocably locked.",
+      "as_of_utc": "2023-04-14T20:37:23Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_contract.json#source_code,abi",
+      "evidence_limit": "Source was verified only 2023-06-05 and is partially verified, not compiler-matched to 2023-04-14 runtime; ABI/source inspection does not prove absence of hidden dispatch, proxy behavior, delegatecall, or historical storage effects. No independent onchain call or exhaustive opcode control-flow analysis performed.",
+      "verification": "OWN_REVIEW_OF_STORED_SOURCE_AND_ABI"
+    },
+    {
+      "claim": "Own PUSH-aware opcode scan of 4517-byte stored PEPE runtime at block 17048771 found zero executable CALL (0xf1), CALLCODE (0xf2), DELEGATECALL (0xf4), STATICCALL (0xfa), or SELFDESTRUCT (0xff) instructions. Bytes inside PUSH immediates were excluded. This narrows direct external LP-token recovery routes in this particular stored runtime, but is not full reachability, source equivalence, historical entry-block state, or irrevocable LP-lock proof.",
+      "as_of_utc": "2023-04-14T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/daily-raw/2023-04-14.json#sources.code.result",
+      "evidence_limit": "Stored single-provider day-end runtime; no independent eth_getCode at block 17047786 or entry block, no complete LP transfer history or formal verification. Runtime code cannot prove LP token custody or storage state.",
+      "verification": "OWN_PUSH_AWARE_OPCODE_SCAN_OF_STORED_RUNTIME"
+    },
+    {
+      "claim": "Within the stored pool-address log snapshot, the only LP Transfer events are the two initial mint transfers at block 17046833 and a later transfer at block 17047786. At the observed third-party BUY block 17046900 (0x1041d74, 2023-04-14T17:34:47Z), the snapshot therefore indicates initial LP recipient 0xfbfeaf0da0f2fde5c66df570133ae35f3eb58c9a still held the initial non-minimum LP allocation. The BUY receipt also records that same address as transaction sender. This is evidence of a potentially withdrawable LP concentration at that BUY cutoff, not proof of a withdrawal or of wallet beneficial ownership.",
+      "as_of_utc": "2023-04-14T17:34:47Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_pool_logs.json#result[0..5],result[162]",
+      "evidence_limit": "Inference depends on completeness and correctness of retrospectively stored 163 pool-address logs; not independently validated against archival eth_getLogs or LP balanceOf at block 17046900. BUY is a known historical third-party transaction, not a strategy-selected entry. Subsequent LP transfer at 20:37:23 UTC is excluded from entry safety.",
+      "verification": "OWN_CROSS_CHECK_OF_STORED_BUY_RECEIPT_AND_POOL_LOGS"
+    }
+  ],
+  "blockers": [
+    {
+      "question": "OwnershipTransferred history through evaluated entry block",
+      "status": "UNKNOWN",
+      "reason": "Exact evaluated entry block not specified; existing owner_deploy eth_call failed with Publicnode archive-token requirement (-32602). Need timestamp-bounded token OwnershipTransferred logs or archived receipts and an entry-block cutoff."
+    },
+    {
+      "question": "Blacklist, LP permissions, tax, bytecode at historical entry",
+      "status": "UNKNOWN",
+      "reason": "No historical entry-state evidence checked"
+    },
+    {
+      "question": "Source availability and historical bytecode identity",
+      "status": "UNKNOWN",
+      "reason": "Blockscout verified_at=2023-06-05T22:32:32.393496Z (after research window), is_partially_verified=true; no historical runtime bytecode comparison in this run."
+    },
+    {
+      "question": "Historical LP control",
+      "status": "UNKNOWN",
+      "reason": "BUY receipt pool Sync/Transfer events alone do not prove LP holder, lock, burn or withdrawal rights; need historical LP-token Transfer/Mint/Burn events and holder state through evaluated entry block."
+    },
+    {
+      "question": "Reproducible source-to-runtime compiler comparison",
+      "status": "BLOCKED",
+      "reason": "Execution environment has no solc executable and no Python solcx module; solc v0.8.0 compilation not executed. Requires pinned solc v0.8.0 toolchain, complete source/dependencies and historical runtime hex comparison."
+    },
+    {
+      "question": "Bounded OwnershipTransferred event retrieval",
+      "status": "BLOCKED",
+      "reason": "Blockscout v1 logs URL inaccessible through available web retrieval; no returned logs. A deployment-to-pool block window is a diagnostic interval only, not an evaluated entry cutoff. No inference of absence of events is permitted."
+    },
+    {
+      "question": "Post-transfer LP recovery and actual lock status",
+      "status": "UNKNOWN",
+      "reason": "LP token moved to PEPE contract at block 17047786; require contract execution/recovery capability assessment and independently validated complete LP event history. Transfer is not a burn."
+    },
+    {
+      "question": "Prove inability to recover LP from PEPE contract at block 17047786",
+      "status": "UNKNOWN",
+      "reason": "No external LP recovery function found in later-verified source/ABI, but historical runtime/source equivalence and complete control-flow validation are missing; transfer to contract alone does not establish permanent lock."
+    },
+    {
+      "question": "Independent LP ownership at observed BUY block 17046900",
+      "status": "UNKNOWN",
+      "reason": "Stored pool logs imply initial LP recipient held non-minimum LP allocation at BUY, but completeness and balance at cutoff require independent archive receipt/log or balanceOf evidence."
+    }
+  ],
+  "next_task": "Obtain independent block-bounded LP Transfer event coverage or historical pool LP balanceOf at BUY block 17046900 to validate initial LP recipient's control; if archive unavailable, park and inspect token OwnershipTransferred chronology through same cutoff. Do not use later LP-to-token transfer as pre-BUY safety.",
+  "peer_receipts": [
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0413Z-pool-creation-log-01",
+      "result": "Pool creation timestamp and event reference independently read from scout current; own LP mint log inspection performed separately."
+    }
+  ]
+}

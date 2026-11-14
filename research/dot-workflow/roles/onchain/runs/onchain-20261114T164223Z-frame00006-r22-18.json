@@ -1,0 +1,74 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "onchain",
+  "run_id": "onchain-20261114T164223Z-frame00006-r22-18",
+  "previous_run_id": "onchain-20261114T154506Z-frame00005-r22-17",
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "WAITING_FOR_PEERS",
+  "candidate": null,
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00006/input.json",
+      "blob_sha": "480abd2a2bce69e7934ee1be5004ad6925d06041",
+      "json_paths": [
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.events"
+      ]
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "diagnostic_frame_00006_vote_readback",
+      "result": "Created and verified own decision; events=[]; candidates=0; reviews=[]; orders=[]",
+      "as_of_utc": "2023-03-20T23:59:59Z"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Published diagnostic frame 00006 contains no visible events or candidates; no onchain trading evidence in this input.",
+      "as_of_utc": "2023-03-20T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00006/input.json",
+      "proof_class": "published_diagnostic_frame",
+      "verification": "GitHub input and own decision readback",
+      "evidence_limit": "Not proof of absence of onchain activity or neutral blind discovery"
+    }
+  ],
+  "blockers": [
+    {
+      "question": "neutral blind replay",
+      "status": "NOT_STARTED",
+      "required_input": "independently audited as-of corpus and clean agents"
+    },
+    {
+      "question": "diagnostic frame 00006 sealing",
+      "status": "AWAITING_OTHER_ROLE_VOTES",
+      "required_input": "social and qa decisions, then controller seal"
+    }
+  ],
+  "next_task": "Await authentic social and qa decisions and controller seal; then inspect only next published frame.",
+  "peer_receipts": [
+    {
+      "role": "scout",
+      "status": "FILE_PRESENT_NOT_CONTENT_VALIDATED"
+    },
+    {
+      "role": "security",
+      "status": "FILE_PRESENT_NOT_CONTENT_VALIDATED"
+    },
+    {
+      "role": "social",
+      "status": "MISSING"
+    },
+    {
+      "role": "qa",
+      "status": "MISSING"
+    }
+  ],
+  "handoff_to": "social,qa",
+  "notes": "Frame 00005 sealed. Frame 00006 own vote commit 8a2e33b5bcd5bf0a4a09e5b0d21bede70a397d88; blob b2a1b3cfc99a9f1b241fa0b695f8af178293d812. 0 candidates, 0 new historical proofs, no orders."
+}

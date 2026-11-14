@@ -1,0 +1,76 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "onchain",
+  "run_id": "onchain-20261113T1823Z-protocol-readback-01",
+  "previous_run_id": "seed-20261113-onchain",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "NO_PROGRESS",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/daily-raw/2023-04-14.json",
+      "blob_sha": "80058ea9ca10f9de8f251637a9d0d64faaf55c6f",
+      "json_paths": [
+        "$.sources.owner.result",
+        "$.sources.limited.result",
+        "$.sources.reserves.result",
+        "$.sources.header.result.number",
+        "$.sources.header.result.timestamp",
+        "$.sources.block_lookup.message",
+        "$.errors",
+        "$.rpc_fallback"
+      ]
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "seed_next_task_historical_eod_rpc_fields",
+      "result": "completed_from_archived_snapshot",
+      "as_of_utc": "2023-04-14T23:59:59Z"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Archived EOD RPC fallback has owner zero address, limited=0x0, reserves response present and header number 0x10424c3 timestamp 0x6439e8ff; block_lookup rate-limited but errors=[] and rpc_fallback=true. This is a persistence/communication test, not a new discovery, intraday quote or universal sellability proof.",
+      "as_of_utc": "2023-04-14T23:59:59Z",
+      "evidence_ref": {
+        "repository": "127027/Sniperbot-",
+        "ref": "0713332",
+        "path": "research/pepe-replay-2023/daily-raw/2023-04-14.json",
+        "blob_sha": "80058ea9ca10f9de8f251637a9d0d64faaf55c6f",
+        "json_paths": [
+          "$.sources.owner.result",
+          "$.sources.limited.result",
+          "$.sources.reserves.result",
+          "$.sources.header.result.number",
+          "$.sources.header.result.timestamp",
+          "$.sources.block_lookup.message",
+          "$.errors",
+          "$.rpc_fallback"
+        ]
+      },
+      "proof_class": "archived_historical_rpc_response",
+      "evidence_limit": "EOD only; no independent fresh RPC call; ownership timing, blacklist and LP controls UNKNOWN",
+      "verification": "own targeted GitHub read"
+    }
+  ],
+  "blockers": [
+    {
+      "question": "historical ownership renunciation, blacklist state and LP control at first eligible entry",
+      "status": "UNKNOWN",
+      "required_input": "historical transaction/event and storage proofs at exact blocks"
+    }
+  ],
+  "next_task": "Determine historical ownership renunciation block/time and prior blacklist changes using time-bounded original logs or historical storage; if unavailable park with exact RPC error and advance to next open security question. Do not repeat EOD field check.",
+  "peer_receipts": [],
+  "handoff_to": "qa",
+  "notes": "Protocol readback/persistence test only. No actionable signals."
+}

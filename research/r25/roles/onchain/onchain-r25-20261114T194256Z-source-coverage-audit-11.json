@@ -1,0 +1,64 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "onchain",
+  "run_id": "onchain-r25-20261114T194256Z-source-coverage-audit-11",
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "secondary_window": {
+    "start": "2026-06-12T00:00:00Z",
+    "end": "2026-06-21T23:59:59Z"
+  },
+  "asof_cutoff": "2023-03-14T00:00:00Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "evidence": [],
+  "unknowns": [
+    {
+      "scope": "Ethereum 2023 Uniswap V2",
+      "issue": "Public factory-event CSV is documented at github.com/bhemen/uniswap-data/data/README.md, but raw CSV rows were not fetched or timestamp/coverage-audited in this run; cannot assert cohort completeness or enumerate candidates.",
+      "source_uri": "https://github.com/bhemen/uniswap-data/blob/main/data/README.md"
+    },
+    {
+      "scope": "Ethereum 2023 execution",
+      "issue": "No candidate-bound historical PairCreated, Swap, Sync, Mint, Burn, gas, tax or sellability records available for timestamp-safe computation; no quote or executable BUY signal."
+    },
+    {
+      "scope": "Solana 2026 R24",
+      "issue": "R24 reports 50 distinct launch mints from retrospective tokens.parquet but no mint-level candidate rows or contemporaneous swap/curve records read in this run; 2026-06-18 raw row count zero is explicitly source outage/data gap, not inactivity.",
+      "source_uri": "https://github.com/127027/Sniperbot-/blob/codex/dots-pepe-replay-20261113/research/replay-controller/R24_PUBLIC_COHORT_HANDOFF.md"
+    },
+    {
+      "scope": "As-of attestation",
+      "issue": "Retrospective exports cannot establish historical availability_at or original ledger event timestamps without independent verification."
+    }
+  ],
+  "source_assessment": [
+    {
+      "uri": "https://github.com/bhemen/uniswap-data/blob/main/data/README.md",
+      "kind": "documented factory CSV",
+      "coverage_verified": false,
+      "limitation": "PairCreated-only listing does not prove liquidity, flow or executability."
+    },
+    {
+      "uri": "https://github.com/127027/Sniperbot-/blob/codex/dots-pepe-replay-20261113/research/replay-controller/R24_PUBLIC_COHORT_HANDOFF.md",
+      "kind": "R24 cohort handoff",
+      "coverage_verified": false,
+      "limitation": "50 candidate mints, not verified memecoins, June 18 gap; no independently verified as-of trade data."
+    }
+  ],
+  "metrics": {
+    "new_candidates_checked": 0,
+    "new_valid_asof_events": 0,
+    "suspected_buy_signals": 0,
+    "verified_executable_signals": 0,
+    "data_gaps": 4
+  },
+  "proposed_shadow_intents": [],
+  "historical_blind_success": false,
+  "wallet_or_paper_account_actions": 0,
+  "next_task": "Retrieve and audit actual Uniswap V2 factory CSV for date bounds, exact PairCreated timestamps, pair and token addresses; independently confirm on-chain block timestamps and obtain same-cutoff Swap/Sync/Mint/Burn before computing any signals. For R24, acquire timestamp-locked trade/snapshot rows and verify ledger identities without future outcome fields."
+}

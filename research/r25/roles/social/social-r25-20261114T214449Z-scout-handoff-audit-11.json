@@ -1,0 +1,58 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "social",
+  "run_id": "social-r25-20261114T214449Z-scout-handoff-audit-11",
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "asof_cutoff": "2023-03-14T00:00:00Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "evidence": [],
+  "unknowns": [
+    {
+      "code": "SCOUT_NO_CANDIDATE_IDENTITIES",
+      "detail": "Actual Scout R25 report is now present, but reviewed_candidate_ids=[] and evidence=[]; cannot assign social claims to contracts or mints.",
+      "source": "research/r25/roles/scout/scout-r25-20261114T202038Z-source-audit-11.json"
+    },
+    {
+      "code": "ETH_SOURCE_NOT_MATERIALIZED",
+      "detail": "Scout reports retrospective Uniswap Factory CSV unavailable for row inspection; no verified 2023 launch candidates or as-of timestamps."
+    },
+    {
+      "code": "SOCIAL_ASOF_CAPTURE_MISSING",
+      "detail": "No candidate-linked original publication and contemporaneous captured/available timestamps, content hash, or independently verified social archive provided; later crawls cannot substitute."
+    },
+    {
+      "code": "SOLANA_CANDIDATE_SOCIAL_UNVERIFIED",
+      "detail": "R24 reports 50 distinct June 2026 launch mints but no independently attested contemporaneous social records or memecoin classifications; 2026-06-18 is source gap."
+    }
+  ],
+  "findings": [
+    {
+      "kind": "SCOUT_HANDOFF_VERIFIED",
+      "verified": true,
+      "detail": "Scout role file exists at the correct branch and explicitly reports DATA_GAP, not zero observed historical launches; prior generic 'missing Scout handoff' claim is now outdated."
+    },
+    {
+      "kind": "SOCIAL_EVIDENCE_GATE",
+      "verified": true,
+      "detail": "Do not infer meme virality, bot activity, independent author counts, or a buy signal without candidate-linked publication_at <= cutoff and independently established available_at <= cutoff."
+    }
+  ],
+  "scout_receipt": {
+    "path": "research/r25/roles/scout/scout-r25-20261114T202038Z-source-audit-11.json",
+    "blob_sha": "520b1768e05ab215a798b7518a6fe4c85bc1697b",
+    "scout_data_status": "DATA_GAP",
+    "scout_candidate_count": 0
+  },
+  "new_verified_asof_events": 0,
+  "possible_buy_signals": 0,
+  "proposed_shadow_intents": [],
+  "next_task": "Once Scout supplies first contract-addressed launch cohort with verified as-of timestamps, check one chronological source packet for original social posts and independent capture evidence; record positive and negative signals without retrospective outcome labels.",
+  "historical_blind_success": false,
+  "wallet_or_paper_account_actions": 0
+}

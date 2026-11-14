@@ -1,0 +1,71 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "scout",
+  "run_id": "scout-r25-20261114T215016Z-csv-coverage-contract-audit-12",
+  "mode": "TRAINING_ONLY",
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "asof_cutoff": "2023-03-14T00:00:00Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "evidence": [],
+  "unknowns": [
+    {
+      "code": "CSV_BYTES_NOT_AVAILABLE",
+      "detail": "No CSV bytes or workflow artifact accessible in this run; candidate count and actual source span unknown."
+    },
+    {
+      "code": "BLOCK_COVERAGE_UNVERIFIED",
+      "detail": "Parser checks earliest/latest timestamps only; does not prove contiguous block/event coverage or reconcile Factory PairCreated logs with Ethereum canonical chain."
+    },
+    {
+      "code": "ROW_VALIDATION_INCOMPLETE",
+      "detail": "Rows outside window bypass address and block validation; invalid in-window rows are silently counted and skipped; missing logIndex prevents rigorous event-level deduplication."
+    },
+    {
+      "code": "QUOTE_SCOPE_LIMIT",
+      "detail": "Only exactly one of WETH, USDC, USDT qualifies; quote-quote pools and pools with other quote assets are excluded by definition, so not an all-pool universe."
+    },
+    {
+      "code": "UNVERIFIED_ASOF",
+      "detail": "Retrospective CSV has no independently verified available_at or historical block canonicality."
+    }
+  ],
+  "source_audit": {
+    "protocol_paths": [
+      "research/replay-controller/R25_DISCOVERY_PROTOCOL.md",
+      "research/replay-controller/R24_PUBLIC_COHORT_HANDOFF.md"
+    ],
+    "workflow_path": ".github/workflows/r25-ethereum-source-probe.yml",
+    "parser_path": "research/replay-controller/r25-uniswap-factory-csv.py",
+    "findings": [
+      {
+        "severity": "HIGH",
+        "code": "UNIX_MONTH_CHECK",
+        "detail": "Workflow tests timestamp.startswith('2023-03') although parser expects Unix seconds; displayed monthly counts can be false zero."
+      },
+      {
+        "severity": "HIGH",
+        "code": "NO_CONTINUITY_PROOF",
+        "detail": "complete_requested_window is based on min/max timestamps, not verified all blocks/logs."
+      },
+      {
+        "severity": "MEDIUM",
+        "code": "EVENT_ID_COLLISION_RISK",
+        "detail": "Dedup key (tx,pair) omits logIndex; confirm source event uniqueness against canonical logs."
+      }
+    ]
+  },
+  "metrics": {
+    "new_candidates_verified": 0,
+    "new_asof_events_verified": 0,
+    "buy_signals": 0,
+    "data_gaps": 5
+  },
+  "next_task": "Retrieve workflow CSV/artifact, record SHA256, convert Unix timestamps to UTC for coverage, enumerate all quote-eligible pairs and invalid rows; reconcile each block/log against canonical Factory PairCreated history before asserting completeness.",
+  "historical_blind_success": false,
+  "proposed_shadow_intents": [],
+  "wallet_or_paper_account_actions": 0
+}

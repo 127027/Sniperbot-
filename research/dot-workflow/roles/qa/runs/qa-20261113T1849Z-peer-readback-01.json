@@ -1,0 +1,111 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "qa",
+  "run_id": "qa-20261113T1849Z-peer-readback-01",
+  "previous_run_id": "seed-20261113-qa",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "BLOCKED_WAITING_FOR_PEERS",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md",
+      "sha": "2503f1dc2fd00ede9e03edc2a8270e1180b85457"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/scout/current.json",
+      "sha": "1900993a3fa2717cb24dfb4b458a065409c91064"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/social/current.json",
+      "sha": "186b2eb25006996130b6e61388aadb23f88af08e"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/security/current.json",
+      "sha": "ee9aef23bf26c80d2358fbd8ea852d04870a6d60"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/onchain/current.json",
+      "sha": "0982e6cb6bf8e19bfbb73a48976756d6bb374296"
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "protocol_read",
+      "result": "PASS"
+    },
+    {
+      "check": "peer_current_read",
+      "result": "PASS_4_OF_4"
+    },
+    {
+      "check": "non_seed_peer_receipts",
+      "result": "3_CONFIRMED_1_SEED_NOT_RECEIVED"
+    },
+    {
+      "check": "candidate_id_and_training_mode",
+      "result": "PASS_ALL_4"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Three peer-owned non-seed current.json runs verified; scout and social are process-only NO_PROGRESS; security reports historical day-end owner/limited checks but no entry-time clearance.",
+      "as_of_utc": "2026-11-13T18:49:20Z",
+      "evidence_ref": "research/dot-workflow/roles/{scout,social,security}/current.json",
+      "evidence_limit": "Peer current.json readback only; underlying historical original-source evidence not independently revalidated in this process test",
+      "origin": "OWN_PEER_READBACK"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "WAITING_FOR_ONCHAIN_NON_SEED_RUN",
+      "role": "onchain",
+      "observed_run_id": "seed-20261113-onchain",
+      "required_input": "Peer-owned new run and updated current.json; seed is not receipt"
+    },
+    {
+      "code": "NO_ACTIONABLE_RESEARCH_EVIDENCE",
+      "reason": "Scout and Social process tests have no original social evidence; Security has no historical entry-time safety clearance"
+    }
+  ],
+  "next_task": "Read onchain non-seed current.json when written, verify its run_id and candidate id, append peer receipt in a new immutable QA run; then reconcile evidence gaps without repeating old snapshots.",
+  "peer_receipts": [
+    {
+      "role": "scout",
+      "run_id": "scout-20261113T1823Z-protocol-readback-01",
+      "result": "NO_PROGRESS",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "1900993a3fa2717cb24dfb4b458a065409c91064"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261113T184350Z-process-readback",
+      "result": "NO_PROGRESS",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "186b2eb25006996130b6e61388aadb23f88af08e"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261113-owner-limited-readback-01",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "ee9aef23bf26c80d2358fbd8ea852d04870a6d60"
+    }
+  ],
+  "notes": "Protocol persistence and handoff test only. No bot, orders, wallets, live research or trades."
+}

@@ -1,0 +1,392 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "qa",
+  "run_id": "qa-20261114T1251Z-r22-frame00003-21",
+  "previous_run_id": "qa-20261114T1146Z-frame00002-monitor-wait-20",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "NO_PROGRESS",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/TEMPORAL_REPLAY_PROTOCOL.md",
+      "sha": "274129bc2657e009dd98ad5427d6a43ab54314b3"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/temporal-public/status.json",
+      "sha": "5e46cc3d0ec48030d7a4733ae19f340d2ac3ece5"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/monitor/r20-progress.json",
+      "sha": "06fe7ea6c45f0d469e88eec69b655270df3d137c"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/runs/watch-20261114-diagnostic/commits/00002.json",
+      "sha": "0f605c23e54b3316ca09f700e3a8604e98a674e3"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00003/input.json",
+      "sha": "c9e7f04bd97a15009eab92743c24df3b496cd329"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00003/decisions/qa.json",
+      "sha": "77b3543df6c3f80beffb4919a49d3edf86910fdb"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00003/decisions/social.json",
+      "sha": "e80e59e50222343d30e779c4320a659d7995fbc2"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00003/decisions/onchain.json",
+      "sha": "523ba8a2eb9482024f8a5a33c7085844a18c77be"
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "neutral_replay",
+      "result": "NOT_STARTED"
+    },
+    {
+      "check": "sealed_cursor",
+      "result": "00002 sealed; 00003 input published; 00003 commit not present"
+    },
+    {
+      "check": "frame00003",
+      "result": "index=3; at=2023-03-17T23:59:59Z; 0 events; 0 candidates; hash=25a89599d9b679db50b063c2aef391162294d7f120849016881ad6cc7491ddef"
+    },
+    {
+      "check": "qa_vote",
+      "result": "created and readback verified, reviews=[], orders=[]"
+    },
+    {
+      "check": "peer_votes",
+      "result": "social and onchain valid; scout and security missing; 3/5 including qa"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Published diagnostic frame 00003 has no visible events or candidates. QA empty decision is valid and saved; no new historical evidence or research finding.",
+      "as_of_utc": "2023-03-17T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00003/input.json",
+      "evidence_limit": "Known-winner diagnostic only; neutral blind test NOT_STARTED; no source-based independent detection.",
+      "origin": "OWN_GITHUB_READ"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "BLOCKED_WAITING_FOR_PEERS",
+      "role": "scout,security",
+      "required_input": "Own genuine decisions for published diagnostic frame 00003 with matching index, at and input_hash."
+    },
+    {
+      "code": "NEUTRAL_REPLAY_NOT_STARTED",
+      "role": "controller",
+      "required_input": "Independently audited neutral as-of cohort and clean executor."
+    }
+  ],
+  "next_task": "Check whether scout/security decisions for frame 00003 have arrived; let existing controller seal 00003, then process only next published frame. Do not revisit older frames.",
+  "peer_receipts": [
+    {
+      "role": "scout",
+      "run_id": "scout-20261113T1823Z-protocol-readback-01",
+      "result": "NO_PROGRESS",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "1900993a3fa2717cb24dfb4b458a065409c91064"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261113T184350Z-process-readback",
+      "result": "NO_PROGRESS",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "186b2eb25006996130b6e61388aadb23f88af08e"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261113-owner-limited-readback-01",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "ee9aef23bf26c80d2358fbd8ea852d04870a6d60"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261113T1915Z-tweet-id-lead-01",
+      "result": "DATA_GAP",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "2a39c108cc87f27a21e1f05540bda2f9ceb10650"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261113T194240Z-source-access-audit",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "c6af821777752e7dfc9bc33ad3a3763880e80f19"
+    },
+    {
+      "role": "onchain",
+      "run_id": "onchain-20261113T1823Z-protocol-readback-01",
+      "result": "NO_PROGRESS",
+      "source_path": "research/dot-workflow/roles/onchain/current.json",
+      "source_blob_sha": "2b32c2ee11ef07d9603b0f57e5362dfe16f2af56"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261113-owner-deploy-rpc-blocker-2019",
+      "result": "BLOCKED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "7b36231fd7b2e29b3c119d476227015492ce8c5b"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261113T203804Z-archive-capture-check",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "25c4f45b4cf194928bdf09bda294895824b76632"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261113-contract-source-2033",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "d01471873950936a188009783f10d00a13bb12ca"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261113T2050Z-archive-access-gap-01",
+      "result": "DATA_GAP",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "8d8a03da9c338d120928ad0a1373d8805648072d"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261113T214132Z-cdx-endpoint-blocked",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "6e214d66ed44f2459777125ba12127c85938222b"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261113-buy-receipt-lp-scope-2213",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "06a3c59016cf68c441da919e011792075d7b0169"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261113T2248Z-bobo-contract-search-gap-01",
+      "result": "DATA_GAP",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "89418beec540d409ef74b49a0be4e8d67970ce6f"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261113T224323Z-frame0-diagnostic",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "e6a31575e715967f29fdcff82b49626adf65bd8b"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261113-frame0-sell-receipt-2306",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "29d57255224cf080072b641fa698d8a101ced639"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0029Z-apr18-coindesk-provisional-01",
+      "result": "DATA_GAP",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "be007229823004336c7d6ff50a2e5b11aa8fe561"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261113T233519Z-alternative-archive-audit",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "c48c7ab079420af2d8b4dc32371d633901cd5550"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261114-runtime-bytecode-scope-0005",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "454468989dfe2ab10c1c247fbdc4a767ce22e9b5"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0129Z-theblock-apr18-provisional-01",
+      "result": "DATA_GAP",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "125b80aaaa91a9b9bbe71ccb595a7d1714f3e56e"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T003716Z-independent-url-discovery",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "82158d8fb99612422a16610aa1f1d7e2e68af5d9"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261114-bytecode-static-selectors-0107",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "aefb9d5c159bf50058126d26f07a2a2c86e54732"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0224Z-apr15-embedded-post-01",
+      "result": "DATA_GAP",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "0759f326d60b40cb7aa30736572b35ebc686de3c"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T013842Z-independent-social-negative",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "d0df994468dd3274680005297d8d0d7c60ad5ab7"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261114-compiler-settings-0224",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "e5b6e72a2da6cded34c420774cbaea730a87f265"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T023659Z-erc20-source-audit",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "1892ca56f3a9c560a2d407811309772a57f1c552"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261114-compiler-unavailable-0344",
+      "result": "BLOCKED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "57e0fcc85737c3b89988d59f3bd8b40011b26728"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0307Z-immutable-buy-receipt-01",
+      "result": "DATA_GAP",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "b8fbb60b5b36e643e2bf28098e5cc3a227fd6271"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T033548Z-mea-original-audit",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "ac316dd4cb9e0963c367a5fce4946b9e52db393d"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0413Z-pool-creation-log-01",
+      "result": "DATA_GAP",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "6b85da5ff49b88177bf49c61e68dd99a7ee0a5b6"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T044441Z-independent-capture-blocked",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "90c5938fc2d14ebcbad13221e1bc161f1fe4f9bb"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261114T0434Z-initial-lp-mint-review-01",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "3e9113e96dd5423877c1c04c49b085948b0ca8dd"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0542Z-candidate-universe-access-gap-01",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "280d5781e6d8acf2b9ab1052fdc8cee5bd74f6e7"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T053600Z-distinct-original-audit",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "d4a2e700dcd1142ed60c01972b1bf06e2dd337aa"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261114T0513Z-lp-transfer-to-token-contract-01",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "8615872e7e42d60beeab21c2910a663ea55659f6"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0608Z-branch-tree-manifest-absence-01",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "a1960447c949e739462d91970d202ce9ee5aedb8"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T063517Z-chad-original-provisional",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/social/current.json",
+      "source_blob_sha": "b49d3ceb4078e42e293a3e487c05ebd3e00ae7de"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0737Z-candidate-manifest-stalled-01",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "38dd5c05807dee08d688daf52c1e67a48a600f5b"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261114T0745Z-runtime-call-opcode-scan-01",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "644eb38bf22a3fad80c3937154c3613988bde17a"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0824Z-manifest-access-stalled-01",
+      "result": "STALLED",
+      "source_path": "research/dot-workflow/roles/scout/current.json",
+      "source_blob_sha": "9901373e14fac7110e6fb6f9303dab9c9fc5940d"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261114T0818Z-buy-lp-holder-cutoff-01",
+      "result": "PARTIAL_VERIFIED",
+      "source_path": "research/dot-workflow/roles/security/current.json",
+      "source_blob_sha": "974ac304d1fd6dbf6bdbbbe6346ca94f12220f1e"
+    }
+  ],
+  "notes": "DIAGNOSTIC_ONLY; 2/62; visible_candidates=0; new_asof_evidence=0; existing_qa_vote=true; five_votes=5/5; NO_PROGRESS/NO_BUY/UNKNOWN."
+}

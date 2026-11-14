@@ -1,0 +1,60 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "security",
+  "run_id": "security-r25-20261114T213811Z-parser-security-gate-02",
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "asof_cutoff": "2023-03-14T00:00:00Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "evidence": [],
+  "security_code_audit": [
+    {
+      "code": "NO_LOG_INDEX_OR_RECEIPT_PROOF",
+      "finding": "Factory CSV parser exposes tx_hash, block_hash and pair but not log_index, transaction_index, receipt status or a verified PairCreated log. tx+pair dedup cannot prove unique canonical log identity.",
+      "required": "Verify factory event signature, emitter, tx receipt, log index, block hash and canonical chain at event block before admitting pool candidate."
+    },
+    {
+      "code": "NO_ASOF_SECURITY_STATE",
+      "finding": "POOL_UNVERIFIED output has no runtime code hash, owner/admin/mint/blacklist authority, transfer restrictions, sell simulation, LP token balances or lock/withdrawal state.",
+      "required": "Fetch historical eth_getCode and eth_call at block tags, contract creation provenance, privilege changes, LP token ownership and reserve state, with explicit historical state provenance."
+    },
+    {
+      "code": "SOURCE_COMPLETENESS_NOT_SECURITY_COVERAGE",
+      "finding": "complete_requested_window checks only earliest and latest source timestamps; it does not establish full PairCreated log coverage, continuity, security state coverage or trade execution.",
+      "required": "Independently reconcile factory PairCreated logs by bounded block ranges and flag missing ranges as DATA_GAP."
+    }
+  ],
+  "unknowns": [
+    {
+      "scope": "Ethereum",
+      "issue": "No materialized independently verified candidate batch; all as-of contract and LP/sellability evidence missing."
+    },
+    {
+      "scope": "Solana R24",
+      "issue": "50 retrospective mint identities not individually validated against as-of ledger slot and mint/freeze authority; 2026-06-18 missing source day."
+    }
+  ],
+  "security_veto": "NO_BUY_UNTIL_VERIFIED",
+  "proposed_shadow_intents": [],
+  "historical_blind_success": false,
+  "wallet_or_paper_account_actions": 0,
+  "kpis": {
+    "new_candidates_security_reviewed": 0,
+    "new_valid_asof_security_events": 0,
+    "suspected_buy_signals": 0,
+    "explicit_data_gaps": 2,
+    "new_source_code_security_checks": 3
+  },
+  "source_documents": [
+    "research/replay-controller/R25_DISCOVERY_PROTOCOL.md",
+    "research/replay-controller/R24_PUBLIC_COHORT_HANDOFF.md",
+    "research/replay-controller/r25-uniswap-factory-csv.py",
+    "research/r25/roles/scout/scout-r25-20261114T202038Z-source-audit-11.json"
+  ],
+  "next_task": "Obtain first neutral CSV-derived pool batch with verified receipt/log index and canonical creation block; for each candidate audit historical code/admin/blacklist/sell route and LP state at the exact cutoff. Do not infer safety from pool creation."
+}

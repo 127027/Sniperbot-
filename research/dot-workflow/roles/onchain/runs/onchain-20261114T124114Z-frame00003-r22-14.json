@@ -1,0 +1,79 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "onchain",
+  "run_id": "onchain-20261114T124114Z-frame00003-r22-14",
+  "previous_run_id": "onchain-20261114T114545Z-frame00002-r21-13",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-03-17T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "WAITING_FOR_PEERS",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00003/input.json",
+      "blob_sha": "c9e7f04bd97a15009eab92743c24df3b496cd329",
+      "json_paths": [
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.events"
+      ]
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "diagnostic_frame_00003_vote",
+      "result": "published frame index=3; events=[]; decision saved and read back; reviews=[] orders=[]",
+      "as_of_utc": "2023-03-17T23:59:59Z"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Published frame 00003 contains zero visible candidates and zero events; no onchain BUY evidence.",
+      "as_of_utc": "2023-03-17T23:59:59Z",
+      "evidence_ref": {
+        "repository": "127027/Sniperbot-",
+        "ref": "codex/dots-pepe-replay-20261113",
+        "path": "research/replay-controller/bridge/diagnostic-frames/00003/input.json",
+        "blob_sha": "c9e7f04bd97a15009eab92743c24df3b496cd329",
+        "json_paths": [
+          "$.index",
+          "$.at",
+          "$.input_hash",
+          "$.events"
+        ]
+      },
+      "proof_class": "published_diagnostic_frame",
+      "evidence_limit": "not historical chain-wide absence or blind detection",
+      "verification": "GitHub readback"
+    }
+  ],
+  "blockers": [
+    {
+      "question": "neutral blind replay",
+      "status": "NOT_STARTED",
+      "required_input": "independently audited as-of corpus and clean agents"
+    },
+    {
+      "question": "diagnostic frame 00003 advancement",
+      "status": "AWAITING_OTHER_ROLE_VOTES",
+      "required_input": "scout, security and qa decision files, then controller sealing"
+    }
+  ],
+  "next_task": "Wait for controller to seal frame 00003 and publish next input; inspect only latest published frame.",
+  "peer_receipts": [
+    {
+      "role": "social",
+      "run_id": "social-20261114T123844Z-r22-frame00003-11",
+      "result": "matching empty decision, read-only"
+    }
+  ],
+  "handoff_to": "qa",
+  "notes": "R22: visible candidates 0, newly validated historical evidence 0, own vote commit 5b4f27a5344849f3692ab7deb7aa0c2f88a02d0c, blob 523ba8a2eb9482024f8a5a33c7085844a18c77be. Missing scout/security/qa as observed."
+}

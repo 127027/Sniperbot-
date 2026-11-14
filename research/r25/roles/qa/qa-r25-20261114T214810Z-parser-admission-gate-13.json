@@ -1,0 +1,68 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "qa",
+  "run_id": "qa-r25-20261114T214810Z-parser-admission-gate-13",
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "asof_cutoff": "2023-03-14T00:00:00Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "evidence": [],
+  "qa_decisions": [],
+  "proposed_shadow_intents": [],
+  "metrics": {
+    "new_candidates_checked": 0,
+    "new_valid_asof_events": 0,
+    "suspected_buy_signals": 0,
+    "would_buy": 0,
+    "would_sell": 0,
+    "watch": 0,
+    "reject": 0
+  },
+  "new_code_audit_findings": [
+    {
+      "code": "INVALID_ROW_SWALLOW",
+      "source": "research/replay-controller/r25-uniswap-factory-csv.py",
+      "verified": true,
+      "detail": "extract catches ValueError/OverflowError/TypeError per CSV row and silently increments invalid_rows, including duplicate-pair errors; complete_requested_window may still be true even with malformed or duplicate in-window logs. QA must reject completeness inference until invalid rows are separately reconciled by timestamp/block."
+    },
+    {
+      "code": "NO_EVENT_ORDER_PROOF",
+      "source": "research/replay-controller/r25-uniswap-factory-csv.py",
+      "verified": true,
+      "detail": "Source sort by event_at and hashed id; same-block event order is not provable without transaction_index/log_index. Do not infer intra-block causality or next-tick execution from sorted output."
+    },
+    {
+      "code": "SOURCE_SPAN_FALSE_COMPLETENESS",
+      "source": "research/replay-controller/r25-uniswap-factory-csv.py",
+      "verified": true,
+      "detail": "complete_requested_window is computed solely from global earliest/latest timestamps, not canonical log continuity, factory-specific coverage or missing block ranges; this boolean is insufficient for admission."
+    }
+  ],
+  "peer_receipts": [
+    "research/r25/roles/scout/scout-r25-20261114T202038Z-source-audit-11.json",
+    "research/r25/roles/social/social-r25-20261114T214449Z-scout-handoff-audit-11.json",
+    "research/r25/roles/onchain/onchain-r25-20261114T214040Z-source-access-boundary-13.json",
+    "research/r25/roles/security/security-r25-20261114T213811Z-parser-security-gate-02.json"
+  ],
+  "unknowns": [
+    "No independently verified candidate_id with event_at and available_at <= asof cutoff",
+    "No canonical PairCreated receipt/log_index or historical reserve, price, sellability, security and social corroboration",
+    "Ethereum source CSV not materialized for candidate review",
+    "R24 50 mints not validated against original ledger and June 18 source gap"
+  ],
+  "decision_gate": "UNKNOWN_NO_BUY",
+  "required_for_would_buy": [
+    "Neutral candidate cohort with canonical pool receipt and chronological cutoff",
+    "Historical price/quote and multi-block liquidity with slippage and gas",
+    "Independent sellability, privileges, LP and holder risk checks",
+    "Peer-backed social/onchain evidence and R22 market safety"
+  ],
+  "next_task": "On no-cost runner materialize neutral CSV, publish source hash, timestamp-bucket counts, invalid-row diagnostics, and canonical PairCreated sample with log_index; then QA review all candidates in first timestamp-valid batch.",
+  "historical_blind_success": false,
+  "wallet_or_paper_account_actions": 0
+}

@@ -1,0 +1,73 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "onchain",
+  "run_id": "onchain-20261114T104256Z-frame00002-r19-12",
+  "previous_run_id": "onchain-20261114T094203Z-frame00001-readback-11",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-03-16T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "NO_PROGRESS",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/input.json",
+      "blob_sha": "f458b55979ca082ebc356a7f40dab1a518874bcb",
+      "json_paths": [
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.events"
+      ]
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "diagnostic_frame_00002_vote_created_and_readback",
+      "result": "valid own empty vote, index/hash/asof matched",
+      "as_of_utc": "2023-03-16T23:59:59Z"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Published diagnostic frame 00002 has events=[]; own matching vote has reviews=[] and orders=[]. No historical no-event inference.",
+      "as_of_utc": "2023-03-16T23:59:59Z",
+      "evidence_ref": {
+        "repository": "127027/Sniperbot-",
+        "ref": "codex/dots-pepe-replay-20261113",
+        "path": "research/replay-controller/bridge/diagnostic-frames/00002/input.json",
+        "blob_sha": "f458b55979ca082ebc356a7f40dab1a518874bcb",
+        "json_paths": [
+          "$.index",
+          "$.at",
+          "$.input_hash",
+          "$.events"
+        ]
+      },
+      "proof_class": "published_diagnostic_frame",
+      "evidence_limit": "diagnostic only; no blind discovery, no chain-day coverage",
+      "verification": "GitHub file readback"
+    }
+  ],
+  "blockers": [
+    {
+      "question": "neutral blind replay",
+      "status": "NOT_STARTED",
+      "required_input": "audited as-of corpus and independent agents"
+    },
+    {
+      "question": "diagnostic frame 00002 advancement",
+      "status": "AWAITING_OTHER_ROLE_VOTES",
+      "required_input": "scout social security qa matching decisions; monitor refresh"
+    }
+  ],
+  "next_task": "Read temporal and monitor status, then only the current published frame; never revisit sealed frames.",
+  "peer_receipts": [],
+  "handoff_to": "qa",
+  "notes": "Frame 00002 onchain vote commit 20a9c89a0ce8d337bbe3c9ebcc642cecf5b99def; blob 7607c4c79c94cd282d78bb1f9307df53c599a9c7."
+}

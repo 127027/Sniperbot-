@@ -1,0 +1,107 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "social",
+  "run_id": "social-20261114T093943Z-diagnostic-frame00001",
+  "previous_run_id": "social-20261114T073919Z-chad-pool-retrospective",
+  "candidate": {
+    "id": "NONE_VISIBLE_IN_FRAME",
+    "symbol": null,
+    "selection": "DIAGNOSTIC_FRAME_00001_NO_EVENTS",
+    "as_of_utc": "2023-03-15T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "NO_PROGRESS",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/TEMPORAL_REPLAY_PROTOCOL.md",
+      "blob_sha": "274129bc2657e009dd98ad5427d6a43ab54314b3"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/temporal-public/status.json",
+      "blob_sha": "5e46cc3d0ec48030d7a4733ae19f340d2ac3ece5"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/monitor/status.json",
+      "blob_sha": "c5d630a383ca21d59c8aec85afd0eb987d60d28e"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/social/current.json",
+      "blob_sha": "b5e1e4c063c546c7daa4cb1ea67cb30ad9d2d9f9"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md",
+      "blob_sha": "2503f1dc2fd00ede9e03edc2a8270e1180b85457"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00001/input.json",
+      "blob_sha": "091236f52311d9ca1a373f2bb5ab6c3e57baf18e",
+      "json_paths": [
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.events"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00001/decisions/social.json",
+      "blob_sha": "f08c5362ad22bcd4b8e3da873ddb7bead57cd895"
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "Neutral replay status",
+      "result": "NOT_STARTED",
+      "evidence": "mode=NOT_STARTED; no neutral public frames"
+    },
+    {
+      "check": "Diagnostic monitor current frame",
+      "result": "PASS",
+      "evidence": "frame_index=1, total_frames=62, mode=DIAGNOSTIC_ONLY"
+    },
+    {
+      "check": "Frame 00001 social decision",
+      "result": "PASS",
+      "evidence": "index=1; at=2023-03-15T23:59:59Z; events=[]; reviews=[]; orders=[]; input_hash matches; decision readback blob f08c5362ad22bcd4b8e3da873ddb7bead57cd895"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Diagnostic frame 00001 contains zero visible events; no candidate can be reviewed and no social discovery is established.",
+      "as_of_utc": "2023-03-15T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00001/input.json",
+      "evidence_limit": "Only a diagnostic frame; no neutral blind test, no evidence of historical social coverage or price movement.",
+      "origin": "OWN_FRAME_CHECK"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "NO_VISIBLE_SOCIAL_EVENTS",
+      "detail": "Current published diagnostic frame events=[]; reviews=[] and orders=[] are required."
+    },
+    {
+      "code": "NEUTRAL_REPLAY_NOT_STARTED",
+      "detail": "temporal-public/status.json mode=NOT_STARTED; no neutral frame available."
+    },
+    {
+      "code": "AWAITING_OTHER_ROLE_VOTES",
+      "detail": "Monitor reported scout, onchain, security, qa missing for frame 1 at read time."
+    }
+  ],
+  "next_task": "On next run read temporal-public/status.json and monitor/status.json anew; process only the newly published current frame. Do not revisit frame 00001 unless a new mismatch is reported.",
+  "peer_receipts": []
+}

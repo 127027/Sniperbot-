@@ -8,6 +8,10 @@ export function validTokenAddress(chain,addr){
  if(chain==='solana')return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(addr||'');
  return ['base','bsc','eth'].includes(chain) && /^0x[a-fA-F0-9]{40}$/.test(addr||'');
 }
+function sameAddress(chain,a,b){
+ return typeof a==='string'&&typeof b==='string'&&
+  (chain==='solana'?a===b:a.toLowerCase()===b.toLowerCase());
+}
 export async function jsonGet(url,fetcher=fetch){
  // SSRF prevention: all URLs are constructed here from strict allowlists, never from user URL input.
  const host=new URL(url).hostname;
@@ -51,20 +55,20 @@ export async function scanNewPools(fetcher=fetch){
  return {results:results.sort((a,b)=>b.score-a.score).slice(0,60),errors,at:new Date().toISOString()};
 }
 export function parseDexPair(pair,expectedChain,tokenAddress){
- if(!pair||pair.chainId!==DS_CHAIN[expectedChain]||pair.baseToken?.address?.toLowerCase()!==tokenAddress.toLowerCase())return null;
+ if(!pair||pair.chainId!==DS_CHAIN[expectedChain]||!sameAddress(expectedChain,pair.baseToken?.address,tokenAddress))return null;
  const p=finite(pair.priceUsd); if(p===null||p<=0)return null;
  return {priceUsd:p,liquidityUsd:finite(pair.liquidity?.usd),asOf:new Date().toISOString(),source:'DEX Screener',pairAddress:pair.pairAddress};
 }
-export async function tokenQuote(chain,addr,fetcher=fetch){
+export async function tokenQuote(chain,addr,fetcher=fetch,selectedPool=null){
  if(!validTokenAddress(chain,addr))throw Error('Ungültige Token-Adresse');
  const pairs=await jsonGet(`https://api.dexscreener.com/token-pairs/v1/${DS_CHAIN[chain]}/${encodeURIComponent(addr)}`,fetcher);
- const available=(Array.isArray(pairs)?pairs:[]).map(p=>parseDexPair(p,chain,addr)).filter(Boolean).sort((a,b)=>(b.liquidityUsd||0)-(a.liquidityUsd||0));
+ const available=(Array.isArray(pairs)?pairs:[]).map(p=>parseDexPair(p,chain,addr)).filter(q=>q&&(!selectedPool||sameAddress(chain,q.pairAddress,selectedPool))).sort((a,b)=>(b.liquidityUsd||0)-(a.liquidityUsd||0));
  return available[0]||null;
 }
-export async function lookupToken(chain,addr,fetcher=fetch){
+export async function lookupToken(chain,addr,fetcher=fetch,selectedPool=null){
  if(!validTokenAddress(chain,addr))throw Error('Ungültige Token-Adresse');
  const pairs=await jsonGet(`https://api.dexscreener.com/token-pairs/v1/${DS_CHAIN[chain]}/${encodeURIComponent(addr)}`,fetcher);
- const raw=(Array.isArray(pairs)?pairs:[]).filter(p=>p?.chainId===DS_CHAIN[chain]&&p.baseToken?.address?.toLowerCase()===addr.toLowerCase());
+ const raw=(Array.isArray(pairs)?pairs:[]).filter(p=>p?.chainId===DS_CHAIN[chain]&&sameAddress(chain,p.baseToken?.address,addr)&&(!selectedPool||sameAddress(chain,p.pairAddress,selectedPool)));
  raw.sort((a,b)=>(finite(b?.liquidity?.usd)||0)-(finite(a?.liquidity?.usd)||0));
  const p=raw[0];if(!p)throw Error('Kein verifizierbarer DEX-Pool gefunden');
  const price=finite(p.priceUsd),liq=finite(p.liquidity?.usd),vol=finite(p.volume?.m5),buys=finite(p.txns?.m5?.buys),sells=finite(p.txns?.m5?.sells);

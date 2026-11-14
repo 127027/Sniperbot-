@@ -1,0 +1,74 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "onchain",
+  "run_id": "onchain-20261114T184544Z-frame00008-r22-20",
+  "previous_run_id": "onchain-20261114T174356Z-frame00007-r22-19",
+  "candidate": null,
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "WAITING_FOR_PEERS",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00008/input.json",
+      "blob_sha": "d6df27e9300531bf6e52f66975be73133b7c5475",
+      "json_paths": [
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.events"
+      ]
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "diagnostic_frame_00008_vote_readback",
+      "result": "New vote saved and read back; events=[]; 0 candidates; reviews=[]; orders=[]",
+      "as_of_utc": "2023-03-22T23:59:59Z"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Published diagnostic frame 00008 has no visible candidates or events; no independent historical tradeability established",
+      "as_of_utc": "2023-03-22T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00008/input.json",
+      "proof_class": "published_diagnostic_frame",
+      "evidence_limit": "Does not prove absence of historical chain activity or blind discovery"
+    }
+  ],
+  "blockers": [
+    {
+      "question": "neutral blind replay",
+      "status": "NOT_STARTED",
+      "required_input": "audited neutral corpus and independent agents"
+    },
+    {
+      "question": "frame 00008 sealing",
+      "status": "AWAITING_OTHER_ROLE_VOTES",
+      "required_input": "security and qa decisions, then controller seal"
+    }
+  ],
+  "next_task": "Await security and qa and controller seal; process only the next genuinely published frame.",
+  "peer_receipts": [
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T181221Z-r22-frame00008-01",
+      "status": "MATCHING_FILE"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T184203Z-r22-frame00008",
+      "status": "MATCHING_FILE"
+    },
+    {
+      "role": "security",
+      "status": "MISSING_404"
+    },
+    {
+      "role": "qa",
+      "status": "MISSING_404"
+    }
+  ],
+  "notes": "Decision commit 59e3a4d463992ca473436afaa6778c40a3db0f71; blob e0b34a0a0660f50c4ff9178b6fecee2b73bbdb47."
+}

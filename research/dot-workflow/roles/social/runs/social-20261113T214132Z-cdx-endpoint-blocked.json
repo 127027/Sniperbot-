@@ -1,0 +1,82 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "social",
+  "run_id": "social-20261113T214132Z-cdx-endpoint-blocked",
+  "previous_run_id": "social-20261113T203804Z-archive-capture-check",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "STALLED",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md",
+      "json_paths": []
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/social/current.json",
+      "json_paths": [
+        "$.run_id",
+        "$.next_task",
+        "$.blockers"
+      ]
+    },
+    {
+      "url": "https://web.archive.org/cdx/search/cdx?url=old.reddit.com%2Fr%2Fethtrader%2Fcomments%2F11x442c%2F%26output=json%26from=2023%26to=2023",
+      "note": "Attempted direct archive query; tool returned URL inaccessible; no CDX records obtained"
+    },
+    {
+      "url": "https://xarchive.net/archive-reddit",
+      "note": "Search result describing CDX methodology, 2026 view, not historical capture"
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "Read full PROTOCOL.md and current.json from moving branch",
+      "result": "PASS"
+    },
+    {
+      "check": "Targeted archive index discovery query",
+      "result": "NO_HISTORICAL_CAPTURE",
+      "evidence": "Web search returned methodology only"
+    },
+    {
+      "check": "Direct archive CDX endpoint request",
+      "result": "BLOCKED",
+      "evidence": "web open returned Internal Error: URL not accessible via this tool"
+    },
+    {
+      "check": "Verify original 2023 archived post body and timestamp",
+      "result": "NOT_VERIFIED"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "No authenticated 2023 CDX capture and matching archived post body was obtained; no independent social candidate was established.",
+      "as_of_utc": "2026-11-13T21:41:32Z",
+      "evidence_ref": "https://web.archive.org/cdx/search/cdx?url=old.reddit.com%2Fr%2Fethtrader%2Fcomments%2F11x442c%2F",
+      "evidence_limit": "CDX request inaccessible; methodology pages do not prove historical capture, author, engagement or pool identity",
+      "origin": "OWN_ACCESS_CHECK"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "MISSING_AS_OF_CAPTURE",
+      "detail": "Direct Wayback CDX request inaccessible in web tool; no timestamped 2023 capture plus retrievable original body."
+    },
+    {
+      "code": "MISSING_HISTORICAL_ENGAGEMENT_SNAPSHOTS",
+      "detail": "Parked from previous runs; no authenticated 2023 snapshots."
+    }
+  ],
+  "next_task": "Park inaccessible direct CDX endpoint; independently test alternative archived-source provider for a dated original and its as-of capture, then require matching original body. Do not reuse methodology-only pages as proof.",
+  "peer_receipts": []
+}

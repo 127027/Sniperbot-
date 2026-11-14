@@ -1,3 +1,4 @@
+import {allocatePortfolioPaper,MIN_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
 // Untrusted research is stored, never treated as an executable order.
 import {createHash, randomUUID} from 'node:crypto';
 import {validTokenAddress} from './market.mjs';
@@ -47,7 +48,8 @@ export function ingest(state,event,principal,now=Date.now()){
    if(c.evidence.some(x=>x.evidence_id===e.evidence_id))fail('Beleg-ID bereits vergeben');
    c.evidence.push({...e,url:url.href,source_host:url.hostname,author:principal.id});
   }else if(e.schema==='agent_vote.v1'){
-   keys(e,['role','vote','reason','evidence_ids','counterevidence_ids','risk_flags','score_0_100']);
+   keys(e,['role','vote','reason','evidence_ids','counterevidence_ids','risk_flags','score_0_100','allocation_intent']);
+   if(e.allocation_intent!==undefined&&!['EXPLORATORY','HIGH_CONVICTION'].includes(e.allocation_intent))fail('Ungültige separate Kapital-Empfehlung');
    if(e.score_0_100!==undefined&&(!Number.isFinite(e.score_0_100)||e.score_0_100<0||e.score_0_100>100))fail('Ungültiger Bewertungsscore');
    if(principal.role!==e.role||!ROLES.includes(e.role)||!['YES','NO','ABSTAIN','VETO'].includes(e.vote)||!str(e.reason,2000))fail('Ungültige Rolle/Stimme');
    for(const k of ['evidence_ids','counterevidence_ids','risk_flags'])if(!Array.isArray(e[k])||e[k].length>20||e[k].some(x=>!str(x,100)))fail('Ungültige Beleg-/Risikoliste');
@@ -84,18 +86,13 @@ export function assess(c,now=Date.now()){
  if(!c.isDemo)return {status:'WATCH',reason:'REAL_VALIDATOR_UNAVAILABLE: echte On-Chain-/Sell-Adapter fehlen'};
  return {status:'PAPER_ELIGIBLE',reason:'5 Rollen + separate synthetische Risiko-Fixture bestätigt'};
 }
-// Explicit allocation convention, NOT a calibrated probability of profit.
-// Missing scores select the minimum. The lowest role score determines sizing;
-// 95 or higher may select the user maximum, subject to cash and technical sell limits.
+// Legacy synthetic lab shares the user's 80–92 allocation rule.
 export function positionSize(s,c){
- const scores=ROLES.map(role=>{
-  const votes=c.votes.filter(v=>v.role===role);
-  return votes.length?Math.min(...votes.map(v=>Number.isFinite(v.score_0_100)?v.score_0_100:0)):0;
- });
- const fraction=Math.min(1,Math.max(0,Math.min(...scores)/95));
- const target=s.minTrade+(s.maxTrade-s.minTrade)*fraction;
- const amount=Math.floor((Math.min(target,s.maxTrade,s.cashUsdc+s.cashEur,c.risk.max_amount_usdc)+1e-9)*100)/100;
- return amount>=s.minTrade?amount:0;
+ if(!c?.risk||!Array.isArray(c.votes))return 0;
+ // Explicit unanimous allocation judgement; an uncalibrated score NEVER sizes the trade.
+ const conviction=ROLES.every(role=>c.votes.some(v=>v.role===role&&
+  v.vote==='YES'&&v.allocation_intent==='HIGH_CONVICTION'));
+ return allocatePortfolioPaper({state:s,intent:conviction?'HIGH_CONVICTION':'EXPLORATORY',capacity:c.risk.max_amount_usdc});
 }
 export function evaluate(state,now=Date.now()){
  let s={...state,research:structuredClone(state.research||emptyResearch())};
@@ -104,7 +101,7 @@ export function evaluate(state,now=Date.now()){
   if(a.status==='PAPER_ELIGIBLE'){
    const amount=positionSize(s,c);
    if(!s.entriesEnabled||!s.automaticPaperBuys){a.status='WAITING';a.reason='Bot oder Paper-Autokauf AUS'}
-   else if(amount<s.minTrade){a.status='WAITING';a.reason='Guthaben oder technische Verkaufsgrenze unter Mindestbetrag'}
+   else if(amount<MIN_PAPER_ENTRY_USDC){a.status='WAITING';a.reason='Gesamtbudget, Guthaben oder technische Verkaufsgrenze unter Mindestbetrag'}
    else{
     const candidate={...paperSignal(),id:c.id,tokenAddress:c.tokenAddress,poolAddress:c.poolAddress,symbol:c.symbol};
     const before=s.positions.length;
@@ -121,7 +118,7 @@ export function evaluate(state,now=Date.now()){
  }
  return s;
 }
-export function simulate(state,negative=false,score=95){
+export function simulate(state,negative=false,score=95,allocationIntent='EXPLORATORY'){
  const key=randomUUID(),id=`demo:${key}:pool`,now=Date.now();
  let s={...state,research:structuredClone(state.research||emptyResearch())};
  s.research.candidates.push({id,chain:'demo',tokenAddress:key,poolAddress:'pool',symbol:'SIM-'+key.slice(0,6),isDemo:true,votes:[],evidence:[],risk:null,filled:false});
@@ -129,7 +126,7 @@ export function simulate(state,negative=false,score=95){
  ROLES.forEach((role,i)=>{
   const principal={id:`sim-${role}`,role,synthetic:true};
   s=ingest(s,{...common,schema:'evidence.v1',event_id:randomUUID(),agent_id:principal.id,evidence_id:`${key}-${i}`,url:`https://source-${i}.example.org/synthetic`,independence_key:`fixture-${i}`,summary:'Synthetischer Testbeleg, keine Marktrecherche'},principal,now);
-  s=ingest(s,{...common,schema:'agent_vote.v1',event_id:randomUUID(),agent_id:principal.id,role,vote:negative&&i===4?'NO':'YES',reason:'Simulierter Rollentest',score_0_100:score,evidence_ids:[`${key}-${i}`],counterevidence_ids:[],risk_flags:[]},principal,now);
+  s=ingest(s,{...common,schema:'agent_vote.v1',event_id:randomUUID(),agent_id:principal.id,role,vote:negative&&i===4?'NO':'YES',reason:'Simulierter Rollentest',score_0_100:score,evidence_ids:[`${key}-${i}`],counterevidence_ids:[],risk_flags:[],allocation_intent:allocationIntent},principal,now);
  });
  s=ingest(s,{...common,schema:'risk_assessment.v1',event_id:randomUUID(),agent_id:'sim-risk',contract:'PASS',liquidity:'PASS',sellability:'PASS',max_amount_usdc:100000,reason:'Synthetische Verkaufsroute; keine Contract-Prüfung'}, {id:'sim-risk',role:'risk_controller',synthetic:true},now);
  return evaluate(s,now);

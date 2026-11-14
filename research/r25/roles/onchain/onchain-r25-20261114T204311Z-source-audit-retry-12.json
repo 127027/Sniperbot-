@@ -1,0 +1,45 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "onchain",
+  "run_id": "onchain-r25-20261114T204311Z-source-audit-retry-12",
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "asof_cutoff": "2023-03-14T00:00:00Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "evidence": [],
+  "unknowns": [
+    {
+      "scope": "Ethereum V2 factory",
+      "issue": "95.6MB CSV blob SHA f0363f9791c36bb015855bffc1434fbef3172fb5 exists, but partial GitHub fetch returned empty content; zero parsed rows, unknown coverage",
+      "source_uri": "https://github.com/bhemen/uniswap-data/blob/main/data/uniswap_v2_factory_events.csv"
+    },
+    {
+      "scope": "Ethereum as-of",
+      "issue": "No independently validated PairCreated block times or Swap/Sync/Mint/Burn events, no liquidity, counterparties, gas, tax, slippage, or sellability"
+    },
+    {
+      "scope": "Solana R24",
+      "issue": "50 retrospective launch mints reported, no individually accessible as-of trades or pool states; June 18 source gap"
+    },
+    {
+      "scope": "Completeness",
+      "issue": "Neither upstream factory dataset nor R24 Solana cohort independently attested complete or contemporaneously available"
+    }
+  ],
+  "metrics": {
+    "new_candidates_checked": 0,
+    "new_valid_asof_events": 0,
+    "suspected_buy_signals": 0,
+    "verified_executable_signals": 0,
+    "data_gaps": 4
+  },
+  "proposed_shadow_intents": [],
+  "historical_blind_success": false,
+  "wallet_or_paper_account_actions": 0,
+  "next_task": "Stream and SHA256-audit 95.6MB factory CSV via free runner, parse 2023-03-14..2023-05-14 PairCreated and validate timestamps against chain, then obtain as-of Swap/Sync/Mint/Burn; verify Solana R24 mint-level evidence without future labels."
+}

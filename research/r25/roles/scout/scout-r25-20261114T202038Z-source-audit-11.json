@@ -1,0 +1,69 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "scout",
+  "run_id": "scout-r25-20261114T202038Z-source-audit-11",
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "asof_cutoff": "2023-03-14T00:00:00Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "evidence": [],
+  "unknowns": [
+    {
+      "code": "SOURCE_CSV_NOT_MATERIALIZED",
+      "detail": "The public GitHub CSV content was not available through fetch_file (empty content); no source rows or run artifact were inspected; candidate count and date coverage cannot be established."
+    },
+    {
+      "code": "BLOCK_COMPLETENESS_UNPROVEN",
+      "detail": "r25-uniswap-factory-csv.py checks global earliest/latest timestamps, but not block continuity or whether all PairCreated logs were included for each block."
+    },
+    {
+      "code": "ASOF_PROVENANCE_UNVERIFIED",
+      "detail": "The retrospective CSV does not establish contemporaneous availability or independent Ethereum ledger confirmation."
+    },
+    {
+      "code": "QUOTE_SCOPE",
+      "detail": "Current quote filter selects exactly one of WETH, USDC, USDT; it excludes pools with both or neither quote tokens. This is a rule-based subset, not all Ethereum launches."
+    },
+    {
+      "code": "CANDIDATE_DEDUP_SEMANTICS",
+      "detail": "Pool records are keyed by tx+pair, candidate_id by token address hash. Multiple quote pools for the same token are distinct pool records but one token candidate; verify pool-level and token-level counts separately."
+    },
+    {
+      "code": "SOURCE_TIMESTAMP_COVERAGE",
+      "detail": "The workflow's diagnostic startswith('2023-03'...) on Unix epoch timestamp strings; this produces misleading zero monthly counts even when 2023 rows exist. The parser itself converts epoch seconds correctly."
+    }
+  ],
+  "source_audit": {
+    "workflow": ".github/workflows/r25-ethereum-source-probe.yml",
+    "parser": "research/replay-controller/r25-uniswap-factory-csv.py",
+    "source_uri": "https://raw.githubusercontent.com/bhemen/uniswap-data/main/data/uniswap_v2_factory_events.csv",
+    "source_blob_sha": "f0363f9791c36bb015855bffc1434fbef3172fb5",
+    "parser_blob_sha": "fa048dff12e531e0d42e48544ad07056f1442903",
+    "observed_pool_rows": 0,
+    "observed_candidate_count": 0,
+    "counts_are_unavailable_not_zero": true,
+    "verified_asof_events": 0,
+    "possible_buy_signals": 0,
+    "proposed_next_task": "Obtain R25 workflow artifact or original CSV bytes; audit timestamp coverage using UTC conversion, block continuity against Ethereum PairCreated logs, deduplicate token and pool identities and include unsuccessful launches before any as-of candidate reviews."
+  },
+  "findings": [
+    {
+      "kind": "CODE_AUDIT",
+      "verified": true,
+      "detail": "Workflow month counter compares epoch-second timestamps to ISO prefixes; fix report before using it as coverage evidence."
+    },
+    {
+      "kind": "CODE_AUDIT",
+      "verified": true,
+      "detail": "The parser does not independently validate missing blocks or complete factory log coverage."
+    }
+  ],
+  "proposed_shadow_intents": [],
+  "historical_blind_success": false,
+  "wallet_or_paper_account_actions": 0
+}

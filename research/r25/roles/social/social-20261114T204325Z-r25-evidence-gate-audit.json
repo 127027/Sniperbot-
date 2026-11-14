@@ -1,0 +1,62 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "social",
+  "run_id": "social-20261114T204325Z-r25-evidence-gate-audit",
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "asof_cutoff": "2023-03-14T00:00:00Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "evidence": [],
+  "unknowns": [
+    {
+      "code": "NO_SCOUT_HANDOFF_AT_KNOWN_PATH",
+      "detail": "research/r25/roles/scout/current.json returns GitHub 404; no neutral candidate IDs or launch-time attribution available from the R25/R24 handoff documents."
+    },
+    {
+      "code": "UNATTESTED_SOCIAL_CAPTURE_TIMES",
+      "detail": "No candidate-linked immutable capture with original publication time, independently established available_at, source URI and content SHA256; later crawls cannot establish historical availability."
+    },
+    {
+      "code": "R24_COHORT_SOCIAL_IDENTITY_GAP",
+      "detail": "R24 handoff records 50 distinct Solana mint candidates but does not include their IDs or contemporaneous social snapshots; June 18 2026 has source coverage gap."
+    }
+  ],
+  "findings": [
+    "Source acceptance gate: join only Scout-supplied candidate_id and contract/mint identity, with event_at <= available_at <= simulated asof cutoff; require immutable original post or archived capture with source URI and SHA256.",
+    "Independent-author and acceleration metrics require multiple timestamp-attested author/post observations; one post or retrospective engagement counter is insufficient.",
+    "Manipulation verdict remains UNKNOWN without timestamped author clustering, repeated-post patterns, and contemporaneous engagement observations.",
+    "No neutral pool-launch source or contract IDs were supplied for March-May 2023; this is an intake gap, not zero social activity.",
+    "R20 progress is diagnostic only; nine completed frames and zero simulated trades do not prove blind detection."
+  ],
+  "new_candidates_reviewed": 0,
+  "verified_asof_events": 0,
+  "hypothetical_buy_signals": 0,
+  "proposed_shadow_intents": [],
+  "historical_blind_success": false,
+  "wallet_or_paper_account_actions": 0,
+  "source_audit": [
+    {
+      "path": "research/replay-controller/R25_DISCOVERY_PROTOCOL.md",
+      "status": "READ"
+    },
+    {
+      "path": "research/replay-controller/R24_PUBLIC_COHORT_HANDOFF.md",
+      "status": "READ"
+    },
+    {
+      "path": "research/r25/roles/scout/current.json",
+      "status": "404_NOT_FOUND"
+    },
+    {
+      "path": "research/replay-controller/monitor/r20-progress.json",
+      "status": "READ_DIAGNOSTIC_ONLY"
+    }
+  ],
+  "next_task": "Obtain the next neutral Scout source batch with dated contract/mint IDs and pool launch times. For every candidate, locate timestamp-attested historical social captures, hash content, separate independent authors from coordinated posting, and leave absent evidence UNKNOWN.",
+  "peer_receipts": []
+}

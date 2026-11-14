@@ -1,3 +1,5 @@
+> Ergänzung 07.11.2026: Historische Scout-Nachricht über GitHub im Windows-Bot empfangen; kein direkter Dot-POST. Siehe [Empfangsnachweis](SCOUT_INBOX_PROOF.md) und [informativer Eingang](RESEARCH_INBOX.md). Der folgende Stand beschreibt insbesondere den bisherigen direkten Gateway-Zugang.
+
 # Validierter Ist-/Soll-Abgleich – 07.11.2026
 
 Stand: aus dem **GitHub-`main`-Quellcode und Codex-PR #6** gelesen. Keine unabhängige Ausführung auf dem privaten Windows-Laptop in dieser Prüfung. Keine Änderungen an Hixton.

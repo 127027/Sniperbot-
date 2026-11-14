@@ -1,0 +1,93 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "social",
+  "run_id": "social-20261114T044441Z-independent-capture-blocked",
+  "previous_run_id": "social-20261114T033548Z-mea-original-audit",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "STALLED",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md",
+      "blob_sha": "2503f1dc2fd00ede9e03edc2a8270e1180b85457"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/social/current.json",
+      "blob_sha": "ac316dd4cb9e0963c367a5fce4946b9e52db393d",
+      "json_paths": [
+        "$.next_task",
+        "$.blockers",
+        "$.run_id"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-first-frame/input.json",
+      "blob_sha": "b20c20572ce2ee36c95ae4b05db1f6bef3865b94"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-first-frame/decisions/social.json",
+      "blob_sha": "feb5afc26b7d12ccd701358985812edd5e191bca"
+    },
+    {
+      "original_url": "https://www.reddit.com/r/CryptoCurrency/comments/138kcx2",
+      "date": "2023-05-05",
+      "as_of_capture_verified": false
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "Protocol and moving current read",
+      "result": "PASS",
+      "evidence": "protocol 2503f1dc2fd00ede9e03edc2a8270e1180b85457; current ac316dd4cb9e0963c367a5fce4946b9e52db393d"
+    },
+    {
+      "check": "Frame 0 input and existing social decision",
+      "result": "PASS",
+      "evidence": "input b20c20572ce2ee36c95ae4b05db1f6bef3865b94; decision feb5afc26b7d12ccd701358985812edd5e191bca; index=0; events/reviews/orders empty; hashes match"
+    },
+    {
+      "check": "Distinct dated Ethereum meme announcement with authenticated as-of capture",
+      "result": "NOT_VERIFIED",
+      "evidence": "Two targeted searches returned no distinct candidate-specific announcement with historical capture metadata; May 5 general Ethereum meme-season discussion not a candidate announcement"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Two targeted historical searches did not yield a distinct candidate-specific Ethereum meme announcement with authenticated 2023 archive capture; a dated May 5 general discussion is not a token/pool identification. No new independently verified historical social signal.",
+      "as_of_utc": "2026-11-14T04:44:41Z",
+      "evidence_ref": "https://www.reddit.com/r/CryptoCurrency/comments/138kcx2",
+      "evidence_limit": "Present-day indexed content only; no contemporaneous capture timestamp, original token/pool address or historical engagement snapshot. Search absence is not proof of absence.",
+      "origin": "OWN_SOURCE_CHECK"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "MISSING_AS_OF_CAPTURE",
+      "detail": "No authenticated historical archive capture for independently dated ERC20 meme announcements"
+    },
+    {
+      "code": "MISSING_HISTORICAL_ENGAGEMENT_SNAPSHOTS",
+      "detail": "No authenticated contemporaneous engagement time series; parked"
+    },
+    {
+      "code": "UNKNOWN_TOKEN_POOL_IDENTITY",
+      "detail": "No historically verifiable complete chain:token:pool for new social mentions"
+    }
+  ],
+  "next_task": "Keep prior mentions parked; seek a distinct independently selected 2023 Ethereum meme-token original URL and authenticated capture timestamp, then verify chain:token:pool and pre-movement as-of eligibility. Do not repeat failed endpoint searches without new access.",
+  "peer_receipts": []
+}

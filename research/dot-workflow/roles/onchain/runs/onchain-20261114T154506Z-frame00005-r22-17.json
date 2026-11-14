@@ -1,0 +1,73 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "onchain",
+  "run_id": "onchain-20261114T154506Z-frame00005-r22-17",
+  "previous_run_id": "onchain-20261114T144921Z-frame00004-r22-16",
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "WAITING_FOR_PEERS",
+  "candidate": null,
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00005/input.json",
+      "blob_sha": "4c2081d91cbe7f39041a6773ee79a617d3913863",
+      "json_paths": [
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.events"
+      ]
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "diagnostic_frame_00005_vote_readback",
+      "result": "New onchain decision created and read back; index=5; events=[]; candidates=0; reviews=[]; orders=[]",
+      "as_of_utc": "2023-03-19T23:59:59Z"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Published diagnostic frame 00005 contains no events or candidates; no new onchain evidence and no trade recommendation.",
+      "as_of_utc": "2023-03-19T23:59:59Z",
+      "proof_class": "published_diagnostic_frame",
+      "verification": "GitHub decision readback",
+      "evidence_limit": "Does not prove chain-wide absence or blind discovery"
+    }
+  ],
+  "blockers": [
+    {
+      "question": "neutral blind replay",
+      "status": "NOT_STARTED",
+      "required_input": "independently audited as-of corpus and clean agents"
+    },
+    {
+      "question": "diagnostic frame 00005 sealing",
+      "status": "AWAITING_OTHER_ROLE_VOTES",
+      "required_input": "qa decision and controller seal"
+    }
+  ],
+  "next_task": "Await genuine QA decision and controller seal of frame 00005; only then inspect next published frame.",
+  "peer_receipts": [
+    {
+      "role": "scout",
+      "status": "PRESENT_VALID"
+    },
+    {
+      "role": "social",
+      "status": "PRESENT_VALID"
+    },
+    {
+      "role": "security",
+      "status": "PRESENT_VALID"
+    },
+    {
+      "role": "qa",
+      "status": "MISSING"
+    }
+  ],
+  "handoff_to": "qa",
+  "notes": "R22/R21: frame 00004 sealed, frame 00005 published; 0 candidates, 0 new historical evidence; decision commit 3a09938b23a7bcb4a090d4d949f918e32b04168d, blob 21151062c1ab6c9692feb0bcb3c6659a8829adf1. No orders."
+}

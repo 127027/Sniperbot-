@@ -1,0 +1,87 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "social",
+  "run_id": "social-20261114T114428Z-frame00002-readback-nochange",
+  "previous_run_id": "social-20261114T103700Z-diagnostic-frame00002",
+  "candidate": {
+    "id": "NONE_VISIBLE_IN_FRAME",
+    "symbol": null,
+    "selection": "DIAGNOSTIC_FRAME_00002_NO_EVENTS",
+    "as_of_utc": "2023-03-16T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "NO_PROGRESS",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/TEMPORAL_REPLAY_PROTOCOL.md",
+      "blob_sha": "274129bc2657e009dd98ad5427d6a43ab54314b3"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/temporal-public/status.json",
+      "blob_sha": "5e46cc3d0ec48030d7a4733ae19f340d2ac3ece5"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/monitor/status.json",
+      "blob_sha": "59b20cf799d578b6fa0e79d5f38ed233bc9fb609"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/input.json",
+      "blob_sha": "f458b55979ca082ebc356a7f40dab1a518874bcb"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/social.json",
+      "blob_sha": "13dd79919d10748fe9f4fd4840d16aad758f19b9"
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "Neutral status",
+      "result": "NOT_STARTED"
+    },
+    {
+      "check": "Monitor current frame",
+      "result": "frame_index=2/62; DIAGNOSTIC_ONLY"
+    },
+    {
+      "check": "Frame 00002 existing own vote readback",
+      "result": "PASS",
+      "evidence": "index=2, at=2023-03-16T23:59:59Z, input_hash=e9a683c1806a4e460725c0c5c3ec861af320f381b5c8b46ef5351376610e422a, events=[], reviews=[], orders=[]"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Current published diagnostic frame 00002 remains unchanged with zero visible candidates; existing social decision matches input; no new decision was written.",
+      "as_of_utc": "2023-03-16T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/social.json",
+      "evidence_limit": "Diagnostic only; no neutral blind test, no social discovery, no trading signal.",
+      "origin": "OWN_FRAME_CHECK"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "NEUTRAL_REPLAY_NOT_STARTED",
+      "detail": "temporal-public/status.json mode=NOT_STARTED"
+    },
+    {
+      "code": "AWAITING_OTHER_ROLE_VOTES",
+      "detail": "Last monitor snapshot lists scout,onchain,security,qa missing; may be stale"
+    },
+    {
+      "code": "NO_VISIBLE_SOCIAL_EVENTS",
+      "detail": "Current published frame 00002 events=[]"
+    }
+  ],
+  "next_task": "Reread neutral status and monitor; process only newly published frame; do not repeat frame 00002 unless input changes or mismatch reported.",
+  "peer_receipts": []
+}

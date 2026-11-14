@@ -1,0 +1,63 @@
+name: Windows One-Click Supervisor Smoke Test
+on:
+  push:
+    branches:
+      - codex/research-gateway-v04
+    paths:
+      - "Sniperbot_Starten.bat"
+      - "runner/windows-supervisor.ps1"
+      - "runner/windows-supervisor-test-child.mjs"
+      - "runner/supervised-stop.mjs"
+      - "runner/supervised-stop.test.mjs"
+      - "runner/memecoin-*.mjs"
+      - "runner/research-market-collector.mjs"
+      - "runner/research-market-collector.test.mjs"
+      - "runner/research-market-daemon.mjs"
+      - "runner/research-advisories.mjs"
+      - "runner/research-advisories.test.mjs"
+      - "runner/research-hype-triggers.mjs"
+      - "runner/research-hype-triggers.test.mjs"
+      - "runner/research-network.mjs"
+      - "runner/central-decisions.test.mjs"
+      - "runner/portfolio-budget.mjs"
+      - "runner/portfolio-budget.test.mjs"
+      - "runner/research-narrative-radar.mjs"
+      - "runner/research-narrative-radar.test.mjs"
+      - "runner/historical-replay-readiness.mjs"
+      - "runner/historical-replay-readiness.test.mjs"
+      - "runner/historical-blind-*.mjs"
+      - "runner/fixtures/historical-public-five-cases-20261110.json"
+      - "runner/research-news-rss.mjs"
+      - "runner/research-news-rss.test.mjs"
+      - "runner/research-news-journal.mjs"
+      - "runner/research-news-journal.test.mjs"
+      - "runner/research-market-publisher.mjs"
+      - ".github/workflows/historical-blind-replay.yml"
+      - "runner/core.mjs"
+      - "runner/research.mjs"
+      - ".github/workflows/tests.yml"
+      - ".github/workflows/windows-supervisor.yml"
+  workflow_dispatch:
+jobs:
+  win-oneclick:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate Node supervisor shutdown module
+        run: node --test runner/supervised-stop.test.mjs
+      - name: Validate V0.6 budget, meme narrative discovery and historical replay safeguards on Windows
+        shell: powershell
+        run: |
+          node --test runner/memecoin-followups.test.mjs runner/memecoin-outcomes.test.mjs runner/memecoin-learning.test.mjs runner/research-market-collector.test.mjs runner/research-market-daemon.test.mjs runner/research-advisories.test.mjs runner/research-hype-triggers.test.mjs runner/research-network.test.mjs runner/central-decisions.test.mjs runner/portfolio-budget.test.mjs runner/research-narrative-radar.test.mjs runner/historical-replay-readiness.test.mjs runner/historical-blind-replay.test.mjs runner/research-news-rss.test.mjs runner/research-news-journal.test.mjs runner/research.test.mjs
+      - name: Execute five public historical cases with 225 virtual UTC days on Windows
+        shell: powershell
+        run: |
+          node runner/historical-blind-five.mjs
+      - name: Test Windows DPAPI, JobObject and private stdin stop without real token
+        shell: powershell
+        run: |
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File runner/windows-supervisor.ps1 -SelfTest

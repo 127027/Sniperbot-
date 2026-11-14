@@ -1,0 +1,81 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "social",
+  "run_id": "social-20261113T233519Z-alternative-archive-audit",
+  "previous_run_id": "social-20261113T224323Z-frame0-diagnostic",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "STALLED",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md",
+      "json_paths": []
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/social/current.json",
+      "json_paths": [
+        "$.next_task",
+        "$.blockers",
+        "$.run_id"
+      ]
+    },
+    {
+      "original_url": "https://cache.pw/de/",
+      "accessed_at_utc": "2026-11-13T23:35:19Z",
+      "purpose": "Alternative archive-provider discovery; no historical capture"
+    },
+    {
+      "original_url": "https://api.sh/wayback-machine-api",
+      "accessed_at_utc": "2026-11-13T23:35:19Z",
+      "purpose": "Third-party API capability description only; no archive payload"
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "Read full PROTOCOL and current with SHA",
+      "result": "PASS",
+      "evidence": "current blob e6a31575e715967f29fdcff82b49626adf65bd8b"
+    },
+    {
+      "check": "Controller diagnostic decision exists and matches frame 0",
+      "result": "PASS",
+      "evidence": "input b20c20572ce2ee36c95ae4b05db1f6bef3865b94; decision feb5afc26b7d12ccd701358985812edd5e191bca"
+    },
+    {
+      "check": "Alternative archive-provider discovery",
+      "result": "PARTIAL",
+      "evidence": "cache.pw lists archive.today; api.sh describes Wayback wrapper. No candidate-specific capture, capture timestamp, or original body retrieved"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Alternative archive providers identified, but no 2023 as-of archived social original with matching body verified. No candidate discovery.",
+      "as_of_utc": "2026-11-13T23:35:19Z",
+      "evidence_ref": "https://cache.pw/de/; https://api.sh/wayback-machine-api",
+      "evidence_limit": "Provider descriptions only; no candidate-specific snapshot or historical social content",
+      "origin": "OWN_SOURCE_ACCESS_AUDIT"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "MISSING_AS_OF_CAPTURE",
+      "detail": "No candidate-specific 2023 archive capture with independently retrievable original body; archive.today not queried for a specific URL because no independently selected original URL is available"
+    },
+    {
+      "code": "MISSING_HISTORICAL_ENGAGEMENT_SNAPSHOTS",
+      "detail": "Parked: no authenticated 2023 interaction snapshots"
+    }
+  ],
+  "next_task": "Obtain an independently selected, date-bounded original social post URL (not from retrospective winner lists); query alternative archive for pre-evaluation capture timestamp and matching archived body; otherwise keep BLOCKED and move to independent historical URL discovery.",
+  "peer_receipts": []
+}

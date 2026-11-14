@@ -1,0 +1,65 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "scout",
+  "run_id": "scout-20261114T0737Z-candidate-manifest-stalled-01",
+  "previous_run_id": "scout-20261114T0608Z-branch-tree-manifest-absence-01",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "STALLED",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/scout/current.json",
+      "sha": "a1960447c949e739462d91970d202ce9ee5aedb8",
+      "used_json_paths": [
+        "$.next_task",
+        "$.run_id",
+        "$.candidate.id",
+        "$.blockers"
+      ]
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "read_protocol_and_moving_current",
+      "result": "PASS"
+    },
+    {
+      "check": "evaluate_next_task_manifest_requirement",
+      "result": "BLOCKED_MISSING_TIMESTAMPED_CANDIDATE_UNIVERSE_AND_PREDECLARED_MOVEMENT_CUTOFF"
+    }
+  ],
+  "findings": [],
+  "blockers": [
+    {
+      "question": "Independent creation receipt status and block header",
+      "reason": "Immutable pool logs corroborate creation hash and timestamp, but no independently checked creation receipt or block header in this run.",
+      "required_input": "Historical creation transaction receipt and canonical block header for 17046833"
+    },
+    {
+      "question": "As-of-safe evaluation before later price movement",
+      "reason": "Controller-defined subsequent movement cutoff and price trajectory not provided. A known-winner historical case is not an independent discovery.",
+      "required_input": "Controller-defined movement cutoff and historical as-of-safe candidate-universe data"
+    },
+    {
+      "question": "Independent non-PEPE candidate-universe as-of records",
+      "reason": "No accessible enumerated 2023-04-15..2023-05-14 source with timestamp, chain, token and pool identity; guessed paths returned 404 and default-branch search cannot enumerate moving branch.",
+      "required_input": "Exact moving-branch path or read-only indexed manifest of timestamped 2023 Ethereum candidate-universe records, including contract/pool identifiers and source provenance."
+    }
+  ],
+  "next_task": "STALLED: require exact accessible independently timestamped 2023-04-15..2023-05-14 Ethereum non-PEPE candidate-universe manifest with chain/token/pool and as-of provenance plus predeclared movement cutoff. Do not retry absent branch paths.",
+  "peer_receipts": [],
+  "notes": "No new independently timestamped non-PEPE manifest or cutoff supplied. Existing complete branch-tree check already established absence in previous snapshot; no repeated absent-path requests. No independent discovery, no trading."
+}
