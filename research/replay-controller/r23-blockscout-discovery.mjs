@@ -60,8 +60,16 @@ export async function discoverBlockscout({base='https://eth.blockscout.com',from
   const logs=await legacy(base,{module:'logs',action:'getLogs',address:FACTORY,
    topic0:PAIR_TOPIC,fromBlock:next,toBlock:end},fetchFn);
   check(Array.isArray(logs)&&logs.length<1000,'ARCHIVE_PAGINATION_OR_TRUNCATION_RISK');
-  let included=0;
+  let included=0,ignoredNonPair=0;
   for(const log of logs){
+   // Some legacy explorer APIs return other factory events despite topic0.
+   // Filter strictly on the client, and NEVER weaken decodePair's validation.
+   if(log?.address?.toLowerCase()!==FACTORY ||
+      !Array.isArray(log?.topics) ||
+      log.topics[0]?.toLowerCase()!==PAIR_TOPIC){
+    ignoredNonPair++;
+    continue;
+   }
    const p=decodePair(log);
    check(p.block>=next&&p.block<=end,'ARCHIVE_LOG_OUTSIDE_RANGE');
    const b=await blockInfo(p.block);
@@ -81,7 +89,8 @@ export async function discoverBlockscout({base='https://eth.blockscout.com',from
    included++;
   }
   chunks.push({from_block:next,to_block:end,returned_log_count:logs.length,
-   eligible_quote_pair_events:included,second_provider_agreed:false});
+   ignored_non_pair_logs:ignoredNonPair,eligible_quote_pair_events:included,
+   second_provider_agreed:false});
   next=end+1;
  }
  const ids=new Set(),candidates=new Set();
