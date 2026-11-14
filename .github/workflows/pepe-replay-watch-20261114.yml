@@ -14,6 +14,7 @@ concurrency:
 jobs:
   inspect:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       active: ${{ steps.window.outputs.active }}
     steps:
@@ -64,6 +65,7 @@ jobs:
           if-no-files-found: error
   persist:
     needs: inspect
+    timeout-minutes: 10
     if: needs.inspect.outputs.active == 'true'
     runs-on: ubuntu-latest
     permissions:
