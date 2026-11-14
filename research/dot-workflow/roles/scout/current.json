@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "scout",
-  "run_id": "scout-20261114T0129Z-theblock-apr18-provisional-01",
-  "previous_run_id": "scout-20261114T0029Z-apr18-coindesk-provisional-01",
+  "run_id": "scout-20261114T0224Z-apr15-embedded-post-01",
+  "previous_run_id": "scout-20261114T0129Z-theblock-apr18-provisional-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -93,6 +93,33 @@
       "as_of_utc": "2023-04-18T14:08:00Z",
       "retrieval": "2026-11-14 web search result",
       "evidence_class": "HISTORICAL_PUBLICATION_TODAY_RETRIEVED_PROVISIONAL"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md",
+      "sha": "2503f1dc2fd00ede9e03edc2a8270e1180b85457"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/scout/current.json",
+      "sha": "125b80aaaa91a9b9bbe71ccb595a7d1714f3e56e",
+      "used_json_paths": [
+        "$.next_task",
+        "$.candidate",
+        "$.blockers"
+      ]
+    },
+    {
+      "url": "https://tradecrypto.com/news/memecoin-news/pepe-memecoin-hype/",
+      "retrieval": "2026-11-14, focused historical search and page read; article label 2023-04-18",
+      "evidence_class": "PROVISIONAL"
+    },
+    {
+      "url": "https://twitter.com/pepecoineth/status/1647076160705032192",
+      "retrieval": "embedded pointer click returned HTTP 403",
+      "evidence_class": "UNVERIFIED_ORIGINAL"
     }
   ],
   "completed_checks": [
@@ -147,6 +174,18 @@
     {
       "check": "immutable_original_article_version",
       "result": "NOT_AUTHENTICATED"
+    },
+    {
+      "check": "distinct_apr15_17_original_social_pointer",
+      "result": "APR15_EMBEDDED_POST_ID_FOUND_PROVISIONAL"
+    },
+    {
+      "check": "original_apr15_x_post_direct_read",
+      "result": "BLOCKED_HTTP_403"
+    },
+    {
+      "check": "snowflake_timestamp_decode",
+      "result": "DERIVED_NOT_AUTHENTICATED"
     }
   ],
   "findings": [
@@ -181,6 +220,14 @@
       "evidence_class": "HISTORICAL_PUBLICATION_TODAY_RETRIEVED_PROVISIONAL",
       "evidence_limit": "Publication label found in current indexed page, no immutable April 18 capture; 266x move already occurred; no historical contract/pool/quote validation.",
       "provenance": "OWN_CHECK"
+    },
+    {
+      "claim": "TradeCrypto article labelled 2023-04-18 embeds @pepecoineth status 1647076160705032192 labelled April 15 2023; Twitter Snowflake decoding gives 2023-04-15T03:15:32.564Z. This is a distinct retrospective pointer to an April 15 social post, NOT independent confirmation of original public availability, original text, or contemporaneous token/pool identity.",
+      "as_of_utc": "2023-04-15T03:15:32.564Z",
+      "evidence_ref": "https://tradecrypto.com/news/memecoin-news/pepe-memecoin-hype/ ; https://twitter.com/pepecoineth/status/1647076160705032192",
+      "evidence_class": "RETROSPECTIVE_EMBEDDED_POINTER_PROVISIONAL",
+      "evidence_limit": "Current publisher page not independently archived as of April 18; original X URL returns HTTP 403; timestamp only mathematically derived from status ID; source content and accessibility at time unauthenticated; no historical tradability/independent safety verification.",
+      "provenance": "OWN_CHECK"
     }
   ],
   "blockers": [
@@ -213,9 +260,14 @@
       "question": "Authenticate The Block original April 18 edition",
       "reason": "No independently timestamped immutable original snapshot read",
       "required_input": "Publisher revision history or dated archived snapshot before evaluation cutoff"
+    },
+    {
+      "question": "Authenticate Apr15 03:15:32 UTC original X status 1647076160705032192",
+      "reason": "Direct X fetch HTTP 403 and publisher article read today has no independently authenticated Apr15 post capture",
+      "required_input": "Immutable original post/archive with UTC capture and contemporaneous contract/pool linkage"
     }
   ],
-  "next_task": "Park Apr18 The Block as late-stage PROVISIONAL coverage. Inspect a distinct original Apr15–17 source or immutable onchain/social timestamp that could precede a defined subsequent movement; do not reuse edited CoinDesk, BOBO, or The Block without new archival evidence. If unavailable report DATA_GAP/STALLED with required feed access.",
+  "next_task": "Park April 15 embedded post as PROVISIONAL. Find a genuinely independent original April 15–17 time-authenticated social record or immutable onchain evidence preceding a specifically defined later movement, excluding previously checked embedded posts and edited publisher pages; without access mark DATA_GAP/STALLED and name missing archive feed.",
   "peer_receipts": [],
-  "notes": "2 targeted historical web searches; The Block distinct April 18 publisher found but not early signal; no live market data or trading operations."
+  "notes": "2 targeted historical web searches, 1 article page read, 1 X link attempt (HTTP 403), offline Snowflake decode. No trading, no live coin discovery; historical winner diagnostic only."
 }
