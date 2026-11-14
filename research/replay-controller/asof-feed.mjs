@@ -134,7 +134,10 @@ export function compileAsOfCorpus(corpus,{resolution='day'}={}){
  }])); // Cannot attest independent agent contexts in a dataset compiler.
  const dataset={
   schema:'isolated_replay.v1',data_class:'HISTORICAL',
-  window,ticks,events,universe,contexts
+  window,ticks,events,universe,contexts,
+  // Model pretraining can still contain later winners even in fresh chats.
+  // Identity masking and independent review cannot be self-certified here.
+  blinding:{identities_pseudonymized:false,pretraining_leakage_reviewed:false,independent_attestation:null}
  };
  validateDataset(dataset);
  const audit={
