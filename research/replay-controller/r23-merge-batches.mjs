@@ -70,15 +70,24 @@ export function mergeBatches(batches,{target=50}={}){
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  try{
-  const [output,...files]=process.argv.slice(2);
-  check(output&&files.length>0,'USAGE: node r23-merge-batches.mjs OUTPUT.json BATCH1.json [BATCH2.json ...]');
+  const [output,...args]=process.argv.slice(2);
+  const corpusArgs=args.filter(x=>x.startsWith('--corpus-output='));
+  check(corpusArgs.length<=1,'MULTIPLE_CORPUS_OUTPUTS');
+  const corpusOutput=corpusArgs.length?corpusArgs[0].slice('--corpus-output='.length):null;
+  const files=args.filter(x=>!x.startsWith('--corpus-output='));
+  check(output&&files.length>0,'USAGE: node r23-merge-batches.mjs OUTPUT.json BATCH1.json [BATCH2.json ...] [--corpus-output=PRIVATE/asof.json]');
   check(!fs.existsSync(output),'OUTPUT_ALREADY_EXISTS');
+  check(!corpusOutput||(corpusOutput!==output&&!fs.existsSync(corpusOutput)),'CORPUS_OUTPUT_ALREADY_EXISTS');
   const result=mergeBatches(files.map(f=>JSON.parse(fs.readFileSync(f,'utf8'))));
   fs.mkdirSync(path.dirname(path.resolve(output)),{recursive:true});
+  if(corpusOutput){
+   fs.mkdirSync(path.dirname(path.resolve(corpusOutput)),{recursive:true});
+   fs.writeFileSync(corpusOutput,JSON.stringify(result.asof_corpus,null,2)+'\n',{flag:'wx'});
+  }
   fs.writeFileSync(output,JSON.stringify(result,null,2)+'\n',{flag:'wx'});
   console.log(JSON.stringify({pool_candidates:result.distinct_pool_candidates,
    memecoins_verified:result.verified_memecoins,batches:files.length,
    sources_cross_checked:result.all_sources_cross_checked,
-   status:result.readiness,output}));
+   status:result.readiness,output,corpusOutput}));
  }catch(e){console.error('R23_MERGE_BLOCKED: '+String(e.message).slice(0,190));process.exitCode=2;}
 }
