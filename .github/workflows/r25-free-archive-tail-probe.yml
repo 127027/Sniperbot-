@@ -1,0 +1,54 @@
+name: R25 free Ethereum archive tail capability probe (April-May 2023)
+on:
+  push:
+    branches: ['codex/dots-pepe-replay-20261113']
+    paths: ['.github/workflows/r25-free-archive-tail-probe.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  free-historical-access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_RESEARCH_READ: '0'
+      SNIPER_RESEARCH_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Try tiny read-only Ethereum archival queries without keys
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const endpoints=['https://eth.drpc.org','https://eth.llamarpc.com',
+            'https://rpc.ankr.com/eth','https://ethereum.blockpi.network/v1/rpc/public'];
+          const factory='0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f';
+          const topic='0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9';
+          async function rpc(url,method,params){
+            const res=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},
+              body:JSON.stringify({jsonrpc:'2.0',id:1,method,params}),signal:AbortSignal.timeout(12000)});
+            if(!res.ok)throw Error('HTTP_'+res.status);
+            const body=await res.json();
+            if(body.error)throw Error('RPC_'+String(body.error.code??'UNKNOWN'));
+            return body.result;
+          }
+          const results=[];
+          for(const url of endpoints){
+            try{
+              if(await rpc(url,'eth_chainId',[])!=='0x1')throw Error('WRONG_CHAIN');
+              const b=await rpc(url,'eth_getBlockByNumber',['0x'+(17050000).toString(16),false]);
+              if(!b?.timestamp)throw Error('HISTORICAL_BLOCK_UNAVAILABLE');
+              const x=await rpc(url,'eth_getLogs',[{address:factory,topics:[topic],
+                fromBlock:'0x'+(17050000).toString(16),
+                toBlock:'0x'+(17050009).toString(16)}]);
+              if(!Array.isArray(x))throw Error('INVALID_LOGS');
+              results.push({url,status:'HISTORIC_LOG_QUERY_OK',block_time:parseInt(b.timestamp,16),
+                log_count:x.length});
+            }catch(e){results.push({url,status:'BLOCKED',reason:String(e.message).slice(0,85)})}
+          }
+          console.log(JSON.stringify({mode:'NO_PAID_API_READ_ONLY',results}));
+          console.log('No wallet, model, order or full cohort was executed.');
+          NODE
