@@ -92,11 +92,13 @@ export async function discoverPairs({primary,secondary,fromBlock,toBlock,step=12
   for(const log of primaryLogs){
    const p=decodePair(log);
    need(p.block>=next&&p.block<=end,'LOG_OUTSIDE_REQUESTED_BLOCKS');
+   // Fast path: skip block-header RPC for pairs outside fixed quote policy.
+   // Factory log decoding and out-of-range checks still apply to all logs.
+   const c=poolCandidate(p);
+   if(!c)continue;
    const b=await getBlock(p.block);
    need(b.hash===p.block_hash,'BLOCK_HASH_DISAGREES');
    if(time(b.at)<time(windowStart)||time(b.at)>time(windowEnd))continue;
-   const c=poolCandidate(p);
-   if(!c)continue;
    const original=JSON.stringify({chain:'ethereum',factory:FACTORY,block:p.block,block_hash:p.block_hash,tx_hash:p.tx_hash,
     log_index:p.log_index,token0:p.token0,token1:p.token1,pool:p.pool,block_time:b.at});
    rows.push({id:'pair:'+p.tx_hash.slice(2)+':'+p.log_index,kind:'POOL',candidate_id:c.candidate_id,
