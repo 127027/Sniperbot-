@@ -22,17 +22,19 @@ const address=s=>typeof s==='string'&&/^0x[0-9a-fA-F]{40}$/.test(s);
 const id=s=>typeof s==='string'&&/^0x[0-9a-fA-F]{64}$/.test(s);
 const lc=s=>s.toLowerCase();
 const safeRpcUrl=u=>{need(/^https:\/\//.test(u||''),'HTTPS_RPC_REQUIRED');return u};
-export function decodePair(log){
+export function decodePair(log,{permitMissingBlockHash=false}={}){
  need(lc(log.address||'')===FACTORY,'WRONG_FACTORY');
  need(Array.isArray(log.topics)&&log.topics.length===3&&lc(log.topics[0])===PAIR_TOPIC,'WRONG_TOPIC');
  need(log.topics.slice(1).every(x=>id(x)&&/^0{24}[0-9a-f]{40}$/.test(x.slice(2).toLowerCase())),'INVALID_TOKEN_TOPIC');
  need(/^0x[0-9a-fA-F]{128}$/.test(log.data||''),'INVALID_PAIR_DATA');
- need(id(log.transactionHash)&&id(log.blockHash)&&/^0x[0-9a-fA-F]+$/.test(log.blockNumber||'')&&/^0x[0-9a-fA-F]+$/.test(log.logIndex||''),'INVALID_LOG_ID');
+ const blockHashValid=id(log.blockHash);
+ need(id(log.transactionHash)&&(blockHashValid||(permitMissingBlockHash&&log.blockHash==null))&&
+  /^0x[0-9a-fA-F]+$/.test(log.blockNumber||'')&&/^0x[0-9a-fA-F]+$/.test(log.logIndex||''),'INVALID_LOG_ID');
  need(log.removed!==true,'REORGED_LOG');
  const token0='0x'+log.topics[1].slice(-40).toLowerCase(),token1='0x'+log.topics[2].slice(-40).toLowerCase();
  const pool='0x'+log.data.slice(26,66).toLowerCase();
  need(address(pool)&&token0!==token1,'INVALID_PAIR_ADDRESS');
- return {token0,token1,pool,block:Number(BigInt(log.blockNumber)),block_hash:lc(log.blockHash),
+ return {token0,token1,pool,block:Number(BigInt(log.blockNumber)),block_hash:blockHashValid?lc(log.blockHash):null,
   tx_hash:lc(log.transactionHash),log_index:Number(BigInt(log.logIndex))};
 }
 export function poolCandidate(pair){
