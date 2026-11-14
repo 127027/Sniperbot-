@@ -47,6 +47,13 @@ test('legacy explorer trailing null topic padding is normalized without acceptin
  assert.equal(result.distinct_pool_candidates,1);
  assert.equal(result.chunks[0].ignored_non_pair_logs,1);
 });
+test('legacy archive omits blockHash and uses decimal indices; still not independently verified',async()=>{
+ const raw={...log(13),blockNumber:'100',logIndex:'0',blockHash:undefined};
+ const x=await discoverBlockscout({...opts,fetchFn:fake([raw])});
+ assert.equal(x.distinct_pool_candidates,1);
+ assert.equal(x.asof_corpus.sources[0].proof.verified,false);
+ assert.match(x.asof_corpus.sources[0].proof.original,/ARCHIVE_BLOCK_LOOKUP_ONLY/);
+});
 test('archive timestamp-to-block selection uses dates instead of winner IDs',async()=>{
  const x=await dateBlockRangeBlockscout(opts.base,opts.windowStart,opts.windowEnd,fake([]));
  assert.deepEqual(x,{fromBlock:100,toBlock:100});
