@@ -162,9 +162,8 @@ def evaluate(data,frequency):
                 size=round(size,2)
                 if size<MIN_ORDER:continue
                 bar=symbols[symbol][ix]
-                if bar["o"]<=0 or bar["qv"]<MIN_ORDER*3:continue
-                # Cannot use today's volume to decide: bar.qv is only an execution
-                # plausibility caveat. The strategy must not branch on it.
+                if bar["o"]<=0:continue
+                # Never inspect future candle volume/high/low/close as a decision input.
                 size=min(round(size,2),round(remaining,2))
                 entry_fee=size*FEE
                 entry_after_fee=size-entry_fee
