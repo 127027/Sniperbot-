@@ -64,13 +64,16 @@ export async function discoverBlockscout({base='https://eth.blockscout.com',from
   for(const log of logs){
    // Some legacy explorer APIs return other factory events despite topic0.
    // Filter strictly on the client, and NEVER weaken decodePair's validation.
+   // Legacy archive providers may pad topics arrays with trailing nulls.
+   // Trim ONLY null padding: never discard a real fourth indexed topic.
+   const topics=Array.isArray(log?.topics)?[...log.topics]:[];
+   while(topics.length>3&&topics.at(-1)===null)topics.pop();
    if(log?.address?.toLowerCase()!==FACTORY ||
-      !Array.isArray(log?.topics) ||
-      log.topics[0]?.toLowerCase()!==PAIR_TOPIC){
+      topics.length!==3 || topics[0]?.toLowerCase()!==PAIR_TOPIC){
     ignoredNonPair++;
     continue;
    }
-   const p=decodePair(log);
+   const p=decodePair({...log,topics});
    check(p.block>=next&&p.block<=end,'ARCHIVE_LOG_OUTSIDE_RANGE');
    const b=await blockInfo(p.block);
    check(b.hash===p.block_hash,'ARCHIVE_BLOCK_HASH_CONFLICT');
