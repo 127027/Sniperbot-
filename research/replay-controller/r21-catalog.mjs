@@ -33,7 +33,16 @@ export function validateCaseCatalog(catalog){
   check(c.labels_path!==c.dataset_path,'R21_LABELS_AND_DATASET_PATH_MUST_DIFFER');
   check(['DIAGNOSTIC','BLIND'].includes(c.mode),'R21_BAD_CASE_MODE');
   check(c.enabled===undefined||typeof c.enabled==='boolean','R21_BAD_ENABLED_FLAG');
+  if(c.window){
+   const start=Date.parse(c.window.start),end=Date.parse(c.window.end);
+   check(Number.isFinite(start)&&Number.isFinite(end)&&end>start,'R21_BAD_CASE_WINDOW');
+   check(c.window.start.endsWith('T00:00:00Z')&&c.window.end.endsWith('T23:59:59Z'),
+    'R21_CASE_WINDOW_NOT_FULL_UTC_DAYS');
+   check(end-start+1000===62*86400000,'R21_CASE_WINDOW_NOT_62_DAYS');
+  }
  }
+ const reserved=catalog.cases.filter(c=>c.window).map(c=>({id:c.case_id,start:Date.parse(c.window.start),end:Date.parse(c.window.end)})).sort((a,b)=>a.start-b.start);
+ for(let i=1;i<reserved.length;i++)check(reserved[i].start>reserved[i-1].end,'R21_CASE_WINDOWS_OVERLAP');
  return {
   declared_cases:catalog.cases.length,target_case_count:catalog.target_case_count,
   enabled_cases:catalog.cases.filter(c=>c.enabled!==false).length,
@@ -76,6 +85,8 @@ export async function runCaseCatalog(catalog,{loadDataset,loadLabels,invokeRole,
    validateDataset(dataset);
    check(dataset.window&&dataset.universe?.selection==='ASOF_COHORT',
     'R21_CASE_MUST_HAVE_NEUTRAL_WINDOW_LOCK');
+   if(c.window)check(dataset.window.start===c.window.start&&
+    dataset.window.end===c.window.end,'R21_LOADED_DATASET_WINDOW_MISMATCH');
    const hash=digest(dataset);
    check(!seenDigests.has(hash),'R21_DUPLICATE_DATASET_CONTENT_IN_BATCH');
    seenDigests.set(hash,c.case_id);
