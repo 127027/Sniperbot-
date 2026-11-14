@@ -1,0 +1,116 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "scout",
+  "run_id": "scout-20261114T0307Z-immutable-buy-receipt-01",
+  "previous_run_id": "scout-20261114T0254Z-independent-early-source-gap-01",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "DATA_GAP",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md",
+      "sha": "2503f1dc2fd00ede9e03edc2a8270e1180b85457"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/scout/current.json",
+      "sha": "dcb68c68df5c8729d181bc8ed9abd16287128f2d",
+      "used_json_paths": [
+        "$.next_task",
+        "$.candidate.id",
+        "$.blockers",
+        "$.run_id"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/first-swaps.json",
+      "used_json_paths": [
+        "$[0].time",
+        "$[0].block",
+        "$[0].tx",
+        "$[0].logIndex"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/receipt_BUY_PEPE.json",
+      "used_json_paths": [
+        "$.result.status",
+        "$.result.blockNumber",
+        "$.result.blockHash",
+        "$.result.transactionHash",
+        "$.result.logs[3].address",
+        "$.result.logs[3].topics",
+        "$.result.logs[5].address",
+        "$.result.logs[5].topics[0]",
+        "$.result.logs[5].blockTimestamp",
+        "$.result.logs[5].logIndex"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/blockscout_pool_address.json",
+      "used_json_paths": [
+        "$.hash",
+        "$.creation_transaction_hash",
+        "$.name"
+      ],
+      "usage": "retrospective identity crosscheck only; do not treat current metadata as 2023 state"
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "read_protocol_and_moving_current",
+      "result": "PASS"
+    },
+    {
+      "check": "immutable_raw_dataset_file_discovery",
+      "result": "PASS_COMMIT_0713332"
+    },
+    {
+      "check": "apr14_swap_receipt_status_and_pool_address",
+      "result": "PASS_HISTORICAL_RECEIPT_IN_SNAPSHOT"
+    },
+    {
+      "check": "block_timestamp_and_receipt_match",
+      "result": "PASS_2023-04-14T17:34:47Z"
+    },
+    {
+      "check": "pool_creation_time_and_pre_movement_evaluation_cutoff",
+      "result": "NOT_VERIFIED"
+    }
+  ],
+  "findings": [
+    {
+      "claim": "Immutable reference 0713332 includes successful Ethereum transaction receipt 0xc3760b499850b19d8f266dc10349d70f69c91698233697cbad2ee90ff957ed17 at block 17046900 (2023-04-14T17:34:47Z), with PEPE token Transfer log and Uniswap V2 Swap log emitted by pool 0xa43fe16908251ee70ef74718545e4fe6c5ccec9f; first-swaps.json labels this BUY_PEPE. This is a retrospective immutable historical transaction record, not an independently achieved blind discovery.",
+      "as_of_utc": "2023-04-14T17:34:47Z",
+      "evidence_ref": "research/pepe-replay-2023/raw/receipt_BUY_PEPE.json#$.result.logs[3],$.result.logs[5]; research/pepe-replay-2023/first-swaps.json#$[0]",
+      "evidence_class": "HISTORICAL_ONCHAIN_RECEIPT_IN_IMMUTABLE_REPOSITORY",
+      "evidence_limit": "No independent pool creation receipt/block time or defined subsequent evaluation movement cutoff validated in this run; present-day pool metadata cannot establish contemporaneous public discovery, tradability beyond this recorded swap, or safety.",
+      "provenance": "OWN_CHECK"
+    }
+  ],
+  "blockers": [
+    {
+      "question": "Prove pool creation time and assess candidate before explicitly defined later price-movement cutoff",
+      "reason": "Historical BUY swap receipt verifies transaction at Apr 14 17:34:47 UTC, but pool creation transaction 0x273894b35d8c30d32e1ffa22ee6aa320cc9f55f2adbba0583594ed47c031f6f6 lacks verified historical receipt timestamp in this check; no evaluation cutoff supplied.",
+      "required_input": "Pool creation transaction receipt and block timestamp plus controller-defined movement cutoff/price history from as-of-safe data"
+    }
+  ],
+  "next_task": "Verify the pool-creation transaction 0x273894b35d8c30d32e1ffa22ee6aa320cc9f55f2adbba0583594ed47c031f6f6 from immutable 0713332 dataset, checking block timestamp and pool address; then request/locate a controller-defined later evaluation cutoff without future-label leakage. If missing, park DATA_GAP and move to an independent candidate.",
+  "peer_receipts": [],
+  "notes": "Focused immutable repo analysis; no external web requests, no trading actions. Prior provisional social findings are not revalidated or copied as new discoveries."
+}
