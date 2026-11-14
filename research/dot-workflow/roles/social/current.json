@@ -1,18 +1,42 @@
 {
   "schema": "dot_research_state.v1",
   "role": "social",
-  "run_id": "social-20261114T073919Z-chad-pool-retrospective",
-  "previous_run_id": "social-20261114T063517Z-chad-original-provisional",
+  "run_id": "social-20261114T093943Z-diagnostic-frame00001",
+  "previous_run_id": "social-20261114T073919Z-chad-pool-retrospective",
   "candidate": {
-    "id": "ethereum:0xb4577d084f289e696ddfac178c11663e573900f1:0xf256a36b03ff5375a2c9b6861d31005efd2b2f8f",
-    "symbol": "CHAD",
-    "selection": "INDEPENDENT_PROVISIONAL_RESEARCH_NOT_BLIND_DISCOVERY",
-    "as_of_utc": null
+    "id": "NONE_VISIBLE_IN_FRAME",
+    "symbol": null,
+    "selection": "DIAGNOSTIC_FRAME_00001_NO_EVENTS",
+    "as_of_utc": "2023-03-15T23:59:59Z"
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
-  "status": "BLOCKED",
+  "status": "NO_PROGRESS",
   "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/TEMPORAL_REPLAY_PROTOCOL.md",
+      "blob_sha": "274129bc2657e009dd98ad5427d6a43ab54314b3"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/temporal-public/status.json",
+      "blob_sha": "5e46cc3d0ec48030d7a4733ae19f340d2ac3ece5"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/monitor/status.json",
+      "blob_sha": "c5d630a383ca21d59c8aec85afd0eb987d60d28e"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/social/current.json",
+      "blob_sha": "b5e1e4c063c546c7daa4cb1ea67cb30ad9d2d9f9"
+    },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
@@ -22,96 +46,62 @@
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/dot-workflow/roles/social/current.json",
-      "blob_sha": "b49d3ceb4078e42e293a3e487c05ebd3e00ae7de",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00001/input.json",
+      "blob_sha": "091236f52311d9ca1a373f2bb5ab6c3e57baf18e",
       "json_paths": [
-        "$.next_task",
-        "$.blockers",
-        "$.run_id"
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.events"
       ]
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-first-frame/input.json",
-      "blob_sha": "b20c20572ce2ee36c95ae4b05db1f6bef3865b94"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-first-frame/decisions/social.json",
-      "blob_sha": "feb5afc26b7d12ccd701358985812edd5e191bca"
-    },
-    {
-      "original_url": "https://www.reddit.com/r/memecoinmoonshots/comments/13esjfx",
-      "posted_date": "2023-05-11",
-      "as_of_capture_verified": false
-    },
-    {
-      "original_url": "https://ethplorer.io/address/0xb4577d084f289e696ddfac178c11663e573900f1",
-      "verification_time_utc": "2026-11-14T07:39:19Z"
-    },
-    {
-      "original_url": "https://whattofarm.io/pairs/ethereum-uniswapv-chad-weth-created-2023-05-07",
-      "verification_time_utc": "2026-11-14T07:39:19Z"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00001/decisions/social.json",
+      "blob_sha": "f08c5362ad22bcd4b8e3da873ddb7bead57cd895"
     }
   ],
   "completed_checks": [
     {
-      "check": "Protocol and own moving current read",
+      "check": "Neutral replay status",
+      "result": "NOT_STARTED",
+      "evidence": "mode=NOT_STARTED; no neutral public frames"
+    },
+    {
+      "check": "Diagnostic monitor current frame",
       "result": "PASS",
-      "evidence": "protocol blob 2503f1dc2fd00ede9e03edc2a8270e1180b85457; current blob b49d3ceb4078e42e293a3e487c05ebd3e00ae7de"
+      "evidence": "frame_index=1, total_frames=62, mode=DIAGNOSTIC_ONLY"
     },
     {
-      "check": "Replay frame0 existing social decision",
+      "check": "Frame 00001 social decision",
       "result": "PASS",
-      "evidence": "index=0, at=2023-03-14T23:59:59Z, events=[], reviews=[], orders=[], matching input_hash; existing decision unchanged"
-    },
-    {
-      "check": "Independent Ethereum token and pool identity",
-      "result": "RETROSPECTIVE_CORROBORATION",
-      "evidence": "Ethplorer ERC20 token 0xb457...00f1 and WhatToFarm Ethereum Uniswap V3 CHAD/WETH pool 0xf256...2f8f; third-party index says created 2023-05-07, unverified against historical onchain event"
-    },
-    {
-      "check": "Authenticated 2023 social snapshot and engagement",
-      "result": "NOT_VERIFIED",
-      "evidence": "No contemporaneous archive capture or historic engagement snapshot"
+      "evidence": "index=1; at=2023-03-15T23:59:59Z; events=[]; reviews=[]; orders=[]; input_hash matches; decision readback blob f08c5362ad22bcd4b8e3da873ddb7bead57cd895"
     }
   ],
   "findings": [
     {
-      "statement": "Independent current third-party index identifies CHAD as Ethereum ERC20 at 0xb4577d084f289e696ddfac178c11663e573900f1, and another current index pairs it with Ethereum Uniswap V3 CHAD/WETH pool 0xf256a36b03ff5375a2c9b6861d31005efd2b2f8f.",
-      "as_of_utc": "2026-11-14T07:39:19Z",
-      "evidence_ref": "https://ethplorer.io/address/0xb4577d084f289e696ddfac178c11663e573900f1 ; https://whattofarm.io/pairs/ethereum-uniswapv-chad-weth-created-2023-05-07",
-      "evidence_limit": "Retrospective provider pages, not 2023 captures; pool creation date not independently validated via historical chain event; not evidence that social signal was available before price movement.",
-      "origin": "OWN_SOURCE_CHECK"
-    },
-    {
-      "statement": "Search-indexed Reddit post dated 2023-05-11 mentions the matching CHAD token contract, but no authenticated contemporaneous capture was retrieved.",
-      "as_of_utc": "2026-11-14T07:39:19Z",
-      "evidence_ref": "https://www.reddit.com/r/memecoinmoonshots/comments/13esjfx",
-      "evidence_limit": "Current index can reflect later edits; visible votes are not historical snapshots; not blindtest-eligible.",
-      "origin": "OWN_SOURCE_CHECK"
+      "statement": "Diagnostic frame 00001 contains zero visible events; no candidate can be reviewed and no social discovery is established.",
+      "as_of_utc": "2023-03-15T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00001/input.json",
+      "evidence_limit": "Only a diagnostic frame; no neutral blind test, no evidence of historical social coverage or price movement.",
+      "origin": "OWN_FRAME_CHECK"
     }
   ],
   "blockers": [
     {
-      "code": "MISSING_AS_OF_CAPTURE",
-      "detail": "No authenticated 2023 archive of original CHAD post"
+      "code": "NO_VISIBLE_SOCIAL_EVENTS",
+      "detail": "Current published diagnostic frame events=[]; reviews=[] and orders=[] are required."
     },
     {
-      "code": "MISSING_HISTORICAL_ENGAGEMENT_SNAPSHOTS",
-      "detail": "No time-specific vote/comment measurements"
+      "code": "NEUTRAL_REPLAY_NOT_STARTED",
+      "detail": "temporal-public/status.json mode=NOT_STARTED; no neutral frame available."
     },
     {
-      "code": "HISTORICAL_POOL_CREATION_NOT_VERIFIED",
-      "detail": "Third-party creation date 2023-05-07 needs onchain transaction/block-time validation"
-    },
-    {
-      "code": "MOVEMENT_TIMING_UNVERIFIED",
-      "detail": "No contemporaneous price/movement boundary to establish pre-movement signal"
+      "code": "AWAITING_OTHER_ROLE_VOTES",
+      "detail": "Monitor reported scout, onchain, security, qa missing for frame 1 at read time."
     }
   ],
-  "next_task": "Park CHAD social as-of and engagement questions; validate the CHAD/WETH Uniswap V3 pool creation transaction/block timestamp independently using historical Ethereum chain data, then only if verified assess social-post timing against evaluated movement. Do not repeat blocked Reddit/CDX fetches.",
+  "next_task": "On next run read temporal-public/status.json and monitor/status.json anew; process only the newly published current frame. Do not revisit frame 00001 unless a new mismatch is reported.",
   "peer_receipts": []
 }
