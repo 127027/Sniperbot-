@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261114T1445Z-frame00004-peer-barrier-23",
-  "previous_run_id": "qa-20261114T1345Z-r22-frame00004-22",
+  "run_id": "qa-20261114T1549Z-r22-frame00005-24",
+  "previous_run_id": "qa-20261114T1445Z-frame00004-peer-barrier-23",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -29,37 +29,49 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/replay-controller/monitor/r20-progress.json",
-      "sha": "a25688477f6a54e4c478be57ad4050c99909a155"
+      "sha": "528cae2d4f503b50321f40ab6a2836de0e37bcb5"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00004/input.json",
-      "sha": "a21fc041155de3f77a6a6a0bf4061e4aeb49488e"
+      "path": "research/replay-controller/runs/watch-20261114-diagnostic/commits/00004.json",
+      "sha": "c3e365c1728ad9129792370395071f2daa728751"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00004/decisions/qa.json",
-      "sha": "6453b6a7089126ef8dc13e12b12a8c2ed9027f65"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00005/input.json",
+      "sha": "4c2081d91cbe7f39041a6773ee79a617d3913863"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00004/decisions/scout.json",
-      "sha": "cd650afec3442d69ac450c6cc6383ee356de4267"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00005/decisions/scout.json",
+      "sha": "1c5d9545dfa1e8b541adf847c318303eb58f8413"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00004/decisions/social.json",
-      "sha": "0e1b88785536cca3e096b78672bde292dc91b17b"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00005/decisions/social.json",
+      "sha": "cb16fe4b96c268c41b9861b9445ad6345ddae6f7"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00004/decisions/onchain.json",
-      "sha": "2a9b42509fbd3929b63465f580c33847202fa179"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00005/decisions/onchain.json",
+      "sha": "21151062c1ab6c9692feb0bcb3c6659a8829adf1"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00005/decisions/security.json",
+      "sha": "b8cb4a6f2450e54e2491230ec47baeb664986fb6"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00005/decisions/qa.json",
+      "sha": "c07aa0b743e13be97324fa80a7678bcb7e6fecc6"
     }
   ],
   "completed_checks": [
@@ -69,43 +81,43 @@
     },
     {
       "check": "sealed_cursor",
-      "result": "00004 seal absent (GitHub 404); 00005 input absent (GitHub 404); current published 00004"
+      "result": "00004 sealed; 00005 input published; 00005 seal not independently checked"
     },
     {
-      "check": "frame00004",
-      "result": "index=4; at=2023-03-18T23:59:59Z; events=0; candidates=0; input_hash=70e87efe593dc869a2c685f08b170f184055eab80fe2babca2d6bedcc36eb33a"
+      "check": "frame00005",
+      "result": "index=5 at=2023-03-19T23:59:59Z; events=0 candidates=0; input_hash=648ba7f9296dc58dfb59b283a8d2e3d05b958592807d98a06c4330803c7db206"
     },
     {
       "check": "qa_vote",
-      "result": "Existing qa decision readback valid; no overwrite"
+      "result": "New genuine QA decision committed and read back"
     },
     {
       "check": "peer_votes",
-      "result": "scout/social/onchain valid, security missing; 4/5"
+      "result": "All five genuine role decisions read and matched; 5/5"
     }
   ],
   "findings": [
     {
-      "statement": "Frame 00004 is published and empty; four matching genuine role votes including QA exist. No new historical research evidence.",
-      "as_of_utc": "2023-03-18T23:59:59Z",
-      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00004/input.json",
-      "evidence_limit": "Diagnostic known-winner case; neutral test NOT_STARTED; security vote missing",
+      "statement": "Published diagnostic frame 00005 contains no events or candidates; all five matching role decisions exist, no hypothetical orders or historical discovery.",
+      "as_of_utc": "2023-03-19T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00005/input.json",
+      "evidence_limit": "Known-winner diagnostic, neutral NOT_STARTED; 5/5 decisions do not establish sealed controller advance",
       "origin": "OWN_GITHUB_READ"
     }
   ],
   "blockers": [
     {
-      "code": "BLOCKED_WAITING_FOR_PEERS",
-      "role": "security",
-      "required_input": "Genuine security decision for frame 00004 matching index=4, at and input_hash"
+      "code": "WAITING_FOR_CONTROLLER_ADVANCE",
+      "role": "controller",
+      "required_input": "Controller must seal frame 00005 and publish next frame chronologically"
     },
     {
       "code": "NEUTRAL_REPLAY_NOT_STARTED",
       "role": "controller",
-      "required_input": "Independent audited neutral historical corpus and clean executor"
+      "required_input": "Independently audited neutral as-of corpus and clean executor"
     }
   ],
-  "next_task": "Wait for genuine security vote on frame 00004 and controller sealing; check only next actually published frame.",
+  "next_task": "Verify sealing of frame 00005 and process only next actually published frame; never infer future data.",
   "peer_receipts": [
     {
       "role": "scout",
@@ -388,5 +400,5 @@
       "source_blob_sha": "974ac304d1fd6dbf6bdbbbe6346ca94f12220f1e"
     }
   ],
-  "notes": "DIAGNOSTIC_ONLY; 4/62; visible_candidates=0; new_asof_evidence=0; existing_qa_vote=true; 4/5 votes; NO_PROGRESS/NO_BUY/UNKNOWN."
+  "notes": "DIAGNOSTIC_ONLY 5/62, candidates=0, asof evidence=0, QA vote new and readback, 5/5, NO_PROGRESS/NO_BUY/UNKNOWN."
 }
