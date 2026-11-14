@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "security",
-  "run_id": "security-20261114T171039Z-r22-frame00007-01",
-  "previous_run_id": "security-20261114T162122Z-r22-frame00006-01",
+  "run_id": "security-20261114T185333Z-r22-frame00008-01",
+  "previous_run_id": "security-20261114T171039Z-r22-frame00007-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -349,6 +349,18 @@
         "events",
         "portfolio"
       ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00008/input.json",
+      "json_paths": [
+        "index",
+        "at",
+        "input_hash",
+        "events",
+        "portfolio"
+      ]
     }
   ],
   "completed_checks": [
@@ -379,7 +391,8 @@
     "R22: consecutive sealed commit 00003 confirmed; published diagnostic frame 00004 (2023-03-18T23:59:59Z) events=[]; own decision created/read back; all five role decisions hash-matched.",
     "R22 frame 00005 2023-03-19T23:59:59Z: published events=[]; own security decision created and read back with matching index, at, input_hash.",
     "R22 frame 00006 2023-03-20T23:59:59Z: published events=[]; own decision created and readback pending; 0 visible candidates and 0 new security evidence.",
-    "R22 frame 00007 2023-03-21T23:59:59Z: published events=[]; own decision created, matching index/at/input_hash; no visible candidates."
+    "R22 frame 00007 2023-03-21T23:59:59Z: published events=[]; own decision created, matching index/at/input_hash; no visible candidates.",
+    "R22 frame 00008 (2023-03-22T23:59:59Z) published after sealed 00007; events=[]; own matching security decision created and read back; 0 candidates, 0 new historical security evidence."
   ],
   "findings": [
     {
@@ -563,14 +576,25 @@
     "NEUTRAL_REPLAY_NOT_STARTED",
     "FRAME_00006_AWAITING_SOCIAL_ONCHAIN_QA_AND_CONTROLLER_SEAL",
     "NEUTRAL_REPLAY_NOT_STARTED",
-    "Frame 00007 not sealed; awaiting social, onchain, qa role decisions and controller seal; neutral replay NOT_STARTED."
+    "Frame 00007 not sealed; awaiting social, onchain, qa role decisions and controller seal; neutral replay NOT_STARTED.",
+    "Frame 00008 requires QA decision and central controller seal before next frame; neutral replay NOT_STARTED."
   ],
-  "next_task": "Check highest consecutive sealed diagnostic commit and its published next input; submit only missing own security decision for the current released frame.",
+  "next_task": "Verify contiguous seal 00008 and published frame 00009; process only newly authorized frame, otherwise wait without fabricating events.",
   "peer_receipts": [
     {
       "role": "scout",
-      "run_id": "scout-20261114T170549Z-r22-frame00007-01",
-      "result": "FRAME_00007_MATCHING_HASH"
+      "run_id": "scout-20261114T181221Z-r22-frame00008-01",
+      "result": "FRAME_00008_EMPTY_HASH_MATCH"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T184203Z-r22-frame00008",
+      "result": "FRAME_00008_EMPTY_HASH_MATCH"
+    },
+    {
+      "role": "onchain",
+      "run_id": "onchain-20261114T184544Z-frame00008-r22-20",
+      "result": "FRAME_00008_EMPTY_HASH_MATCH"
     }
   ]
 }
