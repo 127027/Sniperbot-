@@ -1,0 +1,41 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "security",
+  "run_id": "security-20261114T201000Z-r25-source-gate-01",
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "asof_cutoff": "2023-03-14T00:00:00Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "evidence": [],
+  "unknowns": [
+    {
+      "scope": "Ethereum Uniswap V2 all new pools 2023-03-14 through 2023-05-14",
+      "issue": "No independently validated neutral candidate IDs, pool creation block identifiers, as-of contract bytecode/state, historical sell-route execution, liquidity or LP ownership evidence supplied to security role in this run",
+      "required": "Neutral source batch with chain_id, candidate_id, pool_address, creation_block, transaction/log index, event_at and original-chain verification; at the relevant block verify runtime code, privileged rights, transfer/sellability and LP withdrawal exposure"
+    },
+    {
+      "scope": "Solana R24 June 2026",
+      "issue": "50 third-party export candidate mints are intake only, not independently timestamp-attested security evidence; 2026-06-18 is a source gap",
+      "required": "Mint addresses with independently verified launch slots and as-of mint/freeze authority, pool liquidity and executable sell route"
+    }
+  ],
+  "security_veto": "NO_BUY_UNTIL_VERIFIED",
+  "proposed_shadow_intents": [],
+  "historical_blind_success": false,
+  "wallet_or_paper_account_actions": 0,
+  "kpis": {
+    "new_candidates_security_reviewed": 0,
+    "new_valid_asof_security_events": 0,
+    "suspected_buy_signals": 0,
+    "explicit_data_gaps": 2
+  },
+  "source_documents": [
+    "research/replay-controller/R25_DISCOVERY_PROTOCOL.md",
+    "research/replay-controller/R24_PUBLIC_COHORT_HANDOFF.md"
+  ],
+  "next_task": "Consume the first neutral timestamped Ethereum pair-creation batch, verify candidate identity and historical block state, then evaluate all candidates for sellability/admin/blacklist/mint/LP drain without outcome labels",
+  "limitations": "This is a source-gate security audit, not a historical negative finding, candidate review, successful blind test or trade."
+}
