@@ -266,15 +266,15 @@ const server=createServer(async(req,res)=>{
   }catch{}
   return reply(res,200,{ok:true,mode:'PAPER_ONLY',
    device_id:localDevice.device_id,
-   signed_publisher_configured:Array.isArray(keys)&&
-    keys.some(k=>k.scope==='agent_execution'&&!k.revoked),
+   signed_publisher_configured:centralAiService!==null||(Array.isArray(keys)&&
+    keys.some(k=>k.scope==='agent_execution'&&!k.revoked)),
    total_receipts:receipts.length,
    received:receipts.length,
    paper_filled:receipts.filter(r=>r.status==='PAPER_FILLED').length,
    blocked:receipts.filter(r=>r.status==='BLOCKED').length,
    recent:receipts.slice(-30).reverse(),
    live_trading_enabled:false,
-   source_status:'SIGNED_LOCAL_ADAPTER_OR_GITHUB_COURIER',
+   source_status:'CENTRAL_AI_LOCAL_OR_SIGNED_LOCAL_ADAPTER',
    research_dots_direct_publisher_connected:false,
    github_feed:githubAgentFeedStatus,
    pipeline:summarizePaperPipeline({
@@ -287,7 +287,7 @@ const server=createServer(async(req,res)=>{
     topology:deviceTopology.mode,
     offline:process.env.SNIPER_OFFLINE==='1'
    }),
-   message:'Signierte lokale Agentenadapter können echte Paper-Fills auslösen. Die fünf Cloud-Forschungs-Dots publizieren bislang nur lesbare Research-Snapshots, nicht signierte Order-Kommandos.'});
+   message:'Zentrale KI und signierte Agentenadapter dürfen ausschließlich virtuelle Paper-Fills auf indikativen DEX-Quotes erzeugen. Echtgeldhandel bleibt gesperrt.'});
  }
  if(req.method==='POST'&&route==='/api/paper/publisher/trust'){
   if(!req.headers.origin||!corsAllowed(req))
@@ -841,7 +841,7 @@ const server=createServer(async(req,res)=>{
  commit(evaluate(n));return reply(res,200,{ok:true,state});
 });
 server.requestTimeout=10000;server.headersTimeout=10000;
-server.listen(port,'127.0.0.1',()=>console.log(`MEME SNIPER V0.9 PAPER GATEWAY (kein LIVE) http://127.0.0.1:${port}`));
+server.listen(port,'127.0.0.1',()=>console.log(`MEME SNIPER V0.21 PAPER GATEWAY (kein LIVE) http://127.0.0.1:${port}`));
 // Public GitHub presence is informational; a Follower NEVER trades on its own.
 if(process.env.SNIPER_OFFLINE!=='1'&&deviceTopology.mode==='FOLLOWER'){
  void refreshMasterConnection();
@@ -876,7 +876,7 @@ if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_RESEARCH_READ!=='0'){
 // pass local Ed25519 key registry plus local paper budget and market validation.
 // Only PAPER, never a real swap or wallet debit.
 if(process.env.SNIPER_OFFLINE!=='1'&&
- process.env.SNIPER_AGENT_PAPER_FEED!=='0'){
+ process.env.SNIPER_AGENT_PAPER_FEED==='1'){
  let reading=false;
  const poll=async()=>{
   if(reading||deviceTopology.mode!=='MASTER')return;
