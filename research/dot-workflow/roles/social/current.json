@@ -1,13 +1,13 @@
 {
   "schema": "dot_research_state.v1",
   "role": "social",
-  "run_id": "social-20261114T153530Z-r22-frame00005",
-  "previous_run_id": "social-20261114T144141Z-r22-frame00004-await-security",
+  "run_id": "social-20261114T164428Z-r22-frame00006",
+  "previous_run_id": "social-20261114T153530Z-r22-frame00005",
   "candidate": {
     "id": "NONE_VISIBLE_IN_FRAME",
     "symbol": null,
-    "selection": "DIAGNOSTIC_FRAME_00005_NO_EVENTS",
-    "as_of_utc": "2023-03-19T23:59:59Z"
+    "selection": "DIAGNOSTIC_FRAME_00006_NO_EVENTS",
+    "as_of_utc": "2023-03-20T23:59:59Z"
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
@@ -29,25 +29,25 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/replay-controller/monitor/r20-progress.json",
-      "blob_sha": "84e935baf1be92302fbb3f79b3dc342bc22ca68c"
+      "blob_sha": "f21999000e432992058e0961ee7ed147e087bbf8"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/runs/watch-20261114-diagnostic/commits/00004.json",
-      "blob_sha": "c3e365c1728ad9129792370395071f2daa728751"
+      "path": "research/replay-controller/runs/watch-20261114-diagnostic/commits/00005.json",
+      "blob_sha": "fceee83eb2e8a8383c6fc6f3564ee4787d898878"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00005/input.json",
-      "blob_sha": "4c2081d91cbe7f39041a6773ee79a617d3913863"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00006/input.json",
+      "blob_sha": "480abd2a2bce69e7934ee1be5004ad6925d06041"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00005/decisions/social.json",
-      "blob_sha": "cb16fe4b96c268c41b9861b9445ad6345ddae6f7"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00006/decisions/social.json",
+      "blob_sha": "a2e3395f73ba32d8da49af31b9626f73cf11456a"
     }
   ],
   "completed_checks": [
@@ -56,58 +56,66 @@
       "result": "NOT_STARTED"
     },
     {
-      "check": "Latest sealed contiguous diagnostic commit",
-      "result": "00004 present, 00005 absent"
+      "check": "Latest contiguous sealed diagnostic",
+      "result": "00005 sealed, 00006 not yet sealed"
     },
     {
-      "check": "Published diagnostic frame",
-      "result": "00005 exists, index=5, at=2023-03-19T23:59:59Z, events=[], 0 candidates, input_hash matched"
+      "check": "Published frame",
+      "result": "00006 index=6 at=2023-03-20T23:59:59Z events=[]; input_hash exact"
     },
     {
       "check": "Own vote",
-      "result": "created and read back, decision commit bf0a12d274fd1073c8e03611383ca9d92655e515, blob cb16fe4b96c268c41b9861b9445ad6345ddae6f7"
+      "result": "created and read back commit 8b35e4e9634b6a8393d93a2f67495109b172c658 blob a2e3395f73ba32d8da49af31b9626f73cf11456a"
     },
     {
       "check": "Other roles",
-      "result": "security valid; scout,onchain,qa 404"
+      "result": "scout/onchain/security valid; qa missing (404)"
     }
   ],
   "findings": [
     {
-      "statement": "Published diagnostic frame 00005 has no visible events or candidates; own empty vote saved with matching index, time and input hash.",
-      "as_of_utc": "2023-03-19T23:59:59Z",
-      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00005/input.json",
-      "evidence_limit": "No social signal or independent discovery; diagnostic known-winner case only.",
+      "statement": "Frame 00006 has no visible events or candidates; valid empty social decision saved.",
+      "as_of_utc": "2023-03-20T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00006/input.json",
+      "evidence_limit": "Known-winner diagnostic only; no independent social discovery.",
       "origin": "OWN_FRAME_CHECK"
     }
   ],
   "blockers": [
     {
       "code": "AWAITING_OTHER_ROLE_VOTES",
-      "detail": "scout,onchain,qa decisions for 00005 returned 404"
+      "detail": "QA decision for frame 00006 missing at read time (404)"
     },
     {
       "code": "NEUTRAL_REPLAY_NOT_STARTED",
       "detail": "temporal-public/status.json mode=NOT_STARTED"
     }
   ],
-  "next_task": "Verify controller seal of 00005 and next actually published diagnostic input 00006; if available, evaluate every visible candidate and write only own social decision.",
+  "next_task": "Verify seal of frame 00006 and next actually published frame 00007; if published, assess all visible candidates and save own social decision.",
   "peer_receipts": [
     {
+      "role": "scout",
+      "run_id": "scout-20261114T160554Z-r22-frame00006-01",
+      "result": "VALID_FRAME_00006"
+    },
+    {
+      "role": "onchain",
+      "run_id": "onchain-20261114T164223Z-frame00006-r22-18",
+      "result": "VALID_FRAME_00006"
+    },
+    {
       "role": "security",
-      "run_id": "security-20261114T151956Z-r22-frame00005-01",
-      "result": "VALID_FRAME_00005"
+      "run_id": "security-20261114T162122Z-r22-frame00006-01",
+      "result": "VALID_FRAME_00006"
     }
   ],
   "kpis": {
-    "frame": "05/62",
+    "frame": "06/62",
     "visible_candidates": 0,
     "new_validated_asof_evidence": 0,
     "own_vote_saved": true,
     "own_vote_new_this_run": true,
     "missing_other_roles_at_check": [
-      "scout",
-      "onchain",
       "qa"
     ]
   }
