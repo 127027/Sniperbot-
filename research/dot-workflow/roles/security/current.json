@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "security",
-  "run_id": "security-20261114-ownership-cutoff-stalled-0458",
-  "previous_run_id": "security-20261114-compiler-unavailable-0344",
+  "run_id": "security-20261114T0434Z-initial-lp-mint-review-01",
+  "previous_run_id": "security-20261114-ownership-cutoff-stalled-0458",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -11,7 +11,7 @@
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
-  "status": "STALLED",
+  "status": "PARTIAL_VERIFIED",
   "input_refs": [
     {
       "repository": "127027/Sniperbot-",
@@ -135,6 +135,22 @@
         "reviews",
         "orders"
       ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/blockscout_pool_logs.json",
+      "json_paths": [
+        "result[0].topics",
+        "result[0].data",
+        "result[1].topics",
+        "result[1].data",
+        "result[2].topics",
+        "result[3].topics",
+        "result[3].transactionHash",
+        "result[3].blockNumber",
+        "result[3].timeStamp"
+      ]
     }
   ],
   "completed_checks": [
@@ -151,7 +167,8 @@
     "Recovered stored Blockscout compiler metadata: solc v0.8.0+commit.c7dfd78e, Istanbul EVM, optimizer enabled 200 runs, metadata bytecodeHash ipfs; no reproduction performed",
     "Checked execution environment for solc executable and Python solcx module; neither available; no compiler reproduction or historical source equivalence performed",
     "Rechecked diagnostic frame 0 input and existing security decision: index=0, at=2023-03-14T23:59:59Z, matching input_hash, events=[], reviews=[], orders=[]; no replacement required.",
-    "Attempted bounded Blockscout OwnershipTransferred log retrieval for deployment-to-pool interval 17046105..17046833; source tool returned inaccessible URL/internal error, no event data obtained."
+    "Attempted bounded Blockscout OwnershipTransferred log retrieval for deployment-to-pool interval 17046105..17046833; source tool returned inaccessible URL/internal error, no event data obtained.",
+    "Inspected initial pool creation transaction logs: LP ERC20 Transfer mint to zero address (minimum liquidity) and to 0xfbfeaf0da0f2fde5c66df570133ae35f3eb58c9a; Mint event recipient is router; holder/lock history after mint not established."
   ],
   "findings": [
     {
@@ -230,6 +247,13 @@
       "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_contract.json#compiler_settings",
       "evidence_limit": "Blockscout verification occurred 2023-06-05; is_fully_verified=false; compiler not executed and bytecode not compared. Metadata not assumed publicly available at historical cutoff.",
       "verification": "OWN_REVIEW_OF_STORED_JSON"
+    },
+    {
+      "claim": "Stored pool-origin logs for transaction 0x273894b35d8c30d32e1ffa22ee6aa320cc9f55f2adbba0583594ed47c031f6f6 at block 17046833 show pool ERC20 Transfer mint from zero address: 1000 minimum-liquidity units to zero address and 0x1726ad4325f321caa6ed95 units to 0xfbfeaf0da0f2fde5c66df570133ae35f3eb58c9a. A pool Mint event also names router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d as sender. Initial minted LP recipient is identified; beneficial ownership, later transfer, lock, burn and withdrawal rights remain UNKNOWN.",
+      "as_of_utc": "2023-04-14T17:21:11Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_pool_logs.json#result[0..3]",
+      "evidence_limit": "Retrospectively stored Blockscout pool log snapshot; original receipt/block header not independently fetched; no complete LP Transfer history, no evidence of LP token holder at later entry cutoff.",
+      "verification": "OWN_REVIEW_OF_STORED_POOL_LOGS"
     }
   ],
   "blockers": [
@@ -264,6 +288,12 @@
       "reason": "Blockscout v1 logs URL inaccessible through available web retrieval; no returned logs. A deployment-to-pool block window is a diagnostic interval only, not an evaluated entry cutoff. No inference of absence of events is permitted."
     }
   ],
-  "next_task": "Park inaccessible Blockscout logs and compiler comparison. Obtain a concrete evaluated historical entry block from a timestamp-authenticated pre-movement signal; then retrieve OwnershipTransferred logs bounded by deployment block 17046105 and that cutoff via an accessible archive/log source. If unavailable, pursue independent historical blacklist/LP/Tax evidence without asserting buy safety.",
-  "peer_receipts": []
+  "next_task": "Park undefined pre-movement entry cutoff and inaccessible OwnershipTransferred logs. Trace LP token Transfer events from block 17046833 to a defensible historical cutoff, distinguish initial recipient from later holder/lock; independently verify transaction receipt when accessible. Do not infer ownership or buy safety.",
+  "peer_receipts": [
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T0413Z-pool-creation-log-01",
+      "result": "Pool creation timestamp and event reference independently read from scout current; own LP mint log inspection performed separately."
+    }
+  ]
 }
