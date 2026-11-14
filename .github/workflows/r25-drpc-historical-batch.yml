@@ -24,6 +24,31 @@ jobs:
           node-version: '22'
       - name: Run RPC decoding mock tests without LLM
         run: node --test research/replay-controller/r23-onchain-discovery.test.mjs
+      - name: Identify exactly which historical RPC parameter/provider limit fails
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const url='https://eth.drpc.org';
+          const items=[
+            ['eth_chainId',[]],
+            ['eth_blockNumber',[]],
+            ['eth_getBlockByNumber',['0x0',false]],
+            ['eth_getBlockByNumber',['0x'+(17050000).toString(16),false]],
+            ['eth_getLogs',[{address:'0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f',
+              topics:['0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9'],
+              fromBlock:'0x'+(17050000).toString(16),
+              toBlock:'0x'+(17050099).toString(16)}]]
+          ];
+          for(const [method,params] of items){
+            try{
+              const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},
+                body:JSON.stringify({jsonrpc:'2.0',id:1,method,params}),signal:AbortSignal.timeout(15000)});
+              const data=await r.json();
+              console.log(JSON.stringify({method,status:r.status,error:data.error||null,
+                result_present:data.result!==undefined&&data.result!==null}));
+            }catch(e){console.log(JSON.stringify({method,network_error:String(e.message).slice(0,80)}))}
+          }
+          NODE
       - name: Pull bounded archive batch using the prevalidated free RPC
         run: |
           node research/replay-controller/r23-onchain-discovery.mjs \
