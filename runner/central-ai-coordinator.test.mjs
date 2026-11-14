@@ -40,6 +40,17 @@ test('model sees only bounded token candidates, no private funds or wallet secre
  assert.equal(snapshot.candidates.length,1);
  assert(!JSON.stringify(snapshot).includes('TOPSECRET'));
 });
+test('real wallet is read-only aggregated metadata and never exposes owner address',()=>{
+ const raw={verified:true,sol_display:'0.143',usdc_display:'210.20',
+  observed_positive_token_accounts:3,sol_finalized_slot:310101, tokens_finalized_slot:310102,
+  wallet_address:'PRIVATE_OWNER_ADDRESS_SHOULD_NOT_BE_EMITTED'};
+ const input=snapshotForAi(ledger(),market().results,news(),{now:Date.now(),realWallet:raw});
+ assert.equal(input.real_wallet.connected,true);
+ assert.equal(input.real_wallet.observed_sol,'0.143');
+ assert.equal(input.real_wallet.real_pnl,null);
+ assert.equal(input.real_wallet.live_trading_enabled,false);
+ assert(!JSON.stringify(input).includes('PRIVATE_OWNER_ADDRESS'));
+});
 test('model output is fail-closed and never freeforms token targets',()=>{
  const input=snapshotForAi(ledger(),market().results,news(),{now:Date.now()});
  const p=planRecommendations(input,advice(),{webSearchUsed:true});
