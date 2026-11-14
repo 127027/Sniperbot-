@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "security",
-  "run_id": "security-20261114T1045Z-r19-frame00002-01",
-  "previous_run_id": "security-20261114T0929Z-r18-frame1-neutral-blocked-01",
+  "run_id": "security-20261114T112423Z-r19-frame00002-readback-01",
+  "previous_run_id": "security-20261114T1045Z-r19-frame00002-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -248,6 +248,20 @@
         "events",
         "input_hash"
       ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/decisions/security.json",
+      "json_paths": [
+        "role",
+        "run_id",
+        "index",
+        "at",
+        "input_hash",
+        "reviews",
+        "orders"
+      ]
     }
   ],
   "completed_checks": [
@@ -407,6 +421,13 @@
       "evidence_ref": "127027/Sniperbot-@codex/dots-pepe-replay-20261113:research/replay-controller/bridge/diagnostic-frames/00002/input.json#events",
       "evidence_limit": "Only diagnostic controller input; no blind discovery or historical PEPE security inference.",
       "verification": "OWN_REVIEW_OF_FRAME_AND_GITHUB_DECISION_READBACK"
+    },
+    {
+      "claim": "At current diagnostic frame 00002, all five role decisions exist and match index=2, at=2023-03-16T23:59:59Z and input_hash; own security decision already exists, so no overwrite. Monitor status remains at frame_index=2 and reports stale MISSING votes; only central controller may advance. Neutral replay mode=NOT_STARTED.",
+      "as_of_utc": "2023-03-16T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@codex/dots-pepe-replay-20261113:research/replay-controller/bridge/diagnostic-frames/00002/input.json#input_hash,events; decisions/{scout,social,onchain,security,qa}.json",
+      "evidence_limit": "Readback verifies files and metadata, not central controller sealing or blind discovery. Monitor snapshot predates the decisions.",
+      "verification": "OWN_GITHUB_READBACK"
     }
   ],
   "blockers": [
@@ -465,12 +486,27 @@
       "detail": "temporal-public/status.json mode=NOT_STARTED; no neutral published frame."
     }
   ],
-  "next_task": "Read current neutral status and diagnostic monitor; process only newly published current frame, verify own decision and peer vote status. If unchanged, park and report NO_PROGRESS.",
+  "next_task": "Monitor still advertises frame_index=2; all five frame-00002 decisions now exist and match input. Wait for central controller to seal and publish next frame; do not read or create future frames. Neutral mode NOT_STARTED.",
   "peer_receipts": [
     {
       "role": "scout",
-      "run_id": "scout-20261114T0413Z-pool-creation-log-01",
-      "result": "Pool creation timestamp and event reference independently read from scout current; own LP mint log inspection performed separately."
+      "run_id": "scout-20261114T100635Z-r19-frame00002-01",
+      "result": "FRAME_00002_DECISION_PRESENT_HASH_MATCH_REVIEWS_EMPTY_ORDERS_EMPTY"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T103700Z-diagnostic-frame00002",
+      "result": "FRAME_00002_DECISION_PRESENT_HASH_MATCH_REVIEWS_EMPTY_ORDERS_EMPTY"
+    },
+    {
+      "role": "onchain",
+      "run_id": "onchain-20261114T104256Z-frame00002-r19-12",
+      "result": "FRAME_00002_DECISION_PRESENT_HASH_MATCH_REVIEWS_EMPTY_ORDERS_EMPTY"
+    },
+    {
+      "role": "qa",
+      "run_id": "qa-20261114T0953Z-diagnostic-frame00002-18",
+      "result": "FRAME_00002_DECISION_PRESENT_HASH_MATCH_REVIEWS_EMPTY_ORDERS_EMPTY"
     }
   ]
 }
