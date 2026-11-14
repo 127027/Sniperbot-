@@ -2,23 +2,23 @@
   "schema": "pepe_replay_watch.v1",
   "mode": "DIAGNOSTIC_ONLY",
   "branch": "codex/dots-pepe-replay-20261113",
-  "checked_at": "2026-11-14T08:43:39.798Z",
+  "checked_at": "2026-11-14T09:41:55.264Z",
   "window_start": "2026-11-14T08:35:00Z",
   "window_end": "2026-11-14T16:35:00Z",
   "active": true,
   "previous_frame": 1,
-  "frame_index": 1,
+  "frame_index": 2,
   "total_frames": 62,
   "role_runs": {
-    "scout": "scout-20261114T0824Z-manifest-access-stalled-01",
-    "social": "social-20261114T073919Z-chad-pool-retrospective",
+    "scout": "scout-20261114T0933Z-r18-frame00001-01",
+    "social": "social-20261114T093943Z-diagnostic-frame00001",
     "onchain": "onchain-20261113T1823Z-protocol-readback-01",
-    "security": "security-20261114T0818Z-buy-lp-holder-cutoff-01",
-    "qa": "qa-20261114T0750Z-frame0-mismatch-audit-16"
+    "security": "security-20261114T0929Z-r18-frame1-neutral-blocked-01",
+    "qa": "qa-20261114T0849Z-frame1-empty-vote-17"
   },
   "role_states": {
-    "scout": "STALLED",
-    "social": "BLOCKED",
+    "scout": "BLOCKED_MISSING_NEUTRAL_INPUT",
+    "social": "NO_PROGRESS",
     "onchain": "NO_PROGRESS",
     "security": "PARTIAL_VERIFIED",
     "qa": "NO_PROGRESS"
@@ -32,7 +32,7 @@
   },
   "blockers": [
     {
-      "frame": 1,
+      "frame": 2,
       "code": "MISSING_ROLE_VOTES",
       "roles": [
         "scout",
@@ -43,15 +43,24 @@
       ]
     }
   ],
-  "fixes": [],
+  "fixes": [
+    {
+      "action": "SEALED_REAL_FIVE_VOTES",
+      "frame": 1
+    },
+    {
+      "action": "PUBLISHED_NEXT_INPUT",
+      "frame": 2
+    }
+  ],
   "trade_count": 0,
   "real_bot_orders": 0,
   "blind_success": false,
   "independent_authorship_verified": false,
   "positions": 0,
-  "last_frame_advance_at": "2026-11-14T08:42:08.633Z",
-  "stalled_minutes": 1,
-  "status": "AWAITING_ROLE_VOTES",
+  "last_frame_advance_at": "2026-11-14T09:41:55.264Z",
+  "stalled_minutes": 0,
+  "status": "FRAME_ADVANCED",
   "change_log": [
     {
       "action": "INITIALIZED_DIAGNOSTIC",
@@ -91,6 +100,28 @@
         "qa"
       ],
       "at": "2026-11-14T08:43:39.798Z"
+    },
+    {
+      "action": "SEALED_REAL_FIVE_VOTES",
+      "frame": 1,
+      "at": "2026-11-14T09:41:55.264Z"
+    },
+    {
+      "action": "PUBLISHED_NEXT_INPUT",
+      "frame": 2,
+      "at": "2026-11-14T09:41:55.264Z"
+    },
+    {
+      "frame": 2,
+      "code": "MISSING_ROLE_VOTES",
+      "roles": [
+        "scout",
+        "social",
+        "onchain",
+        "security",
+        "qa"
+      ],
+      "at": "2026-11-14T09:41:55.264Z"
     }
   ]
 }
