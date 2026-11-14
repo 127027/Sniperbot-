@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "security",
-  "run_id": "security-20261114T0929Z-r18-frame1-neutral-blocked-01",
-  "previous_run_id": "security-20261114T0818Z-buy-lp-holder-cutoff-01",
+  "run_id": "security-20261114T1045Z-r19-frame00002-01",
+  "previous_run_id": "security-20261114T0929Z-r18-frame1-neutral-blocked-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -11,7 +11,7 @@
   },
   "mode": "TRAINING_ONLY",
   "actionable": false,
-  "status": "PARTIAL_VERIFIED",
+  "status": "NO_PROGRESS",
   "input_refs": [
     {
       "repository": "127027/Sniperbot-",
@@ -237,6 +237,17 @@
         "reviews",
         "orders"
       ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00002/input.json",
+      "json_paths": [
+        "index",
+        "at",
+        "events",
+        "input_hash"
+      ]
     }
   ],
   "completed_checks": [
@@ -260,7 +271,8 @@
     "PUSH-aware scan of 4517-byte stored runtime: no executable CALL/CALLCODE/DELEGATECALL/STATICCALL/SELFDESTRUCT opcodes.",
     "Cross-checked observed BUY receipt sender and block against bounded LP Transfer chronology in stored pool logs; initial LP recipient appears unchanged at BUY cutoff, conditional on log completeness.",
     "R18 temporal protocol read; neutral public frame 00000 absent (404), neutral replay BLOCKED_MISSING_NEUTRAL_INPUT.",
-    "R17 monitor authorized diagnostic frame 1; input events=[] and security vote created and read back with matching input_hash."
+    "R17 monitor authorized diagnostic frame 1; input events=[] and security vote created and read back with matching input_hash.",
+    "R19 diagnostic frame 00002 (2023-03-16T23:59:59Z): events=[]; own security decision persisted with matching input_hash; no security candidate available."
   ],
   "findings": [
     {
@@ -388,6 +400,13 @@
       "evidence_ref": "127027/Sniperbot-@codex/dots-pepe-replay-20261113:research/replay-controller/temporal-public/frames/00000/input.json",
       "evidence_limit": "GitHub fetch returned 404; does not establish status of private corpus or controller.",
       "verification": "OWN_GITHUB_404"
+    },
+    {
+      "claim": "Diagnostic frame 00002 contains zero visible events and no candidate requiring a security review; security decision reviews=[] and orders=[].",
+      "as_of_utc": "2023-03-16T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@codex/dots-pepe-replay-20261113:research/replay-controller/bridge/diagnostic-frames/00002/input.json#events",
+      "evidence_limit": "Only diagnostic controller input; no blind discovery or historical PEPE security inference.",
+      "verification": "OWN_REVIEW_OF_FRAME_AND_GITHUB_DECISION_READBACK"
     }
   ],
   "blockers": [
@@ -440,9 +459,13 @@
       "question": "R18 neutral replay first public frame",
       "status": "BLOCKED_MISSING_NEUTRAL_INPUT",
       "reason": "research/replay-controller/temporal-public/frames/00000/input.json returned GitHub 404. Requires neutral public frame publication with as-of evidence, independent pseudonymization audit and fresh model instances for blind evaluation."
+    },
+    {
+      "code": "NEUTRAL_NOT_STARTED",
+      "detail": "temporal-public/status.json mode=NOT_STARTED; no neutral published frame."
     }
   ],
-  "next_task": "On next run read R18 protocol, security current, neutral public current frame and diagnostic monitor; submit only authorized own security vote if missing. For regular security research seek independent historical LP balanceOf/Transfer evidence at BUY block 17046900; if unavailable park and reconstruct OwnershipTransferred logs to same cutoff. No historical claim from later verified source.",
+  "next_task": "Read current neutral status and diagnostic monitor; process only newly published current frame, verify own decision and peer vote status. If unchanged, park and report NO_PROGRESS.",
   "peer_receipts": [
     {
       "role": "scout",
