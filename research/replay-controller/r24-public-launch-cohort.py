@@ -20,7 +20,7 @@ SCHEMA = "r24_public_launch_cohort.v1"
 SOURCE = "https://huggingface.co/datasets/Slinky21/Pumpfun_Memecoin_Corpus"
 KNOWN_OUTAGE_DAY = "2026-07-03"
 MINT = re.compile(r"^[1-9A-HJ-NP-Za-km-z]{32,44}$")
-CLOCK_COLS = ("created_at", "first_seen_at", "launch_at", "minted_at",
+CLOCK_COLS = ("detected_at", "created_at", "first_seen_at", "launch_at", "minted_at",
               "token_created_at", "first_trade_at", "block_time", "event_ts")
 NAME_COLS = ("token_name", "name", "coin_name")
 SYMBOL_COLS = ("symbol", "ticker", "token_symbol")
