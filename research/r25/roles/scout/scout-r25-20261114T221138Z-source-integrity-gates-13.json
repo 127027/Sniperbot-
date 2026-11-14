@@ -1,0 +1,59 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "scout",
+  "run_id": "scout-r25-20261114T221138Z-source-integrity-gates-13",
+  "mode": "TRAINING_ONLY",
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "asof_cutoff": "2023-05-14T23:59:59Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "evidence": [],
+  "unknowns": [
+    "No CSV bytes or workflow output artifact were obtained; candidate universe and source SHA-256 remain unverified.",
+    "CSV source-span first/last timestamps cannot certify per-block completeness or all PairCreated logs.",
+    "Parser counts invalid_rows but silently continues; missing or malformed in-window factory records may suppress candidates.",
+    "No independent chain ledger attestation of event timestamp, block hash, transaction, or availability_at.",
+    "No independently time-attested R24 Solana launch identities in this run."
+  ],
+  "source_audit": {
+    "workflow": ".github/workflows/r25-ethereum-source-probe.yml",
+    "parser": "research/replay-controller/r25-uniswap-factory-csv.py",
+    "verified_from_repository": true,
+    "observations": [
+      {
+        "finding": "Workflow month counts always miss Unix timestamp rows because it uses startswith('2023-03') on raw timestamp.",
+        "severity": "METRIC_INVALID"
+      },
+      {
+        "finding": "Parser sets complete_requested_window from earliest/latest timestamp alone, not a continuous verified block range.",
+        "severity": "COVERAGE_UNKNOWN"
+      },
+      {
+        "finding": "Parser deduplicates by (tx_hash,pair) rather than (chain,block_hash,tx_hash,logIndex); cannot prove one-to-one log identity.",
+        "severity": "EVENT_IDENTITY_WEAK"
+      },
+      {
+        "finding": "The exactly-one-quote rule excludes quote/quote pools and all pools with neither WETH/USDC/USDT; scope must explicitly call this a filtered subset, not all V2 pools.",
+        "severity": "POPULATION_SCOPE_LIMIT"
+      },
+      {
+        "finding": "Invalid rows are skipped without immutable row-level quarantine or block-range failure.",
+        "severity": "SILENT_DATA_LOSS_RISK"
+      }
+    ]
+  },
+  "metrics": {
+    "new_candidates_verified": 0,
+    "new_asof_events_verified": 0,
+    "hypothetical_buy_signals": 0,
+    "actual_population_count": "UNKNOWN",
+    "source_gaps": 5
+  },
+  "proposed_shadow_intents": [],
+  "next_task": "Acquire raw CSV/artifact and record immutable SHA-256; then compute row-level rejection log, UTC month counts, exact log identities, contiguous canonical block coverage, and all-pool vs quote-eligible denominators before publishing any candidate records.",
+  "historical_blind_success": false,
+  "wallet_or_paper_account_actions": 0
+}
