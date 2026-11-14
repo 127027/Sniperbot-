@@ -1,0 +1,111 @@
+name: R21 15-minute historical replay bottleneck watchdog
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/r21-replay-watch.yml
+permissions:
+  contents: read
+concurrency:
+  group: pepe-replay-20261114-nightwatch
+  cancel-in-progress: false
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      can_advance: ${{ steps.report.outputs.can_advance }}
+    steps:
+      - name: Checkout current historical research branch without credentials
+        uses: actions/checkout@v4
+        with:
+          ref: codex/dots-pepe-replay-20261113
+          path: watched
+          persist-credentials: false
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Read-only audit current day, five dots and historical cohort
+        run: node watched/research/replay-controller/r21-observer.mjs watched watch-report/r21.json
+      - name: Summarize blockers and determine safe controller advance
+        id: report
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const s=JSON.parse(fs.readFileSync('watch-report/r21.json','utf8'));
+          const d=s.diagnostic;
+          const ready=d.all_five_valid===true;
+          const lines=[
+            '## R21 historical replay watchdog',
+            'Checked UTC: '+s.checked_utc,
+            'Completed KNOWN_WINNER DIAGNOSTIC frames: '+d.completed_frames+'/'+d.total_frames,
+            'Current frame: '+(d.current_frame===null?'COMPLETE':d.current_frame),
+            'Missing roles: '+JSON.stringify(d.missing_roles),
+            'Invalid role files: '+JSON.stringify(d.invalid_roles),
+            'Bottlenecks: '+JSON.stringify(s.bottlenecks),
+            'Neutral blindtest: '+s.neutral.mode,
+            'Simulated trades in diagnostic: '+d.actual_simulated_trades,
+            'Real bot orders: 0. No new agent decisions are invented.',
+            'Caveat: a calendar frame without SOCIAL/MARKET/SECURITY evidence is not an independent memecoin blind discovery.'
+          ];
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,lines.join('\n')+'\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,'can_advance='+(ready?'true':'false')+'\n');
+          NODE
+      - name: Preserve per-check proof of progress
+        uses: actions/upload-artifact@v4
+        with:
+          name: r21-replay-observation-${{ github.run_id }}
+          path: watch-report/r21.json
+          if-no-files-found: error
+          retention-days: 14
+  safe-advance:
+    needs: observe
+    if: needs.observe.outputs.can_advance == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout only isolated historical research branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/dots-pepe-replay-20261113
+          path: watched
+          fetch-depth: 0
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Seal five existing genuine role decisions, never invent any
+        run: node watched/research/replay-controller/r20-diagnostic-bridge.mjs
+      - name: Persist strictly whitelisted simulation artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd watched
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/replay-controller/monitor/r20-progress.json
+          if [ -d research/replay-controller/runs/watch-20261114-diagnostic ]; then
+            git add -f research/replay-controller/runs/watch-20261114-diagnostic
+          fi
+          if [ -d research/replay-controller/bridge/diagnostic-frames ]; then
+            find research/replay-controller/bridge/diagnostic-frames -name input.json -print0 | xargs -0 -r git add -f --
+          fi
+          git diff --cached --name-only | while IFS= read -r file; do
+            case "$file" in
+              research/replay-controller/monitor/r20-progress.json|research/replay-controller/runs/watch-20261114-diagnostic/*|research/replay-controller/bridge/diagnostic-frames/*/input.json) ;;
+              *) echo "Refusing unexpected file: $file" >&2; exit 1 ;;
+            esac
+          done
+          if git diff --cached --quiet; then
+            echo 'No completed five-role frames need persisting.'
+            exit 0
+          fi
+          git commit -m "R21: advance available authenticated frame-bound diagnostic votes"
+          git pull --rebase origin codex/dots-pepe-replay-20261113
+          git push origin HEAD:codex/dots-pepe-replay-20261113
