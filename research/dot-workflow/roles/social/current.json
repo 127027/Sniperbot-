@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "social",
-  "run_id": "social-20261114T133516Z-r22-frame00004",
-  "previous_run_id": "social-20261114T123844Z-r22-frame00003-11",
+  "run_id": "social-20261114T144141Z-r22-frame00004-await-security",
+  "previous_run_id": "social-20261114T133516Z-r22-frame00004",
   "candidate": {
     "id": "NONE_VISIBLE_IN_FRAME",
     "symbol": null,
@@ -29,13 +29,7 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/replay-controller/monitor/r20-progress.json",
-      "blob_sha": "fad3b2ebb21647df1351d8478a292957c8442e5f"
-    },
-    {
-      "repository": "127027/Sniperbot-",
-      "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/runs/watch-20261114-diagnostic/commits/00003.json",
-      "blob_sha": "3c719bc2165a358b3c55b85dd87daf309ae08aca"
+      "blob_sha": "a25688477f6a54e4c478be57ad4050c99909a155"
     },
     {
       "repository": "127027/Sniperbot-",
@@ -56,53 +50,67 @@
       "result": "NOT_STARTED"
     },
     {
-      "check": "Last sealed diagnostic commit",
-      "result": "00003 present; 00004 absent"
+      "check": "Sealed commit 00004 and next input 00005",
+      "result": "Both 404; 00005 not published"
     },
     {
-      "check": "Latest published diagnostic input",
-      "result": "00004 present; index=4; at=2023-03-18T23:59:59Z; events=[]; input_hash=70e87efe593dc869a2c685f08b170f184055eab80fe2babca2d6bedcc36eb33a"
+      "check": "Frame 00004 input and own decision",
+      "result": "index=4, at and input_hash match; events=[]; reviews=[]; orders=[]; existing social vote verified"
     },
     {
-      "check": "Frame 00004 social decision",
-      "result": "CREATED_AND_READBACK_PASS; reviews=[]; orders=[]"
+      "check": "Other role votes",
+      "result": "scout,onchain,qa present and matching; security 404"
     }
   ],
   "findings": [
     {
-      "statement": "Published diagnostic frame 00004 contains no events or visible candidates; matching social decision was created and read back.",
+      "statement": "Frame 00004 remains the latest verified published diagnostic input; own decision is present and valid; only security vote is missing.",
       "as_of_utc": "2023-03-18T23:59:59Z",
-      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00004/decisions/social.json",
-      "evidence_limit": "Known-case diagnostic, no independent discovery, no social evidence, no orders.",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00004/input.json",
+      "evidence_limit": "Diagnostic-only, no visible social events, no independently validated detection or trading outcome.",
       "origin": "OWN_FRAME_CHECK"
     }
   ],
   "blockers": [
     {
+      "code": "AWAITING_SECURITY_VOTE",
+      "detail": "Frame 00004 decisions/security.json returned GitHub 404; sealing requires fifth genuine role vote."
+    },
+    {
+      "code": "MISSING_PUBLISHED_FRAME",
+      "detail": "Frame 00005 input.json returned GitHub 404; commit 00004 not sealed."
+    },
+    {
       "code": "NEUTRAL_REPLAY_NOT_STARTED",
       "detail": "temporal-public/status.json mode=NOT_STARTED"
-    },
-    {
-      "code": "AWAITING_OTHER_ROLE_VOTES",
-      "detail": "At initial check frame 00004 scout,onchain,security,qa decisions were absent; controller sealing pending"
-    },
-    {
-      "code": "NO_VISIBLE_SOCIAL_EVENTS",
-      "detail": "Frame 00004 events=[]"
     }
   ],
-  "next_task": "Verify next actually published frame after diagnostic frame 00004 is sealed; do not repeat frame 00004 unless new mismatch.",
-  "peer_receipts": [],
+  "next_task": "After genuine security vote and controller sealing of 00004, verify the next actually published diagnostic frame; do not create future inputs or other roles' decisions.",
+  "peer_receipts": [
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T141512Z-r22-frame00004-01",
+      "result": "VALID_FRAME_00004"
+    },
+    {
+      "role": "onchain",
+      "run_id": "onchain-20261114T134730Z-frame00004-r22-15",
+      "result": "VALID_FRAME_00004"
+    },
+    {
+      "role": "qa",
+      "run_id": "qa-20261114T1345Z-r22-frame00004-22",
+      "result": "VALID_FRAME_00004"
+    }
+  ],
   "kpis": {
     "frame": "04/62",
     "visible_candidates": 0,
     "new_validated_asof_evidence": 0,
     "own_vote_saved": true,
+    "own_vote_new_this_run": false,
     "missing_other_roles_at_check": [
-      "scout",
-      "onchain",
-      "security",
-      "qa"
+      "security"
     ]
   }
 }
