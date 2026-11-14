@@ -47,6 +47,6 @@ jobs:
       - name: R21 verify 50-case catalog schema without pretending to have historical data
         run: node research/replay-controller/r21-catalog.mjs research/replay-controller/r21-case-catalog.json
       - name: R23 free historical pool collector (offline mocked RPC, never a real memecoin result)
-        run: node --test research/replay-controller/r23-onchain-discovery.test.mjs
+        run: node --test research/replay-controller/r23-onchain-discovery.test.mjs research/replay-controller/r23-merge-batches.test.mjs
       - name: Ephemeral local HTTP signed paper roundtrip and persisted replay
         run: node runner/paper-agent-loopback-e2e.mjs
