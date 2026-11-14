@@ -1,0 +1,73 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "onchain",
+  "run_id": "onchain-20261114T094203Z-frame00001-readback-11",
+  "previous_run_id": "onchain-20261113T1823Z-protocol-readback-01",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "NO_PROGRESS",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00001/input.json",
+      "blob_sha": "091236f52311d9ca1a373f2bb5ab6c3e57baf18e",
+      "json_paths": [
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.events"
+      ]
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "diagnostic_frame_00001_existing_vote_readback",
+      "result": "existing valid onchain decision; no overwrite",
+      "as_of_utc": "2023-03-15T23:59:59Z"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Diagnostic frame 00001 contains events=[]; pre-existing onchain vote matches index, at and input_hash, with reviews=[] and orders=[]. No independent chain-day coverage inferred.",
+      "as_of_utc": "2023-03-15T23:59:59Z",
+      "evidence_ref": {
+        "repository": "127027/Sniperbot-",
+        "ref": "codex/dots-pepe-replay-20261113",
+        "path": "research/replay-controller/bridge/diagnostic-frames/00001/input.json",
+        "blob_sha": "091236f52311d9ca1a373f2bb5ab6c3e57baf18e",
+        "json_paths": [
+          "$.index",
+          "$.at",
+          "$.input_hash",
+          "$.events"
+        ]
+      },
+      "proof_class": "published_diagnostic_frame_and_existing_vote",
+      "evidence_limit": "No published events; diagnostic only, not blind discovery or historical no-event proof",
+      "verification": "own GitHub readback"
+    }
+  ],
+  "blockers": [
+    {
+      "question": "neutral blind replay readiness",
+      "status": "NOT_STARTED",
+      "required_input": "independently audited temporal as-of corpus and clean agent executor"
+    },
+    {
+      "question": "diagnostic frame advancement",
+      "status": "AWAITING_OTHER_ROLE_VOTES",
+      "required_input": "scout, social, security and qa matching votes; monitor status may be stale"
+    }
+  ],
+  "next_task": "Read current published monitor frame first; process only its input, never infer future frames.",
+  "peer_receipts": [],
+  "handoff_to": "qa",
+  "notes": "Frame 00001 existing onchain vote blob 29171b05246bffb9db6f1ce5c708e68c63123204; no new vote, no orders."
+}
