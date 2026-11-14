@@ -33,6 +33,13 @@ test('reads archived logs with no API key but never certifies a memecoin',async(
  assert.ok(x.asof_corpus.sources.every(s=>s.proof.verified===false));
  assert.equal(x.complete_block_range,true);
 });
+test('legacy archive extraneous factory events are filtered, not mistaken for PairCreated',async()=>{
+ const other={...log(2),topics:[h(12345),...log(2).topics.slice(1)]};
+ const x=await discoverBlockscout({...opts,fetchFn:fake([log(1),other])});
+ assert.equal(x.distinct_pool_candidates,1);
+ assert.equal(x.chunks[0].ignored_non_pair_logs,1);
+ assert.equal(x.chunks[0].returned_log_count,2);
+});
 test('archive timestamp-to-block selection uses dates instead of winner IDs',async()=>{
  const x=await dateBlockRangeBlockscout(opts.base,opts.windowStart,opts.windowEnd,fake([]));
  assert.deepEqual(x,{fromBlock:100,toBlock:100});
