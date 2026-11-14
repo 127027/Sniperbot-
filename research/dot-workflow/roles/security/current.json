@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "security",
-  "run_id": "security-20261114T0745Z-runtime-call-opcode-scan-01",
-  "previous_run_id": "security-20261114T0700Z-lp-recovery-interface-review-01",
+  "run_id": "security-20261114T0818Z-buy-lp-holder-cutoff-01",
+  "previous_run_id": "security-20261114T0745Z-runtime-call-opcode-scan-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -184,6 +184,16 @@
         "block",
         "sources.code.result"
       ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/receipt_BUY_PEPE.json",
+      "json_paths": [
+        "result.from",
+        "result.blockNumber",
+        "result.logs[0].blockTimestamp"
+      ]
     }
   ],
   "completed_checks": [
@@ -204,7 +214,8 @@
     "Inspected initial pool creation transaction logs: LP ERC20 Transfer mint to zero address (minimum liquidity) and to 0xfbfeaf0da0f2fde5c66df570133ae35f3eb58c9a; Mint event recipient is router; holder/lock history after mint not established.",
     "Reviewed all 163 stored pool logs; three LP Transfer events found, including full initial LP allocation transfer from initial recipient to PEPE token contract at block 17047786.",
     "Reviewed stored later-verified PepeToken source and ABI for LP rescue, arbitrary external call, LP transfer and approval interfaces; no explicit recovery route identified; historical runtime equivalence remains unverified.",
-    "PUSH-aware scan of 4517-byte stored runtime: no executable CALL/CALLCODE/DELEGATECALL/STATICCALL/SELFDESTRUCT opcodes."
+    "PUSH-aware scan of 4517-byte stored runtime: no executable CALL/CALLCODE/DELEGATECALL/STATICCALL/SELFDESTRUCT opcodes.",
+    "Cross-checked observed BUY receipt sender and block against bounded LP Transfer chronology in stored pool logs; initial LP recipient appears unchanged at BUY cutoff, conditional on log completeness."
   ],
   "findings": [
     {
@@ -311,6 +322,13 @@
       "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/daily-raw/2023-04-14.json#sources.code.result",
       "evidence_limit": "Stored single-provider day-end runtime; no independent eth_getCode at block 17047786 or entry block, no complete LP transfer history or formal verification. Runtime code cannot prove LP token custody or storage state.",
       "verification": "OWN_PUSH_AWARE_OPCODE_SCAN_OF_STORED_RUNTIME"
+    },
+    {
+      "claim": "Within the stored pool-address log snapshot, the only LP Transfer events are the two initial mint transfers at block 17046833 and a later transfer at block 17047786. At the observed third-party BUY block 17046900 (0x1041d74, 2023-04-14T17:34:47Z), the snapshot therefore indicates initial LP recipient 0xfbfeaf0da0f2fde5c66df570133ae35f3eb58c9a still held the initial non-minimum LP allocation. The BUY receipt also records that same address as transaction sender. This is evidence of a potentially withdrawable LP concentration at that BUY cutoff, not proof of a withdrawal or of wallet beneficial ownership.",
+      "as_of_utc": "2023-04-14T17:34:47Z",
+      "evidence_ref": "127027/Sniperbot-@0713332:research/pepe-replay-2023/raw/blockscout_pool_logs.json#result[0..5],result[162]",
+      "evidence_limit": "Inference depends on completeness and correctness of retrospectively stored 163 pool-address logs; not independently validated against archival eth_getLogs or LP balanceOf at block 17046900. BUY is a known historical third-party transaction, not a strategy-selected entry. Subsequent LP transfer at 20:37:23 UTC is excluded from entry safety.",
+      "verification": "OWN_CROSS_CHECK_OF_STORED_BUY_RECEIPT_AND_POOL_LOGS"
     }
   ],
   "blockers": [
@@ -353,9 +371,14 @@
       "question": "Prove inability to recover LP from PEPE contract at block 17047786",
       "status": "UNKNOWN",
       "reason": "No external LP recovery function found in later-verified source/ABI, but historical runtime/source equivalence and complete control-flow validation are missing; transfer to contract alone does not establish permanent lock."
+    },
+    {
+      "question": "Independent LP ownership at observed BUY block 17046900",
+      "status": "UNKNOWN",
+      "reason": "Stored pool logs imply initial LP recipient held non-minimum LP allocation at BUY, but completeness and balance at cutoff require independent archive receipt/log or balanceOf evidence."
     }
   ],
-  "next_task": "Check historical PEPE runtime at LP transfer block 17047786 against stored day-end runtime if archival original evidence becomes available; otherwise park bytecode identity and inspect available bounded OwnershipTransferred logs at a documented entry cutoff. No inference of irrevocable LP lock.",
+  "next_task": "Obtain independent block-bounded LP Transfer event coverage or historical pool LP balanceOf at BUY block 17046900 to validate initial LP recipient's control; if archive unavailable, park and inspect token OwnershipTransferred chronology through same cutoff. Do not use later LP-to-token transfer as pre-BUY safety.",
   "peer_receipts": [
     {
       "role": "scout",
