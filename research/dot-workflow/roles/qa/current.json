@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "qa",
-  "run_id": "qa-20261114T1753Z-r22-frame00007-26",
-  "previous_run_id": "qa-20261114T1654Z-r22-frame00006-25",
+  "run_id": "qa-20261114T1855Z-r22-frame00008-27",
+  "previous_run_id": "qa-20261114T1753Z-r22-frame00007-26",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -29,25 +29,25 @@
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
       "path": "research/replay-controller/monitor/r20-progress.json",
-      "sha": "2638389fc95b2c768b4152975f32b234f99ad6aa"
+      "sha": "5b3e0cc4928b95b3f88cca506ff8d9c83209adde"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/runs/watch-20261114-diagnostic/commits/00006.json",
-      "sha": "f7141cdc24d3372e1c126daf904fc5d4559586ec"
+      "path": "research/replay-controller/runs/watch-20261114-diagnostic/commits/00007.json",
+      "sha": "3ff31df669494870ac931deee55f13724c14dc30"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00007/input.json",
-      "sha": "604a3eadc8d2a3e5b65bfe082f160307ee05e211"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00008/input.json",
+      "sha": "d6df27e9300531bf6e52f66975be73133b7c5475"
     },
     {
       "repository": "127027/Sniperbot-",
       "ref": "codex/dots-pepe-replay-20261113",
-      "path": "research/replay-controller/bridge/diagnostic-frames/00007/decisions/qa.json",
-      "sha": "8d30fb587210cb66a341567f78d285854538290f"
+      "path": "research/replay-controller/bridge/diagnostic-frames/00008/decisions/qa.json",
+      "sha": "e7eca47c7a765f95ba0dd8ef6c084476c51561a8"
     }
   ],
   "completed_checks": [
@@ -57,11 +57,11 @@
     },
     {
       "check": "sealed_cursor",
-      "result": "00006 sealed; 00007 published; 00007 seal not yet confirmed"
+      "result": "00007 sealed; 00008 published; 00008 seal not yet confirmed"
     },
     {
-      "check": "frame00007",
-      "result": "index=7 at=2023-03-21T23:59:59Z; events=0 candidates=0; input_hash=b4d91f0c9fafcdd4e839254e7cbc91cde6c73006750bd3beae97915c55b6f686"
+      "check": "frame00008",
+      "result": "index=8 at=2023-03-22T23:59:59Z; events=0 candidates=0; input_hash=128c557378a88fd73e4f729222679e8f71cc57dc89696e387d6a569ca2c894d7"
     },
     {
       "check": "qa_vote",
@@ -69,15 +69,15 @@
     },
     {
       "check": "peer_votes",
-      "result": "scout/social/onchain/security valid for frame 00007; 5/5 with QA"
+      "result": "scout/social/onchain/security decisions read and matched; 5/5 with QA"
     }
   ],
   "findings": [
     {
-      "statement": "Frame 00007 has no visible events or candidates; QA recorded empty reviews and orders; all five role votes now present. Diagnostic only.",
-      "as_of_utc": "2023-03-21T23:59:59Z",
-      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00007/input.json",
-      "evidence_limit": "Known-winner diagnostic, not neutral blind discovery or independent historical execution proof",
+      "statement": "Frame 00008 has no visible events or candidates. QA vote contains no reviews or orders. All five matching role decisions are present; controller sealing is unconfirmed.",
+      "as_of_utc": "2023-03-22T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00008/input.json",
+      "evidence_limit": "Known-winner diagnostic; no independent historical source audit or blind inference",
       "origin": "OWN_GITHUB_READ"
     }
   ],
@@ -85,15 +85,15 @@
     {
       "code": "WAITING_FOR_CONTROLLER_ADVANCE",
       "role": "controller",
-      "required_input": "Seal 00007 and publish next chronological frame"
+      "required_input": "Seal 00008 and publish the next chronological frame"
     },
     {
       "code": "NEUTRAL_REPLAY_NOT_STARTED",
       "role": "controller",
-      "required_input": "Independent as-of corpus and clean agent executor"
+      "required_input": "Independent historical corpus and clean agent executor"
     }
   ],
-  "next_task": "Check 00007 sealing and process only the next actually published chronological frame.",
+  "next_task": "Verify 00008 sealing and process only the next actually published chronological frame.",
   "peer_receipts": [
     {
       "role": "scout",
@@ -374,6 +374,34 @@
       "result": "PARTIAL_VERIFIED",
       "source_path": "research/dot-workflow/roles/security/current.json",
       "source_blob_sha": "974ac304d1fd6dbf6bdbbbe6346ca94f12220f1e"
+    },
+    {
+      "role": "scout",
+      "run_id": "scout-20261114T181221Z-r22-frame00008-01",
+      "result": "DIAGNOSTIC_EMPTY_FRAME_VOTE",
+      "source_path": "research/replay-controller/bridge/diagnostic-frames/00008/decisions/scout.json",
+      "source_blob_sha": "1994462c70542f4f14986a9b41db977d2f971538"
+    },
+    {
+      "role": "social",
+      "run_id": "social-20261114T184203Z-r22-frame00008",
+      "result": "DIAGNOSTIC_EMPTY_FRAME_VOTE",
+      "source_path": "research/replay-controller/bridge/diagnostic-frames/00008/decisions/social.json",
+      "source_blob_sha": "c3d8d349f57b9b8abd5b8d848572e27142d366ff"
+    },
+    {
+      "role": "onchain",
+      "run_id": "onchain-20261114T184544Z-frame00008-r22-20",
+      "result": "DIAGNOSTIC_EMPTY_FRAME_VOTE",
+      "source_path": "research/replay-controller/bridge/diagnostic-frames/00008/decisions/onchain.json",
+      "source_blob_sha": "e0b34a0a0660f50c4ff9178b6fecee2b73bbdb47"
+    },
+    {
+      "role": "security",
+      "run_id": "security-20261114T185333Z-r22-frame00008-01",
+      "result": "DIAGNOSTIC_EMPTY_FRAME_VOTE",
+      "source_path": "research/replay-controller/bridge/diagnostic-frames/00008/decisions/security.json",
+      "source_blob_sha": "4aaf6a0677983b68d3d76ec589e7398893a1245e"
     }
   ],
   "notes": "DIAGNOSTIC_ONLY 5/62, candidates=0, asof evidence=0, QA vote new and readback, 5/5, NO_PROGRESS/NO_BUY/UNKNOWN."
