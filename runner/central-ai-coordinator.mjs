@@ -16,7 +16,7 @@ const canonicalId=c=>c.chain+':'+c.poolAddress;
 const bounded=(n,min,max)=>Number.isFinite(n)&&n>=min&&n<=max;
 const asof=(t,now)=>Number.isFinite(Date.parse(t))&&Date.parse(t)<=now&&now-Date.parse(t)<=MAX_AGE_MS;
 const same=(a,b,chain)=>chain==='solana'?a===b:a?.toLowerCase()===b?.toLowerCase();
-export function snapshotForAi(state,candidates,news,{now=Date.now()}={}){
+export function snapshotForAi(state,candidates,news,{now=Date.now(),realWallet=null}={}){
  const positions=(state.positions||[]).slice(0,20).map(p=>({
   candidate_id:canonicalId(p),chain:p.chain,token_address:p.tokenAddress,pool_address:p.poolAddress,
   symbol:p.symbol,entry_price_usd:p.entryPriceUsd,last_indicative_price_usd:p.priceUsd,
@@ -41,7 +41,15 @@ export function snapshotForAi(state,candidates,news,{now=Date.now()}={}){
    portfolio_budget_test_usdc:state.portfolioBudgetUsdc,
    min_order_test_usdc:state.minTrade,max_order_test_usdc:state.maxTrade,
    closed_pnl_test_usdc:state.closedPnl,positions},
-  real_wallet:{read_only:true,connected:false,balance:null,reason:'NOT_CONNECTED_TO_CENTRAL_AI'},
+  real_wallet:realWallet?.verified===true?{
+   read_only:true,connected:true,network:'solana-mainnet',
+   observed_sol:realWallet.sol_display,observed_usdc:realWallet.usdc_display,
+   positive_token_accounts:realWallet.observed_positive_token_accounts,
+   sol_finalized_slot:realWallet.sol_finalized_slot,
+   tokens_finalized_slot:realWallet.tokens_finalized_slot,
+   balance_type:'PUBLIC_ONCHAIN_SNAPSHOT_NOT_CONFIRMED_TRADE_HISTORY',
+   live_trading_enabled:false,real_pnl:null,real_fills_confirmed:false}:
+   {read_only:true,connected:false,balance:null,reason:realWallet?.reason||'NO_VERIFIED_REAL_WALLET_SNAPSHOT'},
   candidates:allowed,
   news:{leads:(news?.leads||[]).slice(0,12).map(n=>({
     headline:n.title,source:n.source_name,url:n.source_url,
@@ -154,7 +162,7 @@ export async function requestCentralAiAdvice(input,{apiKey,model='gpt-4.1-mini',
  }finally{clearTimeout(timeout)}
 }
 export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,submit,
- scan,collectNews,fetcher=fetch,initialDelayMs=30000,intervalMs=INTERVAL_MS}){
+ scan,collectNews,collectRealWallet=async()=>null,fetcher=fetch,initialDelayMs=30000,intervalMs=INTERVAL_MS}){
  if(!/^device_[a-f0-9]{32}$/.test(deviceId||'')||
   typeof getState!=='function'||typeof submit!=='function'||
   typeof scan!=='function'||typeof collectNews!=='function')
@@ -181,8 +189,10 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
   status.last_error=null;status.last_outcome='RUNNING';status.receipts=[];status.recommendations=[];
   persist();
   try{
-   const [market,news]=await Promise.all([scan(),collectNews()]);
-   const input=snapshotForAi(getState(),market.results,news,{now:Date.now()});
+   const [market,news,realWallet]=await Promise.all([scan(),collectNews(),
+    Promise.resolve().then(()=>collectRealWallet()).catch(()=>({verified:false,reason:'READ_ONLY_RPC_UNAVAILABLE'}))]);
+   const input=snapshotForAi(getState(),market.results,news,{now:Date.now(),realWallet});
+   status.real_wallet_reported=realWallet?.verified===true;
    if(input.candidates.length===0&&input.paper.positions.length===0){
     status.last_outcome='NO_CANDIDATES';status.last_summary='Keine verfügbaren Kandidaten oder offenen Positionen';
     return {status:'NO_CANDIDATES'};
