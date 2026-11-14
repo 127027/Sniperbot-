@@ -27,6 +27,10 @@ jobs:
       - run: node runner/test.mjs
       - name: Offline research, signatures, ledger and replay regression tests
         run: node --test runner/paper-agent-pipeline.test.mjs runner/github-signed-agent-feed.test.mjs runner/isolated-paper-pipeline-selftest.test.mjs runner/market-pool-pinning.test.mjs runner/paper-lifecycle-policy.test.mjs runner/portfolio-budget.test.mjs runner/signed-research-quorum.test.mjs runner/historical-replay-readiness.test.mjs runner/breakout-forecast.test.mjs runner/pipeline-health.test.mjs runner/central-decisions.test.mjs runner/research.test.mjs runner/live-mode-policy.test.mjs runner/gateway.test.mjs runner/integration.test.mjs
+      - name: V0.21 single AI coordinator decision, signed paper BUY/SELL, no live money (offline fixtures)
+        run: node --test runner/central-ai-coordinator.test.mjs
+      - name: V0.21 coordinator syntax and dashboard smoke
+        run: node --check runner/central-ai-coordinator.mjs
       - name: Chronological as-of intake, five-role barrier and isolated historical replay (offline)
         run: node --test research/replay-controller/controller.test.mjs research/replay-controller/asof-feed.test.mjs research/replay-controller/temporal-session.test.mjs research/replay-controller/role-task.test.mjs research/replay-controller/pseudonymize.test.mjs
       - name: R20 central fast replay - 8 isolated offline tests
