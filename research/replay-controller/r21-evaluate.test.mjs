@@ -36,7 +36,8 @@ function session(d,orders={}){
    const votes=ROLES.map(role=>({
     role,run_id:role+'-'+i,index:i,at:f.at,input_hash:f.input_hash,
     reviews:candidateIds.map(id=>({
-     candidate_id:id,verdict:'YES',evidence_ids:[id+'m'+i,id+'s'+i]
+     candidate_id:id,verdict:'YES',
+     evidence_ids:f.events.filter(e=>e.candidate_id===id).slice(-2).map(e=>e.id)
     })),
     orders:role==='qa'?(orders[i]||[]):[]
    }));
@@ -108,7 +109,7 @@ test('unbought and unseen winner is treated as missed detection not fabricated t
 });
 test('open position with missing later quote produces UNKNOWN complete drawdown',()=>{
  const d=synthetic(false);
- d.events=d.events.filter(e=>!(e.candidate_id==='A'&&e.kind==='MARKET'&&e.event_at===d.ticks.at(-1)));
+ d.events=d.events.filter(e=>!(e.candidate_id==='A'&&e.kind==='MARKET'&&[d.ticks[4],d.ticks[5]].includes(e.event_at)));
  const name=session(d,{0:[{action:'BUY',candidate_id:'A',amount_quote:100}]});
  try{
   const r=evaluateSealedReplay(name);
