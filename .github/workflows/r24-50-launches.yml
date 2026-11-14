@@ -44,9 +44,9 @@ jobs:
             --tokens=r24-tokens-source.parquet \
             --start=2026-06-12T00:00:00Z \
             --end-exclusive=2026-06-22T00:00:00Z \
-            --per-day=5 --target=50 \
+            --per-day=6 --target=50 \
             --output=r24-50-launch-candidates.json
-          python -c "import json; d=json.load(open('r24-50-launch-candidates.json')); assert d['target_candidates_found'] and len(d['launches'])==50 and d['future_outcome_columns_exposed']==False and d['independently_confirmed_memecoins']==0; print('R24_RESEARCH_CANDIDATES_50_CONFIRMED_NOT_TRADES')"
+          python -c "import json; d=json.load(open('r24-50-launch-candidates.json')); print('R24_BY_DAY',d['observed_launch_rows_by_day'],'INCOMPLETE_QUOTAS',d['incomplete_daily_quotas']); assert d['target_candidates_found'] and len(d['launches'])==50 and d['future_outcome_columns_exposed']==False and d['independently_confirmed_memecoins']==0; print('R24_RESEARCH_CANDIDATES_50_CONFIRMED_NOT_TRADES')"
       - name: Upload small public research-only provenance and cohort (no full dataset)
         if: always()
         uses: actions/upload-artifact@v4
