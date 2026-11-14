@@ -1,0 +1,109 @@
+name: PEPE replay 15-minute progress and repair (8-hour window)
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pepe-replay-20261114-nightwatch
+  cancel-in-progress: false
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    outputs:
+      active: ${{ steps.window.outputs.active }}
+    steps:
+      - name: Eight-hour time window check (Europe/Berlin 09:35–17:35 Nov 14)
+        id: window
+        shell: bash
+        run: |
+          NOW=$(date -u +%s)
+          START=$(date -u -d "2026-11-14T08:35:00Z" +%s)
+          END=$(date -u -d "2026-11-14T16:35:00Z" +%s)
+          if (( NOW >= START && NOW < END )); then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            echo "Outside the authorized eight-hour window; no work." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Checkout trusted monitor source on default branch
+        if: steps.window.outputs.active == 'true'
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read-only checkout of actual five-Dot research branch
+        if: steps.window.outputs.active == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: codex/dots-pepe-replay-20261113
+          path: watched
+          persist-credentials: false
+      - name: Node 22
+        if: steps.window.outputs.active == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Inspect all roles, and safely advance diagnostic replay when five real votes match
+        if: steps.window.outputs.active == 'true'
+        run: node .github/scripts/pepe-replay-watch.mjs inspect watched watch-out
+      - name: Human-readable observed progress
+        if: steps.window.outputs.active == 'true'
+        run: |
+          node -e "const f=require('fs'),s=JSON.parse(f.readFileSync('watch-out/research/replay-controller/monitor/status.json'));f.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '### '+s.status+'\nFrame: '+s.frame_index+'/'+s.total_frames+'\nVotes: '+JSON.stringify(s.votes)+'\nBlockers: '+JSON.stringify(s.blockers)+'\nRepairs: '+JSON.stringify(s.fixes)+'\n**No blind-test success or real paper trades claimed.**\n')"
+      - name: Save each 15-minute progress report even if still blocked
+        if: steps.window.outputs.active == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pepe-watch-${{ github.run_id }}
+          path: watch-out/
+          retention-days: 14
+          if-no-files-found: error
+  persist:
+    needs: inspect
+    if: needs.inspect.outputs.active == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout trusted apply script on default branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout dedicated historical research branch (only research output may change)
+        uses: actions/checkout@v4
+        with:
+          ref: codex/dots-pepe-replay-20261113
+          path: watched
+          fetch-depth: 0
+      - name: Download verified inspect output
+        uses: actions/download-artifact@v4
+        with:
+          name: pepe-watch-${{ github.run_id }}
+          path: watch-out/
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply only monitor status, isolated run, and next input frames
+        run: node .github/scripts/pepe-replay-watch.mjs apply watched watch-out
+      - name: Commit and push research-only diagnostic progress
+        shell: bash
+        run: |
+          cd watched
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/replay-controller/monitor/status.json
+          if [ -d research/replay-controller/runs/watch-20261114-diagnostic ]; then
+            git add -f research/replay-controller/runs/watch-20261114-diagnostic
+          fi
+          if [ -d research/replay-controller/bridge/diagnostic-frames ]; then
+            git add -f research/replay-controller/bridge/diagnostic-frames
+          fi
+          if git diff --cached --quiet; then
+            echo "No new diagnostic changes to persist."
+            exit 0
+          fi
+          git commit -m "monitor: 15-minute PEPE diagnostic progress, barrier and blocker record"
+          git pull --rebase origin codex/dots-pepe-replay-20261113
+          git push origin HEAD:codex/dots-pepe-replay-20261113
