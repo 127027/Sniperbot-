@@ -42,6 +42,19 @@ Node 22+, no dependencies. Supply environment variables without committing them:
 
 `node research/replay-controller/r22-run.mjs`
 
+### Continue PEPE at day eight
+
+The GitHub workflow sets `R22_START_FRAME=7`. The first seven sealed commits are
+replayed and validated into a new isolated session. No partial day-eight votes
+are copied: all five day-eight roles run anew. The original hourly-Dot session
+and its files remain untouched. The source dataset must match exactly; corrupted,
+incomplete or mismatched checkpoints fail closed. Source history is never counted
+as new model inference. The remaining 55 days require 275 new role responses.
+The report separately records `real_model_continuation_passed`; a continuation
+never claims `real_model_full_test_passed` for all 62 days. For a complete fresh
+acceptance run set `R22_START_FRAME=0` locally (the CLI default).
+Per-day progress and model receipts are persisted in the ignored session folder.
+
 Optional positional arguments: dataset JSON, report filename, maximum frames
 (default 62). Every invocation creates a fresh isolated session; it never reuses
 old unauthenticated role files. A full acceptance requires COMPLETE plus exactly
