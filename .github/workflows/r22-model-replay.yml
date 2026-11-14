@@ -1,0 +1,40 @@
+name: R22 real model acceptance
+on:
+  push:
+    branches: ['codex/dots-pepe-replay-20261113']
+    paths:
+      - 'research/replay-controller/model-*.mjs'
+      - 'research/replay-controller/r22-run.mjs'
+      - '.github/workflows/r22-model-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: r22-real-model
+  cancel-in-progress: false
+jobs:
+  real-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: r22-research
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Full historical replay with real model responses (fails if unconfigured)
+        env:
+          OPENAI_API_KEY: ${{ secrets.R22_OPENAI_API_KEY }}
+          R22_MODEL: ${{ vars.R22_MODEL }}
+          R22_BUDGET_USD: ${{ vars.R22_BUDGET_USD }}
+          R22_INPUT_USD_PER_MILLION: ${{ vars.R22_INPUT_USD_PER_MILLION }}
+          R22_OUTPUT_USD_PER_MILLION: ${{ vars.R22_OUTPUT_USD_PER_MILLION }}
+          R22_PUBLIC_DATA_APPROVED: ${{ vars.R22_PUBLIC_DATA_APPROVED }}
+          R22_START_FRAME: '7'
+        run: node research/replay-controller/r22-run.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r22-real-model-result
+          path: r22-result.json
+          retention-days: 7

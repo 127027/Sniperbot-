@@ -1,0 +1,83 @@
+name: R25 public Uniswap V2 historical cohort source probe
+on:
+  push:
+    branches: ['codex/dots-pepe-replay-20261113']
+    paths:
+      - '.github/workflows/r25-ethereum-source-probe.yml'
+      - 'research/replay-controller/r25-uniswap-factory-csv.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-v2-factory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_RESEARCH_READ: '0'
+      SNIPER_RESEARCH_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download public, historic neutral V2 factory events CSV (no key / model)
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --show-error --silent --retry 1 --retry-delay 4 \
+            --connect-timeout 15 --max-time 210 --max-filesize 125829120 \
+            https://raw.githubusercontent.com/bhemen/uniswap-data/main/data/uniswap_v2_factory_events.csv \
+            --output factory-events.csv
+          test -s factory-events.csv
+          sha256sum factory-events.csv
+          wc -l factory-events.csv
+          echo 'FIRST_LINE_HEADER:'
+          head -n 1 factory-events.csv | cut -c 1-400
+          echo 'SAMPLE_NON_SENSITIVE_ROWS:'
+          head -n 4 factory-events.csv | tail -n 3 | cut -c 1-220
+          echo 'LATEST_ROWS:'
+          tail -n 3 factory-events.csv | cut -c 1-220
+      - name: Inspect timestamp format and March-May 2023 coverage (without winner filter)
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv,collections
+          f=csv.DictReader(open('factory-events.csv',newline='',encoding='utf-8'))
+          first=None;last=None;fmt=None;months=collections.Counter();records=0
+          for row in f:
+              timestamp=row['timestamp']
+              if first is None: first=timestamp
+              last=timestamp
+              records+=1
+              if timestamp.startswith(('2023-03','2023-04','2023-05')):
+                  months[timestamp[:7]]+=1
+          print('FIRST_TIMESTAMP',first,'LAST_TIMESTAMP',last,'EVENT_ROWS',records)
+          print('2023_MAR_APR_MAY_MONTH_COUNTS',dict(months))
+          PY
+      - name: Create source-neutral March-May 2023 pool candidate bundle
+        shell: bash
+        run: |
+          python research/replay-controller/r25-uniswap-factory-csv.py --input=factory-events.csv --output=r25-2023-neutral-pools.json
+          python - <<'PY'
+          import json
+          d=json.load(open('r25-2023-neutral-pools.json'))
+          assert d['source_ledger_independently_verified'] is False
+          assert d['complete_requested_window'] is False
+          assert d['verified_memecoin_count']==0
+          print('R25_SOURCE_SUMMARY', json.dumps({
+            'pool_candidates':d['pool_candidates'], 'source_span':d['source_span'],
+            'requested_window':d['requested_window'], 'complete':d['complete_requested_window'],
+            'executed_trades':d['historically_executed_trades'] }))
+          PY
+      - name: Retain neutral incomplete 2023 source candidates (no cost / trading)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r25-neutral-v2-march-april-source
+          path: r25-2023-neutral-pools.json
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Report archival source limitations
+        shell: bash
+        run: |
+          echo 'Source is a third-party retrospective CSV, not independently time-attested.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'No PEPE/winner filtering, no real orders, and no assumption of full 2023 coverage.' >> "$GITHUB_STEP_SUMMARY"

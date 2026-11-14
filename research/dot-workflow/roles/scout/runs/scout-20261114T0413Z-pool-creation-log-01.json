@@ -1,0 +1,117 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "scout",
+  "run_id": "scout-20261114T0413Z-pool-creation-log-01",
+  "previous_run_id": "scout-20261114T0307Z-immutable-buy-receipt-01",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "DATA_GAP",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md",
+      "sha": "2503f1dc2fd00ede9e03edc2a8270e1180b85457"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/scout/current.json",
+      "sha": "b8fbb60b5b36e643e2bf28098e5cc3a227fd6271",
+      "used_json_paths": [
+        "$.next_task",
+        "$.run_id",
+        "$.candidate.id",
+        "$.blockers"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/blockscout_pool_logs.json",
+      "used_json_paths": [
+        "$.result[0].blockNumber",
+        "$.result[0].timeStamp",
+        "$.result[0].transactionHash",
+        "$.result[0].address",
+        "$.result[2].topics[0]",
+        "$.result[3].topics[0]"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/raw/blockscout_pool_address.json",
+      "used_json_paths": [
+        "$.creation_transaction_hash",
+        "$.hash"
+      ],
+      "usage": "retrospective identity only"
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "read_protocol_and_moving_current",
+      "result": "PASS"
+    },
+    {
+      "check": "immutable_raw_dataset_file_discovery",
+      "result": "PASS_COMMIT_0713332"
+    },
+    {
+      "check": "apr14_swap_receipt_status_and_pool_address",
+      "result": "PASS_HISTORICAL_RECEIPT_IN_SNAPSHOT"
+    },
+    {
+      "check": "block_timestamp_and_receipt_match",
+      "result": "PASS_2023-04-14T17:34:47Z"
+    },
+    {
+      "check": "pool_creation_time_and_pre_movement_evaluation_cutoff",
+      "result": "NOT_VERIFIED"
+    },
+    {
+      "check": "pool_creation_transaction_correlated_with_first_pool_logs",
+      "result": "PASS_HISTORICAL_LOG_17046833_2023-04-14T17:21:11Z"
+    },
+    {
+      "check": "pool_creation_receipt_status",
+      "result": "UNKNOWN_RECEIPT_NOT_PRESENT"
+    },
+    {
+      "check": "controller_defined_later_movement_cutoff",
+      "result": "DATA_GAP_NOT_SUPPLIED"
+    }
+  ],
+  "findings": [
+    {
+      "claim": "The immutable snapshot records pool logs at Ethereum block 17046833, timestamp 2023-04-14T17:21:11Z, from 0xa43fe16908251ee70ef74718545e4fe6c5ccec9f. Log entries 0-3 share transaction 0x273894b35d8c30d32e1ffa22ee6aa320cc9f55f2adbba0583594ed47c031f6f6, matching the retrospective pool creation_transaction_hash; Sync and Mint topics appear in entries 2 and 3. This supports a pool-initialization event at that time, before the known later BUY swap at 17:34:47Z.",
+      "as_of_utc": "2023-04-14T17:21:11Z",
+      "evidence_ref": "research/pepe-replay-2023/raw/blockscout_pool_logs.json#$.result[0:4]; research/pepe-replay-2023/raw/blockscout_pool_address.json#$.creation_transaction_hash",
+      "evidence_class": "HISTORICAL_ONCHAIN_LOGS_IN_IMMUTABLE_REPOSITORY",
+      "evidence_limit": "Creation receipt status and block header not independently checked; archived logs were collected retrospectively. No controller-defined future movement cutoff, independent discovery, or safety approval.",
+      "provenance": "OWN_CHECK"
+    }
+  ],
+  "blockers": [
+    {
+      "question": "Independent creation receipt status and block header",
+      "reason": "Immutable pool logs corroborate creation hash and timestamp, but no independently checked creation receipt or block header in this run.",
+      "required_input": "Historical creation transaction receipt and canonical block header for 17046833"
+    },
+    {
+      "question": "As-of-safe evaluation before later price movement",
+      "reason": "Controller-defined subsequent movement cutoff and price trajectory not provided. A known-winner historical case is not an independent discovery.",
+      "required_input": "Controller-defined movement cutoff and historical as-of-safe candidate-universe data"
+    }
+  ],
+  "next_task": "Park creation receipt and movement cutoff pending independent evidence; inspect the next independent non-PEPE candidate from contemporaneous 2023-04-15 to 2023-05-14 candidate-universe records, verify chain:token:pool identity and first as-of-safe timestamp without using future winner labels. If no candidate-universe records exist, record STALLED with the exact missing source/access.",
+  "peer_receipts": [],
+  "notes": "Only immutable 0713332 historical files inspected; no external web requests, no trading. Existing candidate remains known-winner diagnostic, not discovery."
+}

@@ -1,0 +1,117 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "scout",
+  "run_id": "scout-20261113T2147Z-apr17-bobo-lead-01",
+  "previous_run_id": "scout-20261113T2050Z-archive-access-gap-01",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "DATA_GAP",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md",
+      "sha": "2503f1dc2fd00ede9e03edc2a8270e1180b85457"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/scout/current.json",
+      "sha": "8d8a03da9c338d120928ad0a1373d8805648072d"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "0713332",
+      "path": "research/pepe-replay-2023/",
+      "usage": "immutable historical reference, not accessed this run"
+    },
+    {
+      "url": "https://www.reddit.com/r/memecoinmoonshots/comments/12pv0l5",
+      "retrieval": "web.search result dated Monday April 17 2023; direct web.open DisabledError",
+      "evidence_class": "PROVISIONAL"
+    },
+    {
+      "url": "https://www.reddit.com/r/TokenFinders/comments/12pukvg",
+      "retrieval": "web.search result dated Monday April 17 2023; similar BOBO narrative, independent authorship unknown",
+      "evidence_class": "PROVISIONAL"
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "current_protocol_read",
+      "result": "PASS"
+    },
+    {
+      "check": "focused_original_post_pointer_search",
+      "result": "FOUND_RETROSPECTIVE_EMBED"
+    },
+    {
+      "check": "direct_original_post_read",
+      "result": "BLOCKED_HTTP_403"
+    },
+    {
+      "check": "snowflake_id_timestamp_decode",
+      "result": "DERIVED_NOT_AUTHENTICATED"
+    },
+    {
+      "check": "independent_archive_discovery",
+      "result": "NO_TARGET_SNAPSHOT_FOUND_SEARCH_RESULTS"
+    },
+    {
+      "check": "direct_wayback_cdx_query",
+      "result": "BLOCKED_TOOL_INACCESSIBLE"
+    },
+    {
+      "check": "next_task_independent_apr15_18_narrative",
+      "result": "PROVISIONAL_BOBO_REDDIT_LEAD_NOT_AUTHENTICATED"
+    },
+    {
+      "check": "direct_original_reddit_open",
+      "result": "BLOCKED_DISABLED_ERROR"
+    }
+  ],
+  "findings": [
+    {
+      "claim": "Cointelegraph article dated 2023-05-05 embeds a purported @pepecoineth tweet dated 2023-04-14; linked status ID 1646856584625020928 decodes under Twitter Snowflake convention to 2023-04-14T12:43:01.547Z. This is a retrospective embedded pointer, NOT authenticated original post availability or content at that time; direct original X fetch returned HTTP 403.",
+      "as_of_utc": "2023-04-14T12:43:01.547Z",
+      "evidence_ref": "https://cointelegraph.com/news/memecoin-mania-social-relevance-speculation-drives-pepe-surge (May 5 article); https://twitter.com/pepecoineth/status/1646856584625020928 (403)",
+      "evidence_class": "RETROSPECTIVE_EMBEDDED_POINTER_PROVISIONAL",
+      "evidence_limit": "Twitter Snowflake time is derived from linked ID, not independent archival verification; post text, edits, public accessibility, and association with contract at time not verified.",
+      "provenance": "OWN_CHECK"
+    },
+    {
+      "claim": "A Reddit post indexed as Monday 2023-04-17 in r/memecoinmoonshots presents BOBO as a newly launched rival to PEPE, alleges early launch and developer exit, and gives a BOBO contract address. This is a contemporary-looking alternative-coin narrative, not independently authenticated April 17 content, no verified post UTC hour, chain deployment, pool, reserves, quote or safety.",
+      "as_of_utc": null,
+      "evidence_ref": "https://www.reddit.com/r/memecoinmoonshots/comments/12pv0l5",
+      "evidence_class": "HISTORICAL_ORIGINAL_POST_SEARCH_SNIPPET_PROVISIONAL",
+      "evidence_limit": "Reddit direct open returned DisabledError; search result date Monday April 17 2023 not verified against original immutable record; contract 0x8ffc77dF6bAe60dAE682f0Bc24d94187580fee6B unverified as Ethereum mainnet; retrospective edits possible.",
+      "provenance": "OWN_CHECK"
+    }
+  ],
+  "blockers": [
+    {
+      "question": "Authenticate April 14 original social post content and public availability at inferred 12:43 UTC",
+      "reason": "Direct Twitter URL HTTP 403; no independent April 14 archival snapshot retrieved",
+      "required_input": "Original X post accessible via authenticated historical archive, Wayback capture with timestamp, or contemporaneous independent preservation"
+    },
+    {
+      "question": "Independent original April 14 archive capture for status 1646856584625020928",
+      "reason": "Wayback CDX URL inaccessible via web tool (Internal Error); search returned generic archive tools only, no target snapshot",
+      "required_input": "Accessible dated Wayback CDX record/snapshot or independently preserved contemporaneous post"
+    },
+    {
+      "question": "Authenticate April 17 BOBO Reddit narrative as-of UTC and confirm chain/pool tradability",
+      "reason": "Reddit direct source fetch DisabledError; search snippet alone cannot establish immutable original timestamp or chain evidence",
+      "required_input": "Archived original Reddit post with UTC timestamp, verified Ethereum contract deployment and pool transactions at cutoff"
+    }
+  ],
+  "next_task": "Park inaccessible Reddit original; independently validate dated April 17 BOBO post/contract as historical alternative via archival snapshot or onchain deployment/pool logs, without assuming it was tradeable. If unavailable move to another Apr15–18 dated original narrative.",
+  "peer_receipts": [],
+  "notes": "3 targeted web search queries in one batch, 1 direct Reddit open returned DisabledError; zero authenticated original posts, no orders, known-winner diagnostic unchanged."
+}

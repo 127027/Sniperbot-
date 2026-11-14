@@ -1,0 +1,109 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "social",
+  "run_id": "social-20261114T123844Z-r22-frame00003-11",
+  "previous_run_id": "social-20261114T114428Z-frame00002-readback-nochange",
+  "candidate": {
+    "id": "NONE_VISIBLE_IN_FRAME",
+    "symbol": null,
+    "selection": "DIAGNOSTIC_FRAME_00003_NO_EVENTS",
+    "as_of_utc": "2023-03-17T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "NO_PROGRESS",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/TEMPORAL_REPLAY_PROTOCOL.md",
+      "blob_sha": "274129bc2657e009dd98ad5427d6a43ab54314b3"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/temporal-public/status.json",
+      "blob_sha": "5e46cc3d0ec48030d7a4733ae19f340d2ac3ece5"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/monitor/r20-progress.json",
+      "blob_sha": "c26f6f042d158657e9c7598bac5ac87ce7e3bda2"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/runs/watch-20261114-diagnostic/commits/00002.json",
+      "blob_sha": "0f605c23e54b3316ca09f700e3a8604e98a674e3"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00003/input.json",
+      "blob_sha": "c9e7f04bd97a15009eab92743c24df3b496cd329"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00003/decisions/social.json",
+      "blob_sha": "e80e59e50222343d30e779c4320a659d7995fbc2"
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "Neutral replay mode",
+      "result": "NOT_STARTED"
+    },
+    {
+      "check": "Sealed previous diagnostic frame",
+      "result": "00002 present; 00003 commit absent"
+    },
+    {
+      "check": "Latest published diagnostic input",
+      "result": "00003 present, 00004 absent"
+    },
+    {
+      "check": "Frame 00003 own vote",
+      "result": "CREATED_AND_READBACK_PASS",
+      "evidence": "index=3; at=2023-03-17T23:59:59Z; input_hash=25a89599d9b679db50b063c2aef391162294d7f120849016881ad6cc7491ddef; events=[]; reviews=[]; orders=[]"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "Diagnostic frame 00003 has zero visible events/candidates; own social vote saved with empty reviews/orders and verified against published input.",
+      "as_of_utc": "2023-03-17T23:59:59Z",
+      "evidence_ref": "research/replay-controller/bridge/diagnostic-frames/00003/decisions/social.json",
+      "evidence_limit": "Known-case diagnostic only; no neutral blind discovery or verified social signal.",
+      "origin": "OWN_FRAME_CHECK"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "NEUTRAL_REPLAY_NOT_STARTED",
+      "detail": "temporal-public/status.json mode=NOT_STARTED"
+    },
+    {
+      "code": "AWAITING_OTHER_ROLE_VOTES",
+      "detail": "Current frame 00003 requires independently authored scout,onchain,security,qa votes and controller sealing; not verified yet"
+    },
+    {
+      "code": "NO_VISIBLE_SOCIAL_EVENTS",
+      "detail": "Frame 00003 events=[]"
+    }
+  ],
+  "next_task": "Verify next genuinely published and unsealed diagnostic frame after controller sealing; never revisit frame 00003 without mismatch or changed input.",
+  "peer_receipts": [],
+  "kpis": {
+    "frame": "03/62",
+    "visible_candidates": 0,
+    "new_validated_asof_evidence": 0,
+    "own_vote_saved": true,
+    "missing_other_roles_unverified": [
+      "scout",
+      "onchain",
+      "security",
+      "qa"
+    ]
+  }
+}

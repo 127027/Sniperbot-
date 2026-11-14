@@ -1,0 +1,68 @@
+name: R25 historic Ethereum no-key April 2023 pool batch
+on:
+  push:
+    branches: ['codex/dots-pepe-replay-20261113']
+    paths:
+      - '.github/workflows/r25-drpc-historical-batch.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dated-neutral-cohort:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_RESEARCH_READ: '0'
+      SNIPER_RESEARCH_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+      RESEARCH_RPC_URL: https://eth.drpc.org
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run RPC decoding mock tests without LLM
+        run: node --test research/replay-controller/r23-onchain-discovery.test.mjs
+      - name: Identify exactly which historical RPC parameter/provider limit fails
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const url='https://eth.drpc.org';
+          const items=[
+            ['eth_chainId',[]],
+            ['eth_blockNumber',[]],
+            ['eth_getBlockByNumber',['0x0',false]],
+            ['eth_getBlockByNumber',['0x'+(17050000).toString(16),false]],
+            ['eth_getLogs',[{address:'0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f',
+              topics:['0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9'],
+              fromBlock:'0x'+(17050000).toString(16),
+              toBlock:'0x'+(17050099).toString(16)}]]
+          ];
+          for(const [method,params] of items){
+            try{
+              const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},
+                body:JSON.stringify({jsonrpc:'2.0',id:1,method,params}),signal:AbortSignal.timeout(15000)});
+              const data=await r.json();
+              console.log(JSON.stringify({method,status:r.status,error:data.error||null,
+                result_present:data.result!==undefined&&data.result!==null}));
+            }catch(e){console.log(JSON.stringify({method,network_error:String(e.message).slice(0,80)}))}
+          }
+          NODE
+      - name: Pull bounded archive batch using the prevalidated free RPC
+        run: |
+          node research/replay-controller/r23-onchain-discovery.mjs \
+            --start=2023-04-12T14:00:00Z --end=2023-05-14T23:59:59Z \
+            --from-block=17032888 --to-block=17300000 \
+            --max-chunks=50 --step=200 --output=r25-2023-archive-first.json
+      - name: Audit real candidate counts and note partial coverage
+        run: |
+          node -e "const d=require('./r25-2023-archive-first.json'); console.log(JSON.stringify({status:'PARTIAL_REAL_HISTORICAL_COHORT',pool_candidates:d.distinct_pool_candidates,covered_to:d.completed_through_block,continuation:d.continuation_from_block,window_complete:d.complete_block_range,verified_memecoins:d.verified_memecoin_count,trades:0,second_source:d.independently_cross_checked}));if(d.verified_memecoin_count||d.asof_corpus.sources.some(s=>s.proof.verified))process.exit(2)"
+      - name: Retain timestamped pool evidence for next source stage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r25-2023-drpc-archive-first
+          path: r25-2023-archive-first.json
+          retention-days: 14
+          if-no-files-found: ignore

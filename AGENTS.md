@@ -1,4 +1,6 @@
-# Codex / Agent Instructions – Meme Sniper AI
+> **Bindende aktuelle Ziel-/Testbeschreibung V0.7 – 10.11.2026:** [Strikter historischer 5-Fall/225-Tage-Blindreplay und Ergebnisbericht](docs/HISTORICAL_BLIND_FIVE_CASES_20261110.md). **Die aktuell gültige Kapitalregel ist V0.6: bevorzugter Einzeltrade / harter GESAMTBUDGET-Deckel für die Cost-Basis offener Positionen, Einzelkauf ab 50 Test-USDC** – ältere im Dokument erwähnte „per-trade min/max“-Regeln sind überholt. Historische Gewinner, spätere ATHs oder Original-Artikel, die erst später im Web zurückgefunden wurden, dürfen nicht als historischer as-of-Input genutzt werden. Aktuelle fünf Cloud-Forschungs-Dots bleiben stündliche Recherche-Automationen, keine damals historischen oder lokal ausführenden Trader. Neuer `runner/research-news-rss.mjs` und `research-news-journal.mjs` archivieren zukünftige öffentliche Meldungen erstmals beim tatsächlichen lokalen Abruf; an die Dots nur nicht handelbare `news_leads[]` senden. Niemals ohne nachgewiesene unabhängige Contract-/LP-/Quote-/signierte Rollenfreigabe externe Paper-BUY/SELL erzeugen. Keep `main`, Hixton, private `.local` und privates Paper-Guthaben unverändert.
+
+> **Aktueller technischer Stand V0.5 (09.11.2026):** [Neue-Memecoin-Discovery und Forschungslernen](docs/V05_DISCOVERY_LEARNING_STATUS_20261109.md), [Kapitalstrategie](docs/STRATEGIC_PAPER_CAPITAL_V1.md). Die **einzige reguläre** Windows-Startdatei ist `Sniperbot_Starten.bat` (ältere Windows_Starten-Dateien entfernt). Alle fünf Cloud-Automationen tauschen nur `actionable:false`-Forschungsdateien über GitHub aus. Erweiterte bis zu 96 Poolidentitäten pro Scan, lokale zeitlich gestaffelte Nachbeobachtung und indikative 2x–200x-Studie sind implementiert. **Es gibt weiterhin keinen freigegebenen Realmarkt-Paper-BUY/SELL aus Cloud-Dots oder kalibrierte 95%-Prognose.** Keine stillen Realdaten-/Handelsgates umgehen.\n\n# Codex / Agent Instructions – Meme Sniper AI
 
 ## Scope
 Independent Windows-first LOCAL **PAPER TRADING** application; NOT Hixton. Do not import, modify, or depend on any Hixton repository, dot, scheduled automation, files, strategies, data, credentials, or deployments.
@@ -14,7 +16,7 @@ Independent Windows-first LOCAL **PAPER TRADING** application; NOT Hixton. Do no
 ## Run and test
 - `node runner/test.mjs`
 - `node runner/server.mjs` then open `http://127.0.0.1:3030`
-- `Windows_Starten.bat` for Windows users
+- `Sniperbot_Starten.bat` for Windows users
 
 ## Architecture
 - `runner/core.mjs`: server-side paper ledger, entries, virtual fiat conversions, exits and guards.
@@ -81,3 +83,7 @@ may be inferred from a model rating. This overrides earlier portfolio-cap guidan
 - Historical win-rate/holding period figures from a prior chat are not verified evidence; research HOLD review windows (24h/7/14/30/90 days) are **hypotheses for backtests**, not compulsory sell timers.
 - No payment, wallet or real-order integration without another explicit approval; currently PAPER-only, fail closed for external tokens without validators. Do not modify Hixton, any of its Dots, automations or repositories.
 
+
+## Owner override – central decisions and local capital (07.11.2026)
+
+Latest user instruction supersedes older requirements for a second local research/quorum decision. Central Dots perform research and decide PAPER_BUY/PAPER_SELL; local clients verify technical validity and manage their own capital, no local AI research. Per-entry user min/max has no fixed200 cap. Score80→minimum,92+→maximum, bounded by free funds and technical quote capacity; under80 or under minimum→no purchase. Scores are uncalibrated ratings. See docs/CENTRAL_PAPER_IMPLEMENTATION.md for implemented vs blocked components. User authorized Paper setup with1000 Test-USDC and two-hour monitoring, not live trading. Do not treat pending GPT infrastructure as implemented.

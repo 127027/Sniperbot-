@@ -33,12 +33,18 @@ test('authenticated gateway: shared evidence, scoped identities, replay, researc
    assert.equal(r.status,expected,await r.clone().text());return r.json();
   };
   const cmd=(a,expected=200)=>request('/api/command',a,null,expected);
+  const central=await request('/api/decisions');assert.equal(central.publisherConfigured,false);
+  await request('/api/decisions/events',{type:'BUY'},null,422);
+  await cmd({type:'SET_CENTRAL_FOLLOW',enabled:true});
+  assert.equal((await request('/api/state')).state.centralPaperFollow,true);
   await request('/api/research',undefined,null,401);
   await request('/api/research/events',{type:'BUY'},credentials[0].token,422);
   await request('/api/research',undefined,credentials[0].token,403,{origin:'https://evil.example'});
   const hostStatus=await new Promise((resolve,reject)=>{httpGet(base+'/api/health',{headers:{host:'evil.example'}},r=>{r.resume();resolve(r.statusCode)}).on('error',reject)});assert.equal(hostStatus,403);
   const token='0x'+'1'.repeat(40),pool='0x'+'2'.repeat(40),id=identity('base',token,pool);
-  const common={candidate_id:id,paper_only:true,observed_at_utc:new Date().toISOString(),expires_at_utc:new Date(Date.now()+240000).toISOString()};
+  // Backdate fixture by one second for Windows cross-process clock granularity.
+  const observed=Date.now()-1000;
+  const common={candidate_id:id,paper_only:true,observed_at_utc:new Date(observed).toISOString(),expires_at_utc:new Date(observed+240000).toISOString()};
   const event={...common,schema:'candidate.v1',event_id:'candidate-1',agent_id:credentials[0].id,chain:'base',token_address:token,pool_address:pool,symbol:'External'};
   await request('/api/research/events',event,credentials[0].token);
   await request('/api/research/events',event,credentials[0].token);

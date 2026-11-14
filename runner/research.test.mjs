@@ -2,27 +2,30 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {freshState,action,applyExits,autoBuyCandidate} from './core.mjs';
 import {ROLES,simulate,evaluate,assess,ingest,identity,positionSize} from './research.mjs';
-const funded=()=>({...freshState(),cashUsdc:200,entriesEnabled:true,automaticPaperBuys:true});
+const funded=()=>({...freshState(),cashUsdc:200,maxTrade:200,entriesEnabled:true,automaticPaperBuys:true});
 const pending=()=>simulate({...funded(),entriesEnabled:false});
-test('per-coin fixed amount: 200 means 200, including sixth position and >1000 total',()=>{
+test('200–200 now means one 200 preferred entry within 200 total exposure, not seven 200 entries',()=>{
  let s={...funded(),cashUsdc:1400,minTrade:200,maxTrade:200,maxPositions:5,maxExposure:1000,perPositionCap:50};
  for(let i=0;i<7;i++)s=simulate(s);
- assert.equal(s.positions.length,7);assert(s.positions.every(p=>p.amountUsdc===200));assert.equal(s.cashUsdc,0);
- s=simulate(s);assert.equal(s.positions.length,7);
+ assert.equal(s.positions.length,1);assert.equal(s.positions[0].amountUsdc,200);assert.equal(s.cashUsdc,1200);
+ s=simulate(s);assert.equal(s.positions.length,1,'No reopening after full total budget is reserved');
 });
 test('95-point agreement can allocate 1000 to one coin within 100–1000',()=>{
- const s=simulate({...funded(),cashUsdc:1200,minTrade:100,maxTrade:1000});
+ const s=simulate({...funded(),cashUsdc:1200,minTrade:100,maxTrade:1000},false,95,'HIGH_CONVICTION');
  assert.equal(s.positions[0].amountUsdc,1000);assert.equal(s.cashUsdc,200);
 });
-test('allocation varies by rating; missing scores use minimum, cash and sell limits still apply',()=>{
+test('allocation varies by rating; missing scores block, cash and sell limits still apply',()=>{
  const base={...funded(),cashUsdc:5000,minTrade:50,maxTrade:200};
- const amounts=[0,30,60,95].map(score=>simulate(base,false,score).positions[0].amountUsdc);
- assert.equal(amounts[0],50);assert.equal(amounts[3],200);assert(amounts[0]<amounts[1]&&amounts[1]<amounts[2]&&amounts[2]<amounts[3]);
+ const amounts=[80,84,88,92].map(score=>simulate(base,false,score).positions[0].amountUsdc);
+ assert(amounts.every(amount=>amount===50),'Score may not mechanically change the amount');
  let s=simulate({...base,entriesEnabled:false}),c=s.research.candidates[0];
- c.votes.forEach(v=>delete v.score_0_100);assert.equal(positionSize(s,c),50);
- c.votes.forEach(v=>v.score_0_100=95);s.cashUsdc=120;assert.equal(positionSize(s,c),120);
+ c.votes.forEach(v=>delete v.score_0_100);assert.equal(positionSize(s,c),50,'Missing score does not turn into probability');
+ c.votes.forEach(v=>v.allocation_intent='HIGH_CONVICTION');
+ assert.equal(positionSize(s,c),200,'Without open positions all 200 can be allocated');
+ s.positions=[{amountUsdc:50}];assert.equal(positionSize(s,c),150,'50 in an open position reserves part of the 200 budget');s.positions=[];
+ s.cashUsdc=120;assert.equal(positionSize(s,c),120);
  c.risk.max_amount_usdc=75;assert.equal(positionSize(s,c),75);
- s.minTrade=200;s.maxTrade=200;assert.equal(positionSize(s,c),0,'fixed 200 never silently buys 75');
+ s.minTrade=200;s.maxTrade=200;assert.equal(positionSize(s,c),75,'200 is a preference, 50 minimum and budget remains hard');
 });
 test('five simulated roles + independent fixture buy 50 once; multiple new coins',()=>{
  let s=simulate(funded());assert.equal(s.positions.length,1);assert.equal(s.positions[0].amountUsdc,50);assert.equal(s.cashUsdc,150);
@@ -73,4 +76,15 @@ test('strict event identity, role, replay, independent risk principal',()=>{
  assert.throws(()=>ingest(s,{...e,event_id:'e2',extra:true},principal),/Feld/);
  assert.throws(()=>ingest(s,{...e,event_id:'e2'}, {...principal,id:'other'}),/Absender/);
  assert.throws(()=>ingest(s,{schema:'risk_assessment.v1',event_id:'r',agent_id:'news',candidate_id:e.candidate_id,paper_only:true,observed_at_utc:e.observed_at_utc,expires_at_utc:e.expires_at_utc,contract:'PASS',liquidity:'PASS',sellability:'PASS',max_amount_usdc:50,reason:'Claim'},principal),/Risiko/);
+});
+
+test('mixed allocation opinions keep the minimum despite a top research rating',()=>{
+ let s=simulate({...funded(),cashUsdc:5000,minTrade:500,maxTrade:5000},false,99,'HIGH_CONVICTION');
+ assert.equal(s.positions[0].amountUsdc,5000,'Unanimous high conviction can use available balance in synthetic lab');
+ s=simulate({...funded(),cashUsdc:5000,minTrade:500,maxTrade:5000,entriesEnabled:false},false,99,'HIGH_CONVICTION');
+ const c=s.research.candidates[0];
+ c.votes[0].allocation_intent='EXPLORATORY';
+ assert.equal(positionSize(s,c),500,'No unanimous high conviction => one minimum trade');
+ c.votes[0].allocation_intent='MALICIOUS';
+ assert.equal(positionSize(s,c),500,'Unrecognized recommendation cannot expand allocation');
 });

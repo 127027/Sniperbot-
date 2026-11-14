@@ -1,0 +1,47 @@
+name: R25 source-neutral checkpointed Ethereum history sprint - no models
+on:
+  push:
+    branches: ['codex/dots-pepe-replay-20261113']
+    paths:
+      - '.github/workflows/r25-archive-sprint.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  archived-factory-batches:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      RESEARCH_RPC_URL: https://eth.drpc.org
+      SNIPER_OFFLINE: '1'
+      SNIPER_RESEARCH_READ: '0'
+      SNIPER_RESEARCH_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify checkpointed neutral source APIs with mock tests
+        run: node --test research/replay-controller/r23-onchain-discovery.test.mjs research/replay-controller/r23-merge-batches.test.mjs
+      - name: Bounded public archive scan with per-batch atomic checkpoints
+        run: |
+          node research/replay-controller/r25-archive-sprint.mjs \
+            --from-block=17032888 --to-block=17300000 \
+            --step=100 --chunks-per-batch=20 --max-batches=30 \
+            --start=2023-04-12T14:00:00Z --end=2023-05-14T23:59:59Z \
+            --output-dir=r25-archive-checkpoints
+      - name: Report progress and source gaps, not invented profits
+        if: always()
+        run: |
+          if test -f r25-archive-checkpoints/progress.json; then
+            node -e "const d=require('./r25-archive-checkpoints/progress.json'); console.log(JSON.stringify({scanned_to:d.scanned_to_block,continuation:d.continuation_from_block,batches:d.successful_batches,pool_candidates:d.pool_candidates,error:d.last_error,entire_2023_window_verified:false,trades:0})); require('fs').appendFileSync(process.env.GITHUB_STEP_SUMMARY,'R25 source-only: '+JSON.stringify({batches:d.successful_batches,candidates:d.pool_candidates,continuation:d.continuation_from_block,error:d.last_error})+'\n');"
+          fi
+      - name: Persist every successful historical source batch even on rate limit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r25-ethereum-archival-checkpoints
+          path: r25-archive-checkpoints/
+          if-no-files-found: ignore
+          retention-days: 14

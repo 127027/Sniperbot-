@@ -1,0 +1,47 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "social",
+  "run_id": "social-20261114T193904Z-r25-source-gap",
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "asof_cutoff": "2023-03-14T00:00:00Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "evidence": [],
+  "unknowns": [
+    {
+      "code": "NO_SCOUT_CANDIDATE_HANDOFF",
+      "detail": "No scout candidate records are available at research/r25/roles/scout on the requested branch (GitHub fetch_file returned 404). Cannot attribute timestamp-verified social signals to candidate IDs."
+    },
+    {
+      "code": "NO_CONTEMPORANEOUS_SOCIAL_ARCHIVE",
+      "detail": "No publication-time and capture-time attested post snapshots or URI/hash pairs supplied for candidate-linked Ethereum March-May 2023 sources."
+    },
+    {
+      "code": "R24_SOLANA_COHORT_NOT_SOCIAL_VERIFIED",
+      "detail": "R24 handoff reports 50 third-party June 2026 launch records, but no independently verified contemporaneous social snapshots or candidate identities in the handoff; June 18 source gap."
+    }
+  ],
+  "findings": [
+    "R25 protocol requires original publication time, available_at, source URI, SHA256 and candidate_id for verified social evidence.",
+    "No as-of social acceleration, independent author, catalyst or bot manipulation verdict can be inferred from missing sources.",
+    "R20 diagnostic progress is separate, not a blind discovery result."
+  ],
+  "proposed_shadow_intents": [],
+  "hypothetical_buy_signals": 0,
+  "verified_asof_events": 0,
+  "new_candidates_reviewed": 0,
+  "historical_blind_success": false,
+  "wallet_or_paper_account_actions": 0,
+  "next_task": "Obtain a neutral Scout candidate batch with contract IDs, launch timestamps and source URIs, then seek immutable pre-cutoff social post captures per candidate and audit independent authors and engagement velocity.",
+  "sources": [
+    "research/replay-controller/R25_DISCOVERY_PROTOCOL.md",
+    "research/replay-controller/R24_PUBLIC_COHORT_HANDOFF.md",
+    "research/replay-controller/monitor/r20-progress.json"
+  ],
+  "peer_receipts": []
+}

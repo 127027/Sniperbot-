@@ -1,0 +1,66 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "qa",
+  "run_id": "qa-20261114T195028Z-r25-source-gate-11",
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "asof_cutoff": "2023-03-14T23:59:59Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "new_candidates_reviewed": 0,
+  "new_valid_asof_events": 0,
+  "evidence": [],
+  "recommendations": [],
+  "proposed_shadow_intents": [],
+  "would_buy_count": 0,
+  "would_sell_count": 0,
+  "unknowns": [
+    {
+      "scope": "ethereum_uniswap_v2_all_pool_creations",
+      "missing": "Audited neutral factory PairCreated batch with block timestamp, contract/pair identities and chain-log provenance across March 14–May 14, 2023; R25 protocol describes retrospective CSV probe but provides no validated candidate batch to QA."
+    },
+    {
+      "scope": "peer_evidence",
+      "missing": "Timestamp-sealed Scout/Onchain/Social/Security candidate-specific reviews with as-of sources and content hashes; no specific candidate_id established in the inspected R25 protocol and R24 handoff."
+    },
+    {
+      "scope": "execution_gate",
+      "missing": "As-of liquidity/quote, independently verified sellability, market depth and all five valid frame-bound decisions; cannot assert WOULD_BUY, WOULD_SELL, BUY_INTENT or fill."
+    },
+    {
+      "scope": "solana_2026-06-18",
+      "missing": "R24 public cohort has zero source rows for June 18, explicitly classified as source coverage gap, not zero launches."
+    }
+  ],
+  "findings": [
+    "R25 protocol explicitly distinguishes retrospective pool discovery from as-of verified market and safety proof.",
+    "R24 handoff reports 50 distinct source launch mints but 0 independently verified memecoin classifications and 0 executable historical signals.",
+    "R20 progress is diagnostic-only and not evidence of independent discovery."
+  ],
+  "next_task": "Obtain first neutral, provenance-audited Ethereum PairCreated source batch with candidate_id, event_at, available_at, block/transaction log reference and source digest; then compare with independent as-of security, liquidity and peer role evidence before any QA WATCH/REJECT/WOULD_BUY.",
+  "historical_blind_success": false,
+  "wallet_or_paper_account_actions": 0,
+  "orders": [],
+  "sources": [
+    {
+      "path": "research/replay-controller/R25_DISCOVERY_PROTOCOL.md",
+      "blob_sha": "961f701fc556827e8787774cce644a6b35c50147"
+    },
+    {
+      "path": "research/replay-controller/R24_PUBLIC_COHORT_HANDOFF.md",
+      "blob_sha": "6f8732b54d2f125c073df6f2552e4657134f6cad"
+    },
+    {
+      "path": "research/replay-controller/monitor/r20-progress.json",
+      "blob_sha": "fad87ec1d9a9a9228ac3bfb4cbc34af4e19c9114"
+    },
+    {
+      "path": "research/replay-controller/temporal-public/status.json",
+      "blob_sha": "5e46cc3d0ec48030d7a4733ae19f340d2ac3ece5"
+    }
+  ]
+}

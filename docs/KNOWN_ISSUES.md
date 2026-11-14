@@ -1,3 +1,11 @@
+> **Offenes nach V0.7-Blindreplay (10.11.2026):** Keine verifizierte historische 30+14-Tage-as-of-Datenbasis mit Originalnachrichten/Socials, tatsächlicher damaliger Pooltiefe und kompletter Gewinner-/Verliererkohorte. 5 historische Gewinner als Stichprobe sind **nicht** ein valider Profitabilitäts-Backtest. DOGE-2013-PoW-Chain außerhalb der derzeit überwachten vier DEX-Chains. RSS-Inhalte/Publisher-Daten sind nicht automatisch unabhängige ursprüngliche Socialposts. Weiterhin keine unabhängigen realen DEX-Contract-/Sellability-Validatoren und keine echten externen autonomen Paper-Käufe/Exits. [Vollständige Ursachen und 225-Tage-Replay](HISTORICAL_BLIND_FIVE_CASES_20261110.md).
+
+## V0.5 – weiter offene Risiken (09.11.2026)
+
+Die neue Forschungskomponente liest bis zu zwei Neupool-Seiten pro Chain, speichert ausgewählte wiederholte indikative Pool-Preise lokal und zählt historische 2×/5×/10×/50×/200×-Beobachtungen. **Nicht behoben:** Vollständige Abdeckung aller Memecoin-Starts, unabhängige unzensierte Launch-Gesamtkohorten, verlässlich kalibrierte 14-Tage-Ausbruchswahrscheinlichkeiten, Contract-/LP-/Honeypot-/Sellability-Validatoren, signierte Fünf-Rollen-Kaufpublikation, echte externe automatische Paper-Käufe, unabhängige echte Sell-Quotes und nachgewiesene profitable Selbstverbesserung. Kein Cloud-Dot schreibt unmittelbar lokale Windows-Dateien. [Details](V05_DISCOVERY_LEARNING_STATUS_20261109.md).
+
+---
+
 # Stand V0.4
 
 Lokaler Gateway, synthetische Fünf-Rollen-Tests, Mehrfachpositionen, begrenzter

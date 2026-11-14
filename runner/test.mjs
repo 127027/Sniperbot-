@@ -12,7 +12,7 @@ const id=s.positions[0].id;s=updateQuotes(s,{[id]:{priceUsd:1,asOf:new Date().to
 s=action(s,{type:'SET_EXITS',mode:'AUTO',profit:10,loss:10});s=applyExits(s);assert.equal(s.positions.length,0,'Auto-exit works when bot is OFF');assert(s.cashUsdc>0);const free=s.cashUsdc;s=action(s,{type:'EXCHANGE_BACK',usdc:free});assert.equal(s.cashUsdc,0);assert(s.cashEur>0);let before=s.cashEur;s=action(s,{type:'WITHDRAW',eur:10});assert(s.cashEur<before);
 let t=freshState();t=action(t,{type:'SET_RANGE',min:200,max:400});assert.equal(t.minTrade,200);assert.equal(t.maxTrade,400);
 t=action(t,{type:'DEPOSIT',eur:50});t=updateCandidates(t,[c]);t=action(t,{type:'TOGGLE_BOT'});
-assert.equal(action(t,{type:'BUY',id:c.id,amount:50}),t,'Range stops 50');
+assert.equal(action(t,{type:'BUY',id:c.id,amount:50}).positions.length,1,'Preferred 200 does not forbid a 50 USDC trade inside the 400 total budget');
 assert.equal(action(t,{type:'BUY',id:c.id,amount:250}),t,'Balance stops 250');
 let auto=freshState();auto=action(auto,{type:'DEPOSIT',eur:50});auto=action(auto,{type:'TOGGLE_BOT'});auto=action(auto,{type:'SET_AUTO',enabled:true});
 auto=updateCandidates(auto,[{...c,id:'solana:fake',isDemo:false,score:90,paperEligible:true}]);

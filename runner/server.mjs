@@ -1,7 +1,49 @@
+import {receiveDecision} from './central-decisions.mjs';
+import {buildV09Status,previewFundingV09} from './v09-integration.mjs';
+import {runPoolReadbackBatch,READBACK_INTERVAL_MS} from './readback-batch.mjs';
+import {buildDecisionDossiers} from './candidate-dossiers.mjs';
+import {saveReadbackBatch} from './readback-history.mjs';
+import {createReceiver} from './research-inbox.mjs';
+import {buildDotStatus} from './dot-status.mjs';
+import {fetchResearchNetwork} from './research-network.mjs';
 import {storage} from './storage.mjs';
+import {loadOrCreateDeviceIdentity} from './device-identity.mjs';
+import {createExecutionInbox} from './device-execution-inbox.mjs';
+import {createDynamicTradeInbox} from './dynamic-trade-inbox.mjs';
+import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
+import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
+import {enrollPaperPublisherPublicKey} from './paper-publisher-trust.mjs';
+import {summarizePaperPipeline} from './pipeline-health.mjs';
+import {runIsolatedPaperAgentSelfTest} from './isolated-paper-pipeline-selftest.mjs';
+import {readLiveTradingGate,requestLiveTradingMode} from './live-mode-policy.mjs';
+import {summarizeRealWallet} from './real-wallet-overview.mjs';
+import {previewDynamicAssetRoute} from './dynamic-asset-router.mjs';
+import {loadLocalDeviceTopology,installLocalDeviceTopology,
+ followerStatus,operationAllowedWhenMasterOffline} from './device-topology.mjs';
+import {fetchMasterPresence} from './github-master-presence.mjs';
+import {createMasterCoordinationKey,unlockMasterCoordinationKey,
+ getMasterCoordinationPublicKey} from './master-coordination-key.mjs';
+import {publishMasterPresence} from './github-master-publisher.mjs';
+import {createAgentScratchpad} from './agent-scratchpad.mjs';
+import {createLocalSolanaVault,readLocalSolanaVault,
+ encryptedSolanaBackup,verifyEncryptedSolanaBackup,
+ restoreEncryptedSolanaBackup,checkSolanaVaultPassword} from './local-solana-vault.mjs';
+import {readSolanaBalance} from './local-solana-balance.mjs';
+import {fetchIndicativeSolanaQuote} from './solana-swap-quote.mjs';
+import {previewSolanaSwapRoundtrip} from './solana-swap-roundtrip.mjs';
+import {readSolanaOwnedTokens} from './solana-owned-tokens.mjs';
+import {recentSolanaWalletActivity} from './solana-wallet-activity.mjs';
+import {previewJupiterUnsignedOrder} from './solana-unsigned-order.mjs';
+import {assessWalletSolSpend} from './solana-wallet-spend-preflight.mjs';
+import {verifyFinalizedSolanaReceipt} from './solana-finalized-receipt.mjs';
+import {observeExternalSolanaWallet} from './external-wallet-observer.mjs';
+import {previewNativeSolTransfer,submitLocalNativeSolTransfer,
+ recentNativeSolTransferJournal} from './solana-native-transfer.mjs';
+import {randomBytes} from 'node:crypto';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
+import {attachSupervisedStop} from './supervised-stop.mjs';
 import {existsSync,mkdirSync,readFileSync,renameSync,writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -9,14 +51,124 @@ import {action,applyExits,autoBuyCandidate,freshState,log,paperSignal,updateCand
 import {CHAINS,lookupToken,scanNewPools,tokenQuote,validTokenAddress} from './market.mjs';
 const root=path.join(path.dirname(fileURLToPath(import.meta.url)),'..');
 const store=storage(root);
+const localDevice=loadOrCreateDeviceIdentity(store.dir);
+let deviceTopology=loadLocalDeviceTopology(store.dir,localDevice.device_id);
+let masterConnection=followerStatus({topology:deviceTopology});
+const masterCoordinationDir=path.join(store.dir,'coordination');
+let masterPublisher=null;
+
+async function refreshMasterConnection(){
+ if(deviceTopology.mode!=='FOLLOWER')return;
+ masterConnection=await fetchMasterPresence(deviceTopology);
+}
+function masterStatus(){
+ const now=Date.now();
+ if(deviceTopology.mode!=='FOLLOWER'){
+  const active=masterPublisher!==null&&
+   now-masterPublisher.lastSuccessfulPublishAt<90000;
+  return followerStatus({topology:deviceTopology,now,masterPublishingActive:active});
+ }
+ // Even a previously successful HTTP poll stops being valid after TTL expires.
+ const expired=masterConnection?.expires_at_utc?
+  Date.parse(masterConnection.expires_at_utc)<=now:true;
+ return expired?
+  followerStatus({topology:deviceTopology,lastFetchError:'MASTER_TIMEOUT',now}):
+  masterConnection;
+}
+
+const agentExecutionInbox=await createExecutionInbox({
+ filename:path.join(store.dir,'execution','instructions.v1.json'),
+ trustFile:path.join(store.dir,'trusted-execution-publishers.json'),
+ deviceId:localDevice.device_id
+});
+const scratchpad=await createAgentScratchpad(path.join(store.dir,'research-scratchpad','notes.json'));
+const walletFile=path.join(store.dir,'wallet','solana-mainnet.v1.json');
+const dynamicTradeInbox=await createDynamicTradeInbox({
+ filename:path.join(store.dir,'execution','dynamic-trades-v2.json'),
+ trustFile:path.join(store.dir,'trusted-execution-publishers.json'),
+ deviceId:localDevice.device_id,solanaWalletFile:walletFile
+});
+let walletCreationBusy=false,lastWalletBalanceAt=0,walletBalanceCache=null;
+const nativeTransferJournal=path.join(store.dir,'wallet','outgoing-sol-transfers');
+let nativeTransferChallenge=null,nativeTransferBusy=false;
+let walletBackupVerifiedAddress=null;
 let state=store.state,scanning=false,pricing=false;
 const allowRequest=limiter();
+let researchNetwork={schema:'research_network_status.v1',transport:'PUBLIC_GITHUB_PULL_ONLY',
+ paper_only:true,actionable:false,current_roles:0,total_roles:5,
+ roles:[],watchlist:{candidate_count:null,stale:true},local_execution:'BLOCKED_REAL_VALIDATOR_UNAVAILABLE',
+ checked_at_utc:null,message:'Awaiting first public GitHub research readback'};
+let networkBusy=false,poolReadbackBusy=false,lastPoolReadbackAt=0;
+let poolReadbacks={schema:'pool_readback_batch.v1',paper_only:true,actionable:false,
+ status:'NOT_CHECKED',checked_at_utc:null,attempted:0,results:[]};
+async function refreshPoolReadbacks(){
+ const now=Date.now();
+ if(poolReadbackBusy||now-lastPoolReadbackAt<READBACK_INTERVAL_MS)return;
+ poolReadbackBusy=true;lastPoolReadbackAt=now;
+ try{
+  const result=await runPoolReadbackBatch({network:researchNetwork});
+  await saveReadbackBatch({folder:path.join(root,'.local','research-learning','pool-readbacks'),batch:result});
+  poolReadbacks=result;
+ }catch(e){
+  // No research fault may alter virtual balances, positions or order policy.
+  console.error('Public exact-pool readback:',String(e?.message||'UNAVAILABLE').slice(0,150));
+ }finally{poolReadbackBusy=false}
+}
+async function refreshResearchNetwork(){
+ if(networkBusy)return;networkBusy=true;
+ try{
+  const next=await fetchResearchNetwork({settings:{minTrade:state.minTrade,maxTrade:state.maxTrade,portfolioBudgetUsdc:state.portfolioBudgetUsdc,cashUsdc:state.cashUsdc,cashEur:state.cashEur,positions:state.positions.map(p=>({amountUsdc:p.amountUsdc}))}});
+  researchNetwork=next;
+  if(process.env.SNIPER_OFFLINE!=='1')void refreshPoolReadbacks();
+  // Public summaries only; never put portfolio, tokens or signing keys in the cache.
+  const target=path.join(root,'.local','research-network','status.json');
+  mkdirSync(path.dirname(target),{recursive:true});
+  const temp=target+'.tmp-'+process.pid;
+  writeFileSync(temp,JSON.stringify(next,null,2)+'\n','utf8');
+  renameSync(temp,target);
+ }catch(e){console.error('GitHub research mirror:',e?.message||'UNAVAILABLE')}
+ finally{networkBusy=false}
+}
+function localResearchLearning(){
+ const filename=path.join(root,'.local','research-market','status.json');
+ try{
+  const m=JSON.parse(readFileSync(filename,'utf8'));
+  const f=m?.followups;
+  if(m?.schema!=='research_market_collector_status.v1'||f?.schema!=='memecoin_followups_status.v1')
+    return {available:false,paper_only:true,actionable:false,error:m?.followup_error||'NO_LOCAL_FOLLOWUP_DATA'};
+  return {available:true,paper_only:true,actionable:false,
+    checked_at_utc:m.last_check_at_utc,stale:Date.now()-Date.parse(m.last_check_at_utc)>600000,
+    monitored_active:f.monitored_active,completed:f.completed,admitted_last_cycle:f.admitted,
+    omitted_capacity_last_cycle:f.omitted_capacity,followup_ok_last_cycle:f.followup_ok,
+    followup_failed_last_cycle:f.followup_failed,
+    recent_public_news_leads:m.news_radar?.public_news_leads??0,
+    locally_archived_news_events:m.news_radar?.local_archive_count??0,
+    news_source_failures:Array.isArray(m.news_radar?.coverage)?m.news_radar.coverage.filter(x=>x.status==='SOURCE_UNAVAILABLE').length:3,
+    latest_market_alerts:m.market_alerts?.events_found??0,
+    evaluated_market_pairs:m.market_alerts?.compared_pairs??0,
+    local_alert_archive_error:m.market_alerts?.local_alert_error??null,
+    disclaimer:f.disclaimer,
+    warning:m.followup_error||null};
+ }catch{return {available:false,paper_only:true,actionable:false,error:'LOCAL_FOLLOWUP_DATA_UNAVAILABLE'}}
+}
+function decisionKeys(){
+ const file=path.join(store.dir,'trusted-publishers.json');
+ if(!existsSync(file))return [];
+ const keys=JSON.parse(readFileSync(file,'utf8'));
+ if(!Array.isArray(keys)||keys.length>20)throw Error('Ungültige Publisher-Registry');
+ return keys;
+}
+function centralStatus(){
+ try{return {mode:'PAPER_ONLY',follow:!!state.centralPaperFollow,publisherConfigured:decisionKeys().some(k=>k.scope==='external'&&!k.revoked),execution:'BLOCKED_REAL_VALIDATOR_UNAVAILABLE',receipts:state.paperDecisions?.receipts||[]};}
+ catch{return {mode:'PAPER_ONLY',follow:!!state.centralPaperFollow,publisherConfigured:false,execution:'BLOCKED_INVALID_PUBLISHER_REGISTRY',receipts:state.paperDecisions?.receipts||[]};}
+}
+
 function save(){store.save(state)}
 function commit(next){if(next!==state){store.save(next);state=next}}
 function reply(res,code,body){res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(body))}
 function error(res,code,msg){return reply(res,code,{ok:false,error:msg})}
 function corsAllowed(req){const origin=req.headers.origin;return !origin || origin===`http://127.0.0.1:${port}`}
-async function scan(){if(scanning)return;scanning=true;
+async function scan(){if(deviceTopology.mode==='FOLLOWER')return;if(scanning)return;scanning=true;
  try {const {results,errors,at}=await scanNewPools();
    const custom=state.candidates.filter(c=>c.source==='DEX Screener' || c.isDemo);
    const ids=new Set(results.map(x=>x.id));const others=custom.filter(x=>!ids.has(x.id));
@@ -25,12 +177,45 @@ async function scan(){if(scanning)return;scanning=true;
  }catch(e){commit({...state,lastError:e.message})}
  finally{scanning=false}
 }
-async function prices(){if(pricing || state.positions.length===0)return;pricing=true;
+async function prices(){if(deviceTopology.mode==='FOLLOWER')return;if(pricing || state.positions.length===0)return;pricing=true;
  const quotes={};
- try{for(const p of state.positions){if(p.isDemo)continue;try{const quote=await tokenQuote(p.chain,p.tokenAddress);if(quote)quotes[p.id]=quote}catch(e){console.log('Kursabfrage',p.symbol,e.message)}}
+ try{for(const p of state.positions){if(p.isDemo)continue;try{const quote=await tokenQuote(p.chain,p.tokenAddress,fetch,p.poolAddress||null);if(quote)quotes[p.id]=quote}catch(e){console.log('Kursabfrage',p.symbol,e.message)}}
   if(Object.keys(quotes).length)commit(updateQuotes(state,quotes));
  }finally{pricing=false}
 }
+let paperAgentOrderQueue=Promise.resolve();
+let githubAgentFeedStatus={checked_at_utc:null,received_last:0,
+ accepted_last:0,rejected_last:0,last_rejection:null,
+ status:'NOT_CHECKED',last_error:null};
+function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_ADAPTER'}={}){
+ const job=async()=>{
+  let keys;
+  try{
+   const file=path.join(store.dir,'trusted-execution-publishers.json');
+   if(!existsSync(file))return {error:'Kein autorisierter signierender Agenten-Publisher eingerichtet',code:409};
+   keys=JSON.parse(readFileSync(file,'utf8'));
+   verifyAgentSignal(signed,keys,{deviceId:localDevice.device_id});
+  }catch(e){return {error:String(e?.message||'INVALID_SIGNATURE').slice(0,120),code:422}}
+  const old=Array.isArray(state.agentOrderReceipts)?
+   state.agentOrderReceipts.find(r=>r.signal_id===signed.signal_id):null;
+  let quote=qaQuote;
+  if(!quote&&!old){
+   try{quote=await lookupToken(signed.chain,signed.token_address,fetch,signed.pool_address||null)}
+   catch(e){console.log('Signed Paper order quote:',String(e?.message||'MARKET_DOWN').slice(0,100))}
+  }
+  try{
+   const syntheticTest=process.env.SNIPER_OFFLINE==='1'&&
+    process.env.SNIPER_PIPELINE_QA==='1'&&qaQuote!==null;
+   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source,syntheticTest});
+   commit(result.next);
+   return {ok:true,receipt:result.receipt,real_trade_executed:false,live_trading_enabled:false};
+  }catch(e){return {error:String(e?.message||'AGENT_PAPER_PIPELINE_BLOCKED').slice(0,120),code:422}}
+ };
+ const pending=paperAgentOrderQueue.then(job);
+ paperAgentOrderQueue=pending.catch(()=>{});
+ return pending;
+}
+
 const port=Number(process.env.SNIPER_PORT)||3030;
 const server=createServer(async(req,res)=>{
  if(req.headers.host!==`127.0.0.1:${port}`||!corsAllowed(req))return error(res,403,'Host/Origin blockiert');
@@ -40,9 +225,558 @@ const server=createServer(async(req,res)=>{
     'Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'"});
   return res.end(readFileSync(path.join(root,'runner','dashboard.html')));
  }
- if(req.method==='GET'&&route==='/api/state')return reply(res,200,{ok:true,mode:'PAPER_ONLY',dataSource:'GeckoTerminal / DEX Screener (read only)',state,health:{online:true,scanRunning:scanning,pricing,uptimeSec:Math.round(process.uptime())}});
+ if(req.method==='GET'&&route==='/api/state')return reply(res,200,{ok:true,mode:'PAPER_ONLY',dataSource:'GeckoTerminal / DEX Screener (read only)',state,health:{online:true,scanRunning:scanning,pricing,uptimeSec:Math.round(process.uptime()),central:centralStatus(),researchNetwork,localLearning:localResearchLearning(),dotStatus:buildDotStatus(state.researchInbox,{enabled:process.env.SNIPER_RESEARCH_FEED==='1'})}});
+ if(req.method==='GET'&&route==='/api/research/network')return reply(res,200,{ok:true,network:researchNetwork});
+ if(req.method==='GET'&&route==='/api/research/advisories')return reply(res,200,{ok:true,advisories:researchNetwork.advisories||null});
+ if(req.method==='GET'&&route==='/api/research/learning')return reply(res,200,{ok:true,learning:localResearchLearning()});
+ if(req.method==='GET'&&route==='/api/research/inbox')return reply(res,200,{ok:true,mode:'PAPER_ONLY',enabled:process.env.SNIPER_RESEARCH_FEED==='1',inbox:state.researchInbox||{receipts:[]}});
+ if(req.method==='POST'&&route==='/api/paper/pipeline-selftest'){
+  if(!req.headers.origin||!corsAllowed(req))
+   return error(res,403,'Nur bewusst gestarteter lokaler Paper-Test');
+  if(!allowRequest('isolated-paper-pipeline-selftest'))
+   return error(res,429,'Zu viele isolierte Paper-Tests');
+  try{
+   const data=await body(req);
+   if(!data||typeof data!=='object'||Array.isArray(data)||
+    Object.keys(data).length!==0)
+    return error(res,422,'Der isolierte Test akzeptiert keine Beträge oder Agentenaufträge');
+   const proof=runIsolatedPaperAgentSelfTest({deviceId:localDevice.device_id});
+   return reply(res,200,{ok:true,proof,
+    live_trading_enabled:false,paper_state_unchanged:true});
+  }catch{return error(res,503,'Isolierter Paper-Pipeline-Test nicht bestanden')}
+ }
+ if(req.method==='GET'&&route==='/api/paper/agent-orders'){
+  const receipts=Array.isArray(state.agentOrderReceipts)?state.agentOrderReceipts:[];
+  let keys=[];try{
+   const fn=path.join(store.dir,'trusted-execution-publishers.json');
+   if(existsSync(fn))keys=JSON.parse(readFileSync(fn,'utf8'));
+  }catch{}
+  return reply(res,200,{ok:true,mode:'PAPER_ONLY',
+   device_id:localDevice.device_id,
+   signed_publisher_configured:Array.isArray(keys)&&
+    keys.some(k=>k.scope==='agent_execution'&&!k.revoked),
+   total_receipts:receipts.length,
+   received:receipts.length,
+   paper_filled:receipts.filter(r=>r.status==='PAPER_FILLED').length,
+   blocked:receipts.filter(r=>r.status==='BLOCKED').length,
+   recent:receipts.slice(-30).reverse(),
+   live_trading_enabled:false,
+   source_status:'SIGNED_LOCAL_ADAPTER_OR_GITHUB_COURIER',
+   research_dots_direct_publisher_connected:false,
+   github_feed:githubAgentFeedStatus,
+   pipeline:summarizePaperPipeline({
+    research:researchNetwork,
+    readEnabled:process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_RESEARCH_READ!=='0',
+    courier:githubAgentFeedStatus,
+    publishers:Array.isArray(keys)?keys:[],
+    receipts,
+    positions:state.positions,
+    topology:deviceTopology.mode,
+    offline:process.env.SNIPER_OFFLINE==='1'
+   }),
+   message:'Signierte lokale Agentenadapter können echte Paper-Fills auslösen. Die fünf Cloud-Forschungs-Dots publizieren bislang nur lesbare Research-Snapshots, nicht signierte Order-Kommandos.'});
+ }
+ if(req.method==='POST'&&route==='/api/paper/publisher/trust'){
+  if(!req.headers.origin||!corsAllowed(req))
+   return error(res,403,'Nur ausdrückliche lokale Benutzeraktion');
+  if(deviceTopology.mode!=='MASTER')
+   return error(res,409,'Zuerst dieses Gerät als Laptop-Zentrale einrichten');
+  if(!allowRequest('paper-publisher-enrollment'))
+   return error(res,429,'Zu viele Schlüsselregistrierungen');
+  try{
+   const data=await body(req);
+   if(!data||typeof data!=='object'||Array.isArray(data)||
+    Object.keys(data).sort().join(',')!=='issuer,key_id,public_key_pem')
+    return error(res,422,'Genau Issuer, Key-ID und öffentlicher PEM-Schlüssel erforderlich');
+   const receipt=await enrollPaperPublisherPublicKey({
+    filename:path.join(store.dir,'trusted-execution-publishers.json'),
+    issuer:data.issuer,keyId:data.key_id,publicKeyPem:data.public_key_pem});
+   return reply(res,201,{ok:true,receipt});
+  }catch(e){return error(res,422,String(e?.message||'PUBLISHER_NOT_TRUSTED').slice(0,120))}
+ }
+ if(req.method==='POST'&&route==='/api/paper/agent-orders'){
+  if(req.headers.origin)return error(res,403,'Nur autorisierter lokaler Agentenadapter');
+  const principal=authenticate(req.headers.authorization,store.credentials);
+  if(principal?.role!=='risk_controller')
+   return error(res,401,'Risk-Controller-Rollen-Token erforderlich');
+  if(deviceTopology.mode!=='MASTER')
+   return error(res,409,'Paper-Agent-Pipeline derzeit nur auf dem Laptop-Master');
+  if(!allowRequest('paper-agent-order-'+principal.id))
+   return error(res,429,'Zu viele signierte Paper-Aufträge');
+  let message;
+  try{message=await body(req)}
+  catch{return error(res,422,'Ungültiges Agentensignal')}
+  const qa=process.env.SNIPER_OFFLINE==='1'&&
+   process.env.SNIPER_PIPELINE_QA==='1';
+  const signed=qa&&message?.command?message.command:message;
+  if(!qa&&message?.qa_quote)
+   return error(res,422,'Kein Fremdkurs für produktiven Paper-Eingang erlaubt');
+  const outcome=await submitSignedAgentPaperOrder(signed,{
+   qaQuote:qa?message?.qa_quote:null});
+  if(outcome.code)return error(res,outcome.code,outcome.error);
+  return reply(res,200,outcome);
+ }
+ if(req.method==='GET'&&route==='/api/decisions')return reply(res,200,{ok:true,...centralStatus()});
+ if(req.method==='POST'&&route==='/api/decisions/events'){
+  if(deviceTopology.mode==='FOLLOWER')
+   return error(res,409,'Follower nimmt keine eigenständigen Handelsentscheidungen an');
+  if(req.headers.origin)return error(res,403,'Nur lokale signierte Clients');
+  if(!allowRequest('central-paper-publisher'))return error(res,429,'Rate-Limit');
+  try{const d=await body(req),next=receiveDecision(state,d,decisionKeys());const duplicate=next===state;commit(next);return reply(res,200,{ok:true,duplicate,receipt:state.paperDecisions.receipts.find(r=>r.signal_id===d.signal_id)});}catch(e){return error(res,422,e.message)}
+ }
+ if(req.method==='GET'&&route==='/api/master/signing-public-key'){
+  if(deviceTopology.mode!=='MASTER')return error(res,409,'Nur auf dem Laptop-Master');
+  try{return reply(res,200,{ok:true,
+   public_key_pem:await getMasterCoordinationPublicKey(masterCoordinationDir),
+   master_device_id:localDevice.device_id,
+   github_publishing_active:masterStatus().coordination_online})}
+  catch{return reply(res,200,{ok:true,initialized:false,
+   master_device_id:localDevice.device_id,github_publishing_active:false})}
+ }
+ if(req.method==='POST'&&route==='/api/master/signing-key/create'){
+  if(deviceTopology.mode!=='MASTER')return error(res,409,'Nur auf dem Laptop-Master');
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Benutzeraktion');
+  if(!allowRequest('master-signing-key-create'))return error(res,429,'Zu viele Schlüssel-Anfragen');
+  try{
+   const d=await body(req);
+   if(!d||Object.keys(d).sort().join(',')!=='passphrase')return error(res,422,'Passphrase erforderlich');
+   const created=await createMasterCoordinationKey({folder:masterCoordinationDir,passphrase:d.passphrase});
+   return reply(res,201,{ok:true,public_key_pem:created.master_public_key_pem,
+    private_key_encrypted:true});
+  }catch(e){return error(res,422,e?.code==='EEXIST'?
+   'Master-Schlüssel bereits vorhanden – nicht überschrieben':
+   String(e?.message||'MASTER_KEY_NOT_CREATED').slice(0,110))}
+ }
+ if(req.method==='POST'&&route==='/api/master/presence/start'){
+  if(deviceTopology.mode!=='MASTER')return error(res,409,'Nur auf dem Laptop-Master');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline-Testmodus');
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Benutzeraktion');
+  if(!allowRequest('master-github-publisher-start'))return error(res,429,'Zu viele Startanfragen');
+  if(masterPublisher)return error(res,409,'Laptop-Zentrale veröffentlicht bereits');
+  try{
+   const d=await body(req);
+   if(!d||Object.keys(d).sort().join(',')!=='github_token,passphrase')
+    return error(res,422,'Signaturpassphrase und GitHub-Token erforderlich');
+   const key=await unlockMasterCoordinationKey({folder:masterCoordinationDir,
+    passphrase:d.passphrase});
+   const auth=d.github_token;
+   const publish=()=>publishMasterPresence({
+    masterDeviceId:localDevice.device_id,privateKey:key,githubToken:auth});
+   const first=await publish();
+   let busy=false;
+   const writer={lastSuccessfulPublishAt:Date.now(),timer:null};
+   writer.timer=setInterval(async()=>{
+    if(busy)return;busy=true;
+    try{
+     await publish();
+     writer.lastSuccessfulPublishAt=Date.now();
+    }catch{
+     // No secrets are logged; connection status expires without fresh GitHub publication.
+    }finally{busy=false}
+   },45000);
+   masterPublisher=writer;
+   return reply(res,200,{ok:true,published:true,
+    expires_at_utc:first.expires_at_utc,
+    wallet_keys_uploaded:false,trading_enabled:false,
+    message:'Laptop sendet nur signierten Online-Status; Schließen des Fensters stoppt weitere Meldungen.'});
+  }catch(e){return error(res,503,String(e?.message||'MASTER_GITHUB_PUBLISH_FAILED').slice(0,120))}
+ }
+ if(req.method==='POST'&&route==='/api/master/presence/stop'){
+  if(deviceTopology.mode!=='MASTER')return error(res,409,'Nur auf dem Laptop-Master');
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Benutzeraktion');
+  if(masterPublisher){clearInterval(masterPublisher.timer);masterPublisher=null}
+  return reply(res,200,{ok:true,publishing_active:false,
+   warning:'Bereits bei GitHub gespeicherter Status läuft spätestens mit Ablauf seiner Signatur ab.'});
+ }
+ if(req.method==='GET'&&route==='/api/coordination/status')
+  return reply(res,200,{ok:true,
+   local_device_id:localDevice.device_id,
+   topology_role:deviceTopology.mode,
+   master_device_id:deviceTopology.master_device_id,
+   github_repository:'127027/Sniperbot-',
+   master:masterStatus(),
+   live_trading_enabled:false,
+   funding_provider_connected:false,
+   message:masterStatus().message});
+ if(req.method==='POST'&&route==='/api/device/topology'){
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Geräte-Einrichtung');
+  if(!allowRequest('local-device-pairing'))return error(res,429,'Zu viele Kopplungsversuche');
+  if(deviceTopology.mode!=='UNPAIRED')return error(res,409,'Geräterolle bereits festgelegt; kein heimlicher Wechsel');
+  try{
+   const d=await body(req);
+   if(!d||typeof d!=='object'||Array.isArray(d)||!
+    ['MASTER','FOLLOWER'].includes(d.mode))return error(res,422,'MASTER oder FOLLOWER erforderlich');
+   if(d.mode==='MASTER'&&Object.keys(d).sort().join(',')!=='mode')
+    return error(res,422,'Keine Zusatzfelder für Master');
+   if(d.mode==='FOLLOWER'&&
+    Object.keys(d).sort().join(',')!=='master_device_id,master_public_key_pem,mode')
+    return error(res,422,'Follower braucht Master-ID und öffentlichen Schlüssel');
+   const created=installLocalDeviceTopology({
+    dir:store.dir,deviceId:localDevice.device_id,mode:d.mode,
+    masterDeviceId:d.mode==='MASTER'?localDevice.device_id:d.master_device_id,
+    masterPublicKeyPem:d.mode==='FOLLOWER'?d.master_public_key_pem:null});
+   deviceTopology=created;
+   masterConnection=followerStatus({topology:created});
+   return reply(res,201,{ok:true,mode:created.mode,
+    master_device_id:created.master_device_id,
+    message:masterStatus().message});
+  }catch(e){return error(res,422,String(e?.message||'PAIRING_BLOCKED').slice(0,120))}
+ }
+ if(req.method==='GET'&&route==='/api/device/identity')
+  return reply(res,200,{ok:true,device:localDevice,
+   wallet_location:'LOCAL_INSTALLATION_ONLY',
+   device_hardware_fingerprint_collected:false});
+ if(req.method==='GET'&&route==='/api/execution/route-v2'){
+  try{return reply(res,200,{ok:true,
+   inbox:await dynamicTradeInbox.summary(),
+   live_trading_enabled:false,
+   note:'Only verified agent instructions and public quotes. No buy/sell transaction.'})}
+  catch{return error(res,503,'Signierter dynamischer Befehlsspeicher nicht lesbar')}
+ }
+ if(req.method==='POST'&&route==='/api/execution/route-v2'){
+  if(req.headers.origin)return error(res,403,'Nur lokaler autorisierter Agentenadapter');
+  const principal=authenticate(req.headers.authorization,store.credentials);
+  if(principal?.role!=='risk_controller')
+   return error(res,401,'Risk-Controller-Zugang erforderlich');
+  if(!allowRequest('dynamic-execution-'+principal.id))
+   return error(res,429,'Zu viele signierte Handelsaufträge');
+  if(deviceTopology.mode!=='MASTER')
+   return error(res,409,'Auf dieser Entwicklungsstufe nur der Laptop-Master');
+  if(process.env.SNIPER_OFFLINE==='1')
+   return error(res,503,'Offline – Kursprüfung und Handel gesperrt');
+  try{
+   const command=await body(req);
+   const receipt=await dynamicTradeInbox.submit(command);
+   return reply(res,200,{ok:true,receipt,
+    live_trading_enabled:false,transaction_sent:false,
+    note:'Signierter Geräteauftrag nur gespeichert/quotiert. Kein Kauf/Verkauf.'});
+  }catch(e){return error(res,422,String(e?.message||'DYNAMIC_TRADE_INSTRUCTION_REJECTED').slice(0,120))}
+ }
+ if(req.method==='GET'&&route==='/api/execution/inbox'){
+  try{return reply(res,200,{ok:true,inbox:await agentExecutionInbox.summary()})}
+  catch{return error(res,503,'Befehlseingang nicht lesbar; keine Orders')}
+ }
+ if(req.method==='POST'&&route==='/api/execution/instructions'){
+  // Two independent requirements: local role token AND trusted Ed25519 publisher.
+  // Absolutely no trade action here, not even a paper execution.
+  if(req.headers.origin)return error(res,403,'Nur autorisierte lokale Adapter');
+  const principal=authenticate(req.headers.authorization,store.credentials);
+  if(principal?.role!=='risk_controller')return error(res,401,'Lokaler Executor-Rollen-Token erforderlich');
+  if(!allowRequest('execution-inbox-'+principal.id))return error(res,429,'Befehlsrate begrenzt');
+  try{
+   if(deviceTopology.mode==='UNPAIRED')
+    return error(res,409,'Befehlsgerät muss zuerst mit der Laptop-Zentrale gekoppelt werden');
+   if(deviceTopology.mode==='FOLLOWER'&&!masterStatus().coordination_online)
+    return error(res,409,'Keine Verbindung – ruf Andreas an');
+   const command=await body(req);
+   const receipt=await agentExecutionInbox.submit(command);
+   return reply(res,200,{ok:true,receipt,live_execution_enabled:false});
+  }catch(e){return error(res,422,String(e?.message||'EXECUTION_INSTRUCTION_REJECTED').slice(0,120))}
+ }
+ if(route==='/api/agent/scratchpad'){
+  const principal=authenticate(req.headers.authorization,store.credentials);
+  if(!principal)return error(res,401,'Agentenzugang erforderlich');
+  if(!allowRequest(principal.id))return error(res,429,'Rate-Limit');
+  try{
+   if(req.method==='GET')return reply(res,200,{ok:true,
+    scratchpad:await scratchpad.get({role:principal.role})});
+   if(req.method==='POST'){
+    if(!req.headers['content-type']?.startsWith('application/json'))
+     return error(res,415,'JSON erforderlich');
+    const entry=await body(req);
+    return reply(res,200,{ok:true,receipt:await scratchpad.put({role:principal.role,entry})});
+   }
+   return error(res,405,'Methode nicht erlaubt');
+  }catch(e){return error(res,422,String(e?.message||'INVALID_SCRATCHPAD_REQUEST').slice(0,140))}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/external-observe'){
+  // Explicitly a different user's wallet, never this bot's encrypted wallet.
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine externen Guthaben');
+  if(!allowRequest('external-solana-watch-only'))return error(res,429,'Zu viele externe Abfragen');
+  try{
+   const query=new URL(req.url,'http://127.0.0.1:'+port);
+   const publicAddress=query.searchParams.get('address');
+   const summary=await observeExternalSolanaWallet(publicAddress);
+   return reply(res,200,{ok:true,external:summary});
+  }catch{return error(res,503,'Externe Wallet-Adresse oder Blockchain-Daten nicht verifizierbar')}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/overview'){
+  if(process.env.SNIPER_OFFLINE==='1')
+   return error(res,503,'Offline – echte Blockchain-Bestände nicht abrufbar');
+  if(!allowRequest('verified-real-wallet-overview'))
+   return error(res,429,'Zu viele echte Wallet-Abfragen');
+  try{
+   const wallet=await readLocalSolanaVault(walletFile);
+   if(!wallet?.exists)return error(res,409,'Noch keine eigene Solana-Wallet eingerichtet');
+   const [balance,holdings]=await Promise.all([
+    readSolanaBalance(wallet.address),readSolanaOwnedTokens(wallet.address)]);
+   return reply(res,200,{ok:true,overview:summarizeRealWallet({
+    wallet,balance,holdings})});
+  }catch{return error(res,503,'Echte Blockchain-Bestände nicht zuverlässig verifizierbar')}
+ }
+ if(req.method==='GET'&&route==='/api/trading/live-mode')
+  return reply(res,200,{ok:true,gate:readLiveTradingGate()});
+ if(req.method==='POST'&&route==='/api/trading/live-mode'){
+  if(!req.headers.origin||!corsAllowed(req))
+   return error(res,403,'Nur sichtbare lokale Benutzeroberfläche');
+  if(!allowRequest('laptop-live-mode-policy'))
+   return error(res,429,'Zu viele Live-Modus-Anfragen');
+  try{
+   const settings=await body(req);
+   const gate=requestLiveTradingMode(settings);
+   return reply(res,200,{ok:true,gate});
+  }catch(e){
+   if(e?.message==='LIVE_TRADING_NOT_AVAILABLE')
+    return error(res,423,'Echtgeldhandel ist gesperrt: geprüfter Swap-Executor und Zahlungsanbieter fehlen');
+   return error(res,422,'Ungültige Echtgeldhandels-Einstellung');
+  }
+ }
+ if(req.method==='GET'&&route==='/api/wallet/status'){
+  try{return reply(res,200,{ok:true,wallet:await readLocalSolanaVault(walletFile),
+   mode:'READ_ONLY_REAL_CHAIN',payment_provider_connected:false,
+   real_swap_enabled:false,private_keys_exposed:false})}
+  catch{return error(res,503,'Wallet-Datei kann nicht validiert werden. Kein Reset durchführen.')}
+ }
+ if(req.method==='POST'&&route==='/api/wallet/create'){
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Wallet-Einrichtung nur aus der lokalen Oberfläche');
+  if(!allowRequest('local-wallet-create'))return error(res,429,'Zu viele Wallet-Anfragen');
+  if(walletCreationBusy)return error(res,409,'Wallet-Erstellung bereits aktiv');
+  walletCreationBusy=true;
+  try{
+   const input=await body(req);
+   if(!input||Object.keys(input).sort().join(',')!=='password'||
+      typeof input.password!=='string')return error(res,422,'Nur Wallet-Passwort erlaubt');
+   const result=await createLocalSolanaVault({filename:walletFile,password:input.password});
+   walletBackupVerifiedAddress=null;
+   return reply(res,201,{ok:true,wallet:result});
+  }catch(e){return error(res,422,e?.code==='EEXIST'?
+   'Wallet bereits angelegt. Niemals überschreiben.':
+   String(e?.message||'WALLET_CREATE_BLOCKED').slice(0,130))}
+  finally{walletCreationBusy=false}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/balance'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline-Modus – keine Blockchain-Abfrage');
+  if(walletBalanceCache&&Date.now()-lastWalletBalanceAt<12000)
+   return reply(res,200,{ok:true,balance:walletBalanceCache});
+  try{
+   const balance=await readSolanaBalance(wallet.address);
+   walletBalanceCache=balance;lastWalletBalanceAt=Date.now();
+   return reply(res,200,{ok:true,balance});
+  }catch{return error(res,503,'Blockchain-Guthaben derzeit nicht verifizierbar')}
+ }
+ if(req.method==='POST'&&route==='/api/wallet/encrypted-backup'){
+  if(!req.headers.origin||!corsAllowed(req))
+   return error(res,403,'Wallet-Backup nur aus der lokalen Oberfläche');
+  if(!allowRequest('wallet-export-backup'))return error(res,429,'Zu viele Export-Anfragen');
+  try{
+   const input=await body(req);
+   if(!input||Object.keys(input).sort().join(',')!=='password'||
+      typeof input.password!=='string')
+    return error(res,422,'Passwort erforderlich');
+   await checkSolanaVaultPassword({filename:walletFile,password:input.password});
+   const sealed=await encryptedSolanaBackup(walletFile);
+   return reply(res,200,{ok:true,encrypted_backup:sealed,
+    warning:'Verschlüsselte Kopie nur nach Passwortprüfung. Passwort getrennt offline aufbewahren.'});
+  }catch{return error(res,422,'WALLET_BACKUP_PASSWORD_OR_INTEGRITY_FAILED')}
+ }
+ if(req.method==='POST'&&['/api/wallet/verify-backup','/api/wallet/restore-backup'].includes(route)){
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Benutzeroberfläche');
+  if(!allowRequest('wallet-backup-operation'))return error(res,429,'Zu viele Backup-Anfragen');
+  try{
+   const entry=await body(req);
+   if(!entry||Object.keys(entry).sort().join(',')!=='password,record')
+    return error(res,422,'Backup-Daten erforderlich');
+   let result;
+   if(route==='/api/wallet/verify-backup'){
+    const installed=await readLocalSolanaVault(walletFile);
+    if(!installed.exists)return error(res,409,'Wallet zum Vergleichen nicht vorhanden');
+    result=await verifyEncryptedSolanaBackup({filename:walletFile,
+     record:entry.record,password:entry.password});
+    if(result.address!==installed.address)return error(res,422,'Backup gehört zu einer anderen Wallet');
+    walletBackupVerifiedAddress=installed.address;
+   }else{
+    result=await restoreEncryptedSolanaBackup({filename:walletFile,
+     record:entry.record,password:entry.password});
+    walletBackupVerifiedAddress=null;
+   }
+   return reply(res,200,{ok:true,backup:result});
+  }catch(e){return error(res,422,e?.code==='EEXIST'?
+    'Vorhandene Wallet wird niemals überschrieben':
+    String(e?.message||'BACKUP_NOT_VERIFIED').slice(0,100))}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/sol-transfer/history'){
+  try{return reply(res,200,{ok:true,
+   transfers:await recentNativeSolTransferJournal(nativeTransferJournal),
+   note:'Einträge beweisen nicht automatisch eine finalisierte Überweisung.'})}
+  catch{return error(res,503,'Lokales Überweisungsjournal beschädigt oder nicht lesbar')}
+ }
+ if(req.method==='POST'&&route==='/api/wallet/sol-transfer/prepare'){
+  if(deviceTopology.mode!=='MASTER')return error(res,409,'Nur sichtbarer Laptop-Master darf echte SOL-Überweisungen vorbereiten');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – Echtgeld gesperrt');
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Browseraktion');
+  if(!allowRequest('native-sol-transfer-preview'))return error(res,429,'Zu viele Überweisungsvorbereitungen');
+  if(walletBackupVerifiedAddress===null)return error(res,409,'Wallet-Backup zunächst mit Passwort prüfen');
+  if(nativeTransferBusy)return error(res,409,'Andere Überweisung aktiv');
+  try{
+   const d=await body(req);
+   if(!d||Object.keys(d).sort().join(',')!=='destination,lamports'||
+    typeof d.destination!=='string'||typeof d.lamports!=='string')
+    return error(res,422,'Nur Empfänger und Lamports erlaubt');
+   const preview=await previewNativeSolTransfer({
+    walletFile,destination:d.destination,lamports:d.lamports});
+   const challenge_id=randomBytes(16).toString('hex');
+   nativeTransferChallenge={challenge_id,expires_at:Date.now()+75000,
+    source:preview.from,destination:preview.to,lamports:preview.lamports};
+   return reply(res,200,{ok:true,preview,
+    confirmation_id:challenge_id,confirmation_phrase:'ICH SENDE SOL',
+    warning:'Nur native SOL – kein Coin-Tausch und keine PayPal-Auszahlung.'});
+  }catch(e){nativeTransferChallenge=null;
+   return error(res,422,String(e?.message||'SOL_PREVIEW_BLOCKED').slice(0,120))}
+ }
+ if(req.method==='POST'&&route==='/api/wallet/sol-transfer/send'){
+  if(deviceTopology.mode!=='MASTER')return error(res,409,'Nur sichtbarer Laptop-Master');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – Echtgeld gesperrt');
+  if(!req.headers.origin||!corsAllowed(req))return error(res,403,'Nur lokale Browseraktion');
+  if(!allowRequest('native-sol-transfer-send'))return error(res,429,'Zu viele Überweisungsversuche');
+  if(walletBackupVerifiedAddress===null)return error(res,409,'Wallet-Backup muss vor echter SOL-Überweisung geprüft sein');
+  if(nativeTransferBusy)return error(res,409,'Eine Überweisung läuft bereits');
+  nativeTransferBusy=true;
+  try{
+   const d=await body(req);
+   if(!d||Object.keys(d).sort().join(',')!=='confirmation_id,confirmation_phrase,password'||
+    typeof d.password!=='string'||d.confirmation_phrase!=='ICH SENDE SOL'||
+    typeof d.confirmation_id!=='string')
+    return error(res,422,'Bestätigung oder Wallet-Passwort fehlt');
+   const pending=nativeTransferChallenge;
+   // Burn the nonce immediately: never retry a transaction from a second click.
+   nativeTransferChallenge=null;
+   if(!pending||pending.challenge_id!==d.confirmation_id||
+    pending.expires_at<Date.now())return error(res,409,'Überweisungsfreigabe abgelaufen');
+   const wallet=await readLocalSolanaVault(walletFile);
+   if(!wallet.exists||wallet.address!==pending.source)
+    return error(res,409,'Wallet seit Bestätigung verändert');
+   if(wallet.address!==walletBackupVerifiedAddress)
+    return error(res,409,'Gesicherte Wallet und aktuelle Wallet passen nicht zusammen');
+   const result=await submitLocalNativeSolTransfer({
+    walletFile,folder:nativeTransferJournal,destination:pending.destination,
+    lamports:pending.lamports,password:d.password});
+   walletBalanceCache=null;lastWalletBalanceAt=0;
+   return reply(res,200,{ok:true,transfer:result,
+    note:'Echte SOL-Überweisung. Keine automatische PayPal-/MoonPay-Auszahlung und kein Token-Swap.'});
+  }catch(e){return error(res,422,String(e?.message||'SOL_TRANSFER_NOT_PERFORMED').slice(0,120))}
+  finally{nativeTransferBusy=false}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/receipt'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Bestätigung möglich');
+  if(!allowRequest('wallet-transaction-receipt'))return error(res,429,'Zu viele Belegprüfungen');
+  try{
+   const u=new URL(req.url,'http://127.0.0.1:'+port);
+   const receipt=await verifyFinalizedSolanaReceipt({
+    wallet:wallet.address,signature:u.searchParams.get('signature')});
+   return reply(res,200,{ok:true,receipt});
+  }catch{return error(res,422,'Ungültige Signatur oder Blockchain-Antwort nicht verfügbar')}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/activity'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Blockchain-Historie');
+  if(!allowRequest('wallet-activity'))return error(res,429,'Zu viele Verlaufabfragen');
+  try{return reply(res,200,{ok:true,activity:await recentSolanaWalletActivity(wallet.address,{
+   wait:()=>new Promise(resolve=>setTimeout(resolve,1100))})})}
+  catch{return error(res,503,'Blockchain-Transaktionsverlauf nicht verifizierbar')}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/tokens'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Token-Guthaben');
+  if(!allowRequest('wallet-owned-tokens'))return error(res,429,'Zu viele Guthabenabfragen');
+  try{return reply(res,200,{ok:true,holdings:await readSolanaOwnedTokens(wallet.address)})}
+  catch{return error(res,503,'Token-Guthaben nicht zuverlässig verifizierbar')}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/unsigned-order'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Order-Vorbereitung');
+  if(!allowRequest('wallet-unsigned-preflight'))return error(res,429,'Zu viele Order-Vorprüfungen');
+  const u=new URL(req.url,'http://127.0.0.1:'+port);
+  const amountLamports=u.searchParams.get('amountLamports');
+  try{
+   // A quote alone MUST NOT cause a Jupiter order request if the real wallet
+   // lacks enough finalized SOL. Simulated TEST-USDC cannot be spent here.
+   const balance=await readSolanaBalance(wallet.address);
+   const funding=assessWalletSolSpend({balance,amountLamports});
+   if(!funding.unsigned_order_request_allowed)
+    return reply(res,200,{ok:true,preflight:{
+     schema:'jupiter_unsigned_order_preflight.v1',status:'BLOCKED',
+     reason:funding.reason,prepared_transaction_present:false,
+     transaction_signed:false,transaction_sent:false,
+     signing_permitted:false,live_trading_enabled:false},
+     funding});
+   const preflight=await previewJupiterUnsignedOrder({
+    wallet:wallet.address,targetMint:u.searchParams.get('outputMint'),
+    amountLamports,simulate:true});
+   return reply(res,200,{ok:true,preflight,funding});
+  }catch{return error(res,503,'Blockchain-Bestand oder Jupiter-Order derzeit nicht unabhängig prüfbar')}
+ }
+ if(req.method==='GET'&&route==='/api/wallet/swap-roundtrip'){
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine Kurse');
+  if(!allowRequest('wallet-roundtrip'))return error(res,429,'Zu viele Tauschprüfungen');
+  const u=new URL(req.url,'http://127.0.0.1:'+port);
+  const targetMint=u.searchParams.get('outputMint');
+  const amountLamports=u.searchParams.get('amountLamports');
+  const preview=await previewSolanaSwapRoundtrip({
+   targetMint,amountLamports,wait:()=>new Promise(resolve=>setTimeout(resolve,2200))});
+  // Only public quote metadata, never a transaction, signing key or PayPal receipt.
+  return reply(res,200,{ok:true,preview});
+ }
+ if(req.method==='GET'&&route==='/api/wallet/dynamic-route'){
+  if(process.env.SNIPER_OFFLINE==='1')
+   return error(res,503,'Offline – keine dynamische Handelsroute');
+  if(!allowRequest('dynamic-wallet-route'))
+   return error(res,429,'Zu viele Routenabfragen');
+  const u=new URL(req.url,'http://127.0.0.1:'+port);
+  const chain=u.searchParams.get('chain');
+  const inputAsset=u.searchParams.get('inputAsset');
+  const outputAsset=u.searchParams.get('outputAsset');
+  const amountAtoms=u.searchParams.get('amountAtoms');
+  const minReceiveAtoms=u.searchParams.get('minReceiveAtoms')||'1';
+  let owner=null;
+  if(chain==='solana'){
+   const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+   if(!wallet?.exists)return error(res,409,'Eigene Solana-Wallet fehlt oder beschädigt');
+   owner=wallet.address;
+  }
+  const plan=await previewDynamicAssetRoute({
+   chain,inputAsset,outputAsset,amountAtoms,minReceiveAtoms,owner});
+  return reply(res,200,{ok:true,plan,
+   actual_swap_enabled:false,automatic_fiat_conversion_enabled:false});
+ }
+ if(req.method==='GET'&&route==='/api/wallet/swap-quote'){
+  if(process.env.SNIPER_OFFLINE==='1')return error(res,503,'Offline – keine echten Swap-Quotes');
+  if(!allowRequest('wallet-swap-quote'))return error(res,429,'Quote-Ratenlimit');
+  const wallet=await readLocalSolanaVault(walletFile).catch(()=>null);
+  if(!wallet?.exists)return error(res,409,'Wallet nicht erstellt oder beschädigt');
+  try{
+   const u=new URL(req.url,'http://127.0.0.1:'+port);
+   const outputMint=u.searchParams.get('outputMint');
+   const amountLamports=u.searchParams.get('amountLamports');
+   const quote=await fetchIndicativeSolanaQuote({outputMint,amountLamports});
+   return reply(res,200,{ok:true,quote});
+  }catch(e){return error(res,422,String(e?.message||'NO_QUOTE_AVAILABLE').slice(0,120))}
+ }
+ if(req.method==='GET'&&route==='/api/v09/status')return reply(res,200,{ok:true,v09:buildV09Status({state,network:researchNetwork})});
+ if(req.method==='GET'&&route==='/api/v09/pool-readbacks')return reply(res,200,{ok:true,readbacks:poolReadbacks});
+ if(req.method==='GET'&&route==='/api/v09/dossiers')return reply(res,200,{ok:true,dossiers:buildDecisionDossiers({network:researchNetwork,batch:poolReadbacks})});
  if(req.method==='GET'&&route==='/api/health')return reply(res,200,{ok:true,mode:'PAPER_ONLY',uptimeSec:Math.round(process.uptime())});
  if(route==='/api/research'||route==='/api/research/events'){
+  if(deviceTopology.mode==='FOLLOWER'&&route==='/api/research/events')
+   return error(res,409,'Keine Verbindung – ruf Andreas an; Folgegerät akzeptiert keine Forschungsbefehle');
   if(req.headers.origin)return error(res,403,'Gateway ist nur für lokale Clients');
   const principal=authenticate(req.headers.authorization,store.credentials);
   if(!principal)return error(res,401,'Agenten-Zugang erforderlich');
@@ -57,8 +791,18 @@ const server=createServer(async(req,res)=>{
  if(!req.headers['content-type']?.startsWith('application/json'))return error(res,415,'JSON erforderlich');
  let raw='';try{for await(const chunk of req){raw+=chunk;if(raw.length>6000)throw Error('Anfrage zu groß')}}catch{return error(res,413,'Anfrage zu groß')}
  let a;try{a=JSON.parse(raw)}catch{return error(res,400,'Ungültiges JSON')}
- const allowed=new Set(['SIMULATE_AGENTS','TOGGLE_BOT','SET_AUTO','SET_RANGE','SET_EXITS','DEPOSIT','WITHDRAW','EXCHANGE','EXCHANGE_BACK','BUY','SELL','RESET','SCAN','DEMO_SIGNAL','LOOKUP','DEMO_MOVE']);
+ const allowed=new Set(['PREVIEW_PAPER_FUNDING','SET_PAPER_BALANCE','SET_CENTRAL_FOLLOW','SIMULATE_AGENTS','TOGGLE_BOT','SET_AUTO','SET_RANGE','SET_EXITS','DEPOSIT','WITHDRAW','EXCHANGE','EXCHANGE_BACK','BUY','SELL','RESET','SCAN','DEMO_SIGNAL','LOOKUP','DEMO_MOVE']);
  if(!allowed.has(a?.type))return error(res,400,'Aktion nicht zulässig');
+ if(deviceTopology.mode==='FOLLOWER'&&
+  !operationAllowedWhenMasterOffline(a?.type,false))
+  return error(res,409,'Keine Verbindung – ruf Andreas an; nur Ein-/Auszahlung erlaubt');
+
+ if(a.type==='PREVIEW_PAPER_FUNDING'){
+  const result=previewFundingV09({amountEur:a.amountEur,eurPerUsdc:a.eurPerUsdc,
+    providerFeeEur:a.providerFeeEur,spreadPct:a.spreadPct,networkFeeUsdc:a.networkFeeUsdc,
+    now:Date.now()});
+  return reply(res,200,{ok:true,preview:result,ledger_unchanged:true});
+ }
  if(a.type==='SIMULATE_AGENTS'){try{commit(simulate(state,a.negative===true));return reply(res,200,{ok:true,state})}catch(e){return error(res,422,e.message)}}
  if(a.type==='SCAN'){void scan();return reply(res,202,{ok:true,message:'Marktdatenabfrage gestartet'})}
  if(a.type==='LOOKUP'){
@@ -84,10 +828,70 @@ const server=createServer(async(req,res)=>{
  commit(evaluate(n));return reply(res,200,{ok:true,state});
 });
 server.requestTimeout=10000;server.headersTimeout=10000;
-server.listen(port,'127.0.0.1',()=>console.log(`MEME SNIPER V0.4 GATEWAY (nur TEST) http://127.0.0.1:${port}`));
+server.listen(port,'127.0.0.1',()=>console.log(`MEME SNIPER V0.9 PAPER GATEWAY (kein LIVE) http://127.0.0.1:${port}`));
+// Public GitHub presence is informational; a Follower NEVER trades on its own.
+if(process.env.SNIPER_OFFLINE!=='1'&&deviceTopology.mode==='FOLLOWER'){
+ void refreshMasterConnection();
+ setInterval(()=>{void refreshMasterConnection()},60000);
+}
 // Safe, low-frequency public polling; independent of browser. No private keys, no live execution.
-if(process.env.SNIPER_OFFLINE!=='1')setInterval(()=>{void scan()},90000);
+if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_LOCAL_DISCOVERY==='1')setInterval(()=>{void scan()},90000);
 if(process.env.SNIPER_OFFLINE!=='1')setInterval(()=>{void prices()},30000);
-if(process.env.SNIPER_OFFLINE!=='1')setTimeout(()=>{void scan()},2500);
-setInterval(()=>{try{commit(evaluate(applyExits(state)))}catch(e){console.error('Research/Exit:',e.message)}},5000);
-for(const sig of ['SIGINT','SIGTERM'])process.on(sig,()=>{save();server.close();process.exit(0)});
+if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_LOCAL_DISCOVERY==='1')setTimeout(()=>{void scan()},2500);
+setInterval(()=>{if(deviceTopology.mode==='FOLLOWER')return;try{commit(evaluate(applyExits(state)))}catch(e){console.error('Research/Exit:',e.message)}},5000);
+let shuttingDown=false;
+function shutdownServer(){
+ if(shuttingDown)return;
+ if(masterPublisher){clearInterval(masterPublisher.timer);masterPublisher=null}
+ shuttingDown=true;
+ try{save()}catch(e){console.error('Paper-state save on shutdown:',e.message)}
+ server.close(()=>process.exit(0));
+ // Exit even if an HTTP connection refuses to close. State was saved first.
+ setTimeout(()=>process.exit(0),3000).unref();
+}
+for(const sig of ['SIGINT','SIGTERM'])process.on(sig,shutdownServer);
+attachSupervisedStop(shutdownServer);
+
+// Read-only five-role GitHub research mirror, separate from portfolio and action handlers.
+if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_RESEARCH_READ!=='0'){
+ void refreshResearchNetwork();
+ setInterval(()=>{void refreshResearchNetwork()},120000);
+}
+
+// PUBLIC research/order courier is not a trusted signer. Each message must
+// pass local Ed25519 key registry plus local paper budget and market validation.
+// Only PAPER, never a real swap or wallet debit.
+if(process.env.SNIPER_OFFLINE!=='1'&&
+ process.env.SNIPER_AGENT_PAPER_FEED!=='0'){
+ let reading=false;
+ const poll=async()=>{
+  if(reading||deviceTopology.mode!=='MASTER')return;
+  reading=true;
+  try{
+   const result=await pollSignedPaperOrderFeed({consume:async command=>{
+    const outcome=await submitSignedAgentPaperOrder(command,{source:'GITHUB_SIGNED_COURIER'});
+    return outcome.code?{signal_id:command?.signal_id||null,
+     status:'REJECTED',reason:outcome.error}:outcome.receipt;
+   }});
+   githubAgentFeedStatus={checked_at_utc:new Date().toISOString(),
+    received_last:result.received,
+    accepted_last:result.receipts.filter(x=>x.status!=='REJECTED').length,
+    rejected_last:result.receipts.filter(x=>x.status==='REJECTED').length,
+    last_rejection:result.receipts.filter(x=>x.status==='REJECTED').slice(-1)[0]?.reason||null,
+    status:'FETCHED_SIGNED_COURIER',last_error:null};
+  }catch(e){
+   githubAgentFeedStatus={checked_at_utc:new Date().toISOString(),
+    received_last:0,accepted_last:0,rejected_last:0,last_rejection:null,
+    status:'COURIER_UNAVAILABLE',
+    last_error:String(e?.message||'UNKNOWN').slice(0,100)};
+  }finally{reading=false}
+ };
+ setTimeout(()=>{void poll()},5000);
+ setInterval(()=>{void poll()},40000);
+}
+
+// Opt-in, outbound-only, informational feed. Never calls ingest/evaluate/action.
+if(process.env.SNIPER_RESEARCH_FEED==='1'){
+ const pollResearch=createReceiver({getState:()=>state,commit});
+ void pollResearch().catch(e=>console.error('Research inbox:',e.message));setInterval(()=>{void pollResearch().catch(e=>console.error('Research inbox:',e.message))},60000);
+}

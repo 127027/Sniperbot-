@@ -1,0 +1,109 @@
+{
+  "schema": "dot_research_state.v1",
+  "role": "social",
+  "run_id": "social-20261114T023659Z-erc20-source-audit",
+  "previous_run_id": "social-20261114T013842Z-independent-social-negative",
+  "candidate": {
+    "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
+    "symbol": "PEPE",
+    "selection": "KNOWN_WINNER_DIAGNOSTIC_NOT_DISCOVERY",
+    "as_of_utc": "2023-04-14T23:59:59Z"
+  },
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "status": "STALLED",
+  "input_refs": [
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/PROTOCOL.md"
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/dot-workflow/roles/social/current.json",
+      "json_paths": [
+        "$.next_task",
+        "$.run_id",
+        "$.blockers"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-first-frame/input.json",
+      "json_paths": [
+        "$.index",
+        "$.at",
+        "$.events",
+        "$.input_hash"
+      ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-first-frame/decisions/social.json",
+      "json_paths": [
+        "$.index",
+        "$.at",
+        "$.input_hash",
+        "$.reviews",
+        "$.orders"
+      ]
+    },
+    {
+      "original_url": "https://www.reddit.com/r/CryptoMoonShots/comments/12lif8d",
+      "purpose": "Independently retrieved dated April 14 2023 STARSHIP promotional meme post; as-of capture unverified"
+    },
+    {
+      "original_url": "https://www.reddit.com/r/CryptoMoonShots/comments/12r1z5w",
+      "purpose": "April 18 2023 ZOOMER promotional announcement; present-day retrodated page, not as-of capture"
+    }
+  ],
+  "completed_checks": [
+    {
+      "check": "Read complete PROTOCOL and moving current",
+      "result": "PASS",
+      "evidence": "protocol blob 2503f1dc2fd00ede9e03edc2a8270e1180b85457; prior current blob d0df994468dd3274680005297d8d0d7c60ad5ab7"
+    },
+    {
+      "check": "Controller frame0 decision readback",
+      "result": "PASS",
+      "evidence": "input blob b20c20572ce2ee36c95ae4b05db1f6bef3865b94; decision blob feb5afc26b7d12ccd701358985812edd5e191bca; index0 events=[] reviews=[] orders=[] hash matches"
+    },
+    {
+      "check": "Distinct dated Ethereum memecoin announcement search",
+      "result": "PROVISIONAL",
+      "evidence": "Two targeted search queries; STARSHIP April14 and ZOOMER April18 surfaced; no verified as-of archive capture or token/pool identity"
+    },
+    {
+      "check": "Historical archive timestamp",
+      "result": "NOT_VERIFIED"
+    }
+  ],
+  "findings": [
+    {
+      "statement": "April 14 2023 STARSHIP meme promotion and April 18 ZOOMER Ethereum announcement are currently indexed dated pages, not authenticated historical as-of captures. ZOOMER mentions future April 20 launch; token and pool identities remain UNKNOWN. No actionable signal.",
+      "as_of_utc": "2026-11-14T02:36:59Z",
+      "evidence_ref": "https://www.reddit.com/r/CryptoMoonShots/comments/12lif8d ; https://www.reddit.com/r/CryptoMoonShots/comments/12r1z5w",
+      "evidence_limit": "PROVISIONAL today-visible dated posts; historical visibility, author independence, engagement and token/pool identities not verified; no blind discovery",
+      "origin": "OWN_SOURCE_CHECK"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "MISSING_AS_OF_CAPTURE",
+      "detail": "No independently authenticated historical capture timestamp for either dated candidate-specific post"
+    },
+    {
+      "code": "MISSING_HISTORICAL_ENGAGEMENT_SNAPSHOTS",
+      "detail": "No authenticated historical interaction time series; parked"
+    },
+    {
+      "code": "UNKNOWN_TOKEN_POOL_IDENTITY",
+      "detail": "No historically supported complete chain:token:pool identity for the newly observed social mentions"
+    }
+  ],
+  "next_task": "Park dated STARSHIP/ZOOMER posts until authenticated as-of archive capture and original author/contract evidence are available; next check independently dated original Ethereum ERC20 announcement with verifiable historical capture, without winner targeting. If unavailable retain STALLED.",
+  "peer_receipts": []
+}

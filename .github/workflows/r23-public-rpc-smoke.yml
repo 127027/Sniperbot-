@@ -1,0 +1,33 @@
+name: R23 public Ethereum RPC historical smoke - no models
+on:
+  push:
+    branches: ['codex/dots-pepe-replay-20261113']
+    paths: ['.github/workflows/r23-public-rpc-smoke.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-rpc-pools:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_RESEARCH_READ: '0'
+      SNIPER_RESEARCH_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+      RESEARCH_RPC_URL: https://ethereum-rpc.publicnode.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PublicNode archive historic factory logs, no key or paid model
+        run: node research/replay-controller/r23-onchain-discovery.mjs --start=2023-04-14T00:00:00Z --end=2023-04-14T23:59:59Z --max-chunks=4 --step=120 --output=r23-public-rpc-sample.json
+      - name: Upload source-only, unverified evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r23-public-rpc-sample
+          path: r23-public-rpc-sample.json
+          if-no-files-found: ignore
+          retention-days: 7
