@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "security",
-  "run_id": "security-20261114T162122Z-r22-frame00006-01",
-  "previous_run_id": "security-20261114T151956Z-r22-frame00005-01",
+  "run_id": "security-20261114T171039Z-r22-frame00007-01",
+  "previous_run_id": "security-20261114T162122Z-r22-frame00006-01",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -337,6 +337,18 @@
         "input_hash",
         "events"
       ]
+    },
+    {
+      "repository": "127027/Sniperbot-",
+      "ref": "codex/dots-pepe-replay-20261113",
+      "path": "research/replay-controller/bridge/diagnostic-frames/00007/input.json",
+      "json_paths": [
+        "index",
+        "at",
+        "input_hash",
+        "events",
+        "portfolio"
+      ]
     }
   ],
   "completed_checks": [
@@ -366,7 +378,8 @@
     "R22: sealed commit 00002 confirmed, 00003 published, 00004 not published; frame 00003 events=[] and matching security decision readback",
     "R22: consecutive sealed commit 00003 confirmed; published diagnostic frame 00004 (2023-03-18T23:59:59Z) events=[]; own decision created/read back; all five role decisions hash-matched.",
     "R22 frame 00005 2023-03-19T23:59:59Z: published events=[]; own security decision created and read back with matching index, at, input_hash.",
-    "R22 frame 00006 2023-03-20T23:59:59Z: published events=[]; own decision created and readback pending; 0 visible candidates and 0 new security evidence."
+    "R22 frame 00006 2023-03-20T23:59:59Z: published events=[]; own decision created and readback pending; 0 visible candidates and 0 new security evidence.",
+    "R22 frame 00007 2023-03-21T23:59:59Z: published events=[]; own decision created, matching index/at/input_hash; no visible candidates."
   ],
   "findings": [
     {
@@ -536,20 +549,28 @@
       "evidence_ref": "127027/Sniperbot-@codex/dots-pepe-replay-20261113:research/replay-controller/bridge/diagnostic-frames/00006/input.json#events",
       "evidence_limit": "Diagnostic known-winner replay only; no candidate security assessment or neutral blind discovery.",
       "verification": "OWN_REVIEW_OF_PUBLISHED_FRAME"
+    },
+    {
+      "claim": "Diagnostic frame 00007 has zero visible events and zero candidates; security reviews=[] and orders=[] are appropriate, without establishing contract safety.",
+      "as_of_utc": "2023-03-21T23:59:59Z",
+      "evidence_ref": "127027/Sniperbot-@codex/dots-pepe-replay-20261113:research/replay-controller/bridge/diagnostic-frames/00007/input.json#events",
+      "evidence_limit": "Known-winner diagnostic only; no neutral blind detection or independent security evidence.",
+      "verification": "OWN_GITHUB_INPUT_REVIEW"
     }
   ],
   "blockers": [
     "DIAGNOSTIC_FRAME_00005_AWAITING_OTHER_ROLES_AND_CONTROLLER_SEAL",
     "NEUTRAL_REPLAY_NOT_STARTED",
     "FRAME_00006_AWAITING_SOCIAL_ONCHAIN_QA_AND_CONTROLLER_SEAL",
-    "NEUTRAL_REPLAY_NOT_STARTED"
+    "NEUTRAL_REPLAY_NOT_STARTED",
+    "Frame 00007 not sealed; awaiting social, onchain, qa role decisions and controller seal; neutral replay NOT_STARTED."
   ],
-  "next_task": "Verify sealed commit 00006 and published next frame; process only the newly authorized frame. No repeat of frame 00006.",
+  "next_task": "Check highest consecutive sealed diagnostic commit and its published next input; submit only missing own security decision for the current released frame.",
   "peer_receipts": [
     {
       "role": "scout",
-      "run_id": "scout-20261114T160554Z-r22-frame00006-01",
-      "result": "FRAME_00006_EMPTY_MATCHING_HASH"
+      "run_id": "scout-20261114T170549Z-r22-frame00007-01",
+      "result": "FRAME_00007_MATCHING_HASH"
     }
   ]
 }
