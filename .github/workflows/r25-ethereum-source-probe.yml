@@ -1,0 +1,41 @@
+name: R25 public Uniswap V2 historical cohort source probe
+on:
+  push:
+    branches: ['codex/dots-pepe-replay-20261113']
+    paths:
+      - '.github/workflows/r25-ethereum-source-probe.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-v2-factory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_RESEARCH_READ: '0'
+      SNIPER_RESEARCH_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+    steps:
+      - name: Download public, historic neutral V2 factory events CSV (no key / model)
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --show-error --silent --retry 1 --retry-delay 4 \
+            --connect-timeout 15 --max-time 210 --max-filesize 125829120 \
+            https://raw.githubusercontent.com/bhemen/uniswap-data/main/data/uniswap_v2_factory_events.csv \
+            --output factory-events.csv
+          test -s factory-events.csv
+          sha256sum factory-events.csv
+          wc -l factory-events.csv
+          echo 'FIRST_LINE_HEADER:'
+          head -n 1 factory-events.csv | cut -c 1-400
+          echo 'SAMPLE_NON_SENSITIVE_ROWS:'
+          head -n 4 factory-events.csv | tail -n 3 | cut -c 1-220
+          echo 'LATEST_ROWS:'
+          tail -n 3 factory-events.csv | cut -c 1-220
+      - name: Report archival source limitations
+        shell: bash
+        run: |
+          echo 'Source is a third-party retrospective CSV, not independently time-attested.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'No PEPE/winner filtering, no real orders, and no assumption of full 2023 coverage.' >> "$GITHUB_STEP_SUMMARY"
