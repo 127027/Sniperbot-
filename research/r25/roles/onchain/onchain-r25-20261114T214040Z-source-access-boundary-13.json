@@ -1,0 +1,53 @@
+{
+  "schema": "r25_role_research.v1",
+  "role": "onchain",
+  "run_id": "onchain-r25-20261114T214040Z-source-access-boundary-13",
+  "mode": "TRAINING_ONLY",
+  "actionable": false,
+  "research_window": {
+    "start": "2023-03-14T00:00:00Z",
+    "end": "2023-05-14T23:59:59Z"
+  },
+  "asof_cutoff": "2023-03-14T00:00:00Z",
+  "data_status": "DATA_GAP",
+  "reviewed_candidate_ids": [],
+  "evidence": [],
+  "unknowns": [
+    {
+      "scope": "Ethereum Uniswap V2 factory CSV",
+      "source_uri": "https://github.com/bhemen/uniswap-data/blob/main/data/uniswap_v2_factory_events.csv",
+      "issue": "Prior audit reports 95.6MB CSV but no parsed rows. This run attempted an HTTP Range request for first 4096 bytes from raw.githubusercontent.com; container DNS resolution failed (NameResolutionError). No verified row count, SHA256, time coverage or neutral candidate set."
+    },
+    {
+      "scope": "Ethereum execution windows",
+      "issue": "No verified time-bounded PairCreated/Swap/Sync/Mint/Burn receipts, historical reserve snapshots, counterparties, gas, fee-on-transfer taxes, slippage or sellability; do not infer zero activity."
+    },
+    {
+      "scope": "Solana R24 cohort",
+      "source_uri": "https://github.com/127027/Sniperbot-/actions/runs/43630477474",
+      "issue": "Protocol reports 50 retrospective distinct launch mints, but no candidate-level as-of verified swaps, pool quotes, depth, sellability or transaction costs accessible in this run; 2026-06-18 is explicitly missing-source day."
+    },
+    {
+      "scope": "Historical availability",
+      "issue": "Retrospective public exports cannot by themselves prove their metadata was contemporaneously observable at the simulated cutoff. No future outcomes or labels used."
+    }
+  ],
+  "metrics": {
+    "new_candidates_checked": 0,
+    "new_valid_asof_events": 0,
+    "suspected_buy_signals": 0,
+    "verified_executable_signals": 0,
+    "data_gaps": 4
+  },
+  "proposed_shadow_intents": [],
+  "historical_blind_success": false,
+  "wallet_or_paper_account_actions": 0,
+  "source_acquisition_attempt": {
+    "url": "https://raw.githubusercontent.com/bhemen/uniswap-data/main/data/uniswap_v2_factory_events.csv",
+    "method": "HTTP GET",
+    "range": "bytes=0-4095",
+    "result": "FAILED_DNS_RESOLUTION",
+    "bytes_read": 0
+  },
+  "next_task": "Use existing no-cost GitHub Actions runner to download complete public CSV and emit SHA256, header, total rows, timestamp min/max and count of factory events in 2023-03-14..2023-05-14; independently verify a neutral sample of PairCreated logs and retrieve historical Swap/Sync/Mint/Burn before reviewing candidates. Solana: access R24 50-mint artifact and validate launch times against ledger before market signals."
+}
