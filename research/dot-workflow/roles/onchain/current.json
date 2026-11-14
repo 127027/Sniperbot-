@@ -1,8 +1,8 @@
 {
   "schema": "dot_research_state.v1",
   "role": "onchain",
-  "run_id": "onchain-20261114T134730Z-frame00004-r22-15",
-  "previous_run_id": "onchain-20261114T124114Z-frame00003-r22-14",
+  "run_id": "onchain-20261114T144921Z-frame00004-r22-16",
+  "previous_run_id": "onchain-20261114T134730Z-frame00004-r22-15",
   "candidate": {
     "id": "ethereum:0x6982508145454ce325ddbe47a25d4ec3d2311933:0xa43fe16908251ee70ef74718545e4fe6c5ccec9f",
     "symbol": "PEPE",
@@ -28,14 +28,14 @@
   ],
   "completed_checks": [
     {
-      "check": "diagnostic_frame_00004_vote",
-      "result": "index=4, events=[], candidates=0; own empty decision committed and read back; reviews=[] orders=[]",
+      "check": "diagnostic_frame_00004_vote_readback",
+      "result": "Existing onchain decision valid; events=[]; candidates=0; reviews=[]; orders=[]; no rewrite",
       "as_of_utc": "2023-03-18T23:59:59Z"
     }
   ],
   "findings": [
     {
-      "statement": "Frame 00004 contains zero published events; no candidate-specific onchain evidence or tradeability proof.",
+      "statement": "Frame 00004 has no published events or candidates; no new onchain evidence. Existing onchain vote matches index=4, at, input_hash.",
       "as_of_utc": "2023-03-18T23:59:59Z",
       "evidence_ref": {
         "repository": "127027/Sniperbot-",
@@ -50,7 +50,7 @@
         ]
       },
       "proof_class": "published_diagnostic_frame",
-      "evidence_limit": "not chain-wide absence, no blind discovery",
+      "evidence_limit": "not chain-wide absence or blind discovery",
       "verification": "GitHub readback"
     }
   ],
@@ -63,11 +63,28 @@
     {
       "question": "diagnostic frame 00004 sealing",
       "status": "AWAITING_OTHER_ROLE_VOTES",
-      "required_input": "scout and security decisions, then controller seal; progress snapshot may be stale"
+      "required_input": "security decision, then controller seal"
     }
   ],
-  "next_task": "Wait for sealed frame 00004 and published next frame; inspect only next authorized input.",
-  "peer_receipts": [],
+  "next_task": "Await genuine security decision and controller seal of frame 00004; only then inspect published next frame.",
+  "peer_receipts": [
+    {
+      "role": "scout",
+      "status": "PRESENT"
+    },
+    {
+      "role": "social",
+      "status": "PRESENT"
+    },
+    {
+      "role": "qa",
+      "status": "PRESENT"
+    },
+    {
+      "role": "security",
+      "status": "MISSING"
+    }
+  ],
   "handoff_to": "qa",
-  "notes": "R22/R21: frame 00004/62; 0 candidates, 0 new historical evidence, own decision commit 6f8850069a8df100b3d51f60191523096b97c04f blob 2a9b42509fbd3929b63465f580c33847202fa179. r20-progress missing scout/onchain/security before own write; other roles not independently inspected."
+  "notes": "R22/R21: 00003 sealed; 00004 published, not sealed; existing onchain decision blob 2a9b42509fbd3929b63465f580c33847202fa179; zero candidates and new historical evidence; no orders."
 }
