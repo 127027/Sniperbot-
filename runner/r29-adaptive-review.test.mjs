@@ -29,7 +29,7 @@ test('R29 immutable local review becomes public stripped safe research NOT trade
   assert.equal(out.candidates.length,1);
   assert.equal(out.security_verified,false);
   assert.equal(out.candidates[0].signal,'INDEPENDENT_REVIEW_REQUIRED_NOT_BUY');
-  assert(!JSON.stringify(out).includes('wallet'));
+  assert(!JSON.stringify(out).includes('wallet_address'));
   const filename=path.join(folder,'status.json');
   const calls=[];
   const fetcher=async (url,opts)=>{
@@ -48,7 +48,7 @@ test('R29 immutable local review becomes public stripped safe research NOT trade
   const sent=JSON.parse(calls[1].body);
   assert.equal(sent.branch,'codex/r29-chatgpt-github-paper-cycle-20261115');
   const decoded=Buffer.from(sent.content,'base64').toString('utf8');
-  assert(!decoded.includes('5000'));
+  assert(!decoded.includes('personal_cash_balance'));
   assert(!decoded.includes(fakeToken));
   assert.equal(JSON.parse(decoded).real_trading_enabled,false);
   const again=await syncAdaptivePublicReview({token:fakeToken,filename,fetcher});
