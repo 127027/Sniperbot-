@@ -42,6 +42,7 @@ export function paperDashboardView(state,{now=Date.now()}={}){
    estimated_pnl_pct:gain!==null&&cost>0?round8(gain/cost*100):null,
    quote_status:status,
    is_synthetic:p.isDemo===true,
+   paper_autopilot:p.paperAutopilot===true,
    paper_only:true
   };
  });
@@ -60,6 +61,8 @@ export function paperDashboardView(state,{now=Date.now()}={}){
   mode:'PAPER_ONLY',as_of_utc:new Date(now).toISOString(),
   account:'REGULAR_PAPER_ACCOUNT',
   bot_enabled:state.entriesEnabled===true,
+  automatic_paper_buys_enabled:state.automaticPaperBuys===true,
+  local_paper_autopilot_available:true,
   live_trading_enabled:false,
   currency:'TEST-USDC',
   free_cash_test_usdc:cash,
