@@ -298,7 +298,7 @@ def daily_markdown(result):
                   'Transaktionen und belastbare DEX-Fills. '
                   'Tagesverluste sind ausschließlich realisierte Proxy-Verkäufe, '
                   'nicht das gesamte tagesaktuelle Portfolioergebnis.',''])
-    return '\\n'.join(lines)
+    return '\n'.join(lines)
 
 def source_manifest(source):
     return dict(schema='r30_source_manifest.v1', collected_at=source.get('acquired_at_utc'),
