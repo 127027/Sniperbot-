@@ -25,6 +25,12 @@ jobs:
         with:
           node-version: '22'
       - run: node --check runner/server.mjs
+      - name: R29 enforce exactly one Windows user starter and no legacy QA budget
+        run: node --test runner/single-startfile.test.mjs runner/minimal-ui.test.mjs
+      - name: R29 actual ONLY startfile Windows supervisor selftest (no token, no trades)
+        if: matrix.os == 'windows-latest'
+        shell: cmd
+        run: call Sniperbot_Starten.bat -SelfTest
       - run: node runner/dashboard-syntax-check.mjs
       - name: R29 real Paper dashboard balance and positions pricing fail-closed
         run: node --test runner/dashboard-portfolio.test.mjs
