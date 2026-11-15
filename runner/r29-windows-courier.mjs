@@ -15,13 +15,15 @@ const REQ_TIMEOUT_MS=12000;
 const MAX_B64_BYTES=250000;
 const POLL_INTERVAL_MS=45000;
 const statusSchema='sniper_r29_windows_sandbox_status.v1';
+export const R29_REGULAR_PRESENCE_PATH='research/r29/channel/regular-paper-presence.json';
+export const R29_REGULAR_PRESENCE_SCHEMA='sniper_r29_regular_paper_presence.v1';
 function check(token){
  if(typeof token!=='string'||!/^(?:github_pat_|ghp_)[A-Za-z0-9_]{15,}$/.test(token))
   throw Error('R29_GITHUB_TOKEN_REQUIRED');
 }
 export async function requestGithubFile(relative,{token,fetcher=fetch}={}){
  check(token);
- if(![R29_INTENT_PATH,R29_WINDOWS_STATUS_PATH,R29_MAIN_INTENT_PATH,R29_MAIN_STATUS_PATH].includes(relative))
+ if(![R29_INTENT_PATH,R29_WINDOWS_STATUS_PATH,R29_MAIN_INTENT_PATH,R29_MAIN_STATUS_PATH,R29_REGULAR_PRESENCE_PATH].includes(relative))
   throw Error('R29_UNEXPECTED_PATH');
  const url=base+relative+'?ref='+encodeURIComponent(R29_BRANCH)+'&v='+Date.now();
  const response=await fetcher(url,{method:'GET',redirect:'error',
@@ -119,6 +121,59 @@ export async function syncR29MainChannel({token,folder,fetcher=fetch,
   return {status,published:null,skipped_unchanged:true};
  const published=await publishR29MainStatus(status,{token,fetcher});
  return {status,published,skipped_unchanged:false};
+}
+// The canonical, single startfile runs this minimal read-only transport.
+// No trading payloads and no cash/positions/wallet/hostname are published.
+export async function syncR29RegularPresence({token,folder,
+ fetcher=fetch,healthFetcher=fetch,now=Date.now()}={}){
+ check(token);
+ if(typeof folder!=='string'||!path.isAbsolute(folder))
+  throw Error('R29_PRESENCE_LOCAL_PATH_REQUIRED');
+ if(!Number.isFinite(now))throw Error('R29_PRESENCE_BAD_CLOCK');
+ let healthy=false;
+ try{
+  const response=await healthFetcher('http://127.0.0.1:3030/api/health',{
+   method:'GET',redirect:'error',signal:AbortSignal.timeout(4000)});
+  const body=await response.json();
+  healthy=response.ok&&body?.ok===true&&body.mode==='PAPER_ONLY';
+ }catch{}
+ const status={schema:R29_REGULAR_PRESENCE_SCHEMA,
+  target:'REGULAR_PAPER_HEARTBEAT',mode:'PAPER_ONLY',
+  checked_at_utc:new Date(now).toISOString(),
+  local_paper_http_healthy:healthy,
+  courier_enabled:true,paper_orders_automatically_enabled:false,
+  real_trading_enabled:false,
+  account_balance_or_wallet_published:false};
+ mkdirSync(folder,{recursive:true});
+ const filename=path.join(folder,'r29-local-regular-presence.json');
+ const tmp=filename+'.pending-'+process.pid;
+ writeFileSync(tmp,JSON.stringify(status,null,2)+'\n',{mode:0o600});
+ renameSync(tmp,filename);
+ const prev=await requestGithubFile(R29_REGULAR_PRESENCE_PATH,{token,fetcher});
+ const remote=prev.data;
+ const checked=Date.parse(remote?.checked_at_utc);
+ const equivalent=remote?.schema===R29_REGULAR_PRESENCE_SCHEMA&&
+  remote.local_paper_http_healthy===healthy&&
+  remote.paper_orders_automatically_enabled===false&&
+  remote.real_trading_enabled===false&&
+  remote.account_balance_or_wallet_published===false;
+ if(equivalent&&Number.isFinite(checked)&&now>=checked&&now-checked<900000)
+  return {status,published:null,skipped_unchanged:true};
+ const data=JSON.stringify(status,null,2)+'\n';
+ const request={message:'chore(r29): read-only canonical launcher laptop heartbeat, no wallet/cash/trades',
+  content:Buffer.from(data).toString('base64'),branch:R29_BRANCH};
+ if(prev.sha)request.sha=prev.sha;
+ const response=await fetcher(base+R29_REGULAR_PRESENCE_PATH,{
+  method:'PUT',redirect:'error',
+  headers:{authorization:'Bearer '+token,accept:'application/vnd.github+json',
+   'content-type':'application/json','X-GitHub-Api-Version':'2022-11-28',
+   'user-agent':'Sniper-R29-Regular-Paper-Presence/1'},
+  body:JSON.stringify(request),signal:AbortSignal.timeout(REQ_TIMEOUT_MS)});
+ if(!response?.ok)throw Error('R29_REGULAR_PRESENCE_HTTP_'+response?.status);
+ const result=await response.json();
+ if(typeof result?.commit?.sha!=='string')
+  throw Error('R29_REGULAR_PRESENCE_COMMIT_MISSING');
+ return {status,published:{commit_sha:result.commit.sha},skipped_unchanged:false};
 }
 export function processR29WindowsMailbox(ledger,payload,{now=Date.now()}={}){
  if(payload?.target!=='WINDOWS_SANDBOX')
@@ -241,7 +296,9 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
     await syncR29WindowsSandbox({token,folder});
     console.log('[R29] ARCHIVIERTE QA-Sandbox (nur explizite Diagnose)');
    }else{
-    console.log('[R29] GitHub-Kurier bereit; kein Haupt-Paper-Auftrag freigegeben.');
+    const presence=await syncR29RegularPresence({token,folder});
+    console.log('[R29] EINE Startdatei / regulärer Paper-Kurier:',presence.status.local_paper_http_healthy?
+     'Bot erreichbar':'Bot nicht erreichbar','· GitHub Heartbeat OK · keine automatischen Orders');
    }
   }catch(e){
    console.error('[R29] GitHub-Paper-Kurier-Verbindung fehlgeschlagen:',
