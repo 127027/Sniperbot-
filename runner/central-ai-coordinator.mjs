@@ -46,6 +46,7 @@ export function snapshotForAi(state,candidates,news,{now=Date.now(),realWallet=n
    status:earlyContext.status,snapshot_at_utc:earlyContext.snapshot_at_utc,
    alerts:(earlyContext.alerts||[]).slice(0,15),
    narratives:(earlyContext.narratives||[]).slice(0,15),
+   exit_reviews:(earlyContext.exit_reviews||[]).slice(0,15),
    coverage:(earlyContext.coverage||[]).slice(0,8),
    sellability_verified:false,organic_social_verified:false}:
    {status:'NO_FRESH_LOCAL_EARLY_SIGNALS',alerts:[],narratives:[],
@@ -139,6 +140,8 @@ export async function requestCentralAiAdvice(input,{apiKey,model='gpt-4.1-mini',
   'Du darfst AUSSCHLIESSLICH candidate_id aus dem Eingabe-JSON verwenden.',
   'Bewerte Kandidaten und bereits gehaltene Positionen. Es ist richtig, nichts zu kaufen.',
   'Unverifizierte Token-Sicherheit, Wash-Trading, manipulierte Kurse oder unzureichende Informationen sprechen gegen BUY.',
+  'Beachte öffentlich beobachtete Markt- und Ausstiegsrisiken (early_discovery.exit_reviews); diese sind keine bestätigten echten Sell-Quotes.',
+  'Wenn market_regime.buys_allowed=false, darfst du KEINEN BUY empfehlen. NO_TRADE/WATCH sind erlaubt.',
   'BUY höchstens für zwei Kandidaten, mindestens Score 80; höchstens 20 Prozent Anteil je Kandidat.',
   'SELL nur für bereits bestehende Positionen. Alle Positions- und Budgetangaben sind virtuell.',
   'Scores sind KEINE Wahrscheinlichkeiten. Liefere NUR gültiges JSON im festgelegten Schema.'].join(' ');
