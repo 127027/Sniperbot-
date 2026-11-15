@@ -1,32 +1,45 @@
-MEME SNIPER V0.21 - ZENTRALE KI (PAPER ONLY)
-===================================================
+SNIPERBOT R29 - CHATGPT ↔ GITHUB ↔ WINDOWS (PAPER ONLY)
+========================================================
 
-DIESER BRANCH: codex/sniper-central-ai-paper-v021-20261114
+ZIEL: Keine kostenpflichtige OpenAI-API auf dem PC.
+ChatGPT schreibt nach Freigabe einen isolierten Testauftrag auf GitHub.
+Der Windows-Kurier holt ihn regelmaessig ab und meldet das Ergebnis dorthin zurueck.
+Ein echter stuendlicher ChatGPT-Job wird erst NACH dem Verbindungstest aktiviert.
 
-1. Node.js 22 LTS installieren: https://nodejs.org/
-2. Branch-ZIP in einen Ordner entpacken, z. B. C:\MemeSniperAI.
-3. Doppelklick auf Sniperbot_Starten.bat.
-4. Optional beim ersten Start den EIGENEN OpenAI-API-Key verdeckt eingeben.
-   Der Key wird lokal per Windows DPAPI gespeichert. API-Kosten sind
-   NICHT Teil des ChatGPT-Plus-Abos. Ohne Key startet der Paper-Bot ohne KI.
-5. Dashboard: http://127.0.0.1:3030
-6. Virtuelles Testguthaben setzen; Bot AN; "Automatische KI-Paper-Orders
-   erlauben" aktivieren. Keine Echtgeldkäufe oder Swaps!
-7. Die zentrale KI recherchiert bei laufendem Laptop stündlich und gibt
-   Empfehlungen an den lokalen Paper-Bot. Es sind keine 5 Dots.
-8. Status im Dashboard unter "Zentrale KI - stündliche Analyse" beobachten.
-   Bei Fehlern keine Order. Stündlicher Ablauf benötigt Internet und API-Key.
-9. Q zum Beenden; auch dann ist die stündliche Recherche beendet.
+1. Alte Sniperbot-Konsole mit Q stoppen.
+2. GitHub-Branch "codex/r29-chatgpt-github-paper-cycle-20261115"
+   auswaehlen, "Code -> Download ZIP", in NEUEN Ordner entpacken.
+3. Windows benoetigt Node.js 22 LTS (https://nodejs.org/).
+4. Sniperbot_Starten.bat doppelklicken.
+5. Beim ersten Start wird ein GitHub-PAT optional verdeckt abgefragt.
+   PAT kostenfrei hier erstellen: https://github.com/settings/personal-access-tokens/new
+   Fine-grained, Owner 127027, NUR Repo "Sniperbot-",
+   Repository permissions Contents = Read and write.
+   Bitte den Token NIE hier im Chat oder in Dateien hochladen.
+   GitHub-PAT wird nur auf deinem PC Windows-DPAPI-verschluesselt gespeichert.
+   Wenn du noch keinen PAT hast, ENTER: Paper-Bot startet ohne GitHub-Kurier.
+6. Dashboard: http://127.0.0.1:3030
+   Dort steht der Bereich "R29 - ChatGPT ueber GitHub".
+7. Bei erfolgreichem PAT: Dieser Link erhaelt ein neues Windows-Heartbeat:
+   https://github.com/127027/Sniperbot-/blob/codex/r29-chatgpt-github-paper-cycle-20261115/research/r29/channel/windows-status.json
+8. Dann dem ChatGPT in DIESEM Chat melden, dass der R29-Bot gestartet wurde.
+   Wir schicken einen Test-BUY (50 TEST-USDC) und danach einen Test-SELL.
+   Diese Tests laufen in einer separaten synthetischen Sandbox, NICHT in deinem
+   bisherigen Paper-Konto und NIEMALS mit Echtgeld.
 
-PAPIERGELD IST FIKTIV - ECHTGELD-WALLET BLEIBT GETRENNT.
-Signierte Paper-Fills beruhen auf INDIKATIVEN DEX-Screener-Kursen,
-nicht auf nachweislich ausführbaren Swap-Quotes oder Sellability-Checks.
+Bereits bestanden: ChatGPT -> GitHub -> CI-Test-Bot -> GitHub -> ChatGPT,
+virtueller BUY + SELL, synthetischer Gewinn +28.408 TEST-USDC.
+Dies ist KEIN Beweis fuer einen echten Kursgewinn oder Windows-Verbindung.
+Synthetische feste Preise 0.05 / 0.08. Auch der CI-Bot ist nicht dein Laptop!
 
-WICHTIG: Diese laufende ChatGPT-Unterhaltung schickt NICHT automatisch
-alle 60 Minuten Befehle an den Laptop. Die separate OpenAI API im
-lokalen Bot übernimmt die Analyse. Sie sendet Status nur lokal zurück.
-Kein öffentliches GitHub-Upload von Portfolio/Wallettoken.
+Dein lokales Paperkonto unter %LOCALAPPDATA%\MemeSniperPaper
+und deine Wallet bitte NICHT loeschen. R29 benutzt eigenen Unterordner:
+%LOCALAPPDATA%\MemeSniperPaper\r29-isolated-sandbox
 
-Vollständige Anleitung: docs\V021_ZENTRALE_KI_START.md
-Lokales Guthaben: %LOCALAPPDATA%\MemeSniperPaper
-Daten bei Updates behalten und niemals ungeprüft überschreiben.
+Die originale OpenAI-API-Anbindung wurde im R29-Startweg AUS gelassen.
+Kein API-Key oder aufgeladenes OpenAI-Guthaben erforderlich.
+GitHub- und ChatGPT-Nutzungsgrenzen und eventuell erforderliche Genehmigungen
+fuer kuenftige unbeaufsichtigte stündliche GitHub-Schreibaktionen bleiben zu pruefen.
+
+VOLLE ANLEITUNG: research\r29\R29_WINDOWS_INSTALLATION_UND_ABNAHME.md
+Zum Beenden Q druecken.
