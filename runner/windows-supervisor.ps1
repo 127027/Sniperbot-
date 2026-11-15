@@ -415,7 +415,10 @@ try {
   }
   if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){
     Write-Host '[AI] EIN stündlicher lokaler Forschungsprozess aktiviert, nur PAPER.' -ForegroundColor Green
-  } else {Write-Host '[AI] Zentraler KI-Prozess AUS (fehlender API-Key oder nicht gewählt).'}
+  } elseif($WithR29) {
+    Write-Host '[GPT] ChatGPT-GitHub-Diagnose ist strategischer Entscheider. Lokale kostenpflichtige OpenAI-API AUS.' -ForegroundColor Green
+    Write-Host '[GPT] Noch kein Live-Paper-Fill ohne nachgewiesenen GPT-Entscheid und lokale Freigabe.' -ForegroundColor Yellow
+  } else {Write-Host '[AI] Kostenpflichtiger lokaler KI-Prozess AUS; kein GitHub-GPT-Kanal gestartet.'}
   Write-Host '[INFO] Zum Beenden Q druecken oder dieses Fenster schliessen.'
   $restarts=@{BOT=0;MARKET=0;R29=0}
   while($true){
