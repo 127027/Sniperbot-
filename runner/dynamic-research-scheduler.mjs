@@ -153,7 +153,9 @@ export async function adaptiveResearchTick(snapshot,{folder,now=snapshot?.publis
   catch(e){
     if(e.code!=='EEXIST')throw e;
     if(await readFile(filename,'utf8')!==body)throw Error('ADAPTIVE_IMMUTABLE_CONFLICT');
-    return {created:false,plan,review:record};
+    // Recover an interrupted previous write: the immutable review exists but
+    // the small status pointer may not yet have been persisted. Continue.
+    // A fully completed prior review cannot get here: plan.due=false.
   }
   const status={schema:'sniper_r29_dynamic_research_status.v1',
     paper_only:true,actionable:false,first_seen_at_utc:plan.first_seen_at_utc,
