@@ -133,6 +133,11 @@ export async function syncR29WindowsSandbox({token,folder,fetcher=fetch,
   botHealthy=response.ok&&result?.ok===true&&result.mode==='PAPER_ONLY';
  }catch{}
  const status=sanitizeR29WindowsStatus({ledger,lastReceipt:receipt,botHealthy,now,lastError});
+ mkdirSync(folder,{recursive:true});
+ const localStatusFile=path.join(folder,'r29-local-status.json');
+ const pending=localStatusFile+'.pending-'+process.pid;
+ writeFileSync(pending,JSON.stringify(status,null,2)+'\n',{mode:0o600});
+ renameSync(pending,localStatusFile);
  // The status file contains NO device ID, key, portfolio, username,
  // computer hostname or wallet address. GitHub branch may be public.
  // Avoid a public GitHub commit every 45 seconds (and avoid repeated CI).
