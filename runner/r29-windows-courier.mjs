@@ -8,6 +8,7 @@ import {initialR29Ledger,applyR29SandboxIntent,projectR29SandboxState,
 import {R29_MAIN_INTENT_PATH,R29_MAIN_STATUS_PATH,R29_MAIN_STATUS_SCHEMA,
  processR29MainIntent,loadR29MainCycle,saveR29MainCycle,
  publicR29MainStatus} from './r29-main-paper-demo.mjs';
+import {syncAdaptivePublicPresence} from './r29-adaptive-publisher.mjs';
 
 const REPO='127027/Sniperbot-';
 const base='https://api.github.com/repos/'+REPO+'/contents/';
@@ -299,6 +300,16 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
     const presence=await syncR29RegularPresence({token,folder});
     console.log('[R29] EINE Startdatei / regulärer Paper-Kurier:',presence.status.local_paper_http_healthy?
      'Bot erreichbar':'Bot nicht erreichbar','· GitHub Heartbeat OK · keine automatischen Orders');
+    // Research-only bridge is completely separate from the Paper ledger.
+    // Missing market archive must never block normal GitHub heartbeat.
+    try {
+      const research=await syncAdaptivePublicPresence({token});
+      if(research.published)console.log('[R29] Dynamische Forschung auf GitHub aktualisiert: ',
+        research.public.frequency_per_day+' Analysen/Tag, KEINE Orders');
+    }catch(e) {
+      console.error('[R29] Dynamischer Forschungsstatus nicht synchronisiert:',
+        String(e?.message||e).slice(0,100));
+    }
    }
   }catch(e){
    console.error('[R29] GitHub-Paper-Kurier-Verbindung fehlgeschlagen:',
