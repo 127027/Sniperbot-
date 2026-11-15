@@ -208,10 +208,17 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
     $info.EnvironmentVariables['SNIPER_LOCAL_DISCOVERY'] = '0'
   }
   if($role -eq 'MARKET') {
-    $value = Read-ResearchToken
-    $info.EnvironmentVariables['SNIPER_MARKET_GITHUB_TOKEN'] = $value
-    $info.EnvironmentVariables['SNIPER_MARKET_PUBLISH'] = '1'
-    $value = $null
+    # The R27 local first-seen archive requires NO GitHub token. Only the
+    # separately opted-in GitHub research publisher may read one.
+    if($WithResearchCollector) {
+      $value = Read-ResearchToken
+      $info.EnvironmentVariables['SNIPER_MARKET_GITHUB_TOKEN'] = $value
+      $info.EnvironmentVariables['SNIPER_MARKET_PUBLISH'] = '1'
+      $value = $null
+    } else {
+      $info.EnvironmentVariables.Remove('SNIPER_MARKET_GITHUB_TOKEN')
+      $info.EnvironmentVariables['SNIPER_MARKET_PUBLISH'] = '0'
+    }
   }
   $proc = New-Object Diagnostics.Process
   $proc.StartInfo = $info
