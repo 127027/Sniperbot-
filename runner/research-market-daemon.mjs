@@ -2,6 +2,7 @@
 // Local cache: .local/research-market/. Automatic cleanup ONLY inside its history/ folder.
 import {collectSnapshot,writeSnapshot} from './research-market-collector.mjs';
 import {appendR27Capture} from './r27-prospective-capture.mjs';
+import {detectR27ExitRisk} from './r27-exit-review.mjs';
 import {runFollowups} from './memecoin-followups.mjs';
 import {detectEarlyMarketAcceleration} from './research-hype-triggers.mjs';
 import {collectNarrativeLeads} from './research-narrative-radar.mjs';
@@ -152,7 +153,7 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
   // Prospective evidence: capture the exact public data first seen by THIS
   // collector, without modifying any existing historical or paper portfolio.
   // Deliberately never backdate the capture to a source's claimed publish time.
-  let r27Capture=null,r27ArchiveError=null;
+  let r27Capture=null,r27ArchiveError=null,r27ExitRisk=null;
   try{r27Capture=await appendR27Capture(snapshot,news,{
     folder:r27ArchiveFolder,now});}
   catch(e){r27ArchiveError=String(e?.message||'R27_ARCHIVE_ERROR').slice(0,100)}
@@ -161,6 +162,8 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     try{previous=JSON.parse(await readFile(latestFile,'utf8'))}
     catch(e){if(e.code!=='ENOENT')alertError='PREVIOUS_SNAPSHOT_UNREADABLE'}
     marketAlerts=detectEarlyMarketAcceleration(previous,snapshot);
+    r27ExitRisk=detectR27ExitRisk(previous,snapshot);
+    snapshot.r27_exit_reviews=r27ExitRisk.reviews;
     if(marketAlerts.events.length){
       try{alertJournal=await appendResearchAlerts(marketAlerts.events,{now:Date.parse(now)})}
       catch(e){alertError=String(e?.message||'ALERT_JOURNAL_FAILED').replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,100)}
@@ -205,6 +208,8 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     candidate_count:snapshot.candidates.length,
     coverage:snapshot.coverage,history:clean,followups,followup_error:followupError,
     narrative_radar:{lead_count:narrative.leads.length,coverage:narrative.coverage,error:narrativeError},
+    r27_exit_review:{alerts:r27ExitRisk?.reviews.length||0,
+      executed_sells:0,source:'TWO_TIME_BOUND_PUBLIC_SNAPSHOTS'},
     r27_archive:{mode:'APPEND_ONLY_LOCAL_FIRST_SEEN',created:r27Capture?.created===true,
       observations:r27Capture?.pools||0,headlines:r27Capture?.headlines||0,
       sha256:r27Capture?.sha256_payload||null,error:r27ArchiveError,
