@@ -54,11 +54,13 @@ jobs:
           cp r30-output/summary.json research/r30/results/summary.json
           cp r30-output/source-manifest.json research/r30/results/source-manifest.json
           cp r30-output/REPORT_DE.md research/r30/results/REPORT_DE.md
+          cp r30-output/DAILY_JOURNAL_DE.md research/r30/results/DAILY_JOURNAL_DE.md
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -f research/r30/results/summary.json
           git add -f research/r30/results/source-manifest.json
           git add -f research/r30/results/REPORT_DE.md
+          git add -f research/r30/results/DAILY_JOURNAL_DE.md
           if ! git diff --cached --quiet; then
             git commit -m "research(r30): publish 30-day diagnostic findings, no trade orders"
             git push origin HEAD:codex/r29-chatgpt-github-paper-cycle-20261115
