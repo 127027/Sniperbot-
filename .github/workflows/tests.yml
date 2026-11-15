@@ -31,6 +31,8 @@ jobs:
         run: node --test runner/central-ai-coordinator.test.mjs
       - name: R28 local communication diagnostic and durable cycle audit (offline mock; no paid AI)
         run: node --test runner/r28-connection-diagnostic.test.mjs
+      - name: R28 real offline local HTTP bot-API-signature handshake (disposable dir)
+        run: node runner/r28-local-http-e2e.mjs
       - name: R28 local connection CLI and cycle audit syntax
         run: node --check runner/r28-connection-diagnostic.mjs && node --check runner/r28-cycle-audit.mjs
       - name: V0.21 coordinator syntax and dashboard smoke
