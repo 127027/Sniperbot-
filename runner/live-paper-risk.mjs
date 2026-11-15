@@ -76,6 +76,10 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
  if(!validatePaperSecurityEvidence(security,{chain:candidate.chain,
   token:candidate.token_address,pool:candidate.pool_address,now}))
   return result('BLOCKED','CONTRACT_SECURITY_OR_SELL_SIMULATION_UNVERIFIED',0,equity);
+ const lastExit=state.paperAutopilotCooldowns?.[candidate.chain+':'+candidate.token_address.toLowerCase()];
+ if(typeof lastExit==='string'&&Number.isFinite(Date.parse(lastExit))&&
+    now-Date.parse(lastExit)>=0&&now-Date.parse(lastExit)<12*3600000)
+  return result('BLOCKED','REENTRY_COOLDOWN_12H',0,equity);
  if(state.positions.some(p=>p.chain===candidate.chain&&
   p.tokenAddress?.toLowerCase()===candidate.token_address.toLowerCase()))
   return result('BLOCKED','POSITION_ALREADY_OPEN',0,equity);
