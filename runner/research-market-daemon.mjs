@@ -2,6 +2,7 @@
 // Local cache: .local/research-market/. Automatic cleanup ONLY inside its history/ folder.
 import {collectSnapshot,writeSnapshot} from './research-market-collector.mjs';
 import {appendR27Capture} from './r27-prospective-capture.mjs';
+import {adaptiveResearchTick} from './dynamic-research-scheduler.mjs';
 import {detectR27ExitRisk} from './r27-exit-review.mjs';
 import {runFollowups} from './memecoin-followups.mjs';
 import {detectEarlyMarketAcceleration} from './research-hype-triggers.mjs';
@@ -34,6 +35,8 @@ const newsFile=path.join(root,'.local','research-learning','news-captures.json')
 const r27ArchiveFolder=path.join(process.env.LOCALAPPDATA||path.join(root,'.local'),
  'MemeSniperPaper','r27-evidence','captures');
 const readbackFile=path.join(root,'.local','research-learning','pool-readbacks','latest.json');
+const adaptiveResearchFolder=path.join(process.env.LOCALAPPDATA||path.join(root,'.local'),
+  'MemeSniperPaper','dynamic-research');
 
 async function atomicJson(filename,value){
   await mkdir(path.dirname(filename),{recursive:true});
@@ -190,6 +193,13 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     await writeSnapshot(snapshot,latestFile);
     await saveHistory(snapshot);
   }
+  // Independent observation-only, adaptive 1–24 reviews/day, no model API,
+  // trading state, order bus, GitHub token or private account data. These
+  // immutable forward-only reviews remain available after the 45d cache prune.
+  let adaptive=null,adaptiveError=null;
+  try{adaptive=await adaptiveResearchTick(snapshot,{
+    folder:adaptiveResearchFolder,now});}
+  catch(e){adaptiveError=String(e?.message||'ADAPTIVE_RESEARCH_ERROR').slice(0,100)}
   const clean=await pruneHistory();
   let followups=null,followupError=null;
   if(success){
@@ -223,6 +233,13 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
       rolling_public_research_alerts:snapshot.research_alerts?.length??0,
       local_alert_error:alertError},
     pool_readback_bridge:{published_readbacks:snapshot.pool_readbacks?.length||0,error:readbackBridgeError},
+    dynamic_research:{review_written:adaptive?.created===true,
+      next_due_at_utc:adaptive?.status?.next_due_at_utc||adaptive?.plan?.next_due_at_utc||null,
+      frequency_per_day:adaptive?.plan?.frequency_per_day||null,
+      experiment_phase:adaptive?.plan?.experiment_phase||null,
+      reviewed_candidate_count:adaptive?.review?.candidates?.length??0,
+      paper_orders_executed:0,live_orders_executed:0,
+      local_archive_only:true,error:adaptiveError},
     publishing_enabled:publishingEnabled(),published_commit:published?.commit_sha||null,
     publish_error:publishError
   });
