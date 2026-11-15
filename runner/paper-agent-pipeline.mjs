@@ -156,7 +156,12 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
     {...p,priceUsd:quote.priceUsd,markAt:quote.asOf}:p)};
    const closed=action(updated,{type:'SELL',id:old.id});
    if(closed.positions.length===state.positions.length-1){
-    next=closed;status='PAPER_FILLED';reason='SIGNED_AGENT_SELL_PAPER_ONLY';
+    next=localAuto?{...closed,paperAutopilotCooldowns:{
+      ...state.paperAutopilotCooldowns,
+      [order.chain+':'+order.token_address.toLowerCase()]:new Date(now).toISOString()
+    }}:closed;
+    status='PAPER_FILLED';reason=localAuto?
+     'LOCAL_AUTOPILOT_SELL_PAPER_ONLY':'SIGNED_AGENT_SELL_PAPER_ONLY';
     positionId=old.id;pnl=Number((closed.closedPnl-state.closedPnl).toFixed(8));
    }else reason='SELL_BLOCKED_BY_MARKET_OR_LEDGER';
   }
