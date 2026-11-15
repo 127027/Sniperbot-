@@ -11,6 +11,7 @@ import {R29_MAIN_INTENT_PATH,R29_MAIN_STATUS_PATH,R29_MAIN_STATUS_SCHEMA,
 import {syncAdaptivePublicPresence,syncAdaptivePublicReview} from './r29-adaptive-publisher.mjs';
 import {syncLocalPaperAutoHeartbeat} from './live-paper-public-status.mjs';
 import {relayGptPaperDecision} from './gpt-paper-github-relay.mjs';
+import {syncGptPaperPublicPositionContext} from './gpt-paper-position-publisher.mjs';
 
 const REPO='127027/Sniperbot-';
 const base='https://api.github.com/repos/'+REPO+'/contents/';
@@ -323,7 +324,14 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
     // Always verify both GitHub owner-linked commits and the immutable blob,
     // then relay through the supervisor-issued local one-session capability.
     // This is NOT raw-public-file -> automatic BUY.
-    if(/^[a-f0-9]{64}$/.test(process.env.SNIPER_GPT_BRIDGE_SECRET||'')){
+    try {
+      const context=await syncGptPaperPublicPositionContext({token});
+      if(context.published)console.log('[GPT R29] Freigegebener Paper-Positionskontext auf GitHub (keine Konto-Betraege)');
+    }catch(e){
+      console.error('[GPT R29] Positionskontext nicht aktualisiert:',
+       String(e?.message||e).slice(0,100));
+    }
+        if(/^[a-f0-9]{64}$/.test(process.env.SNIPER_GPT_BRIDGE_SECRET||'')){
       try{
         const outcome=await relayGptPaperDecision({
           token,localCapability:process.env.SNIPER_GPT_BRIDGE_SECRET});
