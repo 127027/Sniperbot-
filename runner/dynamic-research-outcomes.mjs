@@ -84,7 +84,7 @@ export function advanceResearchObservations(snapshot,previous=empty(),{review=nu
        m.at_utc=snapshot.published_at_utc;
        m.indicative_ratio=Math.round(observed.price_usd/c.baseline_price_usd*1e6)/1e6;
        changed=true;
-     }else if(now>start+h.toleranceMs){
+     }else if(now>=start+h.toleranceMs){
        m.status='UNKNOWN_NO_MATCHING_QUOTE_IN_WINDOW';
        changed=true;
      }
