@@ -41,9 +41,9 @@ jobs:
           if($parseErrors.Count -gt 0) { $parseErrors | ForEach-Object { Write-Error $_.Message }; exit 1 }
           Write-Host 'WINDOWS_SUPERVISOR_V021_PARSING_OK'
       - name: R27 strict historical evidence, 615 frequency clocks, sealed AI, market gate and prospective capture (offline mocks)
-        run: node --test research/r27/r27.test.mjs
+        run: node --test research/r27/r27.test.mjs research/r27/r27-source-probe.test.mjs
       - name: R27 syntax smoke on every platform
-        run: node --check research/r27/r27-asof-frequency.mjs && node --check research/r27/r27-historical-ai.mjs && node --check runner/r27-prospective-capture.mjs && node --check runner/r27-market-regime.mjs
+        run: node --check research/r27/r27-asof-frequency.mjs && node --check research/r27/r27-historical-ai.mjs && node --check research/r27/r27-source-probe.mjs && node --check research/r27/r27-report.mjs && node --check runner/r27-prospective-capture.mjs && node --check runner/r27-market-regime.mjs
       - name: Chronological as-of intake, five-role barrier and isolated historical replay (offline)
         run: node --test research/replay-controller/controller.test.mjs research/replay-controller/asof-feed.test.mjs research/replay-controller/temporal-session.test.mjs research/replay-controller/role-task.test.mjs research/replay-controller/pseudonymize.test.mjs
       - name: R20 central fast replay - 8 isolated offline tests
