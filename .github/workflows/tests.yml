@@ -26,6 +26,8 @@ jobs:
           node-version: '22'
       - run: node --check runner/server.mjs
       - run: node runner/dashboard-syntax-check.mjs
+      - name: R29 real Paper dashboard balance and positions pricing fail-closed
+        run: node --test runner/dashboard-portfolio.test.mjs
       - run: node runner/test.mjs
       - name: Offline research, signatures, ledger and replay regression tests
         run: node --test runner/paper-agent-pipeline.test.mjs runner/github-signed-agent-feed.test.mjs runner/isolated-paper-pipeline-selftest.test.mjs runner/market-pool-pinning.test.mjs runner/paper-lifecycle-policy.test.mjs runner/portfolio-budget.test.mjs runner/signed-research-quorum.test.mjs runner/historical-replay-readiness.test.mjs runner/breakout-forecast.test.mjs runner/pipeline-health.test.mjs runner/central-decisions.test.mjs runner/research.test.mjs runner/live-mode-policy.test.mjs runner/gateway.test.mjs runner/integration.test.mjs
