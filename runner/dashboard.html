@@ -607,7 +607,8 @@ function initializeWorkspaces(){
   '<div class="summary-grid" style="height:auto;margin:12px 0">'+
    '<div class="metric"><small>R29-Sandbox (TEST-USDC)</small><b id="r29Cash">–</b></div>'+
    '<div class="metric"><small>Testpositionen</small><b id="r29Positions">–</b></div></div>'+
-  '<p class="mini-note">Diese gesonderte Sandbox ist NICHT dein bisheriges Paper-Konto. Kein Echtgeldhandel, keine OpenAI-API-Kosten. Die GitHub-ChatGPT-Aufgabenautomatisierung ist noch nicht aktiviert.</p>';
+  '<p class="mini-note">Diese gesonderte Sandbox ist NICHT dein bisheriges Paper-Konto. Kein Echtgeldhandel, keine OpenAI-API-Kosten. Die GitHub-ChatGPT-Aufgabenautomatisierung ist noch nicht aktiviert.</p>'+ 
+  '<p id="r29MainPaperStatus" class="mini-note">Normales Paper-Konto: sichtbarer Demo-Handel noch nicht freigegeben.</p>';
  const centralAiPanel=document.createElement('section');
  centralAiPanel.className='panel section';
  centralAiPanel.hidden=true; // R29 replaces the optional local paid API, not the paper dashboard.
@@ -756,6 +757,14 @@ async function refreshR29(){
   $('r29Cash').textContent=payload.cash_test_usdc===null||payload.cash_test_usdc===undefined?
    '–':Number(payload.cash_test_usdc).toFixed(3);
   $('r29Positions').textContent=payload.open_positions??'–';
+  const mainResponse=await fetch('/api/r29/main-paper/status',{cache:'no-store'});
+  const main=await mainResponse.json();
+  $('r29MainPaperStatus').textContent=main.active?
+   'Normales Paper-Konto: GitHub-Testfreigabe AKTIV · '+
+    (main.last_action||'wartet auf Auftrag')+' · '+(main.last_result||'noch kein Trade')+
+    (main.error?' · Fehler: '+main.error:''):
+   'Normales Paper-Konto: separater GitHub-Demo-Handel NICHT AKTIV'+
+    (main.reason?' · '+main.reason:'');
  }catch(e){$('r29CourierStatus').textContent='R29-Statusfehler: '+e.message}
 }
 async function refreshCentralAi(){
