@@ -427,7 +427,10 @@ try {
   Write-Host ''
   Write-Host '[OK] Lokaler Bot sichtbar gestartet; keine Anmeldung an GitHub erforderlich.' -ForegroundColor Green
   if($WithResearchCollector){Write-Host '[OPTIONAL] Separater Markt-Collector explizit gestartet.'}
-  if($WithR29){Write-Host '[R29] GitHub-Pipeline: '+$(if($null -ne $r29Courier){'AKTIV (nur isoliertes Papier)'}else{'OHNE GITHUB TOKEN AUS'}))}
+  if($WithR29){
+    if($null -ne $r29Courier){Write-Host '[R29] GitHub-Pipeline AKTIV (nur isoliertes Papier)' -ForegroundColor Green}
+    else {Write-Host '[R29] GitHub-Pipeline AUS (kein GitHub Token)' -ForegroundColor Yellow}
+  }
   if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){
     Write-Host '[AI] EIN stündlicher lokaler Forschungsprozess aktiviert, nur PAPER.' -ForegroundColor Green
   } else {Write-Host '[AI] Zentraler KI-Prozess AUS (fehlender API-Key oder nicht gewählt).'}
