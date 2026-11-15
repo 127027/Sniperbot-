@@ -1,3 +1,16 @@
+> **R29 (15.11.2026): EIN einziger Benutzer-Starter: `Sniperbot_Starten.bat`.**
+> Die drei alten alternativen BAT-Helfer wurden aus dem aktuellen Branch entfernt. Der Start aktiviert
+> den lokalen Paper-Bot, das vereinfachte Paper/Echtgeld-Dashboard und den GitHub-Kurier,
+> **ohne Echtgeldhandel oder bezahlte OpenAI-API**. Das reguläre Paper-Konto ist das einzige
+> angezeigte Paper-Handelsbudget; frühere isolierte 5.028,408 TEST-USDC sind nur QA-Archiv.
+> Für Tests statt früherer Windows-Batch-Dateien: `node runner/test.mjs` und
+> `node --test runner/*.test.mjs` (oder GitHub Actions). Technische Diagnose:
+> `node runner/r28-connection-diagnostic.mjs`. Das komplette R29-Benutzerhandbuch:
+> [ERSTER_START.txt](ERSTER_START.txt) und
+> [R29 Trading-Dashboard](research/r29/R29_TRADING_DASHBOARD_BEREINIGUNG.md).
+> **Achtung:** Eine GitHub-Kurieranbindung beweist noch keine autonome
+> Memecoin-Erkennung oder LIVE-Kauf-/Verkaufsfähigkeit.
+
 > **V0.20 (11.11.2026) – Deine zwei Hauptwünsche:** [Vereinfachte Oberfläche und signierte Agenten-Order-Pipeline](docs/V20_PAPER_DOT_SIGNAL_PIPELINE.md). Paper enthält nur **Einzahlen/Auszahlen** im Hauptbereich; virtuelle EUR und TEST-USDC werden intern automatisch verrechnet. Offene Trades und eingehende Agentenaufträge werden prominent angezeigt; echte SOL-/USDC-Bestände aktualisieren sich bei geöffnetem Echtgelddashboard automatisch etwa alle 30 Sekunden. **Echte signierte BUY/SELL-Kommandos können bereits im PAPER-Konto echte Simulationspositionen samt Gewinnen/Verlusten erzeugen**. Verified CI demonstriert 50 virtuelle EUR → BUY → Kurs ×2 → SELL (+48,01 Test-USDC). Ein öffentlicher GitHub-Kurier für signierte Agentenbefehle ist angelegt, aber die **fünf tatsächlichen Cloud-Dots publizieren bislang nur Research, noch keine signierten Orders**: Ihre endgültige Signatur-/Publisher-Kopplung steht aus. Keine echten 50 EUR, keine automatische PayPal→USDC-Umwandlung, kein Live-DEX-Trade. LIVE bleibt backendseitig AUS. Dieser Stand ist Draft PR #29, nicht automatisch auf deinen Laptop installiert.
 
 > **Windows-Laptop V0.18:** Getrennte [Paper-Trading- und Echtgeld-Oberfläche](docs/V18_PAPER_AND_REAL_MONEY_DASHBOARD.md). Die echte Wallet-Anzeige verwendet ausschließlich verifizierte Solana-Onchain-SOL-/USDC-Bestände. Der sichtbare **Echtgeldhandel AN/AUS**-Schalter ist sicherheitshalber **AUS und gesperrt**, und der lokale Server verweigert `enabled:true` mit HTTP 423. PayPal-Ein-/Auszahlung ist weiterhin ein externer Anbieter-Checkout, **kein echter automatischer USDC-Kauf, kein Jupiter-Live-Trade, kein nachgewiesenes EUR-Portfolio**. Paper-Guthaben und existierende lokale Wallet-Dateien bleiben unverändert. V0.18 ist ein Draft-PR und noch nicht auf dem persönlichen Laptop installiert; vor erfolgreicher End-to-End- und Sicherheitsabnahme **keine 50 € in die Entwicklungs-Wallet einzahlen**.
@@ -68,7 +81,7 @@ bei Widersprüchen gilt der oben verlinkte V0.4-Implementierungsstand.
 2. ZIP in einen eigenen Ordner entpacken.
 3. `Sniperbot_Starten.bat` doppelklicken. Dashboard: **http://127.0.0.1:3030**. Das schwarze Terminal-Fenster geöffnet lassen.
 
-Keine `npm install` für die Startversion nötig. Zum Testen: `Windows_Tests.bat` bzw. `node runner/test.mjs` und `node --test runner/integration.test.mjs`. Der HTTP-Integrationstest arbeitet **offline** mit einem separaten temporären Datenordner und verändert dein Portfolio nicht.
+Keine `npm install` für die Startversion nötig. Zum Testen: `node runner/test.mjs` bzw. `node runner/test.mjs` und `node --test runner/integration.test.mjs`. Der HTTP-Integrationstest arbeitet **offline** mit einem separaten temporären Datenordner und verändert dein Portfolio nicht.
 
 ## Erstes Szenario: 50 € Testguthaben → Sniper-Testkauf
 
@@ -142,7 +155,7 @@ Die Bilder zeigen einen Testzustand. Sie beweisen keine aktuelle Kurs-/KI-/Trans
 
 Aktuelle Grenzen: Die Dot-zu-Bot-Kommunikation ist NICHT integriert; Coin-Qualifikation und Exit-Realismus müssen entwickelt und getestet werden. Langfristige Portfolio-Strategie ist vorgesehen, aber derzeit ist höchstens eine simulierte Position gleichzeitig unterstützt.
 
-**GitHub-Verwendung auf Windows:** `git clone https://github.com/127027/Sniperbot-.git` und `cd Sniperbot-`, dann `Windows_Tests.bat` sowie `Sniperbot_Starten.bat`. Node.js 22+ benötigt. Die lokale API erscheint nur unter http://127.0.0.1:3030. Für das Ziel eines nicht-technischen Nutzers sollte Codex einen sicheren Windows-Installer bzw. Starter entwickeln.
+**GitHub-Verwendung auf Windows:** `git clone https://github.com/127027/Sniperbot-.git` und `cd Sniperbot-`, dann `node runner/test.mjs` sowie `Sniperbot_Starten.bat`. Node.js 22+ benötigt. Die lokale API erscheint nur unter http://127.0.0.1:3030. Für das Ziel eines nicht-technischen Nutzers sollte Codex einen sicheren Windows-Installer bzw. Starter entwickeln.
 
 ## Strategiewechsel: Fünf Agenten und langfristiger High-Upside-Sniper (freigegeben am 06.11.2026)
 
