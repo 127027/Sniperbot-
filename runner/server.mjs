@@ -261,6 +261,36 @@ const server=createServer(async(req,res)=>{
   }catch{return reply(res,200,{ok:true,active:false,archived:false,
    reason:'COLLECTOR_STATUS_UNREADABLE'})}
  }
+ if(req.method==='GET'&&route==='/api/r29/presence'){
+  // Only current local regular-paper heartbeat, never the retired sandbox
+  // balance, private GitHub token, or real wallet information.
+  try{
+   if(!process.env.LOCALAPPDATA)return reply(res,200,
+    {ok:true,connected:false,reason:'WINDOWS_LOCALAPPDATA_UNAVAILABLE'});
+   const fp=path.join(process.env.LOCALAPPDATA,'MemeSniperPaper',
+    'r29-isolated-sandbox','r29-local-regular-presence.json');
+   if(!existsSync(fp))return reply(res,200,
+    {ok:true,connected:false,reason:'REGULAR_PAPER_COURIER_NOT_REPORTED'});
+   const raw=readFileSync(fp,'utf8');
+   if(Buffer.byteLength(raw)>3000)throw Error('R29_PRESENCE_OVERSIZED');
+   const value=JSON.parse(raw);
+   if(value.schema!=='sniper_r29_regular_paper_presence.v1'||
+    value.target!=='REGULAR_PAPER_HEARTBEAT'||value.mode!=='PAPER_ONLY'||
+    value.real_trading_enabled!==false||
+    value.paper_orders_automatically_enabled!==false||
+    value.account_balance_or_wallet_published!==false)
+    throw Error('R29_REGULAR_PRESENCE_INVALID');
+   const at=Date.parse(value.checked_at_utc);
+   return reply(res,200,{ok:true,
+    connected:Number.isFinite(at)&&at<=Date.now()&&Date.now()-at<240000&&
+     value.local_paper_http_healthy===true,
+    checked_at_utc:value.checked_at_utc,
+    bot_http_healthy:value.local_paper_http_healthy===true,
+    github_courier_enabled:value.courier_enabled===true,
+    paper_orders_automatically_enabled:false,real_trading_enabled:false});
+  }catch{return reply(res,200,{ok:true,connected:false,
+   reason:'REGULAR_PAPER_COURIER_STATUS_INVALID'})}
+ }
  if(req.method==='GET'&&route==='/api/r29/status'){
   try{
    if(!process.env.LOCALAPPDATA)return reply(res,200,{ok:true,
