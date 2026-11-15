@@ -1,10 +1,10 @@
 # R29 Master-Anweisung – ChatGPT → GitHub → Windows-Sniperbot
-Version: 1.2 · 2026-11-15 · **PAPER ONLY**
+Version: 1.3 · 2026-11-15 · **PAPER ONLY**
 
 ## Verbindlicher Ablauf bei JEDER ChatGPT-Analyse
 
 1. **Zuerst diese Datei erneut über die GitHub-Verbindung lesen**, branch `codex/r29-chatgpt-github-paper-cycle-20261115`, Pfad `research/r29/MASTER_ANALYSE.md`.
-2. Danach `research/r29/channel/latest-intent.json` (letzter Auftrag) und `research/r29/channel/ci-receipt.json` / `ci-ledger.json` (isolierter CI-Bot) oder – falls später eingerichtet – `windows-status.json` (echter Windows-Bot) lesen.
+2. **Aktueller normaler Windows-Bot:** `research/r29/channel/regular-paper-presence.json` lesen; nur ein frischer `REGULAR_PAPER_HEARTBEAT` mit `local_paper_http_healthy:true` bestätigt die normale Einzelstarter-Verbindung. Frühere `windows-status.json`, `ci-receipt.json` und `ci-ledger.json` belegen **nur historische, getrennte QA-Sandbox-Tests**, nicht das heutige reguläre Paper-Guthaben. Für den abgeschlossenen einmaligen R29-Test können `main-paper-status.json` und sein Git-Verlauf als historische Abnahme dienen.
 3. Die Herkunft jedes Status prüfen: **`CI_SANDBOX` ist NICHT der Windows-Laptop**. Fehlende Quittung bedeutet noch keine Order.
 4. Erst nach dokumentierter Freigabe einer getrennten Handelsstrategie Marktquellen recherchieren. Für den getrennten Kurier-Test ausschließlich `R29_SYNTHETIC_DISPOSABLE`; für den nachfolgend vom Nutzer ausdrücklich freigegebenen, sichtbaren **Haupt-Paper-Demo-Test** ausschließlich `R29_FIXED_TEST_COIN` verwenden. Kein realer Token.
 5. NUR eines von `BUY`, `SELL`, `HOLD`, `WATCH`, `NO_TRADE` empfehlen. Im ersten R29-Transporttest sind über GitHub ausschließlich synthetische `BUY` und `SELL` zulässig.
@@ -23,6 +23,14 @@ Version: 1.2 · 2026-11-15 · **PAPER ONLY**
 - Die getrennte R29-Sandbox hat synthetische Preise BUY 0,05 / SELL 0,08. Die ausdrücklich freigegebene **normale Paper-Demo** nutzt den festgelegten erfundenen `TEST`-Coin bei 0,025 TEST-USDC ohne Kursgewinn; die modellierten 1 % Gebühren je Richtung ergeben etwa −0,995 TEST-USDC. Keine dieser Zahlen ist eine Marktprognose oder realer Gewinn.
 - Keine fünf separaten Dots erstellen. Eine zukünftige stündliche ChatGPT-Aufgabe darf erst nach echtem Windows-Ende-zu-Ende-Nachweis und Prüfung ihrer Schreibrechte aktiviert werden.
 - Eine ChatGPT-Plus-Nutzung ersetzt keine kostenpflichtige OpenAI-API: R29 versucht ausdrücklich, **keine API-basierte KI auf dem PC** zu brauchen. Etwaige ChatGPT-Aufgaben- und GitHub-App-Limits bleiben separat zu prüfen.
+
+## Einziger Windows-Benutzerstarter und Statuskanal
+
+**Ausschließlich** `Sniperbot_Starten.bat` im Hauptverzeichnis. Alle alternativen .bat/.cmd-Starter wurden entfernt. Im Hintergrund bleiben notwendige Node-/PowerShell-Prozesse erhalten, aber kein weiterer Benutzer-Einstieg.
+
+Der normale R29-GitHub-Kurier aus dieser einen Startdatei sendet künftig einen **read-only** Windows-Heartbeat über `research/r29/channel/regular-paper-presence.json` (höchstens alle 15 Minuten sowie bei Zustandswechseln), ohne Kontoguthaben, Tokenadressen, Wallet-, Geräte- oder Benutzerinformationen. Dies ist ein reiner Verbindungstest, **kein Handelsauftrag**. Die manuelle historische feste TEST-Order ist abgeschlossen und ihr Sonderstart wurde entfernt.
+
+**Hartes Gate:** Aus diesem Heartbeat keine automatische Memecoin-ORDER und keinen Echtgeldhandel ableiten. Der allgemeine signierte Paper-Signaladapter für beliebige Contract-Adressen steht weiterhin aus; Entscheidungen ohne geprüften Orderpfad bleiben Research.
 
 ## Zentrales Zielbild: EINE Entscheidung, getrennte Kontoausführung (Zukunftsarchitektur, NICHT live freigegeben)
 
