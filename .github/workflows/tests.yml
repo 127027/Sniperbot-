@@ -87,6 +87,10 @@ jobs:
         run: node --test runner/dynamic-research-scheduler.test.mjs runner/dynamic-research-outcomes.test.mjs runner/r29-adaptive-publisher.test.mjs runner/r29-adaptive-review.test.mjs
       - name: R29 adaptive module syntax, collector and courier wiring
         run: node --check runner/dynamic-research-scheduler.mjs && node --check runner/dynamic-research-outcomes.mjs && node --check runner/r29-adaptive-publisher.mjs && node --check runner/research-market-daemon.mjs && node --check runner/r29-windows-courier.mjs
+      - name: R29 GPT-only authenticated GitHub -> signed local paper BUY SELL, replay, no-cost and privacy checks
+        run: node --test runner/gpt-paper-bridge.test.mjs runner/gpt-paper-github-relay.test.mjs
+      - name: R29 GPT-only decision, owner-attributed courier, local risk and dashboard syntax
+        run: node --check runner/gpt-paper-protocol.mjs && node --check runner/gpt-paper-github-relay.mjs && node --check runner/gpt-paper-local-receiver.mjs && node --check runner/gpt-paper-position-publisher.mjs && node --check runner/server.mjs && node --check runner/r29-windows-courier.mjs && node runner/dashboard-syntax-check.mjs
       - name: R29 independent local paper crypto security, risk and signed BUY/SELL offline tests
         run: node --test runner/live-paper-security.test.mjs runner/live-paper-autopilot.test.mjs runner/live-paper-public-status.test.mjs
       - name: R29 local autonomous paper syntax and UI validation
