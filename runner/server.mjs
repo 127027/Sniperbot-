@@ -14,6 +14,7 @@ import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
 import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
 import {startCentralAiCoordinator} from './central-ai-coordinator.mjs';
 import {collectR27MarketRegime} from './r27-market-regime.mjs';
+import {loadR27EarlyContext} from './r27-early-bridge.mjs';
 import {collectResearchNews} from './research-news-rss.mjs';
 import {enrollPaperPublisherPublicKey} from './paper-publisher-trust.mjs';
 import {summarizePaperPipeline} from './pipeline-health.mjs';
@@ -941,6 +942,8 @@ if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_CENTRAL_AI_ENABLED==='1'
   submit:(signed,options)=>submitSignedAgentPaperOrder(signed,options),
   scan:()=>scanNewPools(),collectNews:()=>collectResearchNews(),
   collectMarketRegime:()=>collectR27MarketRegime(),
+  collectEarlyContext:()=>loadR27EarlyContext({filename:
+   path.join(root,'.local','research-market','latest.json')}),
   collectRealWallet:async()=>{
    const wallet=await readLocalSolanaVault(walletFile);
    if(!wallet?.exists)return {verified:false,reason:'NO_LOCAL_SOLANA_WALLET'};
