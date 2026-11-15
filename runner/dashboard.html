@@ -141,6 +141,8 @@ footer{margin-top:24px;border-top:1px solid var(--border);padding-top:18px;font-
       <button id="saveBudget" type="button" class="btn primary">Grenzen speichern</button>
     </div>
     <div id="budgetNote" class="sub">Einsatzgrenzen werden geladen …</div>
+    <button id="toggleAutoPaper" type="button" class="btn">Automatisches Live-Paper-Trading aktivieren</button>
+    <div id="autoPaperNote" class="small-notice">Live-Marktdaten, ausschließlich virtuelles Konto. Käufe nur nach unabhängigen Risiko-, Contract- und Verkaufssimulationen. Bei Datenlücken keine Käufe.</div>
     <div class="info">Geplante Mindestbeträge von 5 TEST-USDC sind noch nicht freigeschaltet: Die aktuelle Paper-Engine erlaubt mindestens 50 TEST-USDC. Echtgeldhandel bleibt unabhängig davon ausgeschaltet.</div>
   </div></details>
   <details><summary>Virtuelles Testguthaben verwalten</summary>
@@ -167,6 +169,7 @@ footer{margin-top:24px;border-top:1px solid var(--border);padding-top:18px;font-
 <details id="diagnostics" class="wide-section"><summary>Verbindungsstatus &amp; Diagnose</summary>
   <div class="details-content technical">
     <div id="diagPaper">Paper-Bot: –</div>
+    <div id="diagAutopilot">Live-Paper-Automatik: wird geprüft</div>
     <div id="diagCourier">GitHub-Verbindung: wird geprüft</div>
     <div id="diagMain">Haupt-Paper-Test: wird geprüft</div>
     <div>Testprotokolle und frühere isolierte Testkonten sind keine Handelsguthaben und werden hier nicht angezeigt.</div>
@@ -296,6 +299,13 @@ function renderPaper(){
  toggle.disabled=commandBusy||!p||!botReachable;
  toggle.textContent=p?.bot_enabled?'Bot pausieren':'Bot starten';
  toggle.className='btn '+(p?.bot_enabled?'pause':'primary');
+  $('toggleAutoPaper').disabled=commandBusy||!p||!botReachable;
+  $('toggleAutoPaper').textContent=p?.automatic_paper_buys_enabled?
+   'Automatisches Paper-Trading deaktivieren':'Automatisches Paper-Trading aktivieren';
+  $('autoPaperNote').textContent=p?.automatic_paper_buys_enabled?
+   (p.bot_enabled?'Automatische Paper-Analyse aktiviert; neue Käufe nur bei vollständigem Sicherheitsnachweis.':
+    'Autopilot vorbereitet, aber der Paper-Bot ist pausiert. Keine neuen Käufe.') :
+   'Autopilot AUS. Aktivierung erlaubt ausschließlich virtuelle, risikogeprüfte Trades; Echtgeld bleibt gesperrt.';
  $('positionTime').textContent=p?'Stand: '+stamp(p.as_of_utc):'Nicht verfügbar';
  $('positionNote').textContent='Paper-Bewertungen sind indikativ; inklusive modellierter 1 % Verkaufskosten. Veraltete oder fehlende Kurse werden nicht als Gewinn angezeigt.';
  renderPositions(p);
@@ -402,6 +412,17 @@ async function loadRealWallet(){
  if(activeMode==='real')renderReal();
 }
 async function getCourierStatus(){
+  try{
+   const a=await request('/api/paper/autopilot/status');
+   const last=a.auto?.last_outcome||a.auto?.reason||'NO_STATUS';
+   $('diagAutopilot').textContent='Live-Paper-Autopilot: '+
+    (a.auto?.enabled?'lokaler Prozess aktiv':'Prozess nicht aktiv')+
+    ' · Auto-Käufe '+(a.automatic_paper_buys_enabled?'AN':'AUS')+
+    ' · letzter Lauf '+stamp(a.auto?.last_scan_at_utc)+
+    ' · '+last+
+    ' · bestätigte Paper-Fills '+(a.auto?.paper_fills_confirmed||0);
+  }catch(e){$('diagAutopilot').textContent='Autopilot-Status nicht verfügbar: '+e.message;}
+
  try{
   const r=await request('/api/r29/main-paper/status');
   $('diagMain').textContent=r.active?
@@ -432,6 +453,13 @@ async function sendPaperCommand(cmd){
 $('tabPaper').addEventListener('click',()=>selectMode('paper'));
 $('tabReal').addEventListener('click',()=>selectMode('real'));
 $('toggleBot').addEventListener('click',()=>sendPaperCommand({type:'TOGGLE_BOT'}));
+$('toggleAutoPaper').addEventListener('click',()=>{
+  if(!paperView)return;
+  const enabled=!paperView.automatic_paper_buys_enabled;
+  if(enabled&&!window.confirm('Autonomes Live-Paper-Trading mit echten Marktdaten aktivieren? Es werden NUR virtuelle Trades ausgeführt; Sicherheitsprüfung kann Käufe blockieren.'))
+   return;
+  void sendPaperCommand({type:'SET_AUTO',enabled});
+});
 $('saveBudget').addEventListener('click',()=>{
  const min=Number($('preferredEntry').value),max=Number($('exposureCap').value);
  if(!Number.isFinite(min)||!Number.isFinite(max)||min<50||max<min||max>100000){
