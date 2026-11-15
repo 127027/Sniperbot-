@@ -343,7 +343,10 @@ try {
   elseif($ResetAiKey){throw 'ResetAiKey nur im zentralen KI-Modus verwenden.'}
   $job=[SniperWindowsJob]::OpenKillOnClose()
   $bot=Start-Child 'BOT' 'runner/server.mjs' $node $job
-  if($WithResearchCollector){$market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job}
+  if($WithResearchCollector -or ($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile))){
+    $market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job
+    Write-Host '[R27] Lokales, append-only Quellenarchiv aktiv (nur öffentliche Marktdaten/Nachrichten).' -ForegroundColor Green
+  }
   # Avoid opening an old/stale bot URL until the new listener answered locally.
   if(!$NoBrowser){
     for($attempt=0;$attempt -lt 25;$attempt++){
