@@ -171,6 +171,7 @@ test('full local service: fresh public research -> independent safety -> signed 
    assert.equal(worker.status().paper_fills_confirmed,2);
    assert(state.cashUsdc>5000);
    assert(state.paperLiveRisk.day_realized_pnl>0);
+   newPrice=.02; // Verify explicit no-churn cooldown instead of price-divergence guard.
    const third=await worker.runOnce();
    assert.equal(third.status,'NO_VERIFIED_SAFE_ENTRY');
    assert.equal(third.reasons[0].reason,'REENTRY_COOLDOWN_12H');
