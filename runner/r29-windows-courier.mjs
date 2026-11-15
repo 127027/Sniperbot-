@@ -10,6 +10,7 @@ import {R29_MAIN_INTENT_PATH,R29_MAIN_STATUS_PATH,R29_MAIN_STATUS_SCHEMA,
  publicR29MainStatus} from './r29-main-paper-demo.mjs';
 import {syncAdaptivePublicPresence,syncAdaptivePublicReview} from './r29-adaptive-publisher.mjs';
 import {syncLocalPaperAutoHeartbeat} from './live-paper-public-status.mjs';
+import {relayGptPaperDecision} from './gpt-paper-github-relay.mjs';
 
 const REPO='127027/Sniperbot-';
 const base='https://api.github.com/repos/'+REPO+'/contents/';
@@ -317,6 +318,24 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
     }catch(e) {
       console.error('[R29] Dynamischer Forschungsstatus nicht synchronisiert:',
         String(e?.message||e).slice(0,100));
+    }
+    // GPT is the ONLY source of strategy decisions in canonical R29.
+    // Always verify both GitHub owner-linked commits and the immutable blob,
+    // then relay through the supervisor-issued local one-session capability.
+    // This is NOT raw-public-file -> automatic BUY.
+    if(/^[a-f0-9]{64}$/.test(process.env.SNIPER_GPT_BRIDGE_SECRET||'')){
+      try{
+        const outcome=await relayGptPaperDecision({
+          token,localCapability:process.env.SNIPER_GPT_BRIDGE_SECRET});
+        if(outcome.published_receipt_commit)console.log(
+          '[GPT R29] Entscheidung verarbeitet:',outcome.action,
+          outcome.status,outcome.reason,'nur Paper; kein Echtgeld');
+      }catch(e){
+        // Missing publisher or stale decision never becomes a trade.
+        const message=String(e?.message||'GPT_RELAY_UNAVAILABLE').slice(0,100);
+        if(!message.includes('GPT_GITHUB_GET_HTTP_404'))
+          console.error('[GPT R29] Kein autorisierter GPT-Paper-Auftrag:',message);
+      }
     }
    }
   }catch(e){
