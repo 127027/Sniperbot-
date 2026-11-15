@@ -98,3 +98,107 @@ export async function syncAdaptivePublicPresence({token,filename=localDynamicSta
  return {status:'PUBLISHED',skipped:false,published:true,
    commit_sha:result.commit.sha,public:body};
 }
+
+
+// Public REVIEW bridge: only the last immutable research observation, not
+// private portfolio, raw untrusted provider text, or a signed trade intent.
+import {createHash} from 'node:crypto';
+export const ADAPTIVE_PUBLIC_REVIEW_PATH='research/r29/channel/dynamic-research-review.json';
+const REVIEW_ENDPOINT='https://api.github.com/repos/'+REPO+'/contents/'+ADAPTIVE_PUBLIC_REVIEW_PATH;
+const hashReview=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
+const contractId=s=>typeof s==='string'&&/^(solana|base|eth|bsc):[A-Za-z0-9]{4,50}:[A-Za-z0-9]{4,50}$/.test(s);
+const numOrNull=n=>typeof n==='number'&&Number.isFinite(n)&&n>=0?n:null;
+export function sanitizedAdaptiveReview(review,status){
+ if(review?.schema!=='sniper_r29_dynamic_research_review.v1'||
+   review.paper_only!==true||review.actionable!==false||
+   review.decision!=='OBSERVE_ONLY_EVIDENCE_GAP'||
+   review.validated_buy_count!==0||review.validated_sell_count!==0||
+   review.simulated_pnl!==null||review.contract_security_verified!==false||
+   review.sellability_verified!==false||review.quote_executable!==false||
+   !validDate(review.at_utc)||!hash(review.sha256_payload)||
+   !Array.isArray(review.candidates)||review.candidates.length>12||
+   status?.last_review_sha256!==review.sha256_payload||
+   status?.last_review_at_utc!==review.at_utc||
+   hashReview((({sha256_payload,...body})=>body)(review))!==review.sha256_payload)
+   throw Error('R29_DYNAMIC_REVIEW_INTEGRITY_OR_SAFETY');
+ const out=[];
+ for(const c of review.candidates){
+  if(!contractId(c?.candidate_id)||!['solana','eth','base','bsc'].includes(c.chain)||
+   !c.candidate_id.startsWith(c.chain+':')||
+   c.gpt_action!=='NO_ORDER_UNVERIFIED_SECURITY'||
+   c.contract_security!=='UNKNOWN'||c.sellability!=='UNKNOWN'||
+   !['DETERMINISTIC_CONTROL','MARKET_ACTIVITY_SAMPLE'].includes(c.selection)||
+   typeof c.price_usd!=='number'||!Number.isFinite(c.price_usd)||c.price_usd<=0||
+   numOrNull(c.liquidity_usd)===null)
+   throw Error('R29_DYNAMIC_REVIEW_CANDIDATE_REJECTED');
+  out.push({candidate_id:c.candidate_id,chain:c.chain,
+   selection:c.selection,indicative_price_usd:c.price_usd,
+   observed_liquidity_usd:c.liquidity_usd,volume_m5_usd:numOrNull(c.volume_m5_usd),
+   buys_m5:numOrNull(c.buys_m5),sells_m5:numOrNull(c.sells_m5),
+   paid_promotion_bias:c.promo_bias===true,
+   contract_security:'UNKNOWN',sellability:'UNKNOWN',
+   signal:'INDEPENDENT_REVIEW_REQUIRED_NOT_BUY'});
+ }
+ return {schema:'sniper_r29_public_dynamic_review.v1',
+  paper_only:true,actionable:false,real_trading_enabled:false,
+  no_account_balances:true,no_wallet_data:true,
+  observed_at_utc:review.at_utc,review_sha256:review.sha256_payload,
+  experiment_phase:review.experiment_phase,
+  research_frequency_per_day:review.cadence_per_day,
+  sources_incomplete:true,security_verified:false,
+  candidates:out,
+  warning:'Indicative data from public sources; NOT a full GPT security audit, NOT a tradable quote or paper order'};
+}
+export async function syncAdaptivePublicReview({token,
+ filename=localDynamicStatusFile(),fetcher=fetch}={}){
+ let local;
+ try{
+   const b=await readFile(filename);
+   if(b.length>12000)throw Error('R29_DYNAMIC_REVIEW_STATUS_TOO_LARGE');
+   local=JSON.parse(b.toString('utf8'));
+ }catch(e){
+   if(e.code==='ENOENT')return {status:'NOT_STARTED',published:false,skipped:true};
+   throw e;
+ }
+ sanitizedAdaptivePresence(local); // strict validation before following local paths
+ if(typeof local.last_review_filename!=='string'||
+  !/^[0-9]{8}T[0-9]{9}Z-[a-f0-9]{16}\.json$/.test(local.last_review_filename))
+   throw Error('R29_DYNAMIC_REVIEW_FILENAME_INVALID');
+ const reviewFile=path.join(path.dirname(filename),'reviews',local.day_utc,local.last_review_filename);
+ let review;
+ try{
+   const bytes=await readFile(reviewFile);
+   if(bytes.length>50000)throw Error('R29_DYNAMIC_REVIEW_TOO_LARGE');
+   review=JSON.parse(bytes.toString('utf8'));
+ }catch(e){
+   if(e.code==='ENOENT')return {status:'WAITING_FOR_LOCAL_REVIEW',published:false,skipped:true};
+   throw e;
+ }
+ const body=sanitizedAdaptiveReview(review,local);
+ const head=headers(token);
+ const get=await fetcher(REVIEW_ENDPOINT+'?ref='+encodeURIComponent(BRANCH),{
+   method:'GET',headers:head,signal:AbortSignal.timeout(12000)});
+ let old=null,sha=null;
+ if(get.status===200){
+   const j=await get.json();
+   if(j?.type!=='file'||typeof j.sha!=='string'||!/^[a-f0-9]{40}$/.test(j.sha)||
+      typeof j.content!=='string'||j.encoding!=='base64')throw Error('R29_DYNAMIC_REVIEW_REMOTE_INVALID');
+   sha=j.sha;
+   try{old=JSON.parse(Buffer.from(j.content.replace(/\s/g,''),'base64').toString('utf8'))}
+   catch{throw Error('R29_DYNAMIC_REVIEW_REMOTE_PARSE_ERROR')}
+ }else if(get.status!==404)throw Error('R29_DYNAMIC_REVIEW_GET_HTTP_'+get.status);
+ if(old?.schema===body.schema&&old.review_sha256===body.review_sha256)
+   return {status:'UNCHANGED',published:false,skipped:true,public:body};
+ const payload={message:'research(r29): public last adaptive review (NO orders/balances)',
+    branch:BRANCH,content:Buffer.from(JSON.stringify(body,null,2)+'\n').toString('base64')};
+ if(sha)payload.sha=sha;
+ const put=await fetcher(REVIEW_ENDPOINT,{
+   method:'PUT',headers:head,body:JSON.stringify(payload),
+   signal:AbortSignal.timeout(12000)});
+ if(!put.ok)throw Error('R29_DYNAMIC_REVIEW_WRITE_HTTP_'+put.status);
+ const j=await put.json();
+ if(!/^[a-f0-9]{40}$/.test(j?.commit?.sha||''))
+   throw Error('R29_DYNAMIC_REVIEW_COMMIT_INVALID');
+ return {status:'PUBLISHED',published:true,skipped:false,commit_sha:j.commit.sha,
+   public:body};
+}
