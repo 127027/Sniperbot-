@@ -15,6 +15,7 @@ import {paperDashboardView} from './dashboard-portfolio.mjs';
 import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
 import {startCentralAiCoordinator} from './central-ai-coordinator.mjs';
 import {startLocalPaperAutopilot} from './live-paper-autopilot.mjs';
+import {createGptPaperLocalReceiver} from './gpt-paper-local-receiver.mjs';
 import {collectR27MarketRegime} from './r27-market-regime.mjs';
 import {loadR27EarlyContext} from './r27-early-bridge.mjs';
 import {collectResearchNews} from './research-news-rss.mjs';
@@ -45,7 +46,7 @@ import {verifyFinalizedSolanaReceipt} from './solana-finalized-receipt.mjs';
 import {observeExternalSolanaWallet} from './external-wallet-observer.mjs';
 import {previewNativeSolTransfer,submitLocalNativeSolTransfer,
  recentNativeSolTransferJournal} from './solana-native-transfer.mjs';
-import {randomBytes} from 'node:crypto';
+import {randomBytes,timingSafeEqual} from 'node:crypto';
 import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
@@ -199,7 +200,7 @@ function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_A
  const job=async()=>{
   let keys;
   try{
-   if(['CENTRAL_AI_LOCAL','LOCAL_PAPER_AUTOPILOT'].includes(source)&&Array.isArray(localTrust)&&localTrust.length===1){
+   if(['CENTRAL_AI_LOCAL','LOCAL_PAPER_AUTOPILOT','GPT_GITHUB_LOCAL'].includes(source)&&Array.isArray(localTrust)&&localTrust.length===1){
     // Session-only public trust: private signing key never leaves coordinator memory.
     keys=localTrust;
    }else{
@@ -229,6 +230,12 @@ function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_A
  return pending;
 }
 
+const gptPaperReceiver=createGptPaperLocalReceiver({
+ deviceId:localDevice.device_id,dataDir:store.dir,
+ marketFile:path.join(root,'.local','research-market','latest.json'),
+ getState:()=>state,commit,
+ submit:(signed,options)=>submitSignedAgentPaperOrder(signed,options)
+});
 const port=Number(process.env.SNIPER_PORT)||3030;
 const server=createServer(async(req,res)=>{
  if(req.headers.host!==`127.0.0.1:${port}`||!corsAllowed(req))return error(res,403,'Host/Origin blockiert');
@@ -366,7 +373,31 @@ const server=createServer(async(req,res)=>{
    automatic_paper_buys_enabled:state.automaticPaperBuys===true,
    current_paper_position_count:state.positions.length,
    real_trading_enabled:false});
-  if(req.method==='GET'&&route==='/api/central-ai/status')return reply(res,200,{ok:true,
+  if(req.method==='GET'&&route==='/api/gpt/paper/status')return reply(res,200,{
+ ok:true,mode:'PAPER_ONLY',strategy:'GPT_ONLY',
+ gpt_follow_enabled:state.gptPaperFollow===true,
+ paper_bot_enabled:state.entriesEnabled===true,
+ local_gpt_bridge_ready:process.env.SNIPER_GPT_PAPER_BRIDGE==='1'&&
+   /^[0-9a-f]{64}$/.test(process.env.SNIPER_GPT_BRIDGE_SECRET||''),
+ old_local_autopilot_enabled:false,
+ received_decision_count:Object.keys(state.gptDecisionReplay||{}).length,
+ last_decision_id:Object.keys(state.gptDecisionReplay||{}).slice(-1)[0]||null,
+ paid_openai_api_required:false,real_trading_enabled:false});
+ if(req.method==='GET'&&route==='/api/gpt/paper/context'){
+  const positions=state.positions.filter(p=>p.gptPaperDecision===true)
+   .slice(0,12).map(p=>({
+    chain:p.chain,token_address:p.tokenAddress,pool_address:p.poolAddress,
+    opened_at_utc:p.openedAt,entry_price_usd:p.entryPriceUsd,
+    indicative_price_usd:Date.now()-Date.parse(p.markAt)<180000?
+      p.priceUsd:null,quote_at_utc:p.markAt||null,
+    gpt_opened_paper_position:true
+   }));
+  return reply(res,200,{ok:true,schema:'sniper_r29_gpt_public_position_context.v1',
+   mode:'PAPER_ONLY',real_trading_enabled:false,
+   account_balances_excluded:true,position_amounts_excluded:true,
+   as_of_utc:new Date().toISOString(),positions});
+ }
+ if(req.method==='GET'&&route==='/api/central-ai/status')return reply(res,200,{ok:true,
   coordinator:centralAiService?.status()||{schema:'sniper_central_ai_status.v1',enabled:false,
    mode:'PAPER_ONLY',reason:process.env.SNIPER_OFFLINE==='1'?'OFFLINE_TEST':
    'AI_API_KEY_OR_OPT_IN_NOT_CONFIGURED',remote_chat_session_connected:false,
@@ -931,12 +962,33 @@ const server=createServer(async(req,res)=>{
   try{const e=await body(req),n=ingest(state,e,principal),duplicate=n===state;if(!duplicate)commit(evaluate(n));return reply(res,200,{ok:true,duplicate,research:state.research})}
   catch(e){return error(res,e.status||422,e.message)}
  }
+ if(route==='/api/gpt/paper-decision'){
+  if(req.method!=='POST'||req.headers.origin||
+   !req.headers['content-type']?.startsWith('application/json'))
+   return error(res,403,'GPT-Kurier nur über lokalen authentifizierten Kanal');
+  const key=process.env.SNIPER_GPT_BRIDGE_SECRET||'';
+  const supplied=req.headers['x-sniper-gpt-bridge'];
+  if(process.env.SNIPER_GPT_PAPER_BRIDGE!=='1'||!/^[a-f0-9]{64}$/.test(key)||
+   typeof supplied!=='string'||!/^[a-f0-9]{64}$/.test(supplied)||
+   !timingSafeEqual(Buffer.from(key,'hex'),Buffer.from(supplied,'hex')))
+   return error(res,403,'GPT-Kurier-Identität nicht autorisiert');
+  if(deviceTopology.mode==='FOLLOWER')
+   return error(res,403,'GPT-Entscheidungen nur auf dem Haupt-Paper-Gerät');
+  let body='';
+  try{
+   for await(const chunk of req){body+=chunk;
+    if(body.length>24000)throw Error('GPT_DECISION_TOO_LARGE');}
+   const message=JSON.parse(body);
+   const result=await gptPaperReceiver.receive(message);
+   return reply(res,200,{ok:true,mode:'PAPER_ONLY',receipt:result});
+  }catch(e){return error(res,422,String(e?.message||'GPT_DECISION_NOT_ACCEPTED').slice(0,110))}
+ }
  if(req.method!=='POST'||route!=='/api/command')return error(res,404,'Nicht gefunden');
  if(!corsAllowed(req))return error(res,403,'Fremder Origin blockiert');
  if(!req.headers['content-type']?.startsWith('application/json'))return error(res,415,'JSON erforderlich');
  let raw='';try{for await(const chunk of req){raw+=chunk;if(raw.length>6000)throw Error('Anfrage zu groß')}}catch{return error(res,413,'Anfrage zu groß')}
  let a;try{a=JSON.parse(raw)}catch{return error(res,400,'Ungültiges JSON')}
- const allowed=new Set(['PREVIEW_PAPER_FUNDING','SET_PAPER_BALANCE','SET_CENTRAL_FOLLOW','SIMULATE_AGENTS','TOGGLE_BOT','SET_AUTO','SET_RANGE','SET_EXITS','DEPOSIT','WITHDRAW','EXCHANGE','EXCHANGE_BACK','BUY','SELL','RESET','SCAN','DEMO_SIGNAL','LOOKUP','DEMO_MOVE']);
+ const allowed=new Set(['PREVIEW_PAPER_FUNDING','SET_PAPER_BALANCE','SET_CENTRAL_FOLLOW','SIMULATE_AGENTS','TOGGLE_BOT','SET_AUTO','SET_GPT_FOLLOW','SET_RANGE','SET_EXITS','DEPOSIT','WITHDRAW','EXCHANGE','EXCHANGE_BACK','BUY','SELL','RESET','SCAN','DEMO_SIGNAL','LOOKUP','DEMO_MOVE']);
  if(!allowed.has(a?.type))return error(res,400,'Aktion nicht zulässig');
  if(deviceTopology.mode==='FOLLOWER'&&
   !operationAllowedWhenMasterOffline(a?.type,false))
