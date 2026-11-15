@@ -13,6 +13,7 @@ import {createDynamicTradeInbox} from './dynamic-trade-inbox.mjs';
 import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
 import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
 import {startCentralAiCoordinator} from './central-ai-coordinator.mjs';
+import {collectR27MarketRegime} from './r27-market-regime.mjs';
 import {collectResearchNews} from './research-news-rss.mjs';
 import {enrollPaperPublisherPublicKey} from './paper-publisher-trust.mjs';
 import {summarizePaperPipeline} from './pipeline-health.mjs';
@@ -919,6 +920,7 @@ if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_CENTRAL_AI_ENABLED==='1'
   deviceId:localDevice.device_id,dataDir:store.dir,getState:()=>state,
   submit:(signed,options)=>submitSignedAgentPaperOrder(signed,options),
   scan:()=>scanNewPools(),collectNews:()=>collectResearchNews(),
+  collectMarketRegime:()=>collectR27MarketRegime(),
   collectRealWallet:async()=>{
    const wallet=await readLocalSolanaVault(walletFile);
    if(!wallet?.exists)return {verified:false,reason:'NO_LOCAL_SOLANA_WALLET'};
