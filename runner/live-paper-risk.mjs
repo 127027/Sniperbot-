@@ -44,13 +44,13 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
  if(!['base','eth','bsc'].includes(candidate?.chain)||
   !validTokenAddress(candidate.chain,candidate.token_address)||
   !validTokenAddress(candidate.chain,candidate.pool_address)||
-  !candidate.candidate_id?.startsWith(candidate.chain+':'))
+  candidate.candidate_id!==candidate.chain+':'+candidate.token_address+':'+candidate.pool_address)
   return result('BLOCKED','UNSUPPORTED_OR_UNKNOWN_CANDIDATE',0,equity);
  if(!numeric(Date.parse(candidate?.first_local_observed_at_utc))||
   Date.parse(candidate.first_local_observed_at_utc)>now||
   now-Date.parse(candidate.first_local_observed_at_utc)>300000)
   return result('BLOCKED','CANDIDATE_STALE_OR_UNOBSERVED',0,equity);
- if(candidate.promotion_biased===true)
+ if(candidate.source!=='GECKOTERMINAL_NEW_POOLS'||candidate.promotion_biased===true)
   return result('BLOCKED','PROMOTED_POOL_NOT_INDEPENDENT_DISCOVERY',0,equity);
  if(candidate.verification!=='CROSS_PROVIDER_IDENTITY')
   return result('BLOCKED','PAIR_NOT_CROSS_PROVIDER_VERIFIED',0,equity);
@@ -60,7 +60,11 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
   !numeric(quote.priceUsd)||quote.priceUsd<=0||
   !numeric(quote.liquidityUsd)||quote.liquidityUsd<50000||
   !numeric(Date.parse(quote.asOf))||Date.parse(quote.asOf)>now||
-  now-Date.parse(quote.asOf)>60000)
+  now-Date.parse(quote.asOf)>60000||
+  !numeric(candidate.price_usd)||candidate.price_usd<=0||
+  quote.priceUsd/candidate.price_usd<0.85||
+  quote.priceUsd/candidate.price_usd>1.15||
+  (numeric(candidate.liquidity_usd)&&quote.liquidityUsd<candidate.liquidity_usd*0.75))
   return result('BLOCKED','INDEPENDENT_MARKET_QUOTE_MISSING',0,equity);
  if(!numeric(quote.volume5mUsd)||quote.volume5mUsd<2000||
   !numeric(quote.buys5m)||!numeric(quote.sells5m)||
