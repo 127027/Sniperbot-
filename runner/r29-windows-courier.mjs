@@ -12,6 +12,7 @@ import {syncAdaptivePublicPresence,syncAdaptivePublicReview} from './r29-adaptiv
 import {syncLocalPaperAutoHeartbeat} from './live-paper-public-status.mjs';
 import {relayGptPaperDecision} from './gpt-paper-github-relay.mjs';
 import {syncGptPaperPublicPositionContext} from './gpt-paper-position-publisher.mjs';
+import {syncGptPaperSecurityResearch} from './gpt-paper-security-research.mjs';
 
 const REPO='127027/Sniperbot-';
 const base='https://api.github.com/repos/'+REPO+'/contents/';
@@ -313,7 +314,18 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
       const latestReview=await syncAdaptivePublicReview({token});
       if(latestReview.published)console.log('[R29] Letzter Forschungsreview auf GitHub: ',
         latestReview.public.candidates.length+' Kandidaten, keine Paper-Orders');
-      const auto=await syncLocalPaperAutoHeartbeat({token});
+      // Independent, READ-ONLY contract/sellability research for GPT.
+      // No trading rights, at most two fresh EVM checks per hour.
+      try{
+        const gptSecurity=await syncGptPaperSecurityResearch({token});
+        if(gptSecurity.published)console.log(
+          '[GPT R29] Sicherheitsforschung veröffentlicht:',
+          gptSecurity.checks,'Kandidaten; niemals automatisch kaufen');
+      }catch(e){
+        console.error('[GPT R29] Public Security Research DATA_GAP:',
+          String(e?.message||e).slice(0,100));
+      }
+            const auto=await syncLocalPaperAutoHeartbeat({token});
       if(auto.published)console.log('[R29] Lokaler Live-Paper-Prozessstatus zu GitHub übertragen:',
        auto.public.last_outcome,' · Virtuelle Fills:',auto.public.confirmed_virtual_paper_fill_count);
     }catch(e) {
