@@ -1,0 +1,65 @@
+name: R30 30-day as-of diagnostic and 1v4v12v24 price-only proxy
+on:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - 'research/r30/r30_backtest.py'
+      - 'research/r30/test_r30.py'
+      - '.github/workflows/r30-diagnostic.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: sniper-r30-paper-diagnostic
+  cancel-in-progress: false
+jobs:
+  r30-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_AGENT_PAPER_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+      SNIPER_RESEARCH_READ: '0'
+      SNIPER_LIVE_TRADING: '0'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Offline source-integrity, schedule, no-wallet and risk tests
+        run: |
+          python research/r30/test_r30.py -v
+          python research/frequency-backtest/test_r26.py -v
+      - name: Collect 30 days of public Binance SPOT 1h prices
+        run: python research/r30/r30_backtest.py --output-dir r30-output
+      - name: Show the R30 interpretation in the GitHub run
+        run: cat r30-output/REPORT_DE.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve full independent 30-day journals and public source snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r30-diagnostic-30days-price-only-and-data-gaps
+          path: r30-output/
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Publish only non-sensitive public evidence summary on R29
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p research/r30/results
+          cp r30-output/summary.json research/r30/results/summary.json
+          cp r30-output/source-manifest.json research/r30/results/source-manifest.json
+          cp r30-output/REPORT_DE.md research/r30/results/REPORT_DE.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/r30/results/summary.json
+          git add -f research/r30/results/source-manifest.json
+          git add -f research/r30/results/REPORT_DE.md
+          if ! git diff --cached --quiet; then
+            git commit -m "research(r30): publish 30-day diagnostic findings, no trade orders"
+            git push origin HEAD:codex/r29-chatgpt-github-paper-cycle-20261115
+          fi
