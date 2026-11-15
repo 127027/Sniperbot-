@@ -1,10 +1,13 @@
 // R29 Windows machine: FREE GitHub REST two-way sandbox transport.
-// Only a locally isolated synthetic QA ledger is mutated, NEVER the real
-// Sniperbot paper account, wallet, private keys, PayPal, or paid OpenAI API.
+// By default only a separate sandbox is mutated. The locally opted-in
+// MAIN_PAPER_DEMO may act on the existing virtual Paper dashboard, never wallet.
 import {mkdirSync,readFileSync,writeFileSync,renameSync,existsSync} from 'node:fs';
 import path from 'node:path';
 import {initialR29Ledger,applyR29SandboxIntent,projectR29SandboxState,
  R29_BRANCH,R29_INTENT_PATH,R29_WINDOWS_STATUS_PATH} from '../research/r29/r29-paper-protocol.mjs';
+import {R29_MAIN_INTENT_PATH,R29_MAIN_STATUS_PATH,R29_MAIN_STATUS_SCHEMA,
+ processR29MainIntent,loadR29MainCycle,saveR29MainCycle,
+ publicR29MainStatus} from './r29-main-paper-demo.mjs';
 
 const REPO='127027/Sniperbot-';
 const base='https://api.github.com/repos/'+REPO+'/contents/';
@@ -18,7 +21,7 @@ function check(token){
 }
 export async function requestGithubFile(relative,{token,fetcher=fetch}={}){
  check(token);
- if(![R29_INTENT_PATH,R29_WINDOWS_STATUS_PATH].includes(relative))
+ if(![R29_INTENT_PATH,R29_WINDOWS_STATUS_PATH,R29_MAIN_INTENT_PATH,R29_MAIN_STATUS_PATH].includes(relative))
   throw Error('R29_UNEXPECTED_PATH');
  const url=base+relative+'?ref='+encodeURIComponent(R29_BRANCH)+'&v='+Date.now();
  const response=await fetcher(url,{method:'GET',redirect:'error',
@@ -57,6 +60,55 @@ export async function publishR29Status(status,{token,fetcher=fetch}={}){
  const result=await response.json();
  if(typeof result?.commit?.sha!=='string')throw Error('R29_GITHUB_RECEIPT_COMMIT_MISSING');
  return {commit_sha:result.commit.sha,ref:R29_BRANCH,path:R29_WINDOWS_STATUS_PATH};
+}
+export async function publishR29MainStatus(status,{token,fetcher=fetch}={}){
+ check(token);
+ if(status?.schema!==R29_MAIN_STATUS_SCHEMA||
+  status.mode!=='PAPER_ONLY'||status.wallet_accessed!==false||
+  status.real_trade_executed!==false)throw Error('R29_MAIN_PUBLIC_STATUS_INVALID');
+ const body=JSON.stringify(status,null,2)+'\n';
+ if(Buffer.byteLength(body)>15000)throw Error('R29_MAIN_STATUS_OVERSIZED');
+ const previous=await requestGithubFile(R29_MAIN_STATUS_PATH,{token,fetcher});
+ const payload={message:'test(r29): opt-in main Paper demo receipt only, never private balances',
+  content:Buffer.from(body).toString('base64'),branch:R29_BRANCH};
+ if(previous.sha)payload.sha=previous.sha;
+ const response=await fetcher(base+R29_MAIN_STATUS_PATH,{
+  method:'PUT',redirect:'error',
+  headers:{authorization:'Bearer '+token,accept:'application/vnd.github+json',
+   'content-type':'application/json','X-GitHub-Api-Version':'2022-11-28',
+   'user-agent':'Sniper-R29-MainPaper-Demo-OptIn/1'},
+  body:JSON.stringify(payload),signal:AbortSignal.timeout(REQ_TIMEOUT_MS)});
+ if(!response?.ok)throw Error('R29_MAIN_PUBLISH_HTTP_'+response?.status);
+ const result=await response.json();
+ if(typeof result?.commit?.sha!=='string')throw Error('R29_MAIN_RECEIPT_COMMIT_MISSING');
+ return {commit_sha:result.commit.sha};
+}
+export async function syncR29MainChannel({token,folder,fetcher=fetch,
+ healthFetcher=fetch,now=Date.now(),enabled=false}={}){
+ if(enabled!==true)throw Error('R29_MAIN_NOT_OPTED_IN');
+ check(token);
+ if(typeof folder!=='string'||!path.isAbsolute(folder))throw Error('R29_MAIN_BAD_FOLDER');
+ const filename=path.join(folder,'main-paper-demo-cycle.json');
+ let cycle=loadR29MainCycle(filename),receipt=null,error=null;
+ try{
+  const remote=(await requestGithubFile(R29_MAIN_INTENT_PATH,{token,fetcher})).data;
+  if(remote?.target==='MAIN_PAPER_DEMO'){
+   const outcome=await processR29MainIntent(cycle,remote,{now,fetcher:healthFetcher});
+   cycle=outcome.cycle;receipt=outcome.receipt;
+   if(!outcome.duplicate)saveR29MainCycle(filename,cycle);
+  }
+ }catch(e){error=String(e?.message||e).slice(0,120)}
+ const status=publicR29MainStatus(cycle,receipt,{now,error});
+ const remote=(await requestGithubFile(R29_MAIN_STATUS_PATH,{token,fetcher})).data;
+ const checked=Date.parse(remote?.checked_at_utc);
+ const same=remote?.schema===R29_MAIN_STATUS_SCHEMA&&
+  remote.last_intent_id===status.last_intent_id&&
+  remote.last_result===status.last_result&&remote.error===status.error&&
+  remote.completed===status.completed;
+ if(same&&Number.isFinite(checked)&&now>=checked&&now-checked<900000)
+  return {status,published:null,skipped_unchanged:true};
+ const published=await publishR29MainStatus(status,{token,fetcher});
+ return {status,published,skipped_unchanged:false};
 }
 export function processR29WindowsMailbox(ledger,payload,{now=Date.now()}={}){
  if(payload?.target!=='WINDOWS_SANDBOX')
@@ -170,8 +222,12 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
   if(stopped)return;
   try{
    const r=await syncR29WindowsSandbox({token,folder});
-   console.log('[R29] GitHub-Windows-Sandbox-Kanal OK. Original-Paperkonto unveraendert. Bot erreichbar:',
-    r.status.laptop_bot_http_healthy,'Testauftrag:',r.status.last_intent_result||'kein neuer');
+   console.log('[R29] GitHub-Sandbox-Kanal OK:',r.status.last_intent_result||'kein neuer');
+   if(process.env.SNIPER_R29_MAIN_PAPER_DEMO==='1'){
+    const main=await syncR29MainChannel({token,folder,enabled:true});
+    console.log('[R29] Normales PAPER-Demo:',main.status.last_action||'bereit',
+     main.status.last_result||'noch kein Auftrag',main.status.error||'');
+   }
   }catch(e){
    console.error('[R29] GitHub-PAPER-Sandbox-Verbindung fehlgeschlagen:',
     String(e?.message||e).slice(0,110));
