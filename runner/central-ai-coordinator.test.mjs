@@ -15,6 +15,8 @@ const POOL=encodeBase58(Buffer.alloc(32,32));
 const ID='solana:'+POOL;
 const deviceId='device_'+'1'.repeat(32);
 const now=Date.now();
+const regime={schema:'r27_market_regime.v1',status:'NEUTRAL_OR_BETTER',buys_allowed:true,
+ reason:'TEST_ONLY',observed_at_utc:new Date().toISOString(),evidence:{}};
 const market=()=>({results:[{chain:'solana',tokenAddress:MINT,poolAddress:POOL,
  symbol:'TEST',name:'Paper-only meme',priceUsd:.1,liquidityUsd:250000,
  volume5mUsd:10000,buys5m:100,sells5m:30,score:90,asOf:new Date().toISOString(),
@@ -34,7 +36,7 @@ function quote(price=.1,liq=250000,volume=10000){return {
 test('model sees only bounded token candidates, no private funds or wallet secrets',()=>{
  const privateState={...ledger(),walletPassword:'TOPSECRET',
   positions:[],candidates:[]};
- const snapshot=snapshotForAi(privateState,market().results,news(),{now:Date.now()});
+ const snapshot=snapshotForAi(privateState,market().results,news(),{now:Date.now(),marketRegime:regime});
  assert.equal(snapshot.paper.cash_test_usdc,5000);
  assert.equal(snapshot.real_wallet.connected,false);
  assert.equal(snapshot.candidates.length,1);
@@ -44,7 +46,7 @@ test('real wallet is read-only aggregated metadata and never exposes owner addre
  const raw={verified:true,sol_display:'0.143',usdc_display:'210.20',
   observed_positive_token_accounts:3,sol_finalized_slot:310101, tokens_finalized_slot:310102,
   wallet_address:'PRIVATE_OWNER_ADDRESS_SHOULD_NOT_BE_EMITTED'};
- const input=snapshotForAi(ledger(),market().results,news(),{now:Date.now(),realWallet:raw});
+ const input=snapshotForAi(ledger(),market().results,news(),{now:Date.now(),realWallet:raw,marketRegime:regime});
  assert.equal(input.real_wallet.connected,true);
  assert.equal(input.real_wallet.observed_sol,'0.143');
  assert.equal(input.real_wallet.real_pnl,null);
@@ -52,7 +54,7 @@ test('real wallet is read-only aggregated metadata and never exposes owner addre
  assert(!JSON.stringify(input).includes('PRIVATE_OWNER_ADDRESS'));
 });
 test('model output is fail-closed and never freeforms token targets',()=>{
- const input=snapshotForAi(ledger(),market().results,news(),{now:Date.now()});
+ const input=snapshotForAi(ledger(),market().results,news(),{now:Date.now(),marketRegime:regime});
  const p=planRecommendations(input,advice(),{webSearchUsed:true});
  assert.equal(p.orders.length,1);
  assert.equal(p.orders[0].size_test_usdc,'150.00');
@@ -65,12 +67,26 @@ test('model output is fail-closed and never freeforms token targets',()=>{
  const dup=advice();dup.choices.push({...dup.choices[0]});
  assert.throws(()=>planRecommendations(input,dup,{webSearchUsed:true}),/BAD_CHOICE_FIELDS/);
 });
+test('R27 unknown or risk-off market blocks BUY but not a SELL recommendation',()=>{
+ const input=snapshotForAi(ledger(),market().results,news(),{now:Date.now()});
+ assert.equal(input.market_regime.status,'UNKNOWN');
+ assert.equal(planRecommendations(input,advice(),{webSearchUsed:true}).orders.length,0);
+ const bearish={...regime,status:'RISK_OFF',buys_allowed:false};
+ const candidate=snapshotForAi(ledger(),market().results,news(),{marketRegime:bearish});
+ assert.equal(planRecommendations(candidate,advice(),{webSearchUsed:true}).orders.length,0);
+ const safe={...candidate,paper:{...candidate.paper,positions:[{
+  candidate_id:ID,chain:'solana',token_address:MINT,pool_address:POOL,
+  is_demo:false,qty:10,last_indicative_price_usd:1}] }};
+ const orders=planRecommendations(safe,advice('SELL',0),{webSearchUsed:true}).orders;
+ assert.equal(orders.length,1);
+ assert.equal(orders[0].action,'SELL');
+});
 test('ephemeral signed coordinator BUY and SELL use only indicative paper ledger, repeat is blocked',()=>{
  let state=ledger();
  const keys=generateKeyPairSync('ed25519');
  const trusted=[{issuer:'sniper-central-ai',key_id:'ephemeral-central-session',
   public_key_pem:keys.publicKey.export({format:'pem',type:'spki'}),scope:'agent_execution'}];
- const input=snapshotForAi(state,market().results,news(),{now:Date.now()});
+ const input=snapshotForAi(state,market().results,news(),{now:Date.now(),marketRegime:regime});
  const buy=signLocalPaperSignal(planRecommendations(input,advice(),{webSearchUsed:true}).orders[0],
   {deviceId,keyPair:keys});
  assert.equal(verifyAgentSignal(buy,trusted,{deviceId}).amount,150);
@@ -86,7 +102,7 @@ test('ephemeral signed coordinator BUY and SELL use only indicative paper ledger
  assert.equal(repeated.receipt.duplicate,true);
  assert.equal(repeated.next.cashUsdc,result.next.cashUsdc);
  state=result.next;
- const after=snapshotForAi(state,market().results,news(),{now:Date.now()});
+ const after=snapshotForAi(state,market().results,news(),{now:Date.now(),marketRegime:regime});
  const order=planRecommendations(after,advice('SELL',0),{webSearchUsed:true}).orders[0];
  assert.equal(order.action,'SELL');
  const signed=signLocalPaperSignal(order,{deviceId,keyPair:keys});
@@ -102,7 +118,7 @@ test('external and unverified agents cannot activate indicative paper fills',()=
  const keys=generateKeyPairSync('ed25519');
  const trust=[{issuer:'sniper-central-ai',key_id:'ephemeral-central-session',scope:'agent_execution',
   public_key_pem:keys.publicKey.export({format:'pem',type:'spki'})}];
- const input=snapshotForAi(ledger(),market().results,news(),{now:Date.now()});
+ const input=snapshotForAi(ledger(),market().results,news(),{now:Date.now(),marketRegime:regime});
  const signed=signLocalPaperSignal(planRecommendations(input,advice(),{webSearchUsed:true}).orders[0],
   {deviceId,keyPair:keys});
  const external=applyAgentSignal(ledger(),signed,trust,{deviceId,source:'SIGNED_LOCAL_ADAPTER',
@@ -137,6 +153,7 @@ test('single AI run shares the local bot state and logs actual simulated receipt
  let state=ledger();
  const service=startCentralAiCoordinator({deviceId,dataDir:dir,apiKey:'sk-fake',
   getState:()=>state,scan:async()=>market(),collectNews:async()=>news(),
+  collectMarketRegime:async()=>regime,
   submit:async(order,{source,localTrust,indicativePaper})=>{
    const result=applyAgentSignal(state,order,localTrust,{deviceId,source,
     indicativePaper,quote:quote()});
