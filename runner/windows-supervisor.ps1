@@ -6,18 +6,22 @@ param(
   [switch]$NoBrowser,
   [switch]$WithResearchCollector,
   [switch]$WithCentralAI,
-  [switch]$ResetAiKey
+  [switch]$ResetAiKey,
+  [switch]$WithR29,
+  [switch]$ResetR29Token
 )
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $paperUrl = 'http://127.0.0.1:3030'
 $tokenFile = Join-Path $env:LOCALAPPDATA 'MemeSniperPaper\secrets\research-github-token.dpapi'
 $aiKeyFile = Join-Path $env:LOCALAPPDATA 'MemeSniperPaper\secrets\openai-api-key.dpapi'
+$r29TokenFile = Join-Path $env:LOCALAPPDATA 'MemeSniperPaper\secrets\r29-github-token.dpapi'
 $job = [IntPtr]::Zero
 $mutex = $null
 $ownsMutex = $false
 $bot = $null
 $market = $null
+$r29Courier = $null
 
 # On Windows, closing the one terminal releases the job handle and kills BOTH children.
 # Explicit Q shutdown sends a private stdin message first, allowing portfolio save.
@@ -169,6 +173,49 @@ function Read-AiKey {
     }finally{[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr);$secret.Dispose()}
   }catch{throw 'API-Key konnte nicht entschlüsselt werden. Mit -ResetAiKey neu einrichten.'}
 }
+function Initialize-R29Token {
+  if($ResetR29Token -and (Test-Path -LiteralPath $r29TokenFile)){
+    Remove-Item -LiteralPath $r29TokenFile -Force
+    Write-Host '[R29] Alter GitHub-Zugang entfernt.' -ForegroundColor Yellow
+  }
+  if(Test-Path -LiteralPath $r29TokenFile){return $true}
+  Write-Host ''
+  Write-Host '[R29] Kostenfreier ChatGPT-GitHub-Papierkanal (KEINE OpenAI API).' -ForegroundColor Cyan
+  Write-Host 'Bitte einmaligen GitHub Fine-grained PAT mit Contents: Read and write'
+  Write-Host 'ausschliesslich fuer Repo 127027/Sniperbot- lokal eingeben.'
+  Write-Host 'Die Eingabe wird mit Windows-DPAPI gespeichert, niemals in GitHub hochgeladen.'
+  Write-Host 'Wenn du den Token noch nicht hast, ENTER druecken: Bot startet ohne R29-Kurier.'
+  $secure=Read-Host 'R29 GitHub-Token (verdeckt, optional)' -AsSecureString
+  if($null -eq $secure -or $secure.Length -lt 20){
+    if($null -ne $secure){$secure.Dispose()}
+    Write-Host '[R29] Ohne GitHub-Token kann der Bot noch keinen Status zuruecksenden.' -ForegroundColor Yellow
+    return $false
+  }
+  $encrypted=ConvertFrom-SecureString -SecureString $secure
+  $secure.Dispose()
+  [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($r29TokenFile))|Out-Null
+  [IO.File]::WriteAllText($r29TokenFile+'.pending',$encrypted,[Text.Encoding]::UTF8)
+  Move-Item -LiteralPath ($r29TokenFile+'.pending') -Destination $r29TokenFile -Force
+  $encrypted=$null
+  Write-Host '[R29] GitHub-Token lokal DPAPI-gesichert.' -ForegroundColor Green
+  return $true
+}
+function Read-R29Token {
+  if(!(Test-Path -LiteralPath $r29TokenFile)){throw 'R29 GitHub Token nicht eingerichtet.'}
+  try{
+    $encrypted=[IO.File]::ReadAllText($r29TokenFile,[Text.Encoding]::UTF8).Trim()
+    $secret=ConvertTo-SecureString -String $encrypted
+    $ptr=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret)
+    try {
+      $value=[Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
+      if(!$value.StartsWith('github_pat_') -and !$value.StartsWith('ghp_')){
+        throw 'Nur GitHub Fine-grained/Classic PAT erlaubt.'
+      }
+      if($value.Length -lt 20){throw 'Ungueltige GitHub Token Laenge'}
+      return $value
+    }finally{[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr);$secret.Dispose()}
+  }catch {throw 'R29 GitHub-Token ungueltig oder nicht entschluesselbar. Starte erneut mit -ResetR29Token.'}
+}
 function Assert-PortAvailable {
   $tcp = New-Object Net.Sockets.TcpClient
   try {
@@ -196,6 +243,7 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
   $info.EnvironmentVariables.Remove('SNIPER_MARKET_PUBLISH')
   $info.EnvironmentVariables.Remove('SNIPER_OPENAI_API_KEY')
   $info.EnvironmentVariables.Remove('SNIPER_CENTRAL_AI_ENABLED')
+  $info.EnvironmentVariables.Remove('SNIPER_R29_GITHUB_TOKEN')
   if($role -eq 'BOT') {
     if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){
       $aiSecret=Read-AiKey
@@ -219,6 +267,11 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
       $info.EnvironmentVariables.Remove('SNIPER_MARKET_GITHUB_TOKEN')
       $info.EnvironmentVariables['SNIPER_MARKET_PUBLISH'] = '0'
     }
+  }
+  if($role -eq 'R29') {
+    $r29Secret=Read-R29Token
+    $info.EnvironmentVariables['SNIPER_R29_GITHUB_TOKEN']=$r29Secret
+    $r29Secret=$null
   }
   $proc = New-Object Diagnostics.Process
   $proc.StartInfo = $info
@@ -348,11 +401,17 @@ try {
   elseif($ResetToken){throw 'ResetToken nur im expliziten Forschungs-Collector-Modus verwenden.'}
   if($WithCentralAI){[void](Initialize-AiKey)}
   elseif($ResetAiKey){throw 'ResetAiKey nur im zentralen KI-Modus verwenden.'}
+  if($WithR29){[void](Initialize-R29Token)}
+  elseif($ResetR29Token){throw 'ResetR29Token nur im R29-GitHub-Modus verwenden.'}
   $job=[SniperWindowsJob]::OpenKillOnClose()
   $bot=Start-Child 'BOT' 'runner/server.mjs' $node $job
-  if($WithResearchCollector -or ($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile))){
+  if($WithResearchCollector -or $WithR29 -or ($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile))){
     $market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job
     Write-Host '[R27] Lokales, append-only Quellenarchiv aktiv (nur öffentliche Marktdaten/Nachrichten).' -ForegroundColor Green
+  }
+  if($WithR29 -and (Test-Path -LiteralPath $r29TokenFile)) {
+    $r29Courier=Start-Child 'R29' 'runner/r29-windows-courier.mjs' $node $job
+    Write-Host '[R29] GitHub-Paper-Sandbox aktiv. Keine OpenAI-API-Kosten.' -ForegroundColor Green
   }
   # Avoid opening an old/stale bot URL until the new listener answered locally.
   if(!$NoBrowser){
@@ -368,11 +427,12 @@ try {
   Write-Host ''
   Write-Host '[OK] Lokaler Bot sichtbar gestartet; keine Anmeldung an GitHub erforderlich.' -ForegroundColor Green
   if($WithResearchCollector){Write-Host '[OPTIONAL] Separater Markt-Collector explizit gestartet.'}
+  if($WithR29){Write-Host '[R29] GitHub-Pipeline: '+$(if($null -ne $r29Courier){'AKTIV (nur isoliertes Papier)'}else{'OHNE GITHUB TOKEN AUS'}))}
   if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){
     Write-Host '[AI] EIN stündlicher lokaler Forschungsprozess aktiviert, nur PAPER.' -ForegroundColor Green
   } else {Write-Host '[AI] Zentraler KI-Prozess AUS (fehlender API-Key oder nicht gewählt).'}
   Write-Host '[INFO] Zum Beenden Q druecken oder dieses Fenster schliessen.'
-  $restarts=@{BOT=0;MARKET=0}
+  $restarts=@{BOT=0;MARKET=0;R29=0}
   while($true){
     if($bot.HasExited){
       $restarts.BOT++
@@ -389,6 +449,13 @@ try {
       Start-Sleep -Seconds ([Math]::Pow(2,$restarts.MARKET))
       $market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job
     }
+    if($null -ne $r29Courier -and $r29Courier.HasExited){
+      $restarts.R29++
+      if($restarts.R29 -gt 3){throw 'R29 Kurier 3x unerwartet beendet. Alles wird gestoppt.'}
+      Write-Host ('[WARNUNG] R29 GitHub Kurier Neustart '+$restarts.R29+'/3') -ForegroundColor Yellow
+      Start-Sleep -Seconds ([Math]::Pow(2,$restarts.R29))
+      $r29Courier=Start-Child 'R29' 'runner/r29-windows-courier.mjs' $node $job
+    }
     try {
       if([Console]::KeyAvailable){
         $key=[Console]::ReadKey($true)
@@ -403,6 +470,7 @@ catch {
   $global:LASTEXITCODE=1
 }
 finally {
+  Stop-Child $r29Courier 'R29'
   Stop-Child $market 'MARKET'
   Stop-Child $bot 'BOT'
   if($job -ne [IntPtr]::Zero){[SniperWindowsJob]::Close($job)}
