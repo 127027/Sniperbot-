@@ -5,6 +5,7 @@ import {generateKeyPairSync,randomBytes,sign} from 'node:crypto';
 import {mkdirSync,renameSync,writeFileSync,readFileSync,existsSync} from 'node:fs';
 import path from 'node:path';
 import {AGENT_SIGNAL_SCHEMA,unsignedAgentSignal} from './paper-agent-pipeline.mjs';
+import {mergeR27Candidates} from './r27-early-bridge.mjs';
 import {validTokenAddress} from './market.mjs';
 const SCHEMA='sniper_central_ai_status.v1';
 const MAX_CHOICES=8;
@@ -16,7 +17,7 @@ const canonicalId=c=>c.chain+':'+c.poolAddress;
 const bounded=(n,min,max)=>Number.isFinite(n)&&n>=min&&n<=max;
 const asof=(t,now)=>Number.isFinite(Date.parse(t))&&Date.parse(t)<=now&&now-Date.parse(t)<=MAX_AGE_MS;
 const same=(a,b,chain)=>chain==='solana'?a===b:a?.toLowerCase()===b?.toLowerCase();
-export function snapshotForAi(state,candidates,news,{now=Date.now(),realWallet=null,marketRegime=null}={}){
+export function snapshotForAi(state,candidates,news,{now=Date.now(),realWallet=null,marketRegime=null,earlyContext=null}={}){
  const positions=(state.positions||[]).slice(0,20).map(p=>({
   candidate_id:canonicalId(p),chain:p.chain,token_address:p.tokenAddress,pool_address:p.poolAddress,
   symbol:p.symbol,entry_price_usd:p.entryPriceUsd,last_indicative_price_usd:p.priceUsd,
@@ -41,6 +42,14 @@ export function snapshotForAi(state,candidates,news,{now=Date.now(),realWallet=n
    portfolio_budget_test_usdc:state.portfolioBudgetUsdc,
    min_order_test_usdc:state.minTrade,max_order_test_usdc:state.maxTrade,
    closed_pnl_test_usdc:state.closedPnl,positions},
+  early_discovery:earlyContext?.status==='FRESH_PUBLIC_LOCAL_SNAPSHOT'?{
+   status:earlyContext.status,snapshot_at_utc:earlyContext.snapshot_at_utc,
+   alerts:(earlyContext.alerts||[]).slice(0,15),
+   narratives:(earlyContext.narratives||[]).slice(0,15),
+   coverage:(earlyContext.coverage||[]).slice(0,8),
+   sellability_verified:false,organic_social_verified:false}:
+   {status:'NO_FRESH_LOCAL_EARLY_SIGNALS',alerts:[],narratives:[],
+    sellability_verified:false,organic_social_verified:false},
   market_regime:marketRegime?.schema==='r27_market_regime.v1'?{
    status:marketRegime.status,buys_allowed:marketRegime.buys_allowed===true,
    reason:marketRegime.reason,observed_at_utc:marketRegime.observed_at_utc,
@@ -166,7 +175,8 @@ export async function requestCentralAiAdvice(input,{apiKey,model='gpt-4.1-mini',
  }finally{clearTimeout(timeout)}
 }
 export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,submit,
- scan,collectNews,collectMarketRegime=async()=>({status:'UNKNOWN',buys_allowed:false}),
+ scan,collectNews,collectEarlyContext=async()=>({status:'UNAVAILABLE',candidates:[]}),
+ collectMarketRegime=async()=>({status:'UNKNOWN',buys_allowed:false}),
  collectRealWallet=async()=>null,fetcher=fetch,initialDelayMs=30000,intervalMs=INTERVAL_MS}){
  if(!/^device_[a-f0-9]{32}$/.test(deviceId||'')||
   typeof getState!=='function'||typeof submit!=='function'||
@@ -195,10 +205,12 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
   status.last_error=null;status.last_outcome='RUNNING';status.receipts=[];status.recommendations=[];
   persist();
   try{
-   const [market,news,realWallet,marketRegime]=await Promise.all([scan(),collectNews(),
+   const [market,news,realWallet,marketRegime,earlyContext]=await Promise.all([scan(),collectNews(),
     Promise.resolve().then(()=>collectRealWallet()).catch(()=>({verified:false,reason:'READ_ONLY_RPC_UNAVAILABLE'})),
-    Promise.resolve().then(()=>collectMarketRegime()).catch(()=>({status:'UNKNOWN',buys_allowed:false,reason:'R27_REGIME_UNAVAILABLE'}))]);
-   const input=snapshotForAi(getState(),market.results,news,{now:Date.now(),realWallet,marketRegime});
+    Promise.resolve().then(()=>collectMarketRegime()).catch(()=>({status:'UNKNOWN',buys_allowed:false,reason:'R27_REGIME_UNAVAILABLE'})),
+    Promise.resolve().then(()=>collectEarlyContext()).catch(()=>({status:'UNAVAILABLE',candidates:[]}))]);
+   const candidates=mergeR27Candidates(market.results,earlyContext);
+   const input=snapshotForAi(getState(),candidates,news,{now:Date.now(),realWallet,marketRegime,earlyContext});
    status.last_market_regime=input.market_regime;
    status.real_wallet_reported=realWallet?.verified===true;
    if(input.candidates.length===0&&input.paper.positions.length===0){
