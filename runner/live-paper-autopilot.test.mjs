@@ -28,7 +28,8 @@ const quote=(price=0.02,at=now)=>({chain:'base',tokenAddress:token,
 const cand=(at=now)=>({candidate_id:'base:'+token+':'+pool,
  chain:'base',token_address:token,pool_address:pool,
  first_local_observed_at_utc:new Date(at).toISOString(),
- verification:'CROSS_PROVIDER_IDENTITY',promotion_biased:false});
+ verification:'CROSS_PROVIDER_IDENTITY',promotion_biased:false,
+ source:'GECKOTERMINAL_NEW_POOLS',price_usd:0.02,liquidity_usd:120000});
 function ledger(){
  return {...freshState(),entriesEnabled:true,automaticPaperBuys:true,
   cashUsdc:5000,minTrade:50,maxTrade:5000,portfolioBudgetUsdc:5000};
