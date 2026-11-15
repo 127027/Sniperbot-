@@ -76,11 +76,11 @@ test('signed real-market paper BUY -> position -> independent repricing SELL -> 
  const duplicate=applyAgentSignal(a.next,buy,trust,{deviceId,now,quote:quote(),
   source:'LOCAL_PAPER_AUTOPILOT',paperAutopilotCandidate:cand(),securityEvidence:security()});
  assert.equal(duplicate.next,a.next);
- const exitQuote=quote(0.026,now+30000);
+ const exitQuote=quote(0.026,now);
  assert.equal(shouldSellPaperAutopilot(a.next.positions[0],exitQuote).sell,true);
  const sell=signLocalPaperAutopilot({action:'SELL',chain:'base',token,pool,
-  deviceId,keyPair:pair,now:now+30000});
- const b=applyAgentSignal(a.next,sell,trust,{deviceId,now:now+30000,
+  deviceId,keyPair:pair,now});
+ const b=applyAgentSignal(a.next,sell,trust,{deviceId,now,
   quote:exitQuote,source:'LOCAL_PAPER_AUTOPILOT'});
  assert.equal(b.receipt.status,'PAPER_FILLED');
  assert.equal(b.next.positions.length,0);
@@ -91,7 +91,7 @@ test('signed real-market paper BUY -> position -> independent repricing SELL -> 
  assert.equal(b.receipt.sellability_verified,false);
  assert.equal(b.receipt.live_trading_enabled,false);
  assert.equal(b.receipt.wallet_debited,false);
- const attempted=applyAgentSignal(b.next,sell,trust,{deviceId,now:now+30000,quote:exitQuote,
+ const attempted=applyAgentSignal(b.next,sell,trust,{deviceId,now,quote:exitQuote,
    source:'LOCAL_PAPER_AUTOPILOT'});
  assert.equal(attempted.receipt.duplicate,true);
 });
