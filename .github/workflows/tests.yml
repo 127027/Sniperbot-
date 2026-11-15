@@ -37,8 +37,10 @@ jobs:
         run: node runner/r28-local-http-e2e.mjs
       - name: R29 ChatGPT -> GitHub -> isolated signed paper BUY/SELL protocol tests
         run: node --test research/r29/r29-paper-protocol.test.mjs runner/r29-windows-courier.test.mjs
+      - name: R29 explicitly opted-in existing Paper dashboard BUY/SELL, no wallet and replay-proof
+        run: node --test runner/r29-main-paper-demo.test.mjs
       - name: R29 isolated GitHub courier sandbox syntax
-        run: node --check research/r29/r29-paper-protocol.mjs && node --check research/r29/r29-ci-process-intent.mjs && node --check runner/r29-windows-courier.mjs
+        run: node --check research/r29/r29-paper-protocol.mjs && node --check research/r29/r29-ci-process-intent.mjs && node --check runner/r29-windows-courier.mjs && node --check runner/r29-main-paper-demo.mjs
       - name: R28 local connection CLI and cycle audit syntax
         run: node --check runner/r28-connection-diagnostic.mjs && node --check runner/r28-cycle-audit.mjs
       - name: V0.21 coordinator syntax and dashboard smoke
