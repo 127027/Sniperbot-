@@ -29,6 +29,10 @@ jobs:
         run: node --test runner/paper-agent-pipeline.test.mjs runner/github-signed-agent-feed.test.mjs runner/isolated-paper-pipeline-selftest.test.mjs runner/market-pool-pinning.test.mjs runner/paper-lifecycle-policy.test.mjs runner/portfolio-budget.test.mjs runner/signed-research-quorum.test.mjs runner/historical-replay-readiness.test.mjs runner/breakout-forecast.test.mjs runner/pipeline-health.test.mjs runner/central-decisions.test.mjs runner/research.test.mjs runner/live-mode-policy.test.mjs runner/gateway.test.mjs runner/integration.test.mjs
       - name: V0.21 single AI coordinator decision, signed paper BUY/SELL, no live money (offline fixtures)
         run: node --test runner/central-ai-coordinator.test.mjs
+      - name: R28 local communication diagnostic and durable cycle audit (offline mock; no paid AI)
+        run: node --test runner/r28-connection-diagnostic.test.mjs
+      - name: R28 local connection CLI and cycle audit syntax
+        run: node --check runner/r28-connection-diagnostic.mjs && node --check runner/r28-cycle-audit.mjs
       - name: V0.21 coordinator syntax and dashboard smoke
         run: node --check runner/central-ai-coordinator.mjs
       - name: V0.21 Windows supervisor PowerShell parse check
