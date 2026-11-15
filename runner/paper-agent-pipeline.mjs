@@ -7,6 +7,7 @@ import {canonicalInstruction} from './device-execution-inbox.mjs';
 import {validateChainAsset} from './chain-trade-intent-v2.mjs';
 import {action} from './core.mjs';
 import {isWithinPortfolioBudget} from './portfolio-budget.mjs';
+import {r29LivePaperEntryGate} from './live-paper-risk.mjs';
 
 export const AGENT_SIGNAL_SCHEMA='sniper_agent_trade_signal.v1';
 export const AGENT_SIGNAL_DOMAIN='MemeSniper/agent_trade_signal.v1\n';
@@ -67,8 +68,8 @@ function validQuote(q,order,now){
   now-Date.parse(q.asOf)<=90000&&
   typeof q.symbol==='string'&&q.symbol.length<=32;
 }
-export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER',syntheticTest=false,indicativePaper=false}={}){
- if(!['SIGNED_LOCAL_ADAPTER','GITHUB_SIGNED_COURIER','CENTRAL_AI_LOCAL'].includes(source))throw Error('INVALID_AGENT_TRANSPORT_SOURCE');
+export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER',syntheticTest=false,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null}={}){
+ if(!['SIGNED_LOCAL_ADAPTER','GITHUB_SIGNED_COURIER','CENTRAL_AI_LOCAL','LOCAL_PAPER_AUTOPILOT'].includes(source))throw Error('INVALID_AGENT_TRANSPORT_SOURCE');
  const verified=verifyAgentSignal(order,keys,{deviceId,now});
  const receipts=state.agentOrderReceipts||[];
  if(!Array.isArray(receipts)||receipts.length>250)throw Error('PAPER_AGENT_RECEIPTS_INVALID');
@@ -93,9 +94,21 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
  let next=state,status='BLOCKED',reason='MARKET_QUOTE_UNAVAILABLE';
  const amount=verified.amount,actionType=order.action;
  let positionId=null,pnl=null;
+ const localAuto=source==='LOCAL_PAPER_AUTOPILOT'&&syntheticTest!==true;
+ const autoGate=localAuto&&actionType==='BUY'?
+  r29LivePaperEntryGate({state,candidate:paperAutopilotCandidate,
+   quote,security:securityEvidence,now}):null;
+ const matchingAutoPosition=localAuto&&actionType==='SELL'&&
+  state.positions.some(p=>p.paperAutopilot===true&&p.chain===order.chain&&
+  eqAddress(order.chain,p.tokenAddress,order.token_address)&&
+  eqAddress(order.chain,p.poolAddress,order.pool_address));
  if(!state.entriesEnabled&&actionType==='BUY')reason='PAPER_BOT_OFF';
  else if(!validQuote(quote,order,now))reason='MARKET_QUOTE_INVALID_OR_STALE';
- else if(syntheticTest!==true&&!(source==='CENTRAL_AI_LOCAL'&&indicativePaper===true&&
+ else if(localAuto&&actionType==='BUY'&&autoGate?.allowed!==true)
+  reason=autoGate?.reason||'LOCAL_PAPER_AUTOPILOT_RISK_BLOCKED';
+ else if(localAuto&&actionType==='SELL'&&!matchingAutoPosition)
+  reason='LOCAL_AUTOPILOT_CAN_SELL_OWN_POSITION_ONLY';
+ else if(syntheticTest!==true&&!localAuto&&!(source==='CENTRAL_AI_LOCAL'&&indicativePaper===true&&
   state.centralPaperFollow===true&&quote?.source==='DEX Screener'&&
   quote.liquidityUsd>=25000&&
   (actionType==='SELL'||(amount<=1000&&amount<=quote.liquidityUsd*.01&&
@@ -117,9 +130,15 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
     liquidityUsd:quote.liquidityUsd
    };
    const candidateState={...state,candidates:[candidate,...state.candidates.filter(c=>c.id!==id)].slice(0,90)};
-   const attempted=action(candidateState,{type:'BUY',id,amount});
+   const orderState=localAuto?{...candidateState,defaultExitMode:'AUTO'}:candidateState;
+   const attempted=action(orderState,{type:'BUY',id,amount});
    if(attempted.positions.length>state.positions.length){
-    next=attempted;status='PAPER_FILLED';reason='SIGNED_AGENT_BUY_PAPER_ONLY';
+    next=localAuto?{...attempted,defaultExitMode:state.defaultExitMode,
+      positions:attempted.positions.map(p=>state.positions.some(x=>x.id===p.id)?p:
+        {...p,paperAutopilot:true,entryLiquidityUsd:quote.liquidityUsd,
+         safety:'GOPLUS_AND_HONEYPOT_PAPER_RESEARCH_ONLY',exitMode:'AUTO'} )}:attempted;
+    status='PAPER_FILLED';reason=localAuto?'LOCAL_AUTOPILOT_BUY_PAPER_ONLY':
+     'SIGNED_AGENT_BUY_PAPER_ONLY';
     positionId=attempted.positions.find(p=>p.chain===order.chain&&
      eqAddress(order.chain,p.tokenAddress,order.token_address))?.id||null;
    }else reason='POSITION_ALREADY_OPEN_OR_LEDGER_BLOCKED';
@@ -154,10 +173,13 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   payload_sha256:digest,duplicate:false,
   synthetic_test:syntheticTest===true,
   execution_evidence:syntheticTest===true?'SYNTHETIC_FIXTURE':
-   (status==='PAPER_FILLED'&&source==='CENTRAL_AI_LOCAL'&&indicativePaper===true?
+   (status==='PAPER_FILLED'&&localAuto?
+    'PUBLIC_SECURITY_VERIFIED_INDICATIVE_DEX_QUOTE_NOT_EXECUTABLE':
+    status==='PAPER_FILLED'&&source==='CENTRAL_AI_LOCAL'&&indicativePaper===true?
     'INDICATIVE_DEX_QUOTE_NOT_EXECUTABLE':'UNVERIFIED'),
-  indicative_only:syntheticTest!==true&&source==='CENTRAL_AI_LOCAL',
-  sellability_verified:false,slippage_verified:false,
+  indicative_only:syntheticTest!==true&&(source==='CENTRAL_AI_LOCAL'||localAuto),
+  sellability_verified:localAuto&&actionType==='BUY'&&securityEvidence?.approved===true,
+  slippage_verified:false,
   real_trade_executed:false,wallet_debited:false,
   externally_funded:false,live_trading_enabled:false
  };
