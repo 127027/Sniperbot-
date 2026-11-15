@@ -8,6 +8,7 @@
 > `node runner/r28-connection-diagnostic.mjs`. Das komplette R29-Benutzerhandbuch:
 > [ERSTER_START.txt](ERSTER_START.txt) und
 > [R29 Trading-Dashboard](research/r29/R29_TRADING_DASHBOARD_BEREINIGUNG.md).
+> **Aktiver Verbindungsnachweis:** `research/r29/channel/regular-paper-presence.json` enthält nur einen read-only Windows-Heartbeat, niemals ein zweites Testkonto oder Walletdaten.
 > **Achtung:** Eine GitHub-Kurieranbindung beweist noch keine autonome
 > Memecoin-Erkennung oder LIVE-Kauf-/Verkaufsfähigkeit.
 
