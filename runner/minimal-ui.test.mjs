@@ -81,7 +81,9 @@ test('R29 two-tab user UI shows only verified regular Paper and read-only real w
  assert.match(server,/\/api\/trading\/live-mode/);
  assert.match(server,/\/api\/dashboard\/paper/);
  assert.match(server,/'SET_PAPER_BALANCE'/);
- const scripts=[...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/g)];
+ const start=html.indexOf('<script>'),end=html.indexOf('</script>',start);
+ assert(start>=0&&end>start,'dashboard contains exactly one inline script');
+ const scripts=[[null,html.slice(start+8,end)]];
  assert.equal(scripts.length,1);
  assert.doesNotThrow(()=>new Script(scripts[0][1],{filename:'r29-user-dashboard.js'}));
 });
