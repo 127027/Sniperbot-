@@ -3,6 +3,7 @@
 import {collectSnapshot,writeSnapshot} from './research-market-collector.mjs';
 import {appendR27Capture} from './r27-prospective-capture.mjs';
 import {adaptiveResearchTick} from './dynamic-research-scheduler.mjs';
+import {updateResearchOutcomes} from './dynamic-research-outcomes.mjs';
 import {detectR27ExitRisk} from './r27-exit-review.mjs';
 import {runFollowups} from './memecoin-followups.mjs';
 import {detectEarlyMarketAcceleration} from './research-hype-triggers.mjs';
@@ -200,6 +201,10 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
   try{adaptive=await adaptiveResearchTick(snapshot,{
     folder:adaptiveResearchFolder,now});}
   catch(e){adaptiveError=String(e?.message||'ADAPTIVE_RESEARCH_ERROR').slice(0,100)}
+  let outcomeStudy=null,outcomeStudyError=null;
+  try{outcomeStudy=await updateResearchOutcomes(snapshot,{
+    folder:adaptiveResearchFolder,review:adaptive?.created?adaptive.review:null});}
+  catch(e){outcomeStudyError=String(e?.message||'ADAPTIVE_OUTCOME_ERROR').slice(0,100)}
   const clean=await pruneHistory();
   let followups=null,followupError=null;
   if(success){
@@ -239,7 +244,10 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
       experiment_phase:adaptive?.plan?.experiment_phase||null,
       reviewed_candidate_count:adaptive?.review?.candidates?.length??0,
       paper_orders_executed:0,live_orders_executed:0,
-      local_archive_only:true,error:adaptiveError},
+      local_archive_only:true,error:adaptiveError,
+      forward_outcome_active:outcomeStudy?.active??null,
+      forward_outcome_archived:outcomeStudy?.archived_total??null,
+      forward_outcome_error:outcomeStudyError},
     publishing_enabled:publishingEnabled(),published_commit:published?.commit_sha||null,
     publish_error:publishError
   });
