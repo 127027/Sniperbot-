@@ -94,6 +94,7 @@ export async function syncR29WindowsSandbox({token,folder,fetcher=fetch,
  if(typeof folder!=='string'||!path.isAbsolute(folder))
   throw Error('R29_LOCAL_FOLDER_INVALID');
  const filename=path.join(folder,'r29-local-sandbox-ledger.json');
+ const receiptFile=path.join(folder,'r29-local-last-receipt.json');
  let ledger=initialR29Ledger({target:'WINDOWS_SANDBOX'});
  if(existsSync(filename)){
   const raw=readFileSync(filename,'utf8');
@@ -101,17 +102,26 @@ export async function syncR29WindowsSandbox({token,folder,fetcher=fetch,
   ledger=JSON.parse(raw);
  }
  let mailbox=null,receipt=null,lastError=null;
+ if(existsSync(receiptFile)){
+  try{const old=JSON.parse(readFileSync(receiptFile,'utf8'));
+   if(old?.schema==='sniper_r29_isolated_receipt.v1'&&old.target==='WINDOWS_SANDBOX')
+    receipt=old;
+  }catch{}
+ }
  try{
   mailbox=(await requestGithubFile(R29_INTENT_PATH,{token,fetcher})).data;
   if(mailbox?.target==='WINDOWS_SANDBOX'){
    const result=processR29WindowsMailbox(ledger,mailbox,{now});
    ledger=result.ledger;
-   receipt=result.receipt;
    if(result.action!=='DUPLICATE_ALREADY_APPLIED'){
+    receipt=result.receipt;
     mkdirSync(folder,{recursive:true});
     const tmp=filename+'.new-'+process.pid;
     writeFileSync(tmp,JSON.stringify(ledger,null,2)+'\n',{mode:0o600});
     renameSync(tmp,filename);
+    const tmpReceipt=receiptFile+'.new-'+process.pid;
+    writeFileSync(tmpReceipt,JSON.stringify(receipt,null,2)+'\n',{mode:0o600});
+    renameSync(tmpReceipt,receiptFile);
    }
   }
  }catch(e){lastError=String(e?.message||e).slice(0,110)}
@@ -125,8 +135,21 @@ export async function syncR29WindowsSandbox({token,folder,fetcher=fetch,
  const status=sanitizeR29WindowsStatus({ledger,lastReceipt:receipt,botHealthy,now,lastError});
  // The status file contains NO device ID, key, portfolio, username,
  // computer hostname or wallet address. GitHub branch may be public.
+ // Avoid a public GitHub commit every 45 seconds (and avoid repeated CI).
+ // A new order, changed local bot health/error, or a 15-minute heartbeat
+ // is sufficient. The live wallet and regular account are never exported.
+ const remote=await requestGithubFile(R29_WINDOWS_STATUS_PATH,{token,fetcher});
+ const past=remote.data;
+ const stamp=Date.parse(past?.checked_at_utc);
+ const recent=Number.isFinite(stamp)&&now>=stamp&&now-stamp<900000;
+ const unchanged=past?.schema===statusSchema&&
+  past.last_intent_id===status.last_intent_id&&
+  past.last_intent_result===status.last_intent_result&&
+  past.laptop_bot_http_healthy===status.laptop_bot_http_healthy&&
+  past.last_error===status.last_error;
+ if(recent&&unchanged)return {status,published:null,skipped_unchanged:true};
  const published=await publishR29Status(status,{token,fetcher});
- return {status,published};
+ return {status,published,skipped_unchanged:false};
 }
 if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href){
  const token=process.env.SNIPER_R29_GITHUB_TOKEN;
