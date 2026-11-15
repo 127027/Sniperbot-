@@ -32,19 +32,24 @@ Laptop gestarteten Windows-Bot und das tatsächliche Schreiben durch eine
    `C:\Sniperbot-R29`. Die bisherigen Kontodaten unter
    `%LOCALAPPDATA%\MemeSniperPaper\` auf keinen Fall löschen.
 4. Node.js 22 LTS installieren, falls nicht vorhanden.
-5. **Einmalig** auf GitHub einen kostenlosen Fine-grained Personal Access Token (PAT)
-   erstellen: https://github.com/settings/personal-access-tokens/new
-   - Owner: dein GitHub-Konto `127027`.
-   - Repository access: **Only select repositories**, `Sniperbot-`.
-   - Repository permissions → **Contents: Read and write** (keine anderen
-     Schreibrechte, keine Adminrechte).
-   - Kurzes Ablaufdatum wählen. GitHub-PAT benötigt **kein OpenAI-Guthaben**.
+5. **Vorhandener GitHub-Token wird wiederverwendet:** R29 liest denselben
+   bereits mit Windows-DPAPI geschützten Token wie der frühere
+   Forschungs-Collector aus
+   `%LOCALAPPDATA%\MemeSniperPaper\secrets\research-github-token.dpapi`.
+   **Kein zweiter Token und keine erneute Eingabe, wenn diese Datei existiert.**
+   Die Datei nicht löschen und den Token nicht in GitHub oder Chat kopieren.
 6. `Sniperbot_Starten.bat` aus dem neuen R29-Ordner doppelklicken.
-   **Wichtig: Diese R29-Startdatei fragt keinen OpenAI-API-Key mehr ab.**
-   Auf Aufforderung nur den GitHub-PAT **verdeckt auf dem Laptop** eingeben.
-   Der Token wird Windows-DPAPI-verschlüsselt gespeichert und ausschließlich dem
-   separaten lokalen R29-Kurier-Prozess übergeben, nicht dem Botserver/Wallet.
-   **Niemals GitHub-PAT, Seedphrase oder private Wallet-Dateien hier im Chat hochladen!**
+   **Kein kostenpflichtiger OpenAI-API-Key nötig.** Nur wenn auf diesem
+   Windows-Benutzerkonto bisher überhaupt kein GitHub-Token gespeichert ist,
+   fragt der Starter einmalig nach einem neuen Token.
+   In diesem Ausnahmefall: https://github.com/settings/personal-access-tokens/new
+   → Owner `127027`, nur Repo `Sniperbot-`, **Contents: Read and write**.
+   Sollte der vorhandene Token abgelaufen sein oder keine Schreibrechte für
+   diesen Branch besitzen, erscheint ein GitHub HTTP 401/403. Erst dann den
+   vorhandenen Zugang auf GitHub überprüfen bzw. gezielt aktualisieren.
+   Der nur lokal entschlüsselte Token wird ausschließlich an den R29-Kurier
+   übergeben, nicht an den Botserver/Wallet.
+   **Niemals GitHub-PAT, Seedphrase oder private Wallet-Dateien hier hochladen!**
 7. Bot-Dashboard öffnet `http://127.0.0.1:3030`. Der R29-Kurier prüft GitHub
    ungefähr alle 45 Sekunden. Jede geänderte Eingangs-Order und ein maximal
    viertelstündliches Status-Heartbeat werden per GitHub REST zurückgemeldet.
@@ -112,8 +117,11 @@ Datenkanal mit getrenntem Berechtigungskonzept nötig.
 - `WINDOWS_SANDBOX`-Order veraltet/abgelaufen: wird sicher blockiert.
 - Kein Bot HTTP: R29 kann "bot offline" melden, ohne das Portfolio zu verändern.
 - Bestehende R27-Paper-Daten werden unverändert beibehalten.
-- GitHub-Kurier bewusst entfernen: Bot Q, und den Token lokal über
-  `Sniperbot_Starten.bat -ResetR29Token` neu konfigurieren.
+- GitHub-Kurier stoppen: Bot mit Q beenden. Zum bewussten Erneuern des
+  **bereits vorhandenen** GitHub-Tokens nur bei Problemen
+  `Sniperbot_Starten.bat -ResetToken` verwenden. Achtung: Das ersetzt
+  zugleich den GitHub-Zugang des bisherigen Research-Collectors, da
+  beide absichtlich dieselbe DPAPI-Token-Datei verwenden.
 
 **Sicherheitskonsequenz:** GitHub-PAT hat Schreibrechte auf genau das Repository,
 nicht auf irgendeine Wallet. Trotzdem behandeln wie ein Passwort, bei Verlust
