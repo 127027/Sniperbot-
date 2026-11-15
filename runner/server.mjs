@@ -14,6 +14,7 @@ import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
 import {paperDashboardView} from './dashboard-portfolio.mjs';
 import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
 import {startCentralAiCoordinator} from './central-ai-coordinator.mjs';
+import {startLocalPaperAutopilot} from './live-paper-autopilot.mjs';
 import {collectR27MarketRegime} from './r27-market-regime.mjs';
 import {loadR27EarlyContext} from './r27-early-bridge.mjs';
 import {collectResearchNews} from './research-news-rss.mjs';
@@ -190,14 +191,15 @@ async function prices(){if(deviceTopology.mode==='FOLLOWER')return;if(pricing ||
 }
 let paperAgentOrderQueue=Promise.resolve();
 let centralAiService=null;
+let livePaperAutopilot=null;
 let githubAgentFeedStatus={checked_at_utc:null,received_last:0,
  accepted_last:0,rejected_last:0,last_rejection:null,
  status:'NOT_CHECKED',last_error:null};
-function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_ADAPTER',localTrust=null,indicativePaper=false}={}){
+function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_ADAPTER',localTrust=null,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null}={}){
  const job=async()=>{
   let keys;
   try{
-   if(source==='CENTRAL_AI_LOCAL'&&Array.isArray(localTrust)&&localTrust.length===1){
+   if(['CENTRAL_AI_LOCAL','LOCAL_PAPER_AUTOPILOT'].includes(source)&&Array.isArray(localTrust)&&localTrust.length===1){
     // Session-only public trust: private signing key never leaves coordinator memory.
     keys=localTrust;
    }else{
@@ -217,7 +219,7 @@ function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_A
   try{
    const syntheticTest=process.env.SNIPER_OFFLINE==='1'&&
     process.env.SNIPER_PIPELINE_QA==='1'&&qaQuote!==null;
-   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source,syntheticTest,indicativePaper});
+   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source,syntheticTest,indicativePaper,paperAutopilotCandidate,securityEvidence});
    commit(result.next);
    return {ok:true,receipt:result.receipt,real_trade_executed:false,live_trading_enabled:false};
   }catch(e){return {error:String(e?.message||'AGENT_PAPER_PIPELINE_BLOCKED').slice(0,120),code:422}}
@@ -354,7 +356,17 @@ const server=createServer(async(req,res)=>{
   }catch{return reply(res,200,{ok:true,active:false,
    reason:'R29_MAIN_LOCAL_STATUS_UNREADABLE'})}
  }
- if(req.method==='GET'&&route==='/api/central-ai/status')return reply(res,200,{ok:true,
+ if(req.method==='GET'&&route==='/api/paper/autopilot/status')return reply(res,200,{
+   ok:true,mode:'PAPER_ONLY',auto:livePaperAutopilot?.status()||{
+    schema:'sniper_r29_local_live_paper_autopilot.v1',
+    enabled:false,reason:process.env.SNIPER_OFFLINE==='1'?'OFFLINE_TEST':
+     'LOCAL_AUTOPILOT_NOT_ENABLED',
+    live_trading_enabled:false},
+   paper_bot_enabled:state.entriesEnabled===true,
+   automatic_paper_buys_enabled:state.automaticPaperBuys===true,
+   current_paper_position_count:state.positions.length,
+   real_trading_enabled:false});
+  if(req.method==='GET'&&route==='/api/central-ai/status')return reply(res,200,{ok:true,
   coordinator:centralAiService?.status()||{schema:'sniper_central_ai_status.v1',enabled:false,
    mode:'PAPER_ONLY',reason:process.env.SNIPER_OFFLINE==='1'?'OFFLINE_TEST':
    'AI_API_KEY_OR_OPT_IN_NOT_CONFIGURED',remote_chat_session_connected:false,
@@ -977,6 +989,7 @@ function shutdownServer(){
  if(shuttingDown)return;
  if(masterPublisher){clearInterval(masterPublisher.timer);masterPublisher=null}
  if(centralAiService){centralAiService.stop();centralAiService=null}
+ if(livePaperAutopilot){livePaperAutopilot.stop();livePaperAutopilot=null}
  shuttingDown=true;
  try{save()}catch(e){console.error('Paper-state save on shutdown:',e.message)}
  server.close(()=>process.exit(0));
@@ -1032,6 +1045,15 @@ if(process.env.SNIPER_RESEARCH_FEED==='1'){
 
 // V0.21 opt-in central AI: outbound-only model research from this local bot.
 // Model never receives wallet secrets. It cannot directly invoke a trade route.
+// Conservative local real-market PAPER-only decision worker; every entry
+// rechecks independent source identities, security gate, and risk caps.
+if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_PAPER_AUTOPILOT==='1'){
+ livePaperAutopilot=startLocalPaperAutopilot({
+  deviceId:localDevice.device_id,dataDir:store.dir,getState:()=>state,
+  marketFile:path.join(root,'.local','research-market','latest.json'),
+  submit:(signed,options)=>submitSignedAgentPaperOrder(signed,options)
+ });
+}
 if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_CENTRAL_AI_ENABLED==='1'&&
  typeof process.env.SNIPER_OPENAI_API_KEY==='string'&&process.env.SNIPER_OPENAI_API_KEY.length>20){
  centralAiService=startCentralAiCoordinator({
