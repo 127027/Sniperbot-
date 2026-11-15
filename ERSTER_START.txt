@@ -1,46 +1,51 @@
-SNIPERBOT R29 - CHATGPT ↔ GITHUB ↔ WINDOWS (PAPER ONLY)
-========================================================
+SNIPERBOT R29 - DIE NEUE EINFACHE TRADING-OBERFLAECHE
+==================================================
 
-ZIEL: Keine kostenpflichtige OpenAI-API auf dem PC.
-ChatGPT schreibt nach Freigabe einen isolierten Testauftrag auf GitHub.
-Der Windows-Kurier holt ihn regelmaessig ab und meldet das Ergebnis dorthin zurueck.
-Ein echter stuendlicher ChatGPT-Job wird erst NACH dem Verbindungstest aktiviert.
+Die neue Startseite zeigt nur noch EIN reguläres Paper-Konto.
+Das alte R29-Testkonto mit 5.028,408 TEST-USDC ist archiviert
+und erscheint NICHT mehr als zweites handelbares Guthaben.
 
-1. Alte Sniperbot-Konsole mit Q stoppen.
-2. GitHub-Branch "codex/r29-chatgpt-github-paper-cycle-20261115"
-   auswaehlen, "Code -> Download ZIP", in NEUEN Ordner entpacken.
-3. Windows benoetigt Node.js 22 LTS (https://nodejs.org/).
-4. Sniperbot_Starten.bat doppelklicken.
-5. R29 benutzt AUTOMATISCH den bereits vorhandenen GitHub-Token:
-   %LOCALAPPDATA%\MemeSniperPaper\secrets\research-github-token.dpapi
-   Er wird auf dem PC mit Windows-DPAPI entschluesselt, nicht im Chat.
-   KEIN zweiter Token und KEIN erneutes Eintragen bei gueltigem Alt-Token.
-   NUR wenn bisher kein Token existiert, wird einmalig nach einem gefragt.
-   NUR bei GitHub HTTP 401/403 die bisherigen GitHub-Rechte/Gueligkeit
-   ueberpruefen: Repo "127027/Sniperbot-", Contents: Read and write.
-   Nie Token, Wallet-Seed oder private Zugangsdaten hier posten.
-6. Dashboard: http://127.0.0.1:3030
-   Dort steht der Bereich "R29 - ChatGPT ueber GitHub".
-7. Bei erfolgreichem PAT: Dieser Link erhaelt ein neues Windows-Heartbeat:
-   https://github.com/127027/Sniperbot-/blob/codex/r29-chatgpt-github-paper-cycle-20261115/research/r29/channel/windows-status.json
-8. Dann dem ChatGPT in DIESEM Chat melden, dass der R29-Bot gestartet wurde.
-   Wir schicken einen Test-BUY (50 TEST-USDC) und danach einen Test-SELL.
-   Diese Tests laufen in einer separaten synthetischen Sandbox, NICHT in deinem
-   bisherigen Paper-Konto und NIEMALS mit Echtgeld.
+START:
+1. Vorherigen Bot im Konsolenfenster mit Q beenden.
+2. GitHub-Branch codex/r29-chatgpt-github-paper-cycle-20261115
+   -> Code -> Download ZIP -> in neuen Ordner entpacken.
+3. Sniperbot_Starten.bat starten.
+4. Im Browser http://127.0.0.1:3030 oeffnen.
+5. Wenn der Browser bereits offen war, F5 druecken.
 
-Bereits bestanden: ChatGPT -> GitHub -> CI-Test-Bot -> GitHub -> ChatGPT,
-virtueller BUY + SELL, synthetischer Gewinn +28.408 TEST-USDC.
-Dies ist KEIN Beweis fuer einen echten Kursgewinn oder Windows-Verbindung.
-Synthetische feste Preise 0.05 / 0.08. Auch der CI-Bot ist nicht dein Laptop!
+Die vorhandenen Konto- und Wallet-Dateien unter
+%LOCALAPPDATA%\MemeSniperPaper
+NICHT loeschen! Der neue Start benutzt den bisherigen Speicher,
+den vorhandenen GitHub-Token und keine OpenAI-API-Kosten.
 
-Dein lokales Paperkonto unter %LOCALAPPDATA%\MemeSniperPaper
-und deine Wallet bitte NICHT loeschen. R29 benutzt eigenen Unterordner:
-%LOCALAPPDATA%\MemeSniperPaper\r29-isolated-sandbox
+OBERFLAECHE:
+- PAPER: frei verfuegbares virtuelles Guthaben, Gesamtkontowert,
+  offene Positionen, Netto-Gewinn/Verlust, Trades und Verlauf.
+- ECHTGELD: ausschliesslich echte verifizierte SOL/USDC-Bestaende
+  der eigenen Solana-Wallet (falls vorhanden).
+  Kein erfundener EUR-Kontowert, keine behaupteten Live-Trades.
+- Bot AN/AUS und Paper-Budget hinter einem einklappbaren Bereich.
+- Kein alter R29-Sandbox-Geldbetrag und keine Dot-/Agenten-Diagnosekarten.
+- Technischer Verbindungsstatus nur noch einklappbar.
 
-Die originale OpenAI-API-Anbindung wurde im R29-Startweg AUS gelassen.
-Kein API-Key oder aufgeladenes OpenAI-Guthaben erforderlich.
-GitHub- und ChatGPT-Nutzungsgrenzen und eventuell erforderliche Genehmigungen
-fuer kuenftige unbeaufsichtigte stündliche GitHub-Schreibaktionen bleiben zu pruefen.
+WICHTIG:
+Die speziell freigegebene Sniperbot_R29_Papiertrade_Starten.bat
+war fuer EINEN Demo-Kauf/Verkauf bestimmt. Dieser Test wurde bereits
+am 15.11.2026 erfolgreich abgeschlossen. Ein weiterer Kauf wird
+durch den lokalen Wiederholungsschutz blockiert.
+Fuer die normale Nutzung jetzt Sniperbot_Starten.bat verwenden.
 
-VOLLE ANLEITUNG: research\r29\R29_WINDOWS_INSTALLATION_UND_ABNAHME.md
+Mindest-Kaufbetrag der aktuellen Paper-Engine bleibt 50 TEST-USDC.
+Echtgeldhandel und automatische Live-Orders bleiben AUS.
+Die spaetere KI-Signal-zu-echtem-Memecoin-Pipeline ist ein eigener
+noch nicht abgeschlossener Entwicklungsschritt.
+
+Dokumentation:
+research\r29\R29_TRADING_DASHBOARD_BEREINIGUNG.md
+
+Probleme mit der Anzeige?
+- Browser mit F5 aktualisieren.
+- Sicherstellen, dass wirklich die neu heruntergeladene R29-Version laeuft.
+- Niemals wegen einer UI-Abweichung das Paper-Konto oder die Wallet resetten.
+
 Zum Beenden Q druecken.
