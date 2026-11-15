@@ -1,7 +1,7 @@
 // R29 autonomous LOCAL paper-only trade supervisor: no OpenAI API, GitHub
 // publisher token, fiat provider, wallet or real-order execution.
 import {generateKeyPairSync,randomBytes,sign} from 'node:crypto';
-import {mkdirSync,readFileSync,writeFileSync,renameSync} from 'node:fs';
+import {appendFileSync,mkdirSync,readFileSync,writeFileSync,renameSync} from 'node:fs';
 import path from 'node:path';
 import {AGENT_SIGNAL_SCHEMA,unsignedAgentSignal} from './paper-agent-pipeline.mjs';
 import {lookupToken,validTokenAddress} from './market.mjs';
@@ -208,7 +208,34 @@ export function startLocalPaperAutopilot({deviceId,dataDir,getState,submit,
   }catch(e){
    status.last_outcome='ERROR_FAIL_CLOSED';status.last_error=String(e?.message||e).slice(0,110);
    return {status:status.last_outcome,error:status.last_error};
-  }finally{busy=false;persist();}
+  }finally{
+   // Private, append-only decision journal for forward performance studies.
+   // This is NOT a second ledger: no cash, positions, wallet or credentials.
+   try{
+    const at=status.last_scan_at_utc;
+    const day=at.slice(0,10);
+    const dir=path.join(dataDir,'live-paper-autopilot','decision-journal');
+    mkdirSync(dir,{recursive:true});
+    const receipt=status.last_receipt;
+    const record={schema:'r29_live_paper_diagnostic_event.v1',
+     at_utc:at,mode:'PAPER_ONLY',live_trading_enabled:false,
+     research_source_status:status.last_research_source,
+     decision:status.last_decision,outcome:status.last_outcome,
+     receipt:receipt?{
+       signal_id:receipt.signal_id||null,action:receipt.action||null,
+       status:receipt.status||null,reason:receipt.reason||null,
+       chain:receipt.chain||null,token_address:receipt.token_address||null,
+       quote_price_usd:receipt.quote_price_usd??null,
+       requested_test_usdc:receipt.requested_test_usdc??null,
+       closed_pnl_test_usdc:receipt.closed_pnl_test_usdc??null,
+       real_trade_executed:false
+     }:null};
+    appendFileSync(path.join(dir,day+'.jsonl'),JSON.stringify(record)+'\n',
+     {encoding:'utf8',mode:0o600});
+   }catch(e){status.last_error='LOCAL_DIAGNOSTIC_JOURNAL_UNAVAILABLE';
+     status.last_outcome='AUDIT_LOG_FAILED_NO_FURTHER_CLAIMS';}
+   busy=false;persist();
+  }
  }
  const tick=async()=>{
   if(stopped)return;
