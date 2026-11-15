@@ -32,7 +32,7 @@ jobs:
         id: routing
         shell: bash
         run: |
-          node -e "const fs=require('node:fs');const x=JSON.parse(fs.readFileSync('research/r29/channel/latest-intent.json'));if(!['CI_SANDBOX','WINDOWS_SANDBOX'].includes(x.target))process.exit(2);fs.appendFileSync(process.env.GITHUB_OUTPUT, 'ci='+String(x.target==='CI_SANDBOX')+'\\n')"
+          node -e "const fs=require('node:fs');const x=JSON.parse(fs.readFileSync('research/r29/channel/latest-intent.json'));if(!['CI_SANDBOX','WINDOWS_SANDBOX'].includes(x.target))process.exit(2);fs.appendFileSync(process.env.GITHUB_OUTPUT, 'ci='+String(x.target==='CI_SANDBOX')+String.fromCharCode(10))"
       - name: Verify isolated signed test path before consuming mailbox
         if: steps.routing.outputs.ci == 'true'
         run: node --test research/r29/r29-paper-protocol.test.mjs
@@ -63,4 +63,5 @@ jobs:
           echo 'Kein Echtgeld, kein echtes Nutzer-Paperkonto, keine OpenAI API.' >> "$GITHUB_STEP_SUMMARY"
       - name: Windows-routed mailbox is deliberately not a CI order
         if: steps.routing.outputs.ci == 'false'
-        run: echo 'WINDOWS_SANDBOX: waiting for an actual laptop heartbeat/receipt; no CI paper trades executed' >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          echo 'WINDOWS_SANDBOX: waiting for an actual laptop heartbeat/receipt; no CI paper trades executed' >> "$GITHUB_STEP_SUMMARY"
