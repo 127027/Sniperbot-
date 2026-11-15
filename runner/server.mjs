@@ -289,6 +289,36 @@ const server=createServer(async(req,res)=>{
    mode:'ISOLATED_PAPER_TEST',connected:false,
    reason:'R29_LOCAL_STATUS_UNREADABLE'})}
  }
+ if(req.method==='GET'&&route==='/api/r29/main-paper/status'){
+  try{
+   if(!process.env.LOCALAPPDATA)return reply(res,200,{ok:true,
+    active:false,reason:'WINDOWS_LOCALAPPDATA_UNAVAILABLE'});
+   const fp=path.join(process.env.LOCALAPPDATA,'MemeSniperPaper',
+    'r29-isolated-sandbox','r29-local-main-status.json');
+   if(!existsSync(fp))return reply(res,200,{ok:true,active:false,
+    reason:'MAIN_PAPER_OPT_IN_NOT_STARTED'});
+   const bytes=readFileSync(fp,'utf8');
+   if(Buffer.byteLength(bytes)>15000)throw Error('R29_MAIN_STATUS_OVERSIZED');
+   const x=JSON.parse(bytes);
+   if(x?.schema!=='sniper_r29_main_paper_demo_status.v1'||
+    x.target!=='MAIN_PAPER_DEMO'||x.mode!=='PAPER_ONLY'||
+    x.wallet_accessed!==false||x.real_trade_executed!==false||
+    x.no_balance_or_wallet_published!==true)
+    throw Error('R29_MAIN_STATUS_INVALID');
+   const time=Date.parse(x.checked_at_utc);
+   return reply(res,200,{ok:true,
+    active:Number.isFinite(time)&&time<=Date.now()&&Date.now()-time<240000&&
+     x.main_paper_demo_opt_in===true,
+    checked_at_utc:x.checked_at_utc,
+    buy_verified:x.buy_verified===true,
+    sell_verified:x.sell_verified===true,completed:x.completed===true,
+    last_intent_id:x.last_intent_id||null,
+    last_action:x.last_action||null,last_result:x.last_result||null,
+    modelled_trade_pnl_test_usdc:x.modelled_trade_pnl_test_usdc??null,
+    error:x.error||null,real_trade_executed:false});
+  }catch{return reply(res,200,{ok:true,active:false,
+   reason:'R29_MAIN_LOCAL_STATUS_UNREADABLE'})}
+ }
  if(req.method==='GET'&&route==='/api/central-ai/status')return reply(res,200,{ok:true,
   coordinator:centralAiService?.status()||{schema:'sniper_central_ai_status.v1',enabled:false,
    mode:'PAPER_ONLY',reason:process.env.SNIPER_OFFLINE==='1'?'OFFLINE_TEST':
