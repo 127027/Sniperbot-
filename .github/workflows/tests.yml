@@ -88,9 +88,9 @@ jobs:
       - name: R29 adaptive module syntax, collector and courier wiring
         run: node --check runner/dynamic-research-scheduler.mjs && node --check runner/dynamic-research-outcomes.mjs && node --check runner/r29-adaptive-publisher.mjs && node --check runner/research-market-daemon.mjs && node --check runner/r29-windows-courier.mjs
       - name: R29 independent local paper crypto security, risk and signed BUY/SELL offline tests
-        run: node --test runner/live-paper-security.test.mjs runner/live-paper-autopilot.test.mjs
+        run: node --test runner/live-paper-security.test.mjs runner/live-paper-autopilot.test.mjs runner/live-paper-public-status.test.mjs
       - name: R29 local autonomous paper syntax and UI validation
-        run: node --check runner/live-paper-security.mjs && node --check runner/live-paper-risk.mjs && node --check runner/live-paper-autopilot.mjs && node --check runner/paper-agent-pipeline.mjs && node --check runner/server.mjs && node runner/dashboard-syntax-check.mjs
+        run: node --check runner/live-paper-security.mjs && node --check runner/live-paper-risk.mjs && node --check runner/live-paper-autopilot.mjs && node --check runner/live-paper-public-status.mjs && node --check runner/paper-agent-pipeline.mjs && node --check runner/server.mjs && node runner/dashboard-syntax-check.mjs
       - name: R27 strict historical evidence, 615 frequency clocks, sealed AI, market gate and prospective capture (offline mocks)
         run: node --test research/r27/r27.test.mjs research/r27/r27-source-probe.test.mjs runner/r27-early-bridge.test.mjs runner/r27-exit-review.test.mjs
       - name: R27 syntax smoke on every platform
