@@ -156,8 +156,11 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
     {...p,priceUsd:quote.priceUsd,markAt:quote.asOf}:p)};
    const closed=action(updated,{type:'SELL',id:old.id});
    if(closed.positions.length===state.positions.length-1){
+    const keptCooldowns=Object.entries(state.paperAutopilotCooldowns||{})
+     .filter(([,at])=>Number.isFinite(Date.parse(at))&&
+      now-Date.parse(at)>=0&&now-Date.parse(at)<12*3600000).slice(-1500);
     next=localAuto?{...closed,paperAutopilotCooldowns:{
-      ...state.paperAutopilotCooldowns,
+      ...Object.fromEntries(keptCooldowns),
       [order.chain+':'+order.token_address.toLowerCase()]:new Date(now).toISOString()
     }}:closed;
     status='PAPER_FILLED';reason=localAuto?
