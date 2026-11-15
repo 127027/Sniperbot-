@@ -15,6 +15,7 @@ R26-Vergleich `codex/r26-15day-1v4v12v24-frequency-20261114`.
 - `runner/r27-early-bridge.mjs` nimmt nur frische, exakt chain- und poolgebundene Kandidaten sowie Aktivitätsbeschleunigungen und Narrative auf. Paid Boost ≠ organische Viralität. Ein Nachrichtenbeitrag allein identifiziert noch keinen Token.
 - `runner/r27-market-regime.mjs` ruft öffentlich die abgeschlossenen BTC-/ETH-Stundenkerzen ab. Starker Abwärtstrend oder Datenfehler ⇒ **neue automatische BUYs blockiert**. Bestehende SELL-Empfehlungen bleiben erlaubt.
 - Ein KI-Score ist keine kalibrierte Gewinnwahrscheinlichkeit. Ein WATCH, HOLD oder NO_TRADE ist akzeptabel.
+- `runner/r27-exit-review.mjs` vergleicht exakt denselben Pool in zwei kurz aufeinanderfolgenden öffentlichen Beobachtungen. Bei gleichzeitigem Preis-/Liquiditätsrückgang oder Volumenerschöpfung entsteht ein **unverbindlicher SELL-Prüfhinweis**, kein automatischer Verkauf. Die KI sieht diese Warnung, darf aber nur über den bestehenden signierten Paper-Kanal handeln.
 - Echtgeld-Swaps bleiben gesperrt. Automatische Paper-Fills werden nach wie vor nur zu **indikativen, ausdrücklich nicht als ausführbar bestätigten** DEX-Kursen modelliert.
 
 ### Lokales Prospektiv-Archiv
