@@ -104,7 +104,7 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   eqAddress(order.chain,p.poolAddress,order.pool_address));
  if(!state.entriesEnabled&&actionType==='BUY')reason='PAPER_BOT_OFF';
  else if(!validQuote(quote,order,now))reason='MARKET_QUOTE_INVALID_OR_STALE';
- else if(localAuto&&actionType==='BUY'&&autoGate?.allowed!==true)
+ else if(localAuto&&actionType==='BUY'&&(!autoGate?.allowed||amount!==autoGate.amount_test_usdc))
   reason=autoGate?.reason||'LOCAL_PAPER_AUTOPILOT_RISK_BLOCKED';
  else if(localAuto&&actionType==='SELL'&&!matchingAutoPosition)
   reason='LOCAL_AUTOPILOT_CAN_SELL_OWN_POSITION_ONLY';
@@ -178,7 +178,8 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
     status==='PAPER_FILLED'&&source==='CENTRAL_AI_LOCAL'&&indicativePaper===true?
     'INDICATIVE_DEX_QUOTE_NOT_EXECUTABLE':'UNVERIFIED'),
   indicative_only:syntheticTest!==true&&(source==='CENTRAL_AI_LOCAL'||localAuto),
-  sellability_verified:localAuto&&actionType==='BUY'&&securityEvidence?.approved===true,
+  sellability_verified:false,
+  sell_simulation_passed:localAuto&&actionType==='BUY'&&securityEvidence?.approved===true,
   slippage_verified:false,
   real_trade_executed:false,wallet_debited:false,
   externally_funded:false,live_trading_enabled:false
