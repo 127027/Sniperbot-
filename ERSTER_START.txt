@@ -11,13 +11,14 @@ Ein echter stuendlicher ChatGPT-Job wird erst NACH dem Verbindungstest aktiviert
    auswaehlen, "Code -> Download ZIP", in NEUEN Ordner entpacken.
 3. Windows benoetigt Node.js 22 LTS (https://nodejs.org/).
 4. Sniperbot_Starten.bat doppelklicken.
-5. Beim ersten Start wird ein GitHub-PAT optional verdeckt abgefragt.
-   PAT kostenfrei hier erstellen: https://github.com/settings/personal-access-tokens/new
-   Fine-grained, Owner 127027, NUR Repo "Sniperbot-",
-   Repository permissions Contents = Read and write.
-   Bitte den Token NIE hier im Chat oder in Dateien hochladen.
-   GitHub-PAT wird nur auf deinem PC Windows-DPAPI-verschluesselt gespeichert.
-   Wenn du noch keinen PAT hast, ENTER: Paper-Bot startet ohne GitHub-Kurier.
+5. R29 benutzt AUTOMATISCH den bereits vorhandenen GitHub-Token:
+   %LOCALAPPDATA%\MemeSniperPaper\secrets\research-github-token.dpapi
+   Er wird auf dem PC mit Windows-DPAPI entschluesselt, nicht im Chat.
+   KEIN zweiter Token und KEIN erneutes Eintragen bei gueltigem Alt-Token.
+   NUR wenn bisher kein Token existiert, wird einmalig nach einem gefragt.
+   NUR bei GitHub HTTP 401/403 die bisherigen GitHub-Rechte/Gueligkeit
+   ueberpruefen: Repo "127027/Sniperbot-", Contents: Read and write.
+   Nie Token, Wallet-Seed oder private Zugangsdaten hier posten.
 6. Dashboard: http://127.0.0.1:3030
    Dort steht der Bereich "R29 - ChatGPT ueber GitHub".
 7. Bei erfolgreichem PAT: Dieser Link erhaelt ein neues Windows-Heartbeat:
