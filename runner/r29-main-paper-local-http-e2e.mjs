@@ -27,6 +27,16 @@ async function readState(){
  assert(r.ok&&d.ok===true&&d.mode==='PAPER_ONLY');
  return d.state;
 }
+async function readUserDashboard(){
+ const response=await fetch(origin+'/api/dashboard/paper');
+ const payload=await response.json();
+ assert(response.ok&&payload.ok===true);
+ assert.equal(payload.view?.schema,'sniper_user_paper_dashboard.v1');
+ assert.equal(payload.view?.account,'REGULAR_PAPER_ACCOUNT');
+ assert(!JSON.stringify(payload).includes('5028.408'),
+  'legacy R29 sandbox funds never appear in regular account');
+ return payload.view;
+}
 const intent=(action,hex)=>({
  schema:R29_MAIN_INTENT_SCHEMA,target:'MAIN_PAPER_DEMO',
  mode:'PAPER_ONLY',asset:'R29_FIXED_TEST_COIN',
@@ -70,6 +80,13 @@ try{
  assert.equal(opened.positions[0].isDemo,true);
  assert.equal(opened.cashUsdc,4950);
  assert(opened.history.some(e=>e.title==='TEST-KAUF'),'actual main display history should log the BUY');
+ const visibleBuy=await readUserDashboard();
+ assert.equal(visibleBuy.open_position_count,1);
+ assert.equal(visibleBuy.free_cash_test_usdc,4950);
+ assert.equal(visibleBuy.positions[0].symbol,'TEST');
+ assert.equal(visibleBuy.positions[0].estimated_net_exit_test_usdc,49.005);
+ assert.equal(visibleBuy.estimated_open_pnl_test_usdc,-0.995);
+ assert.equal(visibleBuy.total_estimated_net_equity_test_usdc,4999.005);
  const sell=await processR29MainIntent(cycle,intent('SELL','b'));
  assert.equal(sell.receipt.status,'PAPER_FILLED');
  const closed=await readState();
@@ -77,6 +94,15 @@ try{
  assert.equal(closed.cashUsdc,4999.005);
  assert.equal(closed.closedPnl,-0.995);
  assert(closed.history.some(e=>e.title==='TEST-VERKAUF'),'actual main display history should log the SELL');
+ const visibleSold=await readUserDashboard();
+ assert.equal(visibleSold.open_position_count,0);
+ assert.equal(visibleSold.free_cash_test_usdc,4999.005);
+ assert.equal(visibleSold.realized_pnl_test_usdc,-0.995);
+ assert.equal(visibleSold.total_estimated_net_equity_test_usdc,4999.005);
+ assert(visibleSold.history.some(x=>x.title==='TEST-VERKAUF'));
+ const dashboardHtml=await (await fetch(origin+'/')).text();
+ assert(dashboardHtml.includes('Sniperbot · Trading-Dashboard'));
+ assert(!dashboardHtml.includes('R29-Sandbox (TEST-USDC)'));
  assert.equal(sell.cycle.completed,true);
  console.log('R29_MAIN_PAPER_REAL_LOCAL_HTTP_BUY_SELL_PASSED_WITH_DISPOSABLE_LEDGER');
 }catch(e){
