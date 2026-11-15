@@ -22,6 +22,18 @@ export function storage(root){
   if(s.research&&(!Array.isArray(s.research.events)||!Array.isArray(s.research.candidates)||!Array.isArray(s.research.decisions)))throw Error('Ungültiger Research-Speicher');
   if(s.paperDecisions&&(!Array.isArray(s.paperDecisions.receipts)||!s.paperDecisions.revisions||typeof s.paperDecisions.revisions!=='object'||Array.isArray(s.paperDecisions.revisions)))throw Error('Ungültiger Entscheidungsspeicher');
   if(s.agentSignalReplay!==undefined&&(!s.agentSignalReplay||typeof s.agentSignalReplay!=='object'||Array.isArray(s.agentSignalReplay)||Object.entries(s.agentSignalReplay).some(([id,d])=>!/^sig_[a-f0-9]{32}$/.test(id)||!/^[a-f0-9]{64}$/.test(d))))throw Error('Ungültiger Signal-Wiederholschutz; kein Reset');
+  if(s.gptPaperFollow!==undefined&&typeof s.gptPaperFollow!=='boolean')
+   throw Error('Ungültige GPT-Paper-Freigabe; kein Reset');
+  if(s.gptDecisionReplay!==undefined&&(!s.gptDecisionReplay||
+    typeof s.gptDecisionReplay!=='object'||Array.isArray(s.gptDecisionReplay)||
+    Object.keys(s.gptDecisionReplay).length>100000||
+    Object.entries(s.gptDecisionReplay).some(([id,r])=>
+      !/^gpt_[a-f0-9]{32}$/.test(id)||!r||
+      !/^[a-f0-9]{64}$/.test(r.archive_sha256||'')||
+      !['PAPER_FILLED','BLOCKED','REJECTED','WATCH','HOLD','NO_TRADE',
+        'DUPLICATE','NOOP','DATA_GAP'].includes(r.status)||
+      typeof r.reason!=='string'||r.reason.length>110)))
+   throw Error('Ungültiger GPT-Paper-Wiederholschutz; kein Reset');
   return s;
  }
  if(!process.env.SNIPER_DATA_DIR&&file!==legacy&&!existsSync(file)&&existsSync(legacy)){
