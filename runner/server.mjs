@@ -235,6 +235,26 @@ const server=createServer(async(req,res)=>{
   return res.end(readFileSync(path.join(root,'runner','dashboard.html')));
  }
  if(req.method==='GET'&&route==='/api/state')return reply(res,200,{ok:true,mode:'PAPER_ONLY',dataSource:'GeckoTerminal / DEX Screener (read only)',state,health:{online:true,scanRunning:scanning,pricing,uptimeSec:Math.round(process.uptime()),central:centralStatus(),researchNetwork,localLearning:localResearchLearning(),dotStatus:buildDotStatus(state.researchInbox,{enabled:process.env.SNIPER_RESEARCH_FEED==='1'})}});
+ if(req.method==='GET'&&route==='/api/r27/archive/status'){
+  try{
+   const fp=path.join(root,'.local','research-market','status.json');
+   if(!existsSync(fp))return reply(res,200,{ok:true,active:false,
+    archived:false,last_check_at_utc:null,reason:'NO_COLLECTOR_STATUS_YET'});
+   const raw=readFileSync(fp,'utf8');
+   if(Buffer.byteLength(raw)>500000)throw Error('COLLECTOR_STATUS_OVERSIZED');
+   const data=JSON.parse(raw);
+   const o=data?.r27_archive||null;
+   return reply(res,200,{ok:true,
+    active:Number.isFinite(Date.parse(data?.last_check_at_utc))&&
+     Date.now()-Date.parse(data.last_check_at_utc)<6*60_000,
+    archived:o?.created===true,pool_observations:o?.observations||0,
+    news_headlines:o?.headlines||0,sha256:o?.sha256||null,
+    archive_error:o?.error||null,
+    last_check_at_utc:data?.last_check_at_utc||null,
+    external_historical_attestation:false});
+  }catch{return reply(res,200,{ok:true,active:false,archived:false,
+   reason:'COLLECTOR_STATUS_UNREADABLE'})}
+ }
  if(req.method==='GET'&&route==='/api/central-ai/status')return reply(res,200,{ok:true,
   coordinator:centralAiService?.status()||{schema:'sniper_central_ai_status.v1',enabled:false,
    mode:'PAPER_ONLY',reason:process.env.SNIPER_OFFLINE==='1'?'OFFLINE_TEST':
