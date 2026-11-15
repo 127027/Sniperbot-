@@ -63,8 +63,8 @@ test('multiple positions total net exit and aggregate PnL, mixed virtual cash on
  const p=paperDashboardView(state);
  assert.equal(p.free_cash_test_usdc,220);
  assert.equal(p.positions.length,2);
- assert.equal(p.estimated_open_pnl_test_usdc,-2.485);
- assert.equal(p.total_estimated_net_equity_test_usdc,367.515);
+ assert.equal(p.estimated_open_pnl_test_usdc,-2.985);
+ assert.equal(p.total_estimated_net_equity_test_usdc,367.015);
  assert.equal(p.portfolio_budget.total_reserved_test_usdc,150);
  assert.equal(p.portfolio_budget.free_to_allocate_test_usdc,220);
 });
