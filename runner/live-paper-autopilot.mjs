@@ -130,10 +130,6 @@ export function startLocalPaperAutopilot({deviceId,dataDir,getState,submit,
   status.last_decision=null;status.last_error=null;
   try{
    const state=getState();
-   if(!state?.entriesEnabled||!state?.automaticPaperBuys){
-    status.last_outcome='WAITING_FOR_PAPER_AUTOBUY_OPT_IN';
-    return {status:status.last_outcome};
-   }
    const time=now();
    // Review exits first: losing positions must not wait for the BUY scanner.
    for(const p of state.positions.filter(x=>x.paperAutopilot).slice(0,4)){
@@ -155,6 +151,11 @@ export function startLocalPaperAutopilot({deviceId,dataDir,getState,submit,
       reason:verdict.reason};
     status.last_outcome=status.last_receipt.status;
     return {status:status.last_outcome,receipt:status.last_receipt};
+   }
+   // Exits remain operative after entries are paused.
+   if(!state?.entriesEnabled||!state?.automaticPaperBuys){
+    status.last_outcome='WAITING_FOR_PAPER_AUTOBUY_OPT_IN';
+    return {status:status.last_outcome};
    }
    const feed=readMarket(marketFile,{now:time});
    status.last_research_source=feed.reason;
@@ -191,7 +192,7 @@ export function startLocalPaperAutopilot({deviceId,dataDir,getState,submit,
      deviceId,keyPair,now:now()});
     const receipt=await submit(signed,{source:'LOCAL_PAPER_AUTOPILOT',
      localTrust:[trusted],qaQuote:quote,securityEvidence:security,
-     paperRiskApproval:gate});
+     paperAutopilotCandidate:candidate});
     status.entries_submitted++;
     status.last_receipt=receipt?.receipt||{status:'REJECTED',reason:receipt?.error||'NO_PAPER_RECEIPT'};
     if(status.last_receipt.status==='PAPER_FILLED')status.paper_fills_confirmed++;
