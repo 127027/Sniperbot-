@@ -69,7 +69,7 @@ function validQuote(q,order,now){
   typeof q.symbol==='string'&&q.symbol.length<=32;
 }
 export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER',syntheticTest=false,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null}={}){
- if(!['SIGNED_LOCAL_ADAPTER','GITHUB_SIGNED_COURIER','CENTRAL_AI_LOCAL','LOCAL_PAPER_AUTOPILOT'].includes(source))throw Error('INVALID_AGENT_TRANSPORT_SOURCE');
+ if(!['SIGNED_LOCAL_ADAPTER','GITHUB_SIGNED_COURIER','CENTRAL_AI_LOCAL','LOCAL_PAPER_AUTOPILOT','GPT_GITHUB_LOCAL'].includes(source))throw Error('INVALID_AGENT_TRANSPORT_SOURCE');
  const verified=verifyAgentSignal(order,keys,{deviceId,now});
  const receipts=state.agentOrderReceipts||[];
  if(!Array.isArray(receipts)||receipts.length>250)throw Error('PAPER_AGENT_RECEIPTS_INVALID');
@@ -95,11 +95,17 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
  const amount=verified.amount,actionType=order.action;
  let positionId=null,pnl=null;
  const localAuto=source==='LOCAL_PAPER_AUTOPILOT'&&syntheticTest!==true;
- const autoGate=localAuto&&actionType==='BUY'?
-  r29LivePaperEntryGate({state,candidate:paperAutopilotCandidate,
+ const gptPaper=source==='GPT_GITHUB_LOCAL'&&syntheticTest!==true;
+ const autoGate=(localAuto||gptPaper)&&actionType==='BUY'?
+  r29LivePaperEntryGate({state:gptPaper?{...state,automaticPaperBuys:true}:state,
+   candidate:paperAutopilotCandidate,
    quote,security:securityEvidence,now}):null;
  const matchingAutoPosition=localAuto&&actionType==='SELL'&&
   state.positions.some(p=>p.paperAutopilot===true&&p.chain===order.chain&&
+  eqAddress(order.chain,p.tokenAddress,order.token_address)&&
+  eqAddress(order.chain,p.poolAddress,order.pool_address));
+ const matchingGptPosition=gptPaper&&actionType==='SELL'&&
+  state.positions.some(p=>p.gptPaperDecision===true&&p.chain===order.chain&&
   eqAddress(order.chain,p.tokenAddress,order.token_address)&&
   eqAddress(order.chain,p.poolAddress,order.pool_address));
  if(!state.entriesEnabled&&actionType==='BUY')reason='PAPER_BOT_OFF';
@@ -108,7 +114,14 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   reason=autoGate?.reason||'LOCAL_PAPER_AUTOPILOT_RISK_BLOCKED';
  else if(localAuto&&actionType==='SELL'&&!matchingAutoPosition)
   reason='LOCAL_AUTOPILOT_CAN_SELL_OWN_POSITION_ONLY';
- else if(syntheticTest!==true&&!localAuto&&!(source==='CENTRAL_AI_LOCAL'&&indicativePaper===true&&
+ else if(gptPaper&&state.gptPaperFollow!==true)
+  reason='GPT_PAPER_FOLLOW_DISABLED';
+ else if(gptPaper&&actionType==='BUY'&&(!autoGate?.allowed||
+   amount>autoGate.amount_test_usdc))
+  reason=autoGate?.reason||'GPT_BUY_EXCEEDS_RISK_CAP';
+ else if(gptPaper&&actionType==='SELL'&&!matchingGptPosition)
+  reason='GPT_CAN_SELL_OWN_PAPER_POSITIONS_ONLY';
+ else if(syntheticTest!==true&&!localAuto&&!gptPaper&&!(source==='CENTRAL_AI_LOCAL'&&indicativePaper===true&&
   state.centralPaperFollow===true&&quote?.source==='DEX Screener'&&
   quote.liquidityUsd>=25000&&
   (actionType==='SELL'||(amount<=1000&&amount<=quote.liquidityUsd*.01&&
@@ -130,15 +143,18 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
     liquidityUsd:quote.liquidityUsd
    };
    const candidateState={...state,candidates:[candidate,...state.candidates.filter(c=>c.id!==id)].slice(0,90)};
-   const orderState=localAuto?{...candidateState,defaultExitMode:'AUTO'}:candidateState;
+   const orderState=localAuto||gptPaper?
+     {...candidateState,defaultExitMode:gptPaper?'GPT_GUARD':'AUTO'}:candidateState;
    const attempted=action(orderState,{type:'BUY',id,amount});
    if(attempted.positions.length>state.positions.length){
-    next=localAuto?{...attempted,defaultExitMode:state.defaultExitMode,
+    next=localAuto||gptPaper?{...attempted,defaultExitMode:state.defaultExitMode,
       positions:attempted.positions.map(p=>state.positions.some(x=>x.id===p.id)?p:
-        {...p,paperAutopilot:true,entryLiquidityUsd:quote.liquidityUsd,
-         safety:'GOPLUS_AND_HONEYPOT_PAPER_RESEARCH_ONLY',exitMode:'AUTO'} )}:attempted;
-    status='PAPER_FILLED';reason=localAuto?'LOCAL_AUTOPILOT_BUY_PAPER_ONLY':
-     'SIGNED_AGENT_BUY_PAPER_ONLY';
+        {...p,...(gptPaper?{gptPaperDecision:true}:{paperAutopilot:true}),
+         entryLiquidityUsd:quote.liquidityUsd,
+         safety:'PUBLIC_SECURITY_CHECKS_PAPER_ONLY',
+         exitMode:gptPaper?'GPT_GUARD':'AUTO'} )}:attempted;
+    status='PAPER_FILLED';reason=gptPaper?'GPT_AUTHORIZED_BUY_PAPER_ONLY':
+      localAuto?'LOCAL_AUTOPILOT_BUY_PAPER_ONLY':'SIGNED_AGENT_BUY_PAPER_ONLY';
     positionId=attempted.positions.find(p=>p.chain===order.chain&&
      eqAddress(order.chain,p.tokenAddress,order.token_address))?.id||null;
    }else reason='POSITION_ALREADY_OPEN_OR_LEDGER_BLOCKED';
@@ -159,12 +175,12 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
     const keptCooldowns=Object.entries(state.paperAutopilotCooldowns||{})
      .filter(([,at])=>Number.isFinite(Date.parse(at))&&
       now-Date.parse(at)>=0&&now-Date.parse(at)<12*3600000).slice(-1500);
-    next=localAuto?{...closed,paperAutopilotCooldowns:{
+    next=localAuto||gptPaper?{...closed,paperAutopilotCooldowns:{
       ...Object.fromEntries(keptCooldowns),
       [order.chain+':'+order.token_address.toLowerCase()]:new Date(now).toISOString()
     }}:closed;
-    status='PAPER_FILLED';reason=localAuto?
-     'LOCAL_AUTOPILOT_SELL_PAPER_ONLY':'SIGNED_AGENT_SELL_PAPER_ONLY';
+    status='PAPER_FILLED';reason=gptPaper?'GPT_AUTHORIZED_SELL_PAPER_ONLY':
+      localAuto?'LOCAL_AUTOPILOT_SELL_PAPER_ONLY':'SIGNED_AGENT_SELL_PAPER_ONLY';
     positionId=old.id;pnl=Number((closed.closedPnl-state.closedPnl).toFixed(8));
    }else reason='SELL_BLOCKED_BY_MARKET_OR_LEDGER';
   }
@@ -181,13 +197,13 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   payload_sha256:digest,duplicate:false,
   synthetic_test:syntheticTest===true,
   execution_evidence:syntheticTest===true?'SYNTHETIC_FIXTURE':
-   (status==='PAPER_FILLED'&&localAuto?
+   (status==='PAPER_FILLED'&&(localAuto||gptPaper)?
     'PUBLIC_SECURITY_VERIFIED_INDICATIVE_DEX_QUOTE_NOT_EXECUTABLE':
     status==='PAPER_FILLED'&&source==='CENTRAL_AI_LOCAL'&&indicativePaper===true?
     'INDICATIVE_DEX_QUOTE_NOT_EXECUTABLE':'UNVERIFIED'),
-  indicative_only:syntheticTest!==true&&(source==='CENTRAL_AI_LOCAL'||localAuto),
+  indicative_only:syntheticTest!==true&&(source==='CENTRAL_AI_LOCAL'||localAuto||gptPaper),
   sellability_verified:false,
-  sell_simulation_passed:localAuto&&actionType==='BUY'&&securityEvidence?.approved===true,
+  sell_simulation_passed:(localAuto||gptPaper)&&actionType==='BUY'&&securityEvidence?.approved===true,
   slippage_verified:false,
   real_trade_executed:false,wallet_debited:false,
   externally_funded:false,live_trading_enabled:false
