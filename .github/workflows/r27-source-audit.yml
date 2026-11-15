@@ -1,0 +1,62 @@
+name: R27 one-shot 15-day historical evidence availability audit (no orders)
+on:
+  push:
+    branches: ['codex/r27-early-discovery-asof-ai-20261115']
+    paths:
+      - '.github/workflows/r27-source-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: r27-historical-source-audit
+  cancel-in-progress: false
+jobs:
+  historical-source-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_AGENT_PAPER_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify R27 strict archival and source-asof safety tests (no API secrets)
+        run: node --test research/r27/r27.test.mjs research/r27/r27-source-probe.test.mjs
+      - name: Query retrospective public GDELT news metadata over five dated windows
+        run: node research/r27/r27-source-probe.mjs r27-output/gdelt-source-probe.json
+      - name: Compare R26 price-only outcome and R27 truly evidenced AI availability
+        run: |
+          node research/r27/r27-report.mjs r27-output/audit \
+            r27-output/gdelt-source-probe.json \
+            research/frequency-backtest/results/summary.json
+          cat r27-output/audit/REPORT_DE.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve source probes, 615-frame audit, public metadata and limitations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r27-15d-asof-availability-audit-not-pnl
+          path: r27-output/
+          retention-days: 60
+          if-no-files-found: warn
+      - name: Commit only honest public audit, not private wallet or user documents
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p research/r27/results
+          cp r27-output/audit/summary.json research/r27/results/summary.json
+          cp r27-output/audit/REPORT_DE.md research/r27/results/REPORT_DE.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/r27/results/summary.json research/r27/results/REPORT_DE.md
+          if git diff --cached --quiet; then
+            echo 'R27 no public changes'
+          else
+            git commit -m "research(r27): report historical source availability, no invented AI returns"
+            git push origin HEAD:codex/r27-early-discovery-asof-ai-20261115
+          fi
