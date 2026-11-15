@@ -1,11 +1,13 @@
 // Local simulation ledger. Only virtual money and paper trades; no live order/payment transport.
 import {isWithinPortfolioBudget} from './portfolio-budget.mjs';
+import {newPaperRiskLedger,recordLivePaperSellRisk} from './live-paper-risk.mjs';
 export const PAPER_EUR_TO_TEST_USDC=1; // intentionally NOT a market EUR/USD quote
 const round=(x)=>Math.round((x+Number.EPSILON)*1e8)/1e8;
 const time=()=>new Date().toISOString();
 export function freshState(){return {version:3,entriesEnabled:false,automaticPaperBuys:false,centralPaperFollow:false,
  minTrade:50,maxTrade:50,portfolioBudgetUsdc:null,takeProfit:15,stopLoss:10,defaultExitMode:'HOLD',trailingPercent:25,
  cashEur:0,cashUsdc:0,positions:[],candidates:[],history:[],agentOrderReceipts:[],agentSignalReplay:{},closedPnl:0,
+ paperLiveRisk:newPaperRiskLedger(),
  lastScan:null,scanErrors:[],priceUpdatedAt:null,scanRunning:false,lastError:null};}
 export function log(s,title,detail){return [{id:`${Date.now()}-${Math.random().toString(16).slice(2)}`,at:time(),title,detail},...s.history].slice(0,150)};
 const isAmount=x=>Number.isFinite(x)&&x>0&&x<=100000;
@@ -66,7 +68,9 @@ export function action(s,a){if(!a||typeof a!=='object')return s;
   const p=s.positions.find(x=>x.id===a.id);if(!p)return s;
   if(!Number.isFinite(Date.parse(p.markAt))||Date.now()-Date.parse(p.markAt)>180000||Date.parse(p.markAt)>Date.now())return s;
   const proceeds=round(p.qty*p.priceUsd*0.99);const pnl=round(proceeds-p.amountUsdc);
-  return {...s,cashUsdc:round(s.cashUsdc+proceeds),closedPnl:round(s.closedPnl+pnl),positions:s.positions.filter(x=>x.id!==p.id),history:log(s,'TEST-VERKAUF',`${p.symbol}: ${proceeds.toFixed(2)} Test-USDC, P&L ${pnl.toFixed(2)} (1% modellierte Ausstiegskosten)`)}};
+  const updatedRisk=s.paperLiveRisk?.schema==='r29_live_paper_risk_v1'?
+   recordLivePaperSellRisk(s.paperLiveRisk,pnl):null;
+  return {...s,...(updatedRisk?{paperLiveRisk:updatedRisk}:{}),cashUsdc:round(s.cashUsdc+proceeds),closedPnl:round(s.closedPnl+pnl),positions:s.positions.filter(x=>x.id!==p.id),history:log(s,'TEST-VERKAUF',`${p.symbol}: ${proceeds.toFixed(2)} Test-USDC, P&L ${pnl.toFixed(2)} (1% modellierte Ausstiegskosten)`)}};
  case 'RESET':return freshState();
  default:return s;
  }}
