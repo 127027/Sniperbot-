@@ -173,7 +173,7 @@ def run_all(source):
         run['uses_research_security_score'] = False
         run['uses_actual_historical_gpt'] = False
         run['uses_real_fill_quotes'] = False
-        run['fitted_after_known_winners'] = False
+        run['fitted_after_known_winners'] = True
         run['daily_journal'] = daily_journal(run)
         runs.append(run)
     full = [dict(frequency_per_day=f, total_planned_scans=30*f,
@@ -256,10 +256,50 @@ def report_md(result):
       '- Keine geprüfte historische On-chain-Sicherheit, DEX-Pool-Liquidität, '
       'Social-Velocity, Story-Neuheit oder echten Kauf-/Verkaufsquotes.',
       '- 1 USDT ist nur als virtuelle 1 TEST-USDC-Recheneinheit angenähert.',
+      '- Das Preis-Proxy setzt die Tages-/Wochenverlust-Kill-Switches und den neuen Security-Score NICHT um.',
       '- Ergebnisse sind Sensitivitätsdiagnosen, keine Trading-Empfehlungen.',
       ''
     ])
     return '\n'.join(lines)
+
+def daily_markdown(result):
+    """A chronological human-readable journal of modeled, NOT GPT-approved trades."""
+    lines=['# R30 – Tagesjournal der vier Preis-Proxys',
+           '',
+           'Zeitraum 16.10.–14.11.2026 (UTC). BUY/SELL in diesem Journal '
+           'sind ausschließlich virtuelle Preis-Proxy-Entscheidungen, '
+           'keine signierten Bot-Aufträge und keine vollständige KI-Recherche.',
+           '',
+           'Für alle 30 Tage fehlen die für eine sichere historische GPT-Order '
+           'erforderlichen Point-in-Time-Sicherheits-, Pool-, Social- und DEX-Quotes.',
+           'Deshalb ist der tatsächliche GPT-Handelsentscheid an jedem Tag '
+           'DATA_GAP, nicht etwa nachweislich NO_TRADE.',
+           '']
+    for run in result['historical_price_only_runs']:
+        f=run['frequency_per_day']
+        lines.extend([f'## {f} Recherche(n) täglich',
+                      '',
+                      '| UTC-Tag | Recherchen | Virtuelle BUY-Proxys | Virtuelle SELL-Proxys (Netto-P&L) | Tages-P&L geschlossener Trades |',
+                      '|---|---:|---|---|---:|'])
+        for day in run['daily_journal']:
+            buys = ', '.join(x['symbol'].replace('USDT','') + ' ' +
+                             x['at_utc'][11:16] + ' (50)' for x in
+                             day['price_only_modeled_buys']) or '–'
+            sells = ', '.join(x['symbol'].replace('USDT','') + ' ' +
+                              x['exit_at_utc'][11:16] + ' (' +
+                              format(x['net_pnl_test_usdc'], '+.2f') + ')' for x in
+                              day['price_only_modeled_sells']) or '–'
+            pnl=sum(x['net_pnl_test_usdc'] for x in day['price_only_modeled_sells'])
+            lines.append(f"| {day['date_utc']} | {day['scans_planned']} "
+                         f"| {buys} | {sells} | {pnl:+.2f} |")
+        lines.extend(['',''])
+    lines.extend(['**Nicht enthalten:** historische bestätigte On-chain-Sicherheits-'
+                  'entscheidungen, tatsächliche GPT-Aufrufe, durchgeführte Wallet-'
+                  'Transaktionen und belastbare DEX-Fills. '
+                  'Tagesverluste sind ausschließlich realisierte Proxy-Verkäufe, '
+                  'nicht das gesamte tagesaktuelle Portfolioergebnis.',''])
+    return '\\n'.join(lines)
+
 def source_manifest(source):
     return dict(schema='r30_source_manifest.v1', collected_at=source.get('acquired_at_utc'),
         period=[iso(START),iso(END)], source=source.get('source'),
@@ -299,6 +339,7 @@ def main():
     (target/'source-manifest.json').write_text(json.dumps(source_manifest(source),indent=2))
     report = report_md(result)
     (target/'REPORT_DE.md').write_text(report,encoding='utf8')
+    (target/'DAILY_JOURNAL_DE.md').write_text(daily_markdown(result),encoding='utf8')
     print(report,flush=True)
 if __name__ == '__main__':
     main()
