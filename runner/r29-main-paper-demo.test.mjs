@@ -165,5 +165,18 @@ test('main paper GitHub courier is strictly opt-in and writes sanitized per-orde
   assert.equal(local.state().positions.length,0);
   assert.equal(local.state().cashUsdc,4999.005);
   assert(!JSON.stringify(publicStatus).includes(pat));
+  const actionCount=local.actions.length;
+  // Retired one-shot UI test must remain closed even when an old GitHub
+  // mailbox contains an expired BUY after a simulated future restart.
+  cmd={...make('BUY','f'),
+   created_at_utc:new Date(Date.now()-3700000).toISOString(),
+   expires_at_utc:new Date(Date.now()-3600000).toISOString()};
+  const resumed=await syncR29MainChannel({enabled:true,folder:dir,token:pat,
+   fetcher:gitFetch,healthFetcher:local.fetcher,now:Date.now()+3600000});
+  assert.equal(resumed.status.completed,true);
+  assert.equal(resumed.status.last_action,'SELL');
+  assert.equal(resumed.status.last_result,'PAPER_FILLED');
+  assert.equal(resumed.status.error,null);
+  assert.equal(local.actions.length,actionCount,'no new local Paper action after completed one-shot');
  }finally{rmSync(dir,{recursive:true,force:true})}
 });
