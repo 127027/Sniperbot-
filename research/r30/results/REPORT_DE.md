@@ -37,4 +37,5 @@ Die oben genannten Proxy-Gewinne dürfen **nicht** zur Auswahl der besten GPT-Fo
 - Namensbasiertes, rückblickend gewähltes Universum hat Listing-/Survivorship-Bias.
 - Keine geprüfte historische On-chain-Sicherheit, DEX-Pool-Liquidität, Social-Velocity, Story-Neuheit oder echten Kauf-/Verkaufsquotes.
 - 1 USDT ist nur als virtuelle 1 TEST-USDC-Recheneinheit angenähert.
+- Das Preis-Proxy setzt die Tages-/Wochenverlust-Kill-Switches und den neuen Security-Score NICHT um.
 - Ergebnisse sind Sensitivitätsdiagnosen, keine Trading-Empfehlungen.
