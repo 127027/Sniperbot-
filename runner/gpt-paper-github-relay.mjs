@@ -96,7 +96,7 @@ export async function relayGptPaperDecision({token,localCapability,
  let response;
  if(!expired){
   const r=await localFetcher('http://127.0.0.1:3030/api/gpt/paper-decision',{
-    method:'POST',redirect:'error',signal:timeout(),
+    method:'POST',redirect:'error',signal:AbortSignal.timeout(35000),
     headers:{'content-type':'application/json',
       'x-sniper-gpt-bridge':localCapability},
     body:JSON.stringify({schema:'sniper_r29_local_gpt_relay.v1',
