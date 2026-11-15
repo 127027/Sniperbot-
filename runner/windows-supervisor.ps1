@@ -1,5 +1,5 @@
-# Windows PowerShell 5.1 supervisor: one console, two local Node processes.
-# LIVE TRADING NOT SUPPORTED. Public-market GitHub token belongs only to collector.
+# Windows PowerShell 5.1 supervisor: one console supervises bot, market collector and optional R29 courier.
+# LIVE TRADING NOT SUPPORTED. The existing GitHub PAT is only passed to the R29 courier.
 param(
   [switch]$ResetToken,
   [switch]$SelfTest,
@@ -370,7 +370,7 @@ try {
   }
   if($WithR29 -and (Test-Path -LiteralPath $tokenFile)) {
     $r29Courier=Start-Child 'R29' 'runner/r29-windows-courier.mjs' $node $job
-    Write-Host '[R29] GitHub-Paper-Sandbox aktiv. Keine OpenAI-API-Kosten.' -ForegroundColor Green
+    Write-Host '[R29] GitHub-Kurier aktiv. Keine zweite Sandbox-Bilanz, keine Live-Trades, keine OpenAI-API-Kosten.' -ForegroundColor Green
   }
   # Avoid opening an old/stale bot URL until the new listener answered locally.
   if(!$NoBrowser){
