@@ -58,6 +58,16 @@ jobs:
         run: |
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File runner/windows-supervisor.ps1 -SelfTest
           if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
+      - name: R29 no duplicate GitHub credential; reuse existing Windows DPAPI PAT
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $source = Get-Content runner/windows-supervisor.ps1 -Raw
+          if(-not $source.Contains("research-github-token.dpapi")){throw 'Original GitHub DPAPI token reference missing'}
+          if(-not $source.Contains('if($WithResearchCollector -or $WithR29){Initialize-ResearchToken}')){throw 'R29 startup must reuse original enrollment'}
+          if(-not $source.Contains('$researchSecret=Read-ResearchToken')){throw 'R29 courier must reuse original encrypted GitHub secret'}
+          if($source.Contains('r29-github-token.dpapi') -or $source.Contains('Read-R29Token') -or $source.Contains('ResetR29Token')){throw 'Duplicate R29 token path or enrollment still present'}
+          Write-Host 'R29_EXISTING_GITHUB_TOKEN_REUSE_VERIFIED'
       - name: R27 strict historical evidence, 615 frequency clocks, sealed AI, market gate and prospective capture (offline mocks)
         run: node --test research/r27/r27.test.mjs research/r27/r27-source-probe.test.mjs runner/r27-early-bridge.test.mjs runner/r27-exit-review.test.mjs
       - name: R27 syntax smoke on every platform
