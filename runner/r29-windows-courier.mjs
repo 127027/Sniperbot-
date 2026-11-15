@@ -13,7 +13,7 @@ const MAX_B64_BYTES=250000;
 const POLL_INTERVAL_MS=45000;
 const statusSchema='sniper_r29_windows_sandbox_status.v1';
 function check(token){
- if(typeof token!=='string'||!^(?:github_pat_|ghp_)[A-Za-z0-9_]{15,}$/.test(token))
+ if(typeof token!=='string'||!/^(?:github_pat_|ghp_)[A-Za-z0-9_]{15,}$/.test(token))
   throw Error('R29_GITHUB_TOKEN_REQUIRED');
 }
 export async function requestGithubFile(relative,{token,fetcher=fetch}={}){
