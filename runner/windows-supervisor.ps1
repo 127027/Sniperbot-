@@ -211,6 +211,8 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
     $info.EnvironmentVariables['SNIPER_RESEARCH_FEED'] = $(if($WithResearchCollector){'1'}else{'0'})
     $info.EnvironmentVariables['SNIPER_RESEARCH_READ'] = $(if($WithResearchCollector){'1'}else{'0'})
     $info.EnvironmentVariables['SNIPER_LOCAL_DISCOVERY'] = '0'
+    # No-cost, local, Paper-only decision supervisor. Requires BOTH user UI toggles.
+    $info.EnvironmentVariables['SNIPER_PAPER_AUTOPILOT'] = '1'
   }
   if($role -eq 'MARKET') {
     # The R27 local first-seen archive requires NO GitHub token. Only the
