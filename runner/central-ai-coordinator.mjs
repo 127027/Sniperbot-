@@ -211,6 +211,8 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
   status.last_run_id=runId;
   let cycleInput=null;
   status.last_error=null;status.last_outcome='RUNNING';status.receipts=[];status.recommendations=[];
+  status.last_summary=null;status.model=null;status.response_id=null;
+  status.last_audit_status='IN_PROGRESS';status.last_audit_sha256=null;
   persist();
   try{
    const [market,news,realWallet,marketRegime,earlyContext]=await Promise.all([scan(),collectNews(),
