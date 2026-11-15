@@ -8,7 +8,8 @@ import {createServer} from 'node:net';
 import path from 'node:path';
 import os from 'node:os';
 import {fileURLToPath} from 'node:url';
-import {contentSha256} from './gpt-paper-protocol.mjs';
+import {contentSha256,archivePath,GPT_PAPER_DECISION_PATH,GPT_PAPER_RECEIPT_PATH} from './gpt-paper-protocol.mjs';
+import {relayGptPaperDecision} from './gpt-paper-github-relay.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const folder=await mkdtemp(path.join(os.tmpdir(),'r29-gpt-actual-http-'));
@@ -132,7 +133,80 @@ try{
  assert.equal(zero.open_position_count,0);
  assert.equal(zero.realized_pnl_test_usdc,0);
  // Even a forged self-declared BUY must fail while strategy opt-in is OFF.
- const buy=await post('/api/gpt/paper-decision',envelope(decision('BUY','b'.repeat(32))));
+ // End-to-end with mocked read-only GitHub REST, ACTUAL localhost bot
+ // and GitHub receipt PUT. No external service and no synthetic wallet.
+ const fromGitHub=decision('NO_TRADE','c'.repeat(32));
+ const archiveText=JSON.stringify(fromGitHub,null,2)+'\n';
+ const archivedPath=archivePath(fromGitHub.decision_id,fromGitHub.created_at_utc);
+ const pointer={schema:'sniper_r29_gpt_paper_pointer.v1',mode:'PAPER_ONLY',
+  decision_id:fromGitHub.decision_id,archive_path:archivedPath,
+  archive_sha256:contentSha256(archiveText),
+  published_at_utc:fromGitHub.created_at_utc,real_trading_enabled:false};
+ const remote=new Map([
+  [GPT_PAPER_DECISION_PATH,{
+   blob:'1'.repeat(40),commit:'a'.repeat(40),
+   text:JSON.stringify(pointer,null,2)+'\n'}],
+  [archivedPath,{blob:'2'.repeat(40),commit:'b'.repeat(40),
+   text:archiveText}]
+ ]);
+ let publishedReceipt=null,repositoryRequests=0;
+ const fetchFakeGithub=async(uri,opts)=>{
+  repositoryRequests++;
+  const url=new URL(uri);
+  const getPrefix='/repos/127027/Sniperbot-/contents/';
+  const shaPrefix='/repos/127027/Sniperbot-/commits/';
+  if(url.pathname.startsWith(getPrefix)){
+   const p=decodeURIComponent(url.pathname.slice(getPrefix.length));
+   if(opts.method==='GET'){
+    const file=remote.get(p);
+    if(!file)return {ok:false,status:404};
+    return {ok:true,status:200,json:async()=>({
+     type:'file',sha:file.blob,encoding:'base64',
+     content:Buffer.from(file.text).toString('base64')})};
+   }
+   if(opts.method==='PUT'&&p===GPT_PAPER_RECEIPT_PATH){
+    const pushed=JSON.parse(opts.body);
+    publishedReceipt=JSON.parse(Buffer.from(pushed.content,'base64').toString('utf8'));
+    return {ok:true,status:200,json:async()=>({
+     commit:{sha:'d'.repeat(40)}})};
+   }
+  }
+  if(url.pathname==='/repos/127027/Sniperbot-/commits'){
+   const p=url.searchParams.get('path'),f=remote.get(p);
+   if(!f)return {ok:false,status:404};
+   return {ok:true,status:200,json:async()=>[{sha:f.commit}]};
+  }
+  if(url.pathname.startsWith(shaPrefix)){
+   const commit=url.pathname.slice(shaPrefix.length);
+   const found=[...remote.entries()].find(([,f])=>f.commit===commit);
+   if(!found)return {ok:false,status:404};
+   return {ok:true,status:200,json:async()=>({
+    sha:commit,author:{login:'127027'},committer:{login:'127027'},
+    parents:[{sha:'e'.repeat(40)}],
+    files:[{filename:found[0],sha:found[1].blob,status:'added'}],
+    commit:{verification:{verified:false}}})};
+  }
+  throw Error('UNEXPECTED_MOCK_GITHUB_REQUEST '+uri);
+ };
+ const viaGithub=await relayGptPaperDecision({
+  token:'github_pat_MOCK_TOKEN_123456789012345',
+  localCapability:key,now:Date.now(),
+  fetcher:fetchFakeGithub,
+  localFetcher:(url,opts)=>fetch(url.replace(
+   'http://127.0.0.1:3030',base),opts)
+ });
+ assert.equal(viaGithub.status,'NO_TRADE');
+ assert.equal(viaGithub.forwarded_to_local,true);
+ assert.equal(viaGithub.owner_commit_verified,true);
+ assert.equal(viaGithub.model_signature_verified,false);
+ assert(publishedReceipt);
+ assert.equal(publishedReceipt.status,'NO_TRADE');
+ assert.equal(publishedReceipt.account_balance_or_wallet_published,false);
+ assert.equal(publishedReceipt.real_trading_enabled,false);
+ assert(!JSON.stringify(publishedReceipt).includes('cashUsdc'));
+ assert(repositoryRequests>=6);
+ assert.equal((await get('/api/gpt/paper/status')).data.received_decision_count,2);
+  const buy=await post('/api/gpt/paper-decision',envelope(decision('BUY','b'.repeat(32))));
  assert.equal(buy.code,200);
  assert.equal(buy.data.receipt.status,'BLOCKED');
  assert.equal(buy.data.receipt.reason,'GPT_FOLLOW_OR_PAPER_BOT_DISABLED');
@@ -140,7 +214,7 @@ try{
  await stop();
  await boot(port);
  status=(await get('/api/gpt/paper/status')).data;
- assert.equal(status.received_decision_count,2);
+ assert.equal(status.received_decision_count,3);
  assert.equal(status.local_gpt_bridge_ready,true);
  const afterRestart=await post('/api/gpt/paper-decision',body);
  assert.equal(afterRestart.code,200);
