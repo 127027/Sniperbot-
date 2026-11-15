@@ -598,8 +598,19 @@ function initializeWorkspaces(){
  paperHeading.remove();paperHelp.remove();
  // V0.21: a single AI research scheduler supersedes the retired Dots.
  const legacyDots=$('dotWidget');if(legacyDots)legacyDots.hidden=true;
+ const r29Panel=document.createElement('section');
+ r29Panel.className='panel section';
+ r29Panel.setAttribute('aria-label','R29 ChatGPT GitHub Windows Papier-Kurier');
+ r29Panel.innerHTML='<div class="section-heading"><h2>R29 · ChatGPT über GitHub</h2><span class="tag paper">ISOLIERTER PAPER-TEST</span></div>'+
+  '<p id="r29CourierStatus" class="subtle">Prüfe lokalen GitHub-Kurier …</p>'+
+  '<p id="r29CourierLast" class="mini-note">Noch keine geprüfte Windows-Rückmeldung.</p>'+
+  '<div class="summary-grid" style="height:auto;margin:12px 0">'+
+   '<div class="metric"><small>R29-Sandbox (TEST-USDC)</small><b id="r29Cash">–</b></div>'+
+   '<div class="metric"><small>Testpositionen</small><b id="r29Positions">–</b></div></div>'+
+  '<p class="mini-note">Diese gesonderte Sandbox ist NICHT dein bisheriges Paper-Konto. Kein Echtgeldhandel, keine OpenAI-API-Kosten. Die GitHub-ChatGPT-Aufgabenautomatisierung ist noch nicht aktiviert.</p>';
  const centralAiPanel=document.createElement('section');
  centralAiPanel.className='panel section';
+ centralAiPanel.hidden=true; // R29 replaces the optional local paid API, not the paper dashboard.
  centralAiPanel.setAttribute('aria-label','Zentrale stündliche KI und Paper-Orders');
  centralAiPanel.innerHTML='<div class="section-heading"><h2>Zentrale KI · stündliche Analyse</h2><span class="tag paper">PAPER ONLY</span></div>'+
   '<p id="centralAiStatus" class="subtle">KI-Verbindung wird geprüft …</p>'+
@@ -636,7 +647,7 @@ function initializeWorkspaces(){
  realHeading.querySelector('h2').textContent='Meine Wallet';
  realHeading.querySelector('.tag').textContent='REAL-WALLET · LIVE AUS';
  realHeading.querySelector('.tag').classList.remove('paper');
- paper.append(overview,positions,paperCash,centralAiPanel,agentPanel,lower);
+ paper.append(overview,positions,paperCash,r29Panel,centralAiPanel,agentPanel,lower);
  real.append(wallet);
  // Existing research/Dot internals remain alive but do not dominate either page.
  const routeAdvanced=document.createElement('details');
@@ -728,6 +739,24 @@ function initializeWorkspaces(){
  $('paperWorkspaceTab').onclick=()=>chooseWorkspace('paper');
  $('realWorkspaceTab').onclick=()=>chooseWorkspace('real');
  chooseWorkspace('paper');
+}
+async function refreshR29(){
+ try{
+  const response=await fetch('/api/r29/status',{cache:'no-store'});
+  const payload=await response.json();
+  if(!response.ok||payload.ok!==true)throw Error('R29 nicht erreichbar');
+  $('r29CourierStatus').textContent=payload.connected?
+   'Windows ↔ GitHub verbunden · lokaler Paper-Bot: '+
+     (payload.bot_http_healthy?'ERREICHBAR':'NICHT ERREICHBAR'):
+   'GitHub-Windows-Kurier noch NICHT verbunden: '+(payload.reason||'kein Status');
+  $('r29CourierLast').textContent=payload.checked_at_utc?
+   'Letzter lokaler Check: '+t(payload.checked_at_utc)+' · Auftrag: '+
+   (payload.last_intent_action||'noch keiner')+' · '+(payload.last_intent_result||'nicht ausgeführt'):
+   'Bitte R29-Bot mit lokal gespeichertem GitHub-PAT starten';
+  $('r29Cash').textContent=payload.cash_test_usdc===null||payload.cash_test_usdc===undefined?
+   '–':Number(payload.cash_test_usdc).toFixed(3);
+  $('r29Positions').textContent=payload.open_positions??'–';
+ }catch(e){$('r29CourierStatus').textContent='R29-Statusfehler: '+e.message}
 }
 async function refreshCentralAi(){
  try{
@@ -1602,6 +1631,7 @@ $('walletRestore').onclick=async()=>{
 };
 refreshLocalWallet();setInterval(refreshLocalWallet,60000);
 refreshAgentOrders();setInterval(refreshAgentOrders,6000);
+refreshR29();setInterval(refreshR29,15000);
 refreshCentralAi();setInterval(refreshCentralAi,15000);
 setInterval(()=>{if(!$('realWorkspace').hidden)void refreshRealBalanceView()},30000);
 refreshV09();refreshV09Readbacks();
