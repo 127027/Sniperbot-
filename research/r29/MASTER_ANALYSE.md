@@ -80,7 +80,7 @@ Die Zeitangaben im Beispiel müssen bei echter Verwendung jeweils mit dem aktuel
 
 Der Nutzer hat ausdrücklich darum gebeten, einen Kauf und Verkauf **in der normalen Paper-Positionsliste** zu sehen. Die bestehende `WINDOWS_SANDBOX` ändert dieses Konto nicht. Deshalb gilt für **genau einen** weiteren Durchlauf:
 
-1. Zuerst **lokalen Opt-in-Status** prüfen: Der Nutzer muss die neuere R29-Version mit `Sniperbot_R29_Papiertrade_Starten.bat` gestartet haben. Dieser Starter allein setzt den Schalter `-AllowR29MainPaperDemo`; die Standard-BAT erlaubt den Haupt-Paper-Trade nicht.
+1. **Historischer einmaliger R29-TEST ist ABGESCHLOSSEN.** Der Nutzer hatte den Test über den damaligen Sonderstarter freigegeben; die Sonder-BAT wurde später aus dem Repo entfernt. Der **einzige** heutige Benutzer-Starter ist `Sniperbot_Starten.bat` ohne automatische Wiederholung historischer Testaufträge. Neue allgemeine Paper-Coin-Aufträge erfordern einen gesondert geprüften und freigegebenen Signaladapter; nicht einfach das alte `MAIN_PAPER_DEMO`-Protokoll erneut ausführen.
 2. Auf GitHub muss `research/r29/channel/main-paper-status.json` mit `main_paper_demo_opt_in:true` und einem aktuellen Zeitstempel stehen. Vorher **keinen** Haupt-Paper-Auftrag ausstellen.
 3. Erst dann `research/r29/channel/main-paper-intent.json` im selben Branch mit striktem Format schreiben:
 ```json
