@@ -603,6 +603,8 @@ function initializeWorkspaces(){
  centralAiPanel.setAttribute('aria-label','Zentrale stündliche KI und Paper-Orders');
  centralAiPanel.innerHTML='<div class="section-heading"><h2>Zentrale KI · stündliche Analyse</h2><span class="tag paper">PAPER ONLY</span></div>'+
   '<p id="centralAiStatus" class="subtle">KI-Verbindung wird geprüft …</p>'+
+  '<p id="centralAiRegime" class="mini-note">Marktfilter: noch nicht geprüft</p>'+
+  '<p id="centralAiArchive" class="mini-note">R27-Quellenarchiv: Status wird geprüft …</p>'+
   '<p id="centralAiNext" class="mini-note">Nächste Analyse: –</p>'+
   '<div class="summary-grid" style="height:auto;margin:12px 0">'+
    '<div class="metric"><small>Letzte Analyse</small><b id="centralAiLast">–</b></div>'+
@@ -741,6 +743,20 @@ async function refreshCentralAi(){
   $('centralAiResult').textContent=s.last_outcome||'AUS';
   $('centralAiSummary').textContent=s.last_error?'Letzter Fehler: '+s.last_error:
    (s.last_summary||'Noch keine KI-Analyse durchgeführt.');
+  const regime=s.last_market_regime||{};
+  $('centralAiRegime').textContent='Marktfilter: '+(regime.status||'UNBEKANNT')+
+   ' · Automatische neue Käufe: '+(regime.buys_allowed===true?'zulässig nach weiterer Prüfung':'BLOCKIERT')+
+   (regime.reason?' · '+regime.reason:'');
+  try{
+   const source=await fetch('/api/r27/archive/status',{cache:'no-store'});
+   const archive=await source.json();
+   $('centralAiArchive').textContent=archive.active?
+    'R27-Quellenarchiv aktiv · letzte Aufnahme: '+t(archive.last_check_at_utc)+
+    ' · Poolbeobachtungen: '+(archive.pool_observations||0)+
+    ' · Nachrichten: '+(archive.news_headlines||0):
+    'R27-Quellenarchiv NICHT aktiv oder keine aktuelle Aufnahme'+
+     (archive.archive_error?' · '+archive.archive_error:'');
+  }catch{$('centralAiArchive').textContent='R27-Quellenarchiv nicht erreichbar'}
   const rows=Array.isArray(s.recommendations)?s.recommendations:[];
   $('centralAiRecommendations').innerHTML=rows.length?rows.slice(0,8).map(r=>
    '<div class="activity-row"><strong>'+esc(r.action)+' · '+
@@ -762,9 +778,8 @@ async function refreshAgentOrders(){
    $('agentSetupMaster').hidden=topology.topology_role!=='UNPAIRED';
   }
   $('agentSignalStatus').textContent=data.signed_publisher_configured?
-   'Signierender lokaler Agentenadapter eingerichtet. '+data.paper_filled+
-    ' bestätigte Paper-Fills. Direkter Cloud-Dot-Order-Publisher noch nicht verifiziert.':
-   'Noch kein signierender Agenten-Publisher eingerichtet. Cloud-Dot-Forschung allein autorisiert keine Orders.';
+   'Lokale signierte Paper-Kanäle bereit · '+data.paper_filled+' virtuelle Ausführungen.':
+   'Kein signierender Paper-Kanal aktiv. Die zentrale KI muss lokal gestartet sein.';
   const pipeline=data.pipeline;
   const dotStage=pipeline?.stages?.dot_research;
   const signedStage=pipeline?.stages?.signed_order_publisher;
