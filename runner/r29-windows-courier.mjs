@@ -9,6 +9,7 @@ import {R29_MAIN_INTENT_PATH,R29_MAIN_STATUS_PATH,R29_MAIN_STATUS_SCHEMA,
  processR29MainIntent,loadR29MainCycle,saveR29MainCycle,
  publicR29MainStatus} from './r29-main-paper-demo.mjs';
 import {syncAdaptivePublicPresence,syncAdaptivePublicReview} from './r29-adaptive-publisher.mjs';
+import {syncLocalPaperAutoHeartbeat} from './live-paper-public-status.mjs';
 
 const REPO='127027/Sniperbot-';
 const base='https://api.github.com/repos/'+REPO+'/contents/';
@@ -310,6 +311,9 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
       const latestReview=await syncAdaptivePublicReview({token});
       if(latestReview.published)console.log('[R29] Letzter Forschungsreview auf GitHub: ',
         latestReview.public.candidates.length+' Kandidaten, keine Paper-Orders');
+      const auto=await syncLocalPaperAutoHeartbeat({token});
+      if(auto.published)console.log('[R29] Lokaler Live-Paper-Prozessstatus zu GitHub übertragen:',
+       auto.public.last_outcome,' · Virtuelle Fills:',auto.public.confirmed_virtual_paper_fill_count);
     }catch(e) {
       console.error('[R29] Dynamischer Forschungsstatus nicht synchronisiert:',
         String(e?.message||e).slice(0,100));
