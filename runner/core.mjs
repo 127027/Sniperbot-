@@ -4,7 +4,7 @@ import {newPaperRiskLedger,recordLivePaperSellRisk} from './live-paper-risk.mjs'
 export const PAPER_EUR_TO_TEST_USDC=1; // intentionally NOT a market EUR/USD quote
 const round=(x)=>Math.round((x+Number.EPSILON)*1e8)/1e8;
 const time=()=>new Date().toISOString();
-export function freshState(){return {version:3,entriesEnabled:false,automaticPaperBuys:false,centralPaperFollow:false,
+export function freshState(){return {version:3,entriesEnabled:false,automaticPaperBuys:false,centralPaperFollow:false,gptPaperFollow:false,gptDecisionReplay:{},
  minTrade:50,maxTrade:50,portfolioBudgetUsdc:null,takeProfit:15,stopLoss:10,defaultExitMode:'HOLD',trailingPercent:25,
  cashEur:0,cashUsdc:0,positions:[],candidates:[],history:[],agentOrderReceipts:[],agentSignalReplay:{},closedPnl:0,
  paperLiveRisk:newPaperRiskLedger(),
@@ -17,7 +17,11 @@ export function action(s,a){if(!a||typeof a!=='object')return s;
  switch(a.type){
  case 'TOGGLE_BOT':return {...s,entriesEnabled:!s.entriesEnabled,history:log(s,!s.entriesEnabled?'Bot AN':'Bot AUS',!s.entriesEnabled?'Neue Paper-Einstiege erlaubt':'Neue Paper-Einstiege gestoppt, Exit-Engine bleibt aktiv')};
  case 'SET_CENTRAL_FOLLOW':return {...s,centralPaperFollow:a.enabled===true,history:log(s,'Zentrale Paper-Ausführung',a.enabled===true?'Wartet auf gültige zentrale Aufträge; fehlende Publisher/Marktadapter blockieren':'Deaktiviert')};
- case 'SET_AUTO':return {...s,automaticPaperBuys:!!a.enabled,history:log(s,'Autokauf-Modus',a.enabled?'Nur freigegebene 5-Rollen-Signale werden geprüft':'Nur manuelle Testkäufe')};
+ case 'SET_AUTO':return {...s,automaticPaperBuys:false,
+  history:log(s,'Alter lokaler Autokauf gesperrt','GPT_ONLY: nur autorisierte GitHub-Entscheidungen dürfen neue automatische Paper-Käufe auslösen')};
+ case 'SET_GPT_FOLLOW':return {...s,gptPaperFollow:a.enabled===true,
+  automaticPaperBuys:false,history:log(s,'GPT-Paper-Handelsentscheidungen',
+  a.enabled===true?'GPT-GitHub-Entscheidungen freigegeben: nur mit lokal signierter Paper-Order und Risk-Engine':'GPT-Kauf-/Verkaufsaufträge pausiert; bestehende Notfall-Exit-Regeln bleiben aktiv')};
  case 'SET_PAPER_BALANCE': {
   // Explicit total virtual balance replacement; never mint extra test funds accidentally.
   // No open positions may be discarded and entries must be paused during the reset.
@@ -90,13 +94,14 @@ export function applyExits(s){
   if(!Number.isFinite(age)||age<0||age>180000){p.quoteStatus='STALE / EXIT_UNAVAILABLE';continue}
   p.quoteStatus=p.isDemo?'SYNTHETIC':'INDICATIVE';
   p.highWaterPrice=Math.max(p.highWaterPrice||p.entryPriceUsd,p.priceUsd);
-  if(!['AUTO','TRAILING'].includes(p.exitMode))continue;
+  if(!['AUTO','TRAILING','GPT_GUARD'].includes(p.exitMode))continue;
   // Trailing is only executed for synthetic fixtures until real sell quotes exist.
   if(p.exitMode==='TRAILING'&&!p.isDemo){p.quoteStatus='EXIT_UNAVAILABLE: keine ausführbare Sell-Quote';continue}
   const pct=(p.qty*p.priceUsd*.99/p.amountUsdc-1)*100;
   const drawdown=(1-p.priceUsd/p.highWaterPrice)*100;
-  const exit=pct<=-n.stopLoss||(p.exitMode==='AUTO'?pct>=n.takeProfit:drawdown>=n.trailingPercent);
-  if(exit){const sold=action(n,{type:'SELL',id:p.id});if(sold!==n){n=sold;n={...n,history:log(n,'AUTO-EXIT trotz Bot '+(n.entriesEnabled?'AN':'AUS'),`${p.symbol}: ${pct.toFixed(2)}% simuliert (${p.exitMode})`)}}}
+  const exit=pct<=-n.stopLoss||(p.exitMode==='AUTO'?pct>=n.takeProfit:
+   p.exitMode==='TRAILING'?drawdown>=n.trailingPercent:false);
+  if(exit){const sold=action(n,{type:'SELL',id:p.id});if(sold!==n){n=sold;n={...n,history:log(n,p.exitMode==='GPT_GUARD'?'GPT-NOTFALL-STOP':'AUTO-EXIT trotz Bot '+(n.entriesEnabled?'AN':'AUS'),`${p.symbol}: ${pct.toFixed(2)}% simuliert (${p.exitMode})`)}}}
  }
  return n;
 }
