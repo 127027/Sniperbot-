@@ -13,14 +13,14 @@ const DEFAULT_STOP_FRACTION=0.1;
 const MAX_DAILY_LOSS=0.01;
 const MAX_WEEKLY_LOSS=0.025;
 
-export function paperAutoEquity(state){
+export function paperAutoEquity(state,{now=Date.now()}={}){
  if(!state||!Array.isArray(state.positions)||
   !numeric(state.cashEur)||!numeric(state.cashUsdc)||state.cashEur<0||state.cashUsdc<0)
   return null;
  let total=state.cashEur+state.cashUsdc;
  for(const p of state.positions){
   if(!numeric(p.qty)||p.qty<=0||!numeric(p.priceUsd)||p.priceUsd<=0||
-   !Number.isFinite(Date.parse(p.markAt))||Date.now()-Date.parse(p.markAt)>180000)
+   !Number.isFinite(Date.parse(p.markAt))||now-Date.parse(p.markAt)>180000)
    return null; // incomplete mark-to-market must never be treated as safe cash
   total+=p.qty*p.priceUsd*0.99;
  }
@@ -39,7 +39,7 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
     state?.automaticPaperBuys!==true)return result('BLOCKED','PAPER_AUTOPILOT_NOT_OPTED_IN');
  const b=portfolioBudget(state);
  if(!b.valid)return result('BLOCKED','INVALID_PORTFOLIO_BUDGET');
- const equity=paperAutoEquity(state);
+ const equity=paperAutoEquity(state,{now});
  if(!numeric(equity)||equity<50)return result('BLOCKED','CANNOT_VALUE_EQUITY_FRESHLY');
  if(!['base','eth','bsc'].includes(candidate?.chain)||
   !validTokenAddress(candidate.chain,candidate.token_address)||
@@ -80,7 +80,7 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
  const remaining=equity*MAX_TOTAL_SHARE-occupied;
  const maxByRisk=equity*MAX_RISK_FRACTION/(DEFAULT_STOP_FRACTION+0.02);
  const maxByLiquidity=quote.liquidityUsd*0.005; // impact proxy; not executable
- const max= floorCents(Math.min(50,maxByNominal,remaining,
+ const max= floorCents(Math.min(5000,maxByNominal,remaining,
   maxByRisk,maxByLiquidity,b.free_to_allocate_test_usdc));
  if(max<50)return result('BLOCKED','MIN_ORDER_CONFLICTS_WITH_RISK_LIMITS',0,equity);
  // A missing dated trade ledger cannot establish daily and weekly loss limits.
