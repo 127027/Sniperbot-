@@ -16,7 +16,7 @@ const canonicalId=c=>c.chain+':'+c.poolAddress;
 const bounded=(n,min,max)=>Number.isFinite(n)&&n>=min&&n<=max;
 const asof=(t,now)=>Number.isFinite(Date.parse(t))&&Date.parse(t)<=now&&now-Date.parse(t)<=MAX_AGE_MS;
 const same=(a,b,chain)=>chain==='solana'?a===b:a?.toLowerCase()===b?.toLowerCase();
-export function snapshotForAi(state,candidates,news,{now=Date.now(),realWallet=null}={}){
+export function snapshotForAi(state,candidates,news,{now=Date.now(),realWallet=null,marketRegime=null}={}){
  const positions=(state.positions||[]).slice(0,20).map(p=>({
   candidate_id:canonicalId(p),chain:p.chain,token_address:p.tokenAddress,pool_address:p.poolAddress,
   symbol:p.symbol,entry_price_usd:p.entryPriceUsd,last_indicative_price_usd:p.priceUsd,
@@ -41,6 +41,10 @@ export function snapshotForAi(state,candidates,news,{now=Date.now(),realWallet=n
    portfolio_budget_test_usdc:state.portfolioBudgetUsdc,
    min_order_test_usdc:state.minTrade,max_order_test_usdc:state.maxTrade,
    closed_pnl_test_usdc:state.closedPnl,positions},
+  market_regime:marketRegime?.schema==='r27_market_regime.v1'?{
+   status:marketRegime.status,buys_allowed:marketRegime.buys_allowed===true,
+   reason:marketRegime.reason,observed_at_utc:marketRegime.observed_at_utc,
+   evidence:marketRegime.evidence}: {status:'UNKNOWN',buys_allowed:false,reason:'NO_VERIFIED_BENCHMARK_DATA'},
   real_wallet:realWallet?.verified===true?{
    read_only:true,connected:true,network:'solana-mainnet',
    observed_sol:realWallet.sol_display,observed_usdc:realWallet.usdc_display,
@@ -86,7 +90,7 @@ export function planRecommendations(input,advice,{webSearchUsed=false}={}){
   reviews.push({candidate_id,action,score_0_100,portfolio_pct,reason:reason.slice(0,500),
     sources:source_urls.slice(0,4)});
   if(action==='BUY'){
-   if(!webSearchUsed||!candidate||position||score_0_100<80||
+   if(input.market_regime?.buys_allowed!==true||!webSearchUsed||!candidate||position||score_0_100<80||
      portfolio_pct<=0||portfolio_pct>20||source_urls.length===0||
      !input.paper.central_follow_enabled||!input.paper.entries_enabled||
      bought>=2)continue;
@@ -162,7 +166,8 @@ export async function requestCentralAiAdvice(input,{apiKey,model='gpt-4.1-mini',
  }finally{clearTimeout(timeout)}
 }
 export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,submit,
- scan,collectNews,collectRealWallet=async()=>null,fetcher=fetch,initialDelayMs=30000,intervalMs=INTERVAL_MS}){
+ scan,collectNews,collectMarketRegime=async()=>({status:'UNKNOWN',buys_allowed:false}),
+ collectRealWallet=async()=>null,fetcher=fetch,initialDelayMs=30000,intervalMs=INTERVAL_MS}){
  if(!/^device_[a-f0-9]{32}$/.test(deviceId||'')||
   typeof getState!=='function'||typeof submit!=='function'||
   typeof scan!=='function'||typeof collectNews!=='function')
@@ -175,6 +180,7 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
   live_trading_enabled:false,remote_chat_session_connected:false,
   last_run_utc:null,last_outcome:'PENDING',next_due_utc:null,model:null,
   last_error:null,last_summary:null,recommendations:[],receipts:[],
+  last_market_regime:null,
   real_wallet_reported:false};
  let busy=false,stopped=false,timer=null;
  function persist(){
@@ -189,9 +195,11 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
   status.last_error=null;status.last_outcome='RUNNING';status.receipts=[];status.recommendations=[];
   persist();
   try{
-   const [market,news,realWallet]=await Promise.all([scan(),collectNews(),
-    Promise.resolve().then(()=>collectRealWallet()).catch(()=>({verified:false,reason:'READ_ONLY_RPC_UNAVAILABLE'}))]);
-   const input=snapshotForAi(getState(),market.results,news,{now:Date.now(),realWallet});
+   const [market,news,realWallet,marketRegime]=await Promise.all([scan(),collectNews(),
+    Promise.resolve().then(()=>collectRealWallet()).catch(()=>({verified:false,reason:'READ_ONLY_RPC_UNAVAILABLE'})),
+    Promise.resolve().then(()=>collectMarketRegime()).catch(()=>({status:'UNKNOWN',buys_allowed:false,reason:'R27_REGIME_UNAVAILABLE'}))]);
+   const input=snapshotForAi(getState(),market.results,news,{now:Date.now(),realWallet,marketRegime});
+   status.last_market_regime=input.market_regime;
    status.real_wallet_reported=realWallet?.verified===true;
    if(input.candidates.length===0&&input.paper.positions.length===0){
     status.last_outcome='NO_CANDIDATES';status.last_summary='Keine verfügbaren Kandidaten oder offenen Positionen';
