@@ -89,10 +89,13 @@ export async function syncR29MainChannel({token,folder,fetcher=fetch,
  check(token);
  if(typeof folder!=='string'||!path.isAbsolute(folder))throw Error('R29_MAIN_BAD_FOLDER');
  const filename=path.join(folder,'main-paper-demo-cycle.json');
- let cycle=loadR29MainCycle(filename),receipt=null,error=null;
+ let cycle=loadR29MainCycle(filename),error=null;
+ // After completion, preserve the last verified receipt and never poll an
+ // expired old BUY/SELL as a new order. The one-shot UI test stays finished.
+ let receipt=cycle.records[cycle.sell_intent_id||cycle.buy_intent_id]||null;
  try{
   const remote=(await requestGithubFile(R29_MAIN_INTENT_PATH,{token,fetcher})).data;
-  if(remote?.target==='MAIN_PAPER_DEMO'){
+  if(remote?.target==='MAIN_PAPER_DEMO'&&!cycle.completed){
    const outcome=await processR29MainIntent(cycle,remote,{now,fetcher:healthFetcher});
    cycle=outcome.cycle;receipt=outcome.receipt;
    if(!outcome.duplicate)saveR29MainCycle(filename,cycle);
@@ -228,15 +231,20 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
  const tick=async()=>{
   if(stopped)return;
   try{
-   const r=await syncR29WindowsSandbox({token,folder});
-   console.log('[R29] GitHub-Sandbox-Kanal OK:',r.status.last_intent_result||'kein neuer');
+   // Retired R29 isolated-budget experiment: no default polling, mutations,
+   // or second active account. The immutable QA test evidence remains in Git.
    if(process.env.SNIPER_R29_MAIN_PAPER_DEMO==='1'){
     const main=await syncR29MainChannel({token,folder,enabled:true});
-    console.log('[R29] Normales PAPER-Demo:',main.status.last_action||'bereit',
-     main.status.last_result||'noch kein Auftrag',main.status.error||'');
+    console.log('[R29] Normales Paper-Konto: ',main.status.last_action||'wartet',
+     main.status.last_result||'kein Trade',main.status.error||'');
+   }else if(process.env.SNIPER_R29_LEGACY_QA==='1'){
+    await syncR29WindowsSandbox({token,folder});
+    console.log('[R29] ARCHIVIERTE QA-Sandbox (nur explizite Diagnose)');
+   }else{
+    console.log('[R29] GitHub-Kurier bereit; kein Haupt-Paper-Auftrag freigegeben.');
    }
   }catch(e){
-   console.error('[R29] GitHub-PAPER-Sandbox-Verbindung fehlgeschlagen:',
+   console.error('[R29] GitHub-Paper-Kurier-Verbindung fehlgeschlagen:',
     String(e?.message||e).slice(0,110));
   }
   if(!stopped)timer=setTimeout(tick,POLL_INTERVAL_MS);
