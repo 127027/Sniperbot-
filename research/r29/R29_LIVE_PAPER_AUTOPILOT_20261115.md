@@ -1,3 +1,6 @@
+> **HISTORISCHE ENTWICKLUNGSDOKUMENTATION – unter dem aktuellen Standardstart NICHT mehr aktiv.**
+> Seit 15.11.2026 ist der frühere lokal regelbasierte Strategiebot unter `Sniperbot_Starten.bat` ausdrücklich deaktiviert (`SNIPER_PAPER_AUTOPILOT=0`). Nur die GPT-GitHub-Entscheidungen dürfen einen automatischen Paper-Trade auslösen. Maßgeblich ist jetzt `research/r29/gpt-strategy/GPT_GITHUB_PAPER_RUNBOOK_DE.md`. Die folgende Beschreibung bleibt ausschließlich zur Nachvollziehbarkeit der alten Experimente erhalten.
+
 # R29 – Autonomes Live-Paper-Trading auf echten Marktdaten
 
 **Datum: 15.11.2026 · Status: Code/Offline-Tests, noch KEIN auf diesem Windows-Laptop bestätigter Live-Paper-Fill.**
