@@ -10,7 +10,7 @@ const uid=(c)=>c?.chain+':'+c?.pool_address;
 const idOf=x=>x?.chain+':'+x?.poolAddress;
 export function sanitizeR27CollectorSnapshot(record,{now=Date.now()}={}){
  const empty={status:'NO_FRESH_PUBLIC_LOCAL_SNAPSHOT',candidates:[],
-  alerts:[],narratives:[],coverage:[],independently_verified_social:false,
+  alerts:[],narratives:[],exit_reviews:[],coverage:[],independently_verified_social:false,
   sellability_verified:false};
  if(!record||record.schema!=='research_market_snapshot.v1'||
   record.paper_only!==true||record.actionable!==false||
@@ -47,6 +47,17 @@ export function sanitizeR27CollectorSnapshot(record,{now=Date.now()}={}){
    liquidity_usd:valid(a.current_liquidity_usd)?a.current_liquidity_usd:null,
    source_urls:(a.source_urls||[]).map(url).filter(Boolean).slice(0,3),
    valid_historical_social_proof:false}));
+ const exitReviews=(record.r27_exit_reviews||[]).filter(a=>a?.actionable===false&&
+  a.paper_only===true&&a.recommended_action==='REVIEW_PAPER_POSITION_FOR_SELL'&&
+  allow.has(a.chain+':'+a.pool_address)&&
+  Number.isFinite(Date.parse(a.source_at_utc))&&now-Date.parse(a.source_at_utc)>=0&&
+  now-Date.parse(a.source_at_utc)<=MAX_AGE).slice(0,24).map(a=>({
+   candidate_id:a.chain+':'+a.pool_address,
+   type:'NON_EXECUTABLE_SELL_RISK_REVIEW',
+   reason:a.reason,observed_at_utc:a.source_at_utc,
+   price_decline_pct:a.indicative_price_decline_pct,
+   liquidity_decline_pct:a.indicative_liquidity_decline_pct,
+   sellability_verified:false,actual_order:false}));
  const narratives=(record.narrative_leads||[]).filter(a=>a?.actionable===false&&
   a.paper_only===true&&a.candidate_id&&a.pool_address&&
   allow.has(a.chain+':'+a.pool_address)).slice(0,24).map(a=>({
@@ -56,7 +67,7 @@ export function sanitizeR27CollectorSnapshot(record,{now=Date.now()}={}){
    organic_social_verified:false,
    source_urls:(a.source_urls||[]).map(url).filter(Boolean).slice(0,3)}));
  return {...empty,status:'FRESH_PUBLIC_LOCAL_SNAPSHOT',candidates:out.slice(0,96),
-  alerts,narratives,
+  alerts,narratives,exit_reviews:exitReviews,
   coverage:(record.coverage||[]).slice(0,8).map(c=>({
    chain:c.chain,source:c.source,status:c.status,pages_ok:c.pages_ok||0})),
   snapshot_at_utc:record.published_at_utc};
@@ -67,7 +78,7 @@ export async function loadR27EarlyContext({filename,now=Date.now()}={}){
   if(bytes.length>MAX_BYTES)throw Error('R27_LOCAL_CONTEXT_OVERSIZED');
   return sanitizeR27CollectorSnapshot(JSON.parse(bytes.toString('utf8')),{now});
  }catch(e){return {status:'UNAVAILABLE_'+(e.code||e.message||'UNKNOWN').slice(0,60),
-  candidates:[],alerts:[],narratives:[],coverage:[],
+  candidates:[],alerts:[],narratives:[],exit_reviews:[],coverage:[],
   independently_verified_social:false,sellability_verified:false}}
 }
 export function mergeR27Candidates(existing,early){
