@@ -7,7 +7,8 @@ param(
   [switch]$WithResearchCollector,
   [switch]$WithCentralAI,
   [switch]$ResetAiKey,
-  [switch]$WithR29
+  [switch]$WithR29,
+  [switch]$AllowR29MainPaperDemo
 )
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -199,6 +200,7 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
   $info.EnvironmentVariables.Remove('SNIPER_OPENAI_API_KEY')
   $info.EnvironmentVariables.Remove('SNIPER_CENTRAL_AI_ENABLED')
   $info.EnvironmentVariables.Remove('SNIPER_R29_GITHUB_TOKEN')
+  $info.EnvironmentVariables.Remove('SNIPER_R29_MAIN_PAPER_DEMO')
   if($role -eq 'BOT') {
     if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){
       $aiSecret=Read-AiKey
@@ -228,6 +230,7 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
     # No additional R29 PAT file and no second token prompt.
     $researchSecret=Read-ResearchToken
     $info.EnvironmentVariables['SNIPER_R29_GITHUB_TOKEN']=$researchSecret
+    $info.EnvironmentVariables['SNIPER_R29_MAIN_PAPER_DEMO']=$(if($AllowR29MainPaperDemo){'1'}else{'0'})
     $researchSecret=$null
   }
   $proc = New-Object Diagnostics.Process
@@ -354,6 +357,7 @@ try {
   if(!$created){throw 'SNIPERBOT_ALREADY_STARTED: Zuerst die vorhandene zentrale Konsole schliessen.'}
   $ownsMutex=$true
   Assert-PortAvailable
+  if($AllowR29MainPaperDemo -and !$WithR29){throw 'R29 Paper-Demotest nur zusammen mit -WithR29 erlaubt.'}
   if($WithResearchCollector -or $WithR29){Initialize-ResearchToken}
   elseif($ResetToken){throw 'ResetToken nur im Forschungs-Collector- oder R29-Modus verwenden.'}
   if($WithCentralAI){[void](Initialize-AiKey)}
@@ -383,8 +387,11 @@ try {
   Write-Host '[OK] Lokaler Bot sichtbar gestartet; keine Anmeldung an GitHub erforderlich.' -ForegroundColor Green
   if($WithResearchCollector){Write-Host '[OPTIONAL] Separater Markt-Collector explizit gestartet.'}
   if($WithR29){
-    if($null -ne $r29Courier){Write-Host '[R29] GitHub-Pipeline AKTIV (nur isoliertes Papier)' -ForegroundColor Green}
+    if($null -ne $r29Courier){Write-Host '[R29] GitHub-Pipeline AKTIV (Standard: nur isoliertes Papier)' -ForegroundColor Green}
     else {Write-Host '[R29] GitHub-Pipeline AUS (kein GitHub Token)' -ForegroundColor Yellow}
+    if($AllowR29MainPaperDemo) {
+      Write-Host '[R29] EINMALIGER ChatGPT-Demo-KAUF/-VERKAUF im sichtbaren normalen Paper-Konto erlaubt: max. 50 TEST-USDC, NUR TEST!' -ForegroundColor Yellow
+    }
   }
   if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){
     Write-Host '[AI] EIN stündlicher lokaler Forschungsprozess aktiviert, nur PAPER.' -ForegroundColor Green
