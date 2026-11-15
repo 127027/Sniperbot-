@@ -433,7 +433,7 @@ async function getCourierStatus(){
   const presence=await request('/api/r29/presence');
   $('diagCourier').textContent=presence.connected?
    'GitHub-Kurier verbunden · Paper-Bot erreichbar · '+stamp(presence.checked_at_utc)+
-     ' · automatische Meme-Orders noch nicht freigegeben':
+     ' · GPT-Paper-Aufträge nur nach expliziter Freigabe und unabhängigem Risiko-Check':
    'GitHub-Kurier nicht bestätigt ('+(presence.reason||
     'keine frische Verbindung oder Paper-Bot offline')+')';
  }catch(e){$('diagCourier').textContent='GitHub-Verbindung nicht überprüfbar: '+e.message;}
