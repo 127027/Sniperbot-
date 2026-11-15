@@ -395,6 +395,8 @@ const server=createServer(async(req,res)=>{
   return reply(res,200,{ok:true,schema:'sniper_r29_gpt_public_position_context.v1',
    mode:'PAPER_ONLY',real_trading_enabled:false,
    account_balances_excluded:true,position_amounts_excluded:true,
+   gpt_follow_enabled:state.gptPaperFollow===true,
+   paper_bot_enabled:state.entriesEnabled===true,
    as_of_utc:new Date().toISOString(),positions});
  }
  if(req.method==='GET'&&route==='/api/central-ai/status')return reply(res,200,{ok:true,
