@@ -303,7 +303,7 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
    }else{
     const presence=await syncR29RegularPresence({token,folder});
     console.log('[R29] EINE Startdatei / regulärer Paper-Kurier:',presence.status.local_paper_http_healthy?
-     'Bot erreichbar':'Bot nicht erreichbar','· GitHub Heartbeat OK · keine automatischen Orders');
+     'Bot erreichbar':'Bot nicht erreichbar','· GitHub Heartbeat OK · GPT-only Paper-Aufträge mit gesonderter Freigabe');
     // Research-only bridge is completely separate from the Paper ledger.
     // Missing market archive must never block normal GitHub heartbeat.
     try {
