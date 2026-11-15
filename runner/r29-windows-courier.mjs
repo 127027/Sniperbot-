@@ -8,7 +8,7 @@ import {initialR29Ledger,applyR29SandboxIntent,projectR29SandboxState,
 import {R29_MAIN_INTENT_PATH,R29_MAIN_STATUS_PATH,R29_MAIN_STATUS_SCHEMA,
  processR29MainIntent,loadR29MainCycle,saveR29MainCycle,
  publicR29MainStatus} from './r29-main-paper-demo.mjs';
-import {syncAdaptivePublicPresence} from './r29-adaptive-publisher.mjs';
+import {syncAdaptivePublicPresence,syncAdaptivePublicReview} from './r29-adaptive-publisher.mjs';
 
 const REPO='127027/Sniperbot-';
 const base='https://api.github.com/repos/'+REPO+'/contents/';
@@ -306,6 +306,10 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
       const research=await syncAdaptivePublicPresence({token});
       if(research.published)console.log('[R29] Dynamische Forschung auf GitHub aktualisiert: ',
         research.public.frequency_per_day+' Analysen/Tag, KEINE Orders');
+      // Only whitelisted, tamper-checked public candidate evidence, never user account.
+      const latestReview=await syncAdaptivePublicReview({token});
+      if(latestReview.published)console.log('[R29] Letzter Forschungsreview auf GitHub: ',
+        latestReview.public.candidates.length+' Kandidaten, keine Paper-Orders');
     }catch(e) {
       console.error('[R29] Dynamischer Forschungsstatus nicht synchronisiert:',
         String(e?.message||e).slice(0,100));
