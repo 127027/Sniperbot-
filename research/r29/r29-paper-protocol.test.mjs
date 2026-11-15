@@ -4,7 +4,8 @@ import {
  R29_SCHEMA,R29_TEST_ASSET,initialR29Ledger,projectR29SandboxState,
  applyR29SandboxIntent,validateR29Intent
 } from './r29-paper-protocol.mjs';
-const at=Date.parse('2026-11-15T12:00:00Z');
+// The core paper ledger checks the actual system clock, not a mocked future clock.
+const at=Date.now()-1000;
 const iso=t=>new Date(t).toISOString();
 const make=(action='BUY',id='1',extra={})=>({
  schema:R29_SCHEMA,intent_id:'r29_'+id.repeat(32),
