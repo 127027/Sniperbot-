@@ -50,7 +50,7 @@ jobs:
           $tokens=$null
           $parseErrors=$null
           [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'runner/windows-supervisor.ps1').Path,[ref]$tokens,[ref]$parseErrors) | Out-Null
-          if($parseErrors.Count -gt 0) { $parseErrors | ForEach-Object { Write-Error $_.Message }; exit 1 }
+          if($parseErrors.Count -gt 0) { $parseErrors | ForEach-Object { Write-Host ('PS_PARSE_ERROR '+$_.Extent.StartLineNumber+':'+$_.Extent.StartColumnNumber+' '+$_.Message+' >> '+$_.Extent.Text) }; exit 1 }
           Write-Host 'WINDOWS_SUPERVISOR_V021_PARSING_OK'
       - name: R27 strict historical evidence, 615 frequency clocks, sealed AI, market gate and prospective capture (offline mocks)
         run: node --test research/r27/r27.test.mjs research/r27/r27-source-probe.test.mjs runner/r27-early-bridge.test.mjs runner/r27-exit-review.test.mjs
