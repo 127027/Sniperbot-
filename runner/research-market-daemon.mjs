@@ -1,6 +1,7 @@
 // Optional local 24/7 read-only research process. Never imports trade/order state.
 // Local cache: .local/research-market/. Automatic cleanup ONLY inside its history/ folder.
 import {collectSnapshot,writeSnapshot} from './research-market-collector.mjs';
+import {appendR27Capture} from './r27-prospective-capture.mjs';
 import {runFollowups} from './memecoin-followups.mjs';
 import {detectEarlyMarketAcceleration} from './research-hype-triggers.mjs';
 import {collectNarrativeLeads} from './research-narrative-radar.mjs';
@@ -29,6 +30,8 @@ const latestFile=path.join(cache,'latest.json');
 const followupFile=path.join(root,'.local','research-learning','pools.json');
 const alertFile=path.join(root,'.local','research-learning','market-alerts.json');
 const newsFile=path.join(root,'.local','research-learning','news-captures.json');
+const r27ArchiveFolder=path.join(process.env.LOCALAPPDATA||path.join(root,'.local'),
+ 'MemeSniperPaper','r27-evidence','captures');
 const readbackFile=path.join(root,'.local','research-learning','pool-readbacks','latest.json');
 
 async function atomicJson(filename,value){
@@ -146,6 +149,13 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
   // Poll feeds at most every 15 min; retain first local capture for later replay.
   try{news=await updateLocalNewsJournal({filename:newsFile,fetcher,now})}
   catch(e){newsError=String(e?.message||'NEWS_JOURNAL_UNAVAILABLE').replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,95)}
+  // Prospective evidence: capture the exact public data first seen by THIS
+  // collector, without modifying any existing historical or paper portfolio.
+  // Deliberately never backdate the capture to a source's claimed publish time.
+  let r27Capture=null,r27ArchiveError=null;
+  try{r27Capture=await appendR27Capture(snapshot,news,{
+    folder:r27ArchiveFolder,now});}
+  catch(e){r27ArchiveError=String(e?.message||'R27_ARCHIVE_ERROR').slice(0,100)}
   if(success){
     let previous=null;
     try{previous=JSON.parse(await readFile(latestFile,'utf8'))}
@@ -195,6 +205,10 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     candidate_count:snapshot.candidates.length,
     coverage:snapshot.coverage,history:clean,followups,followup_error:followupError,
     narrative_radar:{lead_count:narrative.leads.length,coverage:narrative.coverage,error:narrativeError},
+    r27_archive:{mode:'APPEND_ONLY_LOCAL_FIRST_SEEN',created:r27Capture?.created===true,
+      observations:r27Capture?.pools||0,headlines:r27Capture?.headlines||0,
+      sha256:r27Capture?.sha256_payload||null,error:r27ArchiveError,
+      independent_asof_verification:false},
     news_radar:{last_check_at_utc:news.checked_at_utc??null,
       public_news_leads:news.leads.length,new_local_events:news.new_saved_events,
       local_archive_count:news.stored_events,coverage:news.coverage,error:newsError},
