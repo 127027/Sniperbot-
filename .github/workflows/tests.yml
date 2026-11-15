@@ -87,6 +87,10 @@ jobs:
         run: node --test runner/dynamic-research-scheduler.test.mjs runner/dynamic-research-outcomes.test.mjs runner/r29-adaptive-publisher.test.mjs runner/r29-adaptive-review.test.mjs
       - name: R29 adaptive module syntax, collector and courier wiring
         run: node --check runner/dynamic-research-scheduler.mjs && node --check runner/dynamic-research-outcomes.mjs && node --check runner/r29-adaptive-publisher.mjs && node --check runner/research-market-daemon.mjs && node --check runner/r29-windows-courier.mjs
+      - name: R29 independent free security evidence research for GPT, fail-closed and bounded provider calls
+        run: node --test runner/gpt-paper-security-research.test.mjs
+      - name: R29 public security evidence read-only syntax
+        run: node --check runner/gpt-paper-security-research.mjs
       - name: R29 GPT-only authenticated GitHub -> signed local paper BUY SELL, replay, no-cost and privacy checks
         run: node --test runner/gpt-paper-bridge.test.mjs runner/gpt-paper-github-relay.test.mjs
       - name: R29 GPT-only decision, owner-attributed courier, local risk and dashboard syntax
