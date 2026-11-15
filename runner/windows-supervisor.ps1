@@ -21,6 +21,7 @@ $ownsMutex = $false
 $bot = $null
 $market = $null
 $r29Courier = $null
+$script:GptBridgeKey = $null
 
 # On Windows, closing the one terminal releases the job handle and kills BOTH children.
 # Explicit Q shutdown sends a private stdin message first, allowing portfolio save.
@@ -201,6 +202,11 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
   $info.EnvironmentVariables.Remove('SNIPER_CENTRAL_AI_ENABLED')
   $info.EnvironmentVariables.Remove('SNIPER_R29_GITHUB_TOKEN')
   $info.EnvironmentVariables.Remove('SNIPER_R29_MAIN_PAPER_DEMO')
+  $info.EnvironmentVariables.Remove('SNIPER_GPT_BRIDGE_SECRET')
+  $info.EnvironmentVariables.Remove('SNIPER_AGENT_PAPER_FEED')
+  if(($role -eq 'BOT' -or $role -eq 'R29') -and $script:GptBridgeKey) {
+    $info.EnvironmentVariables['SNIPER_GPT_BRIDGE_SECRET'] = $script:GptBridgeKey
+  }
   if($role -eq 'BOT') {
     if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){
       $aiSecret=Read-AiKey
@@ -212,7 +218,11 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
     $info.EnvironmentVariables['SNIPER_RESEARCH_READ'] = $(if($WithResearchCollector){'1'}else{'0'})
     $info.EnvironmentVariables['SNIPER_LOCAL_DISCOVERY'] = '0'
     # No-cost, local, Paper-only decision supervisor. Requires BOTH user UI toggles.
-    $info.EnvironmentVariables['SNIPER_PAPER_AUTOPILOT'] = '1'
+    # Sole strategist is the GitHub research GPT. The former self-selecting
+    # local BUY algorithm is permanently disabled under the canonical launcher.
+    $info.EnvironmentVariables['SNIPER_PAPER_AUTOPILOT'] = '0'
+    $info.EnvironmentVariables['SNIPER_GPT_PAPER_BRIDGE'] = '1'
+    $info.EnvironmentVariables['SNIPER_AGENT_PAPER_FEED'] = '0'
   }
   if($role -eq 'MARKET') {
     # The R27 local first-seen archive requires NO GitHub token. Only the
@@ -364,6 +374,13 @@ try {
   elseif($ResetToken){throw 'ResetToken nur im Forschungs-Collector- oder R29-Modus verwenden.'}
   if($WithCentralAI){[void](Initialize-AiKey)}
   elseif($ResetAiKey){throw 'ResetAiKey nur im zentralen KI-Modus verwenden.'}
+  # Fresh in-memory capability shared ONLY with the paper server and GitHub
+  # courier. No additional paid API key, GitHub write, file or user prompt.
+  $bytes = New-Object byte[] 32
+  $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+  try {$rng.GetBytes($bytes)} finally {$rng.Dispose()}
+  $script:GptBridgeKey = [BitConverter]::ToString($bytes).Replace('-','').ToLowerInvariant()
+  [Array]::Clear($bytes,0,$bytes.Length)
   $job=[SniperWindowsJob]::OpenKillOnClose()
   $bot=Start-Child 'BOT' 'runner/server.mjs' $node $job
   if($WithResearchCollector -or $WithR29 -or ($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile))){
@@ -389,6 +406,7 @@ try {
   Write-Host '[OK] Lokaler Bot sichtbar gestartet; keine Anmeldung an GitHub erforderlich.' -ForegroundColor Green
   if($WithResearchCollector){Write-Host '[OPTIONAL] Separater Markt-Collector explizit gestartet.'}
   if($WithR29){
+    Write-Host '[GPT] Nur ChatGPT-GitHub-Entscheidungen koennen die Paper-Strategie ausloesen; lokal bleibt die Risk Engine.' -ForegroundColor Green
     if($null -ne $r29Courier){Write-Host '[R29] GitHub-Pipeline AKTIV (Standard: nur isoliertes Papier)' -ForegroundColor Green}
     else {Write-Host '[R29] GitHub-Pipeline AUS (kein GitHub Token)' -ForegroundColor Yellow}
     if($AllowR29MainPaperDemo) {
