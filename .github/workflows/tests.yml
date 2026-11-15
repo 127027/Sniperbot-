@@ -33,6 +33,10 @@ jobs:
         run: node --test runner/r28-connection-diagnostic.test.mjs
       - name: R28 real offline local HTTP bot-API-signature handshake (disposable dir)
         run: node runner/r28-local-http-e2e.mjs
+      - name: R29 ChatGPT -> GitHub -> isolated signed paper BUY/SELL protocol tests
+        run: node --test research/r29/r29-paper-protocol.test.mjs
+      - name: R29 isolated GitHub courier sandbox syntax
+        run: node --check research/r29/r29-paper-protocol.mjs && node --check research/r29/r29-ci-process-intent.mjs
       - name: R28 local connection CLI and cycle audit syntax
         run: node --check runner/r28-connection-diagnostic.mjs && node --check runner/r28-cycle-audit.mjs
       - name: V0.21 coordinator syntax and dashboard smoke
