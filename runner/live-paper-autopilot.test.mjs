@@ -1,11 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {generateKeyPairSync} from 'node:crypto';
+import {mkdtempSync,readFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
 import {freshState} from './core.mjs';
 import {applyAgentSignal} from './paper-agent-pipeline.mjs';
 import {assessEvmSecurityRaw} from './live-paper-security.mjs';
 import {r29LivePaperEntryGate,recordLivePaperSellRisk} from './live-paper-risk.mjs';
-import {signLocalPaperAutopilot,choosePaperOpportunities,
+import {signLocalPaperAutopilot,choosePaperOpportunities,startLocalPaperAutopilot,
  shouldSellPaperAutopilot} from './live-paper-autopilot.mjs';
 
 const token='0x'+'a'.repeat(40),pool='0x'+'b'.repeat(40),now=Date.now();
@@ -129,4 +132,53 @@ test('market scanner never upgrades unverified news/promoted token into order',(
  assert.equal(choosePaperOpportunities({...snapshot,candidates:[
   {...first,promotion_biased:true}]},{now}).length,0);
  assert.equal(choosePaperOpportunities(snapshot,{now:now+400000}).length,0);
+});
+
+test('full local service: fresh public research -> independent safety -> signed Paper BUY -> sell after repricing',async()=>{
+ const dataDir=mkdtempSync(path.join(tmpdir(),'r29-local-paper-'));
+ let state=ledger(),newPrice=.02;
+ const feed={schema:'research_market_snapshot.v1',paper_only:true,actionable:false,
+  published_at_utc:new Date(now).toISOString(),
+  collection_status:'OBSERVED_OR_PARTIAL',candidates:[{
+   ...cand(),observed_at_utc:new Date(now).toISOString(),
+   liquidity_usd:120000,volume_m5_usd:14000,buys_m5:57,sells_m5:18
+  }]};
+ try{
+  const worker=startLocalPaperAutopilot({
+   deviceId,dataDir,getState:()=>state,
+   intervalMs:60000,initialDelayMs:60000,now:()=>Date.now(),
+   readMarket:()=>({ok:true,reason:'FRESH_LOCAL_PUBLIC_SNAPSHOT',snapshot:feed}),
+   lookup:async()=>quote(newPrice),
+   securityCheck:async()=>security(),
+   submit:async(command,options)=>{
+    const result=applyAgentSignal(state,command,options.localTrust,{
+      deviceId,now:Date.now(),source:options.source,
+      quote:options.qaQuote,paperAutopilotCandidate:options.paperAutopilotCandidate,
+      securityEvidence:options.securityEvidence});
+    state=result.next;return {ok:true,receipt:result.receipt};
+   }
+  });
+  try{
+   const first=await worker.runOnce();
+   assert.equal(first.status,'PAPER_FILLED');
+   assert.equal(state.positions.length,1);
+   assert.equal(state.cashUsdc,4950);
+   assert.equal(worker.status().paper_fills_confirmed,1);
+   newPrice=.026;
+   const second=await worker.runOnce();
+   assert.equal(second.status,'PAPER_FILLED');
+   assert.equal(state.positions.length,0);
+   assert.equal(worker.status().paper_fills_confirmed,2);
+   assert(state.cashUsdc>5000);
+   assert(state.paperLiveRisk.day_realized_pnl>0);
+   const third=await worker.runOnce();
+   assert.equal(third.status,'NO_VERIFIED_SAFE_ENTRY');
+   assert.equal(third.reasons[0].reason,'REENTRY_COOLDOWN_12H');
+   assert.equal(state.positions.length,0);
+   const status=JSON.parse(readFileSync(path.join(dataDir,'live-paper-autopilot','latest.json'),'utf8'));
+   assert.equal(status.live_trading_enabled,false);
+   assert.equal(status.actual_wallet_access,false);
+   assert.equal(status.paper_fills_confirmed,2);
+  }finally{worker.stop()}
+ }finally{rmSync(dataDir,{recursive:true,force:true})}
 });
