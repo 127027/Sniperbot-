@@ -256,6 +256,39 @@ const server=createServer(async(req,res)=>{
   }catch{return reply(res,200,{ok:true,active:false,archived:false,
    reason:'COLLECTOR_STATUS_UNREADABLE'})}
  }
+ if(req.method==='GET'&&route==='/api/r29/status'){
+  try{
+   if(!process.env.LOCALAPPDATA)return reply(res,200,{ok:true,
+    mode:'ISOLATED_PAPER_TEST',connected:false,
+    reason:'NO_WINDOWS_LOCALAPPDATA'});
+   const statusFile=path.join(process.env.LOCALAPPDATA,'MemeSniperPaper',
+    'r29-isolated-sandbox','r29-local-status.json');
+   if(!existsSync(statusFile))return reply(res,200,{ok:true,
+    mode:'ISOLATED_PAPER_TEST',connected:false,
+    reason:'R29_COURIER_HAS_NOT_REPORTED'});
+   const raw=readFileSync(statusFile,'utf8');
+   if(Buffer.byteLength(raw)>14000)throw Error('R29_STATUS_TOO_LARGE');
+   const value=JSON.parse(raw);
+   if(value?.schema!=='sniper_r29_windows_sandbox_status.v1'||
+    value.target!=='WINDOWS_SANDBOX'||value.real_trading_enabled!==false||
+    value.user_paper_modified!==false)throw Error('R29_STATUS_INVALID');
+   const latest=Date.parse(value.checked_at_utc);
+   return reply(res,200,{ok:true,mode:'ISOLATED_PAPER_TEST',
+    connected:Number.isFinite(latest)&&Date.now()-latest<240000&&latest<=Date.now(),
+    checked_at_utc:value.checked_at_utc,
+    bot_http_healthy:value.laptop_bot_http_healthy===true,
+    last_intent_id:value.last_intent_id||null,
+    last_intent_action:value.last_intent_action||null,
+    last_intent_result:value.last_intent_result||null,
+    cash_test_usdc:value.sandbox_status?.cash_balance_test_usdc??null,
+    open_positions:value.sandbox_status?.open_positions?.length??null,
+    closed_pnl_test_usdc:value.sandbox_status?.closed_pnl_test_usdc??null,
+    real_trade_executed:false,existing_paper_modified:false,
+    reason:value.last_error||null});
+  }catch{return reply(res,200,{ok:true,
+   mode:'ISOLATED_PAPER_TEST',connected:false,
+   reason:'R29_LOCAL_STATUS_UNREADABLE'})}
+ }
  if(req.method==='GET'&&route==='/api/central-ai/status')return reply(res,200,{ok:true,
   coordinator:centralAiService?.status()||{schema:'sniper_central_ai_status.v1',enabled:false,
    mode:'PAPER_ONLY',reason:process.env.SNIPER_OFFLINE==='1'?'OFFLINE_TEST':
