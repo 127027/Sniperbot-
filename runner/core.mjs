@@ -17,8 +17,9 @@ export function action(s,a){if(!a||typeof a!=='object')return s;
  switch(a.type){
  case 'TOGGLE_BOT':return {...s,entriesEnabled:!s.entriesEnabled,history:log(s,!s.entriesEnabled?'Bot AN':'Bot AUS',!s.entriesEnabled?'Neue Paper-Einstiege erlaubt':'Neue Paper-Einstiege gestoppt, Exit-Engine bleibt aktiv')};
  case 'SET_CENTRAL_FOLLOW':return {...s,centralPaperFollow:a.enabled===true,history:log(s,'Zentrale Paper-Ausführung',a.enabled===true?'Wartet auf gültige zentrale Aufträge; fehlende Publisher/Marktadapter blockieren':'Deaktiviert')};
- case 'SET_AUTO':return {...s,automaticPaperBuys:false,
-  history:log(s,'Alter lokaler Autokauf gesperrt','GPT_ONLY: nur autorisierte GitHub-Entscheidungen dürfen neue automatische Paper-Käufe auslösen')};
+ case 'SET_AUTO':return {...s,automaticPaperBuys:a.enabled===true,
+  history:log(s,'Legacy-Paper-Auto-Einstellung',
+   'Nur historisches Flag: der lokale selbstständige Kaufprozess ist unter dem R29-Standardstart ausgeschaltet; GPT bleibt einziger automatischer Handelsentscheider')};
  case 'SET_GPT_FOLLOW':return {...s,gptPaperFollow:a.enabled===true,
   automaticPaperBuys:false,history:log(s,'GPT-Paper-Handelsentscheidungen',
   a.enabled===true?'GPT-GitHub-Entscheidungen freigegeben: nur mit lokal signierter Paper-Order und Risk-Engine':'GPT-Kauf-/Verkaufsaufträge pausiert; bestehende Notfall-Exit-Regeln bleiben aktiv')};
