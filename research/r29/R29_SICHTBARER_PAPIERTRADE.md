@@ -21,7 +21,7 @@ Er verändert genau **eine** offene Position mit dem festgelegten erfundenen Tes
 1. Alten R29-Bot mit `Q` vollständig schließen.
 2. Branch `codex/r29-chatgpt-github-paper-cycle-20261115` über **Code → Download ZIP** erneut beziehen.
 3. In neuen Ordner entpacken. **Bestehendes Paper-Konto nicht löschen.**
-4. `Sniperbot_R29_Papiertrade_Starten.bat` starten. Diese Datei setzt den zusätzlichen, ausschließlich für die GitHub-Kurier-Prozessumgebung gültigen Schalter `-AllowR29MainPaperDemo`. Der normale `Sniperbot_Starten.bat` erlaubt weiterhin keine Haupt-Paper-GitHub-Orders.
+4. **Historischer Nachweis vom 15.11.2026:** Für den damaligen einmaligen Test wurde der inzwischen entfernte Sonderstarter verwendet. **Aktuell gibt es nur noch `Sniperbot_Starten.bat`**. Der einmalige Test ist abgeschlossen und darf nicht automatisch wiederholt werden. Dieser Abschnitt ist kein neuer Startleitfaden.
 5. **GitHub-Token muss NICHT neu erstellt werden.** Der bereits vorhandene DPAPI-Token wird verwendet. Kein OpenAI-API-Key erforderlich.
 6. Im Dashboard `http://127.0.0.1:3030` den normalen virtuellen Bot auf **AN** stellen und sicherstellen, dass mindestens **50 TEST-USDC** frei verfügbar sind. Bereits offene Positionen und das restliche Guthaben bleiben unangetastet.
 7. Der R29-Kurier sollte den opt-in Status auf GitHub schreiben:
@@ -33,7 +33,7 @@ Er verändert genau **eine** offene Position mit dem festgelegten erfundenen Tes
 
 ## Sicherheits- und Wiederholschutz
 
-- Die ausdrücklich gestartete `Sniperbot_R29_Papiertrade_Starten.bat` ist **lokale Opt-in-Grenze**. Ohne diesen Starter führt R29 niemals GitHub-Hauptkonto-Orders aus.
+- Beim damaligen Test war die explizite lokale Freigabe der Opt-in-Schutz. Die historische Sonderstartdatei wurde nach erfolgreicher Abnahme entfernt. Der jetzige Einzelstarter aktiviert standardmäßig keine neuen `MAIN_PAPER_DEMO`-Orders.
 - Die GitHub-Order hat strikte Felder, feste Tokenidentität, einen eindeutigen 32-Hex-ID, höchstens 30 Minuten Gültigkeit und exakt 50 TEST-USDC BUY (SELL schließt nur diese Position).
 - Ein lokaler Zyklus erlaubt **maximal einen BUY und einen SELL** und sperrt weitere Trades, auch nach einem Neustart. Ein zweiter, unbeabsichtigter GitHub-Commit kann diesen Zyklus nicht zurücksetzen.
 - SELL darf **nur** die ID der Position verkaufen, die der vorangegangene bestätigte R29-BUY eröffnet hat. Andere bereits bestehende Paper-Positionen werden nie angetastet.
