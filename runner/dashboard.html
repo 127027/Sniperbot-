@@ -409,11 +409,9 @@ async function getCourierStatus(){
     (r.last_result||'wartet auf Auftrag')+(r.error?' · '+r.error:''):
    'Normaler Paper-GitHub-Kanal nicht aktiv ('+(r.reason||'keine lokale Freigabe')+')';
  }catch{$('diagMain').textContent='Paper-GitHub-Kurierstatus nicht verfügbar';}
- try{
-  const r=await request('/api/r29/status');
-  $('diagCourier').textContent=r.connected?'GitHub-Transport des lokalen Bots erreichbar':
-   'GitHub-Transport: '+(r.reason||'nicht bestätigt');
- }catch{$('diagCourier').textContent='GitHub-Status derzeit nicht verfügbar';}
+ // The retired isolated R29 test account is no longer polled or shown.
+ // The only actionable courier is the explicitly opted-in normal Paper channel.
+ $('diagCourier').textContent='GitHub-Verbindung: nur über den aktiven normalen Paper-Kurier nachgewiesen';
 }
 async function sendPaperCommand(cmd){
  if(commandBusy||activeMode!=='paper'||!botReachable)return;
