@@ -11,6 +11,7 @@ import {loadOrCreateDeviceIdentity} from './device-identity.mjs';
 import {createExecutionInbox} from './device-execution-inbox.mjs';
 import {createDynamicTradeInbox} from './dynamic-trade-inbox.mjs';
 import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
+import {paperDashboardView} from './dashboard-portfolio.mjs';
 import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
 import {startCentralAiCoordinator} from './central-ai-coordinator.mjs';
 import {collectR27MarketRegime} from './r27-market-regime.mjs';
@@ -234,6 +235,10 @@ const server=createServer(async(req,res)=>{
   res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',
     'Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'"});
   return res.end(readFileSync(path.join(root,'runner','dashboard.html')));
+ }
+ if(req.method==='GET'&&route==='/api/dashboard/paper'){
+  try{return reply(res,200,{ok:true,view:paperDashboardView(state)});}
+  catch(e){return error(res,503,'Paper-Portfoliostand kann nicht sicher dargestellt werden');}
  }
  if(req.method==='GET'&&route==='/api/state')return reply(res,200,{ok:true,mode:'PAPER_ONLY',dataSource:'GeckoTerminal / DEX Screener (read only)',state,health:{online:true,scanRunning:scanning,pricing,uptimeSec:Math.round(process.uptime()),central:centralStatus(),researchNetwork,localLearning:localResearchLearning(),dotStatus:buildDotStatus(state.researchInbox,{enabled:process.env.SNIPER_RESEARCH_FEED==='1'})}});
  if(req.method==='GET'&&route==='/api/r27/archive/status'){
