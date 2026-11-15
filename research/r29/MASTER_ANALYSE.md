@@ -1,5 +1,5 @@
 # R29 Master-Anweisung – ChatGPT → GitHub → Windows-Sniperbot
-Version: 1.1 · 2026-11-15 · **PAPER ONLY**
+Version: 1.2 · 2026-11-15 · **PAPER ONLY**
 
 ## Verbindlicher Ablauf bei JEDER ChatGPT-Analyse
 
@@ -14,7 +14,7 @@ Version: 1.1 · 2026-11-15 · **PAPER ONLY**
 
 ## Sicherheitsregeln
 
-- Der frühere `R27`-Bot, lokale Wallets, Echtgeldguthaben und bestehende Paper-Konten dürfen durch diesen Verbindungstest nicht verändert werden.
+- Der frühere `R27`-Bot, lokale Wallets und Echtgeldguthaben dürfen durch diesen Verbindungstest nicht verändert werden. **Einzige ausdrücklich freigegebene Ausnahme:** Der einmalige, auf 50 TEST-USDC begrenzte `MAIN_PAPER_DEMO`-Kauf und der dazugehörige Verkauf dürfen die normale virtuelle Paper-Positionsliste und deren Verlauf verändern. Keine Guthabenaufstockung, keine Manipulation anderer Positionen.
 - GitHub ist **Transport**, nicht automatisch vertrauenswürdiger signierter Order-Publisher. Kein `unsigned` Befehl darf direkt eine reale Order auslösen.
 - Zeitablauf, doppelte IDs, falsche Zielgeräte, ungültige Contract-Identität und Guthabenüberschreitungen müssen blockiert werden.
 - Erst nach unabhängig bestandener GitHub-zu-**echter Windows-Instanz**-Bestätigung kann über den getrennten Schritt zur Nutzung des echten virtuellen Kontos entschieden werden.
@@ -23,6 +23,37 @@ Version: 1.1 · 2026-11-15 · **PAPER ONLY**
 - Die getrennte R29-Sandbox hat synthetische Preise BUY 0,05 / SELL 0,08. Die ausdrücklich freigegebene **normale Paper-Demo** nutzt den festgelegten erfundenen `TEST`-Coin bei 0,025 TEST-USDC ohne Kursgewinn; die modellierten 1 % Gebühren je Richtung ergeben etwa −0,995 TEST-USDC. Keine dieser Zahlen ist eine Marktprognose oder realer Gewinn.
 - Keine fünf separaten Dots erstellen. Eine zukünftige stündliche ChatGPT-Aufgabe darf erst nach echtem Windows-Ende-zu-Ende-Nachweis und Prüfung ihrer Schreibrechte aktiviert werden.
 - Eine ChatGPT-Plus-Nutzung ersetzt keine kostenpflichtige OpenAI-API: R29 versucht ausdrücklich, **keine API-basierte KI auf dem PC** zu brauchen. Etwaige ChatGPT-Aufgaben- und GitHub-App-Limits bleiben separat zu prüfen.
+
+## Zentrales Zielbild: EINE Entscheidung, getrennte Kontoausführung (Zukunftsarchitektur, NICHT live freigegeben)
+
+Der Nutzer stellt an der Bot-Oberfläche selbst **pro Konto** Guthaben, Modus, Start/Stopp und Einsatzgrenzen ein. ChatGPT ist der zentrale **Forschungs- und Signalentscheider** für die Coinauswahl, Zeitpunkt und BUY / SELL / HOLD / WATCH / NO_TRADE. Der Bot ist der **Ausführungs- und Sicherheitsverantwortliche**: Er darf keine Order außerhalb des vorhandenen Guthabens, der individuellen Limits, notwendiger Marktvalidierung und der lokalen Freigabe durchführen. Ein Signal ist **kein unbedingter Ausführungsbefehl**.
+
+**Ein einziges signiertes, zeitlich begrenztes Forschungssignal** kann später an zwei voneinander unabhängige Kontomodule geroutet werden. Beide erhalten dieselbe Coin-/Contract-Identität, dasselbe Signal und denselben beabsichtigten Zeitpunkt. Das tatsächlich ausführbare Volumen ist jedoch **je Konto unterschiedlich**. Ein deaktiviertes oder ungedecktes Echtgeldkonto blockiert **nicht** den freigegebenen Paper-Handel.
+
+- **Paper**: eigener, vorhandener virtueller Bestand in TEST-USDC, eigene benutzerdefinierte Min-/Max-Einsätze, eigener Kauf-/Verkaufsverlauf. Beispiel: 5.000 TEST-USDC mit gewünschten 5–50 TEST-USDC je Kauf.
+- **Echtgeld (später)**: getrennte reale Wallet, Gebühren, Slippage, Gas, Wallet-/Börsenbestände und Währungsumrechnung; Beispiel 500 EUR Guthaben und Grenzen 50–500 EUR. **Derzeit keine echte Ausführung implementieren, simulieren oder freischalten. Nur gesonderte spätere Freigabe nach Sicherheitsprüfung.**
+- **Wichtige Ist-Grenze der aktuellen Paper-Engine**: `runner/portfolio-budget.mjs` setzt derzeit `MIN_PAPER_ENTRY_USDC=50`. Das Nutzerbeispiel mit **5 USDC** ist **ein Ziel für eine spätere kompatible Anpassung**, nicht bereits funktionsfähige Unterstützung. Keine stillschweigende Änderung der aktuellen Orderregeln im R29-Verbindungstest.
+- Auch bei einem sehr starken Signal wird **niemals das gesamte Guthaben automatisch investiert**, wenn die konfigurierten Maximalbeträge oder Risikokappen dies ausschließen. Beispiel: Paper 5.000 TEST-USDC Bestand und Maximum 50 TEST-USDC → höchstens **50 TEST-USDC** pro Order. Echtgeld 500 EUR Bestand mit Maximum 500 EUR → **nicht automatisch 500 EUR**, sondern nur der durch separate Risikokappen, Liquidität und vorhandene Deckung gedeckte Betrag.
+- **Signalstärke ≠ statistische Ausbruchswahrscheinlichkeit.** Aussagen wie „100 % sicher“ sind für Memecoins unbegründet; auch hohe Scores erlauben `NO_TRADE`. Mindestqualität bei Sicherheitsdaten und unabhängigen Quellen sind zwingend.
+- Kein automatischer Echtgeldhandel aufgrund einer ChatGPT-Nachricht oder eines GitHub-Commits. Für LIVE wären zusätzlich ein separater autorisierter Signierer, Wallet-Sicherheitsprüfung, Schutz gegen kompromittierte Repo-Schreibrechte, echte Order-/Gas-/Preisprüfungen, Not-Aus und gesonderte manuelle Nutzerfreigabe nötig.
+
+### Einheitliche Analyse-Forschungsregeln
+
+Bei jedem neuen Analysezyklus:
+
+1. Diese Datei **neu lesen**. Bot-Status, Kontomodi, aktuelle Paperpositionen, letzte bestätigte Orderquittungen und letzte Signalspezifikation aus einem **berechtigten, geschützten** Kanal lesen. GitHub ist nicht automatisch privat.
+2. Kandidaten **chain- und contractgenau** entdecken, nicht anhand von Symbolen oder einer historischen Gewinnerliste. Jede Beobachtung hat Quelle, `event_at_utc`, `first_verified_available_at_utc` und Quellen-/Datenlückenstatus.
+3. DEX-Pool-Entstehung, Liquidität, Volumen, Kauf-/Verkaufsdruck, Wallet-Verteilung, Contract-/Honeypot-/Sellability-Risiko, organische vs. bezahlte Social-/News-Signale, Marktphase und **Kosten** getrennt bewerten. Fehlt unverzichtbare Sicherheitsinformation, `WATCH` oder `NO_TRADE`.
+4. Eine begründete, zeitlich begrenzte Forschungsentscheidung erzeugen: `signal_id`, `at_utc`, `expires_at_utc`, `chain`, `contract_address`, `pool_address`, `action`, `score_0_100`, `evidence_ids`, `reason`, `risks`. **Keine** persönlichen Geheimnisse oder beliebigen ausführbaren Skripte in Signalen.
+5. Der lokale Bot muss vor Ausführung unabhängig prüfen: richtige Chain/Contract/Pool, kein alter/doppelter Auftrag, aktiver Kontomodus, Marktpreis/Slippage/Poolliquidität, verfügbare Mittel, Gebühren und Limits; wenn ungültig `BLOCKED` mit Grund zurückmelden.
+6. Nur tatsächlich empfangene Quittungen als `PAPER_FILLED` zählen. `WATCH`/ `NO_TRADE` sind **keine Gewinne**, ein Testerfolg ist **kein realer DEX-Fill**.
+7. Ausführungen und Fehlentscheidungen versioniert auswerten; lernen durch nachvollziehbare Regeln/Tests, nicht durch unbewiesene selbstständige Gewichtsupdates. Frühere Analysen aus `research/` sind Hypothesen, keine zuverlässigen statistischen Gewinnwahrscheinlichkeiten.
+8. Stündliche geplante ChatGPT-Ausführungen erst aktivieren, wenn **tatsächlich** eine unbeaufsichtigte GitHub-Lese-/Schreib-/Empfangskette genehmigungsfrei in der verwendeten Produktumgebung nachgewiesen ist. Ein einzelner manueller ChatGPT-Auftrag genügt nicht als Beleg.
+
+### Priorität bis zur erfolgreichen Abnahme
+
+**Keine Echtgeld-Implementierung und keine neuen Memecoin-BUYs.** Zuerst den vom Nutzer beauftragten einen sichtbaren `MAIN_PAPER_DEMO`-BUY über die **tatsächlich auf dem Laptop gestartete Version**, GitHub-Quittung und danach SELL durchführen. Nur die separate Windows-Datei
+`research/r29/channel/main-paper-status.json` mit `main_paper_demo_opt_in:true` beweist die Aktivierung dieses Pfads. `research/r29/channel/windows-status.json` beweist nur den älteren **separaten** Sandbox-Kurier.
 
 ## Einheitliches Auftragsformat für den ersten GitHub-CI-Paper-Sandbox-Test
 
