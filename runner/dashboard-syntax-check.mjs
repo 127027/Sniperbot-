@@ -18,8 +18,7 @@ const controls=[
  'diagCourier','diagMain','diagnostics'
 ];
 for(const id of controls){
- const re=new RegExp('id=["\\\x27]'+id+'["\\\x27]');
- if(!re.test(html))throw Error('R29_MISSING_USER_CONTROL_'+id);
+ if(!html.includes('id="'+id+'"'))throw Error('R29_MISSING_USER_CONTROL_'+id);
 }
 for(const outdated of [
  'R29-Sandbox (TEST-USDC)','Dot-Eingang','Fünf-Agenten-Kommunikation',
