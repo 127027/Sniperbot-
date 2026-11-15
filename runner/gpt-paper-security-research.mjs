@@ -70,7 +70,7 @@ export function publicSecurityResearchReport({review,findings=[],now=Date.now()}
    gate.security_is_guaranteed!==false||
    gate.independent_executable_quote_verified!==false||
    !Array.isArray(gate.risk_flags)||gate.risk_flags.length>30||
-   gate.risk_flags.some(y=>typeof y!=='string'||!/^([A-Z0-9_]{3,100})$/.test(y))||
+   gate.risk_flags.some(y=>typeof y!=='string'||!/^([A-Za-z0-9_]{3,100})$/.test(y))||
    !Array.isArray(gate.provider_names)||
    gate.provider_names.join(',')!=='GoPlus,Honeypot.is'||
    typeof gate.approved!=='boolean')
@@ -84,7 +84,7 @@ export function publicSecurityResearchReport({review,findings=[],now=Date.now()}
    contract_authorities_ok:gate.contract_authorities_ok===true,
    token_and_pool_matched:gate.exact_token_and_pair_verified===true,
    basic_contract_and_sell_simulation_pass:gate.approved===true,
-   risk_codes:gate.risk_flags,
+   risk_codes:gate.risk_flags.map(y=>y.toUpperCase()),
    source_goplus:'https://api.gopluslabs.io/api/v1/token_security',
    source_honeypot:'https://api.honeypot.is/v2/IsHoneypot',
    independent_wallet_adoption_verified:false,
