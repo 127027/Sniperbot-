@@ -72,7 +72,7 @@ test('authenticated gateway: shared evidence, scoped identities, replay, researc
   s=(await request('/api/state')).state;assert.equal(s.research.events.length,count);assert.equal(s.positions.length,1);assert.equal(s.entriesEnabled,false);
   await request('/api/research/events',event,credentials[0].token);s=(await request('/api/state')).state;assert.equal(s.research.events.length,count);
   await cmd({type:'DEMO_MOVE',id:positionId,percent:-30});s=(await request('/api/state')).state;assert.equal(s.positions.length,0);assert(s.cashUsdc>0);
-  const rendered=await (await fetch(base+'/')).text();assert.match(rendered,/Fünf-Agenten-Kommunikation/);
+  const rendered=await (await fetch(base+'/')).text();assert.match(rendered,/Sniperbot · Trading-Dashboard/);assert.match(rendered,/Offene Positionen/);assert(!rendered.includes('R29-Sandbox (TEST-USDC)'));
   assert(!JSON.stringify(s).includes(credentials[0].token));assert(!rendered.includes(credentials[0].token));
  }finally{if(running)await stop(running.child);await rm(dir,{recursive:true,force:true})}
 });
