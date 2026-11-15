@@ -84,9 +84,9 @@ jobs:
           if($source.Contains('r29-github-token.dpapi') -or $source.Contains('Read-R29Token') -or $source.Contains('ResetR29Token')){throw 'Duplicate R29 token path or enrollment still present'}
           Write-Host 'R29_EXISTING_GITHUB_TOKEN_REUSE_VERIFIED'
       - name: R29 adaptive paper research 1 to 24 per day, 30d warmup/holdout and secured GitHub read-only bridge
-        run: node --test runner/dynamic-research-scheduler.test.mjs runner/r29-adaptive-publisher.test.mjs
+        run: node --test runner/dynamic-research-scheduler.test.mjs runner/dynamic-research-outcomes.test.mjs runner/r29-adaptive-publisher.test.mjs
       - name: R29 adaptive module syntax, collector and courier wiring
-        run: node --check runner/dynamic-research-scheduler.mjs && node --check runner/r29-adaptive-publisher.mjs && node --check runner/research-market-daemon.mjs && node --check runner/r29-windows-courier.mjs
+        run: node --check runner/dynamic-research-scheduler.mjs && node --check runner/dynamic-research-outcomes.mjs && node --check runner/r29-adaptive-publisher.mjs && node --check runner/research-market-daemon.mjs && node --check runner/r29-windows-courier.mjs
       - name: R27 strict historical evidence, 615 frequency clocks, sealed AI, market gate and prospective capture (offline mocks)
         run: node --test research/r27/r27.test.mjs research/r27/r27-source-probe.test.mjs runner/r27-early-bridge.test.mjs runner/r27-exit-review.test.mjs
       - name: R27 syntax smoke on every platform
