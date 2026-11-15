@@ -1,0 +1,55 @@
+name: R29 ChatGPT GitHub to ISOLATED PAPER bot (NO REAL WINDOWS)
+on:
+  push:
+    branches: ['codex/r29-chatgpt-github-paper-cycle-20261115']
+    paths:
+      - 'research/r29/channel/latest-intent.json'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: r29-ci-single-sandbox-ledger
+  cancel-in-progress: false
+jobs:
+  isolated-github-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      SNIPER_OFFLINE: '1'
+      R29_CI_SANDBOX: '1'
+      SNIPER_CENTRAL_AI_ENABLED: '0'
+      SNIPER_AGENT_PAPER_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+      SNIPER_RESEARCH_READ: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify isolated signed test path before consuming mailbox
+        run: node --test research/r29/r29-paper-protocol.test.mjs
+      - name: Consume one ChatGPT intent, ephemeral Ed25519 sign, apply isolated PAPER ledger
+        run: node research/r29/r29-ci-process-intent.mjs
+      - name: Save sandbox-only receipt and ledger in the SAME GitHub branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/r29/channel/ci-ledger.json research/r29/channel/ci-receipt.json
+          if git diff --cached --quiet; then
+            echo 'No new sandbox receipt (idempotent)'
+          else
+            git commit -m "test(r29): publish isolated GitHub-paper bot receipt (not real Windows)"
+            git push origin HEAD:codex/r29-chatgpt-github-paper-cycle-20261115
+          fi
+      - name: Explain trust boundary and test result
+        if: always()
+        shell: bash
+        run: |
+          echo '## R29 Github-Paper-Kurier (NUR CI SANDBOX)' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Der Auftrag wurde von GitHub Actions in einem separaten synthetischen Konto geprüft.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Die echte lokale Windows-Instanz wurde **NICHT** kontaktiert.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Kein Echtgeld, kein echtes Nutzer-Paperkonto, keine OpenAI API.' >> "$GITHUB_STEP_SUMMARY"
