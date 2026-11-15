@@ -11,7 +11,7 @@
 - `runner/dynamic-research-outcomes.mjs` beobachtet dieselben Pool-Identitäten nach **1 h, 6 h, 24 h, 7, 14 und 30 Tagen**. Ergebnisse aus öffentlichen Poolpreisen sind **indikative Verhältnisse**, nicht echte oder risikoadjustierte Gewinne. Fehlende spätere Same-Pool-Preise bleiben **UNKNOWN**, nie ein erfundener Verlust oder Gewinn. Die abgeschlossenen 30-Tage-Beobachtungen werden append-only archiviert; aktive Beobachtungen unter `outcomes\tracking.json` gespeichert.
 - Der bestehende lokale Collector archiviert über `runner/r27-prospective-capture.mjs` weiterhin erste Beobachtungen von Pool- und News-Ereignissen. Die R27-Dateien unter `%LOCALAPPDATA%\MemeSniperPaper\r27-evidence\captures\` sind ausdrücklich keine unabhängige externe Zeitstempelattestierung.
 - Der vorhandene R29-Kurier verwendet denselben DPAPI-geschützten GitHub-Token wie bisher. `runner/r29-adaptive-publisher.mjs` überträgt **nur** die freigegebene, minimierte Forschungstelemetrie zu `research/r29/channel/dynamic-research-status.json` auf dem R29-Branch. Keine privaten Guthaben, Wallets, Rechnungs-/Trade-Daten, Schlüssel, Hostnamen oder auslösbaren Orders.
-- Die bisherige ChatGPT-Tagesdiagnose ist zusätzlich als eigene **Sniperbot**-Automation angelegt. Sie soll frische GitHub-Belege prüfen und – soweit Zugriff besteht – täglich unter `research/r29/daily-diagnoses/YYYY-MM-DD.md` eine evidenzbasierte Forschungsnotiz hinterlegen. Sie führt keine Paper- oder Echtgeld-Orders aus. Dynamische lokale Reviews und tägliche GPT-Automation sind getrennte Prozesse.
+- Der R29-Kurier veröffentlicht zusätzlich den **letzten zeit- und hashgeprüften öffentlichen Kandidaten-Review** in `research/r29/channel/dynamic-research-review.json`. Daraus kann GPT beobachtete Pool-ID, Preis, Liquidität und Aktivität lesen; keine vollständige Security-Verifikation, kein Auftrag und kein Paper-Kontostand.\n- Die bisherige ChatGPT-Tagesdiagnose ist zusätzlich als eigene **Sniperbot**-Automation angelegt. Sie soll frische GitHub-Belege prüfen und – soweit Zugriff besteht – täglich unter `research/r29/daily-diagnoses/YYYY-MM-DD.md` eine evidenzbasierte Forschungsnotiz hinterlegen. Sie führt keine Paper- oder Echtgeld-Orders aus. Dynamische lokale Reviews und tägliche GPT-Automation sind getrennte Prozesse.
 
 ## 2. Adaptive Recherche-Taktung
 
@@ -49,8 +49,8 @@ Der Timer beginnt erst beim **ersten tatsächlichen lokalen Review nach Installa
 ## 5. GitHub-Status lesen
 
 1. `research/r29/channel/regular-paper-presence.json`: lediglich Browser-/Laptop-HTTP-Verbindung; **kein Portfolio**.
-2. `research/r29/channel/dynamic-research-status.json`: erster und letzter Forschungslauf, aktuelle Review-Frequenz, Beleg-Hash. Der anfängliche Status `WAITING_FOR_UPDATED_LOCAL_BOT` ist **kein** Beleg eines laufenden neuen Collectors.
-3. `research/r29/daily-diagnoses/`: nur von der getrennten täglichen GPT-Automation oder einem ausdrücklich freigegebenen Diagnoseauftrag erzeugte Berichte; bis dahin möglicherweise leer.
+2. `research/r29/channel/dynamic-research-status.json`: erster und letzter Forschungslauf, aktuelle Review-Frequenz, Beleg-Hash.\n3. `research/r29/channel/dynamic-research-review.json`: letzter freigegebener, rein öffentlicher Markt-Kandidatenbericht; Status `WAITING_FOR_UPDATED_LOCAL_BOT` bedeutet noch keine Daten.\n4. `research/r29/daily-diagnoses/`: tägliche GPT-Auswertung mit Unterscheidung DATA_GAP/NO_TRADE.\n\nDer anfängliche Status `WAITING_FOR_UPDATED_LOCAL_BOT` ist **kein** Beleg eines laufenden neuen Collectors.
+Die Tagesdiagnosen werden nur mit tatsächlich frischen Daten fortgesetzt; die Meldung DATA_GAP bleibt korrekt, wenn der Laptop noch nicht aktualisiert oder die Security-Lage ungeklärt ist.
 
 **Privacy:** Repo-/Branch-Sichtbarkeit nicht als privat voraussetzen. Deswegen veröffentlichen die Statusdateien keine Wallets, Positionen, Guthaben oder Tokens. Diese bleiben auf dem Laptop, bis ein gesicherter Transport ausdrücklich spezifiziert ist.
 
