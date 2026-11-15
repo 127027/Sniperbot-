@@ -99,6 +99,13 @@ export async function syncR29MainChannel({token,folder,fetcher=fetch,
   }
  }catch(e){error=String(e?.message||e).slice(0,120)}
  const status=publicR29MainStatus(cycle,receipt,{now,error});
+ // Expose an allowlisted local status to the real dashboard without
+ // publishing account balances, tokens, or wallet data.
+ const localFile=path.join(folder,'r29-local-main-status.json');
+ mkdirSync(folder,{recursive:true});
+ const temp=localFile+'.pending-'+process.pid;
+ writeFileSync(temp,JSON.stringify(status,null,2)+'\n',{mode:0o600});
+ renameSync(temp,localFile);
  const remote=(await requestGithubFile(R29_MAIN_STATUS_PATH,{token,fetcher})).data;
  const checked=Date.parse(remote?.checked_at_utc);
  const same=remote?.schema===R29_MAIN_STATUS_SCHEMA&&
