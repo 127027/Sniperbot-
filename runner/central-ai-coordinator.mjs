@@ -6,6 +6,7 @@ import {mkdirSync,renameSync,writeFileSync,readFileSync,existsSync} from 'node:f
 import path from 'node:path';
 import {AGENT_SIGNAL_SCHEMA,unsignedAgentSignal} from './paper-agent-pipeline.mjs';
 import {mergeR27Candidates} from './r27-early-bridge.mjs';
+import {r28CycleRecord,appendR28CycleAudit} from './r28-cycle-audit.mjs';
 import {validTokenAddress} from './market.mjs';
 const SCHEMA='sniper_central_ai_status.v1';
 const MAX_CHOICES=8;
@@ -194,6 +195,7 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
   last_run_utc:null,last_outcome:'PENDING',next_due_utc:null,model:null,
   last_error:null,last_summary:null,recommendations:[],receipts:[],
   last_market_regime:null,
+  last_run_id:null,last_audit_sha256:null,last_audit_status:'NOT_STARTED',
   real_wallet_reported:false};
  let busy=false,stopped=false,timer=null;
  function persist(){
@@ -205,6 +207,9 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
  async function runOnce({modelApi=requestCentralAiAdvice,now=Date.now()}={}){
   if(busy||stopped)return {skipped:true,reason:busy?'IN_PROGRESS':'STOPPED'};
   busy=true;status.last_run_utc=new Date(now).toISOString();
+  const runId=randomBytes(12).toString('hex');
+  status.last_run_id=runId;
+  let cycleInput=null;
   status.last_error=null;status.last_outcome='RUNNING';status.receipts=[];status.recommendations=[];
   persist();
   try{
@@ -214,6 +219,7 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
     Promise.resolve().then(()=>collectEarlyContext()).catch(()=>({status:'UNAVAILABLE',candidates:[]}))]);
    const candidates=mergeR27Candidates(market.results,earlyContext);
    const input=snapshotForAi(getState(),candidates,news,{now:Date.now(),realWallet,marketRegime,earlyContext});
+   cycleInput=input;
    status.last_market_regime=input.market_regime;
    status.real_wallet_reported=realWallet?.verified===true;
    if(input.candidates.length===0&&input.paper.positions.length===0){
@@ -237,7 +243,24 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
   }catch(e){
    status.last_outcome='ERROR_NO_ORDERS';status.last_error=String(e?.message||e).slice(0,160);
    return {status:status.last_outcome,error:status.last_error};
-  }finally{busy=false;persist()}
+  }finally{
+   try{
+    const record=r28CycleRecord({runId,startedAt:status.last_run_utc,
+     status:status.last_outcome,modelResponseId:status.response_id,
+     model:status.model,input:cycleInput,recommendations:status.recommendations,
+     receipts:status.receipts,summary:status.last_summary,
+     error:status.last_error,walletReported:status.real_wallet_reported});
+    const saved=appendR28CycleAudit({dataDir,record});
+    status.last_audit_sha256=saved.record_sha256;
+    status.last_audit_status=saved.written?'LOCALLY_SAVED':'EXISTS_VERIFIED';
+   }catch(e){
+    status.last_audit_status='AUDIT_WRITE_FAILED';
+    status.last_audit_sha256=null;
+    status.last_error=(status.last_error||'')+
+     (status.last_error?' | ':'')+'LOCAL_AUDIT_WRITE_FAILED';
+   }
+   busy=false;persist();
+  }
  }
  function start(){
   const tick=async()=>{
