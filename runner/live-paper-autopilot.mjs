@@ -216,7 +216,7 @@ export function startLocalPaperAutopilot({deviceId,dataDir,getState,submit,
     const day=at.slice(0,10);
     const dir=path.join(dataDir,'live-paper-autopilot','decision-journal');
     mkdirSync(dir,{recursive:true});
-    const receipt=status.last_receipt;
+    const receipt=['BUY','SELL'].includes(status.last_decision?.action)?status.last_receipt:null;
     const record={schema:'r29_live_paper_diagnostic_event.v1',
      at_utc:at,mode:'PAPER_ONLY',live_trading_enabled:false,
      research_source_status:status.last_research_source,
