@@ -18,15 +18,22 @@ export function sanitizeTradeRow(row){
  if(!row||typeof row!=='object')throw Error('HISTORICAL_TRADE_ROW_INVALID');
  const ts=number(row.ts),slot=number(row.slot),idx=number(row.idx);
  const mint=row.mint,pool=row.pool,venue=row.venue,side=row.side;
- const amountSol=number(row.sol_lamports),amountTokens=number(row.token_amount);
- const quoteMint=row.quote_mint,quoteAmount=number(row.quote_amount);
+ const maybeAmount=x=>x===null||x===undefined?null:Number(x);
+ const amountSol=maybeAmount(row.sol_lamports);
+ const amountTokens=maybeAmount(row.token_amount);
+ const quoteMint=row.quote_mint,quoteAmount=maybeAmount(row.quote_amount);
+ const amounts=[amountSol,amountTokens,quoteAmount];
+ // Failed transactions may have NO executed amounts. Treat missing amounts
+ // as unknown (null), not zero, and never derive prices from failed tx.
+ const validAmounts=amounts.every(x=>x===null||
+  (Number.isFinite(x)&&x>=0))&&
+  (row.failed===true||amounts.every(Number.isFinite));
  if(!Number.isInteger(ts)||ts<Date.parse(SAMPLE_DAY+'T00:00:00Z')/1000||
  ts>=Date.parse('2026-10-16T00:00:00Z')/1000||
  !Number.isSafeInteger(slot)||!Number.isInteger(idx)||
  typeof mint!=='string'||mint.length<32||mint.length>44||
  !['curve','pumpswap'].includes(venue)||!['buy','sell'].includes(side)||
- ![amountSol,amountTokens,quoteAmount].every(Number.isFinite)||
- [amountSol,amountTokens,quoteAmount].some(x=>x<0)||
+ !validAmounts||
  ![true,false].includes(row.failed))
   throw Error('HISTORICAL_TRADE_ROW_INVALID_OR_OTHER_DAY');
  return {
@@ -37,7 +44,8 @@ export function sanitizeTradeRow(row){
   quote_mint:quoteMint,quote_amount_raw:quoteAmount,
   quote_is_wrapped_SOL:quoteMint===WRAPPED_SOL,
   // No token decimals, cross-pool routing, or executable swap details yet.
-  approximate_sol_per_raw_token:(!row.failed&&quoteMint===WRAPPED_SOL&&amountTokens>0)
+  approximate_sol_per_raw_token:(!row.failed&&quoteMint===WRAPPED_SOL&&
+    amountTokens!==null&&amountTokens>0&&quoteAmount!==null)
     ?quoteAmount/1e9/amountTokens:null,
   source:'REAL_ARCHIVED_SOLANA_TRADE_EVENT_RETRIEVED_RETROSPECTIVELY',
   historically_executable_again:false,
