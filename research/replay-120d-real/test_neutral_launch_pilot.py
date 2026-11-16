@@ -33,6 +33,15 @@ class NeutralLaunchAsOfTests(unittest.TestCase):
         self.assertEqual(len(result),1)
         self.assertEqual(result[0]["mint"],"A"*40)
 
+    def test_midnight_launch_included_once_in_first_hour(self):
+        start=ts("2026-09-18T00:00:00Z")
+        d=build_day("2026-09-18",{"status":"MIDNIGHT_TEST"},[
+            self.row(start,"A"*40),self.row(start+3600,"B"*40)])
+        self.assertEqual(d["frames"][0]["new_launches_previous_hour"],1)
+        self.assertEqual(d["frames"][1]["new_launches_previous_hour"],1)
+        self.assertEqual(sum(x["new_launches_previous_hour"] for x in d["frames"]),2)
+        self.assertEqual(d["frames"][0]["neutral_first_12_by_event_timestamp"][0]["mint"],"A"*40)
+
     def test_future_outcome_field_hard_fails_even_if_false(self):
         t=ts("2026-09-18T01:00:00Z")
         row=self.row(t-10,"A"*40)
