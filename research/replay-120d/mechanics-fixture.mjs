@@ -225,8 +225,9 @@ export function runSyntheticMechanics({cutoff=DEFAULT_CUTOFF}={}){
     }else if(marketOpen&&asset&&!bridge.ledger.fills.some(x=>x.coin===key&&x.action==='BUY'))
      action='BUY';
    }
-   const d=makeDecision({day,index,action,h:hour,asset:action==='NO_TRADE'?
-    null:asset,sequence:scanRecords.length});
+   const d=makeDecision({day,index,action,h:hour,
+    asset:action==='NO_TRADE'?null:(asset||ASSETS[65]),
+    sequence:scanRecords.length});
    const quote=asset?{chain:asset.chain,token_address:asset.token,
     pool_address:asset.pool,price_usd:price(index,hour),
     observed_at_utc:time}:null;
