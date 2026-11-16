@@ -1,0 +1,36 @@
+name: Sniper R29 – Real 120d Historical Research (No Trades)
+on:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - 'research/replay-120d-real/**'
+      - '.github/workflows/r29-real120.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-source-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_RESEARCH_READ: '0'
+      SNIPER_RESEARCH_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check source collector is syntactically safe
+        run: node --check research/replay-120d-real/source-collector.mjs
+      - name: Collect actual historical public sources – 120d, never local Paper account
+        run: node research/replay-120d-real/source-collector.mjs
+      - name: Archive authentic provider responses and SHA-backed audit output (no secrets)
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-real120-20260720-to-20261116-historical-sources
+          path: research/replay-120d-real/generated/
+          if-no-files-found: error
+          retention-days: 30
