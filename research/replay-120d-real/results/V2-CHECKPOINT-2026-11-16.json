@@ -1,0 +1,75 @@
+{
+  "schema": "sniper_r29_real120_data_research_v2_checkpoint.v1",
+  "checked_at_utc": "2026-11-16T16:54:47Z",
+  "window": {
+    "train": "2026-07-20 through 2026-09-17",
+    "holdout": "2026-09-18 through 2026-11-16 partial"
+  },
+  "neutral_solana_launch_source": {
+    "actual_captured_launch_mints": 2713057,
+    "days_covered": 67,
+    "train_days_covered": 18,
+    "holdout_days_covered": 49,
+    "total_days_missing": 53,
+    "source": "loopholetape/pumpfun-launches",
+    "full_120d_unbiased_universe_verified": false
+  },
+  "authentic_swap_transaction_sample": {
+    "source": "pumpdatafun/pump-fun-trades-sample",
+    "source_url": "https://datasets-server.huggingface.co/rows?dataset=pumpdatafun%2Fpump-fun-trades-sample&config=default&split=train&offset=0&length=100",
+    "historical_date": "2026-10-15",
+    "sample_type": "FIRST_100_INDEX_ROWS_NOT_RANDOM_OR_FULL_DAY",
+    "total_sampled_rows": 100,
+    "parse_rejected_rows": 0,
+    "distinct_mint_addresses": 31,
+    "successful_onchain_events": 37,
+    "failed_onchain_events": 63,
+    "all_sampled_transaction_at_utc": "2026-10-15T00:00:00Z",
+    "raw_response_sha256": "abe5a208232facf9f1df2a03e781a7408c0656c067f355fdec66bc449232b42f",
+    "some_successful_transactions_have_nonSOL_quote": true,
+    "independent_signature_rpc_validation": false,
+    "full_Dex_60day_fill_data": false,
+    "can_price_sample_event_in_USDC": false,
+    "investor_pnl_reportable": false,
+    "source_ci": "https://github.com/127027/Sniperbot-/actions/runs/43912667223",
+    "source_artifact": "https://github.com/127027/Sniperbot-/actions/runs/43912667223/artifacts/14247448450"
+  },
+  "historical_trade_preflight": {
+    "required_evidence_count": 6,
+    "required": [
+      "NEUTRAL_CANDIDATE_IDENTITY",
+      "ASOF_POOL_AND_RESERVES",
+      "ASOF_CONTRACT_OR_MINT_SECURITY",
+      "ASOF_INDEPENDENT_WALLET_DEMAND",
+      "ASOF_BIDIRECTIONAL_SWAPABILITY",
+      "ASOF_EXECUTABLE_COSTED_QUOTE"
+    ],
+    "outcome": "FAIL_CLOSED_UNLESS_ALL_INDEPENDENTLY_PROVED",
+    "actual_model_decisions_generated": 0,
+    "actual_paper_fills": 0
+  },
+  "coverage": {
+    "reconstructed_CEX_price_only_historical_analyses": 1480,
+    "actual_historic_GPT_decisions_for_full_120d": 0,
+    "confirmed_60d_historical_GPT_pnl_test_usdc": null,
+    "prior_shadow_model_only_pnl_variants": {
+      "conservative": -104.624918,
+      "aggressive": -2502.381532
+    },
+    "prior_shadow_price_only_not_GPT": true
+  },
+  "safety": {
+    "no_paid_api": true,
+    "no_real_trading": true,
+    "no_current_GitHub_order_pointer_changes": true,
+    "no_local_paper_ledger_changes": true
+  },
+  "next_mandatory_steps": [
+    "Locate full free as-of historical SOL/token and quote-asset prices for neutral individual mints across 60 holdout days or document inaccessible",
+    "Perform independent historical on-chain signature, contract authority, pool liquidity and sellability checks at each candidate's decision timestamp",
+    "Obtain historical social/news availability attestations before GPT review",
+    "Have actual GPT model review each sealed frame, preserve prompt+response hash and observed wall-clock vs virtual UTC distinction",
+    "Route only independently verified hypothetical decisions through isolated GitHub replay and realistic bidirectional quote model",
+    "Keep paper-only; no evidence yet supports real-money launch"
+  ]
+}
