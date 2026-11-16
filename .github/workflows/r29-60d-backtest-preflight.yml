@@ -1,0 +1,45 @@
+name: R29 60-day GPT-DEX evidence preflight
+on:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-60d-backtest-preflight.yml'
+      - 'research/replay-120d-real/strict-60day-backtest-gate*'
+      - 'research/replay-120d-real/results/REAL_60_DAY_EVIDENCE_MATRIX_43D_2026-11-16.csv'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  provenance-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Unit tests (no trading/wallet/network API)
+        run: node --test research/replay-120d-real/strict-60day-backtest-gate.test.mjs
+      - name: Read-only audit of archived real 60-day source matrix
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          import {audit60DayEvidence} from './research/replay-120d-real/strict-60day-backtest-gate.mjs';
+          const csv = readFileSync('research/replay-120d-real/results/REAL_60_DAY_EVIDENCE_MATRIX_43D_2026-11-16.csv','utf8');
+          const x = audit60DayEvidence(csv);
+          assert.equal(x.days,60);
+          assert.equal(x.covered_days.launch,49);
+          assert.equal(x.covered_days.minute,43);
+          assert.equal(x.covered_days.full_dex_swaps,1);
+          assert.equal(x.genuine_gpt_memecoin_dex_backtest_complete,false);
+          assert.equal(x.inferred_gpt_dex_pnl_test_usdc,null);
+          writeFileSync('R29_60DAY_READINESS.json',JSON.stringify(x,null,2)+'\n');
+          console.log('R29_60D_GATE',JSON.stringify(x.covered_days));
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r29-60d-research-readiness-no-trades
+          path: R29_60DAY_READINESS.json
