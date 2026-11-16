@@ -4,7 +4,7 @@ import {archivePath,contentSha256,GPT_PAPER_DECISION_PATH,
  GPT_PAPER_RECEIPT_PATH} from './gpt-paper-protocol.mjs';
 import {relayGptPaperDecision,readGptGithubFile,
  verifyGithubOwnerAttribution} from './gpt-paper-github-relay.mjs';
-import {sanitizeGptPublicPositionContext} from './gpt-paper-position-publisher.mjs';
+import {sanitizeGptPublicPositionContext,syncGptPaperPublicPositionContext} from './gpt-paper-position-publisher.mjs';
 
 const now=Date.now(),iso=n=>new Date(n).toISOString();
 const id='gpt_'+'a'.repeat(32);
@@ -114,4 +114,40 @@ test('public position context strips any cash, wallet and quantities; no positio
  assert.throws(()=>sanitizeGptPublicPositionContext({
   ...c,positions:[{...positions[0],gpt_opened_paper_position:false}]},{now}),
   /INVALID_POSITION/);
+});
+
+test('GPT follow context generated after HTTP request is accepted and published (clock regression)',async()=>{
+ let published=null,reads=0,writes=0;
+ const localFetcher=async url=>{
+  assert.equal(url,'http://127.0.0.1:3030/api/gpt/paper/context');
+  await new Promise(resolve=>setTimeout(resolve,25));
+  const localCreated=new Date().toISOString();
+  return {ok:true,status:200,json:async()=>({
+   ok:true,schema:'sniper_r29_gpt_public_position_context.v1',
+   mode:'PAPER_ONLY',real_trading_enabled:false,
+   account_balances_excluded:true,position_amounts_excluded:true,
+   paper_bot_enabled:true,gpt_follow_enabled:true,
+   as_of_utc:localCreated,positions:[]})};
+ };
+ const fetcher=async (url,opts)=>{
+  if(opts.method==='GET'){reads++;return {status:404,ok:false};}
+  if(opts.method==='PUT'){
+   writes++;
+   const obj=JSON.parse(opts.body);
+   published=JSON.parse(Buffer.from(obj.content,'base64').toString('utf8'));
+   return {status:200,ok:true,json:async()=>({commit:{sha:'e'.repeat(40)}})};
+  }
+  throw Error('Unexpected method');
+ };
+ const x=await syncGptPaperPublicPositionContext({
+  token:accessToken,localFetcher,fetcher
+ });
+ assert.equal(x.status,'PUBLISHED');
+ assert.equal(reads,1);
+ assert.equal(writes,1);
+ assert.equal(published.gpt_follow_enabled,true);
+ assert.equal(published.paper_bot_enabled,true);
+ assert.equal(published.positions.length,0);
+ assert.equal(published.real_trading_enabled,false);
+ assert.equal(published.account_balances_published,false);
 });
