@@ -1,0 +1,47 @@
+{
+  "schema": "sniper_r29_retrospective_real_gpt_research_review.v1",
+  "model_review_generated_at_utc": "2026-11-16T16:59:53.829Z",
+  "virtual_asof_market_time_utc": "2026-10-15T00:01:00Z",
+  "temporal_integrity": "CURRENT_GPT_MODEL_REVIEWS_ONLY_ARCHIVED_EVENT_SUMMARY_ASOF_T; NOT_A_PROOF_MODEL_HAD_NO_FUTURE_TRAINING_KNOWLEDGE",
+  "source": {
+    "dataset": "pumpdatafun/pump-fun-trades-sample",
+    "public_source": "https://huggingface.co/datasets/pumpdatafun/pump-fun-trades-sample",
+    "event_source_sha256": "abe5a208232facf9f1df2a03e781a7408c0656c067f355fdec66bc449232b42f",
+    "source_retrieved_at_utc_date": "2026-11-16",
+    "recorded_event_date_utc": "2026-10-15",
+    "slice": "FIRST_100_RECORDS_ONLY_NONRANDOM_NOT_FULL_MARKET",
+    "latest_event_in_slice": "2026-10-15T00:00:00Z",
+    "authentic_recorded_transaction_rows": 100,
+    "unique_token_mints_in_sample": 31,
+    "recorded_successful_swaps": 37,
+    "recorded_failed_swaps": 63,
+    "note": "Some successfully executed trades have non-SOL quote mints; no normalized USD/token price or portfolio-level fill model justified."
+  },
+  "allowed_inputs": [
+    "historically stamped sample on-chain swap events at or before virtual asof time",
+    "source coverage limits and unknowns"
+  ],
+  "disallowed_or_unavailable_inputs": [
+    "later token prices or social narratives",
+    "later token graduation, rug or ATH flags",
+    "independent onchain signatures for each specific mint",
+    "complete historic per-token liquidity and full buy/sell depth",
+    "historical wallet distinct buyer proofs",
+    "contract mint/freeze authority and independent contract audit asof T",
+    "costed historical executable sell and buy quotes"
+  ],
+  "research_decision": "ABSTAIN_NO_HISTORICAL_BUY_AUTHORIZATION",
+  "model_strategy_decision": "CANNOT_RANK_OR_BUY_WITH_THIS_EVIDENCE",
+  "candidate_buy_recommendations": [],
+  "candidate_sell_recommendations": [],
+  "candidate_hold_recommendations": [],
+  "open_position_assumption": "NONE_DISCLOSED_FOR_THIS_INDEPENDENT_REPLAY; DO_NOT_IMPUTE_ZERO_PORTFOLIO",
+  "reason_de": "Die Quelle enthält tatsächliche historische Transaktionen, aber nur einen nicht repräsentativen 100-Zeilen-Ausschnitt zur gleichen Sekunde. Ohne unabhängige zum damaligen Zeitpunkt beweisbare Sellability, Poolreserven, Käuferdynamik, Contract-Sicherheit und auszuführende Kauf-/Verkaufsquotes ist kein professionell verantwortbarer virtuell ausführbarer BUY belegbar. Fehlgeschlagene Transaktionen gelten nicht als Fills; andere Quote-Assets werden nicht in USDC erfunden.",
+  "model_output_generated_during_actual_oct_2026": false,
+  "fully_blind_historical_gpt_backtest_count_contribution": 0,
+  "research_review_count_contribution": 1,
+  "actual_historical_gpt_buy_fills_proven": 0,
+  "paper_orders_written_to_live_channel": 0,
+  "real_orders_written": 0,
+  "verification_state": "HISTORICAL_RESEARCH_DATA_GAP_NOT_STRATEGIC_NO_TRADE_PROOF"
+}
