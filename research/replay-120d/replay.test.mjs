@@ -1,4 +1,7 @@
 import test from 'node:test';
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
 import {dayPlan,frequencyFromEvidence,slotsForDay,asofOnly,
  independentlyTradeable,auditHistorical,observeActualArchive,
@@ -130,4 +133,34 @@ test('in-memory GitHub+Paper bridge has neither wallet nor automatic unauthorize
  assert.equal(b.ledger.cash_test_usdc,5000);
  assert.equal(b.ledger.fills.length,0);
  assert.equal(b.getLatestPointer(),null);
+});
+
+test('permanent 120-row historical and synthetic daily CSV agree with replay engine',()=>{
+ const folder=path.join(path.dirname(fileURLToPath(import.meta.url)),'results');
+ const hist=readFileSync(path.join(folder,'historical-days.csv'),'utf8')
+  .trim().split('\n');
+ const fixtureCsv=readFileSync(path.join(folder,'synthetic-mechanics-days.csv'),'utf8')
+  .trim().split('\n');
+ const aud=auditHistorical(),fx=runSyntheticMechanics();
+ assert.equal(hist.length,121);
+ assert.equal(fixtureCsv.length,121);
+ for(let i=0;i<120;i++){
+  const a=hist[i+1].split(','),f=fixtureCsv[i+1].split(',');
+  const da=aud.daily[i],df=fx.daily[i];
+  assert.equal(a[0],da.date);
+  assert.equal(a[1],da.phase);
+  assert.equal(Number(a[2]),da.archived_actual_gpt_decisions.length);
+  assert.equal(Number(a[3]),da.verified_historical_market_scans);
+  assert.equal(a[4],'UNKNOWN');
+  assert.equal(a[6],da.status);
+  assert.equal(f[0],df.date);
+  assert.equal(f[1],df.phase);
+  assert.equal(Number(f[2]),df.planned_frequency_per_day);
+  assert.equal(Number(f[3]),df.actual_simulated_scans);
+  for(const [ix,name] of [[4,'BUY'],[5,'HOLD'],[6,'SELL'],[7,'WATCH'],
+   [8,'NO_TRADE'],[9,'LOCAL_GUARD_SELL']])
+   assert.equal(Number(f[ix]),df.action_counts[name]);
+  assert.equal(Number(f[11]),df.cash_after_day_test_usdc);
+  assert.equal(f[12],'SYNTHETIC_FIXTURE_ONLY');
+ }
 });
