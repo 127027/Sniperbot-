@@ -138,9 +138,9 @@ test('in-memory GitHub+Paper bridge has neither wallet nor automatic unauthorize
 test('permanent 120-row historical and synthetic daily CSV agree with replay engine',()=>{
  const folder=path.join(path.dirname(fileURLToPath(import.meta.url)),'results');
  const hist=readFileSync(path.join(folder,'historical-days.csv'),'utf8')
-  .trim().split('\n');
+  .trim().split(/\r?\n/);
  const fixtureCsv=readFileSync(path.join(folder,'synthetic-mechanics-days.csv'),'utf8')
-  .trim().split('\n');
+  .trim().split(/\r?\n/);
  const aud=auditHistorical(),fx=runSyntheticMechanics();
  assert.equal(hist.length,121);
  assert.equal(fixtureCsv.length,121);
