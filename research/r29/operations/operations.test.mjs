@@ -250,3 +250,33 @@ test("no future plan revision can be passed back into prior historical replay fr
   asof_utc:morning,evidence_sha256:"not-a-real-sha"
  }),/SOURCE_SHA256_INVALID/);
 });
+
+test("hourly lightweight checks are not counted as GPT reviews and need no completed_at timestamp",()=>{
+ const plan=dailyPlan({asof_utc:morning,verified_activity:condition(80)});
+ const prior=[
+  {kind:"HOURLY_LIGHT_CHECK",observed_at_utc:"2026-11-17T08:32:00Z"},
+  actualReview(morning,H64("a"),H64("0")),
+  {kind:"HOURLY_LIGHT_CHECK",observed_at_utc:"2026-11-17T08:52:00Z"}
+ ];
+ const t="2026-11-17T08:32:00Z";
+ const r=reconsiderDailyPlan({asof_utc:t,previous_plan:plan,
+  verified_activity:condition(80,t),prior_full_reviews:prior,
+  evidence_sha256:H64("b"),position_sha256:H64("0")});
+ assert.equal(r.scan.due,true);
+ assert.equal(r.scan.count_so_far,1);
+});
+test("review archive may include more than 24 records across days without suppressing today's scans",()=>{
+ const previousDay=Array.from({length:24},(_,i)=>actualReview(
+  new Date(Date.parse("2026-11-16T07:32:00Z")+i*HOUR_MS).toISOString(),
+  H64("a"),H64("0")));
+ // The 24th prior-day review at 06:32 on Nov 17 belongs to Nov 16 Berlin day.
+ const t="2026-11-17T08:32:00Z";
+ const result=reconsiderDailyPlan({asof_utc:t,
+  verified_activity:condition(80,t),
+  prior_full_reviews:[...previousDay,
+   actualReview(morning,H64("b"),H64("0"))],
+  evidence_sha256:H64("c"),position_sha256:H64("0")});
+ assert.equal(result.current_frequency,24);
+ assert.equal(result.scan.count_so_far,1);
+ assert.equal(result.scan.due,true);
+});
