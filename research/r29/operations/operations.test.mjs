@@ -194,7 +194,7 @@ test("dynamic 24 -> 1 downgrade can re-escalate later; no prior calls are erased
  assert.equal(lower.revision.revision_direction,"DEESCALATION");
  assert.equal(lower.revision.completed_full_reviews_so_far,4);
  assert.equal(lower.scan.due,false);
- assert.equal(lower.scan.reason,"MIN_ONE_HOUR_BETWEEN_GPT_REVIEWS");
+ assert.equal(lower.scan.reason,"ADAPTIVE_DAILY_TARGET_ALREADY_MET");
  const upswingAt="2026-11-17T12:32:00Z";
  const again=reconsiderDailyPlan({asof_utc:upswingAt,
   previous_plan:lower.plan,prior_full_reviews:past,
