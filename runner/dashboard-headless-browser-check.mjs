@@ -45,7 +45,34 @@ try{
   '--hide-scrollbars','--window-size=1440,900',
   '--user-data-dir='+path.join(temp,'chrome-profile'),
   '--virtual-time-budget=6000','--dump-dom',origin+'/'];
- const {stdout}=await execFile(bin,args,{timeout:35000,maxBuffer:2_000_000});
+ // Ubuntu hosted Chrome can sporadically exit with code 0 but an EMPTY
+ // --dump-dom response during renderer startup. Never treat this as a pass,
+ // and never bypass the UI assertions: retry once using a NEW profile and
+ // report stderr/exit diagnostics if both renders are empty or invalid.
+ const chromeAttempt=async(browserArgs,{expectDom=false}={})=>{
+  const errors=[];
+  for(let attempt=1;attempt<=2;attempt++){
+   const fresh=browserArgs.map(x=>x.startsWith('--user-data-dir=')?
+    '--user-data-dir='+path.join(temp,'chrome-profile-'+
+      (expectDom?'dom':'shot')+'-'+attempt):x);
+   try{
+    const {stdout,stderr:chromeStderr}=await execFile(bin,fresh,
+     {timeout:30000,maxBuffer:2_000_000});
+    if(!expectDom||stdout.includes('<title>Sniperbot · Trading-Dashboard</title>'))
+     return {stdout,stderr:chromeStderr};
+    errors.push('attempt='+attempt+' empty_or_invalid_dump_dom stdout_bytes='+
+     Buffer.byteLength(stdout)+' chrome_stderr='+
+     String(chromeStderr||'').slice(-550));
+   }catch(e){
+    errors.push('attempt='+attempt+' code='+String(e.code)+
+     ' signal='+String(e.signal)+' killed='+String(e.killed)+
+     ' stdout_bytes='+Buffer.byteLength(String(e.stdout||''))+
+     ' stderr='+String(e.stderr||'').slice(-550));
+   }
+  }
+  throw Error('R29_CHROME_RENDER_FAILED_AFTER_RETRY '+errors.join(' | '));
+ };
+ const {stdout}=await chromeAttempt(args,{expectDom:true});
  assert.match(stdout,/<title>Sniperbot · Trading-Dashboard<\/title>/);
  assert.match(stdout,/id="availableValue" class="primary-value">5\.000,00 TEST-USDC</);
  assert.match(stdout,/id="openCount" class="value">0<\/div>/);
@@ -55,7 +82,7 @@ try{
  const img=path.join(temp,'dashboard.png');
  const screenshotArgs=args.filter(a=>a!=='--dump-dom');
  screenshotArgs.splice(screenshotArgs.length-1,0,'--screenshot='+img);
- await execFile(bin,screenshotArgs,{timeout:35000,maxBuffer:400_000});
+ await chromeAttempt(screenshotArgs,{expectDom:false});
  const info=await stat(img);
  assert(info.size>6000,'R29_BROWSER_SCREENSHOT_MISSING_OR_EMPTY');
  console.log('R29_BROWSER_DESKTOP_RENDER_OK: fresh 5000 regular Paper, 0 positions, no duplicate QA balance; screenshot size',info.size);
