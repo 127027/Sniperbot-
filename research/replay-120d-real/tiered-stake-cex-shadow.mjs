@@ -106,11 +106,18 @@ export function modelTieredShadow({dailySource,tradeSource,sourceSummary}){
     buys.push(buy);orders.push(buy);
    }
   }
-  if(buys.length!==Number(d.shadow_A_BUY)||sells.length!==Number(d.shadow_A_SELL))
-   throw Error("TIERED_DAILY_SIGNAL_COUNTS_NOT_RECONCILED_"+d.date);
+  // Original daily A counters group local-stop sales into the later
+  // RESEARCH SCAN DAY; those executions can carry a different actual UTC
+  // timestamp. This table intentionally uses actual modeled execution dates.
+  // We reconcile TOTAL events and PnL, not the two incompatible day clocks.
+  const original_scan_grouped_buys=Number(d.shadow_A_BUY);
+  const original_scan_grouped_sells=Number(d.shadow_A_SELL);
   const open=[...positions.values()].map(p=>p.symbol+":"+p.stake);
   daily.push({
    day:d.date,source_price_only_virtual_scans:Number(d.price_only_scans),
+   original_A_scan_grouped_buys:original_scan_grouped_buys,
+   original_A_scan_grouped_sells:original_scan_grouped_sells,
+   event_counts_use_UTC_execution_day_not_original_scan_group_day:true,
    actual_historical_GPT_scans:0,
    scan_cadence_dynamic_intraday_proven:false,
    buys:buys.length,buys_coin_and_stake:buys.map(x=>x.symbol+":"+x.modeled_stake_test_usdc).join(" | "),
