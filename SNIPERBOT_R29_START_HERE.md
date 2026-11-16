@@ -5,6 +5,12 @@
 
 > **Neue GPT-Unterhaltung:** Vor Aussagen über Live-Guthaben, Kauf-/Verkaufsfähigkeit oder Forschungsfortschritt **die aktuellen GitHub-Dateien erneut lesen**. Dieses Dokument ist der dauerhafte Einstieg, keine automatische Verbindung zwischen beliebigen neuen ChatGPT-Chats. Falls GitHub nicht verbunden ist, diesen Dateilink bzw. das Projekt-Repository in den neuen Chat übernehmen. Nicht behaupten, einen späteren Commit zu kennen, ohne ihn zu lesen.
 
+## VERBINDLICHE NUTZERKLARSTELLUNG – MEMECOIN-ONLY SNIPER (16.11.2026)
+
+**DIESES GILT VOR ALLEN FRÜHEREN ALLGEMEINEN KRYPTO- ODER CEX-HANDELSPLÄNEN:** Der Nutzer will *keine* BTC-, ETH-, SOL- oder andere großen Kryptowährungen handeln, auch keine großen etablierten Meme-Bluechips als Standarduniversum. **Ziel sind ausschließlich neu entstehende oder durch Medien/Social Media gerade viral werdende kleine Memecoins mit potenziell +1.000 % oder mehr innerhalb von etwa 1–7 Wochen und rechtzeitigem Ausstieg vor dem Rückgang.** Der Hype kann schon früher abklingen; keine künstliche Mindesthaltefrist. Die 10×-Bewegung ist ein Suchziel, keine Gewinngarantie. BTC/ETH/SOL sind allenfalls optionaler Makro-Hintergrund; die tatsächliche Candidate-Discovery, Validierung, Score-/Buy-/Sell-Logik muss primär meme-spezifisch sein. Alle vorherigen Binance-DOGE/SHIB/PEPE-Shadow-Ergebnisse sind *reine Kontrollmodelle*, **keine Sniper-Strategieperformance**. Keine rückblickend bekannten Gewinner selektieren. Für historische PAPER-Stresstests sind nach Nutzerfreigabe variable 50–5.000 TEST-USDC zulässig, aber **keine Lockerung bestehender Laptop-Live-Paper-Sicherheitsgates ohne gesonderte kontrollierte Änderung**. Kein Echtgeld, Ledger unverändert.
+
+**Vor jeder neuen Recherche unbedingt lesen:** `research/r29/gpt-strategy/MEMECOIN_ONLY_10X_SNIPER_MANDAT_DE.md`.
+
 ## 1. Eigentliches Ziel
 
 Ein **einziger strategischer GPT-Entscheider** scannt die Kryptowährungsmärkte dauerhaft, findet neue Memecoins, prüft Sicherheitsrisiken, übermittelt virtuelle BUY-Entscheidungen an den lokalen Windows-Bot und entscheidet bei bestätigten GPT-Paper-Positionen später über HOLD/SELL. Der lokale Bot validiert jede Order und führt nur Paper-Orders aus. Notfallstopps dürfen unabhängig und schneller als stündlich erfolgen. 
