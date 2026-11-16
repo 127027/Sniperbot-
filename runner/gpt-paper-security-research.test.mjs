@@ -4,7 +4,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
-import {selectSecurityResearchCandidates,publicSecurityResearchReport,
+import {selectSecurityResearchCandidates,explainSecurityResearchSelection,publicSecurityResearchReport,
  syncGptPaperSecurityResearch,GPT_PUBLIC_SECURITY_PATH} from './gpt-paper-security-research.mjs';
 import {assessEvmSecurityRaw} from './live-paper-security.mjs';
 
@@ -147,4 +147,45 @@ test('local research security -> GitHub only new review hashes, hourly hard cap'
   assert.equal(securityCalls,1);
   assert.equal(githubPuts,1);
  }finally{rmSync(folder,{recursive:true,force:true})}
+});
+
+test('security funnel diagnostic identifies the exact public non-buy bottleneck, never approves trades',()=>{
+ const ok=explainSecurityResearchSelection(modelReview,market,{now:at});
+ assert.equal(ok.observed_market_rows,1);
+ assert.equal(ok.evm_market_rows,1);
+ assert.equal(ok.potential_research_candidates,1);
+ assert.equal(ok.status,'RESEARCH_ELIGIBLE_NOT_TRADE_APPROVED');
+ assert.equal(ok.this_diagnostic_cannot_authorize_trades,true);
+ assert.equal(ok.real_executable_quote_still_missing,true);
+ const wrong={...market,candidates:[
+  {...market.candidates[0],verification:'PROVIDER_ONLY'},
+  {...market.candidates[0],candidate_id:'base:'+token+':0x'+'c'.repeat(40),
+   pool_address:'0x'+'c'.repeat(40),verification:'CROSS_PROVIDER_IDENTITY',
+   liquidity_usd:10},
+  {...market.candidates[0],candidate_id:'base:'+token+':0x'+'d'.repeat(40),
+   pool_address:'0x'+'d'.repeat(40),verification:'CROSS_PROVIDER_IDENTITY',
+   liquidity_usd:45000,volume_m5_usd:150000}]};
+ const diagnostic=explainSecurityResearchSelection(modelReview,wrong,{now:at});
+ assert.equal(diagnostic.potential_research_candidates,0);
+ assert.equal(diagnostic.first_failure_reason_counts.INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED,1);
+ assert.equal(diagnostic.first_failure_reason_counts.POOL_LIQUIDITY_LT_20000_OR_UNKNOWN,1);
+ assert.equal(diagnostic.first_failure_reason_counts.VOLUME_EXCEEDS_2X_POOL_LIQUIDITY,1);
+ assert(!JSON.stringify(diagnostic).includes(token));
+ assert(!JSON.stringify(diagnostic).includes(pool));
+ const publicReport=publicSecurityResearchReport({review:modelReview,market:wrong,findings:[],now:at});
+ assert.equal(publicReport.selection_diagnostic.status,'NO_RESEARCH_ELIGIBLE_EVM_POOL');
+ assert.equal(publicReport.candidate_check_count,0);
+ assert.equal(publicReport.actionable,false);
+ assert.equal(publicReport.authorizes_paper_orders,false);
+});
+test('diagnostic separates missing local market from stale market and valid 0 eligible EVM pairs',()=>{
+ assert.equal(explainSecurityResearchSelection(modelReview,null,{now:at}).status,
+  'NO_LOCAL_MARKET_SNAPSHOT');
+ assert.equal(explainSecurityResearchSelection(modelReview,market,{now:at+400000}).status,
+  'MARKET_PUBLICATION_STALE_OR_FUTURE');
+ const solar={...market,candidates:[{...market.candidates[0],chain:'solana'}]};
+ const result=explainSecurityResearchSelection(modelReview,solar,{now:at});
+ assert.equal(result.evm_market_rows,0);
+ assert.equal(result.first_failure_reason_counts.NON_EVM_CHAIN,1);
+ assert.equal(result.potential_research_candidates,0);
 });
