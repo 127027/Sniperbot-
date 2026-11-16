@@ -1,0 +1,22 @@
+name: R29 Adaptive Daily GPT Research and Outcome Learning Tests
+on:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - research/r29/operations/**
+      - .github/workflows/r29-daily-learning.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-forward-only-daily-learning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run pure, offline date, market-evidence and rejected-coin learning tests
+        run: node --test research/r29/operations/operations.test.mjs
