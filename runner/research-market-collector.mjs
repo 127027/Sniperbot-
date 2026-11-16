@@ -62,6 +62,31 @@ function dexRecord(raw,m,now,urls){
     unresolved_checks:['INDEPENDENT_PAIR_IDENTITY','CONTRACT','LIQUIDITY_RISK','SELLABILITY','PAID_PROFILE_BIAS']};
 }
 const dedup=rows=>[...new Map(rows.map(row=>[row.candidate_id,row])).values()];
+// Bounded independent pair checks must prioritize economically plausible pools,
+// not merely the first two returned by the "new_pools" API. A newly launched
+// 5-cent-liquidity pool should not crowd out one with genuine liquidity.
+// This ranks only which PAIR IDENTITIES to verify, never authorizes a BUY.
+export function prioritizeIdentityCrosschecks(rows,{chain,limit=2}={}){
+ if(!MARKETS.some(m=>m.chain===chain)||!Number.isInteger(limit)||limit<0||limit>2)
+  throw Error('CROSSCHECK_SELECTION_INVALID');
+ const tier=c=>{
+  const liq=c.liquidity_usd,vol=c.volume_m5_usd,
+   buys=c.buys_m5,sells=c.sells_m5;
+  if(!(Number.isFinite(liq)&&Number.isFinite(vol)&&
+       liq>=20000&&vol>=1000&&vol<=liq*2))return 0;
+  if(liq>=50000&&vol>=2000&&
+     Number.isFinite(buys)&&Number.isFinite(sells)&&
+     buys>=20&&buys>1.5*sells)return 2;
+  return 1;
+ };
+ return dedup(rows.filter(c=>c?.chain===chain&&
+  c.source==='GECKOTERMINAL_NEW_POOLS'&&c.promotion_biased===false))
+  .sort((a,b)=>tier(b)-tier(a)||
+   (b.liquidity_usd||0)-(a.liquidity_usd||0)||
+   (b.volume_m5_usd||0)-(a.volume_m5_usd||0)||
+   a.candidate_id.localeCompare(b.candidate_id))
+  .slice(0,limit);
+}
 function crosscheckRecord(json,m,c){
   if(!Array.isArray(json?.pairs))return false;
   return json.pairs.some(pair=>pair.chainId===m.dex&&identity(m.chain,pair.baseToken?.address,pair.pairAddress)===c.candidate_id);
@@ -103,7 +128,7 @@ export async function collectSnapshot({fetcher=fetch,now=new Date().toISOString(
   }
   // Limit independent pair lookups to two per chain to respect free provider rates.
   for(const m of MARKETS){
-    for(const c of candidates.filter(x=>x.chain===m.chain).slice(0,2)){
+    for(const c of prioritizeIdentityCrosschecks(candidates,{chain:m.chain,limit:2})){
       const url=DS+'/latest/dex/pairs/'+m.dex+'/'+encodeURIComponent(c.pool_address);
       try{
         const response=await getJson(url,fetcher);
