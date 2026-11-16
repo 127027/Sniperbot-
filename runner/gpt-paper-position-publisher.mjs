@@ -40,12 +40,18 @@ export function sanitizeGptPublicPositionContext(input,{now=Date.now()}={}){
   warning:'Only GPT-managed virtual position IDs; not proof of executable real swaps'};
 }
 export async function syncGptPaperPublicPositionContext({token,
- fetcher=fetch,localFetcher=fetch,now=Date.now()}={}){
+ fetcher=fetch,localFetcher=fetch,now=null}={}){
+ // The local HTTP service generates as_of_utc DURING the request. Capturing
+ // Date.now() as a default argument BEFORE fetch always misclassifies that
+ // fresh response as being from the future. Sample after receiving its JSON.
+ if(now!==null&&!Number.isFinite(now))throw Error('GPT_POSITION_NOW_INVALID');
  if(!tokenOk(token))throw Error('GPT_POSITION_GITHUB_TOKEN_REQUIRED');
  const local=await localFetcher('http://127.0.0.1:3030/api/gpt/paper/context',{
   method:'GET',redirect:'error',signal:AbortSignal.timeout(5000)});
  if(!local?.ok)throw Error('GPT_POSITION_LOCAL_HTTP_'+local?.status);
- const sanitized=sanitizeGptPublicPositionContext(await local.json(),{now});
+ const localBody=await local.json();
+ const observedNow=now===null?Date.now():now;
+ const sanitized=sanitizeGptPublicPositionContext(localBody,{now:observedNow});
  const headers={authorization:'Bearer '+token,accept:'application/vnd.github+json',
   'content-type':'application/json','X-GitHub-Api-Version':'2022-11-28',
   'user-agent':'R29-GPT-Paper-Position-Context/1'};
@@ -66,8 +72,8 @@ export async function syncGptPaperPublicPositionContext({token,
  const unchanged=old?.schema===sanitized.schema&&
   old.gpt_follow_enabled===sanitized.gpt_follow_enabled&&
   old.paper_bot_enabled===sanitized.paper_bot_enabled&&a===b;
- if(unchanged&&timeOk(old?.observed_at_utc)&&now-Date.parse(old.observed_at_utc)>=0&&
-    now-Date.parse(old.observed_at_utc)<15*60000)
+ if(unchanged&&timeOk(old?.observed_at_utc)&&observedNow-Date.parse(old.observed_at_utc)>=0&&
+    observedNow-Date.parse(old.observed_at_utc)<15*60000)
   return {status:'UNCHANGED',published:false,context:sanitized};
  const payload={message:'research(r29): public GPT-owned PAPER position targets (no balances)',
   branch:GPT_PAPER_BRANCH,
