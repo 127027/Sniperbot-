@@ -6,6 +6,8 @@ All 'as-of' reviews use strictly past ledger events; model decisions are NOT gen
 """
 import argparse
 import collections
+import sqlite3
+import gzip
 import hashlib
 import json
 import os
@@ -32,8 +34,8 @@ ROW_COUNTS=(12802709,12802709,12802709,3822283)
 META={"launches/pumpdata-2026-10-15-launches.parquet":3395780,
       "receipt.json":494}
 MAX_REQUEST_BYTES=1_430_000_000
-MAX_SELECTION=50000
-MAX_EVENTS_EACH=12000
+MAX_SELECTION=3000000
+MAX_EVENTS_EACH=3000000
 WRAPPED_SOL="So11111111111111111111111111111111111111112"
 SCANNED_COLUMNS=["ts","slot","idx","seq","mint","pool","wallet","side",
                  "failed","venue","quote_mint","quote_amount","token_amount",
@@ -134,103 +136,185 @@ def asof_snapshot(events,now):
 def full_one_day(tmp, launches, manifest):
     selected=launch_candidates(launches)
     selected_mints=set(x["mint"] for x in selected)
-    events={x["mint"]:[] for x in selected}
-    counts=collections.Counter()
-    shard_sources=[]
+    counters=collections.Counter()
+    proofs=[]
+    db=sqlite3.connect(tmp/"neutral-swap-records.sqlite")
+    db.execute("PRAGMA journal_mode=OFF")
+    db.execute("PRAGMA synchronous=OFF")
+    db.execute("PRAGMA temp_store=FILE")
+    db.execute("""CREATE TABLE selected_swaps (
+      mint TEXT, ts INTEGER, slot INTEGER, idx INTEGER, seq INTEGER,
+      pool TEXT, wallet TEXT, side TEXT, failed INTEGER, venue TEXT,
+      quote_mint TEXT, quote_amount INTEGER, token_amount INTEGER,
+      fee_lamports INTEGER
+    )""")
+    fields=("mint","ts","slot","idx","seq","pool","wallet","side","failed",
+            "venue","quote_mint","quote_amount","token_amount","fee_lamports")
+    insert="INSERT INTO selected_swaps VALUES ("+",".join(["?"]*len(fields))+")"
+    value_set=pa.array(sorted(selected_mints))
     for ix,size in enumerate(SIZES):
         name=f"data/pumpdata-2026-10-15-{ix:05d}-of-00004.parquet"
         filepath=tmp/Path(name).name
         t0=time.monotonic()
         proof=download(name,filepath,expected_size=size)
-        pqfile=pq.ParquetFile(filepath)
-        if pqfile.metadata.num_rows!=ROW_COUNTS[ix]:
+        parquet=pq.ParquetFile(filepath)
+        if parquet.metadata.num_rows!=ROW_COUNTS[ix]:
             raise ValueError("SHARD_ROWS_MISMATCH")
-        missing=set(SCANNED_COLUMNS)-set(pqfile.schema_arrow.names)
+        missing=set(SCANNED_COLUMNS)-set(parquet.schema_arrow.names)
         if missing:raise ValueError("PROVIDER_SWAP_FIELDS_MISSING:"+str(sorted(missing)))
-        batches=0
-        for batch in pqfile.iter_batches(batch_size=32768,columns=SCANNED_COLUMNS):
-            batches+=1
-            counts["all_rows"]+=batch.num_rows
-            failed=batch.column(batch.schema.get_field_index("failed"))
-            counts["failed"]+=pc.sum(pc.fill_null(failed,False)).as_py()
+        batch_count=0
+        for batch in parquet.iter_batches(batch_size=65536,columns=SCANNED_COLUMNS):
+            batch_count+=1
+            counters["all_rows"]+=batch.num_rows
+            fcol=batch.column(batch.schema.get_field_index("failed"))
+            failed_sum=pc.sum(pc.fill_null(fcol,False)).as_py()
+            counters["failed"]+=failed_sum
             mintcol=batch.column(batch.schema.get_field_index("mint"))
-            mask=pc.is_in(mintcol,value_set=pa.array(sorted(selected_mints)))
-            filtered=batch.filter(mask)
-            counts["selected_rows"]+=filtered.num_rows
-            if counts["selected_rows"]>MAX_SELECTION:
-                raise ValueError("TOO_MANY_SELECTED_TRADES_WOULD_TRUNCATE_FULL_SEQUENCE")
-            for e in filtered.to_pylist():
-                if not isinstance(e["ts"],int) or not START<=e["ts"]<END:
-                    raise ValueError("SWAP_EVENT_TIME_OUTSIDE_DAY")
-                if e["mint"] not in events:raise ValueError("SELECTION_FILTER_BROKEN")
-                if len(events[e["mint"]])>=MAX_EVENTS_EACH:
-                    raise ValueError("PER_MINT_TRADE_HISTORY_TOO_LARGE_NEVER_TRUNCATE_SILENTLY")
-                events[e["mint"]].append(e)
-        counts["shards_complete"]+=1
-        shard_sources.append({**proof,"num_rows":pqfile.metadata.num_rows,
-          "batch_count":batches,"elapsed_seconds":round(time.monotonic()-t0,3)})
+            filtered=batch.filter(pc.is_in(mintcol,value_set=value_set))
+            counters["selected_rows"]+=filtered.num_rows
+            if counters["selected_rows"]>MAX_SELECTION:
+                raise ValueError("SELECTION_EXCEEDS_DISK_BACKED_CAP_NO_PARTIAL_RESULTS")
+            rows=filtered.to_pylist()
+            for row in rows:
+                if not isinstance(row["ts"],int) or not START<=row["ts"]<END:
+                    raise ValueError("SWAP_TIME_OUTSIDE_ARCHIVED_UTC_DAY")
+                if row["mint"] not in selected_mints:
+                    raise ValueError("UNSELECTED_MINT_IN_COHORT")
+            db.executemany(insert,[tuple(int(e[k]) if k=="failed" else e[k]
+                for k in fields) for e in rows])
+        db.commit()
+        counters["shards_complete"]+=1
+        proofs.append({**proof,"reported_num_rows":parquet.metadata.num_rows,
+                       "processed_batches":batch_count,
+                       "elapsed_seconds":round(time.monotonic()-t0,3)})
         filepath.unlink(missing_ok=True)
-        print("REAL_FULLDAY_SHARD",json.dumps({"shard":ix+1,"of":4,
-          "rows":pqfile.metadata.num_rows,
-          "selected_total_rows":counts["selected_rows"],
+        print("REAL_FULLDAY_SHARD",json.dumps({
+          "number":ix+1,"total":4,"rows":parquet.metadata.num_rows,
+          "selected_cumulative":counters["selected_rows"],
           "source_sha256":proof["sha256_raw_response"]}),flush=True)
-    if counts["all_rows"]!=sum(ROW_COUNTS) or counts["failed"]!=manifest["receipt"]["rows"]["trades_failed"]:
-        raise ValueError("CANNOT_VERIFY_COMPLETE_TRADE_CENSUS")
+    if counters["all_rows"]!=sum(ROW_COUNTS) or counters["failed"]!=manifest["receipt"]["rows"]["trades_failed"]:
+        raise ValueError("FULL_DAY_CENSUS_OR_FAILED_COUNT_NOT_VERIFIED")
+    db.execute("CREATE INDEX ix_by_mint_time ON selected_swaps (mint,ts,slot,idx,seq)")
+    db.commit()
+
+    # Each selected real mint gets a COMPLETE, separately compressed 24h swap
+    # history: never silently truncate a popular coin. If source is too large,
+    # fail before publishing any audit result.
+    out=DEST/"full_day_trade_events"
+    out.mkdir(parents=True,exist_ok=True)
     findings=[]
-    for c in selected:
-        rows=sorted(events[c["mint"]],key=lambda e:(e["ts"],e["slot"],e["idx"],e["seq"]))
-        # Full-day paper portfolio result cannot be determined without
-        # executable quotes / historical fee and chain-state security proof.
-        # Keep actual native quote raw units to avoid token-decimal mistakes.
-        preview=[{
-            "timestamp_utc":iso(e["ts"]),"slot":e["slot"],"idx":e["idx"],"seq":e["seq"],
-            "pool":e["pool"],"venue":e["venue"],"side":e["side"],
-            "failed":e["failed"],"wallet":e["wallet"],
-            "quote_mint":e["quote_mint"],"quote_amount_raw":e["quote_amount"],
-            "token_amount_raw":e["token_amount"],"fee_lamports":e["fee_lamports"]
-          } for e in rows]
-        checkpoint=START+(c["selection_hour"]+1)*3600
-        checkpoints=[checkpoint,checkpoint+3600,checkpoint+4*3600,END-1]
-        checkpoints=sorted(set(x for x in checkpoints if x<END))
-        findings.append({**c,
-            "source":"NON_CHERRY_PICKED_ACTUAL_SOLANA_LAUNCH",
-            "selected_total_transactions":len(rows),
-            "selected_successful_swaps":sum(1 for e in rows if not e["failed"]),
-            "selected_failed_swaps":sum(1 for e in rows if e["failed"]),
-            "historical_events":preview,
-            "asof_snapshots":[asof_snapshot(rows,t) for t in checkpoints],
-            "historical_fully_independent_security_and_execution":False,
-            "real_gpt_buy_sell_held_orders":None})
-    result={"schema":"sniper_r29_real_full_day_neutral_swaps_v1",
-            "date":DAY,"source_class":"AUTHENTIC_THIRD_PARTY_ARCHIVED_SOLANA_TRANSACTIONS",
-            "not_actual_GPT_call":True,"not_actual_DEX_fills_for_bot":True,
-            "user_wallet_untouched":True,"laptop_paper_ledger_untouched":True,
-            "no_real_money":True,"source_summary_and_receipt":manifest["receipt"],
-            "source_recorded_shard_proofs":shard_sources,
-            "counts":dict(counts),
-            "neutral_launch_selection":"TWO_EARLIEST_EACH_UTC_HOUR_ONLY",
-            "selected_mint_count":len(findings),
-            "source_limitations":[
-              "All individual rows are third-party retrospective events, not independent historical API availability proof",
-              "Swaps are historical executed trades by others, never orders sent by this GPT",
-              "Raw quote prices require actual quote-token decimals and valuation, don't treat raw units as USD",
-              "No independent historical executable paper fill quotes or Mint/Freeze security checks",
-              "Without time-sealed historical model calls, cannot claim historical GPT found winners",
-              "Full source is one day only; no inference about other 59 holdout days"
-            ],"coins":findings}
-    dump(REPORT,result)
+    for k,c in enumerate(selected):
+        mint=c["mint"]
+        checkpoints=[START+(hour+1)*3600 for hour in range(c["selection_hour"],24)]
+        cursor=db.execute("SELECT "+",".join(fields)+
+                          " FROM selected_swaps WHERE mint = ? ORDER BY ts,slot,idx,seq",
+                          (mint,))
+        name=f"coin-{k:02d}-{mint}.jsonl.gz"
+        destination=out/name
+        events_count=0;buys=0;sells=0;failed=0;other_quotes=0
+        seen_buy_wallets=set();seen_sell_wallets=set()
+        snapshots=[]
+        cp=0
+        def snapshot(when):
+            return {
+              "review_at_utc":iso(when),
+              "asof_event_inclusion":"EVENT_TS_STRICTLY_BEFORE_SCAN_TIME",
+              "observed_events":events_count,
+              "successful_buys":buys,
+              "successful_sells":sells,
+              "failed_swaps":failed,
+              "distinct_observed_buyer_wallets":len(seen_buy_wallets),
+              "distinct_observed_seller_wallets":len(seen_sell_wallets),
+              "historical_non_SOL_quote_swaps":other_quotes,
+              "independent_historic_onchain_security":False,
+              "contemporaneously_executable_costed_swap_quote":False,
+              "gpt_paper_order":"NO_ORDER_EVIDENCE_GAP_NOT_MODEL_NO_TRADE",
+              "historical_GPT_calls_made_in_replay":0
+            }
+        with gzip.open(destination,"wt",encoding="utf8",compresslevel=6) as outstream:
+            for tup in cursor:
+                e=dict(zip(fields,tup))
+                if not START<=e["ts"]<END:raise ValueError("EXPORTED_TRADE_OUTSIDE_DAY")
+                while cp<len(checkpoints) and checkpoints[cp]<=e["ts"]:
+                    snapshots.append(snapshot(checkpoints[cp]))
+                    cp+=1
+                outstream.write(json.dumps({
+                    "at_utc":iso(e["ts"]),**e
+                },separators=(",",":"))+"\n")
+                events_count+=1
+                if events_count>MAX_EVENTS_EACH:
+                    raise ValueError("PER_COIN_EXCEEDS_BOUNDED_COMPLETE_RECORD_CAP")
+                if e["failed"]:
+                    failed+=1
+                elif e["side"]=="buy":
+                    buys+=1
+                    if e["wallet"]:seen_buy_wallets.add(e["wallet"])
+                elif e["side"]=="sell":
+                    sells+=1
+                    if e["wallet"]:seen_sell_wallets.add(e["wallet"])
+                if not e["failed"] and e["quote_mint"]!=WRAPPED_SOL:
+                    other_quotes+=1
+            while cp<len(checkpoints):
+                snapshots.append(snapshot(checkpoints[cp]))
+                cp+=1
+        digest=hashlib.sha256()
+        with destination.open("rb") as raw:
+            for part in iter(lambda:raw.read(256*1024),b""):
+                digest.update(part)
+        findings.append({
+          **c,"source":"REAL_RECORDED_NEUTRAL_SOLANA_LAUNCH",
+          "historical_full_day_trade_sequence_path":"full_day_trade_events/"+name,
+          "historical_full_day_trade_sequence_gzip_sha256":digest.hexdigest(),
+          "total_historical_transaction_events":events_count,
+          "successful_buys":buys,"successful_sells":sells,
+          "failed_swaps":failed,"non_SOL_quote_swaps":other_quotes,
+          "has_both_executed_buy_and_sell":buys>0 and sells>0,
+          "timestamp_sealed_asof_hourly_analyses":snapshots,
+          "historical_buy_sellability_and_execution": "UNPROVEN",
+          "real_paper_GPT_buy_fill":None
+        })
+    selected_total=sum(x["total_historical_transaction_events"] for x in findings)
+    if selected_total !=counters["selected_rows"]:
+        raise ValueError("ONE_OR_MORE_MINT_TRADES_NOT_FULLY_EXPORTED")
+    output={
+      "schema":"sniper_r29_real_full_day_neutral_swaps_v2",
+      "date":DAY,
+      "source_class":"RETROSPECTIVE_THIRD_PARTY_ACTUAL_LEDGER_EVENTS",
+      "verified_daywide_swaps_and_failed":counters["all_rows"],
+      "verified_daywide_failed":counters["failed"],
+      "verified_shards":len(proofs),
+      "checked_against_publisher_block_receipt":True,
+      "actual_independent_sol_rpc_attestation_per_selected_trade":False,
+      "source_proofs":proofs,
+      "source_receipt":manifest["receipt"],
+      "neutral_coin_selection":"FIRST_TWO_TOKENS_PER_UTC_HOUR_BY_THEN_KNOWN_LAUNCH",
+      "selected_mint_count":len(findings),
+      "complete_selected_swaps":selected_total,
+      "actual_replayed_GPT_model_calls":0,
+      "actual_GPT_paper_fills":0,
+      "historical_GPT_strategy_PNL_USDC":None,
+      "user_wallet_or_live_paper_modified":False,
+      "source_limitations":[
+        "Future success/rug/ATH selection prohibited, no cherry-picked winners",
+        "Archived raw swaps are actual transactions by other wallets, NOT ours",
+        "Historical Mint/Freeze security proof, exact executable swap quotes and unique buyer authenticity not established",
+        "Quote token decimals and quote/USD valuation not established",
+        "Third-party archive is retrospective, not a historical model call",
+        "Only this one day has full free swap data"
+      ],
+      "coins":findings
+    }
+    dump(REPORT,output)
     print("REAL_FULLDAY_RESULT",json.dumps({
-      "full_trade_census":counts["all_rows"],
-      "total_failed_swaps":counts["failed"],
-      "selected_mints":len(findings),
-      "complete_selected_mint_swaps":counts["selected_rows"],
-      "tokens_with_both_buy_and_sell":sum(
-       1 for x in findings if sum(e["side"]=="buy" and not e["failed"]
-       for e in x["historical_events"])>0 and
-       sum(e["side"]=="sell" and not e["failed"]
-       for e in x["historical_events"])>0),
-      "actual_GPT_model_buy_fills":0,
+      "all_actual_day_swaps":counters["all_rows"],
+      "actual_failed":counters["failed"],
+      "neutral_mints":len(findings),
+      "complete_selected_swaps":selected_total,
+      "mints_with_both_actual_buy_and_sell":sum(x["has_both_executed_buy_and_sell"] for x in findings),
+      "historical_GPT_fills":0,
+      "source_coverage_days":1,
       "output":str(REPORT)}),flush=True)
+    db.close()
 
 def main():
     arg=argparse.ArgumentParser()
