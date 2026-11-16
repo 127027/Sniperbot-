@@ -10,7 +10,7 @@ REV="9b9a04e7e3e85775d614d16105daad2e69ce8544"
 URL="https://huggingface.co/datasets/loopholetape/pumpfun-launches/resolve/"+REV+"/"
 OUT=Path(__file__).resolve().parent/"generated"/"real-minute-36days"
 DAYS=[(datetime(2026,9,24,tzinfo=timezone.utc)+timedelta(days=i)).date().isoformat() for i in range(36)]
-RX=re.compile(r"^features\s*\|\s*(data/features/20[0-9]{2}-[0-9]{2}-[0-9]{2}\.parquet)\s*\|\s*([\d,]+)\s*\|\s*([\d,]+)\s*\|\s*([a-f0-9]{64})",re.M)
+RX=re.compile(r"^[ \t]*\|?[ \t]*features\s*\|\s*(data/features/20[0-9]{2}-[0-9]{2}-[0-9]{2}\.parquet)\s*\|\s*([\d,]+)\s*\|\s*([\d,]+)\s*\|\s*([a-f0-9]{64})",re.M)
 SAFE=("mint","t","ts","age_s","window","slot_ms","mayhem",
  "quote_asset","quote_is_sol","quote_modelled","quote_holder_rewards","quote_evidence",
  "flag_creator_sold","flag_bundle_dumped","flag_curve_drained","flag_pool_drained",
