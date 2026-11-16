@@ -61,6 +61,74 @@ export function selectSecurityResearchCandidates(review,market,{now=Date.now(),l
     b.volume_m5_usd-a.volume_m5_usd||
     a.candidate_id.localeCompare(b.candidate_id)).slice(0,limit);
 }
+// Diagnose why 0 security-provider calls happened. This public information
+// never relaxes the gate, authorizes BUYs, names a wallet, or reveals secrets.
+// Count each rejected candidate once under its FIRST failing prerequisite.
+export function explainSecurityResearchSelection(review,market,{now=Date.now()}={}){
+ const reasons={};
+ const mark=x=>reasons[x]=(reasons[x]||0)+1;
+ let source="READY";
+ if(review?.schema!=='sniper_r29_public_dynamic_review.v1'||
+   !DIGEST.test(review.review_sha256||''))source="RESEARCH_REVIEW_INVALID";
+ else if(!market)source="NO_LOCAL_MARKET_SNAPSHOT";
+ else if(market.schema!=='research_market_snapshot.v1'||
+   market.paper_only!==true||market.actionable!==false||
+   market.collection_status!=='OBSERVED_OR_PARTIAL'||
+   !Array.isArray(market.candidates)||market.candidates.length>96)
+   source="MARKET_SCHEMA_OR_COLLECTION_INVALID";
+ else if(!recent(market.published_at_utc,now,300000))
+   source="MARKET_PUBLICATION_STALE_OR_FUTURE";
+ if(source!=="READY")
+  return {schema:"sniper_r29_security_candidate_diagnostic.v1",
+   status:source,observed_market_rows:0,evm_market_rows:0,
+   potential_research_candidates:0,
+   first_failure_reason_counts:{[source]:1},
+   this_diagnostic_cannot_authorize_trades:true};
+ let evm=0,eligible=0;
+ for(const c of market.candidates){
+  if(!allowed.has(c?.chain)){mark("NON_EVM_CHAIN");continue}
+  evm++;
+  if(!/^((eth)|(base)|(bsc)):0x[a-f0-9]{40}:0x[a-f0-9]{40}$/.test(c.candidate_id||'')||
+    c.candidate_id!==c.chain+':'+c.token_address+':'+c.pool_address){
+   mark("POOL_OR_TOKEN_ADDRESS_IDENTITY_INVALID");continue;
+  }
+  if(c.source!=="GECKOTERMINAL_NEW_POOLS"){
+   mark("NOT_NEUTRAL_GECKOTERMINAL_NEW_POOL");continue;
+  }
+  if(c.verification!=="CROSS_PROVIDER_IDENTITY"){
+   mark("INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED");continue;
+  }
+  if(c.promotion_biased!==false){
+   mark("PROMOTION_BIAS_OR_UNKNOWN");continue;
+  }
+  if(!recent(c.observed_at_utc,now,300000)){
+   mark("POOL_OBSERVATION_STALE_OR_FUTURE");continue;
+  }
+  if(!(Number.isFinite(c.liquidity_usd)&&c.liquidity_usd>=20000)){
+   mark("POOL_LIQUIDITY_LT_20000_OR_UNKNOWN");continue;
+  }
+  if(!(Number.isFinite(c.volume_m5_usd)&&c.volume_m5_usd>=1000)){
+   mark("VOLUME_5M_LT_1000_OR_UNKNOWN");continue;
+  }
+  if(c.volume_m5_usd>c.liquidity_usd*2){
+   mark("VOLUME_EXCEEDS_2X_POOL_LIQUIDITY");continue;
+  }
+  eligible++;
+ }
+ const count=market.candidates.length;
+ if(Object.values(reasons).reduce((a,b)=>a+b,0)+eligible!==count)
+  throw Error("SECURITY_SELECTION_DIAGNOSTIC_COUNT_MISMATCH");
+ return {schema:"sniper_r29_security_candidate_diagnostic.v1",
+  status:eligible>0?"RESEARCH_ELIGIBLE_NOT_TRADE_APPROVED":
+   "NO_RESEARCH_ELIGIBLE_EVM_POOL",
+  observed_market_rows:count,evm_market_rows:evm,
+  potential_research_candidates:eligible,
+  first_failure_reason_counts:reasons,
+  two_provider_contract_checks_still_separate:true,
+  independent_buyer_wallet_proof_still_missing:true,
+  real_executable_quote_still_missing:true,
+  this_diagnostic_cannot_authorize_trades:true};
+}
 export function publicSecurityResearchReport({review,market=null,findings=[],now=Date.now()}={}){
  if(review?.schema!=='sniper_r29_public_dynamic_review.v1'||
   !DIGEST.test(review.review_sha256||'')||!time(review.observed_at_utc)||
@@ -119,6 +187,7 @@ export function publicSecurityResearchReport({review,market=null,findings=[],now
   review_sha256:review.review_sha256,review_observed_at_utc:review.observed_at_utc,
   market_snapshot_observed_at_utc:market?.published_at_utc||null,
   market_snapshot_is_order_authority:false,
+  selection_diagnostic:explainSecurityResearchSelection(review,market,{now}),
   checked_at_utc:new Date(now).toISOString(),
   candidate_check_count:out.length,
   status:out.length?'PARTIAL_SECURITY_RESEARCH_ONLY':'DATA_GAP_NO_MATCHING_FRESH_EVM_CANDIDATE',
