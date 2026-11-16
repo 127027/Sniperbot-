@@ -44,6 +44,15 @@ test("baseline 1, verified activity 4/12/24, open positions >=12",()=>{
   verified_activity:condition(80,"2026-11-16T00:00:00Z")
  }).frequency,1);
 });
+test("independently claimed activity without a valid observation timestamp fails closed",()=>{
+ const invalid={independently_verified:true,new_pools_24h:100,
+  independent_buyers_growth_pct:200,volume_growth_pct:200};
+ assert.equal(chooseAdaptiveFrequency({asof_utc:morning,
+  verified_activity:invalid}).frequency,1);
+ assert.equal(chooseAdaptiveFrequency({asof_utc:morning,
+  verified_activity:{...invalid,observed_at_utc:"NOT_A_TIME"},
+  open_position_count:1}).frequency,12);
+});
 test("morning baseline is always one decision, later cadence checks are evidence-dependent",()=>{
  const plan=dailyPlan({asof_utc:morning,verified_activity:condition(35)});
  assert.equal(plan.full_gpt_reviews_per_operating_day,12);
