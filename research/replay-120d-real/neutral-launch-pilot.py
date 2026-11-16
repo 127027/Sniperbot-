@@ -119,9 +119,9 @@ def build_day(day, source, rows):
         tick = base + timedelta(hours=hour + 1)
         # Hourly checkpoint AFTER previous hour ends, never earlier.
         moment = tick.isoformat().replace("+00:00", "Z")
-        seen = sum(row["t0"] <= tick.timestamp() for row in rows)
+        seen = sum(row["t0"] < tick.timestamp() for row in rows)
         eligible = [row for row in rows
-                    if base.timestamp() + hour * 3600 < row["t0"] <= tick.timestamp()]
+                    if base.timestamp() + hour * 3600 <= row["t0"] < tick.timestamp()]
         front = filter_frame(eligible, moment)
         if any(r["t0"] > tick.timestamp() for r in front):
             raise ValueError("FUTURE_LEAKAGE")
@@ -139,6 +139,8 @@ def build_day(day, source, rows):
         if seen < prior:
             raise ValueError("NON_MONOTONIC_LAUNCH_COUNT")
         prior = seen
+    if sum(f["new_launches_previous_hour"] for f in frames) != len(rows):
+        raise ValueError("DAY_EVENT_COVERAGE_DROPPED_OR_DUPLICATED")
     return {
         "day": day, "phase": "TRAIN" if day < TRAIN_END else "HOLDOUT",
         "source": source, "records_excluded_outcome_columns": sorted(FORBIDDEN_FUTURE),
@@ -173,7 +175,7 @@ def main():
             source, rows = load_day(day)
             data = build_day(day, source, rows)
             result["days"].append(data)
-            result["total_real_solana_launches_pilot"] += source["total_records_in_day"]
+            result["total_real_solana_launches_covered"] += source["total_records_in_day"]
             result["total_time_sealed_hour_frames"] += len(data["frames"])
             print("NEUTRAL_LAUNCH_DAY", day, source["total_records_in_day"],
                   source["raw_parquet_sha256"])
@@ -186,7 +188,7 @@ def main():
     print("NEUTRAL_LAUNCH_MANIFEST", json.dumps({
         "days_success": len(result["days"]),
         "days_failed": len(result["source_errors"]),
-        "total_captured_mints": result["total_real_solana_launches_pilot"],
+        "total_captured_mints": result["total_real_solana_launches_covered"],
         "time_sealed_hour_frames": result["total_time_sealed_hour_frames"],
         "not_historical_gpt_trades": True,
         "output_path": str(OUTPUT)
