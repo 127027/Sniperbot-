@@ -47,8 +47,11 @@ export function riskDecideAtBuy({buyAt,coin,previousClosed,threshold=2,cooldownD
  const eligible=previousClosed.filter(x=>{
   if(!validIso(x.at_utc)||!Number.isFinite(x.modeled_realized_pnl_test_usdc))
    throw Error("R29_BAD_CLOSED_SOURCE");
-  if(Date.parse(x.at_utc)>=t)throw Error("R29_FUTURE_TRADE_OUTCOME_LEAK");
-  return x.symbol===coin&&x.modeled_realized_pnl_test_usdc<0&&
+  if(Date.parse(x.at_utc)>t)throw Error("R29_FUTURE_TRADE_OUTCOME_LEAK");
+  // A simultaneous SELL is not proof its result was known when this BUY
+  // was evaluated. Exclude identical timestamps even if we sort SELL first.
+  return Date.parse(x.at_utc)<t&&
+   x.symbol===coin&&x.modeled_realized_pnl_test_usdc<0&&
    t-Date.parse(x.at_utc)<=cooldownDays*DAY;
  });
  return {permit:eligible.length<threshold,
