@@ -136,6 +136,8 @@ if(main){
  console.log('REAL_Dex_SAMPLE_PROBE '+JSON.stringify({
   status:'SUCCEEDED',preview_rows:report.preview_rows,
   distinct_mints:report.distinct_mints_in_preview,
+  source_rows:report.source_row_count,discarded:report.discarded_incompatible_rows,
+  first_incompatible_examples:report.incompatible_row_examples.slice(0,2),
   executed:report.executed_rows_in_preview,failed:report.failed_rows_in_preview,
   sha256:report.sha256_raw_http_response,
   earliest:report.earliest_at_utc,latest:report.latest_at_utc,
