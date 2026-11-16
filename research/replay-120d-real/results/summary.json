@@ -1,0 +1,171 @@
+{
+  "schema": "sniper_r29_real_120d_historical_market_replay_v1",
+  "window": {
+    "training_start_utc": "2026-07-20T00:00:00Z",
+    "training_end_exclusive_utc": "2026-09-18T00:00:00Z",
+    "test_start_utc": "2026-09-18T00:00:00Z",
+    "test_cutoff_utc": "2026-11-16T09:12:00Z",
+    "train_days": 60,
+    "test_calendar_days": 60,
+    "last_day_partial": true
+  },
+  "raw_provenance": {
+    "collect_run_url": "https://github.com/127027/Sniperbot-/actions/runs/43842315653",
+    "source_artifact_url": "https://github.com/127027/Sniperbot-/actions/runs/43842315653/artifacts/14213063574",
+    "source_data_collected_online": true,
+    "providers": {
+      "binance_completed": 12,
+      "pump_months": 5,
+      "pump_daily_aggregates": 138,
+      "gecko_dex_daily": 119,
+      "huggingface_sample_rows": 200
+    },
+    "complete_binance_spot_1h_candle_count": 34956,
+    "uses_only_historical_closed_bars": true,
+    "trade_universe_selection": "13 symbols from earlier R30 retrospective sample, NOT an unbiased as-of-universe of all new memes",
+    "geckoterminal_dex_pepe_sample_only": true,
+    "solana_sample_is_not_complete": true,
+    "news_security_liquidity_independent_proof_absent": true
+  },
+  "measured_120d_research_clock": {
+    "train_scans": 680,
+    "test_scans": 800,
+    "total_scans": 1480,
+    "these_are_deterministic_historic_price_scan_evaluations_not_model_calls": true,
+    "test_days_by_frequency": {
+      "1": 10,
+      "4": 9,
+      "12": 18,
+      "24": 22,
+      "partial_last_day_10_scans": 1
+    }
+  },
+  "trained_frozen_policy": {
+    "schema": "r29_real_price_only_shadow_policy.v1",
+    "frozen_at_utc": "2026-09-18T00:00:00Z",
+    "threshold_train_days": 60,
+    "price_only_momentum_6h_threshold": 0.016561015074553542,
+    "scan_frequency_train_quartile_bounds": [
+      2.077995861657728,
+      3.274530046101244,
+      5.415694342684473
+    ],
+    "volume_ratio_gate": 1.05,
+    "requires_positive_24h": true,
+    "next_hour_open_fill_model": true,
+    "buy_cost_fraction": 0.01,
+    "sell_cost_fraction": 0.01,
+    "stop_loss_fraction": 0.1,
+    "take_profit_fraction": 0.2,
+    "max_holding_hours": 336,
+    "first_60_days_outcome_not_used_to_tune_holdout": true,
+    "no_model_or_gpt_calls": true,
+    "not_a_historic_dex_risk_gate": true,
+    "no_security_or_sellability_verified": true,
+    "policy_sha256": "4a764b28f9d9cf0f311e9e3ec0d62c22c014166b6e37b35f3ebccd25774939c1"
+  },
+  "prices_only_shadow_modeled_from_actual_public_cex_data": {
+    "A": {
+      "risk_variant": "A_CONSERVATIVE",
+      "source_type": "REAL_CEX_PRICE_ONLY_SHADOW",
+      "retrospective_symbol_selection_bias": true,
+      "actual_gpt_calls": 0,
+      "actual_dex_fills": 0,
+      "strategy_is_deterministic_not_gpt": true,
+      "modeled_buy_count": 36,
+      "modeled_sell_count": 33,
+      "modeled_closed_pnl_test_usdc": -100.299105,
+      "open_shadow_positions": [
+        {
+          "symbol": "TURBOUSDT",
+          "invested_usdc": 50,
+          "last_indicative_close": 0.000599,
+          "indicative_only_value_usdc": 48.599329
+        },
+        {
+          "symbol": "NEIROUSDT",
+          "invested_usdc": 50,
+          "last_indicative_close": 0.00004797,
+          "indicative_only_value_usdc": 48.639972
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "invested_usdc": 50,
+          "last_indicative_close": 0.05862,
+          "indicative_only_value_usdc": 48.434886
+        }
+      ],
+      "remaining_cash_test_usdc": 4749.700895,
+      "indicative_equity_if_marked_usdc": 4895.375082,
+      "winning_closed_trades": 3,
+      "losing_closed_trades": 30,
+      "initial_test_usdc": 5000,
+      "indicative_total_return_pct": -2.0924983600000058
+    },
+    "B": {
+      "risk_variant": "B_DYNAMIC_EXPERIMENTAL",
+      "source_type": "REAL_CEX_PRICE_ONLY_SHADOW",
+      "retrospective_symbol_selection_bias": true,
+      "actual_gpt_calls": 0,
+      "actual_dex_fills": 0,
+      "strategy_is_deterministic_not_gpt": true,
+      "modeled_buy_count": 30,
+      "modeled_sell_count": 26,
+      "modeled_closed_pnl_test_usdc": -2442.140088,
+      "open_shadow_positions": [
+        {
+          "symbol": "TURBOUSDT",
+          "invested_usdc": 895.2509692709993,
+          "last_indicative_close": 0.000599,
+          "indicative_only_value_usdc": 870.171936
+        },
+        {
+          "symbol": "NEIROUSDT",
+          "invested_usdc": 581.9131300261496,
+          "last_indicative_close": 0.00004797,
+          "indicative_only_value_usdc": 566.084768
+        },
+        {
+          "symbol": "DOGEUSDT",
+          "invested_usdc": 378.2435345169973,
+          "last_indicative_close": 0.05862,
+          "indicative_only_value_usdc": 366.403651
+        },
+        {
+          "symbol": "PENGUUSDT",
+          "invested_usdc": 245.85829743604828,
+          "last_indicative_close": 0.004856,
+          "indicative_only_value_usdc": 238.364132
+        }
+      ],
+      "remaining_cash_test_usdc": 456.593981,
+      "indicative_equity_if_marked_usdc": 2497.618468,
+      "winning_closed_trades": 4,
+      "losing_closed_trades": 22,
+      "initial_test_usdc": 5000,
+      "indicative_total_return_pct": -50.047630639999994
+    },
+    "modeled_fees_and_slippage_each_side_fraction": 0.01,
+    "modeled_fill_from_next_hour_open": true,
+    "market_execution_not_verified": true,
+    "not_GPT_not_DEX": true,
+    "positions_marked_using_closing_price_not_realized": true
+  },
+  "full_GPT_memecoin_backtest_status": {
+    "historical_real_gpt_model_calls_created_by_replay": 0,
+    "genuine_historic_gpt_buy_count_proven": null,
+    "genuine_historic_gpt_sell_count_proven": null,
+    "genuine_historic_gpt_hold_count_proven": null,
+    "historical_gpt_pnl_test_usdc": null,
+    "active_user_paper_account_modified": false,
+    "real_trading_enabled": false,
+    "status": "NOT_YET_PROVEN_NO_FULL_ASOF_DEX_SECURITY_OR_HISTORIC_GPT_CALLS"
+  },
+  "NO_REAL_TRADING": true,
+  "NO_LOCAL_PAPER_ACCOUNT_CHANGES": true,
+  "outputs": {
+    "daily_60": "research/replay-120d-real/results/holdout60-real-price-daily.csv",
+    "all_66_entries": "research/replay-120d-real/results/cex-shadow-complete-trade-ledger.csv"
+  },
+  "conclusion": "REAL_HISTORICAL_MARKET_PRICE_AND_SOURCE_AUDIT_PASSED; RETROSPECTIVE_PRICE_ONLY_SHADOWS_LOST; TRUE_GPT_MEMECOIN_DISCOVERY_AND_DEX_FILL_PROOF_NOT_COMPLETE; DO_NOT_AUTHORIZE_REAL_MONEY"
+}
