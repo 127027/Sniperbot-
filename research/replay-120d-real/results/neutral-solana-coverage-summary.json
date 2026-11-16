@@ -1,0 +1,79 @@
+{
+  "schema": "sniper_r29_neutral_solana_67day_asof_source_audit.v1",
+  "generated_from_github_actions": "https://github.com/127027/Sniperbot-/actions/runs/43907525937",
+  "source_artifact": "https://github.com/127027/Sniperbot-/actions/runs/43907525937/artifacts/14246123089",
+  "downloaded_at_utc_date": "2026-11-16",
+  "dataset": {
+    "provider": "loopholetape/pumpfun-launches",
+    "revision": "9b9a04e7e3e85775d614d16105daad2e69ce8544",
+    "license": "CC-BY-4.0",
+    "dataset_release": "2026-11-12",
+    "nominal_coverage_start_utc": "2026-08-31T04:03:25Z",
+    "nominal_coverage_end_date_utc": "2026-11-05",
+    "capture_source": "RELEASED_AFTER_HISTORICAL_EVENTS",
+    "onchain_records_independently_attested_for_each_token": false,
+    "raw_parquet_sha256_per_covered_day": "research/replay-120d-real/results/neutral-solana-launch-120-day-coverage.csv"
+  },
+  "coverage": {
+    "total_planned_calendar_days": 120,
+    "days_with_real_recorded_launch_identities": 67,
+    "days_missing_from_source": 53,
+    "training": {
+      "days_expected": 60,
+      "covered": 18,
+      "missing": 42,
+      "actual_captured_launches": 546291
+    },
+    "holdout": {
+      "days_expected": 60,
+      "covered": 49,
+      "missing": 11,
+      "actual_captured_launches": 2166766
+    },
+    "captured_mints_verified_by_sha256": 2713057,
+    "hourly_closed_event_frames": 1608,
+    "pilot_6_days_validated_mints": 233412,
+    "independent_real_gpt_model_decisions_this_backtest": 0,
+    "real_automated_trade_fills_from_these_launches": 0
+  },
+  "safety_guards": {
+    "public_asof_fields_read": [
+      "mint",
+      "creator",
+      "t0",
+      "launched_at",
+      "name",
+      "symbol"
+    ],
+    "future_success_failure_columns_loaded_into_decisions": false,
+    "no_rug_graduation_or_future_ath_leak": true,
+    "scan_clock_filter": "event_time <= checkpoint",
+    "sample_selection": "CHRONOLOGICAL_FIRST_12_MINTS_PER_HOUR_NO_WINNER_LOOKUP",
+    "no_real_dex_pools_verified": true,
+    "no_sellability": true,
+    "no_security_quote_or_lp_proof": true,
+    "no_real_wallet_or_user_paper_ledger_changes": true
+  },
+  "known_quality_flags": [
+    "First recorded day (2026-08-31) begins at 04:03:25 UTC",
+    "Pre-2026-09-27 legacy recorder undercounted some buy instructions, approximately 48% of recorded buy types; initial launch identity kept, buy-derived features not used",
+    "Recorder's own coverage includes gaps and cannot prove universe completeness without independent chain census",
+    "Token launches are not necessarily distinct economically tradable meme coins",
+    "The dataset was released after the historical events and cannot alone prove contemporaneous publication or historical execution",
+    "No historical DEX bidirectional execution fills, social evidence, liquidity proofs or smart-contract safety reviews for the covered tokens",
+    "Days 2026-07-20 through 2026-08-30 and 2026-11-06 through 2026-11-16 missing from this dataset"
+  ],
+  "status": {
+    "neutral_launch_event_source_retrieval": "COMPLETE_FOR_PROVIDER_67D",
+    "no_lookahead_future_label_whitelist": "PASSED",
+    "full_120d_historical_memecoin_universe": "INCOMPLETE",
+    "full_120d_gpt_historical_buy_hold_sell": "NOT_PROVEN",
+    "live_real_money_authorized": false,
+    "existing_paper_bot_mode": "UNCHANGED"
+  },
+  "source_links": [
+    "https://huggingface.co/datasets/loopholetape/pumpfun-launches",
+    "https://huggingface.co/datasets/loopholetape/pumpfun-launches/blob/main/KNOWN_ISSUES.md",
+    "https://github.com/127027/Sniperbot-/actions/runs/43907525937"
+  ]
+}
