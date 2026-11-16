@@ -52,6 +52,15 @@ Jede strategische Entscheidung speichert: `decision_id`, Chain, eindeutige Token
 
 Das **append-only** Lernsystem `research/r29/operations/decision-outcome-learning.mjs` erzeugt nur **künftige Hypothesen**. Es darf einen eingefrorenen 60-Tage-Blindtest niemals im Nachhinein ändern. Neue Strategieversionen bekommen Veröffentlichungszeit und unabhängige Forward-Paper-Prüfung. **Mandatory KO-Regeln bleiben bestehen**, selbst wenn ein abgelehnter Coin später gestiegen ist.
 
+## 5a. Neues Kandidaten-Gedächtnis (kein automatischer Kauf)
+
+- **JEDER** im aktuellen öffentlichen Forschungsreview beobachtete Coin wird mit Chain + eindeutiger Token- **und Pooladresse**, Research-SHA und beobachtetem Zeitstempel unter `research/r29/operations/candidate-watch/snapshots/YYYY-MM-DD/` festgehalten. Dazu gehören auch einander widersprechende oder wegen Sicherheit abgelehnte Coins. Die vorhandenen `DETERMINISTIC_CONTROL`-Fälle werden archiviert, aber **aus der Handelsperformance ausgeschlossen**.
+- **Aktuell erstes echtes Archiv:** `research/r29/operations/candidate-watch/snapshots/2026-11-16/20261116T165647536Z-69938eedf12bd93b.json`: 10 echte Forschungsproben + 2 Kontrollfälle, sämtlich keine verifizierte Sellability.
+- **Getesteter Vergleich:** `research/r29/operations/market-research-watchlist.mjs`. Ein späterer öffentlicher Review darf zum ursprünglichen Scan erst verglichen werden, wenn sein späterer Zeitstempel erreicht und die **identische Chain:Token:Pool-Kombination** nachgewiesen ist. Fehlende später beobachtete Coins sind `UNKNOWN`, nicht ein Gewinn und nicht eine korrekte Ablehnung.
+- **Schwelle:** +75 % im selben Kandidaten anhand späterer *indikativ* angezeigter Preise = `INDICATIVE_SAME_POOL_LATER_PRICE_RALLY_NOT_EXECUTABLE`. Das ist NICHT ein persönlicher möglicher Gewinn und kein DEX-Fill. Eine Risikofreigabe benötigt unabhängig damalige Contract-, LP-, Sellability- und Ausführungskriterien. Hohes Volumen ohne Liquidität bleibt verdächtig.
+- **Wichtig:** Eine gewöhnliche Forschungsbeobachtung `INDEPENDENT_REVIEW_REQUIRED_NOT_BUY` ist keine tatsächlich vom GPT getroffene und archivierte `NO_TRADE`-Entscheidung. Für echte Lernqualität immer zwischen **Gesehen / GPT bewertet / gehandelt / quittiert** unterscheiden.
+- **Dauerhafte Überprüfung:** Beim nächsten unabhängigen Marktstand (und zusätzlich nach Möglichkeit nach 24 Stunden und sieben Tagen) separate Outcome-Datei unter `research/r29/operations/outcomes/YYYY-MM-DD/` anlegen; keine historischen Archive ändern. Neue Hypothesen nach Prüfung unter `research/r29/gpt-strategy/experiences/YYYY-MM-DD/` veröffentlichen und nur vor zukünftigen Paper-Entscheidungen lesen.
+
 ## 6. Schreiborte und Grenzen
 
 - Ursprüngliche GPT-Paper-Entscheidungen: `research/r29/gpt-decisions/YYYY-MM-DD/` (write once, Hash).
