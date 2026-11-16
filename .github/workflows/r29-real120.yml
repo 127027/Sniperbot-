@@ -27,6 +27,10 @@ jobs:
         run: node --check research/replay-120d-real/source-collector.mjs
       - name: Collect actual historical public sources – 120d, never local Paper account
         run: node research/replay-120d-real/source-collector.mjs
+      - name: Verify as-of 60+60 replay and real source input guards (offline tests)
+        run: node --test research/replay-120d-real/real-replay.test.mjs
+      - name: Analyze authentic historical CEX prices chronologically with TRAIN-only frozen policy
+        run: node research/replay-120d-real/real-replay.mjs
       - name: Archive authentic provider responses and SHA-backed audit output (no secrets)
         uses: actions/upload-artifact@v4
         with:
