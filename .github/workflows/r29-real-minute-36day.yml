@@ -1,0 +1,40 @@
+name: R29 Real 36-Day Historical Minute Signal Replay - No Trading
+on:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - 'research/replay-120d-real/real-minute-feature-replay.py'
+      - 'research/replay-120d-real/test_real_minute_feature_replay.py'
+      - '.github/workflows/r29-real-minute-36day.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  neutral-historical-hourly-frames:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_REAL_TRADING_ENABLED: '0'
+      SNIPER_RESEARCH_READ: '0'
+      SNIPER_RESEARCH_FEED: '0'
+      PAPER_ONLY: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install bounded historical Parquet reader
+        run: python -m pip install --disable-pip-version-check --quiet pyarrow==18.1.0
+      - name: Reject future performance labels, prelaunch events and wrong source manifest
+        run: python -m unittest discover -s research/replay-120d-real -p 'test_real_minute_feature_replay.py' -v
+      - name: Retrieve and sha-verify 36 actual archived minute-signal days
+        run: python research/replay-120d-real/real-minute-feature-replay.py
+      - name: Store actual minute-level as-of source evidence for 36 days (no orders)
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-real-36day-minutefeature-asof-only
+          path: research/replay-120d-real/generated/real-minute-36days/
+          if-no-files-found: error
+          retention-days: 30
