@@ -45,6 +45,21 @@ test('invalid other-day trade timestamp and failed execution prohibit false fill
  assert.equal(safeHistoricalTradeReview([r],{
    desired_mint:r.mint,asof_utc:'2026-10-15T00:02:00Z'}).successful_events,0);
 });
+test('failed on-chain transaction may have null executed values but is never counted as actual price',()=>{
+ const failed=event('2026-10-15T00:00:30Z','buy',true);
+ failed.sol_lamports=null;failed.token_amount=null;failed.quote_amount=null;
+ const row=sanitizeTradeRow(failed);
+ assert.equal(row.failed,true);
+ assert.equal(row.sol_lamports,null);
+ assert.equal(row.raw_token_amount,null);
+ assert.equal(row.quote_amount_raw,null);
+ assert.equal(row.approximate_sol_per_raw_token,null);
+ const review=safeHistoricalTradeReview([row],{
+  desired_mint:row.mint,asof_utc:'2026-10-15T00:01:00Z'});
+ assert.equal(review.evidence_events,1);
+ assert.equal(review.successful_events,0);
+ assert.equal(review.buy_events_observed,0);
+});
 test('free real source probe explicitly returns no fake fills and retains source checksum',async()=>{
  const first=event('2026-10-15T00:00:00Z','buy',false);
  const second=event('2026-10-15T00:01:00Z','sell',true);
