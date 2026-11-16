@@ -34,7 +34,7 @@ test("even 100k and 200k quote reserves don't make 205k spot-value immediately e
  assert(r.modeled_exit_proceeds_test_usdc<100000);
  assert(r.estimated_total_roundtrip_market_impact_fraction>.5);
  assert.equal(r.under_requested_impact_cap,false);
- assert.equal(r.real_wallet_not_enabled,true);
+ assert.equal(r.live_wallet_not_enabled,true);
 });
 test("without actual pool reserves cannot assert trade capacity or payout",()=>{
  const price=moonshotPriceOnly({hypotheticalStakeTestUSDC:50});
