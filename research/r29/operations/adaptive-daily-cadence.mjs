@@ -41,8 +41,14 @@ export function chooseAdaptiveFrequency({asof_utc,verified_activity=null,
  let reason=open_position_count>0?"OPEN_POSITIONS_REQUIRE_MONITORING":
   "QUIET_OR_UNVERIFIED_MARKET_MINIMUM_MORNING_CHECK";
  const a=verified_activity;
+ let observationTime=NaN;
+ if(a?.independently_verified===true){
+  try{observationTime=utcMs(a.observed_at_utc)}
+  catch{observationTime=NaN}
+ }
  if(a&&a.independently_verified===true&&
-  utcMs(a.observed_at_utc)<=clock&&clock-utcMs(a.observed_at_utc)<=6*HOUR&&
+  Number.isFinite(observationTime)&&observationTime<=clock&&
+  clock-observationTime<=6*HOUR&&
   validMetric(a.new_pools_24h)&&validMetric(a.independent_buyers_growth_pct)&&
   validMetric(a.volume_growth_pct)){
   let marketFreq=1;
