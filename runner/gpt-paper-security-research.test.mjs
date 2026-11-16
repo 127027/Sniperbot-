@@ -189,3 +189,20 @@ test('diagnostic separates missing local market from stale market and valid 0 el
  assert.equal(result.first_failure_reason_counts.NON_EVM_CHAIN,1);
  assert.equal(result.potential_research_candidates,0);
 });
+
+test('public local market-read failures remain explicit enums, cannot leak arbitrary paths/secrets',()=>{
+ const base=publicSecurityResearchReport({review:modelReview,now:at,
+  marketReadStatus:'COLLECTOR_STALE_OR_INCOMPLETE'});
+ assert.equal(base.local_market_read_status,'COLLECTOR_STALE_OR_INCOMPLETE');
+ assert.equal(base.selection_diagnostic.status,'NO_LOCAL_MARKET_SNAPSHOT');
+ assert.equal(base.candidate_check_count,0);
+ assert.equal(base.authorizes_paper_orders,false);
+ const complete=publicSecurityResearchReport({review:modelReview,market,now:at,
+  marketReadStatus:'FRESH_LOCAL_PUBLIC_SNAPSHOT'});
+ assert.equal(complete.local_market_read_status,'FRESH_LOCAL_PUBLIC_SNAPSHOT');
+ assert.equal(complete.selection_diagnostic.potential_research_candidates,1);
+ assert.equal(complete.authorizes_paper_orders,false);
+ assert.throws(()=>publicSecurityResearchReport({
+  review:modelReview,now:at,marketReadStatus:'/home/user/.secret/private.key'
+ }),/MARKET_STATUS_INVALID/);
+});
