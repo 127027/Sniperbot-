@@ -71,11 +71,14 @@ export function priceMovementAudit({
   total_posthoc_review_horizon_hours:horizon_hours,
   reference_is_another_wallet_actual_trade_not_our_fill:true};
  if(!later.length)return {...matching,audit_status:"NO_SAME_MARKET_LATER_SWAPS"};
- const ratios=later.map(x=>x.raw_price/base.raw_price);
- if(ratios.some(x=>!Number.isFinite(x)||x<=0))
-  return {...matching,audit_status:"UNSTABLE_PRICE_RATIO"};
- const max=Math.max(...ratios),min=Math.min(...ratios);
- const mostExtreme=later[ratios.indexOf(max)];
+ let max=-Infinity,min=Infinity,mostExtreme=null;
+ for(const row of later){
+  const ratio=row.raw_price/base.raw_price;
+  if(!Number.isFinite(ratio)||ratio<=0)
+   return {...matching,audit_status:"UNSTABLE_PRICE_RATIO"};
+  if(ratio>max){max=ratio;mostExtreme=row}
+  if(ratio<min)min=ratio;
+ }
  const rejected=["NO_TRADE","WATCH"].includes(decision.research_verdict);
  return {...matching,
   observed_post_decision_max_ratio:max,
