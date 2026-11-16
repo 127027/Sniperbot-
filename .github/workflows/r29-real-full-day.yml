@@ -6,6 +6,8 @@ on:
     paths:
       - research/replay-120d-real/full-day-neutral-swaps.py
       - research/replay-120d-real/test_full_day_neutral_swaps.py
+      - research/replay-120d-real/actual-outcome-audit.py
+      - research/replay-120d-real/test_actual_outcome_audit.py
       - .github/workflows/r29-real-full-day.yml
   workflow_dispatch:
 permissions:
@@ -28,8 +30,12 @@ jobs:
         run: python -m pip install --disable-pip-version-check --quiet pyarrow==18.1.0
       - name: Verify timestamp gating, UTC day scope and source integrity
         run: python -m unittest discover -s research/replay-120d-real -p 'test_full_day_neutral_swaps.py' -v
+      - name: Verify forward-only posthoc outcome audit never rewrites old GPT decisions
+        run: python -m unittest discover -s research/replay-120d-real -p 'test_actual_outcome_audit.py' -v
       - name: Process every real swap shard for a non-cherry-picked first-two-launches-per-hour cohort
         run: python research/replay-120d-real/full-day-neutral-swaps.py --stage full
+      - name: Independently evaluate rejected and WATCH coins AFTER original decision freeze
+        run: python research/replay-120d-real/actual-outcome-audit.py
       - name: Retain source proof only, never any live trade signal
         uses: actions/upload-artifact@v4
         with:
@@ -38,6 +44,7 @@ jobs:
             research/replay-120d-real/generated/real-2026-10-15-source-manifest.json
             research/replay-120d-real/generated/complete-2026-10-15-neutral-token-swaps.json
             research/replay-120d-real/generated/real-2026-10-15-asof-decision-frames.json
+            research/replay-120d-real/generated/2026-10-15-posthoc-six-coin-outcomes.json
             research/replay-120d-real/generated/full_day_trade_events/*.jsonl.gz
           if-no-files-found: error
           retention-days: 30
