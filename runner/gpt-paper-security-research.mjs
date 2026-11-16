@@ -24,23 +24,26 @@ const readJson=async filename=>{
  return JSON.parse(bytes.toString('utf8'));
 };
 const recent=(s,now,max)=>time(s)&&Date.parse(s)<=now&&now-Date.parse(s)<=max;
-function prepareSecurityCandidate(c,market,now){
- if(!allowed.has(c.chain)||c.selection!=='MARKET_ACTIVITY_SAMPLE'||
-   c.paid_promotion_bias!==false||
-   !/^((eth)|(base)|(bsc)):0x[a-f0-9]{40}:0x[a-f0-9]{40}$/.test(c.candidate_id))
+// The hourly review is a SHORT, volume-ranked sample. It must not exclude
+// independent safety checks of newly observed viable EVM pools in the actual
+// 2-minute local market feed. Both feeds remain research-only.
+function prepareSecurityCandidate(c,now){
+ if(!allowed.has(c?.chain)||
+   !/^((eth)|(base)|(bsc)):0x[a-f0-9]{40}:0x[a-f0-9]{40}$/.test(c.candidate_id||'')||
+   c.candidate_id!==c.chain+':'+c.token_address+':'+c.pool_address||
+   c.source!=='GECKOTERMINAL_NEW_POOLS'||
+   c.verification!=='CROSS_PROVIDER_IDENTITY'||
+   c.promotion_biased!==false||
+   !recent(c.observed_at_utc,now,300000)||
+   !(Number.isFinite(c.liquidity_usd)&&c.liquidity_usd>=20000)||
+   !(Number.isFinite(c.volume_m5_usd)&&c.volume_m5_usd>=1000&&
+      c.volume_m5_usd<=c.liquidity_usd*2))
   return null;
- const matching=market?.candidates?.find(x=>
-   x.candidate_id===c.candidate_id&&
-   x.source==='GECKOTERMINAL_NEW_POOLS'&&
-   x.verification==='CROSS_PROVIDER_IDENTITY'&&
-   x.promotion_biased===false&&
-   recent(x.observed_at_utc,now,300000));
- if(!matching)return null;
- if(!(matching.liquidity_usd>=20000)||!(matching.volume_m5_usd>=1000))
-  return null;
- return {chain:c.chain,token_address:matching.token_address,
-  pool_address:matching.pool_address,candidate_id:c.candidate_id,
-  liquidity_usd:matching.liquidity_usd,volume_m5_usd:matching.volume_m5_usd};
+ return {chain:c.chain,token_address:c.token_address,
+  pool_address:c.pool_address,candidate_id:c.candidate_id,
+  liquidity_usd:c.liquidity_usd,volume_m5_usd:c.volume_m5_usd,
+  observed_at_utc:c.observed_at_utc,
+  source:'FRESH_CROSS_PROVIDER_LOCAL_MARKET'};
 }
 export function selectSecurityResearchCandidates(review,market,{now=Date.now(),limit=2}={}){
  if(review?.schema!=='sniper_r29_public_dynamic_review.v1'||
@@ -48,13 +51,17 @@ export function selectSecurityResearchCandidates(review,market,{now=Date.now(),l
   !Array.isArray(review.candidates)||review.candidates.length>12||
   market?.schema!=='research_market_snapshot.v1'||
   market.paper_only!==true||market.actionable!==false||
+  market.collection_status!=='OBSERVED_OR_PARTIAL'||
+  !Array.isArray(market.candidates)||market.candidates.length>96||
   !recent(market.published_at_utc,now,300000)||
   !Number.isInteger(limit)||limit<0||limit>2)return [];
- return review.candidates.map(c=>prepareSecurityCandidate(c,market,now))
-  .filter(Boolean).sort((a,b)=>b.volume_m5_usd-a.volume_m5_usd||
+ return [...new Map(market.candidates.map(c=>prepareSecurityCandidate(c,now))
+  .filter(Boolean).map(c=>[c.candidate_id,c])).values()]
+  .sort((a,b)=>b.liquidity_usd-a.liquidity_usd||
+    b.volume_m5_usd-a.volume_m5_usd||
     a.candidate_id.localeCompare(b.candidate_id)).slice(0,limit);
 }
-export function publicSecurityResearchReport({review,findings=[],now=Date.now()}={}){
+export function publicSecurityResearchReport({review,market=null,findings=[],now=Date.now()}={}){
  if(review?.schema!=='sniper_r29_public_dynamic_review.v1'||
   !DIGEST.test(review.review_sha256||'')||!time(review.observed_at_utc)||
   !Array.isArray(findings)||findings.length>2)throw Error('GPT_SECURITY_INVALID_REVIEW');
@@ -62,7 +69,16 @@ export function publicSecurityResearchReport({review,findings=[],now=Date.now()}
   const chain=x.chain,token=x.token_address?.toLowerCase(),
    pool=x.pool_address?.toLowerCase(),gate=x.gate;
   if(!allowed.has(chain)||!ADDRESS.test(token||'')||!ADDRESS.test(pool||'')||
-   !review.candidates.some(c=>c.candidate_id===chain+':'+token+':'+pool)||
+   !(market?
+     market.schema==='research_market_snapshot.v1'&&market.paper_only===true&&
+     market.actionable===false&&
+     recent(market.published_at_utc,now,300000)&&
+     market.candidates?.some(c=>c.candidate_id===chain+':'+token+':'+pool&&
+      c.source==='GECKOTERMINAL_NEW_POOLS'&&
+      c.verification==='CROSS_PROVIDER_IDENTITY'&&
+      c.promotion_biased===false&&
+      recent(c.observed_at_utc,now,300000)):
+     review.candidates.some(c=>c.candidate_id===chain+':'+token+':'+pool))||
    gate?.schema!=='r29_public_evm_security_gate.v1'||
    gate.paper_only!==true||gate.mode!=='PAPER_ONLY'||
    gate.chain!==chain||gate.token_address!==token||
@@ -78,6 +94,10 @@ export function publicSecurityResearchReport({review,findings=[],now=Date.now()}
   return {candidate_id:chain+':'+token+':'+pool,
    chain,token_address:token,pool_address:pool,
    checked_at_utc:gate.checked_at_utc,
+   verified_pool_observed_at_utc:market?.published_at_utc||review.observed_at_utc,
+   source_scope:market?'FRESH_CROSS_PROVIDER_LOCAL_MARKET':'HOURLY_REVIEW_SAMPLE',
+   also_listed_in_hourly_review:review.candidates.some(
+    c=>c.candidate_id===chain+':'+token+':'+pool),
    independent_provider_names:['GoPlus','Honeypot.is'],
    goplus_evaluated:gate.goplus_evaluated===true,
    honeypot_simulation_ok:gate.honeypot_simulation_ok===true,
@@ -97,11 +117,13 @@ export function publicSecurityResearchReport({review,findings=[],now=Date.now()}
   authorizes_paper_orders:false,live_trading_enabled:false,
   wallet_or_account_data_included:false,
   review_sha256:review.review_sha256,review_observed_at_utc:review.observed_at_utc,
+  market_snapshot_observed_at_utc:market?.published_at_utc||null,
+  market_snapshot_is_order_authority:false,
   checked_at_utc:new Date(now).toISOString(),
   candidate_check_count:out.length,
   status:out.length?'PARTIAL_SECURITY_RESEARCH_ONLY':'DATA_GAP_NO_MATCHING_FRESH_EVM_CANDIDATE',
   candidates:out,
-  note:'Contract + honeypot indicators ONLY. No independent wallet adoption, LP redemption, executable quotes or complete GPT buy approval.'};
+  note:'Fresh cross-provider market identity plus basic contract/honeypot indicators ONLY. The hourly review is only a sample; independent wallet adoption, LP redemption, executable quotes and full GPT buy approval remain unverified.'};
 }
 export async function syncGptPaperSecurityResearch({token,fetcher=fetch,
  securityCheck=collectEvmSecurity,now=Date.now(),
@@ -124,8 +146,8 @@ export async function syncGptPaperSecurityResearch({token,fetcher=fetch,
  await mkdir(folder,{recursive:true});
  const checkpoint=path.join(folder,'checkpoint.json');
  let last=null;try{last=await readJson(checkpoint)}catch(e){if(e.code!=='ENOENT')throw e;}
- if(last?.review_sha256===status.last_review_sha256)
-  return {status:'UNCHANGED_REVIEW_HASH',published:false};
+ // A review is merely an hourly sample. Reusing its SHA as the scan key would
+ // suppress newer pools even when 2-minute market data changed.
  // At most two checks per 60m, avoiding unexpected free API rate/cost changes.
  if(last&&recent(last.checked_at_utc,now,3600000))
   return {status:'RATE_LIMIT_1_HOUR',published:false};
@@ -142,7 +164,7 @@ export async function syncGptPaperSecurityResearch({token,fetcher=fetch,
   }catch{continue} // never synthesize a safe result
   results.push({...c,gate});
  }
- const report=publicSecurityResearchReport({review,findings:results,now});
+ const report=publicSecurityResearchReport({review,market:market.ok?market.snapshot:null,findings:results,now});
  const headers={authorization:'Bearer '+token,accept:'application/vnd.github+json',
   'content-type':'application/json','X-GitHub-Api-Version':'2022-11-28',
   'user-agent':'SniperR29PublicSecurityResearch/1'};
