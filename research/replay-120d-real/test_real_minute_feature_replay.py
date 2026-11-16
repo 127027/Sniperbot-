@@ -21,7 +21,7 @@ class MinuteFeaturesTests(unittest.TestCase):
   self.assertEqual(len(result),43)
   self.assertEqual(result["data/features/2026-10-15.parquet"],(3,4000,"a"*64))
   with self.assertRaisesRegex(ValueError,"SOURCE_MISSING_REQUIRED_36_DAYS"):
-   mod.manifest(text.replace("data/features/2026-10-15.parquet","data/features/2026-11-01.parquet"))
+   mod.manifest(text.replace("data/features/2026-10-15.parquet","data/features/2026-11-08.parquet"))
  def test_no_future_rug_label_leaks_to_model_decision(self):
   epoch=mod.datetime(2026,10,15,tzinfo=mod.timezone.utc).timestamp()
   earlier=self.row(epoch+10,"A"*40)
