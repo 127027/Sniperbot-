@@ -37,9 +37,16 @@ def manifest(text):
  for p,rows,sz,sha in RX.findall(text):
   if p in found:raise ValueError("DUPLICATE_MANIFEST_PATH")
   found[p]=(int(rows.replace(",","")),int(sz.replace(",","")),sha)
- if set(found)!={f"data/features/{day}.parquet" for day in DAYS}:
-  raise ValueError("SOURCE_NOT_THE_EXPECTED_36_DAYS")
- return found
+ selected={f"data/features/{day}.parquet" for day in DAYS}
+ missing=selected-set(found)
+ if missing:
+  print("FEATURE_MANIFEST_DEBUG",json.dumps({
+   "found_count":len(found),
+   "first_matches":list(found)[:5],
+   "first_readme_feature_lines":[line[:200] for line in text.splitlines()
+     if "data/features/" in line][:4]}),flush=True)
+  raise ValueError("SOURCE_MISSING_REQUIRED_36_DAYS "+str(sorted(missing)[:5]))
+ return {day:found[day] for day in selected}
 def safe_asof(record,at):
  if set(record)-set(SAFE):raise ValueError("RETROSPECTIVE_COLUMN_LEAK")
  if record["t"]>at:raise ValueError("FUTURE_ROW_LEAK")
