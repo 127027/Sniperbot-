@@ -13,7 +13,7 @@ permissions:
 jobs:
   real-one-day-archive:
     runs-on: ubuntu-latest
-    timeout-minutes: 17
+    timeout-minutes: 25
     env:
       SNIPER_OFFLINE: '1'
       SNIPER_REAL_TRADING_ENABLED: '0'
@@ -28,12 +28,14 @@ jobs:
         run: python -m pip install --disable-pip-version-check --quiet pyarrow==18.1.0
       - name: Verify timestamp gating, UTC day scope and source integrity
         run: python -m unittest discover -s research/replay-120d-real -p 'test_full_day_neutral_swaps.py' -v
-      - name: Inspect full-day launch dataset and verified chain receipt first
-        run: python research/replay-120d-real/full-day-neutral-swaps.py --stage manifest
+      - name: Process every real swap shard for a non-cherry-picked first-two-launches-per-hour cohort
+        run: python research/replay-120d-real/full-day-neutral-swaps.py --stage full
       - name: Retain source proof only, never any live trade signal
         uses: actions/upload-artifact@v4
         with:
-          name: r29-full-day-real-solana-20261015-source-manifest
-          path: research/replay-120d-real/generated/real-2026-10-15-source-manifest.json
+          name: r29-full-day-real-solana-20261015-neutral-cohort
+          path: |
+            research/replay-120d-real/generated/real-2026-10-15-source-manifest.json
+            research/replay-120d-real/generated/complete-2026-10-15-neutral-token-swaps.json
           if-no-files-found: error
           retention-days: 30
