@@ -27,7 +27,11 @@ export function sanitizeTradeRow(row){
  // as unknown (null), not zero, and never derive prices from failed tx.
  const validAmounts=amounts.every(x=>x===null||
   (Number.isFinite(x)&&x>=0))&&
-  (row.failed===true||amounts.every(Number.isFinite));
+  (row.failed===true||
+   (amountTokens!==null&&amountTokens>0&&quoteAmount!==null&&quoteAmount>0));
+ // Since May 2026 Pump.fun supports non-SOL quote assets. Successful swaps
+ // can legitimately have sol_lamports=null: the quote token is NOT SOL.
+ // Do not fabricate SOL/USD pricing or count these as invalid trades.
  if(!Number.isInteger(ts)||ts<Date.parse(SAMPLE_DAY+'T00:00:00Z')/1000||
  ts>=Date.parse('2026-10-16T00:00:00Z')/1000||
  !Number.isSafeInteger(slot)||!Number.isInteger(idx)||
