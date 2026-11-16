@@ -1,0 +1,39 @@
+name: R29 Free Historical Full-Day Solana Swap Study (Research Only)
+on:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - research/replay-120d-real/full-day-neutral-swaps.py
+      - research/replay-120d-real/test_full_day_neutral_swaps.py
+      - .github/workflows/r29-real-full-day.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-one-day-archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 17
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_REAL_TRADING_ENABLED: '0'
+      SNIPER_LIVE_TRADING: '0'
+      PAPER_ONLY: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install bounded read-only historical Parquet reader
+        run: python -m pip install --disable-pip-version-check --quiet pyarrow==18.1.0
+      - name: Verify timestamp gating, UTC day scope and source integrity
+        run: python -m unittest discover -s research/replay-120d-real -p 'test_full_day_neutral_swaps.py' -v
+      - name: Inspect full-day launch dataset and verified chain receipt first
+        run: python research/replay-120d-real/full-day-neutral-swaps.py --stage manifest
+      - name: Retain source proof only, never any live trade signal
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-full-day-real-solana-20261015-source-manifest
+          path: research/replay-120d-real/generated/real-2026-10-15-source-manifest.json
+          if-no-files-found: error
+          retention-days: 30
