@@ -81,7 +81,20 @@ export async function probeRealFreeSample({fetcher=fetch}={}){
  let data;try{data=JSON.parse(text)}catch{throw Error('DATASET_NOT_JSON')}
  if(!Array.isArray(data.rows)||data.rows.length===0||data.rows.length>100)
   throw Error('DATASET_ROWS_UNAVAILABLE');
- const records=data.rows.map(x=>sanitizeTradeRow(x.row));
+ const rejected=[];
+ const records=[];
+ for(const {row} of data.rows){
+  try{records.push(sanitizeTradeRow(row))}
+  catch(e){
+   rejected.push({reason:String(e.message||e),
+    fields:Object.fromEntries(['ts','slot','idx','mint','pool','venue',
+      'side','failed','quote_mint','sol_lamports','token_amount','quote_amount']
+     .map(key=>[key,{type:typeof row?.[key],
+      value:row?.[key]===null?'NULL':String(row?.[key]??'UNDEFINED').slice(0,72)}]))});
+  }
+ }
+ if(!records.length)throw Error('NO_COMPATIBLE_REAL_TRADE_ROWS_'+
+  JSON.stringify(rejected.slice(0,3)));
  const earliest=records.reduce((m,r)=>r.at_utc<m?r.at_utc:m,records[0].at_utc);
  const latest=records.reduce((m,r)=>r.at_utc>m?r.at_utc:m,records[0].at_utc);
  const marketTokens=[...new Set(records.map(r=>r.mint))];
@@ -94,7 +107,10 @@ export async function probeRealFreeSample({fetcher=fetch}={}){
   provider:'HUGGINGFACE_DATASET_VIEWER_PUBLIC',
   dataset:DATASET,utc_day:SAMPLE_DAY,source_url:SOURCE_URL,
   sha256_raw_http_response:hash(text),
-  preview_rows:records.length,distinct_mints_in_preview:marketTokens.length,
+  preview_rows:records.length,source_row_count:data.rows.length,
+  discarded_incompatible_rows:rejected.length,
+  incompatible_row_examples:rejected.slice(0,3),
+  distinct_mints_in_preview:marketTokens.length,
   earliest_at_utc:earliest,latest_at_utc:latest,
   source_sample_is_first_page_not_random_or_complete:true,
   entire_one_day_dataset_reported_rows:42230410,
