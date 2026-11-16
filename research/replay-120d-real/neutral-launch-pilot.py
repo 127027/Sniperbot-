@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Neutral Solana launch-source pilot for R29 120d genuine historical work.
+"""Neutral Solana launch-source neutral universe for R29 120d genuine historical work.
 NO GPT calls, trading, fills, hidden future/outcome labels, or live channels.
 Use ONLY creator-signed-at-launch token identity, vetted by event time.
 Third-party retrospective capture is NOT independent as-of execution evidence.
@@ -17,9 +17,9 @@ import pyarrow.parquet as pq
 
 REVISION = "9b9a04e7e3e85775d614d16105daad2e69ce8544"
 DATASET = "loopholetape/pumpfun-launches"
-PILOT_DAYS = (
-    "2026-09-10", "2026-09-17", "2026-09-18",
-    "2026-09-27", "2026-10-15", "2026-11-05",
+LAUNCH_DAYS = tuple(
+    (datetime(2026, 8, 31, tzinfo=timezone.utc) + timedelta(days=i)).strftime("%Y-%m-%d")
+    for i in range(67)
 )
 TRAIN_END = "2026-09-18"
 COLS = ("mint", "creator", "t0", "launched_at", "name", "symbol")
@@ -30,7 +30,7 @@ FORBIDDEN_FUTURE = {
     "f10_rep_grad", "f60_rs"
 }
 ROOT = Path(__file__).resolve().parent
-OUTPUT = ROOT / "generated" / "neutral-launches-pilot.json"
+OUTPUT = ROOT / "generated" / "neutral-launches-67d.json"
 MAX_FILE_BYTES = 20_000_000
 
 
@@ -63,7 +63,7 @@ def filter_frame(rows, scan_iso, limit=12):
 
 
 def load_day(day):
-    if day not in PILOT_DAYS:
+    if day not in LAUNCH_DAYS:
         raise ValueError("UNAPPROVED_EXTERNAL_DAY")
     config = "launches_legacy" if day <= "2026-09-26" else "launches"
     url = (f"https://huggingface.co/datasets/{DATASET}/resolve/{REVISION}/"
@@ -150,11 +150,11 @@ def build_day(day, source, rows):
 def main():
     assert not (set(COLS) & FORBIDDEN_FUTURE)
     result = {
-        "schema": "sniper_r29_real120_neutral_pump_launch_pilot.v1",
+        "schema": "sniper_r29_real120_neutral_pump_launch_67days.v1",
         "source_dataset": DATASET, "pinned_revision": REVISION,
         "source_license": "CC-BY-4.0",
         "declared_dataset_coverage": ["2026-08-31", "2026-11-05"],
-        "pilot_days": list(PILOT_DAYS),
+        "covered_days": list(LAUNCH_DAYS),
         "declaration": "Actual captured Solana launches, but late-published source and source recorder errors; NOT execution-tradable evidence.",
         "limitations": [
             "2026-07-20 through 2026-08-30 missing from this source",
@@ -165,10 +165,10 @@ def main():
             "historical contract safety, liquidity, independent sellability and exact executable DEX prices unverified",
             "scanning a recorded event is not an historical model call or user paper trade"
         ],
-        "days": [], "total_real_solana_launches_pilot": 0,
+        "days": [], "total_real_solana_launches_covered": 0,
         "total_time_sealed_hour_frames": 0, "source_errors": []
     }
-    for day in PILOT_DAYS:
+    for day in LAUNCH_DAYS:
         try:
             source, rows = load_day(day)
             data = build_day(day, source, rows)
