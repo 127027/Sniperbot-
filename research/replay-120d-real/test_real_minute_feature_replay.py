@@ -36,6 +36,8 @@ class MinuteFeaturesTests(unittest.TestCase):
   self.assertNotIn("rugged",f)
   self.assertNotIn("graduated",f)
   self.assertNotIn("labels_as_of",f)
+  self.assertNotIn("flag_curve_drained",f)
+  self.assertIn("flag_curve_drained",report["source_future_label_columns_excluded"])
   self.assertEqual(f["mint"],"A"*40)
   self.assertEqual(report["gpt_model_calls"],0)
   self.assertEqual(report["actual_paper_trades"],0)
