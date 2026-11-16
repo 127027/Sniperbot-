@@ -1,0 +1,40 @@
+name: R29 60-Day Real CEX Tiered $50/$100/$250 Sensitivity (Research Only)
+on:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - 'research/replay-120d-real/tiered-stake-cex-shadow.mjs'
+      - 'research/replay-120d-real/tiered-stake-cex-shadow.test.mjs'
+      - '.github/workflows/r29-real-tiered-cex-60d.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  60-day-independent-tiered-price-only-sensitivity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_REAL_TRADING_ENABLED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+      PAPER_ONLY: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test actual CEX 60-day dates, $50 $100 $250 ladder, 33 real-priced model exits
+        run: node --test research/replay-120d-real/tiered-stake-cex-shadow.test.mjs
+      - name: Reproduce as-of-based tiered capital sensitivity and 60-day CSV
+        run: node research/replay-120d-real/tiered-stake-cex-shadow.mjs
+      - name: Retain the independently priced CEX sensitivity, not GPT performance
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-60day-real-cex-50-100-250-shadow
+          path: |
+            research/replay-120d-real/generated/60day-tiered-C-summary.json
+            research/replay-120d-real/generated/60day-tiered-C-daily.csv
+            research/replay-120d-real/generated/60day-tiered-C-orders.json
+          if-no-files-found: error
+          retention-days: 30
