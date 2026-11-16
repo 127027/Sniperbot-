@@ -304,10 +304,25 @@ export function evaluateRealHistorical(source){
  const shadowA=simulateCexShadow(index,policy,days,{risk:'A_CONSERVATIVE'});
  const shadowB=simulateCexShadow(index,policy,days,{risk:'B_DYNAMIC_EXPERIMENTAL'});
  const pmap=new Map(source.pump.days.map(x=>[x.date_utc,x]));
- const hf=source.hf.sets.flatMap(x=>x.first_sample_mints||[])
-  .filter(x=>x&&x.launched_at);
+ const hf=source.hf.sets.flatMap(x=>x.asof_sample_launches||[])
+  .filter(x=>x&&x.launched_at&&x.visible_after_utc&&
+   Number.isFinite(ms(x.visible_after_utc)));
  const daily=days.map(d=>({
   date:d.date,phase:d.phase,analysis_cadence_from_real_cex:d.frequency_per_day,
+  asof_solana_launch_samples_seen_this_day:hf.filter(x=>
+   x.launched_at.slice(0,10)===d.date&&
+   d.scan_times_utc.some(t=>ms(t)>=ms(x.visible_after_utc))).length,
+  asof_solana_launch_sample_examples:hf.filter(x=>
+   x.launched_at.slice(0,10)===d.date&&
+   d.scan_times_utc.some(t=>ms(t)>=ms(x.visible_after_utc)))
+   .slice(0,5).map(x=>({mint:x.mint,launched_at:x.launched_at,
+    first10s_n_buys:x.first10s_n_buys,
+    status:'UNVERIFIED_SOURCE_SAMPLE_NOT_BUY'})),
+  price_only_first_scan_candidates:d.phase==='HOLDOUT'&&d.scan_times_utc.length?
+   priceOnlySignal(marketSnapshot(index,ms(d.scan_times_utc[0])),policy)
+    .slice(0,3).map(x=>({symbol:x.symbol,observed_bar_utc:x.observed_bar_utc,
+     return6:round(x.return6),return24:round(x.return24),
+     independent_historic_dex_security:'NOT_AVAILABLE'})):[],
   price_only_virtual_scan_count:d.scan_times_utc.length,
   scan_times_utc:d.scan_times_utc,
   historic_pump_launches_retrospectively_reported:pmap.get(d.date)?.launches??null,
@@ -385,6 +400,10 @@ if(main){
   x.price_only_shadow_B.modeled_buy_count,x.price_only_shadow_B.modeled_sell_count,
   'NOT_VERIFIABLE',x.strict_full_strategy_status].join(','));
  writeFileSync(path.join(folder,'real120-daily.csv'),[...h,...lines].join('\n')+'\n');
+ writeFileSync(path.join(folder,'real120-holdout60.csv'),
+  [h[0],...lines.slice(60)].join('\n')+'\n');
+ writeFileSync(path.join(folder,'real120-training60.csv'),
+  [h[0],...lines.slice(0,60)].join('\n')+'\n');
  const root=o.summary;
  console.log('REAL120_COVERAGE',JSON.stringify(root.historical_data_provenance));
  console.log('REAL120_ASOF_SCANS',root.deterministic_real_price_research.scheduled_price_only_virtual_scans);
@@ -392,5 +411,10 @@ if(main){
  console.log('REAL120_CEX_SHADOW_A',JSON.stringify(root.shadow_price_only_comparisons.A));
  console.log('REAL120_CEX_SHADOW_B',JSON.stringify(root.shadow_price_only_comparisons.B));
  console.log('REAL120_STRICT_GPT',JSON.stringify(root.full_gpt_backtest));
- console.log('REAL120_DAILY_CSV',path.join(folder,'real120-daily.csv'));
+  console.log('REAL120_DAILY_CSV',path.join(folder,'real120-daily.csv'));
+ console.log('REAL120_HOLDOUT60_CSV_BEGIN');
+ console.log([h[0],...lines.slice(60)].join('\n'));
+ console.log('REAL120_HOLDOUT60_CSV_END');
+ for(const order of o.shadowA.orders)console.log('REAL120_SHADOW_A_ORDER '+JSON.stringify(order));
+ for(const order of o.shadowB.orders)console.log('REAL120_SHADOW_B_ORDER '+JSON.stringify(order));
 }
