@@ -1,0 +1,72 @@
+{
+  "schema": "sniper_r29_120d_evidence_separated_report.v1",
+  "historical_window": {
+    "train_start_utc": "2026-07-20T00:00:00Z",
+    "train_end_exclusive_utc": "2026-09-18T00:00:00Z",
+    "holdout_start_utc": "2026-09-18T00:00:00Z",
+    "holdout_end_exclusive_utc": "2026-11-17T00:00:00Z",
+    "data_cutoff_utc": "2026-11-16T08:10:00Z",
+    "train_days": 60,
+    "holdout_days": 60
+  },
+  "historical_evidence": {
+    "source_audit": "research/replay-120d/historical-audit.mjs",
+    "calendar_days_checked": 120,
+    "independently_complete_multisource_historical_scans": 0,
+    "reconstructed_actual_past_model_calls": 0,
+    "archived_real_gpt_decisions_from_nov_15_16": 9,
+    "archived_real_gpt_no_trade": 9,
+    "actual_historical_trade_count_provable": null,
+    "historical_gpt_pnl_test_usdc": null,
+    "result": "DATA_GAP_NO_FULL_POINT_IN_TIME_COHORT",
+    "missing": [
+      "historical_neutral_new_pool_universe",
+      "verified_historical_pool_contract_security",
+      "sell_simulation_at_each_decision",
+      "independent_historical_social_wallet_adoption",
+      "indicative_vs_executable_slippage_quoted"
+    ]
+  },
+  "synthetic_only_mechanics": {
+    "source_class": "SYNTHETIC_FIXTURE_ONLY",
+    "source": "research/replay-120d/mechanics-fixture.mjs",
+    "total_days": 120,
+    "simulated_policy_scans": 171,
+    "train_scans": 74,
+    "holdout_scans": 97,
+    "frequency_levels_per_day": [
+      1,
+      4,
+      12,
+      24
+    ],
+    "actions": {
+      "BUY": 2,
+      "HOLD": 3,
+      "SELL": 1,
+      "WATCH": 20,
+      "NO_TRADE": 145
+    },
+    "local_guard_sell": 1,
+    "closed_synthetic_positions": 2,
+    "open_synthetic_positions": 0,
+    "start_test_usdc": 5000,
+    "end_test_usdc": 5003.8906,
+    "closed_synthetic_pnl_test_usdc": 3.8906,
+    "github_archive_and_receipt_emulated_count": 171,
+    "actual_historic_gpt_calls_run": 0,
+    "user_paper_ledger_changed": false,
+    "real_wallet_changed": false,
+    "actual_github_order_channel_changed": false
+  },
+  "verification": {
+    "workflow_run_url": "https://github.com/127027/Sniperbot-/actions/runs/43835731043",
+    "windows_ci": "SUCCESS",
+    "ubuntu_ci": "SUCCESS",
+    "artifact_url": "https://github.com/127027/Sniperbot-/actions/runs/43835731043/artifacts/14210322901",
+    "artifact_expires_utc": "2026-12-16T08:59:34Z",
+    "permanent_audit_csv": "research/replay-120d/results/historical-days.csv",
+    "permanent_fixture_csv": "research/replay-120d/results/synthetic-mechanics-days.csv"
+  },
+  "conclusion": "MECHANICAL_REPLAY_PASSED; GENUINE_120D_MEMECOIN_GPT_STRATEGY_VALIDITY_UNPROVEN"
+}
