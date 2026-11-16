@@ -122,3 +122,43 @@ test('rate-limit on page one does not request page two on same chain',async()=>{
  assert.equal(s.coverage.find(x=>x.chain==='base'&&x.source==='GECKOTERMINAL').status,'HTTP_429_RATE_LIMIT');
  assert.equal(s.collection_status,'OBSERVED_OR_PARTIAL');
 });
+
+test('crosschecks two highest-quality economic EVM pools, not first two newest pools',async()=>{
+ const tokens=['0x'+'1'.repeat(40),'0x'+'3'.repeat(40),
+  '0x'+'5'.repeat(40),'0x'+'7'.repeat(40)];
+ const pools=['0x'+'2'.repeat(40),'0x'+'4'.repeat(40),
+  '0x'+'6'.repeat(40),'0x'+'8'.repeat(40)];
+ const usd=[0.0593,1800,120000,95000],volume=[46000,11000,13000,9000];
+ const calls=[];
+ const fetcher=async url=>{
+  calls.push(url);
+  if(url.includes('geckoterminal')){
+   const m=getChain(url);
+   if(m?.chain!=='base'||!url.includes('page=1'))return response({data:[]});
+   return response({data:tokens.map((t,i)=>({
+    ...validPool(m,t,pools[i]),
+    attributes:{...validPool(m,t,pools[i]).attributes,
+     reserve_in_usd:String(usd[i]),volume_usd:{m5:String(volume[i])},
+     transactions:{m5:{buys:60,sells:20}}}
+   }))});
+  }
+  if(url.includes('/latest/dex/pairs/base/')){
+   const poolId=url.split('/').at(-1);
+   const index=pools.indexOf(poolId);
+   return response({pairs:[{chainId:'base',baseToken:{address:tokens[index]},
+    pairAddress:poolId}]});
+  }
+  throw Error('UNEXPECTED_CROSSCHECK_URL '+url);
+ };
+ const snapshot=await collectSnapshot({fetcher,now});
+ const base=snapshot.candidates.filter(x=>x.chain==='base');
+ assert.equal(base.length,4);
+ assert.equal(calls.filter(x=>x.includes('/latest/dex/pairs/base/')).length,2);
+ assert.equal(base.find(x=>x.pool_address===pools[0]).verification,'PROVIDER_ONLY');
+ assert.equal(base.find(x=>x.pool_address===pools[1]).verification,'PROVIDER_ONLY');
+ for(const poolAddress of pools.slice(2))
+  assert.equal(base.find(x=>x.pool_address===poolAddress).verification,
+   'CROSS_PROVIDER_IDENTITY');
+ assert(base.every(x=>x.unresolved_checks.includes('SELLABILITY')),
+  'independent pair identity must never misrepresent token security');
+});
