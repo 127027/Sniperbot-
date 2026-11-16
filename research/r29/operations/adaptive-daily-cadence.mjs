@@ -82,10 +82,86 @@ export function dailyPlan(input){
   can_authorize_live_trades:false,
   paper_buy_sell_requires_independent_safety_and_bot_receipt:true};
 }
+// IMPORTANT: A daily plan is an ADVISORY snapshot, never a 24h lock.
+// Re-run this pure function on *every* existing hourly wake-up. Publish a
+// revision as a NEW write-once path only if the level changes. The caller
+// must supply actual (not fabricated) position/evidence context.
+// A plan revision neither performs nor counts a GPT call.
+export function reconsiderDailyPlan({
+ asof_utc,previous_plan=null,verified_activity=null,
+ open_position_count=0,urgent_position_risk=false,
+ evidence_sha256=null,position_sha256=null,
+ prior_full_reviews=[]
+}={}){
+ const now=utcMs(asof_utc),clock=berlinClock(asof_utc);
+ const validHash=x=>x===null||/^[a-f0-9]{64}$/i.test(x);
+ if(!validHash(evidence_sha256)||!validHash(position_sha256))
+  throw Error("R29_REPLAN_SOURCE_SHA256_INVALID");
+ if(!Array.isArray(prior_full_reviews)||prior_full_reviews.length>24)
+  throw Error("R29_REPLAN_REVIEW_HISTORY_INVALID");
+ let prev=null;
+ if(previous_plan!==null){
+  if(previous_plan?.schema!==SCHEMA||
+   !ALLOWED.includes(previous_plan.full_gpt_reviews_per_operating_day))
+   throw Error("R29_REPLAN_PREVIOUS_PLAN_INVALID");
+  if(previous_plan.operating_day===clock.operating_day){
+   if(previous_plan.evaluated_at_utc&&
+    utcMs(previous_plan.evaluated_at_utc)>now)
+    throw Error("R29_REPLAN_FUTURE_PREVIOUS_PLAN");
+   prev=previous_plan;
+  }
+ }
+ const nowPlan=dailyPlan({asof_utc,verified_activity,
+  open_position_count,urgent_position_risk});
+ const previousFreq=prev?.full_gpt_reviews_per_operating_day??null;
+ const nextFreq=nowPlan.full_gpt_reviews_per_operating_day;
+ const changed=previousFreq!==nextFreq;
+ const plan=changed||!prev?{
+  ...nowPlan,
+  evaluated_at_utc:asof_utc,
+  source_evidence_sha256:evidence_sha256,
+  source_positions_sha256:position_sha256,
+  is_hourly_reevaluated_not_fixed_for_day:true,
+  suggested_local_hours_are_indicative_only:true
+ }:prev;
+ const scan=scanDue({asof_utc,plan,prior_full_reviews,
+  current_evidence_hash:evidence_sha256,
+  current_position_hash:position_sha256,
+  urgent_position_risk,open_position_count});
+ const revision=changed?{
+  schema:"sniper_r29_adaptive_plan_revision.v1",
+  recorded_at_utc:asof_utc,operating_day:clock.operating_day,
+  previous_frequency:previousFreq,new_frequency:nextFreq,
+  revision_direction:previousFreq===null?"INITIAL_BASELINE":
+   nextFreq>previousFreq?"ESCALATION":"DEESCALATION",
+  reason:nowPlan.review_trigger_reason,
+  evidence_sha256,position_sha256,
+  completed_full_reviews_so_far:prior_full_reviews.filter(x=>
+   x?.kind==="GPT_FULL_REVIEW"&&
+   typeof x.completed_at_utc==="string"&&
+   Number.isFinite(Date.parse(x.completed_at_utc))&&
+   berlinClock(x.completed_at_utc).operating_day===clock.operating_day
+  ).length,
+  independent_market_source_required:true,
+  append_only_do_not_rewrite_earlier_plan:true,
+  review_execution_count_incremented:false,
+  orders_executed:false
+ }:null;
+ return {operating_day:clock.operating_day,reevaluated_at_utc:asof_utc,
+  plan,revision,scan,
+  previous_frequency:previousFreq,
+  current_frequency:nextFreq,
+  user_paper_balance_mutated:false,
+  real_trading_enabled:false};
+}
+// Existing function kept for backwards compatibility; schedule cadence is
+// measured from the LAST ACTUAL completed GPT call in UTC, not yesterday's
+// morning timetable. A new higher frequency can therefore take effect at
+// the next hourly wake-up, including mid-day after the 2nd/3rd scan.
 export function scanDue({
  asof_utc,plan,prior_full_reviews=[],current_evidence_hash=null,
- current_position_hash=null,
- allow_morning_even_if_no_new_digest=true
+ current_position_hash=null,urgent_position_risk=false,
+ open_position_count=0,allow_morning_even_if_no_new_digest=true
 }={}){
  const t=utcMs(asof_utc),c=berlinClock(asof_utc);
  if(plan?.schema!==SCHEMA||plan.operating_day!==c.operating_day||
@@ -93,6 +169,9 @@ export function scanDue({
   return {due:false,reason:"NO_VALID_PLAN_FOR_OPERATING_DAY"};
  if(!Array.isArray(prior_full_reviews)||prior_full_reviews.length>24)
   throw Error("R29_INVALID_COMPLETED_REVIEW_LEDGER");
+ if(!Number.isInteger(open_position_count)||open_position_count<0||
+  typeof urgent_position_risk!=="boolean")
+  throw Error("R29_SCAN_POSITION_CONTEXT_INVALID");
  const ordered=[...prior_full_reviews].map(x=>({
   at:utcMs(x.completed_at_utc),
   day:berlinClock(x.completed_at_utc).operating_day,
@@ -100,6 +179,8 @@ export function scanDue({
   kind:x.kind
  })).filter(x=>x.day===c.operating_day&&x.kind==="GPT_FULL_REVIEW")
   .sort((a,b)=>a.at-b.at);
+ if(ordered.some(x=>x.at>t))
+  throw Error("R29_FUTURE_COMPLETED_GPT_REVIEW");
  if(ordered.length>=24)
   return {due:false,reason:"FULL_REVIEW_CAP_24"};
  if(c.hour===8&&ordered.length===0&&allow_morning_even_if_no_new_digest)
@@ -112,12 +193,16 @@ export function scanDue({
  if(ordered.length>=plan.full_gpt_reviews_per_operating_day)
   return {due:false,reason:"ADAPTIVE_DAILY_TARGET_ALREADY_MET"};
  const interval=24/plan.full_gpt_reviews_per_operating_day;
- if(c.hours_since_morning%interval!==0)
-  return {due:false,reason:"HOURLY_LIGHTWEIGHT_WATCH_NOT_FULL_REVIEW"};
+ if(t-last.at<interval*HOUR)
+  return {due:false,reason:"WAITING_FOR_CURRENT_ROLLING_CADENCE"};
  const newMarket=current_evidence_hash&&current_evidence_hash!==last.evidence;
  const newPosition=current_position_hash&&current_position_hash!==last.position;
- if(!newMarket&&!newPosition)
+ const urgent=urgent_position_risk&&open_position_count>0;
+ if(!newMarket&&!newPosition&&!urgent)
   return {due:false,reason:"NO_NEW_MARKET_OR_POSITION_EVIDENCE"};
- return {due:true,reason:newPosition?"POSITION_CONTEXT_CHANGED":"NEW_INDEPENDENT_MARKET_EVIDENCE",
-  count_so_far:ordered.length};
+ return {due:true,
+  reason:urgent?"ONGOING_URGENT_PAPER_POSITION_RISK":
+   newPosition?"POSITION_CONTEXT_CHANGED":"NEW_INDEPENDENT_MARKET_EVIDENCE",
+  count_so_far:ordered.length,
+  rolling_frequency:plan.full_gpt_reviews_per_operating_day};
 }
