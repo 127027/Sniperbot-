@@ -32,8 +32,8 @@ class FullDayAsOfTests(unittest.TestCase):
     def test_counts_only_after_full_census(self):
         self.assertEqual(sum(mod.ROW_COUNTS),42_230_410)
         self.assertEqual(sum(mod.SIZES),1_373_422_244)
-        self.assertEqual(mod.MAX_EVENTS_EACH,12000)
-        self.assertEqual(mod.MAX_SELECTION,50000)
+        self.assertEqual(mod.MAX_EVENTS_EACH,3000000)
+        self.assertEqual(mod.MAX_SELECTION,3000000)
     def test_fail_closed_source_size(self):
         self.assertEqual(mod.META["launches/pumpdata-2026-10-15-launches.parquet"],3395780)
         self.assertTrue(mod.HF.startswith("https://huggingface.co/datasets/"))
