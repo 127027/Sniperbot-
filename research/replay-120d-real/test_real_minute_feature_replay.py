@@ -18,7 +18,7 @@ class MinuteFeaturesTests(unittest.TestCase):
  def test_manifest_only_36_expected_days(self):
   text="\n".join("features  | data/features/"+d+".parquet | 3 | 4000 | "+("a"*64) for d in mod.DAYS)
   result=mod.manifest(text)
-  self.assertEqual(len(result),36)
+  self.assertEqual(len(result),43)
   self.assertEqual(result["data/features/2026-10-15.parquet"],(3,4000,"a"*64))
   with self.assertRaisesRegex(ValueError,"SOURCE_MISSING_REQUIRED_36_DAYS"):
    mod.manifest(text.replace("data/features/2026-10-15.parquet","data/features/2026-11-01.parquet"))
