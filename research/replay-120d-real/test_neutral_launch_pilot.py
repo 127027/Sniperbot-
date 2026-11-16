@@ -7,7 +7,7 @@ source_file = Path(__file__).with_name("neutral-launch-pilot.py")
 spec = importlib.util.spec_from_file_location("neutral_launch_pilot", source_file)
 pilot = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(pilot)
-PILOT_DAYS, COLS, FORBIDDEN_FUTURE = pilot.PILOT_DAYS, pilot.COLS, pilot.FORBIDDEN_FUTURE
+LAUNCH_DAYS, COLS, FORBIDDEN_FUTURE = pilot.LAUNCH_DAYS, pilot.COLS, pilot.FORBIDDEN_FUTURE
 filter_frame, build_day, ts = pilot.filter_frame, pilot.build_day, pilot.ts
 
 class NeutralLaunchAsOfTests(unittest.TestCase):
@@ -17,9 +17,11 @@ class NeutralLaunchAsOfTests(unittest.TestCase):
                     symbol="TEST",name="Test token")
 
     def test_real_universe_dates_contain_train_and_holdout(self):
-        self.assertEqual(len(PILOT_DAYS),6)
-        self.assertTrue(any(x<"2026-09-18" for x in PILOT_DAYS))
-        self.assertTrue(any(x>="2026-09-18" for x in PILOT_DAYS))
+        self.assertEqual(len(LAUNCH_DAYS),67)
+        self.assertEqual(LAUNCH_DAYS[0],"2026-08-31")
+        self.assertEqual(LAUNCH_DAYS[-1],"2026-11-05")
+        self.assertTrue(any(x<"2026-09-18" for x in LAUNCH_DAYS))
+        self.assertTrue(any(x>="2026-09-18" for x in LAUNCH_DAYS))
         self.assertFalse(set(COLS) & FORBIDDEN_FUTURE)
         self.assertNotIn("graduated",COLS)
         self.assertNotIn("rugged",COLS)
