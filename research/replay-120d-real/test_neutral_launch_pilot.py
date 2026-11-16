@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 import unittest
 from datetime import datetime, timezone
-from neutral_launch_pilot import PILOT_DAYS, COLS, FORBIDDEN_FUTURE, filter_frame, build_day, ts
+from pathlib import Path
+import importlib.util
+source_file = Path(__file__).with_name("neutral-launch-pilot.py")
+spec = importlib.util.spec_from_file_location("neutral_launch_pilot", source_file)
+pilot = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(pilot)
+PILOT_DAYS, COLS, FORBIDDEN_FUTURE = pilot.PILOT_DAYS, pilot.COLS, pilot.FORBIDDEN_FUTURE
+filter_frame, build_day, ts = pilot.filter_frame, pilot.build_day, pilot.ts
 
 class NeutralLaunchAsOfTests(unittest.TestCase):
     def row(self, second, mint):
