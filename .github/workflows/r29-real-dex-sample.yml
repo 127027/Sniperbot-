@@ -6,6 +6,8 @@ on:
     paths:
       - 'research/replay-120d-real/trade-sample-probe.mjs'
       - 'research/replay-120d-real/trade-sample-probe.test.mjs'
+      - 'research/replay-120d-real/historical-evidence-gate.mjs'
+      - 'research/replay-120d-real/historical-evidence-gate.test.mjs'
       - '.github/workflows/r29-real-dex-sample.yml'
   workflow_dispatch:
 permissions:
@@ -25,7 +27,7 @@ jobs:
         with:
           node-version: '22'
       - name: Strict event-time and source-isolation offline checks
-        run: node --test research/replay-120d-real/trade-sample-probe.test.mjs
+        run: node --test research/replay-120d-real/trade-sample-probe.test.mjs research/replay-120d-real/historical-evidence-gate.test.mjs
       - name: Read real public 15 October 2026 historical Solana DEX sample only
         run: node research/replay-120d-real/trade-sample-probe.mjs
       - name: Archive exact public evidence, timestamps, source hash, no buys
