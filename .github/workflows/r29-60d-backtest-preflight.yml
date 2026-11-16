@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/r29-60d-backtest-preflight.yml'
       - 'research/replay-120d-real/strict-60day-backtest-gate*'
+      - 'research/replay-120d-real/strict-asof-gpt-scan*'
+      - 'research/replay-120d-real/results/HISTORICAL_MEME_HYPE_REFERENCE_POSTHOC_20261109.json'
       - 'research/replay-120d-real/results/REAL_60_DAY_EVIDENCE_MATRIX_43D_2026-11-16.csv'
   workflow_dispatch:
 permissions:
@@ -20,7 +22,19 @@ jobs:
         with:
           node-version: '22'
       - name: Unit tests (no trading/wallet/network API)
-        run: node --test research/replay-120d-real/strict-60day-backtest-gate.test.mjs
+        run: |
+          node --test research/replay-120d-real/strict-60day-backtest-gate.test.mjs
+          node --test research/replay-120d-real/strict-asof-gpt-scan.test.mjs
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          import {historicalHypeReferenceIsSafe} from './research/replay-120d-real/strict-60day-backtest-gate.mjs';
+          const x=JSON.parse(readFileSync('research/replay-120d-real/results/HISTORICAL_MEME_HYPE_REFERENCE_POSTHOC_20261109.json','utf8'));
+          assert.equal(x.historical_cases.length,14);
+          assert.equal(x.source_counts.historical_chronology_coins,89);
+          assert.equal(historicalHypeReferenceIsSafe(x),true);
+          console.log('R29_POSTHOC_REFERENCE_QUARANTINED',x.source_sha256);
+          JS
       - name: Read-only audit of archived real 60-day source matrix
         shell: bash
         run: |
