@@ -97,7 +97,7 @@ export function reconsiderDailyPlan({
  const validHash=x=>x===null||/^[a-f0-9]{64}$/i.test(x);
  if(!validHash(evidence_sha256)||!validHash(position_sha256))
   throw Error("R29_REPLAN_SOURCE_SHA256_INVALID");
- if(!Array.isArray(prior_full_reviews)||prior_full_reviews.length>24)
+ if(!Array.isArray(prior_full_reviews)||prior_full_reviews.length>1000)
   throw Error("R29_REPLAN_REVIEW_HISTORY_INVALID");
  let prev=null;
  if(previous_plan!==null){
@@ -167,12 +167,14 @@ export function scanDue({
  if(plan?.schema!==SCHEMA||plan.operating_day!==c.operating_day||
   !ALLOWED.includes(plan.full_gpt_reviews_per_operating_day))
   return {due:false,reason:"NO_VALID_PLAN_FOR_OPERATING_DAY"};
- if(!Array.isArray(prior_full_reviews)||prior_full_reviews.length>24)
+ if(!Array.isArray(prior_full_reviews)||prior_full_reviews.length>1000)
   throw Error("R29_INVALID_COMPLETED_REVIEW_LEDGER");
  if(!Number.isInteger(open_position_count)||open_position_count<0||
   typeof urgent_position_risk!=="boolean")
   throw Error("R29_SCAN_POSITION_CONTEXT_INVALID");
- const ordered=[...prior_full_reviews].map(x=>({
+ const ordered=prior_full_reviews
+  .filter(x=>x?.kind==="GPT_FULL_REVIEW")
+  .map(x=>({
   at:utcMs(x.completed_at_utc),
   day:berlinClock(x.completed_at_utc).operating_day,
   evidence:x.evidence_sha256??null,position:x.position_sha256??null,
