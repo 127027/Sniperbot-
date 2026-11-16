@@ -129,10 +129,16 @@ export function explainSecurityResearchSelection(review,market,{now=Date.now()}=
   real_executable_quote_still_missing:true,
   this_diagnostic_cannot_authorize_trades:true};
 }
-export function publicSecurityResearchReport({review,market=null,findings=[],now=Date.now()}={}){
+export function publicSecurityResearchReport({review,market=null,findings=[],now=Date.now(),marketReadStatus=null}={}){
  if(review?.schema!=='sniper_r29_public_dynamic_review.v1'||
   !DIGEST.test(review.review_sha256||'')||!time(review.observed_at_utc)||
   !Array.isArray(findings)||findings.length>2)throw Error('GPT_SECURITY_INVALID_REVIEW');
+ const safeReadStatuses=new Set([
+  "FRESH_LOCAL_PUBLIC_SNAPSHOT","NO_LOCAL_COLLECTOR_SNAPSHOT",
+  "COLLECTOR_READ_FAILED","COLLECTOR_SNAPSHOT_TOO_LARGE",
+  "COLLECTOR_JSON_INVALID","COLLECTOR_STALE_OR_INCOMPLETE"]);
+ if(marketReadStatus!==null&&!safeReadStatuses.has(marketReadStatus))
+  throw Error('GPT_SECURITY_LOCAL_MARKET_STATUS_INVALID');
  const out=findings.map(x=>{
   const chain=x.chain,token=x.token_address?.toLowerCase(),
    pool=x.pool_address?.toLowerCase(),gate=x.gate;
@@ -187,6 +193,7 @@ export function publicSecurityResearchReport({review,market=null,findings=[],now
   review_sha256:review.review_sha256,review_observed_at_utc:review.observed_at_utc,
   market_snapshot_observed_at_utc:market?.published_at_utc||null,
   market_snapshot_is_order_authority:false,
+  local_market_read_status:marketReadStatus||'NOT_REPORTED',
   selection_diagnostic:explainSecurityResearchSelection(review,market,{now}),
   checked_at_utc:new Date(now).toISOString(),
   candidate_check_count:out.length,
@@ -233,7 +240,7 @@ export async function syncGptPaperSecurityResearch({token,fetcher=fetch,
   }catch{continue} // never synthesize a safe result
   results.push({...c,gate});
  }
- const report=publicSecurityResearchReport({review,market:market.ok?market.snapshot:null,findings:results,now});
+ const report=publicSecurityResearchReport({review,market:market.ok?market.snapshot:null,findings:results,now,marketReadStatus:market.reason});
  const headers={authorization:'Bearer '+token,accept:'application/vnd.github+json',
   'content-type':'application/json','X-GitHub-Api-Version':'2022-11-28',
   'user-agent':'SniperR29PublicSecurityResearch/1'};
