@@ -13,13 +13,13 @@ DAYS=[(datetime(2026,9,24,tzinfo=timezone.utc)+timedelta(days=i)).date().isoform
 RX=re.compile(r"^[ \t]*\|?[ \t]*features\s*\|\s*(data/features/20[0-9]{2}-[0-9]{2}-[0-9]{2}\.parquet)\s*\|\s*([\d,]+)\s*\|\s*([\d,]+)\s*\|\s*([a-f0-9]{64})",re.M)
 SAFE=("mint","t","ts","age_s","window","slot_ms","mayhem",
  "quote_asset","quote_is_sol","quote_modelled","quote_holder_rewards","quote_evidence",
- "flag_creator_sold","flag_bundle_dumped","flag_curve_drained","flag_pool_drained",
+ "flag_creator_sold","flag_bundle_dumped","flag_pool_drained",
  "flag_curve_closed_low","flag_migrate_below_grad","flag_graduated",
  "flag_curve_complete_grad","flag_serial_rugger_creator","flag_warm_launch",
  "f_dev_share","f_insider_share","f_bundle_wallets","f_rep_n",
  "f_rep_rug","f_rep_grad","f_rs","f_n_buys","f_age","f_mayhem")
 BLOCKED={"graduated","rugged","rug_dt_s","migrate_dt_s","peak_rs","terminal_rs",
- "rugged_before_row","migrated_before_row","rug_within_300s_after_row",
+ "rugged_before_row","migrated_before_row","rug_within_300s_after_row","flag_curve_drained",
  "labels_as_of","outcome_status","outcome_pending","repaired","repair_reason",
  "launch_t0","launch_quote_asset","launch_mayhem","launch_decoder_complete",
  "p_rug_within_300s","p_true_graduation","rug_model_score_uncalibrated",
