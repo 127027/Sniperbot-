@@ -36,7 +36,7 @@ def sha256_file(path):
 
 
 def executed_price_record(event, expected_mint):
-    if event.get("mint") != expected_mint or event.get("failed") is not False:
+    if event.get("mint") != expected_mint or event.get("failed") not in (False, 0):
         return None
     if event.get("side") not in ("buy", "sell") or not isinstance(event.get("venue"), str):
         return None
