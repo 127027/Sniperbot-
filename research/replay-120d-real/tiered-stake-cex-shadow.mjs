@@ -199,4 +199,8 @@ if(main){
  writeFileSync(path.join(here,"generated","60day-tiered-C-orders.json"),JSON.stringify(report.orders,null,2)+"\n");
  console.log("R29_REAL_CEX_TIERED_SHADOW_REPORT "+JSON.stringify(audit));
  console.log("R29_TIERED_SHADOW_DAILY_ROWS "+report.daily.length);
+ for(const day of report.daily)
+  console.log("R29_TIERED_SHADOW_DAILY_EVIDENCE "+JSON.stringify(day));
+ for(const order of report.orders)
+  console.log("R29_TIERED_SHADOW_ORDER_EVIDENCE "+JSON.stringify(order));
 }
