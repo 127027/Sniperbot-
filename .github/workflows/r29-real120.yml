@@ -4,7 +4,11 @@ on:
     branches:
       - codex/r29-chatgpt-github-paper-cycle-20261115
     paths:
-      - 'research/replay-120d-real/**'
+      - 'research/replay-120d-real/source-collector.mjs'
+      - 'research/replay-120d-real/real-replay.mjs'
+      - 'research/replay-120d-real/real-replay.test.mjs'
+      - 'research/replay-120d-real/neutral-launch-pilot.py'
+      - 'research/replay-120d-real/test_neutral_launch_pilot.py'
       - '.github/workflows/r29-real120.yml'
   workflow_dispatch:
 permissions:
@@ -38,7 +42,7 @@ jobs:
         run: python -m pip install --disable-pip-version-check --quiet pyarrow==18.1.0
       - name: Verify no future launch identities or outcome labels can enter historical frames
         run: python -m unittest discover -s research/replay-120d-real -p 'test_neutral_launch_pilot.py' -v
-      - name: Fetch six pinned actual historical Solana launch days, no traded tokens invented
+      - name: Fetch all 67 pinned real Solana launch days and build 1608 sealed timestamp checkpoints
         run: python research/replay-120d-real/neutral-launch-pilot.py
       - name: Archive authentic provider responses and SHA-backed audit output (no secrets)
         uses: actions/upload-artifact@v4
