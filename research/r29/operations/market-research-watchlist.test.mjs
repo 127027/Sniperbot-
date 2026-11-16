@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {fileURLToPath} from "node:url";
+import path from "node:path";
 import {normalizeResearchSnapshot,compareResearchSnapshots,
  stableResearchSnapshotName,snapshotPayloadDigest} from "./market-research-watchlist.mjs";
 
@@ -91,4 +94,33 @@ test("disallow later quote before enough time, or evaluating future after cutoff
   {evaluation_at_utc:A}),/FUTURE/);
  assert.throws(()=>compareResearchSnapshots(a,b,
   {evaluation_at_utc:B,minimum_elapsed_hours:48}),/FUTURE/);
+});
+
+test("first actual archived 12-pool research review preserves provenance and every rejected or control identity",()=>{
+ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"../../..");
+ const rel="research/r29/operations/candidate-watch/snapshots/2026-11-16/20261116T165647536Z-69938eedf12bd93b.json";
+ const stored=JSON.parse(readFileSync(path.join(root,rel),"utf8"));
+ assert.equal(stored.schema,"sniper_r29_candidate_watch_snapshot.v1");
+ assert.equal(stored.research_review_sha256,"69938eedf12bd93b540f1d42439decd61842731a5ce3775625366f10c2318099");
+ assert.equal(stored.source_github_blob_sha.length,40);
+ assert.equal(stored.market_sample_count,10);
+ assert.equal(stored.deterministic_controls_count,2);
+ assert.equal(stored.all_observed_candidates_count,12);
+ assert.equal(stored.observations.length,12);
+ assert.equal(new Set(stored.observations.map(x=>x.candidate_id)).size,12);
+ assert(stored.observations.every(x=>x.actual_gpt_decision_here===null&&
+  x.paper_buy_allowed===false&&x.real_trade_fill_proven===false));
+ assert(stored.observations.every(x=>x.contract_security_source_status==="UNKNOWN"&&
+  x.sellability_source_status==="UNKNOWN"));
+ assert.equal(stableResearchSnapshotName(stored),
+  "2026-11-16/20261116T165647536Z-69938eedf12bd93b.json");
+ // Only compare to the live channel when its review SHA is still IDENTICAL;
+ // later channel revisions must not mutate this original past snapshot.
+ const live=JSON.parse(readFileSync(path.join(root,"research/r29/channel/dynamic-research-review.json"),"utf8"));
+ if(live.review_sha256===stored.research_review_sha256){
+  const current=normalizeResearchSnapshot(live,{
+   at_utc:stored.archive_compiled_at_utc,
+   source_github_blob_sha:stored.source_github_blob_sha});
+  assert.deepEqual(current.observations,stored.observations);
+ }
 });
