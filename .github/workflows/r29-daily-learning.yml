@@ -9,6 +9,10 @@ on:
       - research/r29/operations/market-research-watchlist.mjs
       - research/r29/operations/market-research-watchlist.test.mjs
       - research/r29/operations/operations.test.mjs
+      - research/r29/operations/memecoin-only-candidate-gate.mjs
+      - research/r29/operations/memecoin-only-candidate-gate.test.mjs
+      - research/r29/operations/memecoin-moonshot-execution-check.mjs
+      - research/r29/operations/memecoin-moonshot-execution-check.test.mjs
       - .github/workflows/r29-daily-learning.yml
   workflow_dispatch:
 permissions:
@@ -23,4 +27,4 @@ jobs:
         with:
           node-version: '22'
       - name: Run pure, offline date, market-evidence and rejected-coin learning tests
-        run: node --test research/r29/operations/operations.test.mjs research/r29/operations/market-research-watchlist.test.mjs
+        run: node --test research/r29/operations/operations.test.mjs research/r29/operations/market-research-watchlist.test.mjs research/r29/operations/memecoin-only-candidate-gate.test.mjs research/r29/operations/memecoin-moonshot-execution-check.test.mjs
