@@ -1,4 +1,4 @@
-name: R29 Real 36-Day Historical Minute Signal Replay - No Trading
+name: R29 Real 43-Day Historical Minute Signal Replay - No Trading
 on:
   push:
     branches:
@@ -29,12 +29,12 @@ jobs:
         run: python -m pip install --disable-pip-version-check --quiet pyarrow==18.1.0
       - name: Reject future performance labels, prelaunch events and wrong source manifest
         run: python -m unittest discover -s research/replay-120d-real -p 'test_real_minute_feature_replay.py' -v
-      - name: Retrieve and sha-verify 36 actual archived minute-signal days
+      - name: Retrieve and sha-verify 43 actual archived minute-signal days
         run: python research/replay-120d-real/real-minute-feature-replay.py
-      - name: Store actual minute-level as-of source evidence for 36 days (no orders)
+      - name: Store actual minute-level as-of source evidence for 43 days (no orders)
         uses: actions/upload-artifact@v4
         with:
-          name: r29-real-36day-minutefeature-asof-only
-          path: research/replay-120d-real/generated/real-minute-36days/
+          name: r29-real-43day-minutefeature-asof-only
+          path: research/replay-120d-real/generated/real-minute-43days/
           if-no-files-found: error
           retention-days: 30
