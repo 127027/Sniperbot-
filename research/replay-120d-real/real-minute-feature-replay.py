@@ -8,8 +8,8 @@ import pyarrow.parquet as pq
 
 REV="9b9a04e7e3e85775d614d16105daad2e69ce8544"
 URL="https://huggingface.co/datasets/loopholetape/pumpfun-launches/resolve/"+REV+"/"
-OUT=Path(__file__).resolve().parent/"generated"/"real-minute-36days"
-DAYS=[(datetime(2026,9,24,tzinfo=timezone.utc)+timedelta(days=i)).date().isoformat() for i in range(36)]
+OUT=Path(__file__).resolve().parent/"generated"/"real-minute-43days"
+DAYS=[(datetime(2026,9,24,tzinfo=timezone.utc)+timedelta(days=i)).date().isoformat() for i in range(43)]
 RX=re.compile(r"^[ \t]*\|?[ \t]*features\s*\|\s*(data/features/20[0-9]{2}-[0-9]{2}-[0-9]{2}\.parquet)\s*\|\s*([\d,]+)\s*\|\s*([\d,]+)\s*\|\s*([a-f0-9]{64})",re.M)
 SAFE=("mint","t","ts","age_s","window","slot_ms","mayhem",
  "quote_asset","quote_is_sol","quote_modelled","quote_holder_rewards","quote_evidence",
@@ -84,7 +84,7 @@ def main():
  OUT.mkdir(parents=True,exist_ok=True)
  readme=fetch("README.md")
  expected=manifest(readme.decode())
- sumry={"schema":"r29_real_36day_asof_feature_audit_v1","revision":REV,
+ sumry={"schema":"r29_real_43day_asof_feature_audit_v1","revision":REV,
   "from_date":DAYS[0],"to_date":DAYS[-1],"source_readme_sha256":digest(readme),
   "verified_days":0,"total_real_rows":0,"hourly_asof_frames":0,
   "first8_candidate_occurrences":0,
@@ -113,10 +113,10 @@ def main():
    print("REAL_MINUTE_DAY",json.dumps({"day":day,"rows":row_count,
      "sha256":source_sha,"candidate_occurrences":result["candidate_occurrences"]}),flush=True)
    target.unlink()
- if sumry["verified_days"]!=36 or sumry["total_real_rows"]!=4702805 or sumry["hourly_asof_frames"]!=864:
+ if sumry["verified_days"]!=43 or sumry["total_real_rows"]!=5645886 or sumry["hourly_asof_frames"]!=1032:
   raise ValueError("INCOMPLETE_OR_CHANGED_SOURCE")
  (OUT/"SUMMARY.json").write_text(json.dumps(sumry,indent=2)+"\n")
- print("REAL_MINUTE_36D_RESULT",json.dumps({k:sumry[k] for k in (
+ print("REAL_MINUTE_43D_RESULT",json.dumps({k:sumry[k] for k in (
   "verified_days","total_real_rows","hourly_asof_frames","first8_candidate_occurrences",
   "future_labels_in_gpt_frames","actual_gpt_trades")}),flush=True)
 if __name__=="__main__":main()
