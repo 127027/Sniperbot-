@@ -197,7 +197,8 @@ export async function fetchHuggingFaceAsOfSample({fetcher=fetch}={}){
     url,raw_sha256:d.raw_sha256,
     total_dataset_rows:o.num_rows_total??null,
     sampled_rows:clean.length,
-    first_sample_mints:clean.slice(0,15),
+    asof_sample_launches:clean,
+    future_outcome_fields_excluded_from_every_row:true,
     omitted_future_outcome_fields:true});
   }catch(e){sets.push({config,status:'UNAVAILABLE',error:String(e.message||e),url})}
  }
