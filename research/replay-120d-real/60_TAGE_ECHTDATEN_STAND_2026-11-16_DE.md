@@ -26,7 +26,7 @@ Die eigens implementierte `real-minute-feature-replay.py` prüft die SHA-256-Pr�
 
 **Quelle (öffentlich, CC BY 4.0):** https://huggingface.co/datasets/loopholetape/pumpfun-launches , Konfiguration `features`, Source-Revision `9b9a04e7e3e85775d614d16105daad2e69ce8544`.
 
-**GitHub-Actions-Evidenz der 36 Tage:** https://github.com/127027/Sniperbot-/actions/runs/43938789538 ; dort werden echte Quelleinträge, 36 verifizierte Tage und eine Ergebnisdatei mit Stundenframes ausgewiesen. Der historische Sicherheits-Whitelist-Patch wurde anschließend ergänzt; für den endgültigen Input-Artefaktstand den aktuellsten erfolgreichen Testlauf der Workflow-Datei `.github/workflows/r29-real-minute-36day.yml` verwenden.
+**GitHub-Actions-Evidenz der 36 Tage mit endgültig verschärfter Whitelist:** https://github.com/127027/Sniperbot-/actions/runs/43939827509 ; vollständiges Download-Artefakt https://github.com/127027/Sniperbot-/actions/runs/43939827509/artifacts/14260833554 . Alle 36 SHA- und Zeilenzählungen sowie die fünf Leakage-Regressionstests bestanden. Das vom Provider später nachgebesserte Feld `flag_curve_drained` wurde ebenfalls aus dem historischen Input ausgeschlossen.
 
 ## Warum dies noch kein echter 60-Tage-Handelstest ist
 
