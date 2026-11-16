@@ -31,6 +31,15 @@ jobs:
         run: node --test research/replay-120d-real/real-replay.test.mjs
       - name: Analyze authentic historical CEX prices chronologically with TRAIN-only frozen policy
         run: node research/replay-120d-real/real-replay.mjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install read-only Parquet reader for externally recorded Solana launches
+        run: python -m pip install --disable-pip-version-check --quiet pyarrow==18.1.0
+      - name: Verify no future launch identities or outcome labels can enter historical frames
+        run: python -m unittest discover -s research/replay-120d-real -p 'test_neutral_launch_pilot.py' -v
+      - name: Fetch six pinned actual historical Solana launch days, no traded tokens invented
+        run: python research/replay-120d-real/neutral-launch-pilot.py
       - name: Archive authentic provider responses and SHA-backed audit output (no secrets)
         uses: actions/upload-artifact@v4
         with:
