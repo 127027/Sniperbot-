@@ -28,6 +28,17 @@ class TestPosthoc(unittest.TestCase):
         self.assertTrue(a["observed_later_75pct_price_rise"])
         self.assertEqual(a["hypothetical_pnl_test_usdc"],None)
         self.assertFalse(a["hypothetical_executable_fill_verified"])
+    def test_sqlite_failed_zero_is_successful_and_one_is_rejected(self):
+        good=swap("2026-10-15T00:59:00Z",100)
+        good["failed"]=0
+        bad=swap("2026-10-15T01:20:00Z",200)
+        bad["failed"]=1
+        later=swap("2026-10-15T01:30:00Z",250)
+        later["failed"]=0
+        a=mod.audit_review(D,[good,bad,later],"2026-10-15T02:00:00Z")
+        self.assertEqual(a["observed_peak_price_multiple"],2.5)
+        self.assertEqual(a["future_same_pool_quote_trade_count"],1)
+
     def test_missing_pre_decision_price_means_unknown_not_winner(self):
         a=mod.audit_review(D,[swap("2026-10-15T01:20:00Z",100)],
                            "2026-10-16T00:00:00Z")
