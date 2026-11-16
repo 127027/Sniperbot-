@@ -93,6 +93,18 @@ jobs:
         run: node --check runner/gpt-paper-security-research.mjs
       - name: R29 real disposable localhost GPT JSON acceptance, auth, replay, restart, NO_TRADE and no wallet
         run: node runner/gpt-paper-local-http-e2e.mjs
+      - name: R29 120d time-sealed historical coverage and synthetic GitHub/Paper BUY-HOLD-SELL replay
+        run: node --test research/replay-120d/replay.test.mjs
+      - name: R29 120d full daily report – genuine data gaps vs synthetic-only mechanical signals
+        run: node research/replay-120d/run.mjs
+      - name: Archive R29 120d daily 60+60 report, isolated from live channel
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-120d-historical-audit-and-synthetic-mechanics
+          path: research/replay-120d/generated/
+          if-no-files-found: error
+          retention-days: 30
       - name: R29 GPT-only authenticated GitHub -> signed local paper BUY SELL, replay, no-cost and privacy checks
         run: node --test runner/gpt-paper-bridge.test.mjs runner/gpt-paper-github-relay.test.mjs
       - name: R29 GPT-only decision, owner-attributed courier, local risk and dashboard syntax
