@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {berlinClock,chooseAdaptiveFrequency,dailyPlan,scanDue}
+import {berlinClock,chooseAdaptiveFrequency,dailyPlan,scanDue,reconsiderDailyPlan}
  from "./adaptive-daily-cadence.mjs";
 import {priceMovementAudit,immutableLessonProposal}
  from "./decision-outcome-learning.mjs";
@@ -123,4 +123,130 @@ test("future observations and wrong quote/pool are excluded from posthoc evidenc
   ],evaluation_at_utc:"2026-10-15T01:30:00Z"});
  assert.equal(result.same_market_later_executed_swaps,0);
  assert.equal(result.observed_missed_price_movement,null);
+});
+
+const HOUR_MS=3600000;
+const H64=x=>x.repeat(64);
+test("4 scans chosen in morning escalate to 24 after the SECOND evidence-backed scan on the SAME day",()=>{
+ const first=reconsiderDailyPlan({asof_utc:morning,
+  verified_activity:condition(10,morning),
+  evidence_sha256:H64("a"),position_sha256:H64("0")});
+ assert.equal(first.current_frequency,4);
+ assert.equal(first.revision.revision_direction,"INITIAL_BASELINE");
+ assert.equal(first.scan.due,true);
+ const second="2026-11-17T13:32:00Z"; // local 14:32, second of four
+ const firstReview=[actualReview(morning,H64("a"),H64("0"))];
+ const escalated=reconsiderDailyPlan({asof_utc:second,
+  verified_activity:condition(80,second),previous_plan:first.plan,
+  prior_full_reviews:firstReview,
+  evidence_sha256:H64("b"),position_sha256:H64("0")});
+ assert.equal(escalated.previous_frequency,4);
+ assert.equal(escalated.current_frequency,24);
+ assert.equal(escalated.revision.revision_direction,"ESCALATION");
+ assert.equal(escalated.revision.completed_full_reviews_so_far,1);
+ assert.equal(escalated.scan.due,true);
+ assert.equal(first.plan.full_gpt_reviews_per_operating_day,4,
+  "original morning plan must remain immutable");
+ // After the second full scan, cadence is hourly for the rest of today,
+ // but only if NEW verified data arrives.
+ const third="2026-11-17T14:32:00Z";
+ const thirdRun=reconsiderDailyPlan({asof_utc:third,
+  previous_plan:escalated.plan,
+  verified_activity:condition(80,third),
+  prior_full_reviews:[...firstReview,actualReview(second,H64("b"),H64("0"))],
+  evidence_sha256:H64("c"),position_sha256:H64("0")});
+ assert.equal(thirdRun.current_frequency,24);
+ assert.equal(thirdRun.revision,null);
+ assert.equal(thirdRun.scan.due,true);
+ assert.equal(thirdRun.scan.count_so_far,2);
+});
+test("daily baseline 1 can be upgraded to 24 HOURS BEFORE any originally planned extra scan",()=>{
+ const start=reconsiderDailyPlan({asof_utc:morning,
+  evidence_sha256:H64("a"),position_sha256:H64("0")});
+ assert.equal(start.current_frequency,1);
+ const t="2026-11-17T10:32:00Z";
+ const up=reconsiderDailyPlan({asof_utc:t,previous_plan:start.plan,
+  verified_activity:condition(80,t),
+  prior_full_reviews:[actualReview(morning,H64("a"),H64("0"))],
+  evidence_sha256:H64("b"),position_sha256:H64("0")});
+ assert.equal(up.current_frequency,24);
+ assert.equal(up.scan.due,true);
+ assert.equal(up.revision.revision_direction,"ESCALATION");
+ const bogus=reconsiderDailyPlan({asof_utc:t,previous_plan:start.plan,
+  verified_activity:condition(80,"2026-11-17T20:32:00Z"),
+  prior_full_reviews:[actualReview(morning,H64("a"),H64("0"))],
+  evidence_sha256:H64("b"),position_sha256:H64("0")});
+ assert.equal(bogus.current_frequency,1);
+ assert.equal(bogus.scan.due,false);
+ assert.equal(bogus.revision,null);
+});
+test("dynamic 24 -> 1 downgrade can re-escalate later; no prior calls are erased",()=>{
+ const high=reconsiderDailyPlan({asof_utc:morning,
+  verified_activity:condition(80,morning),
+  evidence_sha256:H64("a"),position_sha256:H64("0")});
+ assert.equal(high.current_frequency,24);
+ const past=Array.from({length:4},(_,i)=>actualReview(
+  new Date(Date.parse(morning)+i*HOUR_MS).toISOString(),H64("a"),H64("0")));
+ const lowAt="2026-11-17T11:32:00Z";
+ const lower=reconsiderDailyPlan({asof_utc:lowAt,previous_plan:high.plan,
+  prior_full_reviews:past,evidence_sha256:H64("b"),position_sha256:H64("0")});
+ assert.equal(lower.current_frequency,1);
+ assert.equal(lower.revision.revision_direction,"DEESCALATION");
+ assert.equal(lower.revision.completed_full_reviews_so_far,4);
+ assert.equal(lower.scan.due,false);
+ assert.equal(lower.scan.reason,"MIN_ONE_HOUR_BETWEEN_GPT_REVIEWS");
+ const upswingAt="2026-11-17T12:32:00Z";
+ const again=reconsiderDailyPlan({asof_utc:upswingAt,
+  previous_plan:lower.plan,prior_full_reviews:past,
+  verified_activity:condition(80,upswingAt),
+  evidence_sha256:H64("c"),position_sha256:H64("0")});
+ assert.equal(again.current_frequency,24);
+ assert.equal(again.revision.revision_direction,"ESCALATION");
+ assert.equal(again.scan.due,true);
+ assert.equal(again.scan.count_so_far,4);
+});
+test("never manufacture a GPT full scan less than one hour after a previous actual full review",()=>{
+ const plan=dailyPlan({asof_utc:morning,verified_activity:condition(80)});
+ const prior=[actualReview(morning,H64("a"),H64("0"))];
+ const premature=reconsiderDailyPlan({asof_utc:"2026-11-17T08:15:00Z",
+  previous_plan:plan,verified_activity:condition(80,"2026-11-17T08:15:00Z"),
+  prior_full_reviews:prior,evidence_sha256:H64("b"),
+  position_sha256:H64("0")});
+ assert.equal(premature.scan.due,false);
+ assert.equal(premature.scan.reason,"MIN_ONE_HOUR_BETWEEN_GPT_REVIEWS");
+});
+test("24 actually completed GPT reviews form a hard cap even with new signals and emergency risk",()=>{
+ const done=Array.from({length:24},(_,i)=>
+  actualReview(new Date(Date.parse(morning)+i*HOUR_MS).toISOString(),
+   H64("a"),H64("0")));
+ const last="2026-11-18T06:52:00Z"; // same operating day, after 24th
+ const v=reconsiderDailyPlan({asof_utc:last,prior_full_reviews:done,
+  previous_plan:dailyPlan({asof_utc:morning,verified_activity:condition(80)}),
+  open_position_count:1,urgent_position_risk:true,
+  evidence_sha256:H64("b"),position_sha256:H64("1")});
+ assert.equal(v.current_frequency,24);
+ assert.equal(v.scan.due,false);
+ assert.equal(v.scan.reason,"FULL_REVIEW_CAP_24");
+});
+test("urgent open position may require another GPT review after one hour even without updated hash",()=>{
+ const initial=reconsiderDailyPlan({asof_utc:morning,
+  evidence_sha256:H64("a"),position_sha256:H64("0")});
+ const at="2026-11-17T08:32:00Z";
+ const step=reconsiderDailyPlan({asof_utc:at,previous_plan:initial.plan,
+  open_position_count:1,urgent_position_risk:true,
+  evidence_sha256:H64("a"),position_sha256:H64("0"),
+  prior_full_reviews:[actualReview(morning,H64("a"),H64("0"))]});
+ assert.equal(step.current_frequency,24);
+ assert.equal(step.scan.due,true);
+ assert.equal(step.scan.reason,"ONGOING_URGENT_PAPER_POSITION_RISK");
+});
+test("no future plan revision can be passed back into prior historical replay frames",()=>{
+ const late=reconsiderDailyPlan({asof_utc:"2026-11-17T18:32:00Z",
+  evidence_sha256:H64("a")});
+ assert.throws(()=>reconsiderDailyPlan({
+  asof_utc:morning,previous_plan:late.plan,evidence_sha256:H64("b")
+ }),/FUTURE_PREVIOUS_PLAN/);
+ assert.throws(()=>reconsiderDailyPlan({
+  asof_utc:morning,evidence_sha256:"not-a-real-sha"
+ }),/SOURCE_SHA256_INVALID/);
 });
