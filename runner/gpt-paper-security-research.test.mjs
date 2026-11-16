@@ -35,6 +35,31 @@ test('only same pool, independently cross-checked and unpromoted EVM candidates 
  },{now:at}).length,0);
  assert.equal(selectSecurityResearchCandidates(modelReview,market,{now:at+600001}).length,0);
 });
+test('a fresh cross-provider EVM pool absent from the hourly sample remains independently researchable',()=>{
+ const poolNew='0x'+'c'.repeat(40),tokenNew='0x'+'d'.repeat(40);
+ const newer={...market,candidates:[
+  {...market.candidates[0],candidate_id:'base:'+tokenNew+':'+poolNew,
+   token_address:tokenNew,pool_address:poolNew,
+   liquidity_usd:80000,volume_m5_usd:12000}]};
+ const picks=selectSecurityResearchCandidates(modelReview,newer,{now:at});
+ assert.equal(picks.length,1);
+ assert.equal(picks[0].pool_address,poolNew);
+ assert.equal(picks[0].source,'FRESH_CROSS_PROVIDER_LOCAL_MARKET');
+ // Corresponding independent provider result must match the actual pair,
+ // not just the outdated hourly sample or a same-symbol pool.
+ const gate=assessEvmSecurityRaw({chain:'base',token:tokenNew,pool:poolNew,now:at,
+  goplus:null,honeypot:null});
+ const report=publicSecurityResearchReport({review:modelReview,market:newer,
+  findings:[{...picks[0],gate}],now:at});
+ assert.equal(report.candidates.length,1);
+ assert.equal(report.candidates[0].also_listed_in_hourly_review,false);
+ assert.equal(report.candidates[0].source_scope,'FRESH_CROSS_PROVIDER_LOCAL_MARKET');
+ assert.equal(report.market_snapshot_observed_at_utc,iso);
+ assert.equal(report.candidates[0].full_gpt_buy_gate_passed,false);
+ assert.equal(report.authorizes_paper_orders,false);
+ assert.throws(()=>publicSecurityResearchReport({review:modelReview,market:newer,
+  findings:[{...picks[0],gate:{...gate,pool_address:pool}}],now:at}),/INVALID/);
+});
 test('security reports whitelist only public facts; unknown stays non-buy',()=>{
  const report=publicSecurityResearchReport({review:modelReview,
   findings:[{chain:'base',token_address:token,pool_address:pool,gate:facts()}],now:at});
@@ -111,7 +136,7 @@ test('local research security -> GitHub only new review hashes, hourly hard cap'
   assert.equal(securityCalls,1);
   assert.equal(githubPuts,1);
   const second=await syncGptPaperSecurityResearch(opts);
-  assert.equal(second.status,'UNCHANGED_REVIEW_HASH');
+  assert.equal(second.status,'RATE_LIMIT_1_HOUR');
   assert.equal(securityCalls,1);
   // A distinct review within same hour must be deferred (no external API spam).
   const changedDigest='f'.repeat(64);
