@@ -27,7 +27,7 @@ class MinuteFeaturesTests(unittest.TestCase):
   earlier=self.row(epoch+10,"A"*40)
   later=self.row(epoch+3605,"B"*40)
   table=pa.Table.from_pylist([earlier,later])
-  report=mod.day_frames("2026-10-15",table,[*mod.SAFE,"rugged","rug_dt_s","graduated","outcome_status","labels_as_of"])
+  report=mod.day_frames("2026-10-15",table,[*mod.SAFE,"rugged","rug_dt_s","graduated","outcome_status","labels_as_of","flag_curve_drained"])
   self.assertEqual(report["future_outcome_known_to_replay"],False)
   self.assertEqual(len(report["frames"]),24)
   self.assertEqual(len(report["frames"][0]["first_eight_neutral_distinct_mints"]),1)
