@@ -305,6 +305,26 @@ def full_one_day(tmp, launches, manifest):
       "coins":findings
     }
     dump(REPORT,output)
+    frames_public=[{
+       "coin_mint":c["mint"],
+       "launched_at_utc":c["launch_at_utc"],
+       "selection_rule":c["selection_rule"],
+       "decision_virtual_asof_utc":c["timestamp_sealed_asof_hourly_analyses"][0]["review_at_utc"],
+       "visible_event_summary_asof_only":c["timestamp_sealed_asof_hourly_analyses"][0],
+       "research_only":True,
+       "no_historical_model_call_made":True
+    } for c in findings[:6]]
+    dump(DEST/"real-2026-10-15-asof-decision-frames.json",{
+      "schema":"sniper_r29_real_full_day_scouter_asof_frame_only.v1",
+      "historic_utc_day":DAY,
+      "data_source":"ARCHIVED_REAL_LEDGER_EVENTS_3RD_PARTY",
+      "source_released_later_than_event_day":True,
+      "frames":frames_public,
+      "does_not_contain_subsequent_trades":True,
+      "no_independent_historic_contract_or_executable_quote":True
+    })
+    for frame in frames_public:
+        print("REAL_FULLDAY_SEALED_FRAME",json.dumps(frame),flush=True)
     print("REAL_FULLDAY_RESULT",json.dumps({
       "all_actual_day_swaps":counters["all_rows"],
       "actual_failed":counters["failed"],
