@@ -1,0 +1,37 @@
+name: R29 Real 2026 Solana DEX Trade Sample Research (No Orders)
+on:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - 'research/replay-120d-real/trade-sample-probe.mjs'
+      - 'research/replay-120d-real/trade-sample-probe.test.mjs'
+      - '.github/workflows/r29-real-dex-sample.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  free-real-onchain-sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_RESEARCH_READ: '0'
+      SNIPER_RESEARCH_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Strict event-time and source-isolation offline checks
+        run: node --test research/replay-120d-real/trade-sample-probe.test.mjs
+      - name: Read real public 15 October 2026 historical Solana DEX sample only
+        run: node research/replay-120d-real/trade-sample-probe.mjs
+      - name: Archive exact public evidence, timestamps, source hash, no buys
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-real-free-solana-swap-sample-20261015
+          path: research/replay-120d-real/generated/real-2026-10-15-trade-sample-proof.json
+          if-no-files-found: error
+          retention-days: 30
