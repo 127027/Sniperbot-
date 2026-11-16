@@ -60,6 +60,19 @@ test('failed on-chain transaction may have null executed values but is never cou
  assert.equal(review.successful_events,0);
  assert.equal(review.buy_events_observed,0);
 });
+test('successful historical trade with non-SOL quote token remains valid but has no fabricated SOL or USDC price',()=>{
+ const row=event('2026-10-15T00:00:00Z','sell',false);
+ row.sol_lamports=null;
+ row.quote_mint='33jENUQnjoitkMFpvNJcSHyLAHFWJuHwT6E3E8CNpump';
+ row.quote_amount=92744223642;
+ const r=sanitizeTradeRow(row);
+ assert.equal(r.failed,false);
+ assert.equal(r.quote_is_wrapped_SOL,false);
+ assert.equal(r.sol_lamports,null);
+ assert.equal(r.quote_amount_raw,92744223642);
+ assert.equal(r.approximate_sol_per_raw_token,null);
+ assert.equal(r.historically_executable_again,false);
+});
 test('free real source probe explicitly returns no fake fills and retains source checksum',async()=>{
  const first=event('2026-10-15T00:00:00Z','buy',false);
  const second=event('2026-10-15T00:01:00Z','sell',true);
