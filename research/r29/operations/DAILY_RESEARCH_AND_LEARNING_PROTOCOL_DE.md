@@ -4,7 +4,7 @@
 
 ## 1. Tageszyklus · Europe/Berlin
 
-Der Betriebstag beginnt um **08:00 Ortszeit**. Die einzige bestehende stündliche ChatGPT-Automation prüft ungefähr zur Minute **:32** (also morgens 08:32) und entscheidet jeden Tag neu. Bei Sommer-/Winterzeit gilt die Ortszeit. Der lokale Bot kann laufend Paper-Daten sammeln; nur ein tatsächlich aufgerufenes GPT-Modell zählt als GPT-Analyse.
+Der Betriebstag beginnt um **08:00 Ortszeit**. Die einzige bestehende stündliche ChatGPT-Automation prüft ungefähr zur Minute **:32** (also morgens 08:32) und entscheidet **bei JEDEM stündlichen Check erneut**, ob der nächste vollständige GPT-Scan fällig ist. Die Morgenentscheidung (1, 4, 12 oder 24 Analysen) ist **nur eine vorläufige Planung und niemals für den ganzen Tag festgeschrieben**. Bei Sommer-/Winterzeit gilt die Ortszeit; tatsächliche Stundenabstände und die Grenze von maximal 24 Vollanalysen werden in UTC geprüft. Der lokale Bot kann laufend Paper-Daten sammeln; nur ein tatsächlich durchgeführter vollständiger GPT-Research-Durchlauf zählt als GPT-Vollanalyse.
 
 | Stufe | Tagesfrequenz | Mögliche lokale Uhrzeiten der Vollanalyse | Bedingung |
 |---|---:|---|---|
@@ -13,9 +13,13 @@ Der Betriebstag beginnt um **08:00 Ortszeit**. Die einzige bestehende stündlich
 | Intensive Aktivität / offene Position | 12 | 08:32, 10:32, …, 06:32 | Mehrere unabhängige Signale, oder bestätigte GPT-Paper-Position |
 | Akutes Positionsrisiko / sehr hohe Aktivität | 24 | Jede Stunde ab 08:32 | Unabhängig bestätigte erhöhte Aktivität / dringende Positionsrisiken |
 
-Diese Schwellen sind vorläufige **Betriebsheuristiken**, keine bewiesene Profitoptimierung. Die ausführbare Testfunktion liegt in `research/r29/operations/adaptive-daily-cadence.mjs`, geprüft auf UTC/DST und 1/4/12/24. Bei DST-Verkürzung oder Systemausfällen keine fehlenden Modellaufrufe erfinden. Nachträgliche Planänderungen mit Uhrzeit und Quellen protokollieren.
+Die Uhrzeiten in der Tabelle sind **nur Beispiele bei unveränderter Marktlage**, keine festgelegten Scan-Termine. **Beispiel:** 08:32 Uhr: 4 pro Tag. 14:32 Uhr: zweiter GPT-Scan entdeckt unabhängigen, belegten Anstieg der Pool-/Wallet-/Volumenaktivität → sofort **4 → 24**. Die nächste volle Analyse kann bei neuen Daten um 15:32 erfolgen, statt bis 20:32 zu warten. Ebenso **1 → 24** noch am selben Tag oder **24 → 4 → 1**, falls sich die Lage beruhigt. Bei erneuter Aktivität jederzeit wieder erhöhen. Bereits ausgeführte GPT-Scans bleiben gezählt; keine nachträgliche Neubewertung als zusätzliche Scans.
 
-**Wichtig:** Die stündliche Wake-up-Prüfung bleibt billig; eine neue volle GPT-Marktanalyse erfolgt nur, wenn fällig und neue Markt-/Positions-Evidenz vorliegt. Morgens muss sie mindestens einmal laufen (bei verpasstem Check zeitnah nachholen). Keine 24 künstlichen Analysen mit identischem Quellenhash. Keine News- oder Onchain-Quelle, deren Publikationszeit nach dem virtuellen Entscheidungstermin liegt.
+Bei **jedem stündlichen Wecklauf** die beobachteten Daten und offenen Positionen erneut prüfen, `reconsiderDailyPlan()` aus `research/r29/operations/adaptive-daily-cadence.mjs` berechnen, mit letztem Plan vergleichen und **nur bei Änderung** eine neue unveränderliche Revision unter `research/r29/operations/plans/YYYY-MM-DD/` speichern. Diese enthält Uhrzeit, alte/neue Stufe, Grund, Quellen-/Positions-SHA und Anzahl tatsächlich abgeschlossener Vollanalysen. Die Funktion ist **Planungscode**, nicht der fertige laufende Scheduler; die vorhandene Automation muss den Plan bei jedem Wecklauf auch praktisch anwenden.
+
+Die vorgeschlagenen Schwellen sind vorläufige **Betriebsheuristiken**, keine bewiesene Profitoptimierung. Mindestens eine Stunde zwischen **tatsächlich abgeschlossenen** GPT-Vollanalysen, höchstens 24 je Betriebstag. Eine akute Position wird zusätzlich von einem unabhängig vom GPT laufenden lokalen Notstopp überwacht; **nie** auf die nächste GPT-Stunde warten, um Sicherheitsmaßnahmen auszulösen. Keine Vollanalysen erfinden, wenn Netzwerk, Quellen, Automationszugriff oder Windows-Bot ausfallen.
+
+**Wichtig:** Die stündliche Wake-up-Prüfung bleibt billig, bewertet aber die Tagesstufe jedes Mal neu; eine weitere volle GPT-Marktanalyse erfolgt nur, wenn nach dem **aktuellen, gerade neu berechneten** Zeitabstand fällig und neue Markt-/Positions-Evidenz vorliegt (bei dringender offener Position auch für Sicherheits-Review). Morgens muss sie mindestens einmal laufen (bei verpasstem Check zeitnah nachholen). Keine 24 künstlichen Analysen mit identischem Quellenhash. Keine News- oder Onchain-Quelle, deren Publikationszeit nach dem virtuellen Entscheidungstermin liegt.
 
 ## 2. Jede Analyse: Entscheidung und vollständiger Positionskreislauf
 
