@@ -88,7 +88,7 @@ jobs:
       - name: R29 adaptive module syntax, collector and courier wiring
         run: node --check runner/dynamic-research-scheduler.mjs && node --check runner/dynamic-research-outcomes.mjs && node --check runner/r29-adaptive-publisher.mjs && node --check runner/research-market-daemon.mjs && node --check runner/r29-windows-courier.mjs
       - name: R29 free Solana websocket offline mock + archived evidence + no metered subscriptions
-        run: node --test runner/solana-live-stream.test.mjs
+        run: node --test runner/solana-live-stream.test.mjs runner/solana-dot-bridge.test.mjs
       - name: R29 check free stream, Dot bridge, Windows supervisor syntax
         run: node --check runner/solana-live-stream.mjs && node --check runner/solana-live-events.mjs && node --check runner/research-market-daemon.mjs && node --check runner/research-market-publisher.mjs
       - name: R29 chronological event-driven review leads and strict neutral GPT as-of input (no trades)
