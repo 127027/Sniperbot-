@@ -5,11 +5,49 @@
   "authorizes_paper_orders": false,
   "live_trading_enabled": false,
   "wallet_or_account_data_included": false,
-  "review_sha256": "56d0b92d1b0dc6f1e265c4ae35e34531d3df9ea703b8d47c810873f8a809f2a0",
-  "review_observed_at_utc": "2026-11-17T12:09:58.539Z",
-  "checked_at_utc": "2026-11-17T12:10:29.375Z",
-  "candidate_check_count": 0,
-  "status": "DATA_GAP_NO_MATCHING_FRESH_EVM_CANDIDATE",
-  "candidates": [],
+  "review_sha256": "aa5bae00fa24cf35c094be12cbad0ba5e2da058f058be4ec470ec367cd764f96",
+  "review_observed_at_utc": "2026-11-17T13:10:50.616Z",
+  "checked_at_utc": "2026-11-17T13:11:25.793Z",
+  "candidate_check_count": 1,
+  "status": "PARTIAL_SECURITY_RESEARCH_ONLY",
+  "candidates": [
+    {
+      "candidate_id": "base:0x7b830e1b9af3f903dd84cd8dc2d99b71aab9b418:0xeb2ef8617aadffd49a95c189c146843f33956bba",
+      "chain": "base",
+      "token_address": "0x7b830e1b9af3f903dd84cd8dc2d99b71aab9b418",
+      "pool_address": "0xeb2ef8617aadffd49a95c189c146843f33956bba",
+      "checked_at_utc": "2026-11-17T13:11:25.793Z",
+      "independent_provider_names": [
+        "GoPlus",
+        "Honeypot.is"
+      ],
+      "goplus_evaluated": true,
+      "honeypot_simulation_ok": true,
+      "contract_authorities_ok": false,
+      "token_and_pool_matched": false,
+      "basic_contract_and_sell_simulation_pass": false,
+      "risk_codes": [
+        "GOPLUS_MISSING_IS_PROXY",
+        "GOPLUS_MISSING_IS_MINTABLE",
+        "GOPLUS_MISSING_HIDDEN_OWNER",
+        "GOPLUS_MISSING_CAN_TAKE_BACK_OWNERSHIP",
+        "GOPLUS_MISSING_OWNER_CHANGE_BALANCE",
+        "GOPLUS_MISSING_TRANSFER_PAUSABLE",
+        "GOPLUS_MISSING_IS_BLACKLISTED",
+        "GOPLUS_MISSING_IS_WHITELISTED",
+        "GOPLUS_MISSING_IS_HONEYPOT",
+        "GOPLUS_MISSING_CANNOT_SELL_ALL",
+        "GOPLUS_MISSING_SLIPPAGE_MODIFIABLE",
+        "GOPLUS_RISK_NOT_OPEN_SOURCE",
+        "HONEYPOT_POOL_UNVERIFIED"
+      ],
+      "source_goplus": "https://api.gopluslabs.io/api/v1/token_security",
+      "source_honeypot": "https://api.honeypot.is/v2/IsHoneypot",
+      "independent_wallet_adoption_verified": false,
+      "independent_liquidity_redeemability_verified": false,
+      "cost_and_slippage_executable_verified": false,
+      "full_gpt_buy_gate_passed": false
+    }
+  ],
   "note": "Contract + honeypot indicators ONLY. No independent wallet adoption, LP redemption, executable quotes or complete GPT buy approval."
 }
