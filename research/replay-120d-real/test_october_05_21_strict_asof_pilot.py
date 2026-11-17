@@ -102,6 +102,22 @@ class IsolatedOctoberAudit(unittest.TestCase):
    with self.assertRaises(ValueError):mod.replay(self.source,self.matrix)
    self.save("2026-10-12",fixture_day(date(2026,10,12)))
 
+ def test_future_day_mutations_do_not_change_earlier_scan_choices_or_evidence(self):
+  before=mod.replay(self.source,self.matrix)
+  future=self.load("2026-10-21")
+  for f in future["frames"]:
+   f["neutral_fresh_mints_within_5min"]=850000
+   f["last_eight_fresh_neutral_mints"][0]["asof_features"]["f_n_buys"]=250000
+  self.save("2026-10-21",future)
+  after=mod.replay(self.source,self.matrix)
+  self.assertEqual(before["day_by_day"][:9],after["day_by_day"][:9])
+  # The last day's decision frequency also derives from 20 October, not the
+  # retrospectively modified 21 October market itself.
+  self.assertEqual(before["day_by_day"][9]["initial_daily_frequency_policy_from_prior_asof_only"],
+                   after["day_by_day"][9]["initial_daily_frequency_policy_from_prior_asof_only"])
+  self.assertEqual(after["actual_historical_GPT_model_strategy_calls"],0)
+  self.assertIsNone(after["realized_pnl_test_usdc"])
+
  def test_missing_day_and_gpt_fake_source_cannot_be_reported_as_complete(self):
   (self.source/"2026-10-16.json").unlink()
   with self.assertRaisesRegex(ValueError,"MISSING_OR_INVALID_DAY"):
