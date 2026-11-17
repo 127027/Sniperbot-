@@ -1,0 +1,33 @@
+name: R29 V2 sole GPT watch posthoc historical source audit
+on:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-v2-single-watch-posthoc.yml'
+      - 'research/replay-120d-real/posthoc-single-fresh-v2-watch.py'
+      - 'research/replay-120d-real/reviews/2026-11-17-v2-single-fresh-gpt-review-before-outcomes.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-pinned-evaluation-after-gpt-freeze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned read-only parquet package
+        run: python -m pip install --quiet --disable-pip-version-check pyarrow==18.1.0
+      - name: Enforce posthoc-label tests, including no price or fill invention
+        run: python -m unittest discover -s research/replay-120d-real -p 'test_posthoc_nine_watch_label_audit.py' -v
+      - name: Audit actual provider source for previously frozen sole GPT V2 WATCH
+        run: python research/replay-120d-real/posthoc-single-fresh-v2-watch.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r29-v2-single-watch-later-provider-label-not-trade
+          path: research/replay-120d-real/generated/r29-v2-fresh5-single-watch-posthoc-outcome.json
+          if-no-files-found: error
+          retention-days: 30
