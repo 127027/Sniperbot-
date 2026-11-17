@@ -57,6 +57,15 @@ export function buildNeutralHistoricalModelInput(input){
     'PROVIDER_EVENT_TIME_INCONSISTENT');
   if(x.quote_confirmed_at_utc!==undefined&&x.quote_confirmed_at_utc!==null)
    when(x.quote_confirmed_at_utc,asof,'FUTURE_PRICE_QUOTE');
+  for(const key of ['source_recorded_trade_price_quote','source_recorded_token_amount',
+   'source_recorded_quote_amount','source_recorded_token_reserve','source_recorded_quote_reserve']){
+   const n=x[key];
+   if(n!==null&&n!==undefined)requireValid(typeof n==='number'&&
+    Number.isFinite(n)&&n>=0,'UNTRUSTED_RECORDED_QUOTE_VALUE');
+  }
+  if(x.source_recorded_trade_price_quote!==null&&
+     x.source_recorded_trade_price_quote!==undefined)
+   requireValid(str(x.quote_asset),'RECORD_QUOTE_ASSET_NOT_PROVEN');
   if(x.transaction_finality!==undefined)
    requireValid(['confirmed','unverified'].includes(x.transaction_finality),'INVALID_TX_FINALITY');
   return cp(x);
@@ -149,7 +158,8 @@ export function validateDetachedGptReview(original,decision,{
   requireValid(original.payload.open_positions.some(p=>
    p.position_id===decision.position_id),'GPT_MUST_MANAGE_ACTUALLY_OPEN_POSITION');
  }
- return {status:'GPT_AUTHORED_RETROSPECTIVE_RESEARCH_NOT_EXECUTION',
+ return {status:'HISTORICAL_DECISION_ENVELOPE_VALID_NOT_INDEPENDENT_MODEL_ORIGIN_PROOF',
+  model_origin_independently_attested:false,
   actual_model_called_at_utc:model_called_at_utc,
   virtual_asof_utc:original.payload.virtual_asof_utc,
   prompt_source_sha256:original.payload_sha256,
