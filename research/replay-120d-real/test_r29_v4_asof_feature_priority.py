@@ -100,6 +100,12 @@ class ResearchQueue(unittest.TestCase):
    "SELECT count(*) FROM research_reactivations WHERE mint=?",(mint,)).fetchone()[0],1)
   self.assertEqual(m.capture.candidate_asof(self.conn,mint,self.start+51*3600),
    "MONITORING_SOURCE_ONLY")
+  # After a future reactivation has already been processed, a historical
+  # 49-hour query must still see the expired candidate (no hindsight).
+  self.assertEqual(m.capture.candidate_asof(self.conn,mint,self.start+49*3600),
+   "EXPIRED_SOURCE_ONLY")
+  self.assertEqual(self.conn.execute(
+   "SELECT count(*) FROM research_retention_events WHERE mint=?",(mint,)).fetchone()[0],1)
 
  def test_late_risky_mint_is_not_reactivated_after_expiry(self):
   self.add_mints(1)
