@@ -42,6 +42,11 @@ def after(scan_at,launched_at,dt_s):
   return None
  return launched_at+timedelta(seconds=value)>scan_at
 
+def event_time(launched,delta_s):
+ v=safe_float(delta_s)
+ if v is None or v<0:return None
+ return (launched+timedelta(seconds=v)).isoformat().replace("+00:00","Z")
+
 def assess_outcome(review,row):
  """Return posthoc separate outcome; never assign PnL or claim tradability."""
  if row.get("mint")!=review["mint"]:
@@ -70,6 +75,12 @@ def assess_outcome(review,row):
   "later_provider_rugged_rule_label":rug,
   "graduation_or_pool_sighting_after_virtual_scan":migrated,
   "rug_rule_event_after_virtual_scan":rugged_later,
+  "provider_rug_rule_event_at_utc_posthoc_only":event_time(launched,row.get("rug_dt_s")),
+  "provider_pool_sighting_at_utc_posthoc_only":event_time(launched,row.get("migrate_dt_s")),
+  "provider_rug_rule_time_relative_to_scan_seconds":(
+    round((utc(event_time(launched,row.get("rug_dt_s")))-asof).total_seconds(),3)
+    if event_time(launched,row.get("rug_dt_s")) is not None else None
+  ),
   "rug_branch_posthoc":row.get("rug_branch_inferred"),
   "peak_curve_real_sol_reserve_not_price":safe_float(row.get("peak_rs")),
   "peak_reserve_measurement_unreliable":bool(
