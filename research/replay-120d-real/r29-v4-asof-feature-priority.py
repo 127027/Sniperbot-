@@ -76,6 +76,10 @@ def init_priority(conn):
   "mint TEXT NOT NULL, observed_t REAL NOT NULL, prior_expires REAL NOT NULL,"
   "new_expires REAL NOT NULL, reason TEXT NOT NULL, "
   "PRIMARY KEY(mint,observed_t))")
+ conn.execute("CREATE TABLE IF NOT EXISTS research_retention_events ("
+  "mint TEXT NOT NULL, observed_t REAL NOT NULL, prior_expires REAL NOT NULL,"
+  "new_expires REAL NOT NULL, reason TEXT NOT NULL, "
+  "PRIMARY KEY(mint,observed_t))")
  conn.commit()
 
 def apply_rows_until(conn,ordered,pos,cutoff,launch_times=None,feature_cache=None,eligible_cache=None,expiry_cache=None):
@@ -115,6 +119,9 @@ def apply_rows_until(conn,ordered,pos,cutoff,launch_times=None,feature_cache=Non
     conn.execute("UPDATE launches SET expires=? WHERE chain='solana' AND mint=?",
      (new_expires,mint))
     if expiry_cache is not None:expiry_cache[mint]=new_expires
+    conn.execute("INSERT OR IGNORE INTO research_retention_events VALUES(?,?,?,?,?)",
+     (mint,t,old_expires,new_expires,
+      "ASOF_NEW_OBSERVED_BUY_DELTA_MIN_5"))
     if t>=old_expires:
      conn.execute("INSERT OR IGNORE INTO research_reactivations VALUES(?,?,?,?,?)",
       (mint,t,old_expires,new_expires,
