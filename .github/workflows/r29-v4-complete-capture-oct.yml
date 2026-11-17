@@ -47,7 +47,7 @@ jobs:
       - name: Check ten independent 7+10-day slots against real source dates without imaginary trading
         run: |
           python -m unittest discover -s research/replay-120d-real -p 'test_r29_v4_test_window_planner.py' -v
-          python research/replay-120d-real/r29-v4-test-window-planner.py             --output research/replay-120d-real/generated/v4-ten-test-source-readiness.json
+          python research/replay-120d-real/r29-v4-test-window-planner.py             --output research/replay-120d-real/generated/v4-oct-full-48h/TEN_TRIAL_READINESS.json
       - name: Prove real as-of feature queue can paginate all candidates and no future hour leaks
         run: python -m unittest discover -s research/replay-120d-real -p 'test_r29_v4_asof_feature_priority.py' -v
       - name: Process every recorded source mint October 05–21 into persistent SQLite and full compressed neutral events
@@ -57,13 +57,13 @@ jobs:
             --output-dir research/replay-120d-real/generated/v4-oct-full-48h
       - name: Join genuine October as-of minute features to complete 48h ledger and produce unbiased hourly research pages
         run: |
-          python research/replay-120d-real/r29-v4-asof-feature-priority.py             --source-dir research/replay-120d-real/generated/v4-oct-full-48h             --from-date 2026-10-05 --to-date 2026-10-21             --output research/replay-120d-real/generated/v4-oct-hourly-research-queue.json
+          python research/replay-120d-real/r29-v4-asof-feature-priority.py             --source-dir research/replay-120d-real/generated/v4-oct-full-48h             --from-date 2026-10-05 --to-date 2026-10-21             --output research/replay-120d-real/generated/v4-oct-full-48h/ASOF_HOURLY_RESEARCH_QUEUE.json
       - name: Verify no fake historic GPT decisions or prices
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-          p=Path('research/replay-120d-real/generated/v4-oct-hourly-research-queue.json')
+          p=Path('research/replay-120d-real/generated/v4-oct-full-48h/ASOF_HOURLY_RESEARCH_QUEUE.json')
           q=json.loads(p.read_text())
           assert q['source_days']==17 and q['total_technical_hourly_frames']==408
           assert q['total_minute_feature_rows']==2296466
@@ -95,8 +95,8 @@ jobs:
           name: r29-v4-october-all-launches-prefundamental-48h-neutral
           path: |
             research/replay-120d-real/generated/v4-oct-full-48h/SUMMARY.json
-            research/replay-120d-real/generated/v4-ten-test-source-readiness.json
-            research/replay-120d-real/generated/v4-oct-hourly-research-queue.json
+            research/replay-120d-real/generated/v4-oct-full-48h/TEN_TRIAL_READINESS.json
+            research/replay-120d-real/generated/v4-oct-full-48h/ASOF_HOURLY_RESEARCH_QUEUE.json
             research/replay-120d-real/generated/v4-oct-full-48h/ORIGINAL_SOURCE_SUMMARY.sha256
             research/replay-120d-real/generated/v4-oct-full-48h/all-launches/*.jsonl.gz
           if-no-files-found: error
