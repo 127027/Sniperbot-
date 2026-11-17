@@ -52,6 +52,8 @@ test('public GitHub metadata never contains cash, max investment or private offe
  const json=JSON.stringify(publicPart);
  assert.equal(publicPart.numeric_account_balance_published,false);
  assert.equal(publicPart.numeric_private_capacity_published,false);
+ assert.equal(publicPart.private_offer_hash_published,false);
+ assert.equal(Object.hasOwn(publicPart,'offer_sha256'),false);
  assert.equal(publicPart.paper_order_created,false);
  for(const forbidden of ['4999','max_stake_test_usdc','available_paper_cash_test_usdc',
   'min_stake_test_usdc','portfolioBudgetUsdc','cashUsdc'])
