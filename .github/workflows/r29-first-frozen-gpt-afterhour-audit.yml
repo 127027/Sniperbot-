@@ -1,0 +1,54 @@
+name: R29 first frozen GPT asof historical same-pool after-hour audit
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-first-frozen-gpt-afterhour-audit.yml'
+      - 'research/replay-120d-real/audit-frozen-first5-gpt-future-hour*'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit-after-precommitted-review-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prove GPT WATCH decision is immutable and prices are not personal fills
+        run: node --test research/replay-120d-real/audit-frozen-first5-gpt-future-hour.test.mjs
+      - name: Restore frozen original 00:05 source frame, never afterhour labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/r29-frozen-original
+          gh run download 44064517959 --repo 127027/Sniperbot- --name r29-neutral-first-five-minutes-sealed-asof-gpt-source-not-actual-trades --dir /tmp/r29-frozen-original
+          test -f /tmp/r29-frozen-original/2026-09-18T000500Z-mint-pool-candidates.json
+      - name: Only AFTER frozen GPT decision, independently stream the ENTIRE historical hour
+        run: |
+          node research/replay-120d-real/audit-frozen-first5-gpt-future-hour.mjs /tmp/r29-frozen-original/2026-09-18T000500Z-mint-pool-candidates.json R29_FIRST_GPT_OUTCOME_AUDIT/2026-09-18-first5-frozen-watch-later-hour-outcomes.json
+      - name: Assert fixed original decisions and unknown executable USDC PnL
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          const r=JSON.parse(readFileSync('R29_FIRST_GPT_OUTCOME_AUDIT/2026-09-18-first5-frozen-watch-later-hour-outcomes.json','utf8'));
+          assert.equal(r.outcomes.length,3);
+          assert.equal(r.all_initial_actions_preserved,true);
+          assert.equal(r.USDC_to_SOL_fx_quote_verified,false);
+          assert.equal(r.5000_test_usdc_verifiable_final_equity,null);
+          assert.equal(r.confirmed_own_paper_buys,0);
+          assert.equal(r.confirmed_own_paper_sells,0);
+          console.log('R29_FIRST_FROZEN_WATCH_OUTCOME_EVIDENCE',r.source_events_total);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-frozen-first5-GPT-watch-later-hour-price-marks-not-fills
+          path: R29_FIRST_GPT_OUTCOME_AUDIT/
+          if-no-files-found: warn
+          retention-days: 30
