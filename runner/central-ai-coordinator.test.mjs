@@ -237,3 +237,23 @@ test('fake HTTP Responses endpoint can test the data path but never inflate real
   assert.equal(svc.status().provider_requests_utc.length,1);
  }finally{svc.stop();rmSync(dir,{recursive:true,force:true})}
 });
+
+test('previously invisible low-liquidity unknown memecoin reaches GPT WATCH, never unsafe BUY',()=>{
+ const tiny=market().results[0];
+ const early={...tiny,liquidityUsd:1500,volume5mUsd:15,buys5m:1,
+  sells5m:0,score:0};
+ const input=snapshotForAi(ledger(),[early],news(),{now:Date.now(),marketRegime:regime});
+ assert.equal(input.candidates.length,0);
+ assert.equal(input.research_candidates.length,1);
+ assert.equal(input.research_candidates[0].can_buy,false);
+ assert.equal(nextR29RealModelDelayMs(input),4*3600000);
+ const modelReason='Early unproven organic buy activity; reserve too small for a safe trading order.';
+ const choice=action=>({summary:'Still unknown pre-breakout potential, not trading authority',
+  choices:[{candidate_id:ID,action,score_0_100:99,
+    portfolio_pct:3,reason:modelReason,source_urls:['https://news.example/test']}]});
+ const watch=planRecommendations(input,choice('WATCH'),{webSearchUsed:true});
+ assert.equal(watch.reviews.length,1);
+ assert.equal(watch.orders.length,0);
+ const unsafe=planRecommendations(input,choice('BUY'),{webSearchUsed:true});
+ assert.equal(unsafe.orders.length,0);
+});
