@@ -13,8 +13,6 @@ const burstTypes=new Map([['DEX_BUY','BUY_TRANSACTION_BURST'],
  ['DEX_SELL','SELL_TRANSACTION_BURST']]);
 const t=x=>typeof x==='string'&&x.endsWith('Z')?Date.parse(x):NaN;
 const identity=e=>[e.chain,e.token_address,e.pool_address||'UNKNOWN_POOL'].join(':');
-const trusted=e=>e?.transaction_finality==='confirmed'?'CONFIRMED_EVENT_ONLY':
- 'UNVERIFIED_EVENT_FINALITY';
 const gap=e=>e.pool_address===null?
  ['POOL_IDENTITY','EXECUTABLE_BUY_AND_SELL_QUOTES','WALLET_CLUSTERING']:
  ['EXECUTABLE_BUY_AND_SELL_QUOTES','WALLET_CLUSTERING','CONTRACT_SECURITY'];
@@ -67,13 +65,15 @@ export function compileAsOfEventReviewTriggers(events,{
   const at=e.provider_captured_at_utc;
   if(types.has(e.event_type))
    detected.push(alert(types.get(e.event_type),[e],at,virtual_asof_utc));
-  if(!burstTypes.has(e.event_type)||!e.pool_address)continue;
+  if(!burstTypes.has(e.event_type)||!e.pool_address||
+   typeof e.transaction_signature!=='string'||
+   !/^[a-zA-Z0-9]{64,100}$/.test(e.transaction_signature))continue;
   const group=identity(e)+':'+e.event_type;
   const cutoff=t(at)-60000;
   // Distinct transaction hashes are not distinct persons or wallets.
   const prior=(windows.get(group)||[]).filter(x=>t(x.provider_captured_at_utc)>=cutoff);
-  const tx=e.transaction_signature||e.event_id;
-  if(!prior.some(x=>(x.transaction_signature||x.event_id)===tx))
+  const tx=e.transaction_signature;
+  if(!prior.some(x=>x.transaction_signature===tx))
    prior.push(e);
   windows.set(group,prior.slice(-burstSize));
   if(prior.length>=burstSize&&
