@@ -1,0 +1,54 @@
+name: R29 second frozen GPT 01-20 later hour real swap audit
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-second-frozen-0120-hour-outcomes.yml'
+      - 'research/replay-120d-real/audit-frozen-next0120-gpt-future-hour*'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  after-the-frozen-gpt-source-decision:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify later price-marks not equal own trade profits
+        run: node --test research/replay-120d-real/audit-frozen-next0120-gpt-future-hour.test.mjs
+      - name: Restore precisely the neutral 01-20 asof source frame only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/r29-0120
+          gh run download 44066121844 --repo 127027/Sniperbot- --name r29-historic-second-0120-source-frame-after-first-lesson-no-trades --dir /tmp/r29-0120
+          test -f /tmp/r29-0120/2026-09-18T012000Z-mint-pool-candidates.json
+      - name: After previous frozen GPT 01-20 review, independently inspect actual later same-pool swap marks
+        run: |
+          node research/replay-120d-real/audit-frozen-next0120-gpt-future-hour.mjs /tmp/r29-0120/2026-09-18T012000Z-mint-pool-candidates.json R29_SECOND_AFTERHOUR/2026-09-18-second-0120-frozen-later-hour-marks.json
+      - name: Check original GPT source and future results are strictly separated, 0 fills
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          const r=JSON.parse(readFileSync('R29_SECOND_AFTERHOUR/2026-09-18-second-0120-frozen-later-hour-marks.json','utf8'));
+          assert.equal(r.outcomes.length,6);
+          assert.equal(r.all_initial_actions_preserved,true);
+          assert.equal(r.confirmed_own_paper_buys,0);
+          assert.equal(r.confirmed_own_paper_sells,0);
+          assert.equal(r.final_equity_test_usdc,null);
+          assert.equal(r.USDC_to_SOL_fx_quote_verified,false);
+          console.log('R29_SECOND_FROZEN_OUTCOME_VERIFIED',r.source_events_total);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-second-frozen-0120-later-real-swap-marks-no-personal-trades
+          path: R29_SECOND_AFTERHOUR/
+          if-no-files-found: warn
+          retention-days: 30
