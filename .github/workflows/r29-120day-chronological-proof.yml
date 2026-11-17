@@ -1,0 +1,51 @@
+name: R29 120-day sequential GPT walkforward readiness
+on:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-120day-chronological-proof.yml'
+      - 'research/replay-120d-real/chronological-120d-controller*'
+      - 'runner/gpt-paper-capacity-report*'
+      - 'research/replay-120d-real/results/REAL_60_DAY_EVIDENCE_MATRIX_43D_2026-11-16.csv'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  chronological-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test strict 60 learning days and 60 blind days, hourly escalation, and private budget
+        run: |
+          node --test research/replay-120d-real/chronological-120d-controller.test.mjs
+          node --test runner/gpt-paper-capacity-report.test.mjs
+      - name: Generate evidence-readiness ledger for all 120 days, never invent PnL
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          import {build120dSourceLedger} from './research/replay-120d-real/chronological-120d-controller.mjs';
+          const csv=readFileSync('research/replay-120d-real/results/REAL_60_DAY_EVIDENCE_MATRIX_43D_2026-11-16.csv','utf8');
+          const a=build120dSourceLedger(csv);
+          assert.equal(a.days.length,120);
+          assert.equal(a.train_days,60);
+          assert.equal(a.test_days,60);
+          assert.equal(a.test_days_with_retrospective_minute_frames,43);
+          assert.equal(a.actual_gpt_decision_walkforward_complete,false);
+          assert.equal(a.actual_gpt_buy_hold_sell_pnl_test_usdc,null);
+          mkdirSync('R29_120DAY_WALKFORWARD_READINESS',{recursive:true});
+          writeFileSync('R29_120DAY_WALKFORWARD_READINESS/120d-coverage.json',JSON.stringify(a,null,2)+'\n');
+          const columns=['day_utc','index_from_oldest','remaining_days_before_today','phase','launch_event_available','memecoin_minute_frames','dex_costed_quotes','gpt_decisions','trading_pnl'];
+          writeFileSync('R29_120DAY_WALKFORWARD_READINESS/120d-coverage.csv',
+           columns.join(',')+'\n'+a.days.map(x=>columns.map(k=>x[k]).join(',')).join('\n')+'\n');
+          console.log('R29_120D_EVIDENCE_ONLY',a.train_days,a.test_days,a.test_days_with_retrospective_minute_frames);
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r29-120day-training-holdout-readiness-no-faked-decisions
+          path: R29_120DAY_WALKFORWARD_READINESS/
