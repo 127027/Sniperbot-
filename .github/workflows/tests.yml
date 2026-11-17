@@ -93,6 +93,10 @@ jobs:
         run: node --test runner/gpt-paper-size-negotiation.test.mjs
       - name: R29 GPT stake and posthoc reference module syntax
         run: node --check runner/gpt-paper-size-negotiation.mjs && node --check research/r29/gpt-strategy/references/validate-reference-dataset.mjs && node --check research/replay-120d-real/blind-neutral-market-gpt-input.mjs
+      - name: R29 early pool/migration GPT research hints cannot create trade orders
+        run: node --test runner/early-event-research.test.mjs runner/dynamic-research-scheduler.test.mjs runner/r29-adaptive-review.test.mjs
+      - name: R29 early research source and public bridge syntax
+        run: node --check runner/early-event-research.mjs && node --check runner/dynamic-research-scheduler.mjs && node --check runner/r29-adaptive-publisher.mjs
       - name: R29 free Solana websocket offline mock + archived evidence + no metered subscriptions
         run: node --test runner/solana-live-stream.test.mjs runner/solana-dot-bridge.test.mjs
       - name: R29 check free stream, Dot bridge, Windows supervisor syntax
