@@ -1,0 +1,36 @@
+name: R29 independent directory listing historical day proof
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-second-archive-day-dir-format.yml'
+permissions:
+  contents: read
+jobs:
+  check-public-historic-hour-directory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test neutral July and September date directory listings
+        run: |
+          node --input-type=module <<'JS'
+          for(const d of ['2026/07/20','2026/09/18']){
+            const u='https://replay.pumpapi.io/'+d+'/';
+            try{
+              const response=await fetch(u,{signal:AbortSignal.timeout(12000),redirect:'follow'});
+              const text=(await response.text()).slice(0,10000);
+              const hours=[...new Set([...text.matchAll(/(?:^|[^0-9])([01][0-9]|2[0-3])\.jsonl\.zst/g)].map(x=>x[1]))].sort();
+              console.log('R29_NEUTRAL_ARCHIVE_DIRECTORY',JSON.stringify({
+                day:d,status:response.status,content_type:response.headers.get('content-type'),
+                html_length_sample:text.length,
+                names_seen:hours.length,hours,html_excerpt:text.slice(0,180)
+              }));
+            }catch(e){console.log('R29_NEUTRAL_DIRECTORY_ERROR',d,String(e.message||e))}
+          }
+          JS
