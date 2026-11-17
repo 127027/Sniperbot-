@@ -1,0 +1,29 @@
+name: R29 neutral historical Reddit archive original capture audit
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-neutral-reddit-asof-pilot.yml'
+      - 'research/replay-120d-real/reddit-neutral-historical-asof-pilot*'
+permissions:
+  contents: read
+jobs:
+  archived-social-provenance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test social capture timing, later score suppression, and neutral no-winner queries
+        run: node --test research/replay-120d-real/reddit-neutral-historical-asof-pilot.test.mjs
+      - name: Probe public archived social metadata, neutral communities, NO historical GPT orders
+        run: node research/replay-120d-real/reddit-neutral-historical-asof-pilot.mjs R29_SOCIAL_PROVENANCE/2026-09-18-one-day-audit.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r29-2026-09-18-neutral-reddit-capture-metadata-not-model-signals
+          path: R29_SOCIAL_PROVENANCE/
+          if-no-files-found: error
