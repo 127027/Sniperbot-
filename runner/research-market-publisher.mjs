@@ -7,7 +7,7 @@ const BRANCH='codex/research-gateway-v04';
 const FILE='research/market/latest.json';
 const GITHUB_FILE_URL='https://api.github.com/repos/'+REPO+'/contents/'+FILE;
 
-function assertResearch(s){
+export function assertResearch(s){
   if(!s||s.schema!=='research_market_snapshot.v1'||s.paper_only!==true||
      s.actionable!==false||!Array.isArray(s.candidates)||s.candidates.length>96)throw Error('Unsafe market research snapshot');
   if(s.research_alerts!==undefined){
