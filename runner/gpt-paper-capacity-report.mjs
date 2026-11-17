@@ -6,8 +6,7 @@ const cents=x=>Math.floor((x+1e-8)*100)/100;
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
 const MIN=50,MAX=5000;
 export const PRIVATE_SCHEMA='sniper_r29_private_gpt_paper_capacity.v1';
-export function computePrivateGptCapacity(state,{observed_at_utc,technical_max_stake_test_usdc=5000,
- forex_conversion_verified=false}={}){
+export function computePrivateGptCapacity(state,{observed_at_utc,technical_max_stake_test_usdc=5000}={}){
  const base={schema:PRIVATE_SCHEMA,mode:'PAPER_ONLY',real_trading_enabled:false,
   observed_at_utc,minimum_approved_buy_test_usdc:MIN,
   maximum_approved_buy_test_usdc:0,can_buy:false,
@@ -18,8 +17,8 @@ export function computePrivateGptCapacity(state,{observed_at_utc,technical_max_s
   return {...base,reason:'FRESH_UTC_CAPACITY_SNAPSHOT_REQUIRED'};
  if(!state||state.realTradingEnabled===true||state.real_trading_enabled===true)
   return {...base,reason:'REAL_TRADING_CONTEXT_NOT_ALLOWED'};
- if(finite(state.cashEur)&&state.cashEur>0&&!forex_conversion_verified)
-  return {...base,reason:'EUR_TO_USDC_CONVERSION_NOT_PROVEN'};
+ if(finite(state.cashEur)&&state.cashEur>0)
+  return {...base,reason:'EUR_MUST_BE_CONVERTED_AND_VERIFIED_IN_USDC_BALANCE_FIRST'};
  if(!finite(technical_max_stake_test_usdc)||technical_max_stake_test_usdc<0||
   technical_max_stake_test_usdc>5000)
   return {...base,reason:'TECHNICAL_RISK_LIMIT_INVALID'};
