@@ -1,0 +1,163 @@
+name: R29 V4 Complete 48h Neutral Oct Capture and Postfreeze Contract Regression
+# V4.1: retest the exact current PR merge-resolution head; no reduced evidence limits.
+on:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-v4-complete-capture-oct.yml'
+      - 'research/replay-120d-real/r29-v4-complete-48h-source.py'
+      - 'research/replay-120d-real/test_r29_v4_complete_48h_source.py'
+      - 'research/replay-120d-real/r29-v4-oct-posthoc-regression.py'
+      - 'research/replay-120d-real/r29-v4-test-window-planner.py'
+      - 'research/replay-120d-real/test_r29_v4_test_window_planner.py'
+      - 'research/replay-120d-real/r29-v4-asof-feature-priority.py'
+      - 'research/replay-120d-real/test_r29_v4_asof_feature_priority.py'
+      - 'research/replay-120d-real/r29-v4-holdout-evidence-gate.py'
+      - 'research/replay-120d-real/test_r29_v4_holdout_evidence_gate.py'
+      - 'research/r29/operations/R29_V4_1_PRE_REGISTERED_HOLDOUT_SUCCESS_POLICY.json'
+  pull_request:
+    paths:
+      - '.github/workflows/r29-v4-complete-capture-oct.yml'
+      - 'research/replay-120d-real/r29-v4-complete-48h-source.py'
+      - 'research/replay-120d-real/test_r29_v4_complete_48h_source.py'
+      - 'research/replay-120d-real/r29-v4-oct-posthoc-regression.py'
+      - 'research/replay-120d-real/r29-v4-test-window-planner.py'
+      - 'research/replay-120d-real/test_r29_v4_test_window_planner.py'
+      - 'research/replay-120d-real/r29-v4-asof-feature-priority.py'
+      - 'research/replay-120d-real/test_r29_v4_asof_feature_priority.py'
+      - 'research/replay-120d-real/r29-v4-holdout-evidence-gate.py'
+      - 'research/replay-120d-real/test_r29_v4_holdout_evidence_gate.py'
+      - 'research/r29/operations/R29_V4_1_PRE_REGISTERED_HOLDOUT_SUCCESS_POLICY.json'
+  workflow_dispatch:
+# Run the heavy 17-day replay only once per PR head, not in parallel for both
+# push and pull_request; allow a new commit to supersede stale expensive jobs.
+concurrency:
+  group: r29-v4-oct-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+  actions: read
+jobs:
+  unbiased-complete-source-ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PAPER_ONLY: '1'
+      SNIPER_REAL_TRADING_ENABLED: '0'
+      SNIPER_RESEARCH_FEED: '0'
+      SNIPER_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Read-only pinned historical Parquet
+        run: python -m pip install --quiet --disable-pip-version-check pyarrow==18.1.0
+      - name: Technical source no-eight limit, 48h overnight and no future-label tests
+        run: python -m unittest discover -s research/replay-120d-real -p 'test_r29_v4_complete_48h_source.py' -v
+      - name: Check ten independent 7+10-day slots against real source dates without imaginary trading
+        run: |
+          python -m unittest discover -s research/replay-120d-real -p 'test_r29_v4_test_window_planner.py' -v
+          python research/replay-120d-real/r29-v4-test-window-planner.py             --output research/replay-120d-real/generated/v4-oct-full-48h/TEN_TRIAL_READINESS.json
+      - name: Prove real as-of feature queue can paginate all candidates and no future hour leaks
+        run: python -m unittest discover -s research/replay-120d-real -p 'test_r29_v4_asof_feature_priority.py' -v
+      - name: Fail closed on missing actual GPT provider evidence, historic quotes, or Holdout metrics
+        run: python -m unittest discover -s research/replay-120d-real -p 'test_r29_v4_holdout_evidence_gate.py' -v
+      - name: Process every recorded source mint October 05–21 into persistent SQLite and full compressed neutral events
+        run: |
+          python research/replay-120d-real/r29-v4-complete-48h-source.py \
+            --from-date 2026-10-05 --to-date 2026-10-21 \
+            --output-dir research/replay-120d-real/generated/v4-oct-full-48h
+      - name: Join genuine October as-of minute features to complete 48h ledger and produce unbiased hourly research pages
+        run: |
+          python research/replay-120d-real/r29-v4-asof-feature-priority.py             --source-dir research/replay-120d-real/generated/v4-oct-full-48h             --from-date 2026-10-05 --to-date 2026-10-21             --output research/replay-120d-real/generated/v4-oct-full-48h/ASOF_HOURLY_RESEARCH_QUEUE.json
+      - name: Verify no fake historic GPT decisions or prices
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('research/replay-120d-real/generated/v4-oct-full-48h/ASOF_HOURLY_RESEARCH_QUEUE.json')
+          q=json.loads(p.read_text())
+          assert q['source_days']==17 and q['total_technical_hourly_frames']==408
+          assert q['total_minute_feature_rows']==2296466
+          assert q['gpt_model_calls']==0 and q['historical_PnL_TEST_USDC'] is None
+          assert q['technical_priority_only_no_strategy'] is True
+          assert q['fast_in_memory_asof_priority_index_used'] is True
+          assert q['SQL_full_universe_JOIN_query_per_hour'] is False
+          assert q['reactivation_events_verified_asof'] >= 0
+          print('V4_ALL_NEUTRAL_ASOF_FEATURES',q['total_minute_feature_rows'],
+           'linked',q['source_feature_rows_joined_to_all_neutral_launches'])
+          PY
+      - name: Freeze actual neutral original-source evidence before posthoc comparison
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('research/replay-120d-real/generated/v4-oct-full-48h')
+          v=json.loads((p/'SUMMARY.json').read_text())
+          assert v['all_source_days_count']==17
+          assert v['total_original_records']==821849
+          assert v['total_distinct_new_contracts']+v['total_same_identity_duplicates']==v['total_valid_records']
+          assert v['retention_seconds']==172800
+          assert v['actual_gpt_model_calls']==0 and v['paper_buy_fills']==0 and v['paper_sell_fills']==0
+          assert v['realized_pnl_test_usdc'] is None
+          assert len(list((p/'all-launches').glob('*.jsonl.gz')))==17
+          print('R29_V4_FROZEN_FULL_NEUTRAL_48H',v['total_valid_records'],'of',v['total_original_records'])
+          PY
+          cd research/replay-120d-real/generated/v4-oct-full-48h
+          sha256sum SUMMARY.json > ORIGINAL_SOURCE_SUMMARY.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r29-v4-october-all-launches-prefundamental-48h-neutral
+          path: |
+            research/replay-120d-real/generated/v4-oct-full-48h/SUMMARY.json
+            research/replay-120d-real/generated/v4-oct-full-48h/TEN_TRIAL_READINESS.json
+            research/replay-120d-real/generated/v4-oct-full-48h/ASOF_HOURLY_RESEARCH_QUEUE.json
+            research/replay-120d-real/generated/v4-oct-full-48h/ORIGINAL_SOURCE_SUMMARY.sha256
+            research/replay-120d-real/generated/v4-oct-full-48h/all-launches/*.jsonl.gz
+          if-no-files-found: error
+          retention-days: 30
+  known-contract-postfreeze-regression:
+    needs: unbiased-complete-source-ingest
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PAPER_ONLY: '1'
+      SNIPER_REAL_TRADING_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@v4
+        with:
+          name: r29-v4-october-all-launches-prefundamental-48h-neutral
+          path: research/replay-120d-real/generated/v4-oct-full-48h
+      - name: Only after neutral original stream sealed, verify SHA and check known benchmark mint membership
+        run: |
+          cd research/replay-120d-real/generated/v4-oct-full-48h
+          sha256sum --check ORIGINAL_SOURCE_SUMMARY.sha256
+          cd ../../../..
+          python research/replay-120d-real/r29-v4-oct-posthoc-regression.py \
+            --source-dir research/replay-120d-real/generated/v4-oct-full-48h \
+            --output research/replay-120d-real/generated/v4-oct-posthoc-regression.json
+      - name: Do not confuse full-source capture with early GPT selection or fills
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research/replay-120d-real/generated/v4-oct-posthoc-regression.json').read_text())
+          assert x['all_groups_with_a_recorded_contract']==4
+          assert sum(v['retained_in_neutral_all_market_stream'] for v in x['cases'].values())==6
+          assert x['new_capture_of_full_source_contracts_not_GPT_selection'] is True
+          assert x['actual_historical_GPT_model_calls']==0
+          assert x['paper_order_fills']==0 and x['historical_pnl_test_usdc'] is None
+          print('R29_V4_4_OF_4_REFERENCE_GROUPS_NEUTRALLY_CAPTURED_NOT_STRATEGIC_GPT_WINS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r29-v4-oct-postfreeze-reference-recall-no-model-trades
+          path: research/replay-120d-real/generated/v4-oct-posthoc-regression.json
+          if-no-files-found: error
+          retention-days: 30
