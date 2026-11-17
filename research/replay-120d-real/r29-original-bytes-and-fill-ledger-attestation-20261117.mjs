@@ -2,7 +2,7 @@
 import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 const hash=x=>createHash('sha256').update(x).digest('hex');
-const utc=x=>typeof x==='string'&&/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$/.test(x)&&Number.isFinite(Date.parse(x));
+const utc=x=>typeof x==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/.test(x)&&Number.isFinite(Date.parse(x));
 const assert=(ok,reason)=>{if(!ok)throw Error(reason)};
 export function attestOriginalBytes({rawBytes,expectedSha256,sourceCapturedAtUtc,virtualAsofUtc,independentCaptureEvidence}){
  assert(Buffer.isBuffer(rawBytes)||rawBytes instanceof Uint8Array,'ORIGINAL_BYTES_REQUIRED');
