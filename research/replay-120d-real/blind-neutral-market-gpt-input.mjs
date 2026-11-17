@@ -7,7 +7,9 @@ export const GATE_SCHEMA='r29_no_winner_shortlist_historical_market_gate.v1';
 const hex=/^[a-f0-9]{64}$/i,actions=new Set(['BUY','HOLD','SELL','WATCH','NO_TRADE']);
 const eventTypes=new Set(['TOKEN_CREATE','DEX_BUY','DEX_SELL','POOL_CREATE','POOL_LIQUIDITY','DEX_SWAP','MIGRATION','CONTRACT_AUTHORITY']);
 const domains=new Set(['social','news','community','onchain_social']);
-const keys={event:new Set(['event_id','event_type','event_at_utc','provider_captured_at_utc','chain','token_address','pool_address','venue','source_sha256','source_id','quote_asset','buy_count_60s','sell_count_60s','unique_buyers_60s','liquidity_usd','indicative_price_usd','quote_confirmed_at_utc','transaction_signature','transaction_finality','data_quality']),
+const keys={event:new Set(['event_id','event_type','event_at_utc','provider_captured_at_utc','chain','token_address','pool_address','venue','source_sha256','source_id','quote_asset','buy_count_60s','sell_count_60s','unique_buyers_60s','liquidity_usd','indicative_price_usd','quote_confirmed_at_utc','transaction_signature','transaction_finality','data_quality',
+ 'source_recorded_trade_price_quote','source_recorded_token_amount',
+ 'source_recorded_quote_amount','source_recorded_token_reserve','source_recorded_quote_reserve']),
  media:new Set(['item_id','channel','source_id','source_sha256','url','published_at_utc','archived_at_utc','observed_at_utc','edited_at_utc','title','body_excerpt','token_address','chain','pool_address','metrics_observed_at_utc','engagement_metrics','source_archival_method']),
  lesson:new Set(['lesson_id','original_decision_id','learned_at_utc','observation_at_utc','source_sha256','category','lesson_de','application_not_before_utc']),
  position:new Set(['position_id','chain','token_address','pool_address','opened_at_utc','opened_fill_id','tokens_owned','cost_basis_test_usdc','last_verified_quote_at_utc','last_verified_quote_test_usdc','asof_context_at_utc'])
