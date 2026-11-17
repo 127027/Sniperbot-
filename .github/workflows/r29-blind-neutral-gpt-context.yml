@@ -1,0 +1,24 @@
+name: R29 clean GPT historical web/onchain as-of input contract
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-blind-neutral-gpt-context.yml'
+      - 'research/replay-120d-real/blind-neutral-market-gpt-input*'
+permissions:
+  contents: read
+jobs:
+  no-hindsight-model-context:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test all historical market, media, memory and position data must be available as-of UTC
+        run: node --test research/replay-120d-real/blind-neutral-market-gpt-input.test.mjs
+      - name: Syntax check and confirm no autonomous trading or payment code
+        run: node --check research/replay-120d-real/blind-neutral-market-gpt-input.mjs
