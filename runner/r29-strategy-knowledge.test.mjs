@@ -52,7 +52,7 @@ test('duplicate ID or single-heldout fake success blocks knowledge load',()=>{
  withDoc([good('r29_rule_duplicate'),good('r29_rule_duplicate')],file=>{
   assert.throws(()=>loadValidatedR29Knowledge({filename:file,asof:tm}),/NOT_SAFE_FOR_MODEL/);
  });
- withDoc([{...good('r29_rule_onlyone'),independent_holdout_ids:['holdout_1']}],file=>{
+ withDoc([{...good('r29_rule_only_one'),independent_holdout_ids:['holdout_1']}],file=>{
   assert.equal(loadValidatedR29Knowledge({filename:file,asof:tm}).rules.length,0);
  });
 });
