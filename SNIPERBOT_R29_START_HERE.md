@@ -131,3 +131,18 @@ Read `research/replay-120d-real/REPORT_NEUESTE_60_TAGE_GPT_POLICY_PROXY_20261117
 
 Die bestehende stündliche R29-Automation bleibt **BACKTEST-ONLY** und wurde mit dieser chronologischen 60+60-Regel aktualisiert; sie darf ohne wiederholtes GO die nächsten Forschungsdaten validieren und Erfahrungen archivieren. Echtgeld inkl. künftig gewünschtem PayPal-Onramp **weiter gesperrt**, erst nach gesonderter Nutzerfreigabe und zahlungs-/wallettechnischen Sicherheitsprüfungen.
 
+## Neuer historischer 60-Tage-Erkennungstest mit gegengeprüften Falschsiganlen (17.11.2026)
+
+**Neue verbindliche Dokumente:**
+- Alle 60 Tage, mit countdown Tag60→Tag1 und tagesgenauer V1-/V2-Scanfrequenz: `research/replay-120d-real/results/R29_60D_V1_V2_FRESH5_INSAMPLE_DAY_BY_DAY_20261117.csv`.
+- Maschinenlesbare gesicherte V1-/V2-Posthoc-Prüfung: `research/replay-120d-real/results/R29_60D_V1_V2_OUTCOME_AUDIT_20261117.json`.
+- **Erinnerungs-/Lernakte:** `research/r29/gpt-strategy/experiences/2026-11-17/60d-v1-v2-fehler-rug-nach-133-sekunden-v3-lernregeln.md`.
+
+V1 alter Erkennungsproxy aus **frühesten acht Mints der VORstunde**: 43/60 Daten-Tage, **513** dynamische Forschungs-Proxy-Scans und **9 WATCH-Fälle**. Von neun nachträglich GPT-geprüften Forschungskandidaten wurden **8/9** im SHA-geprüften Launcharchiv gefunden, **1/9** war Identitätslücke; drei der acht wurden später mit einem Provider-Rug-Regellabel **VOR dem stündlichen Scan** markiert, **0/8** als Graduierung. V1 Modelscore 99,05 konnte also einen in der Quelle bereits als Rug eingeordneten Kandidaten hoch bewerten.
+
+V2 **nach Blick auf V1-Fehler** konstruiert: frische letzte fünf Minuten/Tokenalter bei Scan ≤300 s, kein Mayhem-/Agentenmodus, bekannte SOL-Quote. Rekonstruktion derselben 43 Historientage vollständig erneut auf GitHub bestanden, **8.248** frische neutrale Kandidaten-Beobachtungen an **1.032** Stundenendpunkten. V2 gibt bei denselben **513** Proxy-Scans nur **1 WATCH**. Dazu wurde am 17.11. explizit vor späterem Labelabruf eine GPT-Nachbewertung für Mint `3cpr9EaPmQSf7daf37d7xNRZwbpL3LZRtARkYE3cp6jw` bei virtuellem Check **03.10.2026, 03:00 UTC** eingefroren. Die unabhängige spätere SHA-geprüfte Quelle meldet **DRAIN 133,423 Sekunden später**, keine Graduation. Auch der V2-Score 98,15 war somit ein Risiko-*WATCH* und **KEIN Kaufsignal**; tatsächlich gekauft wurde **nicht**. V2 ist **in-sample** und kein Beweis für bessere realisierte Erträge!
+
+Erfolgreiche GitHub-Tests: V1 https://github.com/127027/Sniperbot-/actions/runs/44040656066 ; V1-Posthoc https://github.com/127027/Sniperbot-/actions/runs/44047869968 ; neue 5m-Frames https://github.com/127027/Sniperbot-/actions/runs/44048309420 ; V2 60d https://github.com/127027/Sniperbot-/actions/runs/44048643351 ; einziger V2-WATCH-Posthoc https://github.com/127027/Sniperbot-/actions/runs/44049113793 .
+
+**Keine** historische DEX-Paper-BUY/HOLD/SELL-Liquidität, Quote, Fill oder verwertbare PnL nachgewiesen. 17/60 Quellen-Tage fehlen; die Lernphase hat 42/60 Launch-Tage ohne diesen Provider. Ein Score oder f_rs (= Bonding-Curve-SOL-Reserve, **kein Preis**) ist kein realisierbarer Gewinn. Der Bot bleibt ohne Handelsentscheidungsrecht, Echtgeld und PayPal bleiben AUS. Nächste Arbeit muss neue, **zeitgerecht verfügbare** historische Ausführungs-/Sicherheitsquellen prüfen; erst anschließend GPT-BUY→HOLD→SELL chronologisch mit nachgewiesenen Gebühren/Slippage simulieren. Vergangenes V1/V2 nicht als profitable 60 Tage ausgeben.
+
