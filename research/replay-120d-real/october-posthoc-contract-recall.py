@@ -40,6 +40,7 @@ BENCHMARKS={
  }
 }
 INPUT_SHA="0c1fd1f22ad7cb9d37498b99ccc65dfcf0ee6a32f8845a3b322e754f8ed9dad1"
+INPUT_CANONICAL_SHA="a35744004c886aca385b02d48e359436a558eeba66a9a1185af413f6431f743e"
 FREEZE_SHA_COMMIT="525446cc631b10cd40c80780a9d8dfca86a11060"
 def sha(data):return hashlib.sha256(data).hexdigest()
 def normalize(value):
@@ -57,8 +58,14 @@ def pinned_matrix(file):
  return d
 def sampled_input(file):
  raw=Path(file).read_bytes()
- if sha(raw)!=INPUT_SHA:raise ValueError("BLIND_CANDIDATE_FREEZE_SOURCE_CHANGED")
  j=json.loads(raw)
+ # Python set iteration in the source recorder changed only the ordering
+ # of as-of feature object keys between two successful original Action runs.
+ # The originally SEALED bytes remain recorded, but compare normalized
+ # content across runs instead of accepting an arbitrary edited file.
+ canonical=json.dumps(j,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()
+ if sha(canonical)!=INPUT_CANONICAL_SHA:
+  raise ValueError("BLIND_CANDIDATE_FREEZE_SOURCE_CHANGED")
  if j.get("schema")!="r29_oct05_21_strict_asof_source_only_replay.v1" or \
   j.get("ten_trade_days_unique_neutral_sample_candidates")!=320 or \
   j.get("winner_names_or_retrospective_pnl_as_model_input") is not False:
