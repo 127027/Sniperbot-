@@ -1,0 +1,34 @@
+# R29 — Freigabe GO: neue neutrale Quellen und historischer GPT-Input
+**17.11.2026 | Fortlaufender 60+60-Tage-BACKTEST ONLY**. Keine Echtgeld-, PayPal-, Wallet-, Live-Paper- oder Buchungsänderungen. Diese Datei ist ein OPERATOR-AUDIT mit nachträglichen Befunden und darf NICHT als Input für einen historischen Entscheidungs-GPT verwendet werden.
+
+## 1. Unveränderter strategischer Nutzerauftrag
+GPT entscheidet selbst, welcher der neutral entdeckten Memecoins wann gekauft, gehalten, verkauft, beobachtet oder ignoriert werden soll; tägliche Scanfrequenz 1–24, frei innerhalb des Tages anpassbar. Der Bot liefert verfügbare Mittel, authentifiziert und prüft Handelbarkeit, führt ausschließlich nach autorisiertem Signal aus und speichert Ausführungsquittungen. Bei späterem Echtgeld müsste der Bot erst autorisierte Zahlungs-/Währungsumwandlungen und Gebühren verifizieren, bevor er technisch kauft. Das reale Geld ist hier explizit AUS.
+
+Der Nutzer hat aus dem Nachhinein erfolgreiche Coins erwähnt. **Keiner dieser rückblickenden Coins oder Ticker wurde zur Auswahl einer historischen Stunde, Reddit-Anfrage, Transaktion, neuen Watchlist oder GPT-Modellbewertung verwendet.** Ein kontextkontaminierter Modelllauf ist trotzdem nicht rückwirkend blind: tatsächlich isolierter Modellaufruf aus `blind-neutral-market-gpt-input.mjs` ist nötig, sonst keine unabhängige Blindtest-Behauptung.
+
+## 2. Neue echte, ohne Gewinner-Vorauswahl geprüfte öffentliche Daten
+
+| Belegart | Reproduzierbare Messung und Grenzen |
+|---|---|
+| Solana neutraler stündlicher Archivindex | 1.523 Stunden im verfügbaren Index; davon 1.433/1.440 Stunden im 60-Tage-TEST 18.09.–16.11.2026. **58/60 Tage** durchgehend 24 Stunden im Index; sieben Stunden Lücke. Im 60-Tage-LEARN-Fenster 20.07.–17.09. nur **81 Stunden** Indexdaten, drei komplette Tage. Frühester archivierter Zeitpunkt **14.09.2026 15:00 UTC**. Keine Handelsdatenmengen aus dem Index selbst ableitbar. GitHub Actions: https://github.com/127027/Sniperbot-/actions/runs/44059351263 |
+| Erste neutrale echte Streamstichprobe | Aus der ersten verfügbaren Stunde des Holdout 18.09.2026 00:00 UTC: **256** Transaktionsereignisse mit originalem `localTimestamp`; **137 BUY, 117 SELL, 2 Creator-Fees**; **241** Ereignisse mit Mintadresse. Erfassungszeiten reichen nur von 00:00:00.000 bis 00:00:00.813 UTC; das ist ein **0,813-Sekunden-Anschnitt, nicht eine komplette Stunde**. Mehrere Protokolle. GitHub Actions: https://github.com/127027/Sniperbot-/actions/runs/44059964802 |
+| Neutrale historische Social-Stichprobe | 18.09.2026 drei allgemeine Kryptocommunities, **86 Posts**, Originalarchivzeitpunkte vorhanden und sämtlich am selben Tag. 24 virtuell chronologische Stundenframes: bis 01:00 UTC 4 Posts, bis 12:00 UTC 25 Posts, bis Tagesende 86. Verifizierte Quellenversion aus `reddit-neutral-24-hour-frames.mjs` hat wegen nicht attestierter späterer Bearbeitungszeit **86 Text-Originalitätswarnungen**. Post-Likes, spätere Kommentare oder Gewinnerlisten wurden nicht zugelassen. Runs https://github.com/127027/Sniperbot-/actions/runs/44060236356 und https://github.com/127027/Sniperbot-/actions/runs/44060864100. |
+| Neutrale GPT-Input-Sperre | `blind-neutral-market-gpt-input.mjs` begrenzt Zeitpunkt von Onchain-Ereignis **und damaliger Anbieter-Erfassung**, archiviertem Social-Post **und Medien-Erfassung**, sichtbaren früheren Lessons, tatsächlich offenen Positionen. Verwirft spätere Quellen und verbietet Vorab-Gewinnerliste/Benutzerkonversation. Jedes GPT-Nachtragsprotokoll braucht Quell-/Antwort-Hash und echten heutigen Modelllaufzeitpunkt, nicht fiktive historische Modellaufrufe. |
+| Original-Event-Adapter | `shrine-neutral-archive-event-adapter.mjs` liest neutrale tatsächliche Trades/Tokenstarts aus dem Anbieterformat. Preis wird in **Originalquote-Asset** (z.B. SOL) erhalten, nicht als USD oder garantiert ausführbarer 5.000-USDC-Swap ausgegeben. Anbietertransaktion vor finaler Solana-Bestätigung bleibt unbestätigt; bei Abweichungen Reorg/Fee/Reserve separat prüfen. CI-Test https://github.com/127027/Sniperbot-/actions/runs/44061599847 mit insgesamt **13/13** Testfällen für Modell- und Event-Gates. |
+
+Diese Ergebnisse stammen aus drei neuen öffentlichen Archivrecherchen. Archivindex und kleiner Sample-Stream bedeuten NICHT, dass bereits 1.433 vollständige Stunden geladen, dedupliziert, finalisiert oder mit BUY-/SELL-Fills gehandelt wurden. Alle Anbieterpublikationszeiten, Originalaufnahmezeiten und archivierten Textrevisionen müssen im eigentlichen Replay separat weiter geprüft werden.
+
+**Quelle Archiv:** https://shrine.trade/pump/data-api/historical-replay/  
+**Quelle Eventformat/Anbieterwarnungen:** https://account.shrine.trade/pump/data-api/stream/  
+**Quelle historische Community-API:** https://github.com/ArthurHeitmann/arctic_shift/blob/master/api/README.md
+
+## 3. Aktueller harter Nachweisstand
+- Chronologisches Modell: 20.07.–17.09 lernen, 18.09.–16.11 handeln, 5.000 TEST-USDC Versuchskonto ohne Kapitalreset.
+- Die neuen Source-Pilots haben **0 echte historische GPT-Strategie-BUY-/SELL-Entscheidungen**, **0 historische persönlich bestätigte Fills**, **0 Veränderungen des Laptop-Paper-Ledgers** und **kein seriös messbares 60-Tage-GPT-PnL** erbracht. PnL **UNKNOWN**, nicht 0 oder +.
+- Die alten 513 Source-Policy-Scans bleiben **deterministische Proxys**, keine historischen GPT-Aufrufe.
+- Freier stündlicher Source-Stream ersetzt noch keine unabhängige DEX-Quote, historische Simulierbarkeit aller 50–5.000-USDC-Ordergrößen, gebührensicheren SOL-/USDC-/EUR-Umrechnungskurs oder gültigen Sellability-Nachweis.
+- Für echtes 60-Tage-Paper-Walkforward müssen erst alle relevanten archivalischen Marktstunden (großvolumige zstd-Daten), zeitlich passende Medienbelege, unabhängige Sellability/Gates und nachweisbare GPT-Entscheidungen im selben isolierten chronologischen Replay kombiniert werden. Auch nicht gekaufte Coins sind unabhängig nachzubeobachten.
+- Die eine bereits existierende stündliche R29-Automation wurde auf einen **kurzen, vollständig neutralen BACKTEST-ONLY-Prompt** umgestellt, ohne die bisherige stündliche Planung zu ändern. Ihr Aufgaben-Prompt enthält keine Namensliste rückblickender Gewinner. Das allein beweist keine Modell-Kontextisolation.
+
+## 4. Nächstes technisches Teilziel
+Vollständigen provider-internen Stundenstream nach Block-/Signature-/Pool-Identität deduplizieren, bei Reorgs nur finalisierte Kettenversionen anerkennen; quellengetreu in die neutralen GPT-Inputframes und geprüfte Media-Nachweise einlesen; für tatsächlich beauftragte BUY-/SELL-Absichten reproduzierbare bidirektionale Quotes und Kosten aus unabhängigen historischen Quellen konstruieren; jeden GPT-Modell-Call als echten *heute* ausgeführten historischen Rückblick kennzeichnen; chronologisches Orderbuch mit BUY, HOLD, SELL und NO_TRADE für die vollen 60 Tage erst danach als PnL ausgeben. Keine Modellgewinnquote ohne überprüfbare Fills.
