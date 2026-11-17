@@ -53,6 +53,19 @@ function assertResearch(s){
       }
       return e.event_type==='MARKET_ACCELERATION';
     };
+    if(s.research_alerts.some(e=>e?.event_type==='NEW_POOL_FIRST_OBSERVED'&&!goodResearchEvent(e))){
+      for(const e of s.research_alerts.filter(x=>x?.event_type==='NEW_POOL_FIRST_OBSERVED')){
+        const ts=Date.parse(e.observed_at_utc),created=Date.parse(e.pool_created_at_utc);
+        console.error('TEMP_NEW_POOL_GATE_DIAG',JSON.stringify({
+          common:{paper:e.paper_only===true,actionable:e.actionable===false,
+            probability:e.probability_pct===null,
+            action:e.recommended_action==='INDEPENDENT_FIVE_ROLE_REVIEW',
+            type:known.has(e.event_type),id:/^research-alert-[a-f0-9]{32}$/.test(e.event_id||'')},
+          unknown:Object.keys(e).filter(k=>!allowed.has(k)),sTime,ts,created,
+          age:e.provider_creation_age_at_observation_ms,valid:goodResearchEvent(e)
+        }));
+      }
+    }
     if(!Array.isArray(s.research_alerts)||s.research_alerts.length>24||
        s.research_alerts.some(e=>!goodResearchEvent(e)))
       throw Error('Unsafe public research alert payload');
