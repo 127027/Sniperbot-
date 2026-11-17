@@ -61,7 +61,7 @@ test('future events and source archive date swaps are rejected fail closed',()=>
 });
 test('training phase cannot allow BUY and cannot use holdout events',()=>{
  const f=original();
- f.schema='r29_neutral_training_asof_daily_5min_source_frame.v1';
+ f.schema='r29_neutral_training_asof_daily_5min_source_frame_v1';
  f.virtual_asof_utc='2026-07-20T00:05:00.000Z';
  f.archive_source_url='https://replay.pumpapi.io/2026/07/20/00.jsonl.zst';
  f.original_source_first5_prefix_sha256=source;
