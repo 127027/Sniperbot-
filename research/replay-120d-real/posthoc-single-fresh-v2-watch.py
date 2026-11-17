@@ -32,8 +32,11 @@ def run():
     if not b:break
     if out.tell()+len(b)>audit.MAX_DAILY_BYTES:raise ValueError("SOURCE_TOO_LARGE")
     out.write(b);sha.update(b)
-  if sha.hexdigest().lower()!=expected.lower() or sha.hexdigest()!=r["source_file_sha256"]:
-   raise ValueError("MINT_SOURCE_PARQUET_SHA_MISMATCH")
+  # Different source classes: the frozen GPT review pins the minute-FEATURE parquet,
+  # whereas this posthoc audit independently pins the LAUNCH parquet of that day.
+  # Their hashes must NEVER be equated or treated as interchangeable files.
+  if sha.hexdigest().lower()!=expected.lower():
+   raise ValueError("PINNED_LAUNCH_PARQUET_SHA_MISMATCH")
   tab=pq.read_table(target,columns=list(audit.COLUMNS))
   matches=[x for x in tab.to_pylist() if x["mint"]==mint]
   if len(matches)>1:raise ValueError("DUPLICATE_MINT_SOURCE_ROW")
@@ -47,7 +50,8 @@ def run():
    verdict={"match_status":"MINT_MATCHES_PINNED_PROVIDER_SOURCE",**audit.assess_outcome(frozen,matches[0])}
  report={"schema":"r29_frozen_v2_fresh5_single_watch_later_labels.v1",
   "frozen_review_ref":str(review_path.relative_to(HERE)),
-  "pinned_raw_source_sha256":sha.hexdigest(),
+  "pinned_raw_launch_source_sha256":sha.hexdigest(),
+  "independently_pinned_original_minute_feature_source_sha256":r["source_file_sha256"],
   "provider_response_postdates_virtual_scan":True,
   "posthoc_outcome_not_original_gpt_input":True,
   "result":verdict,
