@@ -16,6 +16,7 @@ import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
 import {startCentralAiCoordinator} from './central-ai-coordinator.mjs';
 import {startLocalPaperAutopilot} from './live-paper-autopilot.mjs';
 import {createGptPaperLocalReceiver} from './gpt-paper-local-receiver.mjs';
+import {makePrivateGptSizeOffer} from './gpt-paper-size-negotiation.mjs';
 import {collectR27MarketRegime} from './r27-market-regime.mjs';
 import {loadR27EarlyContext} from './r27-early-bridge.mjs';
 import {collectResearchNews} from './research-news-rss.mjs';
@@ -51,7 +52,7 @@ import {ingest,evaluate,simulate,assess} from './research.mjs';
 import {authenticate,limiter,body} from './gateway.mjs';
 import {createServer} from 'node:http';
 import {attachSupervisedStop} from './supervised-stop.mjs';
-import {existsSync,mkdirSync,readFileSync,renameSync,writeFileSync} from 'node:fs';
+import {appendFileSync,existsSync,mkdirSync,readFileSync,renameSync,writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {action,applyExits,autoBuyCandidate,freshState,log,paperSignal,updateCandidates,updateQuotes} from './core.mjs';
@@ -380,6 +381,8 @@ const server=createServer(async(req,res)=>{
  local_gpt_bridge_ready:process.env.SNIPER_GPT_PAPER_BRIDGE==='1'&&
    /^[0-9a-f]{64}$/.test(process.env.SNIPER_GPT_BRIDGE_SECRET||''),
  old_local_autopilot_enabled:false,
+ private_paper_size_offer_supported:true,
+ private_paper_size_offer_transport:'AUTHENTICATED_LOCALHOST_ONLY',
  received_decision_count:Object.keys(state.gptDecisionReplay||{}).length,
  last_decision_id:Object.keys(state.gptDecisionReplay||{}).slice(-1)[0]||null,
  paid_openai_api_required:false,real_trading_enabled:false});
@@ -963,6 +966,38 @@ const server=createServer(async(req,res)=>{
   if(req.method!=='POST'||route!=='/api/research/events')return error(res,405,'Methode nicht erlaubt');
   try{const e=await body(req),n=ingest(state,e,principal),duplicate=n===state;if(!duplicate)commit(evaluate(n));return reply(res,200,{ok:true,duplicate,research:state.research})}
   catch(e){return error(res,e.status||422,e.message)}
+ }
+ if(route==='/api/gpt/paper-size-request'){
+  // Private GPT sizing negotiation: NOT a trade, NOT a public GitHub balance.
+  if(req.method!=='POST'||req.headers.origin||
+    !req.headers['content-type']?.startsWith('application/json'))
+    return error(res,403,'GPT-Einsatzanfrage nur ueber authentifizierten Kurier');
+  const secret=process.env.SNIPER_GPT_BRIDGE_SECRET||'';
+  const supplied=req.headers['x-sniper-gpt-bridge'];
+  if(process.env.SNIPER_GPT_PAPER_BRIDGE!=='1'||!/^[a-f0-9]{64}$/.test(secret)||
+   typeof supplied!=='string'||!/^[a-f0-9]{64}$/.test(supplied)||
+   !timingSafeEqual(Buffer.from(secret,'hex'),Buffer.from(supplied,'hex')))
+   return error(res,403,'GPT-Einsatzanfrage nicht autorisiert');
+  if(deviceTopology.mode==='FOLLOWER')
+   return error(res,403,'Einsatzangebote nur vom Haupt-Paper-Geraet');
+  try{
+   let raw='';
+   for await(const chunk of req){
+    raw+=chunk;
+    if(raw.length>6000)throw Error('GPT_SIZE_REQUEST_TOO_LARGE');
+   }
+   const request=JSON.parse(raw);
+   const offer=makePrivateGptSizeOffer(request,state,{now:Date.now()});
+   // Durable LOCAL private response; no public GitHub commit or order.
+   const dir=path.join(store.dir,'gpt-paper','private-size-requests');
+   mkdirSync(dir,{recursive:true});
+   const journal=path.join(dir,offer.observed_at_utc.slice(0,10)+'.jsonl');
+   appendFileSync(journal,JSON.stringify({request,offer})+'\n',{mode:0o600});
+   return reply(res,200,{ok:true,private_delivery_only:true,offer,
+    paper_order_created:false,real_trading_enabled:false});
+  }catch(e){
+   return error(res,422,String(e?.message||'GPT_SIZE_REQUEST_NOT_ACCEPTED').slice(0,110));
+  }
  }
  if(route==='/api/gpt/paper-decision'){
   if(req.method!=='POST'||req.headers.origin||
