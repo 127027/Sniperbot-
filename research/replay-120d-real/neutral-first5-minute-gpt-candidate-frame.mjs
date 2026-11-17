@@ -38,7 +38,7 @@ export function addAsOfEvent(store,e,{cutoff=CUTOFF,earliest=EARLIEST}={}){
     first_observed_at_utc:new Date(capturedAt).toISOString(),
     last_observed_at_utc:new Date(capturedAt).toISOString(),
     observed_buys:0,observed_sells:0,token_create_events:0,
-    observed_creators_known_risky:false,
+    creator_risk_asof_verified:'UNKNOWN',
     observed_unique_buying_wallets:new Set(),
     observed_unique_selling_wallets:new Set(),
     buy_quote_volume_original_asset:0,
