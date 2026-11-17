@@ -35,12 +35,21 @@ function assertResearch(s){
       }
       if(e.event_type==='NEW_POOL_FIRST_OBSERVED'){
         const ts=Date.parse(e.observed_at_utc),created=Date.parse(e.pool_created_at_utc);
-        return Number.isFinite(sTime)&&Number.isFinite(ts)&&
-          ts<=sTime&&Number.isFinite(created)&&created<=ts&&
-          typeof e.candidate_id==='string'&&e.chain==='solana'||
-          (Number.isFinite(sTime)&&Number.isFinite(ts)&&ts<=sTime&&
+        const age=e.provider_creation_age_at_observation_ms;
+        const urls=e.source_urls;
+        const validSources=Array.isArray(urls)&&urls.length>=1&&urls.length<=5&&
+          urls.every(u=>{
+            if(typeof u!=='string'||u.length>900)return false;
+            try{const v=new URL(u);return v.protocol==='https:'&&
+              !!v.hostname&&!v.username&&!v.password}
+            catch{return false}
+          });
+        return Number.isFinite(sTime)&&Number.isFinite(ts)&&ts<=sTime&&
           Number.isFinite(created)&&created<=ts&&
-          typeof e.candidate_id==='string'&&['base','eth','bsc'].includes(e.chain));
+          Number.isFinite(age)&&age===ts-created&&age>=0&&age<=60*60_000&&
+          typeof e.candidate_id==='string'&&
+          ['solana','base','eth','bsc'].includes(e.chain)&&
+          validSources;
       }
       return e.event_type==='MARKET_ACCELERATION';
     };
