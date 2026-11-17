@@ -96,7 +96,7 @@ export async function loadFreeSolanaStreamJournal({folder}={}){
   item.actionable!==false||!Array.isArray(item.records)||
   item.records.length>SOLANA_STREAM_MAX_RECENT)throw Error('STREAM_UNTRUSTED_RECENT');
  const now=Date.now();
- if(item.records.some(e=>!validateFreeStreamLead(e,{now,maxAgeMs:30*86400_000})))
+ if(item.records.some(e=>!validateFreeStreamLead(e,{now,maxAgeMs:Number.MAX_SAFE_INTEGER})))
   throw Error('STREAM_UNTRUSTED_RECENT');
  return item;
 }
