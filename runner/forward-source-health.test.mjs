@@ -42,6 +42,16 @@ test('correctly distinguishes live laptop Paper bot from stale public market sou
  assert.equal(stale.actual_gpt_model_scans_verified,false);
  assert.equal(stale.actual_paper_fills_verified,false);
  assert.equal(stale.recommendation,'DO_NOT_BUY_ON_SOURCE_STATUS_ALONE');
+ const rejected=summarizeForwardSourceHealth({now,marketStatus:{
+  ...collector,publish_error:'GITHUB_WRITE_HTTP_403 secret_should_not_show 4999'},
+  remoteMarket:remote});
+ assert.equal(rejected.market_publication_error_class,'GITHUB_RESEARCH_WRITE_FAILURE');
+ assert(!JSON.stringify(rejected).includes('secret_should_not_show'));
+ const wrongSource=summarizeForwardSourceHealth({now,marketStatus:{
+  ...collector,publish_error:'Unsafe public research alert payload private-value-4999'},
+  remoteMarket:remote});
+ assert.equal(wrongSource.market_publication_error_class,'SCHEMA_OR_PROVENANCE_REJECTED');
+ assert(!JSON.stringify(wrongSource).includes('private-value-4999'));
  const encoded=JSON.stringify(stale);
  for(const unsafe of ['PRIVATE_WALLET','PRIVATE_123','4999',
   'secret_token','cashUsdc','NEVER_PUBLIC','github_pat_'])
