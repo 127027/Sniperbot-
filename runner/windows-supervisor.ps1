@@ -445,10 +445,24 @@ try {
     }
     if($null -ne $solanaStream -and $solanaStream.HasExited){
       $restarts.SOLANA++
-      if($restarts.SOLANA -gt 3){throw 'Solana free data stream 3x unerwartet beendet. Alles wird gestoppt.'}
-      Write-Host ('[WARNUNG] Solana stream Neustart '+$restarts.SOLANA+'/3') -ForegroundColor Yellow
-      Start-Sleep -Seconds ([Math]::Pow(2,$restarts.SOLANA))
-      $solanaStream=Start-Child 'SOLANA' 'runner/solana-live-stream.mjs' $node $job
+      $streamBlocked=$false
+      $streamStatusFile=Join-Path $root '.local\solana-live-stream\status.json'
+      try{
+        if(Test-Path -LiteralPath $streamStatusFile){
+          $lastStreamStatus=Get-Content -LiteralPath $streamStatusFile -Raw | ConvertFrom-Json
+          if($lastStreamStatus.status -in @('PROVIDER_REJECTED','BLOCKED_PERSISTENCE')){
+            $streamBlocked=$true
+          }
+        }
+      }catch{}
+      if($streamBlocked -or $restarts.SOLANA -gt 3){
+        Write-Host '[WARNUNG] Solana Research-Stream pausiert/gesperrt; Paper-Bot und Markt-Collector bleiben aktiv. Status unter .local\solana-live-stream\status.json pruefen.' -ForegroundColor Yellow
+        $solanaStream=$null
+      }else{
+        Write-Host ('[WARNUNG] Solana stream Neustart '+$restarts.SOLANA+'/3') -ForegroundColor Yellow
+        Start-Sleep -Seconds ([Math]::Pow(2,$restarts.SOLANA))
+        $solanaStream=Start-Child 'SOLANA' 'runner/solana-live-stream.mjs' $node $job
+      }
     }
     if($null -ne $r29Courier -and $r29Courier.HasExited){
       $restarts.R29++
