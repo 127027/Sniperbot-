@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Run regression suite: future labels, cash, GPT BUY intent, SELL position, no imaginary fills
+      - name: 'Run regression suite: future labels, cash, GPT BUY intent, SELL position, no imaginary fills'
         run: |
           node --check research/replay-120d-real/gpt-winner-blind-discovery-and-intent-20261117.mjs
           node --test research/replay-120d-real/gpt-winner-blind-discovery-and-intent-20261117.test.mjs
