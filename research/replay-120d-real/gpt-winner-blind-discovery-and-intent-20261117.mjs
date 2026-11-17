@@ -100,9 +100,9 @@ export function buildWinnerBlindResearchPacket(frame,{
   frame.source_prefix_asof_event_lines_sha256;
  must(SHA.test(prefix||''),'UNHASHED_ORIGINAL_NEUTRAL_EVENT_WINDOW');
  const url=getSource(frame);
- const m=/\/2026\/(\d{2})\/(\d{2})\/([0-2]\d|3[01])\/([01]\d|2[0-3])\.jsonl\.zst$/.exec(url);
+ const m=/\/2026\/(\d{2})\/([0-2]\d|3[01])\/([01]\d|2[0-3])\.jsonl\.zst$/.exec(url);
  must(m,'INVALID_SOURCE_ARCHIVE_DATE');
- const archiveHour=Date.parse('2026-'+m[1]+'-'+m[2]+'-'+m[3]+'T'+m[4]+':00:00Z');
+ const archiveHour=Date.parse('2026-'+m[1]+'-'+m[2]+'-'+m[2]+'T'+m[3]+':00:00Z');
  must(asof>=archiveHour&&asof<archiveHour+3600_000,'ASOF_SOURCE_HOUR_MISMATCH');
  const raw=daily?frame.neutral_ranked_solana_pools_in_frame:
    frame.ranked_neutral_cohort_not_all_market;
