@@ -288,8 +288,8 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
    status.model=result.model||null;status.response_id=result.response_id||null;
    // Only direct Responses API return paths count as genuine provider calls.
    // Mock-injected modelApi results never count as real GPT evidence.
-   const actualProvider=modelApi===requestCentralAiAdvice&&
-    typeof result.response_id==='string'&&/^resp[_-][a-zA-Z0-9_-]{8,}$/.test(result.response_id);
+   const actualProvider=modelApi===requestCentralAiAdvice&&fetcher===globalThis.fetch&&
+    typeof result.response_id==='string'&&/^resp_[a-zA-Z0-9_-]{8,}$/.test(result.response_id);
    status.last_api_response_is_real_provider_invocation=actualProvider;
    if(actualProvider)status.actual_provider_response_count++;
    status.last_summary=planned.summary;status.recommendations=planned.reviews;
