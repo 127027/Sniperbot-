@@ -29,7 +29,7 @@ test('no future provider observation can be used at decision timestamp',()=>{
 });
 test('five separate transactions are one review lead, not five distinct wallets',()=>{
  const e=Array.from({length:5},(_,i)=>make('DEX_BUY','tx-'+i,i*1000,{
-  transaction_signature:'sig-'+i}));
+  transaction_signature:('A'.repeat(64)+i)}));
  const x=compileAsOfEventReviewTriggers(e,{virtual_asof_utc:'2026-10-15T12:02:00.000Z'});
  assert.equal(x.triggers.length,1);
  assert.equal(x.triggers[0].kind,'BUY_TRANSACTION_BURST');
@@ -38,7 +38,7 @@ test('five separate transactions are one review lead, not five distinct wallets'
 });
 test('same signature and event IDs do not inflate buy bursts',()=>{
  const e=Array.from({length:8},(_,i)=>make('DEX_BUY','tx-'+i,i*1000,{
-  transaction_signature:'one-tx'}));
+  transaction_signature:'B'.repeat(64)}));
  const x=compileAsOfEventReviewTriggers([...e,e[0]],{
   virtual_asof_utc:'2026-10-15T12:02:00.000Z'});
  assert.equal(x.triggers.length,0);
@@ -60,4 +60,10 @@ test('caps are explicit and invalid source hash fails closed',()=>{
  assert.equal(x.omitted_trigger_count,4);
  assert.throws(()=>compileAsOfEventReviewTriggers([make('MIGRATION','x',0,{source_sha256:'bad'})],
   {virtual_asof_utc:'2026-10-15T12:02:00.000Z'}),/UNTRUSTED_EVENT/);
+});
+
+test('event IDs without actual chain signatures cannot fabricate buy-burst evidence',()=>{
+ const unsigned=Array.from({length:7},(_,i)=>make('DEX_BUY','unsigned-'+i,i*1000));
+ const x=compileAsOfEventReviewTriggers(unsigned,{virtual_asof_utc:'2026-10-15T12:02:00.000Z'});
+ assert.equal(x.triggers.length,0);
 });
