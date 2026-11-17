@@ -126,7 +126,20 @@ export function validateLearningEvent(e,{at,previous=[],phase}){
   category:e.category||'UNKNOWN',
   changed_original_decision:false,may_not_retroactively_tune_prior_holdout:true};
 }
-export function build120dSourceLedger(matrixCsv){
+export function build120dSourceLedger(matrixCsv,launch120Csv){
+ ensure(typeof launch120Csv==='string'&&launch120Csv.trim(),'REQUIRE_120_DAY_NEUTRAL_LAUNCH_MATRIX');
+ const [lhead,...llines]=launch120Csv.trim().split(/\\r?\\n/),lcols=lhead.split(',');
+ ensure(['date','phase','captured_launch_count','raw_parquet_sha256'].every(x=>lcols.includes(x)),
+  'MISSING_120_DAY_LAUNCH_COLUMNS');
+ const launches=new Map();
+ for(const line of llines){
+  const cells=line.split(',');
+  ensure(cells.length===lcols.length,'MALFORMED_120_DAY_LAUNCH_ROW');
+  const row=Object.fromEntries(lcols.map((k,i)=>[k,cells[i]]));
+  ensure(!launches.has(row.date),'DUPLICATE_120_DAY_LAUNCH_DATE');
+  launches.set(row.date,row);
+ }
+ ensure(launches.size===120,'EXPECTED_120_DAY_LAUNCH_MATRIX');
  const [header,...lines]=matrixCsv.trim().split(/\r?\n/),cols=header.split(',');
  ensure(['day_utc','minute_feature_sha256','historic_launch_source_sha256',
   'recorded_full_day_swaps_for_neutral_group'].every(x=>cols.includes(x)),
@@ -140,11 +153,20 @@ export function build120dSourceLedger(matrixCsv){
  }
  ensure(rows.size===60,'EXPECTED_60_HOLDOUT_DAYS');
  const days=chronological120Calendar().map(d=>{
-  if(d.phase==='LEARN_ASOF')return {...d,launch_event_available:'NOT_EVIDENCED',
-   memecoin_minute_frames:'NOT_EVIDENCED',dex_costed_quotes:'NOT_EVIDENCED',
+  const l=launches.get(d.day_utc);
+  ensure(l&&l.phase===(d.phase==='LEARN_ASOF'?'TRAIN_60_DAYS':'HOLDOUT_60_DAYS'),
+   'MISALIGNED_120_DAY_LAUNCH_MATRIX');
+  const launchProof=/^[a-f0-9]{64}$/i.test(l.raw_parquet_sha256)&&
+   Number.isSafeInteger(Number(l.captured_launch_count))&&Number(l.captured_launch_count)>0;
+  if(d.phase==='LEARN_ASOF')return {...d,
+   launch_event_available:launchProof?'RETROSPECTIVE_LAUNCH_IDENTITIES_ONLY':'DATA_GAP',
+   launch_source_sha256:launchProof?l.raw_parquet_sha256:null,
+   memecoin_minute_frames:'DATA_GAP',dex_costed_quotes:'DATA_GAP',
    gpt_decisions:'NOT_EVIDENCED',trading_pnl:'UNKNOWN',
-   remark:'TRAINING_PHASE_REQUIRES_60D_SEPARATE_NEUTRAL_ASOF_DATA'};
+   remark:'TRAINING_LAUNCHES_ARE_HISTORICAL_EVENTS_NOT_REALTIME_DECISIONS'};
   const r=rows.get(d.day_utc);ensure(r,'HOLDOUT_DAY_MISSING');
+  ensure(Boolean(r.historic_launch_source_sha256)===launchProof,
+   'HOLDOUT_LAUNCH_COVERAGE_DISAGREES_WITH_NEUTRAL_120D_MATRIX');
   return {...d,launch_event_available:r.historic_launch_source_sha256?'RETROSPECTIVE_EVENT_ARCHIVED':'DATA_GAP',
    memecoin_minute_frames:r.minute_feature_sha256?'RETROSPECTIVE_FEATURE_ARCHIVED_NOT_REALTIME_PROVEN':'DATA_GAP',
    dex_costed_quotes:r.recorded_full_day_swaps_for_neutral_group?'THIRD_PARTY_TRADES_NOT_EXECUTABLE_QUOTES':'DATA_GAP',
@@ -152,9 +174,10 @@ export function build120dSourceLedger(matrixCsv){
  });
  return {schema:'r29_120d_walkforward_asof_readiness.v1',
   days,train_days:60,test_days:60,
+  train_days_with_retro_launch_identities:days.filter(x=>x.phase==='LEARN_ASOF'&&x.launch_event_available.startsWith('RETROSPECTIVE')).length,
   train_days_with_realtime_proven_memecoin_frames:0,
   test_days_with_retrospective_minute_frames:days.filter(x=>x.phase==='BLIND_TEST'&&x.memecoin_minute_frames.startsWith('RETROSPECTIVE')).length,
   actual_gpt_decision_walkforward_complete:false,
   actual_gpt_buy_hold_sell_pnl_test_usdc:null,
-  note:'120-day timeline constructed from the 60-day holdout matrix; training not invented. The chronologic engine requires separate as-of evidence and actual GPT transcripts.'};
+  note:'120-day timeline constructed from the 60-day holdout matrix; training includes SHA-audited retrospective launch identities only. The chronologic engine requires actual time-available evidence and GPT transcripts.'};
 }
