@@ -3,6 +3,7 @@
 // must receive ONLY the output from this gate, not the user conversation or
 // posthoc winner examples. Never publishes/signs an order or changes balances.
 import {createHash} from 'node:crypto';
+import {compileAsOfEventReviewTriggers} from './historical-event-radar.mjs';
 export const GATE_SCHEMA='r29_no_winner_shortlist_historical_market_gate.v1';
 const hex=/^[a-f0-9]{64}$/i,actions=new Set(['BUY','HOLD','SELL','WATCH','NO_TRADE']);
 const eventTypes=new Set(['TOKEN_CREATE','DEX_BUY','DEX_SELL','POOL_CREATE','POOL_LIQUIDITY','DEX_SWAP','MIGRATION','CONTRACT_AUTHORITY']);
@@ -110,12 +111,16 @@ export function buildNeutralHistoricalModelInput(input){
   a.item_id.localeCompare(b.item_id));
  lessons.sort((a,b)=>timestamp(a.learned_at_utc)-timestamp(b.learned_at_utc)||
   a.lesson_id.localeCompare(b.lesson_id));
+ const eventRadar=compileAsOfEventReviewTriggers(market,{virtual_asof_utc:input.virtual_asof_utc});
  const facts={schema:GATE_SCHEMA,virtual_asof_utc:input.virtual_asof_utc,
   phase:input.phase,discovery_mode:'NEUTRAL_ALL_AVAILABLE_EVENTS',
   model_input_is_only_archived_neutral_market_and_asof_social:true,
   user_supplied_winner_examples_excluded:true,
   retrospective_success_or_rug_outcomes_excluded:true,
   market_events:market,media_items:media,prior_lessons:lessons,
+  event_review_triggers:eventRadar.triggers,
+  event_review_trigger_count:eventRadar.detected_trigger_count,
+  event_review_alerts_are_not_trade_authority:true,
   open_positions:positions,reviews_completed_today:input.reviews_completed_today,
   complete_market_and_media_universe_claimed:false,
   missing_source_categories:Array.isArray(input.missing_source_categories)?
