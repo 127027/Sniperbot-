@@ -125,15 +125,39 @@ def main():
    table=pq.read_table(path,columns=list(COLUMNS))
    mints={r["mint"] for r in review["decisions"] if r["source_day_utc"]==day}
    matches=[r for r in table.to_pylist() if r["mint"] in mints]
-   if len(matches)!=len(mints) or len({r["mint"] for r in matches})!=len(matches):
-    raise ValueError("FROZEN_CANDIDATES_NOT_IN_NEUTRAL_LAUNCH_FILE_"+day)
+   if len({r["mint"] for r in matches})!=len(matches):
+    raise ValueError("DUPLICATE_MATCHED_MINT_IN_PROVIDER_"+day)
+   missing=mints-{r["mint"] for r in matches}
+   if missing:
+    print("R29_SOURCE_IDENTITY_GAP",day,sorted(missing),flush=True)
    daily.update({r["mint"]:r for r in matches})
    sources[day]={"pinned_raw_sha256":got,"rows":table.num_rows,"url":url,
     "source_was_published_after_historical_scans":True,
     "downloaded_for_posthoc_label_audit_only":True}
    print("NINE_WATCH_POSTHOC_DAY",day,len(matches),got,flush=True)
- findings=[assess_outcome(r,daily[r["mint"]]) for r in review["decisions"]]
+ findings=[]
+ for r in review["decisions"]:
+  if r["mint"] in daily:
+   findings.append({"match_status":"IDENTITY_MATCHED_PINNED_LAUNCH",
+      **assess_outcome(r,daily[r["mint"]])})
+  else:
+   findings.append({
+    "match_status":"SOURCE_IDENTITY_GAP_UNMATCHED_IN_PINNED_LAUNCH",
+    "source_day_utc":r["source_day_utc"],
+    "virtual_asof_utc":r["virtual_asof_utc"],"mint":r["mint"],
+    "frozen_gpt_research_recommendation":r["model_authored_research_recommendation"],
+    "later_provider_graduated_label":None,"later_provider_rugged_rule_label":None,
+    "rug_rule_event_after_virtual_scan":None,
+    "graduation_or_pool_sighting_after_virtual_scan":None,
+    "historical_input_from_these_outcomes_used_at_decision":False,
+    "roi_proven":False,"own_buy_fill_proven":False,
+    "own_sell_fill_proven":False,"realized_pnl_test_usdc":None,
+    "unknown_outcome_due_to_provenance_mismatch":True,
+    "decision_may_be_retroactively_edited":False
+   })
  summary={"reviewed":len(findings),
+  "matched_in_neutral_launch_table":len(daily),
+  "unmatched_identity_count":len(findings)-len(daily),
   "research_watch":sum(r["frozen_gpt_research_recommendation"]=="WATCH" for r in findings),
   "research_no_trade":sum(r["frozen_gpt_research_recommendation"]=="NO_TRADE" for r in findings),
   "posthoc_provider_graduated_count":sum(r["later_provider_graduated_label"]==1 for r in findings),
@@ -152,6 +176,7 @@ def main():
    "A missed graduation is NOT a provably missed 10x profit; no executable entry and exit quotes.",
    "Rug and graduation labels can both be true on one coin.",
    "Unknown or non-SOL-quoted labels must remain unknown.",
+   "Source identity mismatch is a hard data-quality gap, not a successful WATCH or a confirmed loss.",
    "Never feed this posthoc outcome report into the frozen 60-day research decisions."]}
  OUTPUT.parent.mkdir(parents=True,exist_ok=True)
  OUTPUT.write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
