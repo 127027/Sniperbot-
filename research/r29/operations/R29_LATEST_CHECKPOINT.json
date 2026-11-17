@@ -1,29 +1,129 @@
 {
-  "schema": "sniper_r29_development_checkpoint.v1",
-  "checkpoint_at_utc": "2026-11-17T20:24:28.516Z",
-  "scope": "V4_FULL_OCTOBER_48H_SOURCE_PROOF_PR54_PARTIAL",
-  "status": "OCT_821849_SOURCE_VERIFIED_6_REFERENCE_CONTRACTS_NEUTRALLY_CAPTURED_REAL_MINUTE_CI_UNFINISHED_NO_PROVEN_GPT_TRADES",
-  "repository": "127027/Sniperbot-",
+  "schema": "sniper_r29_v4_1_canonical_progress_checkpoint.v1",
+  "checkpoint_at_utc": "2026-11-17T21:35:40.929Z",
+  "repository_full_name": "127027/Sniperbot-",
   "canonical_branch": "codex/r29-chatgpt-github-paper-cycle-20261115",
-  "pr": "https://github.com/127027/Sniperbot-/pull/54",
-  "pr_merged": false,
-  "verified_source_run": "https://github.com/127027/Sniperbot-/actions/runs/44164625844",
-  "october_source_launches": 821849,
-  "october_fully_captured_unique_mints": 821849,
-  "october_retention_hours": 48,
-  "postfreeze_benchmark_groups_captured": "4/4",
-  "postfreeze_distinct_contracts_captured": "6/6",
-  "minute_feature_rows_expected": 2296466,
-  "historical_gpt_trading_model_calls_proven": 0,
-  "historical_paper_buy_fills": 0,
-  "historical_paper_sell_fills": 0,
-  "historical_pnl_test_usdc": null,
-  "ten_requested_tests": 10,
-  "source_complete_17day_windows": 6,
-  "minute_feature_complete_17day_windows": 3,
-  "ten_independent_trading_tests_completed": 0,
-  "real_trading_enabled": false,
-  "paper_ledger_touched": false,
-  "next": "Check PR54 current real minute CI then merge when green; require independent GPT, extra source windows and historic executable quotes before PnL",
-  "report_in_pr": "research/r29/operations/R29_V4_NEUTRAL_48H_DISCOVERY_EXECUTION_GAP_20261117_DE.md"
+  "user_approval": "V4 + V4.1 explicit GO; continue, never restart",
+  "scope": "R29_V4_1_PR54_MERGED_COMPLETE_OCT_SOURCE_48H_AND_REACTIVATION_POSTHOC_HOLDOUT_GATE",
+  "status": "PAPER_ONLY_PR54_MERGED_LATEST_PR_HEAD_FULL_REAL_SOURCE_CI_GREEN_WINDOWS_LINUX_GREEN_NO_ACTUAL_HISTORICAL_GPT_TRADES_YET",
+  "pull_request": "https://github.com/127027/Sniperbot-/pull/54",
+  "pull_request_merged": true,
+  "merge_commit_sha": "b32bf8e3e3c9953fa7c9737a2e4189b93edefe06",
+  "verified_latest_source_ci": {
+    "url": "https://github.com/127027/Sniperbot-/actions/runs/44180592801",
+    "head_sha": "50b13b962fe6b792b686cabafba2c41eb72646ae",
+    "conclusion": "success",
+    "jobs": [
+      "unbiased-complete-source-ingest",
+      "known-contract-postfreeze-regression"
+    ],
+    "real_data_days": 17,
+    "original_launches": 821849,
+    "complete_valid_source_launches_ingested": 821849,
+    "historical_minute_feature_rows": 2296466,
+    "joined_to_mints": 2295579,
+    "unjoined_or_invalid": 887,
+    "hourly_asof_frames": 408,
+    "benchmark_contracts_matched_only_after_neutral_freeze": 6,
+    "benchmark_groups_matched_only_after_neutral_freeze": 4,
+    "real_48hr_reactivations_from_october_archive": 0,
+    "real_historical_GPT_strategy_calls": 0,
+    "real_historical_Paper_BUY_fills": 0,
+    "real_historical_Paper_SELL_fills": 0,
+    "historically_realizable_net_PnL_test_usdc": null
+  },
+  "windows_linux_ci": {
+    "url": "https://github.com/127027/Sniperbot-/actions/runs/44180592858",
+    "conclusion": "success",
+    "jobs": [
+      "paper-only (windows-latest)",
+      "paper-only (ubuntu-latest)"
+    ]
+  },
+  "ci_failure_root_cause_and_fix": {
+    "old_cancelled_run": "https://github.com/127027/Sniperbot-/actions/runs/44168485811",
+    "old_reason": "30-minute job timeout caused by continually growing full SQL launch-feature JOIN + COUNT + ORDER BY at each hourly checkpoint; only Oct05-Oct13 processed before timeout",
+    "fix": "incrementally maintained in-memory index of only currently qualified as-of candidates; all original mints persist in SQLite; unchanged objective SHA and future-data gates",
+    "final_success": "https://github.com/127027/Sniperbot-/actions/runs/44180592801",
+    "note": "Do not increase timeout to hide inefficient loop; old cancelled or stale SHA must never count as success"
+  },
+  "persisted_behavior": {
+    "source_code": "research/replay-120d-real/r29-v4-complete-48h-source.py",
+    "asof_priority_code": "research/replay-120d-real/r29-v4-asof-feature-priority.py",
+    "expiry_lifecycle": "48-hour minimum stored source identity; new validated increase in observed buys >=5 with technical risk gate can reactivate old mint after expiry",
+    "reactivation_proof": "synthetic isolate unit tests only; 0 real October reactivation events",
+    "point_in_time_retention_audits": [
+      "research_retention_events",
+      "research_reactivations"
+    ],
+    "no_future_leak": true,
+    "no_8_mint_ceiling": true,
+    "eligible_paged_64_per_page": true,
+    "local_technical_scores_are_not_GPT_buy_sell_orders": true
+  },
+  "holdout_pre_registration": {
+    "policy_file": "research/r29/operations/R29_V4_1_PRE_REGISTERED_HOLDOUT_SUCCESS_POLICY.json",
+    "gate_code": "research/replay-120d-real/r29-v4-holdout-evidence-gate.py",
+    "gate_tests": "research/replay-120d-real/test_r29_v4_holdout_evidence_gate.py",
+    "status": "IMPLEMENTED_AND_CI_TESTED_WITH_SYNTHETIC_FIxtures_NOT_REAL_3_HOLDOUTS",
+    "requirements": [
+      "source capture >=99.99%",
+      "eligible breakout recall >=60%",
+      "GPT WATCH or BUY precision >=20%",
+      "at least 30 independently outcome-labeled breakouts",
+      "technical detection p95 <=5min from independently evidenced availability",
+      "source to actual GPT p95 <=60min",
+      "three-holdout net PnL >0 after real fees and slippage",
+      "at least 2/3 holdouts net positive",
+      "max drawdown <=20%",
+      "max one-day realized loss <=5%"
+    ],
+    "missing_evidence_yields": "INCONCLUSIVE_NOT_ZERO_OR_PROFIT"
+  },
+  "ten_trial_progress": {
+    "requested_10d_trading_plus_7d_warmup_tests": 10,
+    "development_tests_requested": 7,
+    "independent_untouched_holdouts_requested": 3,
+    "nominal_trading_start_capital_test_usdc_each": 5000,
+    "as_verified_actual_source_7plus10_windows": 5,
+    "as_verified_actual_minute_feature_7plus10_windows": 3,
+    "historical_quote_covered_trade_backtests_completed": 0,
+    "verified_independent_gpt_driven_backtests_completed": 0,
+    "realized_portfolio_pnl_test_usdc": null,
+    "blocker": "67 historical recorded start days and 43 minute-feature days insufficient for ten independent 7+10-day windows; original data retrospectively released and previously reviewed; independent buy and sell quotes with actual sellability also missing"
+  },
+  "chronology_sources": {
+    "dataset": "loopholetape/pumpfun-launches",
+    "pinned_source_rev": "9b9a04e7e3e85775d614d16105daad2e69ce8544",
+    "source_released_after_simulated_market_events": true,
+    "October_preparation_utc": "2026-10-05..2026-10-11",
+    "October_trade_utc": "2026-10-12..2026-10-21",
+    "read_only_historical_source_excludes_future_outcomes": true,
+    "asof_source_data_not_proof_of_live_delivery": true
+  },
+  "cross_chat": {
+    "primary_entry_file": "SNIPERBOT_R29_START_HERE.md",
+    "full_developer_lessons": "research/r29/operations/R29_V4_1_GITHUB_ERFAHRUNGEN_NAECHSTER_CHAT_20261117_DE.md",
+    "immutable_17day_source_analytics": "research/r29/operations/R29_V4_1_OCT_REAL_SOURCE_408_FRAMES_VERIFIED_20261117.json",
+    "V4_1_status_runbook": "research/r29/operations/R29_V4_NEUTRAL_48H_DISCOVERY_EXECUTION_GAP_20261117_DE.md",
+    "known_winners_posthoc_do_not_feed_blind_model": "research/r29/operations/blind-october-2026/R29_OCT_POSTHOC_FULL_SOURCE_RECALL_AND_ROOT_CAUSE_DE.md"
+  },
+  "constraints": {
+    "only_GPT_decides_strategy": true,
+    "real_provider_attested_model_calls_required": true,
+    "technical_collector_is_not_GPT": true,
+    "paper_only": true,
+    "real_trading_enabled": false,
+    "no_change_to_existing_user_paper_ledger": true,
+    "single_windows_launcher": "Sniperbot_Starten.bat",
+    "avoid_parallel_bot_wallet_or_balances": true,
+    "no_automatic_live_or_risk_limit_change": true
+  },
+  "next_actions_in_order": [
+    "Verify post-merge canonical source and Paper GitHub Actions are healthy; latest PR-head CI already green.",
+    "Prove full neutral candidate stream can yield timely evidence to independent GPT model decisions (1–24 true invocations/day) with accepted time-stamped/attested receipts; model-only strategic choices; offline simulated scores never count.",
+    "Extend genuine independently timestamped 7+10d source and realistic size-specific bidirectional DEX execution quotes, including nonselected tokens, fees and slippage; no PnL invention.",
+    "Evaluate 7 development tests, freeze policy and model context without known future outcomes, then 3 never-used holdout tests and false alarms/missed breakouts/latency/net returns/drawdown.",
+    "Only after independent historical acceptance, frozen strategy prospected Paper forward test; no Echtgeld or paper balance mutation during research."
+  ]
 }
