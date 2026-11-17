@@ -74,19 +74,26 @@ def init_priority(conn):
   "asof_feature_state(eligible,score DESC,last_t DESC)")
  conn.commit()
 
-def apply_rows_until(conn,ordered,pos,cutoff):
+def apply_rows_until(conn,ordered,pos,cutoff,launch_times=None,feature_cache=None):
  processed=0;valid=0;unmatched=0
  while pos<len(ordered) and ordered[pos]["t"]<=cutoff:
   x=ordered[pos];pos+=1;processed+=1
   if not valid_row(x):continue
   mint=x["mint"];t=x["t"]
   # launch from original complete neutral source, not a pre-selected shortlist
-  launch=conn.execute("SELECT t0 FROM launches WHERE chain='solana' AND mint=?",
-   (mint,)).fetchone()
-  if not launch:unmatched+=1;continue
-  if t+0.002<launch[0]:continue
-  previous=conn.execute(
-   "SELECT last_t,buys FROM asof_feature_state WHERE mint=?",(mint,)).fetchone()
+  if launch_times is not None:
+   t0=launch_times.get(mint)
+  else:
+   row=conn.execute("SELECT t0 FROM launches WHERE chain='solana' AND mint=?",
+    (mint,)).fetchone()
+   t0=row[0] if row else None
+  if t0 is None:unmatched+=1;continue
+  if t+0.002<t0:continue
+  if feature_cache is not None:
+   previous=feature_cache.get(mint)
+  else:
+   previous=conn.execute(
+    "SELECT last_t,buys FROM asof_feature_state WHERE mint=?",(mint,)).fetchone()
   if previous and previous[0]>t:raise ValueError("FEATURE_STATE_NONCHRONOLOGICAL")
   prev={"t":previous[0],"buys":previous[1]} if previous else None
   info=priority(x,prev)
@@ -103,6 +110,8 @@ def apply_rows_until(conn,ordered,pos,cutoff):
    (mint,t,x["f_n_buys"] if finite(x["f_n_buys"]) else None,
     x["f_rs"] if finite(x["f_rs"]) else None,
     info["score"],int(info["eligible"]),info["reason"]))
+  if feature_cache is not None:
+   feature_cache[mint]=(t,x["f_n_buys"] if finite(x["f_n_buys"]) else None)
   valid+=1
  return pos,{"rows_consumed":processed,"rows_joined_to_raw_launches":valid,
   "rows_without_matching_launch":unmatched}
@@ -157,6 +166,12 @@ def replay_features(source_dir,output,start,end,expected,read_day=download_featu
  if not db.is_file():raise ValueError("COMPLETE_RAW_LAUNCH_LEDGER_NOT_AVAILABLE")
  conn=sqlite3.connect(db)
  init_priority(conn)
+ # Disposable retrospective runner: cache immutable launch IDs and each
+ # latest known feature to avoid millions of redundant SQLite SELECTs.
+ # SQL still persists every upsert before the corresponding as-of checkpoint.
+ launch_times=dict(conn.execute("SELECT mint,t0 FROM launches WHERE chain='solana'"))
+ feature_cache={r[0]:(r[1],r[2]) for r in
+  conn.execute("SELECT mint,last_t,buys FROM asof_feature_state")}
  output.parent.mkdir(parents=True,exist_ok=True)
  result={"schema":"sniper_r29_v4_all_asof_features_to_48h_research_queue.v1",
   "source_days":0,"total_minute_feature_rows":0,
@@ -189,7 +204,7 @@ def replay_features(source_dir,output,start,end,expected,read_day=download_featu
     for hour in range(1,25):
      cutoff=start_ts+hour*3600
      with conn:
-      pos,stats=apply_rows_until(conn,usable,pos,cutoff)
+      pos,stats=apply_rows_until(conn,usable,pos,cutoff,launch_times,feature_cache)
      day_joined+=stats["rows_joined_to_raw_launches"]
      reviews.append(review_at(conn,cutoff))
     if pos!=len(usable):raise ValueError("UNCONSUMED_ASOF_FEATURE_EVENTS")
