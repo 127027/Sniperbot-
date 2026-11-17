@@ -95,3 +95,28 @@ test('GPT can only buy neutrally observed coin and only manage an actual filled 
   model_response_sha256:createHash('sha256').update(h).digest('hex')
  }),/GPT_MUST_MANAGE_ACTUALLY_OPEN_POSITION/);
 });
+
+
+test('as-of GPT frame includes read-only pool and migration triggers only after provider capture',()=>{
+ const p=base();
+ p.market_events=[
+  {...event,event_type:'POOL_CREATE',event_id:'pool-early',
+   pool_address:'8'.repeat(44),
+   event_at_utc:'2026-10-15T11:59:00Z',
+   provider_captured_at_utc:'2026-10-15T11:59:22Z'},
+  {...event,event_type:'MIGRATION',event_id:'migrate-now',
+   pool_address:'8'.repeat(44),
+   event_at_utc:'2026-10-15T11:59:10Z',
+   provider_captured_at_utc:'2026-10-15T11:59:32Z'}
+ ];
+ const x=buildNeutralHistoricalModelInput(p);
+ assert.deepEqual(x.payload.event_review_triggers.map(z=>z.kind),
+  ['POOL_CREATED','POOL_MIGRATION']);
+ assert.equal(x.payload.event_review_triggers[1].observed_latency_ms,22000);
+ assert.ok(x.payload.event_review_triggers.every(z=>z.actionable===false));
+ assert.equal(x.payload.event_review_alerts_are_not_trade_authority,true);
+ assert.equal(x.payload.trading_and_wallet_actions_permitted,false);
+ // The strict as-of market gate rejects events when provider capture is later.
+ p.market_events[1].provider_captured_at_utc='2026-10-15T12:00:01Z';
+ assert.throws(()=>buildNeutralHistoricalModelInput(p),/MARKET_DATA_CAPTURED_AFTER_DECISION/);
+});
