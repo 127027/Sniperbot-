@@ -128,7 +128,7 @@ export function validateLearningEvent(e,{at,previous=[],phase}){
 }
 export function build120dSourceLedger(matrixCsv,launch120Csv){
  ensure(typeof launch120Csv==='string'&&launch120Csv.trim(),'REQUIRE_120_DAY_NEUTRAL_LAUNCH_MATRIX');
- const [lhead,...llines]=launch120Csv.trim().split(/\\r?\\n/),lcols=lhead.split(',');
+ const [lhead,...llines]=launch120Csv.trim().split(/\r?\n/),lcols=lhead.split(',');
  ensure(['date','phase','captured_launch_count','raw_parquet_sha256'].every(x=>lcols.includes(x)),
   'MISSING_120_DAY_LAUNCH_COLUMNS');
  const launches=new Map();
