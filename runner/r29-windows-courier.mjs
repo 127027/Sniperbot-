@@ -15,6 +15,7 @@ import {syncGptPaperPublicPositionContext} from './gpt-paper-position-publisher.
 import {syncGptPaperSecurityResearch} from './gpt-paper-security-research.mjs';
 import {syncPublicForwardSourceHealth} from './forward-source-health.mjs';
 import {mirrorFreshLocalMarketToCanonical} from './r29-canonical-market-relay.mjs';
+import {syncPublicForwardSolanaResearch} from './solana-forward-evidence.mjs';
 
 const REPO='127027/Sniperbot-';
 const base='https://api.github.com/repos/'+REPO+'/contents/';
@@ -323,6 +324,16 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
         }catch(e){
           console.error('[GPT R29] R29 canonical market mirror DATA_GAP:',
             String(e?.message||e).replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,90));
+        }
+        // One safe finalized mint+indicative roundtrip dossier per courier cycle.
+        // No wallet, GPT order, trade authority or native asset transfers.
+        try{
+          const sol=await syncPublicForwardSolanaResearch({token});
+          if(sol.published)console.log('[GPT R29] Solana-Mint/Quote-Nachweis:',
+            sol.mint_status,'·',sol.quote_status,'· nur Forschung, keine Orders');
+        }catch(e){
+          console.error('[GPT R29] Solana-Vorauspruefung DATA_GAP:',
+            String(e?.message||e).replace(/[^A-Z0-9_ -]/gi,'').slice(0,90));
         }
         const health=await syncPublicForwardSourceHealth({token});
         if(health.published)console.log('[GPT R29] Market source health:',
