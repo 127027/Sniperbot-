@@ -59,6 +59,65 @@ class ResearchQueue(unittest.TestCase):
   self.assertEqual(len(previous),3)
   self.assertEqual(m.review_at(self.conn,self.start+7500)["eligible_count_not_truncated"],3)
 
+ def test_fast_index_matches_SQL_and_64_token_pages_before_expiry(self):
+  self.add_mints(150)
+  launches={r[0]:r[1] for r in self.conn.execute("SELECT mint,t0 FROM launches")}
+  expiries={r[0]:r[1] for r in self.conn.execute("SELECT mint,expires FROM launches")}
+  prev={}
+  eligible={}
+  events=[self.feat(self.mint(i),self.start+1800+i,buy=40+(i%10))
+    for i in range(150)]
+  pos,counts=m.apply_rows_until(self.conn,events,0,self.start+3600,
+   launches,prev,eligible,expiries)
+  self.assertEqual(pos,150)
+  for page in range(3):
+   fast=m.review_at_cached(eligible,launches,expiries,self.start+3600,page)
+   slow=m.review_at(self.conn,self.start+3600,page)
+   self.assertEqual(fast,slow)
+  self.assertEqual(m.review_at_cached(eligible,launches,expiries,
+   self.start+48*3600+1)["eligible_count_not_truncated"],0)
+
+ def test_expired_mint_reactivated_only_after_new_relevant_buy_delta(self):
+  self.add_mints(1)
+  mint=self.mint(0)
+  launch={mint:self.start}
+  expiry={mint:self.start+48*3600}
+  feature={}
+  eligible={}
+  first=self.feat(mint,self.start+1000,buy=32)
+  late=self.feat(mint,self.start+50*3600,buy=45)
+  pos,stats=m.apply_rows_until(self.conn,[first,late],0,self.start+48*3600+1,
+   launch,feature,eligible,expiry)
+  self.assertEqual(pos,1)
+  self.assertEqual(m.review_at_cached(eligible,launch,expiry,
+   self.start+48*3600+1)["eligible_count_not_truncated"],0)
+  pos,stats=m.apply_rows_until(self.conn,[first,late],pos,self.start+50*3600+1,
+   launch,feature,eligible,expiry)
+  self.assertEqual(pos,2)
+  self.assertEqual(m.review_at_cached(eligible,launch,expiry,
+   self.start+50*3600+1)["eligible_count_not_truncated"],1)
+  self.assertEqual(self.conn.execute(
+   "SELECT count(*) FROM research_reactivations WHERE mint=?",(mint,)).fetchone()[0],1)
+  self.assertEqual(m.capture.candidate_asof(self.conn,mint,self.start+51*3600),
+   "MONITORING_SOURCE_ONLY")
+
+ def test_late_risky_mint_is_not_reactivated_after_expiry(self):
+  self.add_mints(1)
+  mint=self.mint(0)
+  launch={mint:self.start}
+  expiry={mint:self.start+48*3600}
+  feature={}
+  eligible={}
+  events=[self.feat(mint,self.start+1000,buy=35),
+   self.feat(mint,self.start+50*3600,buy=75,flag_bundle_dumped=True)]
+  pos,stats=m.apply_rows_until(self.conn,events,0,self.start+52*3600,
+   launch,feature,eligible,expiry)
+  self.assertEqual(pos,2)
+  self.assertEqual(self.conn.execute(
+   "SELECT count(*) FROM research_reactivations").fetchone()[0],0)
+  self.assertEqual(m.review_at_cached(eligible,launch,expiry,
+   self.start+51*3600)["eligible_count_not_truncated"],0)
+
  def test_future_features_cannot_change_earlier_ranked_queue(self):
   self.add_mints(2)
   e=[self.feat(self.mint(0),self.start+1000,buy=40),
