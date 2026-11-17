@@ -2,6 +2,29 @@
 
 # SNIPERBOT R29 – HIER BEGINNEN (auch in jedem neuen Chat)
 
+> **NEUE ENTWICKLUNGSERGÄNZUNG 17.11.2026 (nach historischem Holdout):**
+> 40 weitere vom Nutzer gelieferte historische Gewinnerbeispiele wurden als
+> **USER_SUPPLIED_UNVERIFIED** in eine *strikt posthoc* Referenzdatei übernommen:
+> [40 Memecoin-Fälle](research/r29/gpt-strategy/references/USER_SUPPLIED_40_MEMECOIN_WINNERS_20261117.json).
+> Ein neuer Quellen-Validator ist direkt in den historischen neutralen GPT-Input-Filter
+> eingebunden. Dacity Coin/AudaCity könnte eine Dublette sein. Noch keine 40
+> verifizierten Onchain-Wallet-Trades oder realistisch erzielten Renditen.
+>
+> Die **private lokale GPT-Bot-Einsatzverhandlung** ist als geschützter
+> SIZE_REQUEST → SIZE_OFFER → SIZE_CHOICE-Prototyp implementiert; die
+> bestehende Paper-Risk-Engine prüft vor GPT-BUY die verfügbare Kapazität erneut.
+> Lokales Dashboard zeigt Kennzeichnung GPT-geführter Positionen und letzte
+> bestätigte GPT-Receipt. **Noch kein echter autonomer GitHub-Zweiwegkanal
+> für die private Betragshöhe:** Das öffentliche Repository veröffentlicht
+> keine numerischen privaten Paper-Kontostände. Die vorhandene stündliche
+> Automation arbeitet weiterhin nur am historischen Backtest, nicht am
+> angeblich schon produktiven Forward-Paper-Betrieb. Daher keine Behauptung
+> über 24 aktive GPT-Scans/Tag oder real ausgeführte Solana-GPT-Fills.
+> Vollständige technische Übergabe:
+> [R29-FORWARD-GPT-STRATEGIE](research/r29/operations/R29_FORWARD_GPT_STRATEGY_AND_SIZE_CONTRACT_20261117_DE.md).
+>
+
+
 > **NEUER ENTWICKLUNGSSTAND – Solana-Echtzeitstream Phase 1 (17.11.2026):**
 > R29 ergänzt den bestehenden einzigen Windows-Starter um einen kostenlosen,
 > lokal append-only archivierten PumpPortal-WebSocket für **neue Tokens und
