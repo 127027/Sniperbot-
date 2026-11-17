@@ -35,6 +35,18 @@ export function attestOpenPositions({positions,ledgerFills,virtualAsofUtc}){
   // Opening fill does not establish remaining balance; require independent reconciled ledger.
   assert(p.ledger_reconciled===true&&p.ledger_reconciled_asof_utc===virtualAsofUtc&&
    Number.isFinite(p.tokens_owned)&&p.tokens_owned>0,'UNRECONCILED_POSITION');
+  // Conservative integer-only reconciliation until atomic-unit ledger schema is available.
+  const related=ledgerFills.filter(x=>x.position_id===p.position_id);
+  const ids=new Set(); let balance=0;
+  for(const x of related){
+   assert(typeof x.fill_id==='string'&&x.fill_id.length>0&&!ids.has(x.fill_id),'DUPLICATE_LEDGER_FILL');ids.add(x.fill_id);
+   assert(x.status==='PAPER_FILLED'&&['BUY','SELL'].includes(x.side)&&x.chain===p.chain&&x.token_address===p.token_address&&x.pool_address===p.pool_address,'RELATED_FILL_INVALID');
+   assert(utc(x.filled_at_utc)&&Date.parse(x.filled_at_utc)<=Date.parse(virtualAsofUtc),'RELATED_FILL_TIME_INVALID');
+   assert(Number.isSafeInteger(x.tokens_filled)&&x.tokens_filled>0,'ATOMIC_QUANTITY_REQUIRED');
+   balance+=x.side==='BUY'?x.tokens_filled:-x.tokens_filled;
+   assert(Number.isSafeInteger(balance)&&balance>=0,'LEDGER_BALANCE_INVALID');
+  }
+  assert(Number.isSafeInteger(p.tokens_owned)&&balance===p.tokens_owned,'POSITION_BALANCE_MISMATCH');
   return {position_id:p.position_id,opened_fill_id:f.fill_id,verified:true};
  });
 }
@@ -52,5 +64,9 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  attestOpenPositions({positions:[p],ledgerFills:[fill],virtualAsofUtc:at});
  fail(()=>attestOpenPositions({positions:[p],ledgerFills:[],virtualAsofUtc:at}),'MISSING_OR_DUPLICATE_OPEN_FILL');
  fail(()=>attestOpenPositions({positions:[{...p,ledger_reconciled:false}],ledgerFills:[fill],virtualAsofUtc:at}),'UNRECONCILED_POSITION');
+ fail(()=>attestOpenPositions({positions:[{...p,tokens_owned:11}],ledgerFills:[fill],virtualAsofUtc:at}),'POSITION_BALANCE_MISMATCH');
+ const sell={...fill,fill_id:'f2',side:'SELL',tokens_filled:3};
+ attestOpenPositions({positions:[{...p,tokens_owned:7}],ledgerFills:[fill,sell],virtualAsofUtc:at});
+ fail(()=>attestOpenPositions({positions:[p],ledgerFills:[fill,sell],virtualAsofUtc:at}),'POSITION_BALANCE_MISMATCH');
  console.log('R29_SYNTHETIC_ATTESTATION_TESTS_PASS; NO_REAL_SOURCE_OR_FILL_ATTESTED');
 }
