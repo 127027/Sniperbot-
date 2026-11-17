@@ -227,7 +227,7 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
   if($role -eq 'MARKET') {
     # The R27 local first-seen archive requires NO GitHub token. Only the
     # separately opted-in GitHub research publisher may read one.
-    if($WithResearchCollector) {
+    if($WithResearchCollector -or $WithR29) {
       $value = Read-ResearchToken
       $info.EnvironmentVariables['SNIPER_MARKET_GITHUB_TOKEN'] = $value
       $info.EnvironmentVariables['SNIPER_MARKET_PUBLISH'] = '1'
@@ -387,6 +387,12 @@ try {
     $market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job
     Write-Host '[R27] Lokales, append-only Quellenarchiv aktiv (nur öffentliche Marktdaten/Nachrichten).' -ForegroundColor Green
   }
+  # Only the two free read-only PumpPortal channels are subscribed.
+  # This child never receives the GitHub PAT, GPT signing secret or wallet keys.
+  if($WithR29 -and $env:SNIPER_SOLANA_STREAM -ne '0') {
+    $solanaStream=Start-Child 'SOLANA' 'runner/solana-live-stream.mjs' $node $job
+    Write-Host '[SOLANA] Free new-token/migration WebSocket started; paid trade feeds OFF.' -ForegroundColor Green
+  }
   if($WithR29 -and (Test-Path -LiteralPath $tokenFile)) {
     $r29Courier=Start-Child 'R29' 'runner/r29-windows-courier.mjs' $node $job
     Write-Host '[R29] GitHub-Kurier aktiv. Keine zweite Sandbox-Bilanz, keine Live-Trades, keine OpenAI-API-Kosten.' -ForegroundColor Green
@@ -420,7 +426,7 @@ try {
     Write-Host '[GPT] Noch kein Live-Paper-Fill ohne nachgewiesenen GPT-Entscheid und lokale Freigabe.' -ForegroundColor Yellow
   } else {Write-Host '[AI] Kostenpflichtiger lokaler KI-Prozess AUS; kein GitHub-GPT-Kanal gestartet.'}
   Write-Host '[INFO] Zum Beenden Q druecken oder dieses Fenster schliessen.'
-  $restarts=@{BOT=0;MARKET=0;R29=0}
+  $restarts=@{BOT=0;MARKET=0;R29=0;SOLANA=0}
   while($true){
     if($bot.HasExited){
       $restarts.BOT++
@@ -436,6 +442,13 @@ try {
       Write-Host ('[WARNUNG] Markt-Collector beendet. Neustart '+$restarts.MARKET+'/3') -ForegroundColor Yellow
       Start-Sleep -Seconds ([Math]::Pow(2,$restarts.MARKET))
       $market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job
+    }
+    if($null -ne $solanaStream -and $solanaStream.HasExited){
+      $restarts.SOLANA++
+      if($restarts.SOLANA -gt 3){throw 'Solana free data stream 3x unerwartet beendet. Alles wird gestoppt.'}
+      Write-Host ('[WARNUNG] Solana stream Neustart '+$restarts.SOLANA+'/3') -ForegroundColor Yellow
+      Start-Sleep -Seconds ([Math]::Pow(2,$restarts.SOLANA))
+      $solanaStream=Start-Child 'SOLANA' 'runner/solana-live-stream.mjs' $node $job
     }
     if($null -ne $r29Courier -and $r29Courier.HasExited){
       $restarts.R29++
@@ -459,6 +472,7 @@ catch {
 }
 finally {
   Stop-Child $r29Courier 'R29'
+  Stop-Child $solanaStream 'SOLANA'
   Stop-Child $market 'MARKET'
   Stop-Child $bot 'BOT'
   if($job -ne [IntPtr]::Zero){[SniperWindowsJob]::Close($job)}
