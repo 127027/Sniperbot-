@@ -78,3 +78,38 @@ test('reject invalid paper data instead of showing false zeros and never expose 
  assert(!txt.includes('walletSeed'));
  assert.equal(out.currency,'TEST-USDC');
 });
+
+
+test('last confirmed GPT decision is visible on local UI without counting a NO_TRADE as a fill',()=>{
+ const state={...freshState(),cashUsdc:4999,gptDecisionReplay:{
+  ['gpt_'+'1'.repeat(32)]:{
+   archive_sha256:'a'.repeat(64),status:'NO_TRADE',
+   reason:'GPT_RESEARCH_NO_ORDER',at_utc:'2026-11-17T15:00:00.000Z'},
+  ['gpt_'+'2'.repeat(32)]:{
+   archive_sha256:'b'.repeat(64),status:'BLOCKED',
+   reason:'GPT_FRESH_PRIVATE_PAPER_CAPACITY_REJECTED',
+   at_utc:'2026-11-17T16:00:00.000Z'}}};
+ const before=JSON.stringify(state);
+ const view=paperDashboardView(state);
+ assert.equal(view.free_cash_test_usdc,4999);
+ assert.equal(view.gpt_paper_received_decisions,2);
+ assert.equal(view.gpt_paper_last_decision.status,'BLOCKED');
+ assert.equal(view.gpt_paper_last_decision.paper_order_was_not_assumed,true);
+ assert.equal(view.open_position_count,0);
+ assert.equal(JSON.stringify(state),before);
+});
+test('actual opened GPT-managed paper position is tagged; ordinary position is not',()=>{
+ const s={...freshState(),cashUsdc:4900,positions:[
+  {id:'gpt-position',chain:'solana',symbol:'EX',name:'Example',
+   amountUsdc:50,qty:10,priceUsd:5,entryPriceUsd:5,
+   gptPaperDecision:true,openedAt:'2026-11-17T15:00:00Z',
+   markAt:'2026-11-17T15:01:00Z'},
+  {id:'regular-position',chain:'solana',symbol:'REG',name:'Regular',
+   amountUsdc:50,qty:10,priceUsd:5,entryPriceUsd:5,
+   gptPaperDecision:false,openedAt:'2026-11-17T15:00:00Z',
+   markAt:'2026-11-17T15:01:00Z'}]};
+ const v=paperDashboardView(s,{now:Date.parse('2026-11-17T15:01:30Z')});
+ assert.equal(v.positions[0].gpt_paper_managed,true);
+ assert.equal(v.positions[1].gpt_paper_managed,false);
+ assert.equal(v.positions[0].invested_test_usdc,50);
+});
