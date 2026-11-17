@@ -1,0 +1,92 @@
+{
+  "schema": "r29_gpt_memecoin_60d_two_frozen_policy_retro_comparison.v1",
+  "produced_on_actual_utc_date": "2026-11-17",
+  "source_branches": {
+    "repository": "127027/Sniperbot-",
+    "branch": "codex/r29-chatgpt-github-paper-cycle-20261115"
+  },
+  "windows": {
+    "train_start": "2026-07-20",
+    "train_end": "2026-09-17",
+    "holdout_start": "2026-09-18",
+    "holdout_end": "2026-11-16",
+    "holdout_days": 60
+  },
+  "disclaimer": "Both models are POSTHOC GPT-authored deterministic research-proxy replays; not 513 distinct GPT model invocations and not proven realizable trading profits; V2 is hindsight-informed IN-SAMPLE. GPT manually reviewed nine V1 episodes and the sole V2 episode on 2026-11-17 before outcome labels were fetched.",
+  "v1": {
+    "source_run": 44040656066,
+    "original_artifact": 14308549593,
+    "days_with_minute_data": 43,
+    "days_without_minute_data": 17,
+    "proxy_scan_episodes": 513,
+    "WATCH_episodes": 9,
+    "individually_current_GPT_reviewed_episodes": 9,
+    "current_GPT_WATCH": 6,
+    "current_GPT_NO_TRADE": 3,
+    "posthoc_outcome_source_run": 44047869968,
+    "posthoc_artifact": 14311474274,
+    "posthoc_neutral_launch_identity_matches": 8,
+    "unmatched_identity": 1,
+    "posthoc_provider_graduated": 0,
+    "posthoc_provider_rugged_rule": 3,
+    "rug_rule_events_already_before_hourly_scan": 3,
+    "historic_personal_buy_fills": 0,
+    "historic_personal_sell_fills": 0,
+    "realizable_pnl_usdc": null,
+    "biggest_error": "First eight neutral mints from prior hour were up to approximately one hour stale when evaluated; high 99.05 research score did not reliably identify a safe coin."
+  },
+  "v2": {
+    "source_run": 44048309420,
+    "source_artifact": 14312891173,
+    "policy_run": 44048643351,
+    "policy_artifact": 14312781818,
+    "posthoc_outcome_source_run": 44049113793,
+    "posthoc_source_artifact": 14312906446,
+    "days_with_minute_data": 43,
+    "days_without_minute_data": 17,
+    "fresh_neutral_candidate_occurrences": 8248,
+    "hourly_source_frames": 1032,
+    "proxy_scan_episodes": 513,
+    "WATCH_episodes": 1,
+    "WATCH_coin": "3cpr9EaPmQSf7daf37d7xNRZwbpL3LZRtARkYE3cp6jw",
+    "WATCH_at_utc": "2026-10-03T03:00:00Z",
+    "WATCH_research_score_not_probability": 98.15,
+    "independently_pinned_posthoc_source_identity_match": true,
+    "provider_posthoc_graduated": 0,
+    "provider_posthoc_rugged_rule": 1,
+    "provider_posthoc_rug_branch": "drain",
+    "provider_rug_rule_event_utc": "2026-10-03T03:02:13.422999Z",
+    "provider_rug_rule_event_seconds_after_watch": 133.423,
+    "actual_historical_buy_fills": 0,
+    "actual_historical_hold_actions": 0,
+    "actual_historical_sell_fills": 0,
+    "realizable_pnl_usdc": null,
+    "verdict": "High 98.15 score only WATCH; the later provider label indicates a reserve drain approximately two minutes after the scan. Hourly GPT reviews alone cannot prevent fast intrahour liquidity attacks."
+  },
+  "comparison": {
+    "watch_signal_reduction": 8,
+    "watch_signal_ratio_v2_over_v1": 0.1111111111111111,
+    "profit_improvement_test_usdc": null,
+    "warning": "WATCH count reduction is not proof of better realized returns; V2 was developed after seeing V1 labels on the same period and is not independent holdout."
+  },
+  "source_data_limits": [
+    "Source recorder nonrandom sampling and decoder discontinuities, legacy launches before Sep 27",
+    "Retrospectively published source; events from chain but not proof of available data at each model timestamp",
+    "f_rs means curve real SOL reserve, not a price, profit, or execution quote",
+    "Provider rug_rule is not a legal finding of fraud, nor a specific realized trader loss",
+    "None of the reviewed pools has a proven historical independent bidirectional executable quote and size-adjusted slippage",
+    "17/60 holdout dates missing minute-feature data, 42/60 learning dates lack the launch dataset",
+    "No authentic buy-hold-sell PnL measured; zero fills does not equal zero losses avoided"
+  ],
+  "future_only_learning_hypotheses": [
+    "Freeze the original WATCH/NO_TRADE decisions and write outcome reviews only later",
+    "Do not treat high risk score as tradeable without independent pool liquidity, swapback, token authorities, wallet diversity and quote",
+    "Use fresher than five-minute source snapshots when available; model false positives from 133-second drain",
+    "Separate mayhem/agent trading mode from standard launches, evaluate on unseen future data",
+    "Hourly GPT scanning is too slow for minute-scale liquidity drains; executor must have specifically authorized independent technical safety pause or circuit breaker, without strategic autonomous coin selection",
+    "Never optimize the completed 60-day holdout based on the outcomes and then call it an unbiased profit test"
+  ],
+  "day_by_day_permanent_csv": "research/replay-120d-real/results/R29_60D_V1_V2_FRESH5_INSAMPLE_DAY_BY_DAY_20261117.csv",
+  "real_trading_enabled": false,
+  "paper_account_mutated": false
+}
