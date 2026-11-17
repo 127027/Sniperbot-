@@ -1,0 +1,124 @@
+{
+  "schema": "sniper_r29_oct_2026_gpt_hindsight_masked_candidate_review.v1",
+  "recorded_at_utc": "2026-11-17T19:28:38.582Z",
+  "origin": "CURRENT_REAL_GPT_REVIEW_OF_SEALED_ASOF_OCTOBER_SOURCE_SAMPLES",
+  "user_window_utc": {
+    "preparation": "2026-10-05..2026-10-11",
+    "trading": "2026-10-12..2026-10-21"
+  },
+  "simulation_cash_test_usdc": 5000,
+  "input_evidence": {
+    "archived_github_run": 44158031458,
+    "original_source_run": 44048309420,
+    "archived_artifact_id": 14361751630,
+    "archived_original_asof_source_artifact_id": 14312891173,
+    "selected_asof_json_sha256": "0c1fd1f22ad7cb9d37498b99ccc65dfcf0ee6a32f8845a3b322e754f8ed9dad1",
+    "observed_token_starts_in_provider_trade_window": 470123,
+    "asof_minutes_in_provider_trade_window": 1357033,
+    "selected_hourly_checkpoints": 40,
+    "checkpoint_policy": "four preplanned source-sample checkpoints per day",
+    "distinct_mint_addresses_reviewed": 320,
+    "names_and_symbols_given_to_model": false,
+    "user_named_outcome_list_queried_during_this_review": false,
+    "full_raw_launch_universe_scanned_by_GPT": false,
+    "later_outcome_prices_seen": false,
+    "historical_original_feed_contemporaneous_delivery_attested": false,
+    "complete_universe_recall_coverage": "NOT_PROVEN"
+  },
+  "review_policy_frozen_before_posthoc_comparison": {
+    "source_observed_age_max_s": 300,
+    "quote_asset_must_be_SOL": true,
+    "min_early_buys_observed": 20,
+    "min_recorded_real_SOL_curve_reserves": 2,
+    "max_recorded_insider_share": 0.05,
+    "max_recorded_dev_share": 0.05,
+    "max_bundle_wallets_observed": 5,
+    "reject_if_bundle_dumped": true,
+    "reject_if_pool_drained": true,
+    "reject_if_mayhem_mode": true,
+    "creator_sold_event": "HIGH_RISK_REQUIRES_INDEPENDENT_REVIEW_NOT_AUTOMATIC_BUY",
+    "categories": [
+      "WATCH_RESEARCH_ONLY",
+      "REJECT_LOW_OR_RISKY_EVIDENCE"
+    ],
+    "buy_requires_independent_contract_lp_holder_sellability_and_executable_50_5000_TEST_USDC_QUOTES": true,
+    "note": "GPT strategic review of as-of technical market attributes, not 320 independent model calls or a classifier trained on known winners. Thresholds fixed before posthoc identity matching."
+  },
+  "observed_primary_risk_conditions_nonexclusive": {
+    "low_or_missing_recorded_SOL_reserve": 271,
+    "fewer_than_20_early_buys": 188,
+    "bundle_dump_reported": 130,
+    "mayhem_mode_flag": 117,
+    "non_SOL_quote_asset": 56,
+    "bundle_wallets_above_5": 53,
+    "insider_share_above_5_percent": 31,
+    "dev_share_above_5_percent": 11,
+    "pool_drained": 1
+  },
+  "gpt_research_decisions": {
+    "sample_mints_evaluated": 320,
+    "research_watch_count": 2,
+    "technical_reject_count": 318,
+    "buy_authorized": 0,
+    "historical_gpt_model_calls_actually_performed_at_each_october_timestamp": 0,
+    "current_gpt_review_performed": true,
+    "simulated_paper_BUY_fills": 0,
+    "simulated_paper_SELL_fills": 0,
+    "realizable_net_pnl_test_usdc": null,
+    "paper_ledger_mutated": false
+  },
+  "watch_candidates": [
+    {
+      "chain": "solana",
+      "mint": "3eSVzGDVo9ivvSySA83RTjtXyDCX4ZcYZhcjoBMppump",
+      "asof_review_at_utc": "2026-10-14T12:00:00.000Z",
+      "first_seen_in_original_source_at_utc": "2026-10-14T11:59:56.264000Z",
+      "observed_age_at_review_s": 34.736,
+      "signal": "WATCH_RESEARCH_ONLY",
+      "evidence": {
+        "early_buys": 40,
+        "recorded_SOL_curve_reserve": 5.707632,
+        "f_dev_share": 0,
+        "f_insider_share": 0,
+        "bundle_wallet_count": 0,
+        "bundle_dumped": false,
+        "pool_drained": false,
+        "mayhem_mode": false,
+        "creator_sold": true
+      },
+      "rationale": "40 early buys, >5.7 SOL recorded reserves, low apparent dev/insider/bundle concentration; creator sale observed and executable sales unknown.",
+      "buy": "BLOCKED_UNVERIFIED_CONTRACT_LP_AND_EXECUTABLE_TWO_WAY_QUOTES"
+    },
+    {
+      "chain": "solana",
+      "mint": "2JesF8EvrcpbVHiuXeGviK1NEuSUReFkGAzZ3eoapump",
+      "asof_review_at_utc": "2026-10-17T06:00:00.000Z",
+      "first_seen_in_original_source_at_utc": "2026-10-17T05:59:57.339000Z",
+      "observed_age_at_review_s": 73.761,
+      "signal": "WATCH_RESEARCH_ONLY",
+      "evidence": {
+        "early_buys": 52,
+        "recorded_SOL_curve_reserve": 11.664588,
+        "f_dev_share": 0,
+        "f_insider_share": 0.03407514168458,
+        "bundle_wallet_count": 3,
+        "bundle_dumped": false,
+        "pool_drained": false,
+        "mayhem_mode": false,
+        "creator_sold": true
+      },
+      "rationale": "52 early buys, >11.6 SOL recorded reserves, modest apparent concentration and no observed bundle dump; creator sale observed and executable sell quote missing.",
+      "buy": "BLOCKED_UNVERIFIED_CONTRACT_LP_AND_EXECUTABLE_TWO_WAY_QUOTES"
+    }
+  ],
+  "notes": [
+    "This is the first GPT-authored hindsight-masked review of 320 previously neutral-sampled mints, not a model-driven 470123-token market-wide original-time backtest.",
+    "The user identified historical winners earlier in the conversation, so this review is not epistemically perfectly blind even though no names or future outcomes were in the reviewed evidence file.",
+    "No historical coin name or ticker was consulted before freezing this document.",
+    "318 failed at least one fixed source observation criterion; rules are conservative and may miss true future winners.",
+    "The 0.068% sample rate is not a detector success rate. Restricting to 4 snapshots per day and 8 recent mints per snapshot misses most launches.",
+    "The recorded f_rs is SOL curve reserve, NOT an executable token sale price, LP audit, profit or available TEST-USDC.",
+    "The 40 checkpoint plan was deterministic, not 40 individual GPT model calls.",
+    "Freeze this file BEFORE looking up name-to-mint identity for posthoc examples."
+  ]
+}
