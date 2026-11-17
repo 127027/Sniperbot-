@@ -1,0 +1,46 @@
+name: R29 next chronological 01-20 neutral GPT candidate view
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-next-0120-neutral-candidate-view.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  show-next-sealed-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore original 01-20 source snapshot and previous precommitted 00-05 decision
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/r29-0120
+          gh run download 44066121844 --repo 127027/Sniperbot- --name r29-historic-second-0120-source-frame-after-first-lesson-no-trades --dir /tmp/r29-0120
+          test -f /tmp/r29-0120/2026-09-18T012000Z-mint-pool-candidates.json
+      - name: Print only TOP15 pre-01:20 neutral activity, never subsequent market outcomes
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          const r=JSON.parse(readFileSync('/tmp/r29-0120/2026-09-18T012000Z-mint-pool-candidates.json','utf8'));
+          assert.equal(r.virtual_asof_utc,'2026-09-18T01:20:00.000Z');
+          assert.equal(r.stream_stopped_at_first_later_event,true);
+          console.log('R29_NEXT_0120_FROZEN_SOURCE_SHA',r.source_prefix_asof_event_lines_sha256);
+          console.log('R29_NEXT_0120_TOP15_ONLY_ASOF',JSON.stringify(r.ranked_neutral_cohort_not_all_market.slice(0,15).map(x=>({
+            mint:x.token_address,pool:x.pool_address,venue:x.first_seen_protocol,quote:x.quote_currency,
+            buys:x.observed_buys,sells:x.observed_sells,
+            uniq_buyers:x.unique_buyers_observed,uniq_sellers:x.unique_sellers_observed,
+            buy_quote_sol:x.buy_quote_volume_original_asset,sell_quote_sol:x.sell_quote_volume_original_asset,
+            reserve_quote:x.latest_pool_quote_reserves_original_asset,
+            last_price_quote:x.most_recent_trade_price_original_quote,
+            authority_verified_absent:x.mint_or_freeze_authority_verified_absent
+          }))));
+          JS
