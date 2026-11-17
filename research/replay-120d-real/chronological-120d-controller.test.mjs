@@ -4,6 +4,15 @@ import {createHash} from 'node:crypto';
 import {chronological120Calendar,asofVisibleEvidence,dueChronologicalScan,validateGptReplayTranscript,validateLearningEvent,validateOfflineFill,build120dSourceLedger} from './chronological-120d-controller.mjs';
 const hash='a'.repeat(64);
 const iso=(i)=>new Date(Date.UTC(2026,8,18+i)).toISOString().slice(0,10);
+const launchCoverageCsv=[
+ 'date,phase,captured_launch_count,raw_parquet_sha256',
+ ...Array.from({length:120},(_,i)=>{
+  const day=new Date(Date.UTC(2026,6,20+i)).toISOString().slice(0,10);
+  const covered=i<60?i>=42:i-60<49;
+  return [day,i<60?'TRAIN_60_DAYS':'HOLDOUT_60_DAYS',
+   covered?'100':'',covered?hash:''].join(',');
+ })
+].join('\n');
 const csv=['day_utc,historic_launch_source_sha256,minute_feature_sha256,recorded_full_day_swaps_for_neutral_group',
  ...Array.from({length:60},(_,i)=>[iso(i),i<49?hash:'',i>=6&&i<49?hash:'',i===27?'48_mints_28112_events':''].join(','))].join('\n');
 test('120 chronological days: 60 train strictly preceding 60 blind test',()=>{
