@@ -80,7 +80,8 @@ function publicAlert(e,at,candidates){
  const out={
   event_id:e.event_id,event_type:e.event_type,
   chain:e.chain,token_address:e.token_address,pool_address:e.pool_address??null,
-  candidate_id:goodCandidates.has(e.candidate_id)?e.candidate_id:null,
+  candidate_id:isStream?(e.candidate_id??null):
+   goodCandidates.has(e.candidate_id)?e.candidate_id:null,
   observed_at_utc:e.observed_at_utc,
   paper_only:true,actionable:false,probability_pct:null,
   recommended_action:'INDEPENDENT_FIVE_ROLE_REVIEW',
@@ -96,6 +97,9 @@ function publicAlert(e,at,candidates){
  }else if(isStream){
   // The original validated provider event supplied these fields. No forging
   // an onchain timestamp, liquidity or confidence from arrival-only data.
+  out.unknown_checks=['CHAIN_FINALITY','POOL_IDENTITY_IF_UNKNOWN',
+   'UNIQUE_WALLET_ANALYSIS','CONTRACT_SECURITY','LP_CONTROL',
+   'EXECUTABLE_BUY_AND_SELL_QUOTES','FEES_AND_SLIPPAGE'];
   out.source_event_at_utc=null;
   out.source_timestamp_quality='LOCAL_RECEIVE_ONLY';
   out.transaction_signature=e.transaction_signature;
