@@ -94,7 +94,8 @@ export async function collectDayFrames({fetcher=fetch}={}){
    sources.push({status:'OK',subreddit:sub,source_sha256:sha(raw),posts:v.data});
   }catch(e){sources.push({status:'UNAVAILABLE',subreddit:sub,reason:String(e.message||e).slice(0,70)});}
  }
- return archiveDayFrames({day_utc:DAY,from_sources:sources});
+ const result=archiveDayFrames({day_utc:DAY,from_sources:sources});
+ return {...result,source_fetch_diagnostics:sources.map(s=>({subreddit:s.subreddit,status:s.status,reason:s.reason||null,received_posts:s.posts?.length||0}))};
 }
 if(process.argv[1]?.endsWith('reddit-neutral-24-hour-frames.mjs')){
  try{
@@ -106,6 +107,7 @@ if(process.argv[1]?.endsWith('reddit-neutral-24-hour-frames.mjs')){
    day:result.day_utc,hourly_frames:result.frames.length,
    posts:result.archived_posts_usable_by_day_end,
    gaps:result.source_or_record_gaps.length,
+   source_diagnostics:result.source_fetch_diagnostics,
    first_hour_posts:result.frames[0].available_archived_posts.length,
    first_half_day_posts:result.frames[11].available_archived_posts.length,
    no_trades:true}));
