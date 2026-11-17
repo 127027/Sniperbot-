@@ -1,3 +1,5 @@
+> **WICHTIGE INPUT-TRENNUNG FÜR DEN 120-TAGE-BLINDTEST (17.11.2026):** Dieses allgemeine Startdokument enthält nachträglich festgestellte Coin-Outcomes, spätere Strategiekorrekturen und die Erkenntnisse des aktuellen Chats. Es ist ausschließlich ein **technisches Operator-Dokument** und darf **NICHT** in den Prompt eines historischen GPT-Handelsentscheiders eingespeist werden. Der historische Entscheidungs-Actor bekommt nur den unabhängig isolierten, as-of-geprüften Datenblock aus `research/replay-120d-real/blind-neutral-market-gpt-input.mjs` sowie die separate Modellanleitung `research/replay-120d-real/BLIND_GPT_NEUTRAL_RESEARCH_AND_TRADING_CONTRACT_20261117_DE.md`. Frühere bekannte Gewinner sind keine Suchliste. Siehe GitHub-Proof-Runs 44059351263 (historische Stundenabdeckung), 44059964802 (Original-Onchain-Zeitstempel), 44060236356/44060864100 (historisches Reddit) und 44059746086 (Context-Gate). Keine tatsächlich bewiesenen historischen GPT-DEX-Fills, PnL UNKNOWN.
+
 # SNIPERBOT R29 – HIER BEGINNEN (auch in jedem neuen Chat)
 
 **Projekt:** `127027/Sniperbot-` · Branch `codex/r29-chatgpt-github-paper-cycle-20261115`  
