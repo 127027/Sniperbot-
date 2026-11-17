@@ -15,6 +15,7 @@ const solana={
  candidate_id:candidateId,chain:'solana',token_address:mint,pool_address:pool,
  price_usd:0.00001,liquidity_usd:5000,volume_m5_usd:50,
  buys_m5:3,sells_m5:1,source:'GECKOTERMINAL_NEW_POOLS',
+ source_urls:['https://api.geckoterminal.com/api/v2/networks/solana/new_pools?page=1'],
  promotion_biased:false,pool_created_at_utc:'2026-11-17T17:29:00.000Z'
 };
 const dominant=i=>{
