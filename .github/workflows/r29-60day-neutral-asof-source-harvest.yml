@@ -1,0 +1,52 @@
+name: R29 60 neutral historical days daily first 5-minute source harvest
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-60day-neutral-asof-source-harvest.yml'
+      - 'research/replay-120d-real/neutral-60day-one-asof-scan-per-day*'
+permissions:
+  contents: read
+jobs:
+  sterile-60day-source-harvest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        chunk: [0,1,2,3,4,5]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test neutral day choice, no hindsight and no invented paper fills
+        run: node --test research/replay-120d-real/neutral-60day-one-asof-scan-per-day.test.mjs
+      - name: Read only original-capture first five minutes of earliest available source hour on ten successive days
+        run: |
+          node research/replay-120d-real/neutral-60day-one-asof-scan-per-day.mjs ${{ matrix.chunk }} R29_NEUTRAL_60D_CHUNK
+      - name: Assert chronological chunk and source-only, not trading results
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          const d=JSON.parse(readFileSync('R29_NEUTRAL_60D_CHUNK/CHUNK_SUMMARY.json','utf8'));
+          assert.equal(d.daily.length,10);
+          assert.equal(d.discovered_without_known_future_winners,true);
+          assert.equal(d.never_accessed_posthoc_price_outcomes,true);
+          assert.equal(d.independent_GPT_trading_calls_completed,0);
+          assert.equal(d.this_is_evidence_not_60_day_profit_test,true);
+          for(const x of d.daily)
+            assert.equal(x.realizable_pnl_test_usdc??null,null);
+          console.log('R29_60D_NEUTRAL_SOURCE_CHUNK_VALIDATED',d.chunk_index,d.daily.filter(x=>x.status==='ASOF_ORIGINAL_CAPTURE_SOURCE_FRAME').length);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-60day-neutral-source-chunk-${{ matrix.chunk }}-no-gpt-trades
+          path: R29_NEUTRAL_60D_CHUNK/
+          if-no-files-found: warn
+          retention-days: 30
