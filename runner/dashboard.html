@@ -170,6 +170,7 @@ footer{margin-top:24px;border-top:1px solid var(--border);padding-top:18px;font-
   <div class="details-content technical">
     <div id="diagPaper">Paper-Bot: –</div>
     <div id="diagAutopilot">GPT-Paper-Kanal: wird geprüft</div>
+    <div id="diagGptLast">Letzte bestätigte GPT-Entscheidung: noch keine</div>
     <div id="diagCourier">GitHub-Verbindung: wird geprüft</div>
     <div id="diagMain">Haupt-Paper-Test: wird geprüft</div>
     <div>Testprotokolle und frühere isolierte Testkonten sind keine Handelsguthaben und werden hier nicht angezeigt.</div>
@@ -248,7 +249,9 @@ function renderPositions(view){
  if(!view.positions.length){emptyTable('Derzeit keine offenen Positionen.');return}
  for(const p of view.positions){
   const row=document.createElement('tr');
-  tableCell(row,p.symbol||'Coin','coin',(p.name||'')+' · '+(p.chain||'–')+' · '+stamp(p.opened_at_utc));
+  tableCell(row,p.symbol||'Coin','coin',(p.name||'')+' · '+(p.chain||'–')+
+   (p.gpt_paper_managed?' · GPT-Paper':' · Kein bestätigter GPT-Paper-Fill')+
+   ' · '+stamp(p.opened_at_utc));
   tableCell(row,currency(p.invested_test_usdc),'',quantity(p.quantity)+' Stück');
   tableCell(row,precise(p.entry_usdc));
   tableCell(row,precise(p.current_usdc));
@@ -306,6 +309,11 @@ function renderPaper(){
    (p.bot_enabled?'GPT-Entscheidungskanal aktiviert; Käufe nur nach signierter GitHub-Entscheidung und unabhängiger Risikoprüfung.':
     'GPT-Kanal aktiviert, Bot pausiert; keine neuen Käufe.') :
    'GPT-Paper-Freigabe AUS. Der lokale Algorithmus trifft keine eigenständigen Handelsentscheidungen.';
+ const last=p?.gpt_paper_last_decision;
+ $('diagGptLast').textContent=last?
+  'Letzte bestätigte GPT-Entscheidung: '+(last.status||'UNBEKANNT')+
+  ' · '+stamp(last.at_utc)+' · '+(last.reason||'Kein Grund verfügbar'):
+  'Letzte bestätigte GPT-Entscheidung: keine, noch keine bestätigten GPT-Trades';
  $('positionTime').textContent=p?'Stand: '+stamp(p.as_of_utc):'Nicht verfügbar';
  $('positionNote').textContent='Paper-Bewertungen sind indikativ; inklusive modellierter 1 % Verkaufskosten. Veraltete oder fehlende Kurse werden nicht als Gewinn angezeigt.';
  renderPositions(p);
