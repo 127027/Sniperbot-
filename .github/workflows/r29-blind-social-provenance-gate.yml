@@ -1,0 +1,28 @@
+name: R29 blind social provenance gate (synthetic)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - 'research/replay-120d-real/blind-neutral-social-provenance-wrapper-20261117.mjs'
+      - 'research/replay-120d-real/reddit-content-provenance-strict-gate-20261117.mjs'
+      - 'research/replay-120d-real/blind-neutral-market-gpt-input.mjs'
+      - '.github/workflows/r29-blind-social-provenance-gate.yml'
+permissions:
+  contents: read
+jobs:
+  fail-closed-synthetic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reject unverified historical social text and future events
+        run: node research/replay-120d-real/blind-neutral-social-provenance-wrapper-20261117.mjs
+      - name: Explicitly delimit evidence
+        run: |
+          echo 'Synthetic safety checks only.'
+          echo 'No historical frame, isolated GPT model call, execution quote, fill, or PnL is proven by this job.'
