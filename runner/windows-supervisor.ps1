@@ -221,7 +221,10 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
     # Sole strategist is the GitHub research GPT. The former self-selecting
     # local BUY algorithm is permanently disabled under the canonical launcher.
     $info.EnvironmentVariables['SNIPER_PAPER_AUTOPILOT'] = '0'
-    $info.EnvironmentVariables['SNIPER_GPT_PAPER_BRIDGE'] = '1'
+    # Exactly ONE authorised GPT source may control the same Paper ledger.
+    # When user has separately enabled the locally billed Responses API,
+    # GitHub remains a read-only research courier, not a second order issuer.
+    $info.EnvironmentVariables['SNIPER_GPT_PAPER_BRIDGE'] = $(if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){'0'}else{'1'})
     $info.EnvironmentVariables['SNIPER_AGENT_PAPER_FEED'] = '0'
   }
   if($role -eq 'MARKET') {
@@ -243,6 +246,7 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
     $researchSecret=Read-ResearchToken
     $info.EnvironmentVariables['SNIPER_R29_GITHUB_TOKEN']=$researchSecret
     $info.EnvironmentVariables['SNIPER_R29_MAIN_PAPER_DEMO']=$(if($AllowR29MainPaperDemo){'1'}else{'0'})
+    $info.EnvironmentVariables['SNIPER_R29_GPT_SOURCE']=$(if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){'LOCAL_OPENAI_API'}else{'GITHUB_CHATGPT_COURIER'})
     $researchSecret=$null
   }
   $proc = New-Object Diagnostics.Process
@@ -420,7 +424,9 @@ try {
     }
   }
   if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){
-    Write-Host '[AI] EIN stündlicher lokaler Forschungsprozess aktiviert, nur PAPER.' -ForegroundColor Green
+    Write-Host '[GPT API] Lokaler Responses-API-Koordinator EIN, adaptiv 1-24 Modellpruefungen pro Tag, ausschliesslich PAPER.' -ForegroundColor Green
+    Write-Host '[GPT API] OpenAI API kann separat kostenpflichtig sein. Kein Echthandel, keine Erfolgs- oder Verfuegbarkeitsgarantie.' -ForegroundColor Yellow
+    if($WithR29){Write-Host '[R29] GitHub-Forschungskanal bleibt lesend; zweiter GPT-GitHub-Orderkanal ist fuer dieses Startprofil deaktiviert.' -ForegroundColor Cyan}
   } elseif($WithR29) {
     Write-Host '[GPT] ChatGPT-GitHub-Diagnose ist strategischer Entscheider. Lokale kostenpflichtige OpenAI-API AUS.' -ForegroundColor Green
     Write-Host '[GPT] Noch kein Live-Paper-Fill ohne nachgewiesenen GPT-Entscheid und lokale Freigabe.' -ForegroundColor Yellow
