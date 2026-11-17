@@ -1,0 +1,45 @@
+name: R29 second provider full 120-day 2880-hour directory audit
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-second-archive-full-day-120-hour-index.yml'
+      - 'research/replay-120d-real/second-archive-full-day-120-calendar*'
+permissions:
+  contents: read
+jobs:
+  strict-chronological-index-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify day index integrity, upload-asof chronology and neutral dates
+        run: node --test research/replay-120d-real/second-archive-full-day-120-calendar.test.mjs
+      - name: Fetch 120 small JSON directory indexes; DO NOT download 2880 gigantic archives
+        run: node research/replay-120d-real/second-archive-full-day-120-calendar.mjs R29_SECOND_FULL_120DAY/neutral-120d-2880-hour-directory-index.json
+      - name: Assert no trades or model calls are fabricated
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          const r=JSON.parse(readFileSync('R29_SECOND_FULL_120DAY/neutral-120d-2880-hour-directory-index.json','utf8'));
+          assert.equal(r.days.length,120);
+          assert.equal(r.no_coin_winners_read,true);
+          assert.equal(r.actual_GPT_model_buy_sell_calls,0);
+          assert.equal(r.value_of_5000_test_usdc_portfolio_after_trading,null);
+          assert.equal(r.source_only_not_a_trade_backtest,true);
+          assert.equal(r.complete_historical_buy_sell_and_liquidity_proven,false);
+          console.log('R29_120DAY_NEUTRAL_INDEX_VERIFIED',r.verified_days,r.complete_24_hour_days,r.total_indexed_hour_files);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-two-provider-120d-full-neutral-hour-index-no-trading
+          path: R29_SECOND_FULL_120DAY/
+          if-no-files-found: warn
+          retention-days: 30
