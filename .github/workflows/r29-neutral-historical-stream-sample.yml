@@ -1,0 +1,44 @@
+name: R29 neutral first-hour historical stream capture proof
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-neutral-historical-stream-sample.yml'
+      - 'research/replay-120d-real/shrine-neutral-hourly-sample.mjs'
+permissions:
+  contents: read
+jobs:
+  original-capture-sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check and sample neutral historical stream
+        run: |
+          node --check research/replay-120d-real/shrine-neutral-hourly-sample.mjs
+          node research/replay-120d-real/shrine-neutral-hourly-sample.mjs R29_NEUTRAL_SAMPLE/first-hour-capture-sample.json
+      - name: Ensure no tokens, private keys, user trades or profits
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          const d=JSON.parse(readFileSync('R29_NEUTRAL_SAMPLE/first-hour-capture-sample.json','utf8'));
+          assert.equal(d.token_identifiers_exported,false);
+          assert.equal(d.known_future_winners_used,false);
+          assert.equal(d.sample_is_complete_hour,false);
+          assert.equal(d.actual_user_trades,0);
+          assert.equal(d.pnl_test_usdc,null);
+          assert.ok(d.sampled_events>0);
+          console.log('R29_NEUTRAL_HISTORIC_EVENTS',d.sampled_events,d.events_with_original_capture_timestamp);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-first-neutral-hour-original-capture-timestamps-not-trades
+          path: R29_NEUTRAL_SAMPLE/
+          if-no-files-found: warn
