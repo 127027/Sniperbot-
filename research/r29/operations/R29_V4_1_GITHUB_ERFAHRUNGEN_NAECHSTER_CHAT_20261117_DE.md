@@ -1,4 +1,9 @@
 # R29 V4.1 – Entwickler-Erfahrungen, Fehlversuche und Wiedereinstieg für einen neuen Chat
+> **ABSCHLUSS-NACHTRAG – V4.1 PR #54 MERGED**
+> [PR #54](https://github.com/127027/Sniperbot-/pull/54) ist erfolgreich nach Auflösung eines Git-Merge-Konflikts in START_HERE in den kanonischen Zweig übernommen. Merge-Commit `b32bf8e3e3c9953fa7c9737a2e4189b93edefe06`, final geprüfter PR-Head `50b13b962fe6b792b686cabafba2c41eb72646ae`.
+> [Vollständige 17-Tage-Echtdaten-CI auf dem endgültigen PR-Commit](https://github.com/127027/Sniperbot-/actions/runs/44180592801): **SUCCESS**, beide Jobs (821.849 Tokenstarts, 2.296.466 Minutenmerkmale, 408 AS-OF-Frames, 4/4 POSTHOC-Gruppen). [Windows+Linux Paper-Gesamttests](https://github.com/127027/Sniperbot-/actions/runs/44180592858): **SUCCESS**. Der Merge hat alle 12 neuen V4.1-Dateien erhalten, und die zwischenzeitlich im kanonischen Zweig aktualisierte START_HERE sowie die laufenden Telemetrie-Channel-Dateien sind nicht überschrieben worden.
+> [Jetzt maßgeblicher finaler Checkpoint](R29_LATEST_CHECKPOINT.json) und [unveränderlicher V4.1-Merge-Checkpoint](checkpoints/2026-11-17/R29_V4_1_PR54_MERGED_VALIDATED_CONTINUITY.json). Alte Angaben in diesem Bericht zu offenem PR/zu prüfendem CI sind durch den Nachtrag ersetzt. **Die 10 unabhängigen autonomen historischen GPT-Handelstests samt realistischen Fills bleiben NICHT abgeschlossen; keine Echtgeldfreigabe!**
+
 
 **Erstellt 17.11.2026, 22-Uhr-Mitteleuropa-Zeit im laufenden Auftrag.** Dies ist der **kanonische, chatübergreifende Wissenstransfer** für den Sniperbot R29. Dieser Bericht ist ein OPERATIONS-Dokument mit historischen POSTHOC-Referenzen und **darf niemals als isolierter historischer GPT-Blindtest-Modellinput** verwendet werden. Keine privaten Kontonummern, Tokens, API-Keys oder Wallet-Daten in öffentliches GitHub aufnehmen.
 
