@@ -39,6 +39,7 @@ export function archiveDayFrames({day_utc,from_sources}){
    const id=String(p.id||'');
    if(!/^[a-z0-9]{4,12}$/.test(id)||seen.has(id)){missing.push('UNTRUSTED_OR_DUPLICATE_POST');continue;}
    seen.add(id);
+   if(p.edited===undefined)missing.push('POST_CONTENT_EDIT_HISTORY_UNATTESTED');
    const title=String(p.title||'').replace(/\s+/g,' ').slice(0,140);
    const body=String(p.selftext||'').replace(/\s+/g,' ').slice(0,160);
    posts.push({item_id:id,channel:'community',source_id:'arctic-shift:'+s.subreddit,
@@ -48,7 +49,7 @@ export function archiveDayFrames({day_utc,from_sources}){
     archived_at_utc:new Date(captured).toISOString(),
     observed_at_utc:new Date(captured).toISOString(),
     edited_at_utc:edited===null?null:new Date(edited).toISOString(),
-    title,body_excerpt:body,source_archival_method:'ARCTIC_SHIFT_RETRIEVED_ON',
+    title,body_excerpt:body,source_archival_method:'ARCTIC_SHIFT_RETRIEVED_ON_CONTENT_EDIT_HISTORY_UNATTESTED',
     // No score, comments, later edited title nor winner/pump rank.
    });
   }
@@ -79,7 +80,7 @@ export async function collectDayFrames({fetcher=fetch}={}){
   const url=new URL(BASE);
   Object.entries({subreddit:sub,after:DAY,before:'2026-09-19',
    sort:'asc',limit:'100',
-   fields:'id,created_utc,retrieved_on,subreddit,title,selftext,edited'}).forEach(([k,v])=>
+   fields:'id,created_utc,retrieved_on,subreddit,title,selftext'}).forEach(([k,v])=>
    url.searchParams.set(k,v));
   try{
    const response=await fetcher(url.toString(),{
