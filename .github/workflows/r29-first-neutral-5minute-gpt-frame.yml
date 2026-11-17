@@ -1,0 +1,46 @@
+name: R29 first real 5-minute blind holdout candidate source frame
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-first-neutral-5minute-gpt-frame.yml'
+      - 'research/replay-120d-real/neutral-first5-minute-gpt-candidate-frame*'
+permissions:
+  contents: read
+jobs:
+  first-neutral-source-frame:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test unbiased as-of 5-minute source gate, prices and non-assumed DEX fills
+        run: node --test research/replay-120d-real/neutral-first5-minute-gpt-candidate-frame.test.mjs
+      - name: Stream only events captured within first five minutes then stop before next event
+        run: node research/replay-120d-real/neutral-first5-minute-gpt-candidate-frame.mjs R29_FIRST5_NEUTRAL/2026-09-18T000500Z-mint-pool-candidates.json
+      - name: Verify no future market outcomes, winner names or fabricated PnL
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          const r=JSON.parse(readFileSync('R29_FIRST5_NEUTRAL/2026-09-18T000500Z-mint-pool-candidates.json','utf8'));
+          assert.equal(r.virtual_asof_utc,'2026-09-18T00:05:00.000Z');
+          assert.equal(r.stream_stopped_at_first_later_event,true);
+          assert.equal(r.source_future_coin_winners_used,false);
+          assert.equal(r.known_winner_names_supplied,false);
+          assert.equal(r.historical_GPT_calls_from_this_input,0);
+          assert.equal(r.realized_test_usdc_pnl,null);
+          assert.ok(r.raw_events_examined_before_asof>0);
+          console.log('R29_FIRST_5MINUTE_BLIND_FRAME',r.raw_events_examined_before_asof,r.ranked_neutral_cohort_not_all_market.length);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-neutral-first-five-minutes-sealed-asof-gpt-source-not-actual-trades
+          path: R29_FIRST5_NEUTRAL/
+          if-no-files-found: warn
+          retention-days: 30
