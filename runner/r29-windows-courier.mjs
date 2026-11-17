@@ -14,6 +14,7 @@ import {relayGptPaperDecision} from './gpt-paper-github-relay.mjs';
 import {syncGptPaperPublicPositionContext} from './gpt-paper-position-publisher.mjs';
 import {syncGptPaperSecurityResearch} from './gpt-paper-security-research.mjs';
 import {syncPublicForwardSourceHealth} from './forward-source-health.mjs';
+import {mirrorFreshLocalMarketToCanonical} from './r29-canonical-market-relay.mjs';
 
 const REPO='127027/Sniperbot-';
 const base='https://api.github.com/repos/'+REPO+'/contents/';
@@ -313,6 +314,16 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
     if(Date.now()-lastSourceDiagnosticAt>=10*60_000){
       lastSourceDiagnosticAt=Date.now();
       try{
+        // Canonical R29 market copy is independent of the old Gateway branch.
+        // Fail closed when the local capture is absent, stale or malformed.
+        try{
+          const mirrored=await mirrorFreshLocalMarketToCanonical({token});
+          if(mirrored.published)console.log('[GPT R29] Aktuellen Research-Frame sicher nach R29 gespiegelt:',
+            mirrored.market_candidates,'Pool-Beobachtungen, keine Orders');
+        }catch(e){
+          console.error('[GPT R29] R29 canonical market mirror DATA_GAP:',
+            String(e?.message||e).replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,90));
+        }
         const health=await syncPublicForwardSourceHealth({token});
         if(health.published)console.log('[GPT R29] Market source health:',
           health.public.market_source_status,'· Solana:',

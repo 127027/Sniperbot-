@@ -1,6 +1,11 @@
 > **WICHTIGE INPUT-TRENNUNG FÜR DEN 120-TAGE-BLINDTEST (17.11.2026):** Dieses allgemeine Startdokument enthält nachträglich festgestellte Coin-Outcomes, spätere Strategiekorrekturen und die Erkenntnisse des aktuellen Chats. Es ist ausschließlich ein **technisches Operator-Dokument** und darf **NICHT** in den Prompt eines historischen GPT-Handelsentscheiders eingespeist werden. Der historische Entscheidungs-Actor bekommt nur den unabhängig isolierten, as-of-geprüften Datenblock aus `research/replay-120d-real/blind-neutral-market-gpt-input.mjs` sowie die separate Modellanleitung `research/replay-120d-real/BLIND_GPT_NEUTRAL_RESEARCH_AND_TRADING_CONTRACT_20261117_DE.md`. Frühere bekannte Gewinner sind keine Suchliste. Siehe GitHub-Proof-Runs 44059351263 (historische Stundenabdeckung), 44059964802 (Original-Onchain-Zeitstempel), 44060236356/44060864100 (historisches Reddit) und 44059746086 (Context-Gate). Keine tatsächlich bewiesenen historischen GPT-DEX-Fills, PnL UNKNOWN.
 
 # SNIPERBOT R29 – HIER BEGINNEN (auch in jedem neuen Chat)
+> **AKTUELLER MARKTFEED-FIX 17.11.2026 – ZUERST HIER PRÜFEN**
+> Der bisherige öffentliche Poolfeed `research/market/latest.json` auf `codex/research-gateway-v04` war beim heutigen Test seit 11.11.2026 veraltet, obwohl der Windows-Paper-Bot über GitHub erreichbar ist.
+> Das neue [R29-Runbook zum kanonischen Marktfeed](research/r29/operations/R29_CANONICAL_MARKET_RELAY_RUNBOOK_20261117_DE.md) erläutert den Root Cause, die datenschutzgeprüfte lokale Marktfeed-Übertragung direkt auf den GPT-R29-Branch sowie die notwendigen Schritte zur Aktualisierung des tatsächlich laufenden Windows-Bots.
+> Es gelten weiter ausschließlich PAPER_ONLY, keine frei erfundenen GPT-Modellaufrufe, keine unvalidierten BUYs und keine realen Gelder.
+
 
 > **NEUE KANONISCHE FORTSETZUNG – echter GPT→GitHub→Windows-Rundweg am 17.11.2026**
 > Ein aktuellen Chat-Entscheid ist um 17:58:12.581 UTC per unveraenderlichem
