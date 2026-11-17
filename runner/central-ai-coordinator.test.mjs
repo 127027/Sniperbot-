@@ -8,7 +8,8 @@ import {encodeBase58} from './local-solana-vault.mjs';
 import {freshState} from './core.mjs';
 import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
 import {snapshotForAi,planRecommendations,signLocalPaperSignal,
- startCentralAiCoordinator,requestCentralAiAdvice} from './central-ai-coordinator.mjs';
+ startCentralAiCoordinator,requestCentralAiAdvice,
+ nextR29RealModelDelayMs,reserveR29GptBudget} from './central-ai-coordinator.mjs';
 
 const MINT=encodeBase58(Buffer.alloc(32,31));
 const POOL=encodeBase58(Buffer.alloc(32,32));
@@ -170,5 +171,46 @@ test('single AI run shares the local bot state and logs actual simulated receipt
   assert.equal(status.remote_chat_session_connected,false);
   assert.equal(status.receipts[0].status,'PAPER_FILLED');
   assert.equal(JSON.parse(readFileSync(path.join(dir,'central-ai','latest.json'))).mode,'PAPER_ONLY');
+ }finally{service.stop();rmSync(dir,{recursive:true,force:true})}
+});
+
+test('GPT research cadence targets 1, 6, 12, 24 reviews daily without generating BUY instructions',()=>{
+ const input={paper:{positions:[]},candidates:[],early_discovery:{alerts:[]},news:{leads:[]}};
+ assert.equal(nextR29RealModelDelayMs(input),24*3600000);
+ assert.equal(nextR29RealModelDelayMs({...input,candidates:[{}]}),4*3600000);
+ assert.equal(nextR29RealModelDelayMs({...input,candidates:Array(5).fill({}),news:{leads:[{}]}}),2*3600000);
+ assert.equal(nextR29RealModelDelayMs({...input,paper:{positions:[{}]}}),3600000);
+ assert.equal(nextR29RealModelDelayMs({...input,early_discovery:{alerts:[{},{}]}}),3600000);
+});
+test('24 real HTTP attempt daily budget is durable across restarts, not bypassed by bad data',()=>{
+ const t=Date.parse('2026-11-17T12:00:00.000Z');
+ const requests=Array.from({length:24},(_,i)=>new Date(t+i*1000).toISOString());
+ const full=reserveR29GptBudget(requests,new Date(t+25000).toISOString());
+ assert.equal(full.allowed,false);assert.equal(full.used,24);
+ const tomorrow=reserveR29GptBudget(requests,'2026-11-18T01:00:00.000Z');
+ assert.equal(tomorrow.allowed,true);assert.equal(tomorrow.used,1);
+ assert.throws(()=>reserveR29GptBudget(requests,'garbage'),/BUDGET_INVALID/);
+});
+test('local model can decline an unproven new candidate without converting WATCH into a trade',()=>{
+ const input=snapshotForAi(ledger(),market().results,news(),{now:Date.now(),marketRegime:regime});
+ assert.equal(planRecommendations(input,advice('NO_TRADE',0),{webSearchUsed:true}).orders.length,0);
+ assert.equal(planRecommendations(input,advice('WATCH',0),{webSearchUsed:true}).orders.length,0);
+});
+test('test-injected fake model response may simulate a Paper trade but cannot masquerade as an actual model invocation',async()=>{
+ const dir=mkdtempSync(path.join(os.tmpdir(),'r29-true-model-only-test-'));
+ let state=ledger();
+ const service=startCentralAiCoordinator({deviceId,dataDir:dir,apiKey:'sk-fake',
+  getState:()=>state,scan:async()=>market(),collectNews:async()=>news(),
+  collectMarketRegime:async()=>regime,submit:async()=>({receipt:{status:'BLOCKED',reason:'SYNTHETIC_TEST'}}),
+  initialDelayMs:1000000});
+ try{
+  const outcome=await service.runOnce({modelApi:async()=>({
+   advice:advice('WATCH',0),webSearchUsed:true,model:'mock-only',response_id:'resp_mock_123456789'})});
+  assert.equal(outcome.status,'NO_TRADE');
+  const status=service.status();
+  assert.equal(status.last_api_response_is_real_provider_invocation,false);
+  assert.equal(status.actual_provider_response_count,0);
+  assert.equal(status.provider_requests_utc.length,1);
+  assert.equal(status.mode,'PAPER_ONLY');
  }finally{service.stop();rmSync(dir,{recursive:true,force:true})}
 });
