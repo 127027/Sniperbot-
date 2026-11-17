@@ -18,7 +18,7 @@ export function nextR29RealModelDelayMs(input){
  const positions=input?.paper?.positions?.length||0;
  const alerts=input?.early_discovery?.alerts?.length||0;
  const news=input?.news?.leads?.length||0;
- const candidates=input?.candidates?.length||0;
+ const candidates=(input?.candidates?.length||0)+(input?.research_candidates?.length||0);
  if(positions||alerts>=2)return 3600000;
  if(candidates>=5&&(news||alerts))return 2*3600000;
  if(candidates>=1)return 4*3600000;
@@ -58,6 +58,26 @@ export function snapshotForAi(state,candidates,news,{now=Date.now(),realWallet=n
   observed_sells_5m:c.sells5m,heuristic_market_score:c.score,
   security_verified:false
  }));
+ // Early unknown candidates below standard execution thresholds must
+ // be visible to GPT as WATCH/NO_TRADE research, never local BUY decisions.
+ const tradableIds=new Set(allowed.map(c=>c.candidate_id));
+ const earlyResearch=(candidates||[]).filter(c=>!c.isDemo&&
+  validTokenAddress(c.chain,c.tokenAddress)&&
+  validTokenAddress(c.chain,c.poolAddress)&&asof(c.asOf,now)&&
+  !tradableIds.has(canonicalId(c))&&bounded(c.priceUsd,0,1e12)&&
+  c.priceUsd>0&&bounded(c.liquidityUsd,0,1e12)&&
+  bounded(c.volume5mUsd,0,1e12))
+  .sort((a,b)=>Date.parse(b.asOf)-Date.parse(a.asOf)||
+   canonicalId(a).localeCompare(canonicalId(b)))
+  .slice(0,40).map(c=>({
+   candidate_id:canonicalId(c),chain:c.chain,token_address:c.tokenAddress,
+   pool_address:c.poolAddress,symbol:c.symbol,name:c.name,
+   observed_at_utc:c.asOf,observed_liquidity_usd:c.liquidityUsd,
+   observed_volume_5m_usd:c.volume5mUsd,
+   observed_buys_5m:c.buys5m,observed_sells_5m:c.sells5m,
+   risk_status:'INSUFFICIENT_VERIFIED_EXECUTION_LIQUIDITY',
+   permitted_model_actions:['WATCH','NO_TRADE'],can_buy:false
+  }));
  return {schema:'sniper_central_ai_input.v1',observed_at_utc:new Date(now).toISOString(),
   mode:'PAPER_ONLY',paper:{entries_enabled:state.entriesEnabled===true,
    central_follow_enabled:state.centralPaperFollow===true,
@@ -88,6 +108,8 @@ export function snapshotForAi(state,candidates,news,{now=Date.now(),realWallet=n
    live_trading_enabled:false,real_pnl:null,real_fills_confirmed:false}:
    {read_only:true,connected:false,balance:null,reason:realWallet?.reason||'NO_VERIFIED_REAL_WALLET_SNAPSHOT'},
   candidates:allowed,
+  research_candidates:earlyResearch,
+  early_candidates_research_only_not_buy_authorized:true,
   independently_validated_general_strategy:knowledge?.schema==='r29_asof_validated_knowledge_for_model.v1'&&
    knowledge.asof_utc===new Date(now).toISOString()?knowledge.rules:[],
   news:{leads:(news?.leads||[]).slice(0,12).map(n=>({
@@ -103,7 +125,9 @@ export function planRecommendations(input,advice,{webSearchUsed=false}={}){
   !Array.isArray(advice.choices)||advice.choices.length>MAX_CHOICES||
   typeof advice.summary!=='string'||advice.summary.length>3000)
   throw Error('CENTRAL_AI_INVALID_DECISION_SCHEMA');
- const observed=new Map(input.candidates.map(c=>[c.candidate_id,c]));
+ const executionCandidates=new Map(input.candidates.map(c=>[c.candidate_id,c]));
+ const researchCandidates=new Map((input.research_candidates||[]).map(c=>[c.candidate_id,c]));
+ const observed=new Map([...researchCandidates,...executionCandidates]);
  const positions=new Map(input.paper.positions.filter(p=>!p.is_demo).map(p=>[p.candidate_id,p]));
  const seen=new Set(),orders=[],reviews=[];
  const totalValue=input.paper.cash_test_usdc+input.paper.positions.reduce((s,p)=>
@@ -125,7 +149,8 @@ export function planRecommendations(input,advice,{webSearchUsed=false}={}){
   reviews.push({candidate_id,action,score_0_100,portfolio_pct,reason:reason.slice(0,500),
     sources:source_urls.slice(0,4)});
   if(action==='BUY'){
-   if(input.market_regime?.buys_allowed!==true||!webSearchUsed||!candidate||position||score_0_100<80||
+   if(input.market_regime?.buys_allowed!==true||!webSearchUsed||!candidate||
+     !executionCandidates.has(candidate_id)||position||score_0_100<80||
      portfolio_pct<=0||portfolio_pct>20||source_urls.length===0||
      !input.paper.central_follow_enabled||!input.paper.entries_enabled||
      bought>=2)continue;
@@ -171,6 +196,7 @@ export async function requestCentralAiAdvice(input,{apiKey,model='gpt-4.1-mini',
   'Unverifizierte Token-Sicherheit, Wash-Trading, manipulierte Kurse oder unzureichende Informationen sprechen gegen BUY.',
   'Beachte öffentlich beobachtete Markt- und Ausstiegsrisiken (early_discovery.exit_reviews); diese sind keine bestätigten echten Sell-Quotes.',
   'Wenn market_regime.buys_allowed=false, darfst du KEINEN BUY empfehlen. NO_TRADE/WATCH sind erlaubt.',
+  'research_candidates sind strikt nur fruehe WATCH/NO_TRADE-Kandidaten. Nie aus der Forschungs-Liste BUY ausfuehren.',
   'BUY höchstens für zwei Kandidaten, mindestens Score 80; höchstens 20 Prozent Anteil je Kandidat.',
   'SELL nur für bereits bestehende Positionen. Alle Positions- und Budgetangaben sind virtuell.',
   'Scores sind KEINE Wahrscheinlichkeiten. Liefere NUR gültiges JSON im festgelegten Schema.'].join(' ');
