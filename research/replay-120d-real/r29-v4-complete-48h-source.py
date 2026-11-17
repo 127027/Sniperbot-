@@ -139,7 +139,20 @@ def candidate_asof(conn,mint,asof_timestamp):
  record=conn.execute("SELECT t0,expires FROM launches WHERE chain='solana' AND mint=?",
   (mint,)).fetchone()
  if not record or asof_timestamp<record[0]:return "NOT_YET_LAUNCHED"
- if asof_timestamp<record[1]:return "MONITORING_SOURCE_ONLY"
+ # In a historical replay, the persisted expires field can be extended by
+ # an event seen LATER. Time-travel queries must reconstruct the original
+ # expiry and only include retention extensions observable by this clock.
+ retention_available=conn.execute(
+  "SELECT 1 FROM sqlite_master WHERE type='table' AND name='research_retention_events'"
+ ).fetchone() is not None
+ expires=record[1]
+ if retention_available:
+  previous=conn.execute(
+   "SELECT max(new_expires) FROM research_retention_events "
+   "WHERE mint=? AND observed_t<=?",(mint,asof_timestamp)).fetchone()[0]
+  expires=max(record[0]+OBSERVATION_SECONDS,
+   previous if previous is not None else record[0]+OBSERVATION_SECONDS)
+ if asof_timestamp<expires:return "MONITORING_SOURCE_ONLY"
  return "EXPIRED_SOURCE_ONLY"
 
 def download_day(day,target,expected):
