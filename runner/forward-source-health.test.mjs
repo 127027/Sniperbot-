@@ -54,13 +54,13 @@ test('source statuses do not claim full coverage, provider transactions or fresh
  assert.equal(absent.public_market_recent,false);
  assert.equal(absent.source_complete,false);
  const noPublish=summarizeForwardSourceHealth({now,
-  marketStatus:{...collector,publishing_enabled:false},remoteMarket});
+  marketStatus:{...collector,publishing_enabled:false},remoteMarket:remote});
  assert.equal(noPublish.market_source_status,'LOCAL_GITHUB_MARKET_PUBLISH_DISABLED');
  const blocked=summarizeForwardSourceHealth({now,
-  marketStatus:{...collector,status:'BLOCKED_RESEARCH_DATA_ACCESS'},remoteMarket});
+  marketStatus:{...collector,status:'BLOCKED_RESEARCH_DATA_ACCESS'},remoteMarket:remote});
  assert.equal(blocked.market_source_status,'LOCAL_RESEARCH_SOURCE_BLOCKED');
  const late=summarizeForwardSourceHealth({now,
-  marketStatus:{...collector,last_check_at_utc:at(15)},remoteMarket});
+  marketStatus:{...collector,last_check_at_utc:at(15)},remoteMarket:remote});
  assert.equal(late.market_source_status,'LOCAL_COLLECTOR_STALE');
 });
 test('GitHub courier publishes source freshness only, no secrets and no buys; duplicate is throttled',async()=>{
