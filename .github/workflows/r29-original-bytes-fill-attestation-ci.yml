@@ -1,0 +1,25 @@
+name: R29 historical original bytes and fill attestation (synthetic)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - 'research/replay-120d-real/r29-original-bytes-and-fill-ledger-attestation-20261117.mjs'
+      - '.github/workflows/r29-original-bytes-fill-attestation-ci.yml'
+permissions:
+  contents: read
+jobs:
+  synthetic-attestation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check research/replay-120d-real/r29-original-bytes-and-fill-ledger-attestation-20261117.mjs
+      - name: Fail-closed synthetic tests
+        run: node research/replay-120d-real/r29-original-bytes-and-fill-ledger-attestation-20261117.mjs
+# This workflow does not attest real historical data, call GPT, or execute orders.
