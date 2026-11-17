@@ -1,0 +1,88 @@
+{
+  "schema": "r29_v4_1_pre_registered_7_dev_3_independent_holdout_success_policy.v1",
+  "version": "2026-11-17-v4.1",
+  "status": "PRE_REGISTERED_FOR_FUTURE_BLIND_HOLDOUTS_NOT_EVIDENCE_OF_COMPLETED_BACKTESTS",
+  "source": "R29 V4.1 user-approved extension; quantitative thresholds fixed before any new untouched holdout",
+  "transparency": "All metrics requiring contemporaneous source, independent model records or realistic historic executable buy and sell evidence are INCONCLUSIVE if missing; not zero, profit, success or passes.",
+  "study": {
+    "proposed_total_tests": 10,
+    "development_tests": 7,
+    "holdout_tests": 3,
+    "trading_days_per_test": 10,
+    "warmup_days_per_test": 7,
+    "initial_capital_test_usdc": 5000,
+    "nonoverlapping_trading_dates": true,
+    "holdout_date_selection_before_outcome_exposure": true,
+    "policy_frozen_before_holdouts": true,
+    "user_40_winner_list_must_not_enter_model_input": true,
+    "previously_reviewed_october_2026_is_regression_only": true
+  },
+  "source_metrics": {
+    "valid_launch_identity_capture_recall_min": 0.9999,
+    "duplicate_mint_false_identity_count_max": 0,
+    "gap_days_allowed_per_claimed_covered_test": 0,
+    "observed_source_data_availability_at_proved_required": true,
+    "event_to_technical_candidate_p95_minutes_max": 5,
+    "candidate_retention_hours_min": 48,
+    "expired_reactivation_requires_verified_new_asof_activity": true
+  },
+  "breakout_label": {
+    "requires_independent_price_path": true,
+    "requires_fee_and_slippage_adjusted_buy_sell_quotes": true,
+    "future_24h_peak_after_asof_net_multiplier_min": 2,
+    "event_and_liquidity_evidence_independent": true,
+    "metric_evaluation_only_after_model_outputs_frozen": true,
+    "no_midtest_winner_lookup": true,
+    "note": "Future net 2x label is computed only for evaluation after decisions are immutable. The full eligible universe, including unselected coins, is denominator. This label is not a simulated profit or tradable fill."
+  },
+  "detection_quality": {
+    "minimum_objectively_labelled_winner_count_across_three_holdouts": 30,
+    "validated_recall_min": 0.6,
+    "validated_precision_min": 0.2,
+    "max_false_alarm_fraction_of_GPT_WATCH_OR_BUY": 0.8,
+    "source_to_model_p95_minutes_max": 60,
+    "eligible_universe_all_sourced_mints_not_only_model_watchlist": true,
+    "metrics_undefined_if_objective_outcome_labels_missing": true
+  },
+  "gpt_provenance": {
+    "actual_distinct_model_calls_per_day_min": 1,
+    "actual_distinct_model_calls_per_day_max": 24,
+    "only_verified_real_model_invocations_count": true,
+    "model_api_or_provider_attestation_required": true,
+    "signed_order_provenance_and_request_response_ids_required": true,
+    "local_score_or_proxy_never_count_as_GPT_decision": true,
+    "reasons_and_time_sealed_context_hashes_required": true,
+    "model_decisions": [
+      "BUY",
+      "HOLD",
+      "SELL",
+      "WATCH",
+      "NO_TRADE"
+    ],
+    "provider_service_cost_authorization_separate": true
+  },
+  "paper_executability": {
+    "independent_historical_two_way_quotes_required": true,
+    "contract_lp_sellability_required": true,
+    "costs_slippage_fee_and_failure_adjustments_required": true,
+    "max_trade_slippage_fraction_proposed": 0.02,
+    "unrealized_pnl_cannot_count_as_realized": true,
+    "no_synthetic_fill_as_genuine_historic_fill": true
+  },
+  "performance": {
+    "aggregate_holdout_net_realized_pnl_test_usdc_strictly_positive": true,
+    "minimum_profitable_holdout_tests": 2,
+    "max_ending_to_peak_equity_drawdown_fraction": 0.2,
+    "max_daily_realized_loss_fraction_of_day_open_equity": 0.05,
+    "compare_against_passive_no_trade_baseline": true,
+    "no_automatic_live_activation": true
+  },
+  "readiness_gate": {
+    "failure_for_explicit_proved_breach": true,
+    "missing_verification_results_in": "INCONCLUSIVE",
+    "run_must_not_mark_success_if_test_quotations_missing": true,
+    "no_tuning_on_last_three_holdouts": true,
+    "no_automatic_real_money": true,
+    "require_prospective_forward_PAPER_ONLY_after_holdouts": true
+  }
+}
