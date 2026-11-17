@@ -7,6 +7,7 @@ import {updateResearchOutcomes} from './dynamic-research-outcomes.mjs';
 import {detectR27ExitRisk} from './r27-exit-review.mjs';
 import {runFollowups} from './memecoin-followups.mjs';
 import {detectEarlyMarketAcceleration,detectFirstSeenRecentPoolLeads} from './research-hype-triggers.mjs';
+import {readRecentSolanaStreamLeads} from './solana-live-events.mjs';
 import {collectNarrativeLeads} from './research-narrative-radar.mjs';
 import {updateLocalNewsJournal} from './research-news-journal.mjs';
 import {readPublicPoolReadbacks} from './readback-public-bridge.mjs';
@@ -32,6 +33,7 @@ const statusFile=path.join(cache,'status.json');
 const latestFile=path.join(cache,'latest.json');
 const followupFile=path.join(root,'.local','research-learning','pools.json');
 const alertFile=path.join(root,'.local','research-learning','market-alerts.json');
+const streamFolder=path.join(root,'.local','solana-live-stream');
 const newsFile=path.join(root,'.local','research-learning','news-captures.json');
 const r27ArchiveFolder=path.join(process.env.LOCALAPPDATA||path.join(root,'.local'),
  'MemeSniperPaper','r27-evidence','captures');
@@ -147,6 +149,7 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
   let marketAlerts={schema:'research_market_triggers.v1',paper_only:true,actionable:false,
    events:[],evaluated_pairs:0,reason:'NO_LIVE_SNAPSHOT'};
   let alertJournal=null,alertError=null;
+  let solanaStreamLeads=[],solanaStreamReadError=null;
   let narrative={leads:[],coverage:[]},narrativeError=null;
   let news={leads:[],coverage:[],new_saved_events:0,stored_events:0},newsError=null;
   let readbackBridgeError=null;
@@ -183,6 +186,23 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     try{snapshot.research_alerts=await recentResearchAlerts({now:Date.parse(now)})}
     catch(e){snapshot.research_alerts=marketAlerts.events;
       alertError=String(e?.message||'ALERT_READ_FAILED').replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,100)}
+    // Bridge new observed free websocket events to the Dot feed as RESEARCH ONLY.
+    try{
+      solanaStreamLeads=await readRecentSolanaStreamLeads({
+        folder:streamFolder,now:Date.parse(now),windowMs:60*60_000,limit:24
+      });
+      const unique=new Map();
+      for(const item of [...snapshot.research_alerts,...solanaStreamLeads])
+        unique.set(item.event_id,item);
+      snapshot.research_alerts=[...unique.values()]
+        .filter(e=>Number.isFinite(Date.parse(e.observed_at_utc))&&
+          Date.parse(e.observed_at_utc)<=Date.parse(now))
+        .sort((a,b)=>Date.parse(b.observed_at_utc)-Date.parse(a.observed_at_utc))
+        .slice(0,24);
+    }catch(e){
+      solanaStreamReadError=String(e?.message||'SOLANA_STREAM_READ_ERROR')
+        .replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,100);
+    }
     // Metadata and public paid-promotion signals complement chart-only discovery.
     // Match exact chain/token/pool only; never infer social virality or buy permission.
     try{narrative=await collectNarrativeLeads({fetcher,now,pools:snapshot.candidates})}
@@ -238,6 +258,11 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     news_radar:{last_check_at_utc:news.checked_at_utc??null,
       public_news_leads:news.leads.length,new_local_events:news.new_saved_events,
       local_archive_count:news.stored_events,coverage:news.coverage,error:newsError},
+    solana_live_stream:{
+      recent_research_lead_count:solanaStreamLeads.length,
+      read_error:solanaStreamReadError,actionability:'RESEARCH_ONLY',
+      chain_finality_verified:false,paper_orders_executed:0
+    },
     market_alerts:{events_found:marketAlerts.events.length,
       first_seen_new_pools:marketAlerts.first_seen_new_pool_count||0,
       omitted_new_pool_leads:marketAlerts.omitted_new_pool_leads||0,

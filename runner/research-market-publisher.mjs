@@ -1,10 +1,11 @@
+import {validateFreeStreamLead} from './solana-live-events.mjs';
 // Optional GitHub research snapshot bridge. DISABLED unless manually enabled on Windows.
 // Only writes the fixed non-actionable public research/market/latest.json on the work branch.
 // Never reads bot portfolio, trading state, wallets, orders or publisher signing keys.
 const REPO='127027/Sniperbot-';
 const BRANCH='codex/research-gateway-v04';
 const FILE='research/market/latest.json';
-const URL='https://api.github.com/repos/'+REPO+'/contents/'+FILE;
+const GITHUB_FILE_URL='https://api.github.com/repos/'+REPO+'/contents/'+FILE;
 
 function assertResearch(s){
   if(!s||s.schema!=='research_market_snapshot.v1'||s.paper_only!==true||
@@ -15,12 +16,45 @@ function assertResearch(s){
       'previous_volume_m5_usd','current_volume_m5_usd','m5_volume_ratio',
       'current_liquidity_usd','buy_transactions_m5','sell_transactions_m5',
       'indicative_price_ratio','source_urls','paper_only','actionable',
-      'probability_pct','recommended_action','unknown_checks','warning']);
+      'probability_pct','recommended_action','unknown_checks','warning',
+      'pool_created_at_utc','provider_creation_age_at_observation_ms',
+      'source_event_at_utc','source_timestamp_quality',
+      'transaction_signature','provider','chain_finality']);
+    const known=new Set(['MARKET_ACCELERATION','NEW_POOL_FIRST_OBSERVED',
+      'SOLANA_STREAM_NEW_TOKEN','SOLANA_STREAM_MIGRATION']);
+    const sTime=Date.parse(s.published_at_utc);
+    const goodResearchEvent=e=>{
+      if(!e||e.paper_only!==true||e.actionable!==false||
+        e.probability_pct!==null||
+        e.recommended_action!=='INDEPENDENT_FIVE_ROLE_REVIEW'||
+        !known.has(e.event_type)||!/^research-alert-[a-f0-9]{32}$/.test(e.event_id||'')||
+        Object.keys(e).some(k=>!allowed.has(k)))return false;
+      if(e.event_type.startsWith('SOLANA_STREAM_')){
+        return Number.isFinite(sTime)&&
+          validateFreeStreamLead(e,{now:sTime,maxAgeMs:60*60_000});
+      }
+      if(e.event_type==='NEW_POOL_FIRST_OBSERVED'){
+        const ts=Date.parse(e.observed_at_utc),created=Date.parse(e.pool_created_at_utc);
+        const age=e.provider_creation_age_at_observation_ms;
+        const urls=e.source_urls;
+        const validSources=Array.isArray(urls)&&urls.length>=1&&urls.length<=5&&
+          urls.every(u=>{
+            if(typeof u!=='string'||u.length>900)return false;
+            try{const v=new URL(u);return v.protocol==='https:'&&
+              !!v.hostname&&!v.username&&!v.password}
+            catch{return false}
+          });
+        return Number.isFinite(sTime)&&Number.isFinite(ts)&&ts<=sTime&&
+          Number.isFinite(created)&&created<=ts&&
+          Number.isFinite(age)&&age===ts-created&&age>=0&&age<=60*60_000&&
+          typeof e.candidate_id==='string'&&
+          ['solana','base','eth','bsc'].includes(e.chain)&&
+          validSources;
+      }
+      return e.event_type==='MARKET_ACCELERATION';
+    };
     if(!Array.isArray(s.research_alerts)||s.research_alerts.length>24||
-       s.research_alerts.some(e=>!e||e.paper_only!==true||e.actionable!==false||
-         e.probability_pct!==null||e.event_type!=='MARKET_ACCELERATION'||
-         e.recommended_action!=='INDEPENDENT_FIVE_ROLE_REVIEW'||
-         Object.keys(e).some(k=>!allowed.has(k))))
+       s.research_alerts.some(e=>!goodResearchEvent(e)))
       throw Error('Unsafe public research alert payload');
   }
 
@@ -108,7 +142,7 @@ export async function publishResearchSnapshot(snapshot,{token,fetcher=fetch}={})
     'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json',
     'User-Agent':'MemeSniper-Research-Market-Publisher/1.0'};
   let sha=null;
-  const get=await fetcher(URL+'?ref='+encodeURIComponent(BRANCH),{method:'GET',headers,signal:AbortSignal.timeout(10000)});
+  const get=await fetcher(GITHUB_FILE_URL+'?ref='+encodeURIComponent(BRANCH),{method:'GET',headers,signal:AbortSignal.timeout(10000)});
   if(get.status===200){
     const j=await readJson(get);
     if(!j||typeof j.sha!=='string'||j.type!=='file')throw Error('Invalid GitHub research file response');
@@ -117,7 +151,7 @@ export async function publishResearchSnapshot(snapshot,{token,fetcher=fetch}={})
   const body={message:'research(market): update read-only pool discovery snapshot',
     branch:BRANCH,content:payload.toString('base64')};
   if(sha)body.sha=sha;
-  const response=await fetcher(URL,{method:'PUT',headers,
+  const response=await fetcher(GITHUB_FILE_URL,{method:'PUT',headers,
     body:JSON.stringify(body),signal:AbortSignal.timeout(12000)});
   if(response.status===409||response.status===422)throw Error('GITHUB_RESEARCH_SHA_CONFLICT');
   if(!response.ok)throw Error('GITHUB_RESEARCH_WRITE_HTTP_'+response.status);
