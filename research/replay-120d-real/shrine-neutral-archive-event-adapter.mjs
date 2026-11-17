@@ -10,7 +10,8 @@ const ACTIONS=new Map([
  ['migrate','MIGRATION'],['curveComplete','MIGRATION']
 ]);
 const ms=x=>typeof x==='number'&&Number.isFinite(x)?x:NaN;
-const good=x=>typeof x==='string'&&x.length>=30&&x.length<=50;
+const good=x=>typeof x==='string'&&x.length>=32&&x.length<=44;
+const goodSignature=x=>typeof x==='string'&&x.length>=64&&x.length<=100;
 const eventTime=x=>new Date(x).toISOString();
 export function normalizeNeutralShrineEvent(raw,{archive_hour_utc,archive_sha256}={}){
  if(!raw||typeof raw!=='object'||Array.isArray(raw))return null;
@@ -27,7 +28,7 @@ export function normalizeNeutralShrineEvent(raw,{archive_hour_utc,archive_sha256
    eventMs>end+60000||captureMs<start-60000||
    captureMs>end+60000||captureMs<eventMs-60000)
   throw Error('ORIGINAL_STREAM_TIMESTAMP_INVALID');
- if(!good(raw.signature)||!Number.isSafeInteger(raw.block)||raw.block<=0)
+ if(!goodSignature(raw.signature)||!Number.isSafeInteger(raw.block)||raw.block<=0)
   throw Error('ORIGINAL_CHAIN_SIGNATURE_AND_SLOT_REQUIRED');
  if(!['buy','sell'].includes(raw.action)&&raw.price!==undefined)
   throw Error('NONTRADE_PRICE_FIELD_UNTRUSTED');
