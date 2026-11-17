@@ -2,6 +2,15 @@
 
 **Stand 17.11.2026. PAPER_ONLY. V4 ist als gesamte autonome Handels- und Zehn-Backtest-Abnahme noch NICHT abgeschlossen.**
 
+
+### V4.1 – Verifizierte Echtdaten-Fortsetzung nach 30-Minuten-CI-Abbruch
+
+- **[CI 44178191760 vollständig erfolgreich](https://github.com/127027/Sniperbot-/actions/runs/44178191760)**: 821.849 Original-Starts, 2.296.466 originale historische Minutenzeilen, davon 2.295.579 mit Starts verknüpft; 408 as-of Stundenframes. 887 Zeilen unverbunden oder verworfen, keine stillschweigend erfundenen Marktereignisse.
+- Ursache des älteren `cancelled`-Laufs: 408 immer größere SQL-JOIN-/Sortierabfragen auf wachsender Launch-Datenbank; durch inkrementellen as-of Research-Index statt vollständiger JOIN bei jedem Prüfpunkt korrigiert. Lauf vollständig erfolgreich statt Timeout.
+- Nach 48 Stunden bleiben die Contracts gespeichert; neue nachweisbar gestiegene Kaufaktivität (mindestens +5 zur vorherigen echten Beobachtung) kann nach Risikogate eine technische Wiederaktivierung auslösen. `research_retention_events` und `research_reactivations` protokollieren Zeitpunkt und Ursache. In den tatsächlichen Oktober-Minutenarchiven wurden **0** solche Reaktivierungen nach Ablauf beobachtet; Funktion durch isolierte Tests geprüft, nicht als frühere echte Marktbeobachtung behauptet.
+- Vorregistrierte Holdout-Schwellen: `research/r29/operations/R29_V4_1_PRE_REGISTERED_HOLDOUT_SUCCESS_POLICY.json`, u.a. Recall, Precision, technische/GPT-Latenz, Netto-PnL, Drawdown. Fehlende echte signierte GPT-Entscheidungen, unabhängige Buy-/Sell-Quotes oder unangetastete Holdouts => `INCONCLUSIVE`, kein profitabler Test.
+- **Neuer Chat: unbedingt zuerst** `research/r29/operations/R29_V4_1_GITHUB_ERFAHRUNGEN_NAECHSTER_CHAT_20261117_DE.md` lesen; dazu dauerhafte `research/r29/operations/R29_V4_1_OCT_REAL_SOURCE_408_FRAMES_VERIFIED_20261117.json`.
+
 ## 1. Korrigierte Hauptursache
 
 Vorher: nur vier starre Prüfzeitpunkte pro Tag, jeweils acht innerhalb von fünf Minuten gestartete Coins. Mehr als 99,9 % der Starts des betrachteten Oktober-Zeitraums wurden dem Modell dadurch nicht übergeben. Die bereits bekannten vier Referenzgruppen waren zwar im tatsächlichen Originalarchiv, aber nicht in der kleinen Modellauswahl.
@@ -28,9 +37,9 @@ Die Originaldaten wurden erst **nach** dem historischen Ereignis veröffentlicht
 
 ## 4. Zehn historische Handelstests: ehrliche Quellenverfügbarkeit
 
-`r29-v4-test-window-planner.py` reserviert zehn nicht überlappende Zehntages-Handelsfenster mit sieben vorangehenden Tagen. Die vorhandene Originalquelle 31.08.–05.11.2026 reicht nur für **sechs vollständige 17-Tage-Startfenster**, darunter **drei** mit durchgängig vorhandenen Minutenmerkmalen (aus 24.09.–05.11.). Vier der zehn angefragten Fenster haben zwingende Rohdatenlücken. Zum Erreichen von zehn voneinander getrennten 10-Tage-Handelsperioden plus Vorlauf sind mindestens 107 fortlaufende Tage nötig, zusätzlich unabhängige nachweisbare historische Deal-/Pool-/Quote-Daten.
+`r29-v4-test-window-planner.py` reserviert zehn nicht überlappende Zehntages-Handelsfenster mit sieben vorangehenden Tagen. Die vorhandene Originalquelle 31.08.–05.11.2026 reicht nur für **fünf tatsächlich per Quellmatrix belegte 17-Tage-Startfenster**, darunter **drei** mit durchgängig vorhandenen Minutenmerkmalen (aus 24.09.–05.11.). Fünf der zehn angefragten Fenster haben in der aktuellen Quellmatrix zwingende Rohdatenlücken. Zum Erreichen von zehn voneinander getrennten 10-Tage-Handelsperioden plus Vorlauf sind mindestens 107 fortlaufende Tage nötig, zusätzlich unabhängige nachweisbare historische Deal-/Pool-/Quote-Daten.
 
-Die vorhandenen Oktober-/September-Daten wurden schon mehrfach in vorangegangenen Chats und Modellanalysen untersucht. Deshalb sind die gewählten restlichen sechs Fenster NICHT mehr als völlig unabhängige Blind-Holdouts anzuerkennen; neue unverbrauchte Quellen oder eine vorab registrierte zukünftige Forward-Phase sind erforderlich. Insbesondere kann man keine „letzten drei unbekannten Holdouts“ behaupten, die bereits bekannt sind.
+Die vorhandenen Oktober-/September-Daten wurden schon mehrfach in vorangegangenen Chats und Modellanalysen untersucht. Deshalb sind die gewählten restlichen fünf vollständig belegten Fenster NICHT mehr als völlig unabhängige Blind-Holdouts anzuerkennen; neue unverbrauchte Quellen oder eine vorab registrierte zukünftige Forward-Phase sind erforderlich. Insbesondere kann man keine „letzten drei unbekannten Holdouts“ behaupten, die bereits bekannt sind.
 
 ## 5. Keine erfundenen autonomen GPT-Trades
 
