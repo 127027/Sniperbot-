@@ -1,0 +1,80 @@
+name: R29 Oct 05-21 strict as-of neutral source and isolated Paper protocol audit
+on:
+  push:
+    branches:
+      - codex/r29-oct05-21-strict-asof-blind-audit-20261117
+    paths:
+      - '.github/workflows/r29-oct05-21-asof-audit.yml'
+      - 'research/replay-120d-real/october-05-21-strict-asof-pilot.py'
+      - 'research/replay-120d-real/test_october_05_21_strict_asof_pilot.py'
+  pull_request:
+    paths:
+      - '.github/workflows/r29-oct05-21-asof-audit.yml'
+      - 'research/replay-120d-real/october-05-21-strict-asof-pilot.py'
+      - 'research/replay-120d-real/test_october_05_21_strict_asof_pilot.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  archived-source-only-october-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PAPER_ONLY: '1'
+      SNIPER_REAL_TRADING_ENABLED: '0'
+      SNIPER_OFFLINE: '1'
+      SNIPER_RESEARCH_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reject injected future data, wrong 17 days, synthetic GPT/fill claims
+        run: python -m unittest discover -s research/replay-120d-real -p 'test_october_05_21_strict_asof_pilot.py' -v
+      - name: Download prior SHA-pinned neutral as-of source artifact (not any winner list)
+        uses: actions/download-artifact@v4
+        with:
+          name: r29-real-43day-fresh5minute-candidates-no-fills-v2
+          repository: 127027/Sniperbot-
+          run-id: 44048309420
+          github-token: ${{ github.token }}
+          path: .october-neutral-asof-source
+      - name: Run real Oct 05-11 preparation and Oct 12-21 trade-day SOURCE replay
+        run: |
+          python research/replay-120d-real/october-05-21-strict-asof-pilot.py \
+            --input-dir .october-neutral-asof-source \
+            --output research/replay-120d-real/generated/october-05-21-strict-asof-audit.json
+      - name: Fail if any real GPT call, Paper fill or PnL was invented
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research/replay-120d-real/generated/october-05-21-strict-asof-audit.json').read_text())
+          assert x['full_17_calendar_days_source_audited']==17
+          assert len(x['day_by_day'])==10
+          assert x['ten_trade_days_technical_hourly_source_frames']==240
+          assert x['actual_historical_GPT_model_strategy_calls']==0
+          assert x['actual_historical_gpt_authored_signed_orders']==0
+          assert x['actual_historical_buy_fills']==0 and x['actual_historical_sell_fills']==0
+          assert x['realized_pnl_test_usdc'] is None and x['historical_PnL_unverifiable_not_zero']
+          assert x['cash_if_no_trades_executed_test_usdc']==5000
+          assert x['winner_names_or_retrospective_pnl_as_model_input'] is False
+          print('R29_OCT_PASS_PROVEN_NEUTRAL_ASOF_SOURCE',x['ten_trade_days_raw_launches_observed'],
+           'proposed_research_checks',x['ten_trade_days_research_checkpoints_planned'],
+           'NOT_REAL_MODEL_CALLS_OR_TRADE_FILLS')
+          PY
+      - name: Independent synthetic local GPT Paper protocol safety test (NOT historic PnL)
+        run: |
+          node --test runner/gpt-paper-size-negotiation.test.mjs runner/gpt-paper-bridge.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-oct05-21-asof-source-only-trade-not-proven
+          path: research/replay-120d-real/generated/october-05-21-strict-asof-audit.json
+          if-no-files-found: warn
+          retention-days: 30
