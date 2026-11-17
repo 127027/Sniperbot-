@@ -1,0 +1,67 @@
+name: R29 October 2026 postfreeze FULL launch identity recall (posthoc only)
+on:
+  push:
+    branches:
+      - codex/r29-oct-posthoc-recall-20261117
+    paths:
+      - '.github/workflows/r29-oct-posthoc-contract-recall.yml'
+      - 'research/replay-120d-real/october-posthoc-contract-recall.py'
+      - 'research/replay-120d-real/test_october_posthoc_contract_recall.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  exact-mint-in-full-retrospective-market:
+    runs-on: ubuntu-latest
+    timeout-minutes: 23
+    env:
+      PAPER_ONLY: '1'
+      SNIPER_REAL_TRADING_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned Parquet reader
+        run: python -m pip install --quiet --disable-pip-version-check pyarrow==18.1.0
+      - name: Prevent ticker-only, same-name impersonation and unsealed comparisons
+        run: python -m unittest discover -s research/replay-120d-real -p 'test_october_posthoc_contract_recall.py' -v
+      - name: Download previously SEALED October 320-mint original candidate artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: r29-oct05-21-asof-source-only-trade-not-proven
+          repository: 127027/Sniperbot-
+          run-id: 44158031458
+          github-token: ${{ github.token }}
+          path: .october-sealed
+      - name: Read ALL 17 original archived launch files with exact raw daily SHA
+        run: |
+          python research/replay-120d-real/october-posthoc-contract-recall.py \
+            --matrix research/replay-120d-real/results/neutral-solana-launch-120-day-coverage.csv \
+            --frozen-source .october-sealed/october-05-21-strict-asof-audit.json \
+            --output research/replay-120d-real/generated/october-posthoc-identity-recall.json
+      - name: Assert 17 distinct days, 4 posthoc names and prior GPT candidate seal
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research/replay-120d-real/generated/october-posthoc-identity-recall.json').read_text())
+          assert len(x['all_days'])==17
+          assert sum(y['launches_read_for_comparison'] for y in x['all_days'])==821849
+          assert set(x['benchmark_results'])=={'PIERRE','FTR','DACITY','TRUMP_1'}
+          assert x['frozen_gpt_review_commit']=='525446cc631b10cd40c80780a9d8dfca86a11060'
+          assert x['winner_names_seen_by_previously_frozen_GPT_decision_input'] is False
+          assert x['actual_historic_GPT_calls']==0
+          assert x['actual_historic_paper_fills']==0 and x['profit_pnl_test_usdc'] is None
+          for v in x['benchmark_results'].values():
+           assert not v['was_in_320_neutral_research_sample']
+          print('R29_FULL_MARKET_POSTHOC_RECALL_PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-oct-posthoc-full-launch-identity-recall-no-trades
+          path: research/replay-120d-real/generated/october-posthoc-identity-recall.json
+          if-no-files-found: warn
+          retention-days: 30
