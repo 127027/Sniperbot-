@@ -18,6 +18,20 @@ const age=(at,now)=>TIME(at)&&Date.parse(at)<=now?
  Math.round((now-Date.parse(at))/60000):null;
 const nowISO=n=>new Date(n).toISOString();
 const tokenValid=x=>typeof x==='string'&&/^(?:github_pat_|ghp_)[A-Za-z0-9_]{15,}$/.test(x);
+// Only classify a known local publication failure; never export raw exception
+// strings from a user's machine or GitHub token into a public repository.
+function classifiedMarketPublishError(s){
+ if(!s||typeof s.publish_error!=='string'||!s.publish_error)
+  return 'NONE_REPORTED';
+ const e=s.publish_error.toUpperCase();
+ if(e.includes('RESEARCH_PUBLISH_TOKEN')||e.includes('TOKEN_NOT_CONFIGURED'))
+  return 'TOKEN_NOT_CONFIGURED';
+ if(e.includes('UNSAFE')||e.includes('INVALID')||e.includes('SNAPSHOT'))
+  return 'SCHEMA_OR_PROVENANCE_REJECTED';
+ if(e.includes('HTTP_')||e.includes('GITHUB')||e.includes('COMMIT'))
+  return 'GITHUB_RESEARCH_WRITE_FAILURE';
+ return 'UNCLASSIFIED_PUBLICATION_ERROR';
+}
 const allowStreamStatus=new Set(['CONNECTED_FREE_ONLY','CONNECTING',
  'RECONNECTING','STALE_FEED_RECONNECTING','PROVIDER_REJECTED',
  'BLOCKED_PERSISTENCE','STOPPED','STARTING']);
@@ -74,6 +88,7 @@ export function summarizeForwardSourceHealth({
   market_collector_last_check_utc:validMarket?marketStatus.last_check_at_utc:null,
   market_collector_lag_minutes:marketLag,
   market_github_publishing_configured:validMarket&&marketStatus.publishing_enabled===true,
+  market_publication_error_class:validMarket?classifiedMarketPublishError(marketStatus):'UNKNOWN_NO_LOCAL_STATUS',
   public_market_recent:marketPublishedRecently,
   public_market_last_capture_utc:remoteValid?remoteMarket.published_at_utc:null,
   public_market_lag_minutes:publicLag,
@@ -134,7 +149,9 @@ export async function syncPublicForwardSourceHealth({
   old.public_market_last_capture_utc===status.public_market_last_capture_utc&&
   old.solana_stream_status===status.solana_stream_status&&
   old.solana_stream_provider_status===status.solana_stream_provider_status&&
-  old.market_github_publishing_configured===status.market_github_publishing_configured;
+  old.market_github_publishing_configured===status.market_github_publishing_configured&&
+  old.market_publication_error_class===status.market_publication_error_class&&
+  old.public_market_access===status.public_market_access;
  if(noChange&&past!==null&&past<15)
   return {published:false,status:'UNCHANGED_RECENT',public:status};
  const payload={message:'research(r29): source freshness and missing link diagnostic only',
