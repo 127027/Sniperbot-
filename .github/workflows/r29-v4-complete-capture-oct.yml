@@ -9,6 +9,7 @@ on:
       - 'research/replay-120d-real/test_r29_v4_complete_48h_source.py'
       - 'research/replay-120d-real/r29-v4-oct-posthoc-regression.py'
       - 'research/replay-120d-real/r29-v4-test-window-planner.py'
+      - 'research/replay-120d-real/test_r29_v4_test_window_planner.py'
   pull_request:
     paths:
       - '.github/workflows/r29-v4-complete-capture-oct.yml'
@@ -16,6 +17,7 @@ on:
       - 'research/replay-120d-real/test_r29_v4_complete_48h_source.py'
       - 'research/replay-120d-real/r29-v4-oct-posthoc-regression.py'
       - 'research/replay-120d-real/r29-v4-test-window-planner.py'
+      - 'research/replay-120d-real/test_r29_v4_test_window_planner.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,6 +40,10 @@ jobs:
         run: python -m pip install --quiet --disable-pip-version-check pyarrow==18.1.0
       - name: Technical source no-eight limit, 48h overnight and no future-label tests
         run: python -m unittest discover -s research/replay-120d-real -p 'test_r29_v4_complete_48h_source.py' -v
+      - name: Check ten independent 7+10-day slots against real source dates without imaginary trading
+        run: |
+          python -m unittest discover -s research/replay-120d-real -p 'test_r29_v4_test_window_planner.py' -v
+          python research/replay-120d-real/r29-v4-test-window-planner.py             --output research/replay-120d-real/generated/v4-ten-test-source-readiness.json
       - name: Process every recorded source mint October 05–21 into persistent SQLite and full compressed neutral events
         run: |
           python research/replay-120d-real/r29-v4-complete-48h-source.py \
@@ -66,6 +72,7 @@ jobs:
           name: r29-v4-october-all-launches-prefundamental-48h-neutral
           path: |
             research/replay-120d-real/generated/v4-oct-full-48h/SUMMARY.json
+            research/replay-120d-real/generated/v4-ten-test-source-readiness.json
             research/replay-120d-real/generated/v4-oct-full-48h/ORIGINAL_SOURCE_SUMMARY.sha256
             research/replay-120d-real/generated/v4-oct-full-48h/all-launches/*.jsonl.gz
           if-no-files-found: error
