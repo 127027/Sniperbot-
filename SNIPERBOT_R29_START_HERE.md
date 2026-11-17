@@ -2,6 +2,21 @@
 
 # SNIPERBOT R29 – HIER BEGINNEN (auch in jedem neuen Chat)
 
+> **NEUER ENTWICKLUNGSSTAND – Solana-Echtzeitstream Phase 1 (17.11.2026):**
+> R29 ergänzt den bestehenden einzigen Windows-Starter um einen kostenlosen,
+> lokal append-only archivierten PumpPortal-WebSocket für **neue Tokens und
+> Migrationen** (read-only). Die Daten fließen als ausdrücklich **nicht
+> handelbare** Hinweise in die bestehende Marktforschung und – bei erfolgreicher
+> GitHub-Veröffentlichung – an den Research-GitHub-Feed der fünf Dots.
+> Keine kostenpflichtigen Trade-/Wallet-WebSocket-Methoden, keine Wallet-/PayPal-
+> oder Echtgeldtransaktion, keine autonome GPT-Kaufentscheidung durch den
+> WebSocket, keine rückwirkende Änderung des 60-Tage-Blindtests.
+> **Zuerst lesen:** [Phase-1-Handbuch, Dateiänderungen, Tests, Start und Restlücken](docs/R29_SOLANA_REALTIME_PHASE1_20261117.md).
+> `README`, GitHub-Commit und Offline-CI beweisen **nicht**, dass der
+> Benutzerlaptop bereits diese Version installiert oder echte Stream-Events empfängt.
+>
+
+
 **Projekt:** `127027/Sniperbot-` · Branch `codex/r29-chatgpt-github-paper-cycle-20261115`  
 **Dokumentstand:** 16.11.2026 · **Nur PAPER_ONLY**, kein Echtgeld, kein kostenpflichtiger API-Zwang.
 
