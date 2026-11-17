@@ -62,7 +62,10 @@ class HoldoutEvidenceGateTests(unittest.TestCase):
   self.assertFalse(x["conditions"]["precision_at_least_20_percent"])
  def test_too_few_objectively_labeled_breakouts_inconclusive(self):
   v=[synthetic_verified_case(i) for i in range(3)]
-  for x in v:x["objective_verified_breakouts"]=5
+  for x in v:
+   x["objective_verified_breakouts"]=5
+   x["unique_breakouts_early_detected"]=3
+   x["GPT_watch_or_buy_later_verified_breakouts"]=3
   self.assertEqual(m.evaluate(policy,v)["reason"],
    "TOO_FEW_INDEPENDENT_VERIFIED_BREAKOUTS")
 if __name__=="__main__":unittest.main()
