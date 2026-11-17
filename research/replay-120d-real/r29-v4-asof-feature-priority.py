@@ -21,7 +21,8 @@ FEATURE_COLS=("mint","t","age_s","f_n_buys","f_rs","f_dev_share",
 SOURCE="https://huggingface.co/datasets/loopholetape/pumpfun-launches/resolve/"+capture.SOURCE_REV+"/"
 REVIEW_BATCH_SIZE=64
 def matrix(path):
- with open(path,encoding="utf8",newline="") as f:rows=csv.DictReader(f)
+ with open(path,encoding="utf8",newline="") as f:
+  rows=list(csv.DictReader(f))
  return {r["day_utc"]:{"sha256":r["minute_feature_sha256"],
   "rows":int(r["minute_asof_feature_rows_verified"])}
    for r in rows if r.get("minute_feature_sha256") and r.get("minute_asof_feature_rows_verified")}
