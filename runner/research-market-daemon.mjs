@@ -6,7 +6,7 @@ import {adaptiveResearchTick} from './dynamic-research-scheduler.mjs';
 import {updateResearchOutcomes} from './dynamic-research-outcomes.mjs';
 import {detectR27ExitRisk} from './r27-exit-review.mjs';
 import {runFollowups} from './memecoin-followups.mjs';
-import {detectEarlyMarketAcceleration} from './research-hype-triggers.mjs';
+import {detectEarlyMarketAcceleration,detectFirstSeenRecentPoolLeads} from './research-hype-triggers.mjs';
 import {collectNarrativeLeads} from './research-narrative-radar.mjs';
 import {updateLocalNewsJournal} from './research-news-journal.mjs';
 import {readPublicPoolReadbacks} from './readback-public-bridge.mjs';
@@ -165,7 +165,13 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     let previous=null;
     try{previous=JSON.parse(await readFile(latestFile,'utf8'))}
     catch(e){if(e.code!=='ENOENT')alertError='PREVIOUS_SNAPSHOT_UNREADABLE'}
-    marketAlerts=detectEarlyMarketAcceleration(previous,snapshot);
+    const acceleration=detectEarlyMarketAcceleration(previous,snapshot);
+    const newPoolLeads=detectFirstSeenRecentPoolLeads(previous,snapshot);
+    // Both types remain non-executable, bounded research-only alerts.
+    marketAlerts={...acceleration,
+      events:[...newPoolLeads.events,...acceleration.events].slice(0,24),
+      first_seen_new_pool_count:newPoolLeads.detected_leads||0,
+      omitted_new_pool_leads:newPoolLeads.omitted_leads||0};
     r27ExitRisk=detectR27ExitRisk(previous,snapshot);
     snapshot.r27_exit_reviews=r27ExitRisk.reviews;
     if(marketAlerts.events.length){
@@ -233,6 +239,8 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
       public_news_leads:news.leads.length,new_local_events:news.new_saved_events,
       local_archive_count:news.stored_events,coverage:news.coverage,error:newsError},
     market_alerts:{events_found:marketAlerts.events.length,
+      first_seen_new_pools:marketAlerts.first_seen_new_pool_count||0,
+      omitted_new_pool_leads:marketAlerts.omitted_new_pool_leads||0,
       compared_pairs:marketAlerts.evaluated_pairs,
       new_local_alerts:alertJournal?.added??0,
       rolling_public_research_alerts:snapshot.research_alerts?.length??0,

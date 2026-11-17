@@ -80,3 +80,59 @@ export function detectEarlyMarketAcceleration(previous,current){
  return {...empty,events:events.slice(0,24),evaluated_pairs:evaluated,
   reason:events.length?'POTENTIAL_ACTIVITY_ACCELERATION_FOR_REVIEW':'NO_VERIFIED_ACCELERATION_PATTERN'};
 }
+
+
+/**
+ * First observed recent pool lead. Unlike acceleration alerts, this does not
+ * require TWO snapshots and therefore does not miss a new pool on first sight.
+ * Provider pool-creation time is NOT proof of exactly when our bot saw it.
+ * One 120-second collector cycle is still not a sub-second migration feed.
+ */
+export function detectFirstSeenRecentPoolLeads(previous,current,{maxAgeMs=10*60_000}={}){
+ const empty={schema:'research_new_pool_leads.v1',paper_only:true,
+  actionable:false,events:[],reason:'NO_TRUSTED_CURRENT_SNAPSHOT'};
+ if(current?.schema!=='research_market_snapshot.v1'||current.paper_only!==true||
+  current.actionable!==false||!Array.isArray(current.candidates)||
+  current.candidates.length>200||!Number.isInteger(maxAgeMs)||
+  maxAgeMs<60000||maxAgeMs>3600000)return empty;
+ const now=Date.parse(current.published_at_utc);
+ if(!Number.isFinite(now))return empty;
+ // An invalid predecessor is not treated as evidence that pools are brand new.
+ if(previous!==null&&(previous?.schema!=='research_market_snapshot.v1'||
+  previous.paper_only!==true||previous.actionable!==false||
+  !Array.isArray(previous.candidates)))return empty;
+ const known=new Set((previous?.candidates||[]).filter(c=>key(c))
+  .map(c=>c.candidate_id));
+ const seen=new Set(),events=[];
+ for(const c of current.candidates){
+  if(!key(c)||known.has(c.candidate_id)||seen.has(c.candidate_id)||
+   c.promotion_biased===true||c.source!=='GECKOTERMINAL_NEW_POOLS')continue;
+  const created=Date.parse(c.pool_created_at_utc);
+  if(!Number.isFinite(created)||created>now||now-created>maxAgeMs)continue;
+  seen.add(c.candidate_id);
+  // Stable dedup key even after collector restart. It identifies a FIRST
+  // OBSERVATION, never a guaranteed first-chain-block transaction.
+  const id=createHash('sha256').update(
+   c.candidate_id+'|'+c.pool_created_at_utc+'|NEW_POOL_FIRST_OBSERVED'
+  ).digest('hex').slice(0,32);
+  events.push({
+   event_id:'research-alert-'+id,event_type:'NEW_POOL_FIRST_OBSERVED',
+   candidate_id:c.candidate_id,chain:c.chain,token_address:c.token_address,
+   pool_address:c.pool_address,
+   observed_at_utc:current.published_at_utc,
+   pool_created_at_utc:c.pool_created_at_utc,
+   provider_creation_age_at_observation_ms:now-created,
+   current_liquidity_usd:isNum(c.liquidity_usd)?c.liquidity_usd:null,
+   source_urls:safeSources(c),
+   paper_only:true,actionable:false,probability_pct:null,
+   recommended_action:'INDEPENDENT_FIVE_ROLE_REVIEW',
+   unknown_checks:['FIRST_ONCHAIN_BLOCK_TIME','ORIGINAL_SOURCE_PUBLICATION_TIME',
+    'ORGANIC_SOCIAL_PROOF','WALLET_CLUSTERING','CONTRACT_SECURITY',
+    'LP_CONTROL','SELLABILITY','EXECUTABLE_BUY_AND_SELL_QUOTE'],
+   warning:'First seen by a periodic public API collector, NOT proof of sub-minute token discovery or an executable BUY.'
+  });
+ }
+ return {...empty,events:events.slice(0,24),
+  detected_leads:events.length,omitted_leads:Math.max(0,events.length-24),
+  reason:events.length?'RECENT_FIRST_SEEN_POOL_FOR_REVIEW':'NO_NEW_RECENT_UNPROMOTED_POOLS'};
+}
