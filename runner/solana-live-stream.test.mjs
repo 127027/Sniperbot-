@@ -68,7 +68,7 @@ test('fails closed at local archive cap rather than silently losing evidence',as
  const folder=await dir();
  try{
   const e=launch();
-  await assert.rejects(persistFreeSolanaStreamBatch([e],{
+  await assert.rejects(persistFreeSolanaStreamBatch([e,migrate()],{
    folder,now,maxDayBytes:1024
   }),/STREAM_DAILY_ARCHIVE_CAP_REACHED/);
  }finally{await rm(folder,{recursive:true,force:true})}
