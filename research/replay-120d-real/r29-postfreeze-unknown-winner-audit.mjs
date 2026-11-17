@@ -32,7 +32,7 @@ export function auditUnknownWinnerAfterFreeze(c,{freeze_at_utc}={}){
   total_fees_usdc:x.total_fees_usdc
  }));
  if(decisions.some(x=>!['BUY','HOLD','SELL','WATCH','NO_TRADE'].includes(x.action)||
-  x.at===null||x.asof===null||x.asof>x.at||x.at<source||
+  x.at===null||x.asof===null||x.asof>x.at||x.at<source||x.at>freeze||
   typeof x.response_id!=='string'||!/^resp_[a-zA-Z0-9_-]{8,}$/.test(x.response_id)))
   throw Error('R29_UNTRUSTED_GPT_TIMELINE');
  const dated=decisions.sort((a,b)=>a.at-b.at);
@@ -42,7 +42,8 @@ export function auditUnknownWinnerAfterFreeze(c,{freeze_at_utc}={}){
  const sell=dated.find(x=>x.action==='SELL'&&x.actual_gpt_call_externally_attested&&
   buy&&x.at>=buy.at);
  const priceAt=t=>allowed.filter(p=>p.at<=t).slice(-1)[0]||null;
- const onBuy=buy?priceAt(buy.at):null;
+ const rawOnBuy=buy?priceAt(buy.at):null;
+ const onBuy=rawOnBuy&&buy.at-rawOnBuy.at<=300000?rawOnBuy:null;
  const afterBuy=buy?allowed.filter(x=>x.at>buy.at):[];
  const peak=afterBuy.reduce((x,y)=>!x||y.price>x.price?y:x,null);
  const buySellable=buy?prices.find(p=>p.at===buy.at&&p.bidirectional_executable_quote_verified):null;
@@ -56,20 +57,22 @@ export function auditUnknownWinnerAfterFreeze(c,{freeze_at_utc}={}){
   schema:'r29_postfreeze_early_winner_evaluation.v1',
   chain_contract_id:c.chain_contract_id,
   technical_scanner_observed:c.technical_scanner_observed===true,
-  actual_GPT_early_signal:!!early,
+  claimed_GPT_early_signal_requires_external_provider_attestation:!!early,
+  actual_GPT_early_signal_independently_proven:false,
   first_verified_GPT_signal_at_utc:early?new Date(early.at).toISOString():null,
   source_to_GPT_signal_minutes:early?+( (early.at-source)/60000 ).toFixed(3):null,
-  actual_GPT_BUY:!!buy,
-  actual_GPT_SELL:!!sell,
+  claimed_GPT_BUY_requires_provider_proof:!!buy,
+  claimed_GPT_SELL_requires_provider_proof:!!sell,
   price_at_initial_source:first?.price??null,
   price_at_first_GPT_buy:onBuy?.price??null,
   price_rise_already_seen_before_buy_multiplier:ratio(onBuy?.price,first?.price),
   remaining_observed_peak_after_buy_multiplier:ratio(peak?.price,onBuy?.price),
   observed_peak_at_utc:peak?new Date(peak.at).toISOString():null,
   actual_verified_two_way_buy_and_sell_quotes:!!(buySellable&&sellSellable),
-  realized_net_pnl_test_usdc:truePaperFill?
+  realized_net_pnl_test_usdc:null,
+  declared_net_pnl_if_external_fills_verified_test_usdc:truePaperFill?
     sell.paper_sell_proceeds_usdc-buy.paper_buy_fill_usdc-sell.total_fees_usdc:null,
-  pnl_status:truePaperFill?'FILL_EVIDENCE_DECLARED_VERIFY_EXTERNAL_RECEIPTS':'UNVERIFIED_NO_INDEPENDENT_BIDIRECTIONAL_FILLS',
+  pnl_status:truePaperFill?'DECLARED_RECEIPTS_MUST_BE_EXTERNALLY_VERIFIED_BEFORE_PNL':'UNVERIFIED_NO_INDEPENDENT_BIDIRECTIONAL_FILLS',
   score_as_trading_success:false,
   note:'Postfreeze only. Outcomes and benchmark winners never supplied to historic GPT input; undeclared claims cannot be converted into actual PnL.'
  };
