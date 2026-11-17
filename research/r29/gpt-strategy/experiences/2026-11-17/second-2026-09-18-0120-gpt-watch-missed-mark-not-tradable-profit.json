@@ -1,0 +1,79 @@
+{
+  "schema": "r29_second_asof_0120_append_only_lesson_after_frozen_review.v1",
+  "actual_written_at_utc": "2026-11-17T10:40:52.350Z",
+  "source_start_hour_utc": "2026-09-18T01:00:00Z",
+  "original_virtual_scan_at_utc": "2026-09-18T01:20:00Z",
+  "lesson_available_no_earlier_than_virtual_utc": "2026-09-18T02:20:00Z",
+  "provider_archive_release_at_utc_proven": false,
+  "initial_decision_git_commit": "73153130fb292c40e5bbe069584d5a0c0df3ace4",
+  "initial_review_git_blob_sha": "2e8e00adfeb6e6c361612f6351ebf5c0b59d58e6",
+  "original_neutral_source_sha256": "294619e56168544f0a985f4e61548ba881d5b5a5f5d08b3b0965fb0031f820ed",
+  "later_outcome_git_action_run_id": 44066829433,
+  "precommit_verify_result": "01:20 GPT decisions frozen before subsequent rest-of-hour outcome read",
+  "candidate_outcomes": [
+    {
+      "action": "NO_TRADE",
+      "mint": "4ckhh8swSi9mmriN7wKFY3qHg14NthDR652e2og2pump",
+      "future_pool_trades": 0,
+      "peak_change_percent": null,
+      "last_change_percent": null,
+      "meaning": "No later same-pool swaps. Unknown market behavior, not proof of avoiding a loss."
+    },
+    {
+      "action": "NO_TRADE",
+      "mint": "ETbkz8LUvBud2tv9ej9aa64knn32ue5afMCmi6R4pump",
+      "future_pool_trades": 6,
+      "peak_change_percent": -0.6434,
+      "last_change_percent": -6.4869,
+      "meaning": "Later small negative observed marks, no personal return claimed."
+    },
+    {
+      "action": "WATCH",
+      "mint": "N3KETcYwAHZtTVb7gdoVwMW4uNksU99NXgK55zRpump",
+      "future_pool_trades": 349,
+      "peak_change_percent": 2.8432,
+      "last_change_percent": 2.8432,
+      "meaning": "Small positive observed same-pool marks, unproven size/liquidity."
+    },
+    {
+      "action": "WATCH",
+      "mint": "5cT9mMKGwJP42xdgwSxu9zsYCScCXqwpq49GfQoXpump",
+      "future_pool_trades": 5980,
+      "peak_change_percent": 29.468,
+      "last_change_percent": 7.2953,
+      "meaning": "Missed observed maximum mark; cannot be called profitable trade without 50-5000USDC executable quotes."
+    },
+    {
+      "action": "WATCH",
+      "mint": "DyUod1ABDcZiYczpvpV3epNM8fdLWm1Mh6upNy2Ypaid",
+      "future_pool_trades": 0,
+      "peak_change_percent": null,
+      "last_change_percent": null,
+      "meaning": "No later swaps in same pool; other pool migration possible, source gap not no-trade."
+    },
+    {
+      "action": "NO_TRADE",
+      "mint": "Dp94jxsGeghLhYWX34cjrnGorPwXzfpsSXv6WRQppump",
+      "future_pool_trades": 2344,
+      "peak_change_percent": 4.3508,
+      "last_change_percent": 4.3508,
+      "meaning": "No selling observed earlier, later positive source marks but not proof of executable 50USDC sale."
+    }
+  ],
+  "lessons_de": [
+    "Nicht jeder starke beobachtete Pluskurs ist handelbarer Gewinn: 29,468 % historischer Mark-Anstieg im WATCH-Pool, aber ohne verifizierten Kauf-/Verkaufspreis für unsere Größe unbekannt.",
+    "Ein Kandidat mit tausenden Käufen, aber null frühen Verkäufen kann später durchaus Trades zeigen; voreilige Pauschalannahmen über Honeypots vermeiden und echte Sellability unabhängig prüfen.",
+    "NO_TRADE kann Opportunitätskosten erzeugen, die aus realistischen späteren Einstieg-/Ausstiegspreisen und tatsächlichen Informationen beurteilt werden müssen.",
+    "Ein Pool ohne weiteren Swap ist nicht automatisch eine sichere Nichtkaufentscheidung; in anderen Pools desselben Tokens kann Handel stattgefunden haben.",
+    "Frühere Lektionen vom 00:05-Scan haben einen Hochscore-Blendkauf in der 01:20-Recherche verhindert; über verbesserte Gesamtrendite ist damit nichts bewiesen.",
+    "Für späteres Paper-LIVE brauchen wir frische technische Failsafes und unabhängige Kauf- und Rückverkaufsquotes; ein rein stündlicher Strategiemodell-Scan allein kann abrupte Poolereignisse verpassen."
+  ],
+  "prior_actions_revised": false,
+  "new_buy_fills_proven": 0,
+  "new_sell_fills_proven": 0,
+  "confirmed_start_cash_test_usdc": 5000,
+  "confirmed_60day_final_equity": null,
+  "outcome_source_postdates_original_virtual_decision_in_model_workflow": true,
+  "not_a_clean_independent_blindtest": true,
+  "paper_wallet_or_paypal_changed": false
+}
