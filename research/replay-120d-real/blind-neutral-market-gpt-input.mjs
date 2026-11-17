@@ -4,6 +4,7 @@
 // posthoc winner examples. Never publishes/signs an order or changes balances.
 import {createHash} from 'node:crypto';
 import {compileAsOfEventReviewTriggers} from './historical-event-radar.mjs';
+import {blockPosthocReferencesInDecisionContext} from '../r29/gpt-strategy/references/validate-reference-dataset.mjs';
 export const GATE_SCHEMA='r29_no_winner_shortlist_historical_market_gate.v1';
 const hex=/^[a-f0-9]{64}$/i,actions=new Set(['BUY','HOLD','SELL','WATCH','NO_TRADE']);
 const eventTypes=new Set(['TOKEN_CREATE','DEX_BUY','DEX_SELL','POOL_CREATE','POOL_LIQUIDITY','DEX_SWAP','MIGRATION','CONTRACT_AUTHORITY']);
@@ -34,6 +35,7 @@ const identity=x=>{
 };
 const cp=x=>structuredClone(x);
 export function buildNeutralHistoricalModelInput(input){
+ blockPosthocReferencesInDecisionContext(input);
  const asof=timestamp(input?.virtual_asof_utc);
  const domain={train:[Date.parse('2026-07-20T00:00:00Z'),Date.parse('2026-09-18T00:00:00Z')],
  test:[Date.parse('2026-09-18T00:00:00Z'),Date.parse('2026-11-17T00:00:00Z')]};

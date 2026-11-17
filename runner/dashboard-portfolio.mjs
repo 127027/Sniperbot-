@@ -43,6 +43,7 @@ export function paperDashboardView(state,{now=Date.now()}={}){
    quote_status:status,
    is_synthetic:p.isDemo===true,
    paper_autopilot:p.paperAutopilot===true,
+   gpt_paper_managed:p.gptPaperDecision===true,
    paper_only:true
   };
  });
@@ -53,6 +54,18 @@ export function paperDashboardView(state,{now=Date.now()}={}){
  const netAll=reliable?sum(positions.map(p=>p.estimated_net_exit_test_usdc)):null;
  const openPnl=reliable?sum(positions.map(p=>p.estimated_pnl_test_usdc)):null;
  const budget=portfolioBudget(state);
+ const replay=state.gptDecisionReplay&&
+   typeof state.gptDecisionReplay==='object'&&!Array.isArray(state.gptDecisionReplay)?
+   Object.entries(state.gptDecisionReplay)
+    .filter(([id,v])=>/^gpt_[a-f0-9]{32}$/.test(id)&&v&&
+      typeof v==='object'&&!Array.isArray(v)&&safeTime(v.at_utc))
+    .sort((a,b)=>Date.parse(b[1].at_utc)-Date.parse(a[1].at_utc)):[];
+ const lastGpt=replay.length?{
+  decision_id:replay[0][0],at_utc:replay[0][1].at_utc,
+  status:plain(replay[0][1].status,40),
+  reason:plain(replay[0][1].reason,100),
+  paper_order_was_not_assumed:true
+ }:null;
  const history=state.history.slice(0,40).map(h=>({
   id:plain(h.id,100),at_utc:safeTime(h.at),
   title:plain(h.title,90),detail:plain(h.detail,350)}));
@@ -83,6 +96,8 @@ export function paperDashboardView(state,{now=Date.now()}={}){
    current_minimum_entry_test_usdc:50
   },
   positions,history,
+  gpt_paper_last_decision:lastGpt,
+  gpt_paper_received_decisions:replay.length,
   pricing_warning:'Nur indikative Positionsbewertung, inklusive 1 % modellierter Ausstiegskosten. Keine ausführbare Sell-Quote und kein garantierter Auszahlungsbetrag.'
  };
 }

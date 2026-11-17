@@ -10,6 +10,7 @@ import {readLocalPaperMarketSnapshot} from './live-paper-autopilot.mjs';
 import {r29LivePaperEntryGate} from './live-paper-risk.mjs';
 import {lookupToken} from './market.mjs';
 import {collectEvmSecurity} from './live-paper-security.mjs';
+import {computePrivateGptCapacity,validatePrivateGptCapacity} from './gpt-paper-capacity-report.mjs';
 
 const SHA=/^[a-f0-9]{40}$/;
 const DIGEST=/^[a-f0-9]{64}$/;
@@ -91,6 +92,14 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
    receipt=safeResult(d,'REJECTED','GPT_DECISION_EXPIRED_NO_PAPER_TRADE');
   else if(getState()?.gptPaperFollow!==true||getState()?.entriesEnabled!==true)
    receipt=safeResult(d,'BLOCKED','GPT_FOLLOW_OR_PAPER_BOT_DISABLED');
+  else if(d.action==='BUY'&&!validatePrivateGptCapacity(
+   computePrivateGptCapacity(getState(),{
+    observed_at_utc:new Date(instant).toISOString()
+   }),{
+    asof_utc:new Date(instant).toISOString(),
+    requested_test_usdc:d.amount_test_usdc
+   }).approved)
+   receipt=safeResult(d,'BLOCKED','GPT_FRESH_PRIVATE_PAPER_CAPACITY_REJECTED');
   else if(!['base','bsc','eth'].includes(d.chain))
    receipt=safeResult(d,'BLOCKED','SOLANA_SECURITY_GATE_NOT_YET_SUPPORTED');
   else{

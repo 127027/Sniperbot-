@@ -107,6 +107,25 @@ try{
  assert.equal(flags.local_gpt_bridge_ready,true);
  assert.equal(flags.gpt_follow_enabled,false);
  assert.equal(flags.old_local_autopilot_enabled,false);
+ assert.equal(flags.private_paper_size_offer_supported,true);
+ const sizeRequest={
+  schema:'sniper_r29_gpt_size_request.v1',mode:'PAPER_ONLY',strategy:'GPT_ONLY',
+  request_id:'gpt_'+'c'.repeat(32),action:'REQUEST_BUY_CAPACITY',
+  chain:'base',token_address:'0x'+'a'.repeat(40),pool_address:'0x'+'b'.repeat(40),
+  created_at_utc:new Date().toISOString(),
+  source_review_sha256:'f'.repeat(64),real_trading_enabled:false};
+ for(const opt of [{cap:null},{cap:'0'.repeat(64)},{origin:'http://attacker.invalid'}]){
+  const denied=await post('/api/gpt/paper-size-request',sizeRequest,opt);
+  assert.equal(denied.code,403);
+ }
+ const offerResp=await post('/api/gpt/paper-size-request',sizeRequest);
+ assert.equal(offerResp.code,200);
+ assert.equal(offerResp.data.paper_order_created,false);
+ assert.equal(offerResp.data.private_delivery_only,true);
+ assert.equal(offerResp.data.offer.can_buy,false);
+ assert.equal(offerResp.data.offer.max_stake_test_usdc,0);
+ assert.equal(offerResp.data.offer.do_not_publish_public_github,true);
+ assert.equal((await get('/api/dashboard/paper')).data.view.free_cash_test_usdc,0);
  const d=decision(),body=envelope(d);
  for(const opt of [{cap:null},{cap:'0'.repeat(64)},{origin:'http://attacker.invalid'}]){
   const denied=await post('/api/gpt/paper-decision',body,opt);
