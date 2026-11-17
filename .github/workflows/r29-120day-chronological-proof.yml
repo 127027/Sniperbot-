@@ -8,6 +8,7 @@ on:
       - 'research/replay-120d-real/chronological-120d-controller*'
       - 'runner/gpt-paper-capacity-report*'
       - 'research/replay-120d-real/results/REAL_60_DAY_EVIDENCE_MATRIX_43D_2026-11-16.csv'
+      - 'research/replay-120d-real/results/neutral-solana-launch-120-day-coverage.csv'
   workflow_dispatch:
 permissions:
   contents: read
@@ -31,9 +32,11 @@ jobs:
           import {strict as assert} from 'node:assert';
           import {build120dSourceLedger} from './research/replay-120d-real/chronological-120d-controller.mjs';
           const csv=readFileSync('research/replay-120d-real/results/REAL_60_DAY_EVIDENCE_MATRIX_43D_2026-11-16.csv','utf8');
-          const a=build120dSourceLedger(csv);
+          const launchCsv=readFileSync('research/replay-120d-real/results/neutral-solana-launch-120-day-coverage.csv','utf8');
+          const a=build120dSourceLedger(csv,launchCsv);
           assert.equal(a.days.length,120);
           assert.equal(a.train_days,60);
+          assert.equal(a.train_days_with_retro_launch_identities,18);
           assert.equal(a.test_days,60);
           assert.equal(a.test_days_with_retrospective_minute_frames,43);
           assert.equal(a.actual_gpt_decision_walkforward_complete,false);
@@ -43,7 +46,7 @@ jobs:
           const columns=['day_utc','index_from_oldest','remaining_days_before_today','phase','launch_event_available','memecoin_minute_frames','dex_costed_quotes','gpt_decisions','trading_pnl'];
           writeFileSync('R29_120DAY_WALKFORWARD_READINESS/120d-coverage.csv',
            columns.join(',')+'\n'+a.days.map(x=>columns.map(k=>x[k]).join(',')).join('\n')+'\n');
-          console.log('R29_120D_EVIDENCE_ONLY',a.train_days,a.test_days,a.test_days_with_retrospective_minute_frames);
+          console.log('R29_120D_EVIDENCE_ONLY',a.train_days,a.test_days,a.train_days_with_retro_launch_identities,a.test_days_with_retrospective_minute_frames);
           JS
       - uses: actions/upload-artifact@v4
         with:
