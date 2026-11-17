@@ -1,0 +1,45 @@
+name: R29 independent second archive all 120 days 00-23 head census
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-second-archive-120days-census.yml'
+      - 'research/replay-120d-real/second-archive-120day-neutral-probe*'
+permissions:
+  contents: read
+jobs:
+  neutral-120day-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test chronology, equal sampling, missing-day handling, no fabricated PnL
+        run: node --test research/replay-120d-real/second-archive-120day-neutral-probe.test.mjs
+      - name: Check 00:00 and 23:00 archive files on all 120 UTC days without downloading them
+        run: node research/replay-120d-real/second-archive-120day-neutral-probe.mjs R29_NEUTRAL_SECOND_ARCHIVE/2026-120day-00-23-calendar.json
+      - name: Validate exact 120 days and no model or money movements
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          const d=JSON.parse(readFileSync('R29_NEUTRAL_SECOND_ARCHIVE/2026-120day-00-23-calendar.json','utf8'));
+          assert.equal(d.days.length,120);
+          assert.equal(d.total_anchor_probes,240);
+          assert.equal(d.all_24_hours_checked_per_day,false);
+          assert.equal(d.posthoc_coin_list_used,false);
+          assert.equal(d.independent_GPT_model_calls_at_virtual_times_proven,0);
+          assert.equal(d.verified_60day_pnl_test_usdc,null);
+          console.log('R29_SECOND_ARCHIVE_120D_REPRODUCED',d.available_anchor_hours,d.learning_days_with_at_least_one_anchor,d.testing_days_with_at_least_one_anchor);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-second-archive-120days-240-neutral-hour-head-checks
+          path: R29_NEUTRAL_SECOND_ARCHIVE/
+          if-no-files-found: warn
+          retention-days: 30
