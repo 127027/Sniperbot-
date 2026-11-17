@@ -89,6 +89,12 @@ def apply_rows_until(conn,ordered,pos,cutoff):
   if previous and previous[0]>t:raise ValueError("FEATURE_STATE_NONCHRONOLOGICAL")
   prev={"t":previous[0],"buys":previous[1]} if previous else None
   info=priority(x,prev)
+  # Extend only for NEW observed buy activity, not passive polling/age.
+  # This is technical retention, never a BUY or GPT decision.
+  if prev and finite(x["f_n_buys"]) and finite(prev["buys"]) and (
+   x["f_n_buys"]-prev["buys"]>=5) and info["eligible"]:
+   conn.execute("UPDATE launches SET expires=MAX(expires,?) WHERE chain='solana' AND mint=?",
+    (t+capture.OBSERVATION_SECONDS,mint))
   conn.execute("INSERT INTO asof_feature_state VALUES(?,?,?,?,?,?,?) "
    "ON CONFLICT(mint) DO UPDATE SET last_t=excluded.last_t,"
    "buys=excluded.buys,sol_curve_reserve=excluded.sol_curve_reserve,"
