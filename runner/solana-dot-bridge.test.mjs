@@ -15,7 +15,7 @@ const snapshot=(alerts)=>({
 });
 const fakeSend=async(url,opts)=>opts.method==='GET'?
  {status:404,ok:false,json:async()=>({})}:
- {status:201,ok:true,json:async()=>({commit:{sha:'test-research-only'})}};
+ {status:201,ok:true,json:async()=>({commit:{sha:'test-research-only'}})};
 const publish=s=>publishResearchSnapshot(s,{token:'fake-token-for-ci-not-real',fetcher:fakeSend});
 test('sanitized, no-wallet real-time migration lead can be delivered to existing Dot GitHub market feed',async()=>{
  const e=event();
