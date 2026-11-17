@@ -5,7 +5,8 @@ export const SOL_MINT='So11111111111111111111111111111111111111112';
 export const JUPITER_V2_ORDER='https://api.jup.ag/swap/v2/order';
 const UINT=/^[1-9][0-9]{0,19}$/;
 export async function fetchIndicativeSolanaRoute({
- inputMint,outputMint,amountAtoms,fetcher=fetch,now=new Date().toISOString()
+ inputMint,outputMint,amountAtoms,fetcher=fetch,now=new Date().toISOString(),
+ apiKey=process.env.JUPITER_API_KEY||null
 }={}){
  decodeBase58(inputMint);decodeBase58(outputMint);
  if(inputMint===outputMint)throw Error('IDENTICAL_SWAP_ASSETS');
@@ -19,8 +20,13 @@ export async function fetchIndicativeSolanaRoute({
  url.searchParams.set('outputMint',outputMint);
  url.searchParams.set('amount',amountAtoms);
  // Deliberately NEVER set 'taker', 'payer', 'receiver', requestId or 'signedTransaction'.
+ if(apiKey!==null&&(typeof apiKey!=='string'||
+  !/^[a-zA-Z0-9._-]{16,200}$/.test(apiKey)))
+  throw Error('JUPITER_API_KEY_INVALID_FORMAT');
+ const headers={accept:'application/json'};
+ if(apiKey)headers['x-api-key']=apiKey;
  const response=await fetcher(url.toString(),{
-  method:'GET',redirect:'error',headers:{accept:'application/json'},
+  method:'GET',redirect:'error',headers,
   signal:AbortSignal.timeout(10000)});
  if(!response?.ok)throw Error('JUPITER_QUOTE_UNAVAILABLE');
  if(Number(response.headers?.get?.('content-length')||0)>65536)
@@ -47,13 +53,13 @@ export async function fetchIndicativeSolanaRoute({
   message:'Reine Kursauskunft; weder eine sichere Token-Freigabe noch eine ausführbare Order.'};
 }
 export async function fetchIndicativeSolanaQuote({outputMint,amountLamports,
- fetcher=fetch,now=new Date().toISOString()}={}){
+ fetcher=fetch,now=new Date().toISOString(),apiKey=process.env.JUPITER_API_KEY||null}={}){
  if(outputMint===SOL_MINT)throw Error('OUTPUT_TOKEN_MUST_DIFFER_FROM_SOL');
  if(typeof amountLamports!=='string'||!UINT.test(amountLamports)||
   BigInt(amountLamports)<10000n||BigInt(amountLamports)>100000000000n)
   throw Error('INVALID_SOL_SWAP_AMOUNT');
  const q=await fetchIndicativeSolanaRoute({
-  inputMint:SOL_MINT,outputMint,amountAtoms:amountLamports,fetcher,now});
+  inputMint:SOL_MINT,outputMint,amountAtoms:amountLamports,fetcher,now,apiKey});
  return {
   schema:'indicative_solana_swap_quote.v1',status:q.status,network:q.network,
   input_mint:q.input_mint,output_mint:q.output_mint,
