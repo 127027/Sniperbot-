@@ -13,6 +13,7 @@ import {syncLocalPaperAutoHeartbeat} from './live-paper-public-status.mjs';
 import {relayGptPaperDecision} from './gpt-paper-github-relay.mjs';
 import {syncGptPaperPublicPositionContext} from './gpt-paper-position-publisher.mjs';
 import {syncGptPaperSecurityResearch} from './gpt-paper-security-research.mjs';
+import {syncPublicForwardSourceHealth} from './forward-source-health.mjs';
 
 const REPO='127027/Sniperbot-';
 const base='https://api.github.com/repos/'+REPO+'/contents/';
@@ -283,7 +284,7 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
  const folder=process.env.LOCALAPPDATA?
   path.join(process.env.LOCALAPPDATA,'MemeSniperPaper','r29-isolated-sandbox'):
   null;
- let stopped=false,timer;
+ let stopped=false,timer,lastSourceDiagnosticAt=0;
  process.stdin.setEncoding('utf8');
  process.stdin.on('data',x=>{if(x.includes('SNIPER_STOP_V1')){
   stopped=true;if(timer)clearTimeout(timer);process.exitCode=0;
@@ -306,6 +307,21 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
      'Bot erreichbar':'Bot nicht erreichbar','· GitHub Heartbeat OK · GPT-only Paper-Aufträge mit gesonderter Freigabe');
     // Research-only bridge is completely separate from the Paper ledger.
     // Missing market archive must never block normal GitHub heartbeat.
+    // Publish only publicly safe source freshness flags every ~10 minutes.
+    // The published research gateway is stale even when the Paper bot is live.
+    // NEVER add account balances, token keys, prices or order parameters.
+    if(Date.now()-lastSourceDiagnosticAt>=10*60_000){
+      lastSourceDiagnosticAt=Date.now();
+      try{
+        const health=await syncPublicForwardSourceHealth({token});
+        if(health.published)console.log('[GPT R29] Market source health:',
+          health.public.market_source_status,'· Solana:',
+          health.public.solana_stream_status,'· keine Trades');
+      }catch(e){
+        console.error('[GPT R29] Research source freshness unavailable:',
+          String(e?.message||e).slice(0,100));
+      }
+    }
     try {
       const research=await syncAdaptivePublicPresence({token});
       if(research.published)console.log('[R29] Dynamische Forschung auf GitHub aktualisiert: ',
