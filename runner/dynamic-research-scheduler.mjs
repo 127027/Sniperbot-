@@ -4,6 +4,7 @@
 import {createHash} from 'node:crypto';
 import {mkdir,readFile,writeFile,rename} from 'node:fs/promises';
 import path from 'node:path';
+import {earlyEventResearchLeads} from './early-event-research.mjs';
 
 export const ADAPTIVE_FREQUENCIES=Object.freeze([1,4,12,24]);
 const HOUR=3600000,DAY=24*HOUR;
@@ -35,19 +36,31 @@ export function adaptiveActivity(snapshot,{now=Date.parse(snapshot?.published_at
   }
   const independentAlertPools=new Set([...alerts.values()].map(a=>a.candidate_id)).size;
   const youngPools=new Set(fresh.map(c=>c.candidate_id)).size;
+  const early=earlyEventResearchLeads(snapshot,{now,limit:8});
+  const matchingMigrations=new Set(early.leads.filter(e=>
+    e.event_type==='SOLANA_STREAM_MIGRATION'&&e.candidate_id)
+    .map(e=>e.candidate_id)).size;
+  const firstObservedPools=new Set(early.leads.filter(e=>
+    e.event_type==='NEW_POOL_FIRST_OBSERVED'&&e.candidate_id)
+    .map(e=>e.candidate_id)).size;
   // Explicitly a non-trained operational heuristic, NOT a probability or score.
   let frequency=1,reason='QUIET_MARKET_OR_MISSING_MARKET_EVIDENCE';
   if(sourceAvailable){
-    if(independentAlertPools>=4 && youngPools>=3){
-      frequency=24;reason='MULTIPLE_DISTINCT_ACCELERATION_AND_YOUNG_POOLS';
-    }else if(independentAlertPools>=2 || (independentAlertPools>=1&&youngPools>=3)){
-      frequency=12;reason='STRONG_DISTINCT_ACCELERATION';
-    }else if(independentAlertPools>=1 || youngPools>=3){
-      frequency=4;reason='EARLY_POOL_ACTIVITY_OR_ONE_ACCELERATION';
+    if((independentAlertPools>=4||matchingMigrations>=4)&&youngPools>=3){
+      frequency=24;reason='MULTIPLE_DISTINCT_ACCELERATION_OR_MIGRATION_WITH_YOUNG_POOLS';
+    }else if(independentAlertPools>=2 ||matchingMigrations>=2||
+      ((independentAlertPools>=1||matchingMigrations>=1)&&youngPools>=3)){
+      frequency=12;reason='STRONG_DISTINCT_ACCELERATION_OR_MIGRATION';
+    }else if(independentAlertPools>=1||matchingMigrations>=1||
+      firstObservedPools>=2||youngPools>=3){
+      frequency=4;reason='EARLY_POOL_MIGRATION_OR_FIRST_OBSERVATION';
     }
   }
   return {frequency_per_day:frequency,reason,first_hour_pool_count:youngPools,
     independently_observed_accelerating_pool_count:independentAlertPools,
+    first_observed_pool_event_count:firstObservedPools,
+    matching_migration_pool_count:matchingMigrations,
+    early_unverified_event_count:early.observed_event_count,
     source_available:sourceAvailable,signals_unverified:true,
     social_independently_verified:false};
 }
@@ -81,6 +94,7 @@ export function planAdaptiveReview(snapshot,previous=null){
 }
 
 function boundedCandidates(snapshot){
+  const early=earlyEventResearchLeads(snapshot,{limit:8});
   // Deterministic fixed cap plus two controls: collect losers too.
   const valid=snapshot.candidates.filter(c=>safeId(c.candidate_id)&&
     finite(c.price_usd)&&c.price_usd>0&&finite(c.liquidity_usd));
@@ -88,8 +102,17 @@ function boundedCandidates(snapshot){
   const rank=(a,b)=>(b.volume_m5_usd||0)-(a.volume_m5_usd||0)||
     a.candidate_id.localeCompare(b.candidate_id);
   const ordinary=unique.filter(c=>!c.promotion_biased).sort(rank);
-  const chosen=ordinary.slice(0,10).map(c=>({c,selection:'MARKET_ACTIVITY_SAMPLE'}));
+  // Reserve four candidate slots for freshly observed pool/migration events:
+  // volumes alone otherwise miss the first minutes. These are NOT buy signals.
+  const eventIds=[...new Set(early.leads.map(e=>e.candidate_id).filter(Boolean))];
+  const candidateById=new Map(ordinary.map(c=>[c.candidate_id,c]));
+  const chosen=eventIds.slice(0,4).filter(id=>candidateById.has(id))
+    .map(id=>({c:candidateById.get(id),selection:'EARLY_EVENT_PRIORITY'}));
   const selected=new Set(chosen.map(x=>x.c.candidate_id));
+  const remaining=ordinary.filter(c=>!selected.has(c.candidate_id));
+  chosen.push(...remaining.slice(0,10-chosen.length)
+    .map(c=>({c,selection:'MARKET_ACTIVITY_SAMPLE'})));
+  for(const item of chosen)selected.add(item.c.candidate_id);
   // Independent deterministic controls not selected by apparent performance.
   const controls=unique.filter(c=>!selected.has(c.candidate_id))
     .sort((a,b)=>hash(a.candidate_id).localeCompare(hash(b.candidate_id)))
@@ -113,6 +136,7 @@ export function buildAdaptiveReview(snapshot,plan){
   if(!plan?.due||plan.at_utc!==snapshot?.published_at_utc)
     throw Error('ADAPTIVE_NOT_DUE_OR_TIME_MISMATCH');
   const candidates=boundedCandidates(snapshot);
+  const early=earlyEventResearchLeads(snapshot,{limit:8});
   const body={schema:'sniper_r29_dynamic_research_review.v1',
     paper_only:true,actionable:false,at_utc:plan.at_utc,
     cadence_per_day:plan.frequency_per_day,activity_reason:plan.reason,
@@ -120,10 +144,13 @@ export function buildAdaptiveReview(snapshot,plan){
     capture_hash:hash(snapshot),universe_complete:false,
     contract_security_verified:false,sellability_verified:false,
     quote_executable:false,trained_predictor:false,
-    candidates,missing_sources:['COMPLETE_NEW_POOL_UNIVERSE',
+    candidates,early_event_leads:early.leads,
+    early_event_lead_count:early.observed_event_count,
+    missing_sources:['COMPLETE_NEW_POOL_UNIVERSE',
       'INDEPENDENT_SECURITY_PROOFS','ORGANIC_SOCIAL_PROOFS',
       'WALLET_CLUSTER_VALIDATION','EXECUTABLE_EXIT_QUOTE'],
     validated_buy_count:0,validated_sell_count:0,
+    actual_gpt_model_invocations_verified:false,
     simulated_pnl:null,
     decision:'OBSERVE_ONLY_EVIDENCE_GAP',
     outcome_status:'PENDING_FUTURE_OBSERVATION_NOT_TRADE',
@@ -173,6 +200,7 @@ export async function adaptiveResearchTick(snapshot,{folder,now=snapshot?.publis
     real_trading_enabled:false,
     account_balances_included:false,
     method:'FORWARD_FIRST_OBSERVED_FIXED_HEURISTIC_NO_LLM',
+    actual_gpt_model_invocations_verified:false,
     activity_reason:plan.reason};
   const tmp=statusFile+'.tmp-'+process.pid;
   await writeFile(tmp,JSON.stringify(status,null,2)+'\n',{mode:0o600});
