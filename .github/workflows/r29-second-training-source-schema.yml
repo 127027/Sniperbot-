@@ -1,0 +1,44 @@
+name: R29 original 2026-07-20 training event timestamp schema pilot
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-second-training-source-schema.yml'
+      - 'research/replay-120d-real/second-training-source-schema-pilot.mjs'
+permissions:
+  contents: read
+jobs:
+  read-first-256-pre-training-source-events:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check and neutral earliest training hour first 256 events only
+        run: |
+          node --check research/replay-120d-real/second-training-source-schema-pilot.mjs
+          node research/replay-120d-real/second-training-source-schema-pilot.mjs R29_EARLY_TRAIN/2026-07-20-first-256-source-event-schema.json
+      - name: Refuse to invent full training or personal PnL
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          const r=JSON.parse(readFileSync('R29_EARLY_TRAIN/2026-07-20-first-256-source-event-schema.json','utf8'));
+          assert.equal(r.day_utc,'2026-07-20');
+          assert.equal(r.coin_addresses_excluded,true);
+          assert.equal(r.full_training_hour_downloaded,false);
+          assert.equal(r.historic_gpt_model_scans_done,0);
+          assert.equal(r.realizable_pnl,null);
+          assert.ok(r.events_sampled>0);
+          console.log('R29_TRAINING_SOURCE_SCHEMA_PROVED',r.events_sampled);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-first-original-training-day-neutral-event-schema-not-trades
+          path: R29_EARLY_TRAIN/
+          if-no-files-found: warn
