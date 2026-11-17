@@ -43,6 +43,22 @@ class ResearchQueue(unittest.TestCase):
   self.assertEqual(len(set(merged)),150)
   self.assertTrue(all(p["this_is_not_an_actual_GPT_model_invocation"] for p in pages))
   self.assertTrue(all(not x["gpt_model_call_made"] for p in pages for x in p["selected_for_possible_GPT_review"]))
+ def test_cached_full_universe_matches_db_and_updates_hourly_without_lookahead(self):
+  self.add_mints(3)
+  cache={r[0]:r[1] for r in self.conn.execute("SELECT mint,t0 FROM launches")}
+  previous={}
+  events=[self.feat(self.mint(0),self.start+1000,buy=30),
+          self.feat(self.mint(1),self.start+3000,buy=35),
+          self.feat(self.mint(2),self.start+7200,buy=90)]
+  pos,stats=m.apply_rows_until(self.conn,events,0,self.start+3600,cache,previous)
+  self.assertEqual(pos,2)
+  self.assertEqual(len(previous),2)
+  self.assertEqual(m.review_at(self.conn,self.start+3600)["eligible_count_not_truncated"],2)
+  pos,stats=m.apply_rows_until(self.conn,events,pos,self.start+7500,cache,previous)
+  self.assertEqual(pos,3)
+  self.assertEqual(len(previous),3)
+  self.assertEqual(m.review_at(self.conn,self.start+7500)["eligible_count_not_truncated"],3)
+
  def test_future_features_cannot_change_earlier_ranked_queue(self):
   self.add_mints(2)
   e=[self.feat(self.mint(0),self.start+1000,buy=40),
