@@ -163,7 +163,7 @@ async function claimSingleStreamInstance(folder){
  const lock=path.join(folder,'stream.pid');
  await mkdir(folder,{recursive:true});
  try{
-  const handle=await open(lock,'wx',{mode:0o600});
+  const handle=await open(lock,'wx',0o600);
   await handle.writeFile(String(process.pid));await handle.close();
  }catch(e){
   if(e.code!=='EEXIST')throw e;
@@ -173,7 +173,7 @@ async function claimSingleStreamInstance(folder){
    catch(err){if(err.code!=='ESRCH')throw err}
   }
   await unlink(lock);
-  const handle=await open(lock,'wx',{mode:0o600});
+  const handle=await open(lock,'wx',0o600);
   await handle.writeFile(String(process.pid));await handle.close();
  }
  return async()=>{
