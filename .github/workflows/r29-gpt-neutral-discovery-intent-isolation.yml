@@ -1,0 +1,56 @@
+name: R29 GPT neutral discovery packet and intent isolation
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-gpt-neutral-discovery-intent-isolation.yml'
+      - 'research/replay-120d-real/gpt-winner-blind-discovery-and-intent-20261117*'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  test-true-original-source-frames-and-synthetic-gpt-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run regression suite: future labels, cash, GPT BUY intent, SELL position, no imaginary fills
+        run: |
+          node --check research/replay-120d-real/gpt-winner-blind-discovery-and-intent-20261117.mjs
+          node --test research/replay-120d-real/gpt-winner-blind-discovery-and-intent-20261117.test.mjs
+      - name: Retrieve precommitted neutral historical 01:20 market snapshot (NOT future outcomes)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/r29-0120
+          gh run download 44066121844 --repo 127027/Sniperbot- --name r29-historic-second-0120-source-frame-after-first-lesson-no-trades --dir /tmp/r29-0120
+          test -f /tmp/r29-0120/2026-09-18T012000Z-mint-pool-candidates.json
+      - name: Demonstrate real historical neutral input converted into GPT-only bounded prompt
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          import {buildWinnerBlindResearchPacket} from './research/replay-120d-real/gpt-winner-blind-discovery-and-intent-20261117.mjs';
+          const frame=JSON.parse(readFileSync('/tmp/r29-0120/2026-09-18T012000Z-mint-pool-candidates.json','utf8'));
+          const e=buildWinnerBlindResearchPacket(frame,{scan_index_in_utc_day:2,available_cash_test_usdc:null});
+          assert.equal(e.packet.phase,'BLIND_TEST');
+          assert.equal(e.packet.candidates.length,60);
+          assert.equal(e.created_executable_order,false);
+          assert.equal(e.actual_gpt_model_invocation_completed,false);
+          assert.equal(e.verified_pnl_test_usdc,null);
+          assert.ok(e.packet.candidates.every(c=>c.source_recorded_swaps_are_not_our_executable_fills));
+          assert.equal(e.packet.social_and_news_evidence,'ABSENT_UNLESS_SEPARATELY_ORIGINALLY_CAPTURE_ATTESTED');
+          console.log('R29_REAL_INPUT_NEUTRAL_GPT_CONTEXT_PROVEN',JSON.stringify({
+            virtual_asof:e.packet.virtual_asof_utc,
+            neutral_candidates:e.packet.candidates.length,
+            input_sha256:e.payload_sha256,
+            actual_model_calls:0,
+            actual_buy_fills:0,
+            synthetic_unit_tests_not_live_trading:true
+          }));
+          JS
