@@ -107,7 +107,8 @@ export function publicGptSizeStatus(offer){
   throw Error('GPT_SIZE_OFFER_NOT_PUBLIC_SAFE');
  return {schema:'sniper_r29_public_gpt_size_request_status.v1',
   mode:'PAPER_ONLY',real_trading_enabled:false,
-  request_id:offer.request_id,offer_sha256:offer.offer_sha256,
+  request_id:offer.request_id,
+  private_offer_hash_published:false,
   observed_at_utc:offer.observed_at_utc,
   status:offer.can_buy?'PRIVATE_OFFER_AVAILABLE':'PRIVATE_CAPACITY_BLOCKED',
   numeric_account_balance_published:false,
