@@ -39,6 +39,10 @@ jobs:
         run: node --test runner/paper-agent-pipeline.test.mjs runner/github-signed-agent-feed.test.mjs runner/isolated-paper-pipeline-selftest.test.mjs runner/market-pool-pinning.test.mjs runner/paper-lifecycle-policy.test.mjs runner/portfolio-budget.test.mjs runner/signed-research-quorum.test.mjs runner/historical-replay-readiness.test.mjs runner/breakout-forecast.test.mjs runner/pipeline-health.test.mjs runner/central-decisions.test.mjs runner/research.test.mjs runner/live-mode-policy.test.mjs runner/gateway.test.mjs runner/integration.test.mjs
       - name: V0.21 single AI coordinator decision, signed paper BUY/SELL, no live money (offline fixtures)
         run: node --test runner/central-ai-coordinator.test.mjs
+      - name: R29 V4.1 genuine GPT API cadence, asof validated strategy, one strategist and no hindsight
+        run: node --test runner/r29-strategy-knowledge.test.mjs runner/r29-gpt-strategist-mode.test.mjs research/replay-120d-real/r29-postfreeze-unknown-winner-audit.test.mjs
+      - name: New GPT strategy and postfreeze detection modules syntax
+        run: node --check runner/r29-strategy-knowledge.mjs && node --check research/replay-120d-real/r29-postfreeze-unknown-winner-audit.mjs
       - name: R28 local communication diagnostic and durable cycle audit (offline mock; no paid AI)
         run: node --test runner/r28-connection-diagnostic.test.mjs
       - name: R28 real offline local HTTP bot-API-signature handshake (disposable dir)
