@@ -2,6 +2,27 @@
 
 # SNIPERBOT R29 – HIER BEGINNEN (auch in jedem neuen Chat)
 
+> **NEUE KANONISCHE FORTSETZUNG – echter GPT→GitHub→Windows-Rundweg am 17.11.2026**
+> Ein aktuellen Chat-Entscheid ist um 17:58:12.581 UTC per unveraenderlichem
+> Hash-/Owner-Archiv nach GitHub geschrieben worden. Der laufende Laptop-Bot
+> bestaetigte um 17:58:45.322 UTC denselben Entscheidungs-Identifier
+> gpt_e7c715480f009a0dd80040fa78c186a7 mit **NO_TRADE**.
+> Das belegt den realen nicht-handelnden Befehlskanal, noch keinen Paper-BUY,
+> keine kryptografische Modellidentitaet und kein autonomes 24/7-Forward-GPT.
+> **Alle naechsten Chats beginnen mit** [R29-FORWARD-LIVE-FORTSETZUNG](research/r29/operations/R29_FORWARD_LIVE_RESUME_20261117_DE.md)
+> und [R29-LATEST-CHECKPOINT](research/r29/operations/R29_LATEST_CHECKPOINT.json).
+> Dort stehen die aktuelle Live-Evidenz, die getrennte 40-Gewinner-POSTHOC-Liste,
+> Zeitstempel, Quittungen, unbehobene Publikationsluecken und der konkrete naechste
+> Code-/Testschritt. Der oeffentliche Research-Marktfeed auf
+> codex/research-gateway-v04 war noch am 17.11. laut letzter
+> GitHub-Datei vom **11.11.2026** und damit veraltet.
+> Neue Module fuer fruehe Migrationserkennung und die sichere
+> Marktquellen-Diagnose sind in Entwicklung; **das neue Laptop-Update
+> ist noch nicht nachgewiesen**. Bei ungepruefter Contract-Sicherheit
+> oder nicht ausfuehrbarer Buy/Sell-Quote NIE einen BUY behaupten.
+>
+
+
 > **NEUE ENTWICKLUNGSERGÄNZUNG 17.11.2026 (nach historischem Holdout):**
 > 40 weitere vom Nutzer gelieferte historische Gewinnerbeispiele wurden als
 > **USER_SUPPLIED_UNVERIFIED** in eine *strikt posthoc* Referenzdatei übernommen:
