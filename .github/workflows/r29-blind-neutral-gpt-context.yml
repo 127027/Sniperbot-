@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/r29-blind-neutral-gpt-context.yml'
       - 'research/replay-120d-real/blind-neutral-market-gpt-input*'
+      - 'research/replay-120d-real/shrine-neutral-archive-event-adapter*'
 permissions:
   contents: read
 jobs:
@@ -19,6 +20,10 @@ jobs:
         with:
           node-version: '22'
       - name: Test all historical market, media, memory and position data must be available as-of UTC
-        run: node --test research/replay-120d-real/blind-neutral-market-gpt-input.test.mjs
+        run: |
+          node --test research/replay-120d-real/blind-neutral-market-gpt-input.test.mjs
+          node --test research/replay-120d-real/shrine-neutral-archive-event-adapter.test.mjs
       - name: Syntax check and confirm no autonomous trading or payment code
-        run: node --check research/replay-120d-real/blind-neutral-market-gpt-input.mjs
+        run: |
+          node --check research/replay-120d-real/blind-neutral-market-gpt-input.mjs
+          node --check research/replay-120d-real/shrine-neutral-archive-event-adapter.mjs
