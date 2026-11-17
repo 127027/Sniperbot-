@@ -19,8 +19,9 @@ test('120 chronological days: 60 train strictly preceding 60 blind test',()=>{
  assert.equal(d[119].remaining_days_before_today,1);
 });
 test('120-day ledger honestly distinguishes missing training and incomplete holdout',()=>{
- const r=build120dSourceLedger(csv);
+ const r=build120dSourceLedger(csv,launchCoverageCsv);
  assert.equal(r.days.length,120);
+ assert.equal(r.train_days_with_retro_launch_identities,18);
  assert.equal(r.train_days_with_realtime_proven_memecoin_frames,0);
  assert.equal(r.test_days_with_retrospective_minute_frames,43);
  assert.equal(r.actual_gpt_buy_hold_sell_pnl_test_usdc,null);
