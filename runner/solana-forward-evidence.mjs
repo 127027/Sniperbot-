@@ -108,7 +108,11 @@ export async function evaluateForwardSolanaResearch({
  quoteFetcher=fetch,wait=async()=>{},apiKey=process.env.JUPITER_API_KEY||null,
  researchAmountLamports='10000000'
 }={}){
- if(!Number.isFinite(now)||!typeof researchAmountLamports==='string')
+ if(!Number.isFinite(now)||typeof researchAmountLamports!=='string'||
+  !/^[1-9][0-9]{3,12}$/.test(researchAmountLamports)||
+  BigInt(researchAmountLamports)>100000000000n||
+  (apiKey!==null&&(typeof apiKey!=='string'||
+    !/^[a-zA-Z0-9._-]{16,200}$/.test(apiKey))))
   throw Error('SOLANA_FORWARD_CLOCK_INVALID');
  const selection=selectForwardSolanaCandidate(snapshot,{now});
  const result={schema:MEME_REVIEW_SCHEMA,mode:'PAPER_ONLY',paper_only:true,
@@ -129,7 +133,8 @@ export async function evaluateForwardSolanaResearch({
  try{
   result.finalized_mint_observation=await readFinalizedSolanaMint(
    selection.candidate.token_address,{fetcher:rpcFetcher,now});
-  result.mint_check_status='FINALIZED_MINT_HEADER_OBSERVED';
+  result.mint_check_status=result.finalized_mint_observation.mint_program==='UNKNOWN'?
+   'FINALIZED_MINT_HEADER_INCONCLUSIVE':'FINALIZED_MINT_HEADER_OBSERVED';
  }catch(e){result.mint_check_status=failure(e)}
  try{
   const q=await previewSolanaSwapRoundtrip({
@@ -168,7 +173,8 @@ function access(token){
 }
 export async function syncPublicForwardSolanaResearch({
  token,now=Date.now(),fetcher=fetch,rpcFetcher=fetch,quoteFetcher=fetch,
- wait=async()=>{},filename=path.join(ROOT,'.local','research-market','latest.json')
+ wait=async()=>new Promise(resolve=>setTimeout(resolve,2200)),
+ filename=path.join(ROOT,'.local','research-market','latest.json')
 }={}){
  const headers=access(token);
  let raw;
