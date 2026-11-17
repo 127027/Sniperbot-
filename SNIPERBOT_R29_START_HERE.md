@@ -12,6 +12,7 @@
 > oder Echtgeldtransaktion, keine autonome GPT-Kaufentscheidung durch den
 > WebSocket, keine rückwirkende Änderung des 60-Tage-Blindtests.
 > **Zuerst lesen:** [Phase-1-Handbuch, Dateiänderungen, Tests, Start und Restlücken](docs/R29_SOLANA_REALTIME_PHASE1_20261117.md).
+> **Aktueller maschinenlesbarer Fortschritt:** [R29_LATEST_CHECKPOINT.json](research/r29/operations/R29_LATEST_CHECKPOINT.json) mit PR, verifizierten CI-Runs, Restlücken und nächsten Schritten.
 > `README`, GitHub-Commit und Offline-CI beweisen **nicht**, dass der
 > Benutzerlaptop bereits diese Version installiert oder echte Stream-Events empfängt.
 >
