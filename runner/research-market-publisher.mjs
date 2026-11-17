@@ -1,3 +1,4 @@
+import {validateFreeStreamLead} from './solana-live-events.mjs';
 // Optional GitHub research snapshot bridge. DISABLED unless manually enabled on Windows.
 // Only writes the fixed non-actionable public research/market/latest.json on the work branch.
 // Never reads bot portfolio, trading state, wallets, orders or publisher signing keys.
@@ -15,12 +16,36 @@ function assertResearch(s){
       'previous_volume_m5_usd','current_volume_m5_usd','m5_volume_ratio',
       'current_liquidity_usd','buy_transactions_m5','sell_transactions_m5',
       'indicative_price_ratio','source_urls','paper_only','actionable',
-      'probability_pct','recommended_action','unknown_checks','warning']);
+      'probability_pct','recommended_action','unknown_checks','warning',
+      'pool_created_at_utc','provider_creation_age_at_observation_ms',
+      'source_event_at_utc','source_timestamp_quality',
+      'transaction_signature','provider','chain_finality']);
+    const known=new Set(['MARKET_ACCELERATION','NEW_POOL_FIRST_OBSERVED',
+      'SOLANA_STREAM_NEW_TOKEN','SOLANA_STREAM_MIGRATION']);
+    const sTime=Date.parse(s.published_at_utc);
+    const goodResearchEvent=e=>{
+      if(!e||e.paper_only!==true||e.actionable!==false||
+        e.probability_pct!==null||
+        e.recommended_action!=='INDEPENDENT_FIVE_ROLE_REVIEW'||
+        !known.has(e.event_type)||!/^research-alert-[a-f0-9]{32}$/.test(e.event_id||'')||
+        Object.keys(e).some(k=>!allowed.has(k)))return false;
+      if(e.event_type.startsWith('SOLANA_STREAM_')){
+        return Number.isFinite(sTime)&&
+          validateFreeStreamLead(e,{now:sTime,maxAgeMs:60*60_000});
+      }
+      if(e.event_type==='NEW_POOL_FIRST_OBSERVED'){
+        const ts=Date.parse(e.observed_at_utc),created=Date.parse(e.pool_created_at_utc);
+        return Number.isFinite(sTime)&&Number.isFinite(ts)&&
+          ts<=sTime&&Number.isFinite(created)&&created<=ts&&
+          typeof e.candidate_id==='string'&&e.chain==='solana'||
+          (Number.isFinite(sTime)&&Number.isFinite(ts)&&ts<=sTime&&
+          Number.isFinite(created)&&created<=ts&&
+          typeof e.candidate_id==='string'&&['base','eth','bsc'].includes(e.chain));
+      }
+      return e.event_type==='MARKET_ACCELERATION';
+    };
     if(!Array.isArray(s.research_alerts)||s.research_alerts.length>24||
-       s.research_alerts.some(e=>!e||e.paper_only!==true||e.actionable!==false||
-         e.probability_pct!==null||e.event_type!=='MARKET_ACCELERATION'||
-         e.recommended_action!=='INDEPENDENT_FIVE_ROLE_REVIEW'||
-         Object.keys(e).some(k=>!allowed.has(k))))
+       s.research_alerts.some(e=>!goodResearchEvent(e)))
       throw Error('Unsafe public research alert payload');
   }
 
