@@ -72,9 +72,13 @@ def init_priority(conn):
   "sol_curve_reserve REAL, score REAL, eligible INTEGER, reason TEXT)")
  conn.execute("CREATE INDEX IF NOT EXISTS ix_features_review ON "
   "asof_feature_state(eligible,score DESC,last_t DESC)")
+ conn.execute("CREATE TABLE IF NOT EXISTS research_reactivations ("
+  "mint TEXT NOT NULL, observed_t REAL NOT NULL, prior_expires REAL NOT NULL,"
+  "new_expires REAL NOT NULL, reason TEXT NOT NULL, "
+  "PRIMARY KEY(mint,observed_t))")
  conn.commit()
 
-def apply_rows_until(conn,ordered,pos,cutoff,launch_times=None,feature_cache=None):
+def apply_rows_until(conn,ordered,pos,cutoff,launch_times=None,feature_cache=None,eligible_cache=None,expiry_cache=None):
  processed=0;valid=0;unmatched=0
  while pos<len(ordered) and ordered[pos]["t"]<=cutoff:
   x=ordered[pos];pos+=1;processed+=1
@@ -101,8 +105,22 @@ def apply_rows_until(conn,ordered,pos,cutoff,launch_times=None,feature_cache=Non
   # This is technical retention, never a BUY or GPT decision.
   if prev and finite(x["f_n_buys"]) and finite(prev["buys"]) and (
    x["f_n_buys"]-prev["buys"]>=5) and info["eligible"]:
-   conn.execute("UPDATE launches SET expires=MAX(expires,?) WHERE chain='solana' AND mint=?",
-    (t+capture.OBSERVATION_SECONDS,mint))
+   old_expires=expiry_cache.get(mint) if expiry_cache is not None else None
+   if old_expires is None:
+    row=conn.execute("SELECT expires FROM launches WHERE chain='solana' AND mint=?",(mint,)).fetchone()
+    old_expires=row[0] if row else None
+   if old_expires is None:raise ValueError("PREVIOUS_LAUNCH_EXPIRY_LOST")
+   new_expires=max(old_expires,t+capture.OBSERVATION_SECONDS)
+   if new_expires>old_expires:
+    conn.execute("UPDATE launches SET expires=? WHERE chain='solana' AND mint=?",
+     (new_expires,mint))
+    if expiry_cache is not None:expiry_cache[mint]=new_expires
+    if t>=old_expires:
+     conn.execute("INSERT OR IGNORE INTO research_reactivations VALUES(?,?,?,?,?)",
+      (mint,t,old_expires,new_expires,
+       "NEWLY_OBSERVED_BUY_DELTA_MIN_5_AND_CURRENT_TECHNICAL_SIGNAL"))
+  # No automatic buy; a formerly rejected or expired mint can be surfaced
+  # again ONLY after new point-in-time evidence and its technical risk checks.
   conn.execute("INSERT INTO asof_feature_state VALUES(?,?,?,?,?,?,?) "
    "ON CONFLICT(mint) DO UPDATE SET last_t=excluded.last_t,"
    "buys=excluded.buys,sol_curve_reserve=excluded.sol_curve_reserve,"
@@ -112,6 +130,12 @@ def apply_rows_until(conn,ordered,pos,cutoff,launch_times=None,feature_cache=Non
     info["score"],int(info["eligible"]),info["reason"]))
   if feature_cache is not None:
    feature_cache[mint]=(t,x["f_n_buys"] if finite(x["f_n_buys"]) else None)
+  if eligible_cache is not None:
+   if info["eligible"]:
+    eligible_cache[mint]=(t,x["f_n_buys"] if finite(x["f_n_buys"]) else None,
+     x["f_rs"] if finite(x["f_rs"]) else None,info["score"],info["reason"])
+   else:
+    eligible_cache.pop(mint,None)
   valid+=1
  return pos,{"rows_consumed":processed,"rows_joined_to_raw_launches":valid,
   "rows_without_matching_launch":unmatched}
@@ -142,6 +166,40 @@ def review_at(conn,asof,page=0):
   "this_is_not_an_actual_GPT_model_invocation":True,
   "paper_trade_execution_verified":False}
 
+def review_at_cached(eligible_cache,launch_times,expiry_cache,asof,page=0):
+ """Fast deterministic as-of view, byte-equivalent fields to SQL review_at.
+
+ O(number of currently eligible identities) instead of repeated JOIN+SORT of
+ the entire ever-growing launch universe at every one of 408 hourly checks.
+ The full neutral source ledger is never truncated or sampled.
+ """
+ if not finite(asof) or not isinstance(page,int) or page<0:
+  raise ValueError("INVALID_ASOF_RESEARCH_PAGE")
+ rows=[]
+ for mint,(last_t,buys,reserve,score,reason) in eligible_cache.items():
+  t0=launch_times.get(mint)
+  expiry=expiry_cache.get(mint)
+  if t0 is None or expiry is None:continue
+  if t0<=asof and expiry>asof and last_t<=asof:
+   rows.append((mint,t0,last_t,buys,reserve,score,reason))
+ rows.sort(key=lambda r:(-r[5],-r[2],r[0]))
+ n=len(rows)
+ section=rows[page*REVIEW_BATCH_SIZE:(page+1)*REVIEW_BATCH_SIZE]
+ return {"asof_utc":capture.iso(asof),"eligible_count_not_truncated":n,
+  "page":page,"page_size":REVIEW_BATCH_SIZE,
+  "total_pages":(n+REVIEW_BATCH_SIZE-1)//REVIEW_BATCH_SIZE,
+  "selected_for_possible_GPT_review":[{
+   "chain":"solana","mint":x[0],"launch_at_utc":capture.iso(x[1]),
+   "last_feature_observed_at_utc":capture.iso(x[2]),
+   "observed_buy_count":x[3],
+   "observed_SOL_curve_reserve_NOT_USDC_liquidity":x[4],
+   "technical_priority_score_not_breakout_probability":x[5],
+   "technical_reason":x[6],"GPT_decision":None,
+   "gpt_model_call_made":False,"buy_sell_quote_verified":False}
+   for x in section],
+  "this_is_not_an_actual_GPT_model_invocation":True,
+  "paper_trade_execution_verified":False}
+
 def download_feature(day,target,expected):
  import pyarrow.parquet as pq
  url=SOURCE+"data/features/"+day+".parquet?download=true"
@@ -169,14 +227,22 @@ def replay_features(source_dir,output,start,end,expected,read_day=download_featu
  # Disposable retrospective runner: cache immutable launch IDs and each
  # latest known feature to avoid millions of redundant SQLite SELECTs.
  # SQL still persists every upsert before the corresponding as-of checkpoint.
- launch_times=dict(conn.execute("SELECT mint,t0 FROM launches WHERE chain='solana'"))
+ raw_launches=list(conn.execute("SELECT mint,t0,expires FROM launches WHERE chain='solana'"))
+ launch_times={r[0]:r[1] for r in raw_launches}
+ expiry_cache={r[0]:r[2] for r in raw_launches}
+ del raw_launches
  feature_cache={r[0]:(r[1],r[2]) for r in
   conn.execute("SELECT mint,last_t,buys FROM asof_feature_state")}
+ eligible_cache={r[0]:(r[1],r[2],r[3],r[4],r[5]) for r in
+  conn.execute("SELECT mint,last_t,buys,sol_curve_reserve,score,reason "
+  "FROM asof_feature_state WHERE eligible=1")}
  output.parent.mkdir(parents=True,exist_ok=True)
  result={"schema":"sniper_r29_v4_all_asof_features_to_48h_research_queue.v1",
   "source_days":0,"total_minute_feature_rows":0,
   "source_feature_rows_joined_to_all_neutral_launches":0,
   "total_technical_hourly_frames":0,"gpt_model_calls":0,
+  "fast_in_memory_asof_priority_index_used":True,
+  "SQL_full_universe_JOIN_query_per_hour":False,
   "historical_PnL_TEST_USDC":None,
   "creator_wallet_diversity_independently_verified":False,
   "market_USDC_volume_or_executable_quote_verified":False,
@@ -204,9 +270,10 @@ def replay_features(source_dir,output,start,end,expected,read_day=download_featu
     for hour in range(1,25):
      cutoff=start_ts+hour*3600
      with conn:
-      pos,stats=apply_rows_until(conn,usable,pos,cutoff,launch_times,feature_cache)
+      pos,stats=apply_rows_until(conn,usable,pos,cutoff,launch_times,
+       feature_cache,eligible_cache,expiry_cache)
      day_joined+=stats["rows_joined_to_raw_launches"]
-     reviews.append(review_at(conn,cutoff))
+     reviews.append(review_at_cached(eligible_cache,launch_times,expiry_cache,cutoff))
     if pos!=len(usable):raise ValueError("UNCONSUMED_ASOF_FEATURE_EVENTS")
     result["days"].append({
      "day":d,"sha256":expected[d]["sha256"],"original_rows":len(events),
@@ -218,6 +285,8 @@ def replay_features(source_dir,output,start,end,expected,read_day=download_featu
     result["total_minute_feature_rows"]+=len(events)
     result["source_feature_rows_joined_to_all_neutral_launches"]+=day_joined
     result["total_technical_hourly_frames"]+=24
+    result["reactivation_events_verified_asof"]=conn.execute(
+     "SELECT count(*) FROM research_reactivations").fetchone()[0]
     print("R29_V4_ASOF_PRIORITY_DAY",d,len(events),
      "joined",day_joined,"end_hour_eligible",reviews[-1]["eligible_count_not_truncated"],flush=True)
  finally:conn.close()
