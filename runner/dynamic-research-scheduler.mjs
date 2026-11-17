@@ -106,7 +106,7 @@ function boundedCandidates(snapshot){
   // volumes alone otherwise miss the first minutes. These are NOT buy signals.
   const eventIds=[...new Set(early.leads.map(e=>e.candidate_id).filter(Boolean))];
   const candidateById=new Map(ordinary.map(c=>[c.candidate_id,c]));
-  const chosen=eventIds.slice(0,4).filter(id=>candidateById.has(id))
+  const chosen=eventIds.filter(id=>candidateById.has(id)).slice(0,4)
     .map(id=>({c:candidateById.get(id),selection:'EARLY_EVENT_PRIORITY'}));
   const selected=new Set(chosen.map(x=>x.c.candidate_id));
   const remaining=ordinary.filter(c=>!selected.has(c.candidate_id));
