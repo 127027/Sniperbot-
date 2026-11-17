@@ -26,7 +26,7 @@ const dominant=i=>{
   promotion_biased:false,pool_created_at_utc:'2026-11-16T12:00:00.000Z'};
 };
 function frame(extraAlerts=[]){
- const candidates=[solana,...Array.from({length:13},(_,i)=>dominant(i+1))];
+ const candidates=[{...solana,source_urls:[...solana.source_urls]},...Array.from({length:13},(_,i)=>dominant(i+1))];
  return {schema:'research_market_snapshot.v1',paper_only:true,actionable:false,
   collection_status:'OBSERVED_OR_PARTIAL',published_at_utc:at,
   candidates,research_alerts:extraAlerts};
