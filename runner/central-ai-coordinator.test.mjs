@@ -8,7 +8,8 @@ import {encodeBase58} from './local-solana-vault.mjs';
 import {freshState} from './core.mjs';
 import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
 import {snapshotForAi,planRecommendations,signLocalPaperSignal,
- startCentralAiCoordinator,requestCentralAiAdvice} from './central-ai-coordinator.mjs';
+ startCentralAiCoordinator,requestCentralAiAdvice,
+ nextR29RealModelDelayMs,reserveR29GptBudget} from './central-ai-coordinator.mjs';
 
 const MINT=encodeBase58(Buffer.alloc(32,31));
 const POOL=encodeBase58(Buffer.alloc(32,32));
@@ -135,7 +136,7 @@ test('response parser requires completed web search and structured JSON',async()
  let parsed;
  const fakeFetch=async(_url,options)=>{
   parsed=JSON.parse(options.body);
-  return {ok:true,json:async()=>({status:'completed',id:'resp-local-test',
+  return {ok:true,json:async()=>({status:'completed',id:'resp_local_test_123456789',
    model:'mock-model',output:[{type:'web_search_call',status:'completed'},
    {type:'message',content:[{type:'output_text',text:JSON.stringify(advice())}]}]})};
  };
@@ -171,4 +172,88 @@ test('single AI run shares the local bot state and logs actual simulated receipt
   assert.equal(status.receipts[0].status,'PAPER_FILLED');
   assert.equal(JSON.parse(readFileSync(path.join(dir,'central-ai','latest.json'))).mode,'PAPER_ONLY');
  }finally{service.stop();rmSync(dir,{recursive:true,force:true})}
+});
+
+test('GPT research cadence targets 1, 6, 12, 24 reviews daily without generating BUY instructions',()=>{
+ const input={paper:{positions:[]},candidates:[],early_discovery:{alerts:[]},news:{leads:[]}};
+ assert.equal(nextR29RealModelDelayMs(input),24*3600000);
+ assert.equal(nextR29RealModelDelayMs({...input,candidates:[{}]}),4*3600000);
+ assert.equal(nextR29RealModelDelayMs({...input,candidates:Array(5).fill({}),news:{leads:[{}]}}),2*3600000);
+ assert.equal(nextR29RealModelDelayMs({...input,paper:{positions:[{}]}}),3600000);
+ assert.equal(nextR29RealModelDelayMs({...input,early_discovery:{alerts:[{},{}]}}),3600000);
+});
+test('24 real HTTP attempt daily budget is durable across restarts, not bypassed by bad data',()=>{
+ const t=Date.parse('2026-11-17T12:00:00.000Z');
+ const requests=Array.from({length:24},(_,i)=>new Date(t+i*1000).toISOString());
+ const full=reserveR29GptBudget(requests,new Date(t+25000).toISOString());
+ assert.equal(full.allowed,false);assert.equal(full.used,24);
+ const tomorrow=reserveR29GptBudget(requests,'2026-11-18T01:00:00.000Z');
+ assert.equal(tomorrow.allowed,true);assert.equal(tomorrow.used,1);
+ assert.throws(()=>reserveR29GptBudget(requests,'garbage'),/BUDGET_INVALID/);
+});
+test('local model can decline an unproven new candidate without converting WATCH into a trade',()=>{
+ const input=snapshotForAi(ledger(),market().results,news(),{now:Date.now(),marketRegime:regime});
+ assert.equal(planRecommendations(input,advice('NO_TRADE',0),{webSearchUsed:true}).orders.length,0);
+ assert.equal(planRecommendations(input,advice('WATCH',0),{webSearchUsed:true}).orders.length,0);
+});
+test('test-injected fake model response may simulate a Paper trade but cannot masquerade as an actual model invocation',async()=>{
+ const dir=mkdtempSync(path.join(os.tmpdir(),'r29-true-model-only-test-'));
+ let state=ledger();
+ const service=startCentralAiCoordinator({deviceId,dataDir:dir,apiKey:'sk-fake',
+  getState:()=>state,scan:async()=>market(),collectNews:async()=>news(),
+  collectMarketRegime:async()=>regime,submit:async()=>({receipt:{status:'BLOCKED',reason:'SYNTHETIC_TEST'}}),
+  initialDelayMs:1000000});
+ try{
+  const outcome=await service.runOnce({modelApi:async()=>({
+   advice:advice('WATCH',0),webSearchUsed:true,model:'mock-only',response_id:'resp_mock_123456789'})});
+  assert.equal(outcome.status,'NO_TRADE');
+  const status=service.status();
+  assert.equal(status.last_api_response_is_real_provider_invocation,false);
+  assert.equal(status.actual_provider_response_count,0);
+  assert.equal(status.provider_requests_utc.length,1);
+  assert.equal(status.mode,'PAPER_ONLY');
+ }finally{service.stop();rmSync(dir,{recursive:true,force:true})}
+});
+
+test('fake HTTP Responses endpoint can test the data path but never inflate real-model counters',async()=>{
+ const dir=mkdtempSync(path.join(os.tmpdir(),'r29-mock-http-provenance-'));
+ const httpStub=async()=>({ok:true,json:async()=>({
+  id:'resp_mock_api_123456789',status:'completed',model:'gpt-4.1-mini',
+  output:[{type:'web_search_call',status:'completed'},
+   {type:'message',content:[{type:'output_text',
+    text:JSON.stringify(advice('WATCH',0))}]}]})});
+ let state=ledger();
+ const svc=startCentralAiCoordinator({deviceId,dataDir:dir,
+  apiKey:'sk-local-fixture-only-123456789',
+  getState:()=>state,scan:async()=>market(),collectNews:async()=>news(),
+  collectMarketRegime:async()=>regime,
+  submit:async()=>{throw Error('NO_ORDERS_EXPECTED')},
+  fetcher:httpStub,initialDelayMs:1000000});
+ try{
+  const result=await svc.runOnce();
+  assert.equal(result.status,'NO_TRADE');
+  assert.equal(svc.status().last_api_response_is_real_provider_invocation,false);
+  assert.equal(svc.status().actual_provider_response_count,0);
+  assert.equal(svc.status().provider_requests_utc.length,1);
+ }finally{svc.stop();rmSync(dir,{recursive:true,force:true})}
+});
+
+test('previously invisible low-liquidity unknown memecoin reaches GPT WATCH, never unsafe BUY',()=>{
+ const tiny=market().results[0];
+ const early={...tiny,liquidityUsd:1500,volume5mUsd:15,buys5m:1,
+  sells5m:0,score:0};
+ const input=snapshotForAi(ledger(),[early],news(),{now:Date.now(),marketRegime:regime});
+ assert.equal(input.candidates.length,0);
+ assert.equal(input.research_candidates.length,1);
+ assert.equal(input.research_candidates[0].can_buy,false);
+ assert.equal(nextR29RealModelDelayMs(input),4*3600000);
+ const modelReason='Early unproven organic buy activity; reserve too small for a safe trading order.';
+ const choice=action=>({summary:'Still unknown pre-breakout potential, not trading authority',
+  choices:[{candidate_id:ID,action,score_0_100:99,
+    portfolio_pct:3,reason:modelReason,source_urls:['https://news.example/test']}]});
+ const watch=planRecommendations(input,choice('WATCH'),{webSearchUsed:true});
+ assert.equal(watch.reviews.length,1);
+ assert.equal(watch.orders.length,0);
+ const unsafe=planRecommendations(input,choice('BUY'),{webSearchUsed:true});
+ assert.equal(unsafe.orders.length,0);
 });
