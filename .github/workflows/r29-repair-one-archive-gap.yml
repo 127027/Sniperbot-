@@ -1,0 +1,56 @@
+name: R29 repair one 120-day archive source gap only
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-repair-one-archive-gap.yml'
+      - 'research/replay-120d-real/repair-second-archive-one-gap*'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  repair-neutral-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify correction affects only the missing historical day and never invents trades
+        run: node --test research/replay-120d-real/repair-second-archive-one-gap.test.mjs
+      - name: Restore previous verified 119-day report
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p R29_120D_ORIGINAL
+          gh run download 44063753885 --repo 127027/Sniperbot- --name r29-two-provider-120d-full-neutral-hour-index-no-trading --dir R29_120D_ORIGINAL
+          test -f R29_120D_ORIGINAL/neutral-120d-2880-hour-directory-index.json
+      - name: Retry only the one missing source directory, preserve other 119 days
+        run: |
+          node research/replay-120d-real/repair-second-archive-one-gap.mjs R29_120D_ORIGINAL/neutral-120d-2880-hour-directory-index.json R29_120D_REPAIRED/neutral-full-120d-hour-index.json
+      - name: Reject incomplete data or any fabricated trades
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          const d=JSON.parse(readFileSync('R29_120D_REPAIRED/neutral-full-120d-hour-index.json','utf8'));
+          assert.equal(d.days.length,120);
+          assert.equal(d.no_coin_winners_read,true);
+          assert.equal(d.no_historical_GPT_trades_executed,true);
+          assert.equal(d.actual_executable_PnL_test_USDC,null);
+          console.log('R29_120DAY_FULL_HOUR_INDEX_AFTER_REPAIR',JSON.stringify({
+            trained:d.training_days_with_full_day_index,
+            tested:d.holdout_days_with_full_day_index,
+            archived_hour_files:d.total_indexed_hour_files,
+            not_a_trading_result:true}));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-neutral-full-120day-2880-hour-source-index-after-single-day-repair
+          path: R29_120D_REPAIRED/
+          if-no-files-found: warn
+          retention-days: 30
