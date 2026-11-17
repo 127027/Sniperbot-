@@ -136,7 +136,7 @@ test('response parser requires completed web search and structured JSON',async()
  let parsed;
  const fakeFetch=async(_url,options)=>{
   parsed=JSON.parse(options.body);
-  return {ok:true,json:async()=>({status:'completed',id:'resp-local-test',
+  return {ok:true,json:async()=>({status:'completed',id:'resp_local_test_123456789',
    model:'mock-model',output:[{type:'web_search_call',status:'completed'},
    {type:'message',content:[{type:'output_text',text:JSON.stringify(advice())}]}]})};
  };
