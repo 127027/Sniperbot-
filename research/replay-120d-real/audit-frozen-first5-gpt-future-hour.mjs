@@ -142,8 +142,8 @@ export async function auditLaterHour({fetcher=fetch,framePath}={}){
    outcome_from_other_peoples_executed_swaps_not_proof_of_own_fill:true,
    USDC_to_SOL_fx_quote_verified:false,
    source_archive_only_sol_price_not_automatically_usdc:true,
-   5000_test_usdc_start_not_used:5000,
-   5000_test_usdc_verifiable_final_equity:null,
+   starting_test_usdc_not_at_risk:5000,
+   final_equity_test_usdc:null,
    confirmed_own_paper_buys:0,confirmed_own_paper_sells:0,
    outcomes};
  }finally{
