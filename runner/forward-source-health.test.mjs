@@ -102,7 +102,8 @@ test('GitHub courier publishes source freshness only, no secrets and no buys; du
   const first=await syncPublicForwardSourceHealth({
    token:fakeToken,marketFile,streamFile,now,fetcher});
   assert.equal(first.published,true);
-  assert.equal(first.public.market_source_status,'RESEARCH_FEED_RECENT');
+  assert.equal(first.public.market_source_status,'CANONICAL_RESEARCH_FEED_RECENT');
+  assert.equal(first.public.public_market_preferred_branch,'codex/r29-chatgpt-github-paper-cycle-20261115');
   assert.equal(saved.account_balance_or_private_wallet_published,false);
   assert.equal(calls.filter(x=>x.method==='PUT').length,1);
   assert(!JSON.stringify(saved).includes('4999'));
@@ -112,6 +113,21 @@ test('GitHub courier publishes source freshness only, no secrets and no buys; du
   assert.equal(repeat.published,false);
   assert.equal(calls.filter(x=>x.method==='PUT').length,1);
  }finally{await rm(dir,{recursive:true,force:true})}
+});
+test('fresh canonical R29 data rescues an outdated legacy market gateway but remains RESEARCH_ONLY',()=>{
+ const status=summarizeForwardSourceHealth({now,marketStatus:collector,
+  streamStatus:stream,remoteMarket:{...remote,published_at_utc:at(900)},
+  remoteMarketAccess:'OK',
+  remoteCanonicalMarket:{...remote,published_at_utc:at(4)},
+  canonicalMarketAccess:'OK'});
+ assert.equal(status.market_source_status,'CANONICAL_RESEARCH_FEED_RECENT');
+ assert.equal(status.public_market_recent,true);
+ assert.equal(status.canonical_market_recent,true);
+ assert.equal(status.legacy_market_recent,false);
+ assert.equal(status.public_market_preferred_branch,
+  'codex/r29-chatgpt-github-paper-cycle-20261115');
+ assert.equal(status.actual_gpt_model_scans_verified,false);
+ assert.equal(status.actual_paper_fills_verified,false);
 });
 test('no GitHub token means no public data access or information leaks',async()=>{
  await assert.rejects(syncPublicForwardSourceHealth({
