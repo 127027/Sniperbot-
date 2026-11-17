@@ -1,0 +1,49 @@
+name: R29 first frozen GPT same-pool swap mark quality inspection
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-first-gpt-hour-mark-quality.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  quality-check-recorded-swaps-not-own-fills:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore already-verified immutable hour outcome artifact only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/r29-source-outcomes
+          gh run download 44065226055 --repo 127027/Sniperbot- --name r29-frozen-first5-GPT-watch-later-hour-price-marks-not-fills --dir /tmp/r29-source-outcomes
+          test -f /tmp/r29-source-outcomes/2026-09-18-first5-frozen-watch-later-hour-outcomes.json
+      - name: Print trade mark sizes and time-of-last swap to detect dust/outliers
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          const r=JSON.parse(readFileSync('/tmp/r29-source-outcomes/2026-09-18-first5-frozen-watch-later-hour-outcomes.json','utf8'));
+          assert.equal(r.all_initial_actions_preserved,true);
+          for(const x of r.outcomes){
+            console.log('R29_LATER_SWAP_MARK_QUALITY',JSON.stringify({
+              action:x.frozen_research_action,
+              mint:x.token_address,
+              first_before_00_05_price_SOL:x.earliest_asof_quote_mark_original_sol,
+              first_later:x.earliest_later_trade,
+              first_later_sell:x.earliest_later_sell_trade,
+              max_later:x.highest_later_recorded_trade,
+              min_later:x.lowest_later_recorded_trade,
+              last_before_01_00:x.last_recorded_trade_before_01utc,
+              later_swaps:x.later_source_event_count,
+              personal_USDC_pnl:x.realized_test_usdc_pnl
+            }));
+          }
+          JS
