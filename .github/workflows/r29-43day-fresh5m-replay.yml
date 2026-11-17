@@ -1,0 +1,52 @@
+name: R29 43-day fresh 5-minute memecoin replay (retrospective source)
+on:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-43day-fresh5m-replay.yml'
+      - 'research/replay-120d-real/fresh-five-minute-memecoin-replay.py'
+      - 'research/replay-120d-real/test_fresh_five_minute_memecoin_replay.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-fresh-candidate-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_RESEARCH_FEED: '0'
+      SNIPER_LOCAL_DISCOVERY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned read-only parquet parser
+        run: python -m pip install --quiet --disable-pip-version-check pyarrow==18.1.0
+      - name: Test fresh 5m as-of source, age-at-scan and anti-hindsight
+        run: python -m unittest discover -s research/replay-120d-real -p 'test_fresh_five_minute_memecoin_replay.py' -v
+      - name: Reconstruct latest eight fresh 5-minute candidates at each historical hourly endpoint, all 43 real days
+        run: python research/replay-120d-real/fresh-five-minute-memecoin-replay.py
+      - name: Cross-check true 43-day source volume and no false GPT or PnL
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('research/replay-120d-real/generated/r29-fresh-5m-43d/SUMMARY.json')
+          x=json.loads(p.read_text())
+          assert x['days_with_source']==43 and x['hourly_frames']==1032
+          assert x['source_rows']==5645886
+          assert x['actual_gpt_model_calls']==0
+          assert x['realized_pnl_test_usdc'] is None
+          assert x['out_of_sample_validation'] is False
+          print('R29_FRESH_5M_SOURCE',x['fresh_candidate_occurrences'],x['raw_last5_rows'])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-real-43day-fresh5minute-candidates-no-fills-v2
+          path: research/replay-120d-real/generated/r29-fresh-5m-43d/
+          if-no-files-found: warn
+          retention-days: 30
