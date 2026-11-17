@@ -214,3 +214,26 @@ test('test-injected fake model response may simulate a Paper trade but cannot ma
   assert.equal(status.mode,'PAPER_ONLY');
  }finally{service.stop();rmSync(dir,{recursive:true,force:true})}
 });
+
+test('fake HTTP Responses endpoint can test the data path but never inflate real-model counters',async()=>{
+ const dir=mkdtempSync(path.join(os.tmpdir(),'r29-mock-http-provenance-'));
+ const httpStub=async()=>({ok:true,json:async()=>({
+  id:'resp_mock_api_123456789',status:'completed',model:'gpt-4.1-mini',
+  output:[{type:'web_search_call',status:'completed'},
+   {type:'message',content:[{type:'output_text',
+    text:JSON.stringify(advice('WATCH',0))}]}]})});
+ let state=ledger();
+ const svc=startCentralAiCoordinator({deviceId,dataDir:dir,
+  apiKey:'sk-local-fixture-only-123456789',
+  getState:()=>state,scan:async()=>market(),collectNews:async()=>news(),
+  collectMarketRegime:async()=>regime,
+  submit:async()=>{throw Error('NO_ORDERS_EXPECTED')},
+  fetcher:httpStub,initialDelayMs:1000000});
+ try{
+  const result=await svc.runOnce();
+  assert.equal(result.status,'NO_TRADE');
+  assert.equal(svc.status().last_api_response_is_real_provider_invocation,false);
+  assert.equal(svc.status().actual_provider_response_count,0);
+  assert.equal(svc.status().provider_requests_utc.length,1);
+ }finally{svc.stop();rmSync(dir,{recursive:true,force:true})}
+});
