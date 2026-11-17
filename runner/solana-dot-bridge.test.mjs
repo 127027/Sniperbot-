@@ -46,6 +46,17 @@ test('new-pool first-observed alert from existing collector is publishable witho
  const e=detectFirstSeenRecentPoolLeads(null,s).events[0];
  assert.equal(e.event_type,'NEW_POOL_FIRST_OBSERVED');
  assert.equal(e.actionable,false);
+ const timestamp=Date.parse(at),eventTime=Date.parse(e.observed_at_utc),
+  createdTime=Date.parse(e.pool_created_at_utc);
+ console.log('NEW_POOL_DIAGNOSTIC',JSON.stringify({
+  event:e,ts:timestamp,eventTime,createdTime,
+  age:e.provider_creation_age_at_observation_ms,
+  expectedAge:eventTime-createdTime,
+  validSources:e.source_urls?.map(u=>{
+    try{const v=new URL(u);return v.protocol==='https:'&&!!v.hostname&&!v.username&&!v.password}
+    catch{return false}
+  })
+ }));
  const result=await publish(snapshot([e]));
  assert.equal(result.path,'research/market/latest.json');
  await assert.rejects(publish(snapshot([{...e,source_urls:['http://evil.invalid']}]))
