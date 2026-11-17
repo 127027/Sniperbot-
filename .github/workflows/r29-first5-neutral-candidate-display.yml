@@ -1,0 +1,51 @@
+name: R29 first 5-minute neutral GPT-only candidate review input
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-first5-neutral-candidate-display.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  show-frozen-asof-not-future-outcomes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore only first five minutes frozen neutral source snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/r29-first5
+          gh run download 44064517959 --repo 127027/Sniperbot- --name r29-neutral-first-five-minutes-sealed-asof-gpt-source-not-actual-trades --dir /tmp/r29-first5
+          test -f /tmp/r29-first5/2026-09-18T000500Z-mint-pool-candidates.json
+      - name: Only print the first 15 source-asof neutral candidates, never later outcomes
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {strict as assert} from 'node:assert';
+          const d=JSON.parse(readFileSync('/tmp/r29-first5/2026-09-18T000500Z-mint-pool-candidates.json','utf8'));
+          assert.equal(d.virtual_asof_utc,'2026-09-18T00:05:00.000Z');
+          assert.equal(d.stream_stopped_at_first_later_event,true);
+          assert.equal(d.source_future_coin_winners_used,false);
+          assert.equal(d.realized_test_usdc_pnl,null);
+          console.log('R29_FROZEN_NEUTRAL_ASOF_SOURCE_SHA',d.source_prefix_asof_event_lines_sha256);
+          console.log('R29_FROZEN_ASOF_CANDIDATES_TOP15',JSON.stringify(d.ranked_neutral_cohort_not_all_market.slice(0,15).map(x=>({
+            chain:x.chain,token_address:x.token_address,pool_address:x.pool_address,
+            protocol:x.first_seen_protocol,quote_asset_mint:x.quote_asset_mint,
+            buys:x.observed_buys,sells:x.observed_sells,
+            unique_buyers:x.unique_buyers_observed,unique_sellers:x.unique_sellers_observed,
+            buy_quote_volume_original_asset:x.buy_quote_volume_original_asset,
+            sell_quote_volume_original_asset:x.sell_quote_volume_original_asset,
+            last_trade_price_original_quote:x.most_recent_trade_price_original_quote,
+            last_quote_pool_reserve:x.latest_pool_quote_reserves_original_asset,
+            creator_safety:x.creator_risk_asof_verified,
+            mint_authorities_absent:x.mint_or_freeze_authority_verified_absent
+          }))));
+          JS
