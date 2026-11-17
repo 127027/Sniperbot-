@@ -9,6 +9,7 @@ const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const REPO='127027/Sniperbot-';
 const BRANCH='codex/r29-chatgpt-github-paper-cycle-20261115';
 const MARKET_BRANCH='codex/research-gateway-v04';
+const CANONICAL_BRANCH='codex/r29-chatgpt-github-paper-cycle-20261115';
 const HOST='https://api.github.com/repos/'+REPO+'/contents/';
 export const PUBLIC_SOURCE_HEALTH_PATH='research/r29/channel/forward-source-health.json';
 export const SOURCE_HEALTH_SCHEMA='sniper_r29_forward_source_health.v1';
@@ -57,7 +58,8 @@ async function getGithubContent(url,{token,fetcher}){
 }
 export function summarizeForwardSourceHealth({
  now=Date.now(),marketStatus=null,streamStatus=null,remoteMarket=null,
- remoteMarketAccess='UNAVAILABLE'
+ remoteMarketAccess='UNAVAILABLE',remoteCanonicalMarket=null,
+ canonicalMarketAccess='UNAVAILABLE'
 }={}){
  if(!Number.isFinite(now))throw Error('SOURCE_HEALTH_NOW_REQUIRED');
  const validMarket=marketStatus?.schema==='research_market_collector_status.v1'&&
@@ -71,11 +73,17 @@ export function summarizeForwardSourceHealth({
  const remoteValid=remoteMarket?.schema==='research_market_snapshot.v1'&&
   remoteMarket.paper_only===true&&remoteMarket.actionable===false;
  const publicLag=remoteValid?age(remoteMarket.published_at_utc,now):null;
+ const canonicalValid=remoteCanonicalMarket?.schema==='research_market_snapshot.v1'&&
+  remoteCanonicalMarket.paper_only===true&&remoteCanonicalMarket.actionable===false;
+ const canonicalLag=canonicalValid?age(remoteCanonicalMarket.published_at_utc,now):null;
+ const canonicalFresh=canonicalLag!==null&&canonicalLag<=30;
+ const legacyFresh=publicLag!==null&&publicLag<=30;
  const collectorFresh=marketLag!==null&&marketLag<=6;
- const marketPublishedRecently=publicLag!==null&&publicLag<=30;
+ const marketPublishedRecently=canonicalFresh||legacyFresh;
  const marketStatusCode=!validMarket?'LOCAL_COLLECTOR_STATUS_MISSING_OR_INVALID':
   !collectorFresh?'LOCAL_COLLECTOR_STALE':
   marketStatus.status!=='RUNNING_RESEARCH'?'LOCAL_RESEARCH_SOURCE_BLOCKED':
+  canonicalFresh?'CANONICAL_RESEARCH_FEED_RECENT':
   marketStatus.publishing_enabled!==true?'LOCAL_GITHUB_MARKET_PUBLISH_DISABLED':
   !marketPublishedRecently?'PUBLIC_MARKET_FEED_STALE':'RESEARCH_FEED_RECENT';
  const streamCode=!validStream?'SOLANA_STREAM_STATUS_MISSING_OR_INVALID':
@@ -90,9 +98,20 @@ export function summarizeForwardSourceHealth({
   market_github_publishing_configured:validMarket&&marketStatus.publishing_enabled===true,
   market_publication_error_class:validMarket?classifiedMarketPublishError(marketStatus):'UNKNOWN_NO_LOCAL_STATUS',
   public_market_recent:marketPublishedRecently,
-  public_market_last_capture_utc:remoteValid?remoteMarket.published_at_utc:null,
-  public_market_lag_minutes:publicLag,
-  public_market_access:remoteMarketAccess,
+  public_market_last_capture_utc:canonicalFresh?
+   remoteCanonicalMarket.published_at_utc:remoteValid?remoteMarket.published_at_utc:null,
+  public_market_lag_minutes:canonicalFresh?canonicalLag:publicLag,
+  public_market_access:canonicalFresh?canonicalMarketAccess:remoteMarketAccess,
+  public_market_preferred_branch:canonicalFresh?CANONICAL_BRANCH:
+   legacyFresh?MARKET_BRANCH:'NONE_FRESH',
+  canonical_market_access:canonicalMarketAccess,
+  canonical_market_last_capture_utc:canonicalValid?
+   remoteCanonicalMarket.published_at_utc:null,
+  canonical_market_lag_minutes:canonicalLag,
+  canonical_market_recent:canonicalFresh,
+  legacy_market_last_capture_utc:remoteValid?remoteMarket.published_at_utc:null,
+  legacy_market_lag_minutes:publicLag,
+  legacy_market_recent:legacyFresh,
   public_market_research_not_tradable:true,
   solana_stream_status:streamCode,
   solana_stream_provider_status:validStream&&allowStreamStatus.has(streamStatus.status)?
@@ -119,14 +138,21 @@ export async function syncPublicForwardSourceHealth({
   localJson(marketFile),localJson(streamFile)
  ]);
  const marketUrl=HOST+REMOTE_MARKET+'?ref='+encodeURIComponent(MARKET_BRANCH);
- let remote=null,remoteAccess='UNAVAILABLE';
+ const canonicalUrl=HOST+REMOTE_MARKET+'?ref='+encodeURIComponent(CANONICAL_BRANCH);
+ let remote=null,remoteAccess='UNAVAILABLE',canonical=null,
+  canonicalAccess='UNAVAILABLE';
  try{
   remote=await getGithubContent(marketUrl,{token,fetcher});
   remoteAccess=remote?'OK':'MISSING';
  }catch{remoteAccess='READ_FAILED';}
+ try{
+  canonical=await getGithubContent(canonicalUrl,{token,fetcher});
+  canonicalAccess=canonical?'OK':'MISSING';
+ }catch{canonicalAccess='READ_FAILED';}
  const status=summarizeForwardSourceHealth({
   now,marketStatus:market,streamStatus:stream,
-  remoteMarket:remote,remoteMarketAccess:remoteAccess});
+  remoteMarket:remote,remoteMarketAccess:remoteAccess,
+  remoteCanonicalMarket:canonical,canonicalMarketAccess:canonicalAccess});
  const url=HOST+PUBLIC_SOURCE_HEALTH_PATH;
  const previous=await fetcher(url+'?ref='+encodeURIComponent(BRANCH),{
   method:'GET',redirect:'error',signal:AbortSignal.timeout(12000),
@@ -151,7 +177,9 @@ export async function syncPublicForwardSourceHealth({
   old.solana_stream_provider_status===status.solana_stream_provider_status&&
   old.market_github_publishing_configured===status.market_github_publishing_configured&&
   old.market_publication_error_class===status.market_publication_error_class&&
-  old.public_market_access===status.public_market_access;
+  old.public_market_access===status.public_market_access&&
+  old.canonical_market_last_capture_utc===status.canonical_market_last_capture_utc&&
+  old.public_market_preferred_branch===status.public_market_preferred_branch;
  if(noChange&&past!==null&&past<15)
   return {published:false,status:'UNCHANGED_RECENT',public:status};
  const payload={message:'research(r29): source freshness and missing link diagnostic only',
