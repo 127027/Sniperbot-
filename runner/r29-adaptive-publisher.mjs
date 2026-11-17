@@ -47,7 +47,7 @@ export function sanitizedAdaptivePresence(local){
    local.recent_candidate_count:0,
   security_verification:'UNKNOWN_NOT_EXECUTABLE',
   confidence:'UNVERIFIED_MARKET_OBSERVATIONS',
-  note:'NO_AUTO_PAPER_ORDER; latest read-only research audit, not an AI trader'};
+  note:'NO_AUTO_PAPER_ORDER; deterministic hourly research is NOT an actual GPT model scan'};
 }
 function headers(token){
  if(typeof token!=='string'||!/^(?:github_pat_|ghp_)[A-Za-z0-9_]{15,}$/.test(token))
@@ -115,6 +115,7 @@ export function sanitizedAdaptiveReview(review,status){
    review.validated_buy_count!==0||review.validated_sell_count!==0||
    review.simulated_pnl!==null||review.contract_security_verified!==false||
    review.sellability_verified!==false||review.quote_executable!==false||
+   review.actual_gpt_model_invocations_verified===true||
    !validDate(review.at_utc)||!hash(review.sha256_payload)||
    !Array.isArray(review.candidates)||review.candidates.length>12||
    status?.last_review_sha256!==review.sha256_payload||
@@ -127,7 +128,7 @@ export function sanitizedAdaptiveReview(review,status){
    !c.candidate_id.startsWith(c.chain+':')||
    c.gpt_action!=='NO_ORDER_UNVERIFIED_SECURITY'||
    c.contract_security!=='UNKNOWN'||c.sellability!=='UNKNOWN'||
-   !['DETERMINISTIC_CONTROL','MARKET_ACTIVITY_SAMPLE'].includes(c.selection)||
+   !['DETERMINISTIC_CONTROL','MARKET_ACTIVITY_SAMPLE','EARLY_EVENT_PRIORITY'].includes(c.selection)||
    typeof c.price_usd!=='number'||!Number.isFinite(c.price_usd)||c.price_usd<=0||
    numOrNull(c.liquidity_usd)===null)
    throw Error('R29_DYNAMIC_REVIEW_CANDIDATE_REJECTED');
@@ -139,6 +140,53 @@ export function sanitizedAdaptiveReview(review,status){
    contract_security:'UNKNOWN',sellability:'UNKNOWN',
    signal:'INDEPENDENT_REVIEW_REQUIRED_NOT_BUY'});
  }
+ const early=review.early_event_leads??[];
+ if(!Array.isArray(early)||early.length>8||
+    (review.early_event_lead_count!==undefined&&
+      (!finiteInt(review.early_event_lead_count,early.length,24))))
+   throw Error('R29_DYNAMIC_EARLY_LEADS_INVALID');
+ const publicEarly=early.map(e=>{
+   const types=new Set(['SOLANA_STREAM_NEW_TOKEN','SOLANA_STREAM_MIGRATION',
+     'NEW_POOL_FIRST_OBSERVED']);
+   const required=['event_id','event_type','chain','token_address',
+     'pool_address','candidate_id','observed_at_utc',
+     'source_timestamp_quality','independent_pool_identity_verified',
+     'chain_finality_verified','buy_sell_quotes_verified',
+     'sellability_verified','recommended_action','paper_only','actionable'];
+   const strict=e&&typeof e==='object'&&!Array.isArray(e)&&
+     Object.keys(e).sort().join('|')===required.sort().join('|');
+   if(!strict||!types.has(e.event_type)||
+      !/^research-alert-[a-f0-9]{32}$/.test(e.event_id||'')||
+      !['solana','eth','base','bsc'].includes(e.chain)||
+      !/^[A-Za-z0-9]{32,44}$/.test(e.token_address||'')&&
+       !/^0x[a-f0-9]{40}$/.test(e.token_address||'')||
+      !(e.pool_address===null||(/^[A-Za-z0-9]{32,44}$/.test(e.pool_address)||
+        /^0x[a-f0-9]{40}$/.test(e.pool_address)))||
+      !(e.candidate_id===null||contractId(e.candidate_id))||
+      !validDate(e.observed_at_utc)||
+      Date.parse(e.observed_at_utc)>Date.parse(review.at_utc)||
+      Date.parse(review.at_utc)-Date.parse(e.observed_at_utc)>600_000||
+      !['LOCAL_RECEIVE_ONLY','LOCAL_PERIODIC_API_FIRST_SEEN']
+        .includes(e.source_timestamp_quality)||
+      (e.event_type.startsWith('SOLANA_STREAM_')&&
+       (e.chain!=='solana'||e.source_timestamp_quality!=='LOCAL_RECEIVE_ONLY'))||
+      (e.event_type==='NEW_POOL_FIRST_OBSERVED'&&
+       e.source_timestamp_quality!=='LOCAL_PERIODIC_API_FIRST_SEEN')||
+      e.independent_pool_identity_verified!==false||
+      e.chain_finality_verified!==false||
+      e.buy_sell_quotes_verified!==false||
+      e.sellability_verified!==false||
+      e.recommended_action!=='INDEPENDENT_GPT_RESEARCH_NOT_BUY'||
+      e.paper_only!==true||e.actionable!==false)
+      throw Error('R29_DYNAMIC_EARLY_LEAD_UNTRUSTED');
+   return {event_id:e.event_id,event_type:e.event_type,
+     candidate_id:e.candidate_id,chain:e.chain,token_address:e.token_address,
+     pool_address:e.pool_address,observed_at_utc:e.observed_at_utc,
+     source_timestamp_quality:e.source_timestamp_quality,
+     chain_finality_verified:false,buy_sell_quotes_verified:false,
+     sellability_verified:false,
+     recommendation:'INDEPENDENT_GPT_RESEARCH_NOT_BUY'};
+ });
  return {schema:'sniper_r29_public_dynamic_review.v1',
   paper_only:true,actionable:false,real_trading_enabled:false,
   no_account_balances:true,no_wallet_data:true,
@@ -146,7 +194,9 @@ export function sanitizedAdaptiveReview(review,status){
   experiment_phase:review.experiment_phase,
   research_frequency_per_day:review.cadence_per_day,
   sources_incomplete:true,security_verified:false,
-  candidates:out,
+  actual_gpt_model_invocations_verified:false,
+  candidates:out,early_event_leads:publicEarly,
+  early_event_lead_count:review.early_event_lead_count??publicEarly.length,
   warning:'Indicative data from public sources; NOT a full GPT security audit, NOT a tradable quote or paper order'};
 }
 export async function syncAdaptivePublicReview({token,
