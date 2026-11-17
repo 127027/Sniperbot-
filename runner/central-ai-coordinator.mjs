@@ -195,6 +195,9 @@ export async function requestCentralAiAdvice(input,{apiKey,model='gpt-4.1-mini',
   if(!response.ok)throw Error('OPENAI_API_HTTP_'+response.status);
   const result=await response.json();
   if(result.status!=='completed')throw Error('OPENAI_API_RESPONSE_NOT_COMPLETE');
+  if(typeof result.id!=='string'||!/^resp_[a-zA-Z0-9_-]{8,}$/.test(result.id)||
+    typeof result.model!=='string'||result.model.trim().length<3)
+    throw Error('OPENAI_PROVIDER_RESPONSE_IDENTITY_MISSING');
   const outputs=Array.isArray(result.output)?result.output:[];
   const parts=outputs.filter(x=>x.type==='message').flatMap(x=>x.content||[])
    .filter(x=>x.type==='output_text').map(x=>x.text);
