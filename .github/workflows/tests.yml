@@ -88,7 +88,7 @@ jobs:
       - name: R29 adaptive module syntax, collector and courier wiring
         run: node --check runner/dynamic-research-scheduler.mjs && node --check runner/dynamic-research-outcomes.mjs && node --check runner/r29-adaptive-publisher.mjs && node --check runner/research-market-daemon.mjs && node --check runner/r29-windows-courier.mjs
       - name: R29 chronological event-driven review leads and strict neutral GPT as-of input (no trades)
-        run: node --test research/replay-120d-real/historical-event-radar.test.mjs research/replay-120d-real/blind-neutral-market-gpt-input.test.mjs
+        run: node --test research/replay-120d-real/historical-event-radar.test.mjs research/replay-120d-real/blind-neutral-market-gpt-input.test.mjs runner/research-first-seen-pools.test.mjs
       - name: R29 independent free security evidence research for GPT, fail-closed and bounded provider calls
         run: node --test runner/gpt-paper-security-research.test.mjs
       - name: R29 public security evidence read-only syntax
