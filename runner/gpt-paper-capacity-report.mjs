@@ -1,10 +1,11 @@
 // R29 LOCAL-ONLY capacity report for GPT: executor informs, GPT decides.
 // Do not publish numeric private paper capacity or account fields on public GitHub.
 // Pure read-only; no signing, mutation, transfer, payments or orders.
-import {portfolioBudget} from './portfolio-budget.mjs';
+import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
+import {MAX_SINGLE_SHARE,paperAutoEquity} from './live-paper-risk.mjs';
 const cents=x=>Math.floor((x+1e-8)*100)/100;
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
-const MIN=50,MAX=5000;
+const MIN=MIN_GPT_PAPER_ENTRY_USDC,MAX=5000;
 export const PRIVATE_SCHEMA='sniper_r29_private_gpt_paper_capacity.v1';
 export function computePrivateGptCapacity(state,{observed_at_utc,technical_max_stake_test_usdc=5000}={}){
  const base={schema:PRIVATE_SCHEMA,mode:'PAPER_ONLY',real_trading_enabled:false,
@@ -24,9 +25,14 @@ export function computePrivateGptCapacity(state,{observed_at_utc,technical_max_s
   return {...base,reason:'TECHNICAL_RISK_LIMIT_INVALID'};
  const budget=portfolioBudget(state);
  if(!budget.valid)return {...base,reason:'LOCAL_PAPER_BUDGET_UNVERIFIED'};
+ // Advertise only capacity consistent with the actual 1%-of-equity entry gate.
+ // A larger private funding offer would repeatedly authorize impossible BUYs.
+ // Unknown/stale existing position marks make equity untrustworthy: fail closed.
+ const equity=paperAutoEquity(state,{now:t});
+ if(!finite(equity)||equity<=0)return {...base,reason:'FRESH_PAPER_EQUITY_REQUIRED'};
  const approved=cents(Math.min(MAX,budget.free_to_allocate_test_usdc,
-  technical_max_stake_test_usdc));
- if(approved<MIN)return {...base,reason:'PAPER_FREE_CAPACITY_BELOW_50'};
+  technical_max_stake_test_usdc,equity*MAX_SINGLE_SHARE));
+ if(approved<MIN)return {...base,reason:'PAPER_FREE_CAPACITY_BELOW_GPT_MINIMUM'};
  return {...base,maximum_approved_buy_test_usdc:approved,can_buy:true,
   reason:'CURRENT_LOCAL_PAPER_CAPACITY_REQUIRES_FRESH_EXECUTOR_RECHECK'};
 }

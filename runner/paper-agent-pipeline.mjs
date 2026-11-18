@@ -6,7 +6,7 @@ import {createHash,createPublicKey,verify} from 'node:crypto';
 import {canonicalInstruction} from './device-execution-inbox.mjs';
 import {validateChainAsset} from './chain-trade-intent-v2.mjs';
 import {action} from './core.mjs';
-import {isWithinPortfolioBudget} from './portfolio-budget.mjs';
+import {isWithinPortfolioBudget,MIN_PAPER_ENTRY_USDC,MIN_GPT_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
 import {r29LivePaperEntryGate} from './live-paper-risk.mjs';
 import {validateGptExitPolicy,gptExitPolicyHash,validateGptExitBinding,assessGptPaperExit} from './gpt-position-exit.mjs';
 
@@ -27,7 +27,8 @@ export function unsignedAgentSignal(order){
  const {signature,...data}=order;
  return AGENT_SIGNAL_DOMAIN+canonicalInstruction(data);
 }
-export function verifyAgentSignal(order,keys,{deviceId,now=Date.now()}={}){
+export function verifyAgentSignal(order,keys,{deviceId,now=Date.now(),
+ signedGptPaperInternal=false}={}){
  if(!DEV.test(deviceId||''))throw Error('AGENT_DEVICE_INVALID');
  if(!order||typeof order!=='object'||Array.isArray(order)||
   Object.keys(order).sort().join(',')!==[...fields].sort().join(','))
@@ -40,7 +41,9 @@ export function verifyAgentSignal(order,keys,{deviceId,now=Date.now()}={}){
   validateChainAsset(order.chain,order.pool_address);
  if(order.action==='BUY'){
   if(typeof order.size_test_usdc!=='string'||!CENTS.test(order.size_test_usdc)||
-   Number(order.size_test_usdc)<50)
+   Number(order.size_test_usdc)<
+    (signedGptPaperInternal&&order.issuer==='sniper-gpt-paper-bridge'&&
+      order.key_id==='ephemeral-session'?MIN_GPT_PAPER_ENTRY_USDC:MIN_PAPER_ENTRY_USDC))
    throw Error('AGENT_PAPER_SIZE_INVALID');
  }else if(order.size_test_usdc!==null)throw Error('AGENT_SELL_MUST_BE_FULL_POSITION');
  const created=Date.parse(order.created_at_utc),expiry=Date.parse(order.expires_at_utc);
@@ -71,7 +74,8 @@ function validQuote(q,order,now){
 }
 export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER',syntheticTest=false,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null,gptExitAuth=null,gptPolicyExit=null,gptExitMonitorReady=false}={}){
  if(!['SIGNED_LOCAL_ADAPTER','GITHUB_SIGNED_COURIER','CENTRAL_AI_LOCAL','LOCAL_PAPER_AUTOPILOT','GPT_GITHUB_LOCAL','GPT_GITHUB_POLICY_EXIT'].includes(source))throw Error('INVALID_AGENT_TRANSPORT_SOURCE');
- const verified=verifyAgentSignal(order,keys,{deviceId,now});
+ const verified=verifyAgentSignal(order,keys,{deviceId,now,
+  signedGptPaperInternal:source==='GPT_GITHUB_LOCAL'&&gptExitAuth!==null});
  const receipts=state.agentOrderReceipts||[];
  if(!Array.isArray(receipts)||receipts.length>250)throw Error('PAPER_AGENT_RECEIPTS_INVALID');
  const digest=createHash('sha256').update(unsignedAgentSignal(order)).digest('hex');
@@ -107,7 +111,7 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
  const autoGate=(localAuto||gptPaper)&&actionType==='BUY'?
   r29LivePaperEntryGate({state:gptPaper?{...state,automaticPaperBuys:true}:state,
    candidate:paperAutopilotCandidate,
-   quote,security:securityEvidence,now}):null;
+   quote,security:securityEvidence,now,gptSignedPaper:gptPaper}):null;
  const matchingAutoPosition=localAuto&&actionType==='SELL'&&
   state.positions.some(p=>p.paperAutopilot===true&&p.chain===order.chain&&
   eqAddress(order.chain,p.tokenAddress,order.token_address)&&
@@ -153,7 +157,8 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
  else if(actionType==='BUY'){
   if(state.positions.some(p=>p.chain===order.chain&&
    eqAddress(order.chain,p.tokenAddress,order.token_address)))reason='POSITION_ALREADY_OPEN_OR_LEDGER_BLOCKED';
-  else if(!isWithinPortfolioBudget(state,amount))reason='PAPER_BUDGET_OR_FUNDS_INSUFFICIENT';
+  else if(!isWithinPortfolioBudget(state,amount,
+   {gptSignedPaper:gptPaper}))reason='PAPER_BUDGET_OR_FUNDS_INSUFFICIENT';
   else{
    const id=order.chain+':'+quote.poolAddress;
    const candidate={
@@ -168,7 +173,7 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
    const candidateState={...state,candidates:[candidate,...state.candidates.filter(c=>c.id!==id)].slice(0,90)};
    const orderState=localAuto||gptPaper?
      {...candidateState,defaultExitMode:gptPaper?'GPT_GUARD':'AUTO'}:candidateState;
-   const attempted=action(orderState,{type:'BUY',id,amount});
+   const attempted=action(orderState,{type:gptPaper?'GPT_SIGNED_BUY':'BUY',id,amount});
    if(attempted.positions.length>state.positions.length){
     next=localAuto||gptPaper?{...attempted,defaultExitMode:state.defaultExitMode,
       positions:attempted.positions.map(p=>state.positions.some(x=>x.id===p.id)?p:

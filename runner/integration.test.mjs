@@ -117,6 +117,8 @@ test('R29 V4.7 explicit Paper entry OFF is idempotent, persists, and GPT follow 
   assert.equal(summary.gpt_exit_monitor_last_outcome,'NOT_YET_CHECKED');
   assert.equal(summary.real_trading_enabled,false);
   await command({type:'SET_BOT_ENTRIES',enabled:'false'},422);
+  await command({type:'GPT_SIGNED_BUY',id:'anything',amount:5},400);
+  // Internal signer-only action may NEVER be exposed as a public HTTP command.
   await command({type:'SET_BOT_ENTRIES',enabled:false,unexpected:true},422);
   assert.equal((await status()).paper_bot_enabled,false);
   await stopServer(child);child=null;

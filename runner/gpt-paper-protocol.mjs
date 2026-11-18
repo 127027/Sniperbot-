@@ -4,6 +4,7 @@
 import {createHash} from 'node:crypto';
 import {validTokenAddress} from './market.mjs';
 import {validateGptExitPolicy} from './gpt-position-exit.mjs';
+import {MIN_GPT_PAPER_ENTRY_USDC,MIN_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
 
 export const GPT_PAPER_DECISION_PATH='research/r29/channel/gpt-paper-decision.json';
 export const GPT_PAPER_RECEIPT_PATH='research/r29/channel/gpt-paper-receipt.json';
@@ -73,7 +74,8 @@ export function validateGptPaperDecision(d,{now=Date.now(),forExecution=false}={
    (d.action==='BUY'&&(!Number.isInteger(d.score_0_100)||
     d.score_0_100<80||d.security_assessment!=='VERIFIED'||
     typeof d.amount_test_usdc!=='number'||!Number.isFinite(d.amount_test_usdc)||
-    d.amount_test_usdc<50||d.amount_test_usdc>5000||
+    d.amount_test_usdc<(v2?MIN_GPT_PAPER_ENTRY_USDC:MIN_PAPER_ENTRY_USDC)||
+    d.amount_test_usdc>5000||
     Math.abs(d.amount_test_usdc*100-Math.round(d.amount_test_usdc*100))>0.00001))||
    (d.action==='SELL'&&d.amount_test_usdc!==null))
    throw Error('GPT_DECISION_TRADE_INCOMPLETE_OR_UNSAFE');

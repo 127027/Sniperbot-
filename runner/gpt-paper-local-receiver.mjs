@@ -137,7 +137,7 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
     if(!receipt&&d.action==='BUY'){
      const approval=r29LivePaperEntryGate({
       state:{...getState(),automaticPaperBuys:true},candidate,
-      quote:q,security,now:now()});
+      quote:q,security,now:now(),gptSignedPaper:true});
      if(!approval.allowed)receipt=safeResult(d,'BLOCKED',approval.reason);
      else if(d.amount_test_usdc>approval.amount_test_usdc)
       receipt=safeResult(d,'BLOCKED','GPT_SIZE_EXCEEDS_INDEPENDENT_RISK_CAP');

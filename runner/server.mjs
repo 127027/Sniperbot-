@@ -212,7 +212,10 @@ function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_A
     if(!existsSync(file))return {error:'Kein autorisierter signierender Agenten-Publisher eingerichtet',code:409};
     keys=JSON.parse(readFileSync(file,'utf8'));
    }
-   verifyAgentSignal(signed,keys,{deviceId:localDevice.device_id});
+   verifyAgentSignal(signed,keys,{deviceId:localDevice.device_id,
+    signedGptPaperInternal:source==='GPT_GITHUB_LOCAL'&&gptExitAuth!==null&&
+     signed.issuer==='sniper-gpt-paper-bridge'&&
+     signed.key_id==='ephemeral-session'&&Array.isArray(localTrust)&&localTrust.length===1});
   }catch(e){return {error:String(e?.message||'INVALID_SIGNATURE').slice(0,120),code:422}}
   const old=Array.isArray(state.agentOrderReceipts)?
    state.agentOrderReceipts.find(r=>r.signal_id===signed.signal_id):null;

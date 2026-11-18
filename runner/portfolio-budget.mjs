@@ -5,6 +5,9 @@
 // and realized sale proceeds may be reused; already-open entry cost stays reserved.
 // Never size from an uncalibrated percentage or force all funds into positions.
 export const MIN_PAPER_ENTRY_USDC=50;
+// Signer-bound GPT-only virtual entries may be smaller; this does not relax
+// manual, legacy-agent or Echtgeld limits. The 1%-equity cap still applies.
+export const MIN_GPT_PAPER_ENTRY_USDC=5;
 const cents=n=>Math.floor((n+1e-9)*100)/100;
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
 export function portfolioBudget(state){
@@ -38,9 +41,10 @@ export function allocatePortfolioPaper({state,intent='EXPLORATORY',targetUsdc=nu
  const result=cents(Math.min(requested,available));
  return result>=MIN_PAPER_ENTRY_USDC?result:0;
 }
-export function isWithinPortfolioBudget(state,amount){
+export function isWithinPortfolioBudget(state,amount,{gptSignedPaper=false}={}){
  const b=portfolioBudget(state);
- return b.valid&&finite(amount)&&amount>=MIN_PAPER_ENTRY_USDC&&
+ return b.valid&&finite(amount)&&amount>=
+    (gptSignedPaper?MIN_GPT_PAPER_ENTRY_USDC:MIN_PAPER_ENTRY_USDC)&&
    Math.abs(amount*100-Math.round(amount*100))<1e-5&&
    amount<=b.free_to_allocate_test_usdc&&amount<=b.cap_test_usdc;
 }
