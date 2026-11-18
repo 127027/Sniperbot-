@@ -90,7 +90,8 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
   if(!parsed.trade)receipt=safeResult(d,d.action,'GPT_RESEARCH_NO_ORDER');
   else if(Date.parse(d.expires_at_utc)<=instant)
    receipt=safeResult(d,'REJECTED','GPT_DECISION_EXPIRED_NO_PAPER_TRADE');
-  else if(getState()?.gptPaperFollow!==true||getState()?.entriesEnabled!==true)
+  else if(getState()?.gptPaperFollow!==true||
+   (d.action==='BUY'&&getState()?.entriesEnabled!==true))
    receipt=safeResult(d,'BLOCKED','GPT_FOLLOW_OR_PAPER_BOT_DISABLED');
   else if(d.action==='BUY'&&!validatePrivateGptCapacity(
    computePrivateGptCapacity(getState(),{
