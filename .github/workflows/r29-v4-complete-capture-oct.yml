@@ -160,6 +160,26 @@ jobs:
           python research/replay-120d-real/r29-v4-oct-posthoc-regression.py \
             --source-dir research/replay-120d-real/generated/v4-oct-full-48h \
             --output research/replay-120d-real/generated/v4-oct-posthoc-regression.json
+      - name: After neutral archive SHA frozen trace actual first eligible/full-page/shortlist opportunity for the six known contracts
+        run: |
+          python research/replay-120d-real/r29-v4-postfreeze-funnel-reference.py \
+            --source-dir research/replay-120d-real/generated/v4-oct-full-48h \
+            --output research/replay-120d-real/generated/v4-oct-v4-2-postfreeze-funnel-traces.json
+      - name: Verify postfreeze trace is a source audit not imagined GPT trades
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('research/replay-120d-real/generated/v4-oct-v4-2-postfreeze-funnel-traces.json').read_text())
+          assert x['asof_hourly_frames_verified']==408
+          assert x['all_candidate_pairs_verified']>26019
+          assert x['all_feature_events_audited']==2296466
+          assert len(x['references'])==6
+          assert x['actual_historical_GPT_model_calls']==0
+          assert x['historical_verified_paper_BUY_or_SELL_fills']==0
+          assert x['historical_PnL_TEST_USDC'] is None
+          print('R29_V4_2_POSTFREEZE_COMPLETE_FOUR_REFERENCE_GROUPS',len(x['references']))
+          PY
       - name: Do not confuse full-source capture with early GPT selection or fills
         run: |
           python - <<'PY'
@@ -176,6 +196,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: r29-v4-oct-postfreeze-reference-recall-no-model-trades
-          path: research/replay-120d-real/generated/v4-oct-posthoc-regression.json
+          path: |
+            research/replay-120d-real/generated/v4-oct-posthoc-regression.json
+            research/replay-120d-real/generated/v4-oct-v4-2-postfreeze-funnel-traces.json
           if-no-files-found: error
           retention-days: 30
