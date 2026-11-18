@@ -1,3 +1,7 @@
+> **HISTORISCHER ÜBERGABESTAND 06.11.2026 – NICHT AKTUELL:** Für den kanonischen GitHub-only R29-V4.5-Stand, bereits erledigte PRs #54–#59, vollständige Windows-Marktfeed-Belege und offene GPT-Exit-/Receipt-Gates siehe [R29 V4.5](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Keine erneute Entwicklung alter V0.x-Bots/Transporte auf Basis dieses Datums.
+
+---
+
 # Übergabestatus – 06.11.2026
 
 - Offizielles Repository: https://github.com/127027/Sniperbot- (**public**, nicht private).
