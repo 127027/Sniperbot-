@@ -296,11 +296,12 @@ function renderPaper(){
  $('openPnlInfo').textContent='Indikativ, nach 1 % Ausstiegskosten';
  setMoney('realizedPnl',p?.realized_pnl_test_usdc,'pnl');
  $('realizedInfo').textContent='Realisierte Paper-Ergebnisse';
- pill('botBadge',!botReachable?'Nicht verbunden':p?.bot_enabled?'Bot AN':'Bot pausiert',
+ pill('botBadge',!botReachable?'Nicht verbunden':p?.bot_enabled?'Bot AN – Paper-Einstiege erlaubt':'Bot AUS – keine neuen Paper-Käufe',
   botReachable&&p?.bot_enabled?'ok':'blocked');
  const toggle=$('toggleBot');
  toggle.disabled=commandBusy||!p||!botReachable;
- toggle.textContent=p?.bot_enabled?'Bot pausieren':'Bot starten';
+ toggle.textContent=p?.bot_enabled?'Neue Paper-Käufe PAUSIEREN':'Neue Paper-Käufe AKTIVIEREN';
+ toggle.setAttribute('aria-pressed',String(p?.bot_enabled===true));
  toggle.className='btn '+(p?.bot_enabled?'pause':'primary');
   $('toggleAutoPaper').disabled=commandBusy||!p||!botReachable;
   $('toggleAutoPaper').textContent=p?.gpt_paper_follow_enabled?
@@ -426,6 +427,9 @@ async function getCourierStatus(){
     (a.gpt_follow_enabled?'AN':'AUS')+
     ' · lokaler Bridge-Kanal '+(a.local_gpt_bridge_ready?'BEREIT':'NICHT BEREIT')+
     ' · empfangene GPT-Entscheidungen '+(a.received_decision_count||0)+
+    ' · Exit-Monitor '+(a.gpt_exit_monitor_heartbeat_recent?'laufend':
+     'letzter 30s-Durchlauf noch nicht bestätigt')+
+    ' · Paper-Einstiege '+(a.paper_bot_enabled?'AN':'AUS')+
     ' · kein OpenAI-API-Key nötig';
   }catch(e){$('diagAutopilot').textContent='Autopilot-Status nicht verfügbar: '+e.message;}
 
@@ -450,15 +454,24 @@ async function sendPaperCommand(cmd){
  if(commandBusy||activeMode!=='paper'||!botReachable)return;
  commandBusy=true;renderPaper();
  try{
-  await request('/api/command',{method:'POST',headers:{'content-type':'application/json'},
+  const result=await request('/api/command',{method:'POST',headers:{'content-type':'application/json'},
    body:JSON.stringify(cmd)});
-  feedback('Änderung gespeichert.','positive');
+  if(cmd.type==='SET_BOT_ENTRIES'&&result.entries_enabled!==cmd.enabled)
+   throw Error('Server hat die gewünschte Ein-/Aus-Einstellung nicht bestätigt');
+  feedback(cmd.type==='SET_BOT_ENTRIES'?
+   (cmd.enabled?'Neue Paper-Einstiege ausdrücklich AN.':'Neue Paper-Einstiege ausdrücklich AUS. Exit-Überwachung bleibt aktiv.'):
+   'Änderung gespeichert.','positive');
  }catch(e){feedback('Änderung nicht ausgeführt: '+e.message,'negative');}
  finally{commandBusy=false;await loadPaper();}
 }
 $('tabPaper').addEventListener('click',()=>selectMode('paper'));
 $('tabReal').addEventListener('click',()=>selectMode('real'));
-$('toggleBot').addEventListener('click',()=>sendPaperCommand({type:'TOGGLE_BOT'}));
+$('toggleBot').addEventListener('click',()=>{
+ if(!paperView)return;
+ const enabled=paperView.bot_enabled!==true;
+ if(enabled&&!window.confirm('Wirklich neue VIRTUELLE GPT-Paper-Käufe freigeben? Es gelten weiterhin alle Exit-, Sicherheits- und Quellenprüfungen. Echtgeld bleibt AUS.'))return;
+ void sendPaperCommand({type:'SET_BOT_ENTRIES',enabled});
+});
 $('toggleAutoPaper').addEventListener('click',()=>{
   if(!paperView)return;
   const enabled=!paperView.gpt_paper_follow_enabled;
