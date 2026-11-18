@@ -1,6 +1,6 @@
 # R29 V5.0 – Verbindungstest und tatsächlicher GPT-Paper-Nachweis
 
-**VERBINDLICHER V5.0-ZIELVERTRAG (NUTZER GO):** [Autonomer GPT-Memecoin-Scout](../research/r29/operations/R29_V5_0_AUTONOMER_MEMECOIN_SCOUT_ZIELVERTRAG_20261118_DE.md) · [30-Tage-Fälle: ausdrücklich unbestätigt, nicht für Blindtest-Inputs](../research/r29/operations/R29_V5_0_MEMECOIN_30T_REFERENZFAELLE_UNVERIFIZIERT_20261118_DE.md). Die bisherige V4.9-Dokumentation unten ist der **technische Code-IST-Stand**, nicht die Definition eines bereits erreichten V5.0-Ergebnisses.
+**VERBINDLICHER V5.0-ZIELVERTRAG (NUTZER GO):** [R29 V4.5–V4.9-Wissenschronik](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md) · [Autonomer GPT-Memecoin-Scout](../research/r29/operations/R29_V5_0_AUTONOMER_MEMECOIN_SCOUT_ZIELVERTRAG_20261118_DE.md) · [30-Tage-Fälle: ausdrücklich unbestätigt, nicht für Blindtest-Inputs](../research/r29/operations/R29_V5_0_MEMECOIN_30T_REFERENZFAELLE_UNVERIFIZIERT_20261118_DE.md). Die bisherige V4.9-Dokumentation unten ist der **technische Code-IST-Stand**, nicht die Definition eines bereits erreichten V5.0-Ergebnisses.
 
 **V5.0 ist ein vom Nutzer freigegebenes Entwicklungsziel, KEIN Nachweis einer fertig installierten Handelsfunktion.** Aktueller belegter Code-IST ist R29 V4.9 (PR #65) plus Dokumentationsabgleich PR #66. Der parallele Entwicklungsauftrag darf nur mit echten Code-/CI-/Windows-/ChatGPT-Belegen als erfüllt markiert werden.
 
