@@ -41,7 +41,7 @@ test('the actual V5.0 goal records reviews, monitoring, real-lock and proof gate
  assert.match(g,/3 %/);
  assert.match(g,/POSTFREEZE/);
  assert.match(g,/7 Entwicklungs- und 3/);
- assert.match(g,/kein.*kostenpflichtigen OpenAI-API/i);
+ assert.match(g,/NICHT erneut tun:.*OpenAI-API/i);
 });
 test('postfreeze operator reference table has 36 nonvalidated examples, no guaranteed PnL',()=>{
  const ref=read(examples);
