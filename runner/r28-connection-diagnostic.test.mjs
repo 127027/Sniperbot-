@@ -15,7 +15,10 @@ function mockApi({ai=false,gptReady=true,failBot=false,presenceConnected=true,pr
   if(url.endsWith('/api/health'))return okay({mode:'PAPER_ONLY',uptimeSec:82});
   if(url.endsWith('/api/gpt/paper/status'))return okay({
    mode:'PAPER_ONLY',strategy:'GPT_ONLY',local_gpt_bridge_ready:gptReady,
-   gpt_follow_enabled:true,paper_bot_enabled:false,received_decision_count:0,
+   gpt_follow_enabled:true,paper_bot_enabled:false,
+   exit_guard_required_for_new_gpt_buy:true,continuous_gpt_exit_monitor_enabled:true,
+   gpt_exit_monitor_heartbeat_recent:true,gpt_exit_monitor_last_checked_at_utc:'2026-11-15T09:29:30.000Z',
+   gpt_exit_monitor_last_outcome:'OK',received_decision_count:0,
    old_local_autopilot_enabled:false,last_decision_id:null});
   if(url.endsWith('/api/r29/presence'))return okay({
    connected:presenceConnected,checked_at_utc:presenceCheckedAt,
@@ -48,6 +51,9 @@ test('R29 local report proves GitHub receiver readiness with isolated signed tes
  const result=await makeR28ConnectionReport({fetcher:m.fetcher,now});
  assert.equal(result.conclusion,'BOT_AND_GITHUB_GPT_RECEIVER_READY_NO_ORDER_PROOF');
  assert.equal(result.github_gpt_courier.local_signed_receiver_ready,true);
+ assert.equal(result.github_gpt_courier.exit_guard_required_for_gpt_buy,true);
+ assert.equal(result.github_gpt_courier.exit_monitor_heartbeat_recent,true);
+ assert.equal(result.github_gpt_courier.exit_monitor_last_outcome,'OK');
  assert.equal(result.github_gpt_courier.local_courier_heartbeat_recent,true);
  assert.equal(result.github_gpt_courier.local_courier_presence_connected,true);
  assert.equal(result.github_gpt_courier.local_courier_last_reported_at_utc,'2026-11-15T09:29:00.000Z');
