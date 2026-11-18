@@ -59,10 +59,15 @@ export async function makeR28ConnectionReport({
  const presence=result.r29_local_presence||{};
  const gptReady=gpt.ok===true&&gpt.mode==='PAPER_ONLY'&&
   gpt.strategy==='GPT_ONLY'&&gpt.local_gpt_bridge_ready===true;
- const presenceStatus=presence.presence||presence.status||{};
+ // /api/r29/presence is a flattened, sanitized STATUS (not the raw file).
+ // Earlier diagnostic incorrectly parsed legacy nested/raw field names and
+ // reported a false negative even when the real Windows courier was online.
+ const presenceStatus=presence.presence||presence.status||presence;
  const presenceAt=age(presenceStatus.checked_at_utc,now);
- const presenceRecent=presenceAt!==null&&presenceAt>=0&&presenceAt<=30*60000&&
-  presenceStatus.local_paper_http_healthy===true&&presenceStatus.courier_enabled===true;
+ const presenceRecent=presence.ok===true&&presenceStatus.connected===true&&
+  presenceAt!==null&&presenceAt>=0&&presenceAt<4*60000&&
+  presenceStatus.bot_http_healthy===true&&
+  presenceStatus.github_courier_enabled===true;
  const archive=result.source_archive||{};
  const orders=result.paper_agent_orders||{};
  const paper=result.paper_isolated_signature_roundtrip||{};
@@ -97,12 +102,15 @@ export async function makeR28ConnectionReport({
    new_paper_entries_enabled:bool(gpt.paper_bot_enabled),
    old_local_autopilot_enabled:false,
    local_courier_heartbeat_recent:presenceRecent,
+   local_courier_last_reported_at_utc:fmt(presenceStatus.checked_at_utc),
+   local_courier_presence_connected:presenceStatus.connected===true,
+   legacy_autopilot_orders_enabled:presenceStatus.paper_orders_automatically_enabled===true,
    received_gpt_decisions_in_local_replay:Number.isInteger(gpt.received_decision_count)?
     gpt.received_decision_count:0,
    last_decision_id:clean(gpt.last_decision_id),
    actual_strategic_gpt_model_response_verified:false,
    actual_gpt_paper_buy_sell_roundtrip_verified:false,
-   note:'Receiver readiness is NOT proof of an actual ChatGPT decision, signed BUY, exit monitor or paper fill.'},
+   note:'The local courier heartbeat uses the sanitized presence endpoint; its legacy-autopilot-orders flag is NOT the dashboard GPT paper entry switch. Receiver readiness is NOT proof of signed BUY or a live GPT exit fill.'},
   central_ai:{enabled:bool(coordinator.enabled),
    real_openai_exchange_observed:recentModel,
    last_run_at_utc:fmt(coordinator.last_run_utc),

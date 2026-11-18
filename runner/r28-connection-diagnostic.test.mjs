@@ -7,7 +7,7 @@ import {makeR28ConnectionReport} from './r28-connection-diagnostic.mjs';
 import {r28CycleRecord,appendR28CycleAudit} from './r28-cycle-audit.mjs';
 const now=Date.parse('2026-11-15T09:30:00Z');
 const okay=(payload)=>({ok:true,status:200,json:async()=>({ok:true,...payload})});
-function mockApi({ai=false,gptReady=true,failBot=false}={}){
+function mockApi({ai=false,gptReady=true,failBot=false,presenceConnected=true,presenceCheckedAt='2026-11-15T09:29:00.000Z'}={}){
  const seen=[];
  const fetcher=async(url,options)=>{
   seen.push({url,method:options.method,origin:options.headers.origin,body:options.body});
@@ -17,9 +17,10 @@ function mockApi({ai=false,gptReady=true,failBot=false}={}){
    mode:'PAPER_ONLY',strategy:'GPT_ONLY',local_gpt_bridge_ready:gptReady,
    gpt_follow_enabled:true,paper_bot_enabled:false,received_decision_count:0,
    old_local_autopilot_enabled:false,last_decision_id:null});
-  if(url.endsWith('/api/r29/presence'))return okay({presence:{
-   checked_at_utc:'2026-11-15T09:29:00.000Z',
-   courier_enabled:true,local_paper_http_healthy:true}});
+  if(url.endsWith('/api/r29/presence'))return okay({
+   connected:presenceConnected,checked_at_utc:presenceCheckedAt,
+   bot_http_healthy:true,github_courier_enabled:true,
+   paper_orders_automatically_enabled:false,real_trading_enabled:false});
   if(url.endsWith('/api/central-ai/status'))return okay({coordinator:{
    enabled:ai,mode:'PAPER_ONLY',external_api_configured:ai,
    last_run_utc:'2026-11-15T09:28:00Z',
@@ -48,6 +49,9 @@ test('R29 local report proves GitHub receiver readiness with isolated signed tes
  assert.equal(result.conclusion,'BOT_AND_GITHUB_GPT_RECEIVER_READY_NO_ORDER_PROOF');
  assert.equal(result.github_gpt_courier.local_signed_receiver_ready,true);
  assert.equal(result.github_gpt_courier.local_courier_heartbeat_recent,true);
+ assert.equal(result.github_gpt_courier.local_courier_presence_connected,true);
+ assert.equal(result.github_gpt_courier.local_courier_last_reported_at_utc,'2026-11-15T09:29:00.000Z');
+ assert.equal(result.github_gpt_courier.legacy_autopilot_orders_enabled,false);
  assert.equal(result.github_gpt_courier.actual_gpt_paper_buy_sell_roundtrip_verified,false);
  assert.equal(result.central_ai.model_not_confirmed_reason,'LOCAL_PAID_API_DISABLED_BY_DESIGN_GITHUB_ONLY');
  assert.equal(result.signed_order_receiver.publisher_connected_scope,'SEPARATE_GENERIC_SIGNED_AGENT_PUBLISHER');
@@ -63,6 +67,17 @@ test('R29 local report proves GitHub receiver readiness with isolated signed tes
  assert.equal(post[0].url,'http://127.0.0.1:3030/api/paper/pipeline-selftest');
  assert.equal(post[0].origin,'http://127.0.0.1:3030');
  assert.equal(post[0].body,'{}');
+});
+test('R29 diagnostics reject stale or disconnected flat courier heartbeat even if HTTP status is 200',async()=>{
+ const stale=mockApi({presenceCheckedAt:'2026-11-15T09:20:00.000Z'});
+ const staleReport=await makeR28ConnectionReport({fetcher:stale.fetcher,now});
+ assert.equal(staleReport.github_gpt_courier.local_signed_receiver_ready,true);
+ assert.equal(staleReport.github_gpt_courier.local_courier_heartbeat_recent,false);
+ assert.equal(staleReport.github_gpt_courier.local_courier_presence_connected,true);
+ const disconnected=mockApi({presenceConnected:false});
+ const disconnectedReport=await makeR28ConnectionReport({fetcher:disconnected.fetcher,now});
+ assert.equal(disconnectedReport.github_gpt_courier.local_courier_heartbeat_recent,false);
+ assert.equal(disconnectedReport.github_gpt_courier.local_courier_presence_connected,false);
 });
 test('R28 bot can be up and signed in-memory tests pass without any external AI API calls',async()=>{
  const {fetcher}=mockApi({ai:false});
