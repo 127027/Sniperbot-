@@ -130,7 +130,7 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   reason=autoGate?.reason||'LOCAL_PAPER_AUTOPILOT_RISK_BLOCKED';
  else if(localAuto&&actionType==='SELL'&&!matchingAutoPosition)
   reason='LOCAL_AUTOPILOT_CAN_SELL_OWN_POSITION_ONLY';
- else if(gptPaper&&state.gptPaperFollow!==true)
+ else if(gptPaper&&!policyExit&&state.gptPaperFollow!==true)
   reason='GPT_PAPER_FOLLOW_DISABLED';
  else if(gptPaper&&actionType==='BUY'&&(!autoGate?.allowed||
    amount>autoGate.amount_test_usdc))
