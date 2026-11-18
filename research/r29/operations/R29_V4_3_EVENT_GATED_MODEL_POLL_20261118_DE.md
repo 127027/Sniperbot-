@@ -33,3 +33,14 @@ Die lokal bestehende Bot-Sicherheit und die PAPER_ONLY-Sperre bleiben unberührt
 - Diese Befunde beweisen, dass der lokale Statuskanal wieder meldet; sie beweisen NICHT, dass der Marktfeed frisch ist, neuester R29-Code lokal installiert wurde oder frische GPT-BUY-/SELL-Receipts vorliegen.
 
 **Quellenqualitäts-Audit weiterhin offen:** originaler Provider-Erzeugungszeitpunkt vs. lokaler Empfang vs. GitHub-Publikation vs. GPT-Eingabe, einzigartige Quellenabdeckung, Wallet-/Social-Provenienz und tatsächlich erkannte neutrale Ausbrüche. Es ist noch keine unabhängige prädiktive Quelle als erfolgreich qualifiziert.
+
+## Neue überprüfte Root-Cause-Evidenz – Bias des ursprünglichen Datenanbieters
+Der zuvor bereits im Repository genannte externe Datensatz ist `loopholetape/pumpfun-launches` in der historisch festgepinten Revision `9b9a04e7e3e85775d614d16105daad2e69ce8544`.
+Originaler Anbieterbericht: https://huggingface.co/datasets/loopholetape/pumpfun-launches/blob/main/KNOWN_ISSUES.md
+- **KI-01:** Frühmerkmale `f10_*`/`f60_*` entstehen bei Sampling durch einen Shadow-Harness. Die Stichprobe ist *nicht zufällig*: Mints ohne frühe Aktivität werden weniger oft beobachtet. Null ist ein *nicht beprobter Wert*, kein gemessener Nullwert.
+- **KI-02:** Vor dem Decoder-Fix am 27.09.2026 sind bestimmte Buy-Instruktionen nicht vollständig erfasst. Für unsere Oktoberperiode kann die vorangegangene Trennung trotzdem wichtig für übergreifende 60-Tage-Trainingsstatistiken sein.
+- **KI-03:** Einige Kurven nutzen andere Quote-Assets als SOL; SOL-Reserve-Felder dürfen dafür nicht als aktuelle SOL-Beobachtungen interpretiert werden.
+- **KI-06:** Nur ein Recorder/Stream, keine unabhängige Vollzählung aller Starts; Lücken existieren. Eigenständige Live-Belege für retrospektiv veröffentlichte Quellen fehlen.
+- **KI-14:** Coin-Namen, Symbole und URIs können Prompt-Injection enthalten. Ausschließlich als nicht vertrauenswürdige Daten, niemals als Modellanweisungen behandeln.
+
+**Folgerung, bewusst nicht als vollständig bestätigte Kausalzerlegung ausgegeben:** Ein Teil der 241.649 historisch fehlenden Minute-Feature-Zuordnungen könnte durch Nichterfassung/Nichtbeprobung beim Anbieter und nicht durch R29 verursacht sein. Die exakte Aufteilung in Anbieter-Lücke vs. Replay-/Join-Fehler verlangt einen quellseitigen Mint-Outer-Join und muss gemessen werden. Keine synthetischen Feature-Nullen und keine Schwächung technischer BUY-Vetos. Ein unvollständig beobachteter Coin darf für weitere Forschung markiert werden, aber ohne unabhängige Handelsfähigkeit nicht gekauft werden.
