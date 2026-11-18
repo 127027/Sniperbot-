@@ -17,9 +17,9 @@ async function freePort(){
  await new Promise(resolve=>sock.close(resolve));
  return port;
 }
-async function startServer(dir,port){
+async function startServer(dir,port,extraEnv={}){
  const child=spawn(process.execPath,[path.join(root,'runner/server.mjs')],{
-  cwd:root,env:{...process.env,SNIPER_DATA_DIR:dir,SNIPER_PORT:String(port),SNIPER_OFFLINE:'1'},
+  cwd:root,env:{...process.env,SNIPER_DATA_DIR:dir,SNIPER_PORT:String(port),SNIPER_OFFLINE:'1',...extraEnv},
   stdio:['ignore','pipe','pipe']
  });
  let output='';child.stdout.on('data',buf=>output+=buf.toString());child.stderr.on('data',buf=>output+=buf.toString());
@@ -127,5 +127,65 @@ test('R29 V4.7 explicit Paper entry OFF is idempotent, persists, and GPT follow 
    'explicit pause must survive process restart');
   assert.equal((await status()).gpt_follow_enabled,true,
    'existing GPT strategic feed must stay on');
+ }finally{if(child)await stopServer(child);await rm(temp,{recursive:true,force:true})}
+});
+
+test('R29 V4.9 authenticated local-only dual account report re-reads changed Paper settings and keeps real account locked',async()=>{
+ const temp=await mkdtemp(path.join(tmpdir(),'sniper-v49-private-dual-'));
+ const port=await freePort(),base=`http://127.0.0.1:${port}`;
+ const secret='f'.repeat(64);
+ let child;
+ const query=async(headers={})=>fetch(base+'/api/gpt/private/bot-state',{headers});
+ const cmd=async(action)=>{
+  const res=await fetch(base+'/api/command',{method:'POST',
+   headers:{'content-type':'application/json'},body:JSON.stringify(action)});
+  assert.equal(res.status,200);return res.json();
+ };
+ try{
+  child=await startServer(temp,port,{
+   SNIPER_GPT_PAPER_BRIDGE:'1',SNIPER_GPT_BRIDGE_SECRET:secret
+  });
+  assert.equal((await query()).status,403);
+  assert.equal((await query({'x-sniper-gpt-bridge':'e'.repeat(64)})).status,403);
+  assert.equal((await query({'x-sniper-gpt-bridge':secret,origin:base})).status,403);
+  const ok=await query({'x-sniper-gpt-bridge':secret});
+  assert.equal(ok.status,200);
+  const first=await ok.json();
+  assert.equal(first.private_delivery_only,true);
+  assert.equal(first.remote_gpt_delivery_verified,false);
+  assert.equal(first.snapshot.paper.preferred_entry_test_usdc,50);
+  assert.equal(first.snapshot.real.preferred_entry_usdc,null);
+  assert.equal(first.snapshot.real.available_for_new_buy_usdc,null);
+  assert.equal(first.snapshot.real.live_gate_locked,true);
+  assert.equal(first.snapshot.real.execution_enabled,false);
+  assert.equal(first.transaction_sent,false);
+  await cmd({type:'SET_RANGE',min:75,max:3400});
+  const loaded=await (await query({'x-sniper-gpt-bridge':secret})).json();
+  assert.equal(loaded.snapshot.paper.preferred_entry_test_usdc,75);
+  assert.equal(loaded.snapshot.paper.user_total_open_exposure_limit_test_usdc,3400);
+  const invalid=await fetch(base+'/api/command',{method:'POST',
+   headers:{'content-type':'application/json'},
+   body:JSON.stringify({type:'SET_RANGE',min:35,max:20})});
+  assert.equal(invalid.status,422);
+  const unchanged=await (await query({'x-sniper-gpt-bridge':secret})).json();
+  assert.equal(unchanged.snapshot.paper.local_state_revision,
+   loaded.snapshot.paper.local_state_revision,'invalid settings must fail, not overwrite');
+  await cmd({type:'SET_RANGE',min:35,max:3400});
+  const changed=await (await query({'x-sniper-gpt-bridge':secret})).json();
+  assert.equal(changed.snapshot.paper.preferred_entry_test_usdc,35);
+  assert.notEqual(changed.snapshot.paper.local_state_revision,loaded.snapshot.paper.local_state_revision);
+  assert.equal(changed.snapshot.real.local_state_revision,loaded.snapshot.real.local_state_revision);
+  const publicContext=await (await fetch(base+'/api/gpt/paper/context')).text();
+  assert(!publicContext.includes('local_state_revision'));
+  assert(!publicContext.includes('preferred_entry'));
+  assert(!publicContext.includes('available_virtual_balance'));
+  const live=await (await fetch(base+'/api/trading/live-mode')).json();
+  assert.equal(live.gate.enabled,false);
+  assert.equal(live.gate.can_enable,false);
+  assert.equal((await fetch(base+'/api/trading/live-mode',{
+   method:'POST',headers:{origin:base,'content-type':'application/json'},
+   body:JSON.stringify({enabled:true})})).status,423);
+  assert.equal((await (await query({'x-sniper-gpt-bridge':secret})).json())
+   .snapshot.real.execution_enabled,false);
  }finally{if(child)await stopServer(child);await rm(temp,{recursive:true,force:true})}
 });

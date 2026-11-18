@@ -100,7 +100,8 @@ try{
  const signal=signed('BUY','1','50.00');
  const buy=await submit(signal,0.05);
  assert.equal(buy.status,200,JSON.stringify(buy.data));
- assert.equal(buy.data.receipt.status,'PAPER_FILLED');
+ assert.equal(buy.data.receipt.status,'PAPER_FILLED',
+  JSON.stringify({receipt:buy.data.receipt,account:(await request('/api/state')).data.state?.cashUsdc}));
  assert.equal(buy.data.receipt.real_trade_executed,false);
  const afterBuy=(await request('/api/state')).data.state;
  assert.equal(afterBuy.positions.length,1);
