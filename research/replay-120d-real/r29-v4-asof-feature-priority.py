@@ -327,6 +327,15 @@ def download_feature(day,target,expected):
   raise ValueError("MISSING_POINT_IN_TIME_FEATURE_COLUMNS")
  return pqfile.read(columns=list(FEATURE_COLS)).to_pylist()
 
+def sha256_file(fp):
+ h=hashlib.sha256()
+ with fp.open("rb") as f:
+  while True:
+   b=f.read(1024*1024)
+   if not b:break
+   h.update(b)
+ return h.hexdigest()
+
 def replay_features(source_dir,output,start,end,expected,read_day=download_feature):
  db=source_dir/"source-only-48h.sqlite"
  if not db.is_file():raise ValueError("COMPLETE_RAW_LAUNCH_LEDGER_NOT_AVAILABLE")
@@ -356,6 +365,17 @@ def replay_features(source_dir,output,start,end,expected,read_day=download_featu
   "market_USDC_volume_or_executable_quote_verified":False,
   "source_original_live_delivery_verified":False,
   "technical_priority_only_no_strategy":True,
+  "complete_pages_archive_written":True,
+  "all_eligible_candidates_persisted_not_just_page_zero":True,
+  "gpt_research_queue_is_technical_only_not_model_call":True,
+  "max_suggestions_per_possible_hourly_gpt_review":16,
+  "total_eligible_candidate_checkpoint_pairs":0,
+  "total_exported_candidate_checkpoint_pairs":0,
+  "total_candidate_pairs_deferred_but_preserved":0,
+  "total_shortlist_suggestions_not_actual_model_calls":0,
+  "total_feature_events_audited":0,
+  "total_feature_events_not_eligible":0,
+  "excluded_feature_reason_counts":{},
   "period_start":str(start),"period_end":str(end),
   "days":[]}
  try:
