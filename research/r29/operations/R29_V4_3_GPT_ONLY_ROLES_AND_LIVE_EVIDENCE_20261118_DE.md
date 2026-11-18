@@ -1,3 +1,7 @@
+> **R29 V4.5 Nachtrag (18.11.2026) – diese V4.3-Momentaufnahme wurde überholt.** Der unten dokumentierte damals stale kanonische Feed und damals fehlende Forward-Source-Health/Solana-Evidenz wurden später am 18.11. durch die echte 14:30:57 UTC Capture/Veröffentlichung widerlegt. Der lokale GPT-Receiver meldete 8 Replay-IDs, letzte `gpt_e7c715480f009a0dd80040fa78c186a7` NO_TRADE. Die lokale API-/GPT-Responses-Option ist nach PR #59 absichtlich abgeschaltet. **Aktueller eindeutiger Fortsetzungsvertrag:** [R29 V4.5](R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). PR #58-Rollentests bleiben gültig; kontinuierlicher positionsgebundener GPT-Exit und echter GPT-Paper-Fill bleiben OFFEN.
+
+---
+
 # R29 V4.3 – GPT-only-Rollen, gezielte Sicherheit und Quellenfrische
 
 Stand: 18.11.2026. **PAPER_ONLY.** Dieses Dokument ist OPERATOR-/POSTHOC-KONTEXT und darf nie in historische GPT-Blind-Entscheidungsframes geraten.
