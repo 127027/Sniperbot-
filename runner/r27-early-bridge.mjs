@@ -40,7 +40,7 @@ export function sanitizeR27CollectorSnapshot(record,{now=Date.now()}={}){
  // collector. V4.3's GPT event scheduler requires event_id + event_type;
  // the previous bridge silently discarded both fields.
  let neutralEarly=[];
- try{neutralEarly=earlyEventResearchLeads(record,{now,limit:8,maxAgeMs:600000}).leads}
+ try{neutralEarly=earlyEventResearchLeads(record,{now:Date.parse(record.published_at_utc),limit:8,maxAgeMs:600000}).leads}
  catch{neutralEarly=[]} // malformed alerts cannot create a paid-model trigger
  const earlyAlerts=neutralEarly.map(e=>({
   event_id:e.event_id,event_type:e.event_type,
