@@ -167,3 +167,19 @@ test('GPT oversized amount is rejected by local risk even if its text says VERIF
   assert.equal(a.signCount,0);
  }finally{a.cleanup()}
 });
+
+test('V4.3: pausing new entries does not prevent a fresh signed GPT SELL',async()=>{
+ const a=makeReceiver();
+ try{
+  const bought=await a.r.receive(envelope(decision('BUY',now,'7'.repeat(32))));
+  assert.equal(bought.status,'PAPER_FILLED');
+  a.setState({...a.state,entriesEnabled:false});
+  a.setPrice(.014);
+  const sold=await a.r.receive(envelope(decision('SELL',now,'8'.repeat(32))));
+  assert.equal(sold.status,'PAPER_FILLED');
+  assert.equal(a.state.positions.length,0);
+  const blocked=await a.r.receive(envelope(decision('BUY',now,'9'.repeat(32))));
+  assert.equal(blocked.status,'BLOCKED');
+  assert.equal(a.state.positions.length,0);
+ }finally{a.cleanup()}
+});
