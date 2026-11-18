@@ -203,7 +203,7 @@ test('V4.8 regression: 4,999.01 TEST-USDC can open GPT-signed 25 paper position 
   const candidate=candidate(Date.now()),q=quote(.02);
   const gate=r29LivePaperEntryGate({
    state:{...a.state,automaticPaperBuys:true},candidate,
-   quote:q,security:safe(),now:Date.now()});
+   quote:q,security:safe(),now:Date.now(),gptSignedPaper:true});
   assert.equal(gate.allowed,true);
   assert.equal(gate.amount_test_usdc,49.99);
   const buy=decision('BUY',Date.now(),'a'.repeat(32));
