@@ -9,6 +9,7 @@ on:
       - 'research/replay-120d-real/r29-v4-complete-48h-source.py'
       - 'research/replay-120d-real/test_r29_v4_complete_48h_source.py'
       - 'research/replay-120d-real/r29-v4-oct-posthoc-regression.py'
+      - 'research/replay-120d-real/r29-v4-postfreeze-funnel-reference.py'
       - 'research/replay-120d-real/r29-v4-test-window-planner.py'
       - 'research/replay-120d-real/test_r29_v4_test_window_planner.py'
       - 'research/replay-120d-real/r29-v4-asof-feature-priority.py'
@@ -22,6 +23,7 @@ on:
       - 'research/replay-120d-real/r29-v4-complete-48h-source.py'
       - 'research/replay-120d-real/test_r29_v4_complete_48h_source.py'
       - 'research/replay-120d-real/r29-v4-oct-posthoc-regression.py'
+      - 'research/replay-120d-real/r29-v4-postfreeze-funnel-reference.py'
       - 'research/replay-120d-real/r29-v4-test-window-planner.py'
       - 'research/replay-120d-real/test_r29_v4_test_window_planner.py'
       - 'research/replay-120d-real/r29-v4-asof-feature-priority.py'
@@ -83,6 +85,19 @@ jobs:
           assert q['total_minute_feature_rows']==2296466
           assert q['gpt_model_calls']==0 and q['historical_PnL_TEST_USDC'] is None
           assert q['technical_priority_only_no_strategy'] is True
+          assert q['complete_pages_archive_written'] is True
+          assert q['all_eligible_candidates_persisted_not_just_page_zero'] is True
+          assert q['total_eligible_candidate_checkpoint_pairs']==q['total_exported_candidate_checkpoint_pairs']
+          assert q['total_feature_events_audited']==q['total_minute_feature_rows']
+          assert sum(q['excluded_feature_reason_counts'].values())==q['total_minute_feature_rows']
+          assert len(q['days'])==17 and all(len(x['hourly_asof_full_export_index'])==24 for x in q['days'])
+          assert all(f['candidate_rows_not_exported']==0 for d in q['days'] for f in d['hourly_asof_full_export_index'])
+          assert all(d['complete_hourly_page_archive']['sha256'] and
+           d['all_feature_decisions_archive']['sha256'] and
+           d['neutral_model_research_shortlists_archive']['sha256'] for d in q['days'])
+          print('R29_V4_2_FULL_PAGING',q['total_exported_candidate_checkpoint_pairs'],
+           'pairs_of',q['total_eligible_candidate_checkpoint_pairs'],
+           'historical_GPT_calls',q['gpt_model_calls'])
           assert q['fast_in_memory_asof_priority_index_used'] is True
           assert q['SQL_full_universe_JOIN_query_per_hour'] is False
           assert q['reactivation_events_verified_asof'] >= 0
@@ -116,6 +131,9 @@ jobs:
             research/replay-120d-real/generated/v4-oct-full-48h/ASOF_HOURLY_RESEARCH_QUEUE.json
             research/replay-120d-real/generated/v4-oct-full-48h/ORIGINAL_SOURCE_SUMMARY.sha256
             research/replay-120d-real/generated/v4-oct-full-48h/all-launches/*.jsonl.gz
+            research/replay-120d-real/generated/v4-oct-full-48h/hourly-pages/*.jsonl.gz
+            research/replay-120d-real/generated/v4-oct-full-48h/feature-decisions/*.jsonl.gz
+            research/replay-120d-real/generated/v4-oct-full-48h/model-shortlists/*.jsonl.gz
           if-no-files-found: error
           retention-days: 30
   known-contract-postfreeze-regression:
