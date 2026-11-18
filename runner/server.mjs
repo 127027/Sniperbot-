@@ -17,6 +17,7 @@ import {startLocalPaperAutopilot} from './live-paper-autopilot.mjs';
 import {createGptPaperLocalReceiver} from './gpt-paper-local-receiver.mjs';
 import {validateGptExitBinding} from './gpt-position-exit.mjs';
 import {makePrivateGptSizeOffer} from './gpt-paper-size-negotiation.mjs';
+import {buildPrivateDualAccountBotState} from './gpt-private-bot-state.mjs';
 import {enrollPaperPublisherPublicKey} from './paper-publisher-trust.mjs';
 import {summarizePaperPipeline} from './pipeline-health.mjs';
 import {runIsolatedPaperAgentSelfTest} from './isolated-paper-pipeline-selftest.mjs';
@@ -380,7 +381,44 @@ const server=createServer(async(req,res)=>{
    automatic_paper_buys_enabled:state.automaticPaperBuys===true,
    current_paper_position_count:state.positions.length,
    real_trading_enabled:false});
-  if(req.method==='GET'&&route==='/api/gpt/paper/status')return reply(res,200,{
+  if(req.method==='GET'&&route==='/api/gpt/private/bot-state'){
+  // Reuse the existing local authenticated GPT bridge capability.
+  // This is LOCAL-ONLY: public GitHub/ChatGPT Automation cannot call localhost.
+  // Never expose balances, positions, wallet addresses or a private state hash
+  // on a public research channel. This route performs NO order or wallet write.
+  const key=process.env.SNIPER_GPT_BRIDGE_SECRET||'';
+  const supplied=req.headers['x-sniper-gpt-bridge'];
+  if(req.headers.origin||process.env.SNIPER_GPT_PAPER_BRIDGE!=='1'||
+   !/^[a-f0-9]{64}$/.test(key)||typeof supplied!=='string'||
+   !/^[a-f0-9]{64}$/.test(supplied)||
+   !timingSafeEqual(Buffer.from(key,'hex'),Buffer.from(supplied,'hex')))
+   return error(res,403,'Nur authentifizierter lokaler GPT-Kurier');
+  if(deviceTopology.mode==='FOLLOWER')
+   return error(res,403,'Privater Handelszustand nur am Hauptgerät');
+  let realOverview=null;
+  if(process.env.SNIPER_OFFLINE!=='1'){
+   try{
+    const wallet=await readLocalSolanaVault(walletFile);
+    if(wallet?.exists){
+     const [balance,holdings]=await Promise.all([
+      readSolanaBalance(wallet.address),readSolanaOwnedTokens(wallet.address)]);
+     realOverview=summarizeRealWallet({wallet,balance,holdings});
+    }
+   }catch{
+    // Unknown is NOT zero. No forced wallet creation, unlock or balance reset.
+    realOverview=null;
+   }
+  }
+  const snapshot=buildPrivateDualAccountBotState({
+   paperState:state,realWalletOverview:realOverview,
+   // There is no verified persisted LIVE preferred-entry/exposure source
+   // in the current branch. NEVER reuse the Paper fields or invent values.
+   realSettings:null,liveGate:readLiveTradingGate(),now:Date.now()});
+  return reply(res,200,{ok:true,private_delivery_only:true,
+   remote_gpt_delivery_verified:false,transaction_sent:false,
+   snapshot});
+ }
+ if(req.method==='GET'&&route==='/api/gpt/paper/status')return reply(res,200,{
  ok:true,mode:'PAPER_ONLY',strategy:'GPT_ONLY',
  gpt_follow_enabled:state.gptPaperFollow===true,
  paper_bot_enabled:state.entriesEnabled===true,
