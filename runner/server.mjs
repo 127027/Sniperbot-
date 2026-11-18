@@ -414,6 +414,9 @@ const server=createServer(async(req,res)=>{
    account_balances_excluded:true,position_amounts_excluded:true,
    gpt_follow_enabled:state.gptPaperFollow===true,
    paper_bot_enabled:state.entriesEnabled===true,
+   exit_guard_required_for_new_gpt_buy:true,
+   exit_monitor_heartbeat_recent:gptExitMonitorHealthy(),
+   exit_monitor_last_checked_at_utc:gptExitLastTick?.checked_at_utc||null,
    as_of_utc:new Date().toISOString(),positions});
  }
  if(req.method==='GET'&&route==='/api/central-ai/status')return reply(res,200,{ok:true,
