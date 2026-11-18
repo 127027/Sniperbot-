@@ -13,13 +13,9 @@ import {createDynamicTradeInbox} from './dynamic-trade-inbox.mjs';
 import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
 import {paperDashboardView} from './dashboard-portfolio.mjs';
 import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
-import {startCentralAiCoordinator} from './central-ai-coordinator.mjs';
 import {startLocalPaperAutopilot} from './live-paper-autopilot.mjs';
 import {createGptPaperLocalReceiver} from './gpt-paper-local-receiver.mjs';
 import {makePrivateGptSizeOffer} from './gpt-paper-size-negotiation.mjs';
-import {collectR27MarketRegime} from './r27-market-regime.mjs';
-import {loadR27EarlyContext} from './r27-early-bridge.mjs';
-import {collectResearchNews} from './research-news-rss.mjs';
 import {enrollPaperPublisherPublicKey} from './paper-publisher-trust.mjs';
 import {summarizePaperPipeline} from './pipeline-health.mjs';
 import {runIsolatedPaperAgentSelfTest} from './isolated-paper-pipeline-selftest.mjs';
@@ -192,7 +188,6 @@ async function prices(){if(deviceTopology.mode==='FOLLOWER')return;if(pricing ||
  }finally{pricing=false}
 }
 let paperAgentOrderQueue=Promise.resolve();
-let centralAiService=null;
 let livePaperAutopilot=null;
 let githubAgentFeedStatus={checked_at_utc:null,received_last:0,
  accepted_last:0,rejected_last:0,last_rejection:null,
@@ -403,10 +398,10 @@ const server=createServer(async(req,res)=>{
    as_of_utc:new Date().toISOString(),positions});
  }
  if(req.method==='GET'&&route==='/api/central-ai/status')return reply(res,200,{ok:true,
-  coordinator:centralAiService?.status()||{schema:'sniper_central_ai_status.v1',enabled:false,
-   mode:'PAPER_ONLY',reason:process.env.SNIPER_OFFLINE==='1'?'OFFLINE_TEST':
-   'AI_API_KEY_OR_OPT_IN_NOT_CONFIGURED',remote_chat_session_connected:false,
-   real_wallet_reported:false,live_trading_enabled:false}});
+  coordinator:{schema:'sniper_central_ai_status.v1',enabled:false,
+   mode:'PAPER_ONLY',reason:'GITHUB_GPT_ONLY_LOCAL_API_REMOVED',
+   remote_chat_session_connected:false,real_wallet_reported:false,
+   live_trading_enabled:false,paid_openai_api_required:false}});
  if(req.method==='GET'&&route==='/api/research/network')return reply(res,200,{ok:true,network:researchNetwork});
  if(req.method==='GET'&&route==='/api/research/advisories')return reply(res,200,{ok:true,advisories:researchNetwork.advisories||null});
  if(req.method==='GET'&&route==='/api/research/learning')return reply(res,200,{ok:true,learning:localResearchLearning()});
@@ -434,15 +429,15 @@ const server=createServer(async(req,res)=>{
   }catch{}
   return reply(res,200,{ok:true,mode:'PAPER_ONLY',
    device_id:localDevice.device_id,
-   signed_publisher_configured:centralAiService!==null||(Array.isArray(keys)&&
-    keys.some(k=>k.scope==='agent_execution'&&!k.revoked)),
+   signed_publisher_configured:Array.isArray(keys)&&
+    keys.some(k=>k.scope==='agent_execution'&&!k.revoked),
    total_receipts:receipts.length,
    received:receipts.length,
    paper_filled:receipts.filter(r=>r.status==='PAPER_FILLED').length,
    blocked:receipts.filter(r=>r.status==='BLOCKED').length,
    recent:receipts.slice(-30).reverse(),
    live_trading_enabled:false,
-   source_status:'CENTRAL_AI_LOCAL_OR_SIGNED_LOCAL_ADAPTER',
+   source_status:'GITHUB_GPT_LOCAL_RECEIVER_OR_SIGNED_LOCAL_ADAPTER',
    research_dots_direct_publisher_connected:false,
    github_feed:githubAgentFeedStatus,
    pipeline:summarizePaperPipeline({
@@ -455,7 +450,7 @@ const server=createServer(async(req,res)=>{
     topology:deviceTopology.mode,
     offline:process.env.SNIPER_OFFLINE==='1'
    }),
-   message:'Zentrale KI und signierte Agentenadapter dürfen ausschließlich virtuelle Paper-Fills auf indikativen DEX-Quotes erzeugen. Echtgeldhandel bleibt gesperrt.'});
+   message:'GitHub-GPT-Receiver und andere autorisierte signierte Adapter duerfen nur sichere virtuelle Paper-Fills erzeugen; Echtgeld bleibt gesperrt.'});
  }
  if(req.method==='POST'&&route==='/api/paper/publisher/trust'){
   if(!req.headers.origin||!corsAllowed(req))
@@ -1077,7 +1072,6 @@ let shuttingDown=false;
 function shutdownServer(){
  if(shuttingDown)return;
  if(masterPublisher){clearInterval(masterPublisher.timer);masterPublisher=null}
- if(centralAiService){centralAiService.stop();centralAiService=null}
  if(livePaperAutopilot){livePaperAutopilot.stop();livePaperAutopilot=null}
  shuttingDown=true;
  try{save()}catch(e){console.error('Paper-state save on shutdown:',e.message)}
@@ -1132,10 +1126,9 @@ if(process.env.SNIPER_RESEARCH_FEED==='1'){
  void pollResearch().catch(e=>console.error('Research inbox:',e.message));setInterval(()=>{void pollResearch().catch(e=>console.error('Research inbox:',e.message))},60000);
 }
 
-// V0.21 opt-in central AI: outbound-only model research from this local bot.
-// Model never receives wallet secrets. It cannot directly invoke a trade route.
-// Conservative local real-market PAPER-only decision worker; every entry
-// rechecks independent source identities, security gate, and risk caps.
+// Canonical R29: the ONLY GPT strategist is ChatGPT via the authenticated
+// GitHub decision courier. No local paid Responses-API coordinator is started.
+// Legacy Paper position monitoring stays available; no autonomous local BUY.
 if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_PAPER_AUTOPILOT==='1'){
  livePaperAutopilot=startLocalPaperAutopilot({
   deviceId:localDevice.device_id,dataDir:store.dir,getState:()=>state,
@@ -1143,29 +1136,4 @@ if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_PAPER_AUTOPILOT==='1'){
   submit:(signed,options)=>submitSignedAgentPaperOrder(signed,options)
  });
 }
-if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_CENTRAL_AI_ENABLED==='1'&&
- typeof process.env.SNIPER_OPENAI_API_KEY==='string'&&process.env.SNIPER_OPENAI_API_KEY.length>20){
- centralAiService=startCentralAiCoordinator({
-  apiKey:process.env.SNIPER_OPENAI_API_KEY,
-  deviceId:localDevice.device_id,dataDir:store.dir,getState:()=>state,
-  submit:(signed,options)=>submitSignedAgentPaperOrder(signed,options),
-  scan:()=>scanNewPools(),collectNews:()=>collectResearchNews(),
-  collectMarketRegime:()=>collectR27MarketRegime(),
-  collectEarlyContext:()=>loadR27EarlyContext({filename:
-   path.join(root,'.local','research-market','latest.json')}),
-  collectRealWallet:async()=>{
-   const wallet=await readLocalSolanaVault(walletFile);
-   if(!wallet?.exists)return {verified:false,reason:'NO_LOCAL_SOLANA_WALLET'};
-   const [balance,holdings]=await Promise.all([
-    readSolanaBalance(wallet.address),readSolanaOwnedTokens(wallet.address)]);
-   const summary=summarizeRealWallet({wallet,balance,holdings});
-   return {verified:true,sol_display:summary.sol_display,
-    usdc_display:summary.usdc_display,
-    observed_positive_token_accounts:summary.observed_positive_token_accounts,
-    sol_finalized_slot:summary.sol_finalized_slot,
-    tokens_finalized_slot:summary.tokens_finalized_slot};
-  }
- });
- // Avoid accidental API key inclusion in diagnostic environment dumps.
- delete process.env.SNIPER_OPENAI_API_KEY;
-}
+// No SNIPER_OPENAI_API_KEY is read or used by this Paper server.
