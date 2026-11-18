@@ -1,3 +1,7 @@
+> **ARCHIVIERTER VERTEILTER NETZENTWURF:** Der aktuelle R29-Betrieb benötigt **keinen neuen Signal-Bus**. Er nutzt den bestehenden Eigentümer-verknüpften GitHub-GPT-Decision-Pointer und den authentifizierten localhost-Paper-Receiver; keine Echtgeldorders. Multinutzer-/andere-Instanzen-Architektur ist nicht Gegenstand von R29 V4.5. [Aktueller belegter Weg](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md).
+
+---
+
 # Zentrales Forschungs-Signalnetz – Zustellungsprotokoll, Entwurf V1
 
 **Status:** Design für Codex. **Nicht implementiert, nicht live verbunden.** Gegenwärtig: `runner/agent-client.mjs` kann nur an den **lokalen** `127.0.0.1`-Gateway senden, sofern ein Prozess auf genau diesem Rechner Zugriff hat. Die echte Test-Event-ID vom Dot fehlt. GitHub Actions, Pull Requests oder stündliche ChatGPT-Automationen sind kein dauerhaft verfügbarer Echtzeit-Signalbus.
