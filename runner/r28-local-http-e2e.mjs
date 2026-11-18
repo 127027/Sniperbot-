@@ -44,6 +44,8 @@ try{
  const result=await makeR28ConnectionReport({port});
  assert.equal(result.conclusion,'BOT_AND_TEST_PIPELINE_OK_GITHUB_GPT_RECEIVER_NOT_READY');
  assert.equal(result.github_gpt_courier.local_signed_receiver_ready,false);
+ assert.equal(result.central_ai.model_not_confirmed_reason,'LOCAL_PAID_API_DISABLED_BY_DESIGN_GITHUB_ONLY');
+ assert.equal(result.signed_order_receiver.github_gpt_bridge_ready,false);
  assert.equal(result.github_gpt_courier.actual_gpt_paper_buy_sell_roundtrip_verified,false);
  assert.equal(result.bot.online,true);
  assert.equal(result.central_ai.real_openai_exchange_observed,false);

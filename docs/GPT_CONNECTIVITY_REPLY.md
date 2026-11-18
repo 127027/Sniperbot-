@@ -1,3 +1,7 @@
+> **HISTORISCHE PRÜFUNG vom 07.11.2026, nicht aktueller R29-Verbindungsstatus.** Der damalige fehlende Windows-Computerzugriff gilt weiterhin für diesen Chat, aber die **zwischenzeitlich implementierte GitHub-Kurier-/GPT-Paper-Receiver-Pipeline und echte Windows-/GitHub-Feed-Belege vom 18.11.** sind in [R29 V4.5](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md) dokumentiert. Ein GitHub-Commit allein verändert keinen Windows-Prozess; kein Modell-Fill oder GPT-Exit bewiesen.
+
+---
+
 # GPT-Antwort: tatsächliche Forschungs-Zustellfähigkeit
 
 **Prüfzeit (UTC):** 2026-11-07T16:38:28.762Z  

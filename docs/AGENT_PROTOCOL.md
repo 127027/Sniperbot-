@@ -1,3 +1,7 @@
+> **V4.5-Einordnung (18.11.2026):** Der nachfolgende Agentenvertrag war ein ursprünglicher **Designentwurf**, nicht der aktuelle Nachweis des R29-GitHub-Empfängers. Heute existiert ein GitHub-Decision-Archive/Pointer → localhost-signierter Paper-Receiver, der bereits 8 Entscheidungs-IDs protokollierte (letzte NO_TRADE); modellkryptografische Herkunft und vollständiger GPT-BUY→Exit weiterhin offen. **Nicht** aus dem alten Entwurf fünf neue Dots/Agenten oder eine neue Message-Bus-Infrastruktur erzeugen. [Verbindliche Ist-/Soll-Grenzen R29 V4.5](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md).
+
+---
+
 # Agentenprotokoll – vorgeschlagene Schnittstelle, NOCH NICHT IMPLEMENTIERT
 
 **Zweck:** Skalierung von 2 Forschungsagenten auf beliebig viele spezialisierte Agenten. Eine ChatGPT-Automation ist weder ein Handelsprozess noch ein funktionierender Echtzeit-Bus zum Windows-Rechner.

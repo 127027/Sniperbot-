@@ -1,3 +1,7 @@
+> **ARCHIV / 07.11.2026:** Die damals fünf angelegten Forschungsrollen und die damalige fehlende Signatur-/Publisher-Kopplung sind historische Entscheidungen. **Aktuell am 18.11. wurden genau zwei R29-Aufgaben aktiv geprüft** (prospektiver Forward Scanner und strikt separater historischer Diagnoseführer); diese dürfen nicht durch neue Dots dupliziert werden. Die GitHub-/Windows-Receiver-Brücke ist nun grundsätzlich bereit, aber keine echte autonome GPT-BUY-/SELL-Position nachgewiesen. [Verbindlicher R29 V4.5-Wissensstand](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md).
+
+---
+
 # GPT / Codex – Publisher-Blocker und Einrichtungsplan der fünf Forschungsrollen
 
 > **EINRICHTUNGS-NACHTRAG (07.11.2026):** Die folgende ursprüngliche Bestandsaufnahme (zwei aktive Sniper-Forschungsautomationen) ist inzwischen überholt. **Fünf** Sniper-Forschungsautomationen sind jetzt tatsächlich angelegt/ergänzt, aktiv und in der Automationsverwaltung geprüft. Zwei Bestandsaufgaben wurden wiederverwendet, drei neu angelegt. Die **gemeinsame tatsächliche Snapshot-Zustellung ist noch nicht abgenommen**; Ed25519-Signierdienst und objektive Contract-/Sellability-Adapter bleiben BLOCKED. Maßgeblicher Einrichtungsnachweis: [GPT_FIVE_ROLE_SETUP_REPLY.md](GPT_FIVE_ROLE_SETUP_REPLY.md). **Keine** automatischen Kauf-/Verkaufssignale freigegeben.

@@ -1,3 +1,7 @@
+> **ARCHIV – ÜBERHOLTER STARTWEG V0.21 (Stand 18.11.2026): NICHT ALS WINDOWS-ANLEITUNG VERWENDEN.** Die hier damals beschriebene separate, lokal kostenpflichtige OpenAI-Responses-API und die API-Key-Abfrage waren eine experimentelle Altvariante. **R29 V4.4 PR #59 hat den direkten API-Start aus `windows-supervisor.ps1` und `server.mjs` entfernt.** Der aktive R29-Weg ist ausschließlich bestehender ChatGPT-GitHub-Kurier (ohne zusätzlichen OpenAI-Key). **Die unterhalb erhaltenen V0.21-Kommandos (`-ResetAiKey` etc.) NICHT ausführen.** [Aktuelle Windows-Anleitung](../ERSTER_START.txt) / [verbindlicher R29 V4.5-Wissensstand](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Datei bleibt nur zur historischen Nachvollziehbarkeit von PR #55, nicht als Betriebsanleitung.
+
+---
+
 # Sniperbot V0.21 – eine zentrale stündliche KI, keine Dots
 
 ## Was tatsächlich implementiert ist

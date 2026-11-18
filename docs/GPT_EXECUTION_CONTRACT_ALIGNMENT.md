@@ -1,3 +1,7 @@
+> **ARCHIV – 07.11.2026-Entwurf, nicht aktuelle Live-GPT-Zustellung:** R29 V4.5 besitzt heute bereits den ChatGPT↔GitHub↔localhost-Receiver sowie echte Windows-GitHub-Marktübertragung. Der unten enthaltene damalige Sollvertrag darf weder einen zweiten Message-Bus noch neue Dots/Transport-Neuimplementierung auslösen. **Nicht bewiesen:** Modell-Kryptosignatur, tatsächliche GPT-BUY/SELL-Fills, kontinuierlicher positionsgebundener Exit. Siehe [verbindlichen R29-V4.5-Stand](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md).
+
+---
+
 # GPT ↔ Codex – abgestimmter Sollvertrag für zentrale Dot-Entscheidungen und getrennte PAPER-Bots
 
 **Stand der Prüfung:** 2026-11-07T22:33:04.167Z UTC  

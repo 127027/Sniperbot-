@@ -49,6 +49,9 @@ test('R29 local report proves GitHub receiver readiness with isolated signed tes
  assert.equal(result.github_gpt_courier.local_signed_receiver_ready,true);
  assert.equal(result.github_gpt_courier.local_courier_heartbeat_recent,true);
  assert.equal(result.github_gpt_courier.actual_gpt_paper_buy_sell_roundtrip_verified,false);
+ assert.equal(result.central_ai.model_not_confirmed_reason,'LOCAL_PAID_API_DISABLED_BY_DESIGN_GITHUB_ONLY');
+ assert.equal(result.signed_order_receiver.publisher_connected_scope,'SEPARATE_GENERIC_SIGNED_AGENT_PUBLISHER');
+ assert.equal(result.signed_order_receiver.github_gpt_bridge_ready,true);
  assert.equal(result.central_ai.real_openai_exchange_observed,false);
  assert.equal(result.isolated_signed_paper_roundtrip.passed,true);
  assert.equal(result.chat_session_direct_connection,false);

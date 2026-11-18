@@ -1,53 +1,49 @@
-# R28 – Sniperbot-Verbindung prüfen: Windows Laptop ↔ lokale OpenAI API ↔ signierter Paper-Bot
+# R29 V4.5 – korrekter Windows-/ChatGPT-GitHub-Verbindungstest
 
-**Status:** Lokal getestete Diagnose und fortlaufender, schreibgeschützter Forschungsbeleg.
-**Nur PAPER ONLY.** Kein Bot-Account resetten, keine Wallet übertragen, keine neuen Dots.
+**Aktiv ab 18.11.2026 – GitHub-only, PAPER_ONLY.** Früheres R28-Diagnoseskript heißt aus Kompatibilität weiter `runner/r28-connection-diagnostic.mjs`. Der gesonderte lokale kostenpflichtige OpenAI-API-Kanal ist nach PR #59 **absichtlich deaktiviert** und darf nicht als Einrichtungsfehler ausgegeben werden. Frühere R28-API-Anleitung: [historisches Archiv](archive/R28_VERBINDUNGSTEST_LEGACY_LOKAL_API_20261115.md). Maßgeblich für die Projektfortsetzung ist [R29 V4.5](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md).
 
-## Was in diesem Projekt verbunden ist
+## Zielarchitektur
 
-1. Der Windows-Bot läuft auf `http://127.0.0.1:3030`. Dieser Port ist **nur auf deinem Laptop** erreichbar.
-2. Bei optional eingerichtetem eigenem OpenAI-API-Key startet ein stündlicher Forschungsprozess. Er sendet ausgewählte öffentliche Marktbeobachtungen und den begrenzten lokalen Paper-Zustand **an die OpenAI Responses API** und erhält strukturierte Empfehlungen zurück.
-3. Geeignete Empfehlungen durchlaufen die vorhandene signierte **PAPER**-Order-Pipeline. Das kann zu einem **virtuellen** Kauf/Verkauf führen, wenn die aktuellen Sicherheitsbedingungen und die Paper-Freigabe erfüllt sind.
-4. Der Bot erhält die Paper-Order-Quittung zurück und speichert zusätzlich ein **lokales** Forschungsprotokoll. Dieses Dokument kann später für die Häufigkeitsstudie 1/4/12/24 genutzt werden.
-5. **Diese ChatGPT-Unterhaltung ist nicht live mit deinem Windows-Rechner verbunden.** Der lokale OpenAI-API-Prozess ist eine getrennte API-Integration. Die sichere Diagnose schickst du selbst hier in den Chat.
+Vorhandene ChatGPT-R29-Automation trifft strategischen Entscheid → vorhandener GitHub-Decision-Archive/Pointer → bestehender R29-Windows-Kurier prüft Eigentümerverknüpfung, Hash, Ablauf → authentifizierter lokaler GPT-Receiver, technisches Paper-Gate und privates Paper-Ledger. **Keine zusätzliche lokale OpenAI-API, kein GPT-Key und kein `-WithCentralAI`**. Der localhost-Server ist nicht aus diesem Chat direkt erreichbar. GitHub ist keine KI und eine Commit-Eigentümerkontrolle keine kryptografische Modellautorschaft.
 
-## Schnellstart
+## Vor dem Test
 
-1. Alten Sniperbot vollständig schließen (in der bisherigen Windows-Konsole `Q` drücken).
-2. Auf GitHub den Branch `codex/r27-early-discovery-asof-ai-20261115` wählen und **Code → Download ZIP** herunterladen.
-3. In einen neuen Ordner entpacken. Die alten `%LOCALAPPDATA%\MemeSniperPaper`-Kontodaten bleiben beim Update erhalten. Nicht löschen oder überschreiben.
-4. Node.js 22 LTS muss installiert sein.
-5. `Sniperbot_Starten.bat` öffnen. Auf Wunsch deinen **eigenen** OpenAI-API-Key ausschließlich verdeckt am Laptop eingeben; **nie hier im Chat oder im GitHub-Repository**. API-Anfragen verursachen vom ChatGPT-Abonnement unabhängige Kosten.
-6. Der Bot wird im Browser unter `http://127.0.0.1:3030` angezeigt. `Zentrale KI` und `R27-Quellenarchiv` zeigen aktuelle Betriebsdaten.
-7. Während der Bot läuft, **`Sniperbot_Verbindung_pruefen.bat`** doppelklicken. Die Datei startet **keinen zweiten Bot**, macht **keine** Zahlung und ändert weder den bestehenden Paper-Kontostand noch die Wallet.
-8. Anschließend `R28_Verbindungsbericht.txt` aus dem entpackten Bot-Ordner **in diesen Chat hochladen**. Alternativ den angezeigten Bericht kopieren.
+1. Nutzer-PC-Daten unter `%LOCALAPPDATA%\MemeSniperPaper` und `.local` lokal **sichern und nicht löschen**. Bestehenden Bot mit Q in der bisherigen Konsole geordnet stoppen.
+2. Kanonischen Branch `codex/r29-chatgpt-github-paper-cycle-20261115` in einen **neuen** Ordner entpacken; alten Ordner nicht überschreiben.
+3. `Sniperbot_Starten.bat` normal doppelklicken. Konsolenfenster geöffnet lassen, ausschließlich Paper. Niemand soll API-Keys im Chat oder öffentlichen GitHub eintragen.
 
-## Was der Bericht prüft
+## Diagnosen in einer zweiten Konsole im NEUEN Ordner
 
-| Kontrolle | Bedeutung |
+```cmd
+node runner/r28-connection-diagnostic.mjs
+curl.exe -s http://127.0.0.1:3030/api/gpt/paper/status
+```
+
+Interpretation:
+
+| Feld oder Fehler | Exakte Bedeutung |
 |---|---|
-| `bot.online` | Der echte lokale HTTP-Bot antwortet. |
-| `central_ai.enabled` | Der lokale KI-Scheduler ist konfiguriert und aktiv. |
-| `central_ai.real_openai_exchange_observed` | Eine kürzlich abgeschlossene API-Antwort mit Modellname und Response-ID wurde im Bot-Status nachgewiesen; **kein Nachweis dieser Chat-Unterhaltung**. |
-| `research_archive.active` | Der lokale 2-Minuten-Quellen-Collector meldet aktuelle Aktivitäten. |
-| `isolated_signed_paper_roundtrip.passed` | Die signierte BUY/SELL-Pipeline funktioniert **nur in einem isolierten In-Memory-Test**. Das bestätigt KEINE echte Handelsausführung. |
-| `central_ai.new_paper_fills_from_last_ai_cycle` | Echte Quittungen aus der zuletzt ausgeführten lokalen KI-Schleife (falls welche vorhanden sind). |
-| `central_ai.local_run_audit_status` | Das lokale, unveränderliche Forschungs-/Quittungsprotokoll wurde gespeichert oder meldet ein Problem. |
+| `bot.online:true` und /api/health 200 | Lokaler Server antwortet; beweist weder GitHub-GPT-Entscheid noch Trade |
+| `BOT_NOT_REACHABLE` | Zuerst Startfenster, Port 3030, Pfad/Prozess und Log prüfen; NICHT automatisch API-Key-Fehler |
+| `github_gpt_courier.local_signed_receiver_ready:true` | Neues V4.4+-Diagnoseschema hat grundsätzlich brauchbaren lokalen signierten GPT-GitHub-Receiver gemessen; kein tatsächlicher Order-Fill |
+| `/api/gpt/paper/status.local_gpt_bridge_ready:true` | Vorhandener GitHub-Relay-/localhost-Gate-Zugang ist bereit |
+| `gpt_follow_enabled:true` | GPT-Follow freigegeben; allein keine Kaufentscheidung |
+| `paper_bot_enabled:true` | Paper-Einträge lokal eingeschaltet; keine technische Freigabe eines unbekannten Coins oder Exit-Schutzes |
+| `received_decision_count:8` | Replay-/Empfangs-ID-Zähler, **keine** Anzahl von Trades |
+| `central_ai.enabled:false` bzw. `GITHUB_GPT_ONLY_LOCAL_API_REMOVED` | **ERWARTET**; optionale alte lokale OpenAI-API ist absichtlich entfernt |
+| `isolated_signed_paper_roundtrip.passed:true` | Nur separate In-Memory-Signaturprobe, privates Paper-Ledger unverändert, kein GPT-Trade |
+| `PAPER_FILLED` im isolierten Test | Kein realer Nutzerledger-GPT-Fill; die Provenienz des konkreten Receipts prüfen |
+| Fehlt `github_gpt_courier` komplett | Höchstwahrscheinlich ältere R28-Diagnose oder falscher Projektordner/Port; aktuelle Softwareversion auf dem Rechner kontrollieren |
 
-Das Berichtsformat enthält absichtlich **keine API-Keys, Wallet-Adressen, Seedphrases, private Konten, Auth-Tokens, paper-Guthaben oder Signaturen**.
+## Zuletzt wirklich beobachtet (18.11.2026, nicht automatisch aktueller Zustand)
 
-Ein erfolgreiches `isolated_signed_paper_roundtrip` ist **kein** Nachweis, dass eine echte KI gerade einen Coin gekauft hat. Für einen tatsächlich erfolgten virtuellen KI-Trade müssen die entsprechenden **echten** lokal protokollierten Quittungen vorhanden sein.
+- 14:30:57 UTC: Windows-Collector **64 Pools / 16 RSS-Headlines**, Publisher-Commit `5037000270707e53471e9a8eb32897231f7f6155`; kanonischer GitHub-Research-Feed **64 Pools / 24 Alerts**, `CANONICAL_RESEARCH_FEED_RECENT`. Solana-Quotenindikationen keine sichere Sellability.
+- 15:11:43 UTC: `BOT_NOT_REACHABLE`; im nächsten Test nach Start **15:12:52 UTC** `bot.online:true`, lokaler Snapshot **15:12:38 UTC**: **47 Pools / 16 Headlines**.
+- Nachfolgender `/api/gpt/paper/status` vom Benutzer: `strategy:GPT_ONLY`, `local_gpt_bridge_ready:true`, `gpt_follow_enabled:true`, `paper_bot_enabled:true`, `received_decision_count:8`, `last_decision_id:gpt_e7c715480f009a0dd80040fa78c186a7`. Früheres Skript noch ohne neues `github_gpt_courier`-Feld, deshalb Laptop-V4.4-Installation **nicht** abschließend bestätigt.
+- GitHub-Datei `research/r29/channel/gpt-paper-receipt.json`: genau diese ID am 17.11.2026 17:58:45 UTC, `NO_TRADE`, `origin_model_signature_verified:false`; `gpt-paper-context.json`: 0 GPT-Positionen zur damaligen Prüfung. **Kein GPT-BUY/SELL im echten lokalen Nutzer-Paper-Konto nachgewiesen.**
 
-Wenn der Bericht `BOT_NOT_REACHABLE` meldet, läuft der Bot wahrscheinlich nicht oder Port 3030 ist belegt. Wenn `CENTRAL_AI_NOT_ACTIVE` erscheint, fehlt unter anderem der API-Key oder die KI wurde nicht aktiviert. `NO_VERIFIED_COMPLETED_API_MODEL_EXCHANGE_YET` bedeutet nicht automatisch ein Fehler: Der erste Modellaufruf kann erst erfolgen, wenn Kandidaten/offene Positionen vorhanden sind.
+## Was für eine Abnahme zusätzlich nötig ist
 
-## Getrennte Paper-Freigabe
+Zeitgerechte echte ChatGPT-Modellentscheidung in der bestehenden prospektiven Automation → Archiv+Pointer/Source-Hash/Autorprüfung → gültiger signierter Windows-Receipt. Vor neuem automatischen Paper-BUY zusätzlich GPT-autorisierter kontinuierlicher **positionsgebundener** Exit (Restarts, Offline, Quote-Frische, SELL-Idempotenz), unabhängige Contract/Sellability-Prüfungen. `GPT_GUARD` allein ist noch keine solche Exit-Regel.
 
-Um **keine** bestehenden Kontodaten zu verändern, für den reinen Verbindungstest die Option `Automatische KI-Paper-Orders erlauben` zunächst **AUS** lassen. Das zeigt, ob KI und Status miteinander kommunizieren; bei Bedarf kann später eine getrennte Freigabe von ausschließlich virtuellen Käufen folgen.
-
-Der lokale `POST /api/paper/pipeline-selftest` verwendet einen Wegwerf-Schlüssel und das reine In-Memory-Konto. Er greift weder auf deine gespeicherte Wallet noch auf dein Paper-Guthaben zu.
-
-**Beide Datenquellen sind unterschiedlich:**
-- Tatsächliche stündliche KI-Durchläufe: `%LOCALAPPDATA%\MemeSniperPaper\central-ai\cycle-audit\YYYY-MM-DD\*.json`. Diese Dateien bleiben **lokal**. Sie speichern öffentliche Kandidaten, gekürzte Empfehlungen und virtuelle Order-Belege, keine privaten Kontostände/Wallet-Daten. Lokaler Hash allein ist keine unabhängige externe Zeitbeglaubigung.
-- Öffentliche fortlaufende Markt- und Nachrichtenbeobachtungen: `%LOCALAPPDATA%\MemeSniperPaper\r27-evidence\captures\YYYYMMDD\*.json`. Nicht nachträglich zu historischen Originalbelegen erklären.
-
-**Wichtige Einschränkung:** Ein durchgeführter lokaler API-Modellaufruf beweist die Kommunikation Laptop → OpenAI API → Laptop, aber nicht, dass dieses Chatfenster den Laptop erreichen oder stündlich persönlich Empfehlungen senden kann. Er beweist auch keine profitable Handelsstrategie oder die Ausführbarkeit von DEX-Swaps.
+Die historische GPT-Automation ist ausschließlich Backtest; keine Referenz-Gewinnerdaten in historische Entscheidungsframes mischen. Keine echten Zahlungen/Wallet-Transaktionen, keine API-Schlüssel, Kontostände, Seeds oder Verzeichnisse ins öffentliche Repository veröffentlichen.

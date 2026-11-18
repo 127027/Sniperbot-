@@ -1,3 +1,7 @@
+> **ARCHIVIERTE DETAILANLEITUNG (09./10.11.2026):** Aktueller R29-V4.5-Start und Diagnoseschritte stehen in [ERSTER_START](../ERSTER_START.txt) und [R29 V4.5](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Der einzige Starter ist weiterhin `Sniperbot_Starten.bat`, nun mit vorhandenem R29-GitHub-Kurier. Kein `-WithCentralAI`, keine lokale bezahlte OpenAI-API, keine neuen autonomen Paper-BUYs vor GPT-Exit-Schutz. Alte Beträge/QA-Mode-Aussagen unten sind zeitbezogen.
+
+---
+
 > **Update V0.6 (10.11.2026):** Windows-Ein-Klick-Starter bleibt `Sniperbot_Starten.bat`. Die zwei Werte im Dashboard bedeuten jetzt bevorzugter Einzelkauf / **Gesamtbudget offener Paper-Positionen**, flexible Käufe ab 50 USDC. Bestehenden `.local`-Ordner und `%LOCALAPPDATA%\MemeSniperPaper` bei Aktualisierung sichern und erhalten. [Details](V06_TOTAL_BUDGET_AND_MULTI_SOURCE_DISCOVERY_20261110.md).
 
 # Sniperbot Windows – ein Startfenster, zwei lokal beaufsichtigte Prozesse
