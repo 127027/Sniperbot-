@@ -7,87 +7,29 @@
   "wallet_or_account_data_included": false,
   "review_sha256": "1cab087ae5ee9c36e7392cdf96a00b070d46a3ad14fc94c16f90b9b3ac719846",
   "review_observed_at_utc": "2026-11-18T13:09:33.515Z",
-  "market_snapshot_observed_at_utc": "2026-11-18T14:30:57.370Z",
+  "market_snapshot_observed_at_utc": "2026-11-18T15:30:56.528Z",
   "market_snapshot_is_order_authority": false,
   "local_market_read_status": "FRESH_LOCAL_PUBLIC_SNAPSHOT",
   "selection_diagnostic": {
     "schema": "sniper_r29_security_candidate_diagnostic.v1",
-    "status": "RESEARCH_ELIGIBLE_NOT_TRADE_APPROVED",
-    "observed_market_rows": 64,
-    "evm_market_rows": 40,
-    "potential_research_candidates": 3,
+    "status": "NO_RESEARCH_ELIGIBLE_EVM_POOL",
+    "observed_market_rows": 43,
+    "evm_market_rows": 23,
+    "potential_research_candidates": 0,
     "first_failure_reason_counts": {
-      "NON_EVM_CHAIN": 24,
-      "VOLUME_5M_LT_1000_OR_UNKNOWN": 3,
-      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 34
+      "NON_EVM_CHAIN": 20,
+      "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 2,
+      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 19,
+      "VOLUME_5M_LT_1000_OR_UNKNOWN": 2
     },
     "two_provider_contract_checks_still_separate": true,
     "independent_buyer_wallet_proof_still_missing": true,
     "real_executable_quote_still_missing": true,
     "this_diagnostic_cannot_authorize_trades": true
   },
-  "checked_at_utc": "2026-11-18T14:31:09.460Z",
-  "candidate_check_count": 2,
-  "status": "PARTIAL_SECURITY_RESEARCH_ONLY",
-  "candidates": [
-    {
-      "candidate_id": "base:0x1899687c2211b47bef4bc16a4d3100f562114bed:0x899cc740d36f604c782effcbc4fb517eb96d963b",
-      "chain": "base",
-      "token_address": "0x1899687c2211b47bef4bc16a4d3100f562114bed",
-      "pool_address": "0x899cc740d36f604c782effcbc4fb517eb96d963b",
-      "checked_at_utc": "2026-11-18T14:31:09.460Z",
-      "verified_pool_observed_at_utc": "2026-11-18T14:30:57.370Z",
-      "source_scope": "FRESH_CROSS_PROVIDER_LOCAL_MARKET",
-      "also_listed_in_hourly_review": false,
-      "independent_provider_names": [
-        "GoPlus",
-        "Honeypot.is"
-      ],
-      "goplus_evaluated": true,
-      "honeypot_simulation_ok": true,
-      "contract_authorities_ok": true,
-      "token_and_pool_matched": false,
-      "basic_contract_and_sell_simulation_pass": false,
-      "risk_codes": [
-        "HONEYPOT_POOL_UNVERIFIED"
-      ],
-      "source_goplus": "https://api.gopluslabs.io/api/v1/token_security",
-      "source_honeypot": "https://api.honeypot.is/v2/IsHoneypot",
-      "independent_wallet_adoption_verified": false,
-      "independent_liquidity_redeemability_verified": false,
-      "cost_and_slippage_executable_verified": false,
-      "full_gpt_buy_gate_passed": false
-    },
-    {
-      "candidate_id": "bsc:0x1d9cc09fef4b02bb2114b9d176796553dbe5a39c:0xd335b835e9763189033e6fe7d98dd8b8f03ed448",
-      "chain": "bsc",
-      "token_address": "0x1d9cc09fef4b02bb2114b9d176796553dbe5a39c",
-      "pool_address": "0xd335b835e9763189033e6fe7d98dd8b8f03ed448",
-      "checked_at_utc": "2026-11-18T14:31:09.460Z",
-      "verified_pool_observed_at_utc": "2026-11-18T14:30:57.370Z",
-      "source_scope": "FRESH_CROSS_PROVIDER_LOCAL_MARKET",
-      "also_listed_in_hourly_review": false,
-      "independent_provider_names": [
-        "GoPlus",
-        "Honeypot.is"
-      ],
-      "goplus_evaluated": true,
-      "honeypot_simulation_ok": false,
-      "contract_authorities_ok": true,
-      "token_and_pool_matched": false,
-      "basic_contract_and_sell_simulation_pass": false,
-      "risk_codes": [
-        "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
-        "HONEYPOT_TOKEN_UNVERIFIED",
-        "HONEYPOT_POOL_UNVERIFIED"
-      ],
-      "source_goplus": "https://api.gopluslabs.io/api/v1/token_security",
-      "source_honeypot": "https://api.honeypot.is/v2/IsHoneypot",
-      "independent_wallet_adoption_verified": false,
-      "independent_liquidity_redeemability_verified": false,
-      "cost_and_slippage_executable_verified": false,
-      "full_gpt_buy_gate_passed": false
-    }
-  ],
+  "checked_at_utc": "2026-11-18T15:31:27.132Z",
+  "candidate_check_count": 0,
+  "status": "DATA_GAP_NO_MATCHING_FRESH_EVM_CANDIDATE",
+  "candidates": [],
   "note": "Fresh cross-provider market identity plus basic contract/honeypot indicators ONLY. The hourly review is only a sample; independent wallet adoption, LP redemption, executable quotes and full GPT buy approval remain unverified."
 }
