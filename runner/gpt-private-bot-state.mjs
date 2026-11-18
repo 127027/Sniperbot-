@@ -4,7 +4,7 @@
 // Public GitHub must NEVER receive this data or any deterministic state hash.
 import {createHash} from 'node:crypto';
 import {portfolioBudget} from './portfolio-budget.mjs';
-import {MAX_SINGLE_SHARE,paperAutoEquity} from './live-paper-risk.mjs';
+import {MAX_SINGLE_SHARE,MAX_TOTAL_SHARE,paperAutoEquity} from './live-paper-risk.mjs';
 
 export const PRIVATE_BOT_STATE_SCHEMA='sniper_r29_private_dual_account_state.v1';
 const currency=n=>typeof n==='number'&&Number.isFinite(n)&&n>=0;
@@ -30,7 +30,8 @@ function paperCurrent(state,now){
  const allowed=b.valid&&posValid&&currency(state?.cashUsdc)&&
   state.cashEur===0&&currency(equity);
  const free=allowed?cents(Math.min(b.free_to_allocate_test_usdc,
-  state.cashUsdc,equity*MAX_SINGLE_SHARE)):null;
+  state.cashUsdc,equity*MAX_SINGLE_SHARE,
+  Math.max(0,equity*MAX_TOTAL_SHARE-b.reserved_test_usdc))):null;
  const result={
   account:'PAPER',mode:'PAPER_ONLY',execution_enabled:state?.entriesEnabled===true,
   gpt_follow_enabled:state?.gptPaperFollow===true,
@@ -44,7 +45,7 @@ function paperCurrent(state,now){
   remaining_user_exposure_test_usdc:b.valid?cents(Math.max(0,b.cap_test_usdc-b.reserved_test_usdc)):null,
   available_for_new_buy_test_usdc:free,
   technical_single_share_cap:MAX_SINGLE_SHARE,
-  technical_total_share_cap:0.03,
+  technical_total_share_cap:MAX_TOTAL_SHARE,
   actual_loss_risk_is_not_nominal_size:true,
   full_private_state_valid:allowed,
   no_private_cloud_delivery_confirmed:true

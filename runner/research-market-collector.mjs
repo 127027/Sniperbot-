@@ -1,6 +1,7 @@
 // Local public-market research only. No order, wallet, fiat or publisher privileges.
 // Provider responses are observations, NOT safety checks or executable quotes.
 import {candidateId} from './research-watchlist.mjs';
+import {createHash} from 'node:crypto';
 import {writeFile,rename,mkdir} from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
@@ -62,6 +63,49 @@ function dexRecord(raw,m,now,urls){
     unresolved_checks:['INDEPENDENT_PAIR_IDENTITY','CONTRACT','LIQUIDITY_RISK','SELLABILITY','PAID_PROFILE_BIAS']};
 }
 const dedup=rows=>[...new Map(rows.map(row=>[row.candidate_id,row])).values()];
+// No strategic selection: only which provider rows survive the 24-per-chain
+// research transport bound. Use recent launches, economically plausible
+// activity AND rotating neutral controls so page 2 cannot silently disappear.
+// Bounded output and provider request count remain unchanged.
+export function chooseBoundedResearchCandidates(rows,{now,limit=24}={}){
+ if(!Array.isArray(rows)||rows.length>200||!Number.isInteger(limit)||limit<1||
+  limit>24||typeof now!=='string'||!Number.isFinite(Date.parse(now)))
+  throw Error('BOUNDED_RESEARCH_SELECTION_INVALID');
+ const timestamp=Date.parse(now),all=dedup(rows.filter(r=>r?.candidate_id));
+ const kept=[],used=new Set();
+ const take=(items,n)=>{
+  for(const item of items){
+   if(kept.length>=limit||n<=0)break;
+   if(!used.has(item.candidate_id)){
+    kept.push(item);used.add(item.candidate_id);n--;
+   }
+  }
+ };
+ if(all.length<=limit)return all;
+ const third=Math.ceil(limit/3);
+ const earliest=all.filter(r=>{
+  const t=Date.parse(r.pool_created_at_utc||'');
+  return Number.isFinite(t)&&t<=timestamp&&timestamp-t<=24*3600000;
+ }).sort((a,b)=>
+  Date.parse(b.pool_created_at_utc)-Date.parse(a.pool_created_at_utc)||
+  a.candidate_id.localeCompare(b.candidate_id));
+ take(earliest,third);
+ const credible=all.filter(r=>Number.isFinite(r.liquidity_usd)&&
+  r.liquidity_usd>=10000&&Number.isFinite(r.volume_m5_usd));
+ credible.sort((a,b)=>
+  (b.volume_m5_usd||0)-(a.volume_m5_usd||0)||
+  (b.liquidity_usd||0)-(a.liquidity_usd||0)||
+  a.candidate_id.localeCompare(b.candidate_id));
+ take(credible,third);
+ // Rotates every 5 minutes. This is a neutral deterministic sampling clock,
+ // not GPT risk scoring, a seeded winner list, nor order authorization.
+ const bucket=String(Math.floor(timestamp/300000));
+ const rotation=all.filter(r=>!used.has(r.candidate_id)).sort((a,b)=>
+  createHash('sha256').update(bucket+'|'+a.candidate_id).digest('hex')
+   .localeCompare(createHash('sha256').update(bucket+'|'+b.candidate_id).digest('hex')));
+ take(rotation,limit-kept.length);
+ return kept;
+}
 // Bounded independent pair checks must prioritize economically plausible pools,
 // not merely the first two returned by the "new_pools" API. A newly launched
 // 5-cent-liquidity pool should not crowd out one with genuine liquidity.
@@ -114,15 +158,20 @@ export async function collectSnapshot({fetcher=fetch,now=new Date().toISOString(
         if(e?.status===429)break;
       }
     }
-    return {m,rows:dedup(rows).slice(0,24),count,successfulPages,failures};
+    const valid=dedup(rows);
+    return {m,rows:chooseBoundedResearchCandidates(valid,{now,limit:24}),
+     sourceIdentitiesBeforeCap:valid.length,count,successfulPages,failures};
   }));
   for(const item of surveyed){
-    const {m,rows,count,successfulPages,failures}=item;
+    const {m,rows,sourceIdentitiesBeforeCap,count,successfulPages,failures}=item;
     candidates.push(...rows);
     const status=successfulPages===0?(failures[0]||'SOURCE_UNAVAILABLE'):
       failures.length?'PARTIAL':'OK';
     coverage.push({chain:m.chain,source:'GECKOTERMINAL',status,
-      pages_ok:successfulPages,pages_requested:pages,provider_rows:count,valid_identities:rows.length,
+      pages_ok:successfulPages,pages_requested:pages,provider_rows:count,
+      valid_identities:sourceIdentitiesBeforeCap,
+      included_in_snapshot:rows.length,
+      omitted_by_research_cap:sourceIdentitiesBeforeCap-rows.length,
       ...(failures.length?{failed_pages:failures}: {})});
     if(!successfulPages)failed.push(m);
   }
@@ -176,7 +225,11 @@ export async function collectSnapshot({fetcher=fetch,now=new Date().toISOString(
     producer:'Local read-only research market collector',published_at_utc:now,
     collection_status:reachable?'OBSERVED_OR_PARTIAL':'BLOCKED_RESEARCH_DATA_ACCESS',
     coverage,candidates:found,
-    summary:{identities:found.length,discovery_cap_per_scan:96,pages_per_chain:pages,cross_checked:found.filter(x=>x.verification==='CROSS_PROVIDER_IDENTITY').length,
+    summary:{identities:found.length,discovery_cap_per_scan:96,pages_per_chain:pages,
+      candidate_selection:'EARLY_FIRST_OBSERVED_ACTIVITY_AND_ROTATING_NEUTRAL_CONTROLS',
+      valid_source_identities_before_selection:surveyed.reduce((n,x)=>n+x.sourceIdentitiesBeforeCap,0),
+      omitted_by_per_chain_cap:surveyed.reduce((n,x)=>n+x.sourceIdentitiesBeforeCap-x.rows.length,0),
+      cross_checked:found.filter(x=>x.verification==='CROSS_PROVIDER_IDENTITY').length,
       promotional_only:found.filter(x=>x.promotion_biased).length,
       note:'Research only: prices are NOT executable quotes; Contract, LP and sellability remain UNKNOWN.'}
   };

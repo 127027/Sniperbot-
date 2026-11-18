@@ -133,3 +133,22 @@ test('V4.9 existing authenticated private GPT size offer ties choice to Paper se
  assert.equal(changed.positions.length,0);
  assert.equal(p.positions.length,0);
 });
+
+test('R29 V5.0 private Paper state reports current 3% total cap rather than overstating free budget',()=>{
+ const p=paper();
+ p.cashUsdc=4870;
+ p.positions=[{id:'paper:occupied130',chain:'base',
+  tokenAddress:'0x'+'a'.repeat(40),poolAddress:'0x'+'b'.repeat(40),
+  amountUsdc:130,qty:130,priceUsd:1,markAt:iso(now)}];
+ const snapshot=snap(p);
+ assert.equal(snapshot.paper.preferred_entry_test_usdc,75);
+ assert.equal(snapshot.paper.user_total_open_exposure_limit_test_usdc,3400);
+ assert.equal(snapshot.paper.reserved_open_cost_test_usdc,130);
+ assert.equal(snapshot.paper.remaining_user_exposure_test_usdc,3270);
+ assert.equal(snapshot.paper.technical_single_share_cap,0.01);
+ assert.equal(snapshot.paper.technical_total_share_cap,0.03);
+ assert.equal(snapshot.paper.available_for_new_buy_test_usdc,19.96);
+ assert.equal(proof(snapshot,snapshot,25).paper.allowed,false);
+ assert.equal(proof(snapshot,snapshot,15).paper.allowed,true);
+ assert.equal(snapshot.real.execution_enabled,false);
+});

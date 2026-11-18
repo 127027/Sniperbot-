@@ -95,6 +95,8 @@ jobs:
         run: node --check runner/dynamic-research-scheduler.mjs && node --check runner/dynamic-research-outcomes.mjs && node --check runner/r29-adaptive-publisher.mjs && node --check runner/research-market-daemon.mjs && node --check runner/r29-windows-courier.mjs
       - name: R29 40 retrospective meme winners strictly separated from blind GPT inputs
         run: node --test research/r29/gpt-strategy/references/validate-reference-dataset.test.mjs
+      - name: R29 V5.0 posthoc 36 memecoin benchmark must not contaminate as-of GPT research
+        run: node --test research/r29/operations/posthoc-nov-2026/r29-v5-posthoc-audit.test.mjs
       - name: R29 V4.9 private dual account, dynamic revisions and live lock without account data publication
         run: node --test runner/gpt-private-bot-state.test.mjs
       - name: R29 GPT private two-phase stake inquiry (50-5000 TEST-USDC), replay and no public balance

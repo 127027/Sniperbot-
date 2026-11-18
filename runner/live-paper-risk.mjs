@@ -7,7 +7,7 @@ import {validatePaperSecurityEvidence} from './live-paper-security.mjs';
 const floorCents=n=>Math.floor((n+1e-9)*100)/100;
 const numeric=n=>typeof n==='number'&&Number.isFinite(n);
 export const MAX_SINGLE_SHARE=0.01;
-const MAX_TOTAL_SHARE=0.03;
+export const MAX_TOTAL_SHARE=0.03;
 const MAX_RISK_FRACTION=0.0025;
 const DEFAULT_STOP_FRACTION=0.1;
 const MAX_DAILY_LOSS=0.01;
