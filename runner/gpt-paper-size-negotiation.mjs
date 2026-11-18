@@ -4,6 +4,7 @@
 import {createHash} from 'node:crypto';
 import {validTokenAddress} from './market.mjs';
 import {computePrivateGptCapacity,validatePrivateGptCapacity} from './gpt-paper-capacity-report.mjs';
+import {MIN_GPT_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
 export const SIZE_REQUEST_SCHEMA='sniper_r29_gpt_size_request.v1';
 export const SIZE_OFFER_SCHEMA='sniper_r29_private_gpt_size_offer.v1';
 export const SIZE_CHOICE_SCHEMA='sniper_r29_gpt_size_choice.v1';
@@ -48,7 +49,7 @@ export function makePrivateGptSizeOffer(request,state,{now=Date.now(),
   candidate_id:request.chain+':'+request.token_address+':'+request.pool_address,
   observed_at_utc:at,valid_until_utc:new Date(now+120000).toISOString(),
   available_paper_cash_test_usdc:cash,
-  min_stake_test_usdc:allowed.approved?allowed.min_test_usdc:50,
+  min_stake_test_usdc:allowed.approved?allowed.min_test_usdc:MIN_GPT_PAPER_ENTRY_USDC,
   max_stake_test_usdc:allowed.approved?allowed.max_test_usdc:0,
   can_buy:allowed.approved,
   reason:capacity.reason,
@@ -86,7 +87,8 @@ export function validateGptSizeChoice(choice,offer,state,{now=Date.now(),
   offer.actionable!==false||offer.trade_executed!==false||
   offer.real_trading_enabled!==false||!offer.can_buy)
   return fail('GPT_SIZE_OFFER_NOT_AUTHORIZED');
- if(choice.amount_test_usdc<50||choice.amount_test_usdc>5000||
+ if(choice.amount_test_usdc<MIN_GPT_PAPER_ENTRY_USDC||
+  choice.amount_test_usdc>5000||
   choice.amount_test_usdc>offer.max_stake_test_usdc)
   return fail('GPT_STAKE_OVER_OFFER_LIMIT');
  const cap=computePrivateGptCapacity(state,{
