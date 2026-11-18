@@ -25,6 +25,8 @@ jobs:
         with:
           node-version: '22'
       - run: node --check runner/server.mjs
+      - name: R29 V4.5 enforce canonical documentation and no paid API reintroduction
+        run: node --test runner/r29-documentation-guard.test.mjs
       - name: R29 enforce exactly one Windows user starter and no legacy QA budget
         run: node --test runner/single-startfile.test.mjs runner/minimal-ui.test.mjs
       - name: R29 actual ONLY startfile Windows supervisor selftest (no token, no trades)
