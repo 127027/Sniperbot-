@@ -163,7 +163,10 @@ test('R29 V4.9 authenticated local-only dual account report re-reads changed Pap
   const loaded=await (await query({'x-sniper-gpt-bridge':secret})).json();
   assert.equal(loaded.snapshot.paper.preferred_entry_test_usdc,75);
   assert.equal(loaded.snapshot.paper.user_total_open_exposure_limit_test_usdc,3400);
-  await cmd({type:'SET_RANGE',min:35,max:20});
+  const invalid=await fetch(base+'/api/command',{method:'POST',
+   headers:{'content-type':'application/json'},
+   body:JSON.stringify({type:'SET_RANGE',min:35,max:20})});
+  assert.equal(invalid.status,422);
   const unchanged=await (await query({'x-sniper-gpt-bridge':secret})).json();
   assert.equal(unchanged.snapshot.paper.local_state_revision,
    loaded.snapshot.paper.local_state_revision,'invalid settings must fail, not overwrite');
