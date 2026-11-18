@@ -1,0 +1,55 @@
+name: R29 October Existing Artifact Funnel and Sealed Neutral Frame
+on:
+  push:
+    branches:
+      - codex/r29-chatgpt-github-paper-cycle-20261115
+    paths:
+      - '.github/workflows/r29-oct-funnel-existing-artifact.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  neutral-frame-and-funnel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 44181220621
+          name: r29-v4-october-all-launches-prefundamental-48h-neutral
+          path: frozen
+      - name: Precommitted first trading day first hour (October 12 00 UTC) - no outcome labels or winner selection
+        run: |
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          q=json.loads(Path('frozen/ASOF_HOURLY_RESEARCH_QUEUE.json').read_text())
+          frames=[f for d in q['days'] for f in d['hourly_asof_research_queue_frames']]
+          assert len(frames)==408 and q['gpt_model_calls']==0
+          chosen=next(f for f in frames if f['asof_utc'].startswith('2026-10-12T00:'))
+          # Uniform chronological first page, no lookup of reference identities.
+          rows=chosen['selected_for_possible_GPT_review']
+          packet={'virtual_asof_utc':chosen['asof_utc'],'source':'sealed prior run 44181220621','page':chosen['page'],'eligible_count':chosen['eligible_count_not_truncated'],'candidates':[
+            dict(candidate_id='C%02d'%i, **{k:v for k,v in c.items() if k not in ('mint','chain')})
+            for i,c in enumerate(rows)]}
+          raw=json.dumps(packet,sort_keys=True,separators=(',',':'))
+          print('R29_NEUTRAL_FRAME_SHA256',hashlib.sha256(raw.encode()).hexdigest())
+          print('R29_NEUTRAL_MODEL_INPUT',raw)
+          print('R29_NEUTRAL_ID_MAP',json.dumps({f'C{i:02d}':c['mint'] for i,c in enumerate(rows)},sort_keys=True))
+          all_displayed={c['mint'] for f in frames for c in f['selected_for_possible_GPT_review']}
+          print('R29_FUNNEL',json.dumps({'source_launches':821849,'features_joined_rows':q['source_feature_rows_joined_to_all_neutral_launches'],'frames':len(frames),'total_eligible_candidate_checkpoint_pairs':sum(f['eligible_count_not_truncated'] for f in frames),'exported_candidate_checkpoint_pairs':sum(len(f['selected_for_possible_GPT_review']) for f in frames),'unique_exported_mints':len(all_displayed),'frames_truncated':sum(f['total_pages']>1 for f in frames),'model_calls':0,'paper_fills':0}))
+          PY
+      - name: Postfreeze reference membership in emitted first pages (not model selection)
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          q=json.loads(Path('frozen/ASOF_HOURLY_RESEARCH_QUEUE.json').read_text())
+          refs={'PIERRE':'D3S6J9s1byrNBt3ZKwEDiPsNRqHtoEP8zQKdhyBdpump','PIERRE_other':'8GroyR3X7C2qTWX33EY6T2tLYkvXFTuvoTExUVTApump','FTR':'DFMt2FyLpB6ekPNAzVErLXgpSnJ9CRf1VnxBAkTLpump','DACITY':'nxPqZ4F7ux8Vph5NFu25rEP6Kx9Gr1U6Fmj36Rjpump','DACITY_other':'DKYcjobF7HPtL9RyQBRdeRQ2iWvizpfbgWwPWNXdpump','TRUMP_1':'2bCCHQadi4QeHWPKG3w13siCyWWQPgkFtniouTqVpump'}
+          frames=[f for d in q['days'] for f in d['hourly_asof_research_queue_frames']]
+          for name,mint in refs.items():
+           matches=[(f['asof_utc'],i,c) for f in frames for i,c in enumerate(f['selected_for_possible_GPT_review']) if c['mint']==mint]
+           print('R29_POSTFREEZE_REFERENCE',json.dumps({'name':name,'mint':mint,'first_exported_page_zero':matches[0] if matches else None,'page_zero_appearances':len(matches),'earlier_unexported_pages':'UNKNOWN','actual_gpt_decision':None}))
+          PY
