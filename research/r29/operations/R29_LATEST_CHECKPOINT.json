@@ -344,6 +344,22 @@
     "historical_realized_pnl_test_usdc": null,
     "historical_blindtrading_finished": false,
     "live_paper_full_roundtrip_finished": false,
-    "real_money_enabled": false
+    "real_money_enabled": false,
+    "source_root_cause_evidence": {
+      "origin": "https://huggingface.co/datasets/loopholetape/pumpfun-launches/blob/main/KNOWN_ISSUES.md",
+      "verified": "Provider states early features sampled non-randomly (KI-01), buy decoder seam before Sep 27 (KI-02), non-SOL quote assets (KI-03), single-recorder coverage gaps (KI-06).",
+      "attributable_missing_241649_by_cause": "NOT_YET_MEASURED",
+      "missing_values_are_not_zeros": true,
+      "historical_dataset_real_time_delivery_verified": false
+    },
+    "position_exit_audit": {
+      "existing_autopilot_file": "runner/live-paper-autopilot.mjs",
+      "existing_autopilot_poll_ms": 120000,
+      "applies_to": "paperAutopilot positions only",
+      "gpt_pre_authorized_per_position_exit_rules_verified": false,
+      "local_autopilot_heuristic_thresholds_not_equal_gpt_authorized_rules": true,
+      "gpt_exit_strategy_24h_protection_verified": false,
+      "note": "Need signed, persisted per-position GPT exit contract evaluated continuously by existing local executor, with fresh quotes and idempotent paper receipts"
+    }
   }
 }
