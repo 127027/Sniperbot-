@@ -69,7 +69,7 @@ function validQuote(q,order,now){
   now-Date.parse(q.asOf)<=90000&&
   typeof q.symbol==='string'&&q.symbol.length<=32;
 }
-export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER',syntheticTest=false,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null,gptExitAuth=null,gptPolicyExit=null}={}){
+export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER',syntheticTest=false,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null,gptExitAuth=null,gptPolicyExit=null,gptExitMonitorReady=false}={}){
  if(!['SIGNED_LOCAL_ADAPTER','GITHUB_SIGNED_COURIER','CENTRAL_AI_LOCAL','LOCAL_PAPER_AUTOPILOT','GPT_GITHUB_LOCAL','GPT_GITHUB_POLICY_EXIT'].includes(source))throw Error('INVALID_AGENT_TRANSPORT_SOURCE');
  const verified=verifyAgentSignal(order,keys,{deviceId,now});
  const receipts=state.agentOrderReceipts||[];
@@ -118,6 +118,8 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   eqAddress(order.chain,p.poolAddress,order.pool_address));
  if(gptPaper&&actionType==='BUY'&&!gptBuyExitReady)
   reason='GPT_BUY_REQUIRES_SIGNED_POSITION_EXIT_POLICY';
+ else if(gptPaper&&actionType==='BUY'&&gptExitMonitorReady!==true)
+  reason='GPT_BUY_REQUIRES_HEALTHY_CONTINUOUS_EXIT_MONITOR';
  else if(policyExit&&actionType!=='SELL')reason='GPT_POLICY_EXIT_SELL_ONLY';
  else if(policyExit&&(!gptPolicyExit||!state.positions.some(p=>
   p.id===gptPolicyExit.position_id&&
