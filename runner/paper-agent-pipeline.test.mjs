@@ -206,3 +206,13 @@ test('different token and same symbol do not accidentally sell somebody else\'s 
  assert.equal(next.positions.length,1);
  assert.equal(next.positions[0].tokenAddress,token);
 });
+
+test('R29 V4.8: external Ed25519 publisher cannot smuggle GPT-only 25-unit Paper BUY',()=>{
+ const external=signal({size_test_usdc:'25.00'});
+ assert.throws(()=>verifyAgentSignal(external,keys,{deviceId,now:at}),
+  /AGENT_PAPER_SIZE_INVALID/);
+ assert.throws(()=>verifyAgentSignal(external,keys,{
+  deviceId,now:at,signedGptPaperInternal:true}),/AGENT_PAPER_SIZE_INVALID/);
+ assert.throws(()=>applyAgentSignal(balance(),external,keys,{
+  deviceId,now:at,quote:quote(),source:'GITHUB_SIGNED_COURIER'}),/AGENT_PAPER_SIZE_INVALID/);
+});
