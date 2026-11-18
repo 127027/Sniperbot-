@@ -82,7 +82,8 @@ function makeReceiver(d){
      deviceId,now:Date.now(),quote:opts.qaQuote,source:opts.source,
      paperAutopilotCandidate:opts.paperAutopilotCandidate,
      securityEvidence:opts.securityEvidence,
-     gptExitAuth:opts.gptExitAuth,gptPolicyExit:opts.gptPolicyExit});
+     gptExitAuth:opts.gptExitAuth,gptPolicyExit:opts.gptPolicyExit,
+      gptExitMonitorReady:true});
     state=result.next;return {receipt:result.receipt};
   }
  });
