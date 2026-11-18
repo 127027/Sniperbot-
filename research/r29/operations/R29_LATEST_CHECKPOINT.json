@@ -5,7 +5,7 @@
   "canonical_branch": "codex/r29-chatgpt-github-paper-cycle-20261115",
   "user_approval": "2026-11-18 explicit GO to consolidate all prior findings and rectify conflicting R29 documentation; keep Paper ONLY and no paid local OpenAI API.",
   "scope": "R29_V4_6_SINGLE_GITHUB_GPT_STRATEGIST_PAPER_SIGNED_POSITION_EXIT_GUARD",
-  "status": "R29_V4_6_LOCAL_WINDOWS_GUARD_LOADED_GPT_NO_TRADE_REPLAY_9_EXIT_FILL_UNPROVEN_HEARTBEAT_NOT_RECENT",
+  "status": "R29_V46_LOCAL_COURIER_CONFIRMED_CONNECTED_EXIT_GUARD_LOADED_NO_REAL_PAPER_BUY_SELL_RECEIPT",
   "pull_request": "https://github.com/127027/Sniperbot-/pull/54",
   "pull_request_merged": true,
   "merge_commit_sha": "b32bf8e3e3c9953fa7c9737a2e4189b93edefe06",
@@ -120,11 +120,11 @@
     "no_automatic_live_or_risk_limit_change": true
   },
   "next_actions_in_order": [
-    "Operator: Dashboard Bot AUS now to pause new entries, without disabling valid previously signed GPT exits or deleting data.",
-    "Inspect read-only /api/r29/presence checked_at_utc/local_paper_http_healthy/courier_enabled; last diagnostic local_courier_heartbeat_recent false after just 44s uptime might be awaiting heartbeat.",
-    "Existing scheduled GPT Forward task must inspect fresh as-of sources, owner archive, same ID on local receipt; hourly limit persists, no new API or automation.",
-    "Await genuine GPT V2-authorized unknown coin with independently verified source/sellability/executable paper quote, then validate actual existing Windows Paper BUY/HOLD/exit SELL/realized PnL; do not force trade on NO_TRADE.",
-    "Separate historical blind replay from live Paper ledger; PAPER_ONLY, no wallet/real money."
+    "User: set Dashboard Bot AUS to pause new Paper entries. Verify /api/gpt/paper/status reports paper_bot_enabled:false; keep gpt_follow_enabled:true for previously authorized SELLs.",
+    "Do NOT rebuild Github courier or request paid API: /api/r29/presence from actual Windows 16:42:56 UTC returned connected:true bot_http_healthy:true github_courier_enabled:true. Old diagnostic false heartbeat was field mismatch; PR62 repaired mapping.",
+    "Optional at next safe version update: new r28-connection-diagnostic.mjs should show local_courier_heartbeat_recent:true for fresh healthy flat presence response; no urgent bot restart or private data change needed.",
+    "Observe authentic future scheduled GPT forward decisions, actual archive and same-ID local receipt; pending genuine Model V2 BUY allowed only after independent source, sellability and reliable quote safety.",
+    "Full GPT-chosen unknown coin BUY→continuous exit→SELL→paper PnL remains unproven. Never force trade on NO_TRADE or synthetic fixture, no real money and no local paid OpenAI API."
   ],
   "canonical_postmerge_ci": {
     "url": "https://github.com/127027/Sniperbot-/actions/runs/44181220621",
@@ -663,8 +663,26 @@
       "actual_strategic_gpt_model_response_verified": false,
       "actual_gpt_paper_buy_sell_roundtrip_verified": false,
       "paid_openai_api_required": false,
-      "real_trading_enabled": false
+      "real_trading_enabled": false,
+      "presence_checked_at_utc": "2026-11-18T16:42:56.921Z",
+      "presence_connected": true,
+      "presence_bot_http_healthy": true,
+      "presence_github_courier_enabled": true,
+      "presence_paper_orders_automatically_enabled": false,
+      "presence_real_trading_enabled": false
     },
-    "immediate_operator_action": "Dashboard Bot AUS (new_paper_entries_enabled was true), leave signed GPT exits available. Inspect /api/r29/presence read-only to diagnose heartbeat false at just 44 seconds uptime."
+    "immediate_operator_action": "Dashboard Bot AUS (new_paper_entries_enabled was true), leave signed GPT exits available. Inspect /api/r29/presence read-only to diagnose heartbeat false at just 44 seconds uptime.",
+    "presence_diagnostic_fix": {
+      "finding": "OLD_DIAGNOSTIC_FALSE_NEGATIVE: expected nested presence/local_paper_http_healthy/courier_enabled whereas actual sanitized endpoint returns flat connected/bot_http_healthy/github_courier_enabled.",
+      "real_laptop_presence_healthy_at": "2026-11-18T16:42:56.921Z",
+      "pull_request": "https://github.com/127027/Sniperbot-/pull/62",
+      "pr_merge_sha": "2e20d7821ab6a2486a1c1942ddeb2fbbacea8463",
+      "windows_and_linux_ci": "https://github.com/127027/Sniperbot-/actions/runs/44350976793",
+      "ci_status": "success",
+      "changed_behavior": "diagnostic only: flattened schema, four-minute heartbeat freshness, legacy autopilot flag distinguished from Paper dashboard entry switch",
+      "no_trading_logic_changed": true,
+      "laptop_pr62_update_confirmed": false,
+      "operator_bot_entry_switch_still_true_at_last_check": true
+    }
   }
 }
