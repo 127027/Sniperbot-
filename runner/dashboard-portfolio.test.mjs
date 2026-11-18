@@ -113,3 +113,24 @@ test('actual opened GPT-managed paper position is tagged; ordinary position is n
  assert.equal(v.positions[1].gpt_paper_managed,false);
  assert.equal(v.positions[0].invested_test_usdc,50);
 });
+
+test('R29 V4.8 UI separates real locally received GPT decision journal and actual GPT Paper fills',()=>{
+ const s={...freshState(),cashUsdc:4999.01,
+  gptPaperFollow:true,entriesEnabled:false,
+  gptDecisionReplay:{
+   ['gpt_'+'a'.repeat(32)]:{at_utc:'2026-11-18T16:21:09.742Z',status:'NO_TRADE',reason:'GPT_RESEARCH_NO_ORDER'}
+  },
+  agentOrderReceipts:[{command_source:'GPT_GITHUB_LOCAL',status:'BLOCKED'},
+   {command_source:'SIGNED_LOCAL_ADAPTER',status:'PAPER_FILLED'},
+   {command_source:'GPT_GITHUB_LOCAL',status:'PAPER_FILLED'},
+   {command_source:'GPT_GITHUB_POLICY_EXIT',status:'PAPER_FILLED'}]};
+ const view=paperDashboardView(s,{now:Date.parse('2026-11-18T16:30:00Z')});
+ assert.equal(view.gpt_paper_received_decisions,1);
+ assert.equal(view.gpt_paper_recent_decisions.length,1);
+ assert.equal(view.gpt_paper_recent_decisions[0].status,'NO_TRADE');
+ assert.equal(view.gpt_local_paper_fills,2);
+ assert.equal(view.gpt_local_paper_fills_are_not_model_proven,true);
+ assert.equal(view.portfolio_budget.current_minimum_entry_test_usdc,50);
+ assert.equal(view.portfolio_budget.signed_gpt_minimum_entry_test_usdc,5);
+ assert.equal(view.bot_enabled,false);
+});
