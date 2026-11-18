@@ -66,9 +66,11 @@ export function action(s,a){if(!a||typeof a!=='object')return s;
  }
  case 'EXCHANGE':{const eur=numeric(a.eur);if(!isAmount(eur)||s.cashEur<eur)return s;const usdc=round(eur*PAPER_EUR_TO_TEST_USDC);return {...s,cashEur:round(s.cashEur-eur),cashUsdc:round(s.cashUsdc+usdc),history:log(s,'TEST-Umwandlung',`${eur.toFixed(2)} Demo-EUR → ${usdc.toFixed(2)} Test-USDC; Kurs 1:1 ist kein Wechselkurs`)}};
  case 'EXCHANGE_BACK':{const usdc=numeric(a.usdc);if(!isAmount(usdc)||s.cashUsdc<usdc)return s;return {...s,cashUsdc:round(s.cashUsdc-usdc),cashEur:round(s.cashEur+usdc/PAPER_EUR_TO_TEST_USDC),history:log(s,'TEST-Rückumwandlung',`${usdc.toFixed(2)} Test-USDC → ${(usdc/PAPER_EUR_TO_TEST_USDC).toFixed(2)} virtuelle EUR; KEIN echter Kurs`)}};
+ case 'GPT_SIGNED_BUY':
  case 'BUY':{
   const c=s.candidates.find(x=>x.id===a.id);const amount=numeric(a.amount);
-  if(!c||!finitePrice(c.priceUsd)||!s.entriesEnabled||!isAmount(amount)||!isWithinPortfolioBudget(s,amount))return s;
+  if(!c||!finitePrice(c.priceUsd)||!s.entriesEnabled||!isAmount(amount)||!isWithinPortfolioBudget(s,amount,
+   {gptSignedPaper:a.type==='GPT_SIGNED_BUY'}))return s;
   if(s.positions.some(p=>p.chain===c.chain&&p.tokenAddress===c.tokenAddress))return s;
   if(!c.isDemo&&(!Number.isFinite(Date.parse(c.asOf))||Date.now()-Date.parse(c.asOf)>120000||Date.parse(c.asOf)>Date.now()))return s;
   // Paper buy with optional JUST-IN-TIME fictional EUR to USDC conversion; NEVER an on-chain swap.
