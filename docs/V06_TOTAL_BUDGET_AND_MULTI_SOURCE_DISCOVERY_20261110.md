@@ -1,3 +1,7 @@
+> **ARCHIV – R29 V4.9-VORRANG (18.11.2026):** Nachfolgende V0.x-/frühe R29-Aussagen sind historische Entwürfe, KEINE aktuelle Handels-, Kapital-, Start- oder Bot-Anweisung. [Maßgeblicher R29 V4.5-Wissensstand mit V4.6–V4.9-Nachträgen](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). IST: Paper-Präferenz und Gesamtlimit dynamisch gespeichert, jedoch weiterhin zusätzliche 1-%-/3-%-Paper-Risikogates; Echtgeld READ-ONLY/LIVE_LOCKED ohne eigenständiges bestätigtes Real-Positions-/Budgetledger. Vertraulicher Bot-Ist-Zustand nur lokal authentifiziert; keine automatische Cloud-GPT-Zustellung nachgewiesen. GPT ist alleinige strategische Instanz, ein vollständiger echter GPT-Paper-BUY/SELL bleibt offen. Keine alten festen Beträge, Score-Dots, zusätzliche Bots oder kostenpflichtige Modell-API aus diesen historischen Beispielen neu einführen.
+
+---
+
 # Memecoin Sniper V0.6 – Gesamtbudget und frühe Ereignis-Entdeckung
 
 **Stand:** 10. November 2026 · **Branch:** `codex/research-gateway-v04` · **Paper-Trading** · **`main` unverändert**.
