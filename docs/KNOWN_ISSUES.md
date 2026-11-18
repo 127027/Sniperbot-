@@ -1,3 +1,28 @@
+# Offene Probleme und behobene Fehler – R29 V4.5 (18.11.2026)
+
+**Detaillierte Root-Cause-Tabelle:** [R29 V4.5 Wissensstand § 4](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Die untenstehenden V0.3–V0.7-Issues bleiben ausschließlich historische Momentaufnahmen.
+
+## Bereits behoben – NICHT erneut implementieren
+
+- **Historischer Paging-Verlust**: nur Seite 0/64 Kandidaten pro Stunde exportiert. PR #56, vollständig 310.540/310.540 Candidate-Time-Paare auf 5.054 Seiten, 0 Paging-Verluste, CI grün. Die `hourly_asof_research_queue_frames` sind nur Legacy-Kompatibilität, nicht die vollständigen Seiten.
+- **Fehlende aktuelle GitHub-Marktdaten als damalige Diagnose**: am 18.11.2026 um 14:30:57 UTC echter Laptop-Capture und kanonischer GitHub-Commit mit 64 Pools/24 Alerts verifiziert. Neue Staleness nur bei neuem Beleg behaupten.
+- **Falscher OpenAI-API-Key-Zweitweg**: PR #59 entfernt bezahlten lokalen Schlüssel-/Responses-Start aus R29. `central_ai.enabled:false` erwartet. Keine Nutzeraufforderung zur API-Einrichtung.
+- **Ungeprüfter lokaler spekulativer Autopilot-BUY** / **fremder globaler Exit aus `GPT_GUARD`**: PR #58 blockiert beides; GPT-SELL trotz `entriesEnabled:false` möglich. **Das repariert noch keine kontinuierliche positionsgebundene GPT-Exit-Policy.**
+- **GitHub-Transport grundsätzlich fehlend**: überholte Aussage; vorhandener ChatGPT/GitHub-Receiver zeigt `local_gpt_bridge_ready:true`, 8 Replay-IDs; letzter GitHub-Receipt `NO_TRADE`. **Transportfähigkeit ist nicht modellautorisierter Kauf.**
+
+## Weiterhin OFFEN – priorisiert
+
+1. Nachweis eines autonomen tatsächlichen ChatGPT-R29-Forward-Decisions-Durchlaufs mit zeitgerechtem Input, Archiv, Eigentümernachweis, ggf. zusätzlicher nachweisbarer Modellherkunft und lokaler signierter Quittung.
+2. Vor jedem automatischen Paper-BUY ein **kontinuierlicher GPT-autorisierter positionsgebundener Exit-Vertrag**, mit sicheren frischen Quotes, TTL, Restart-/Offline-/Bot-AUS-Verhalten, Replay-Sperre, Sellability und bestätigtem GPT-SELL.
+3. Solana-Mint-/Pool-/LP-/Holder-/Sellability-Nachweise sind nicht vollständig; indikative zweigeteilte Quotes sind kein ausführbarer Kauf/Verkauf.
+4. Historische Datenlücke **241.649 Launches ohne Minutenmerkmale** bleibt UNKNOWN, nicht als 0 oder technische Ablehnung zählen. Vollständige zehn echte 7+3 as-of GPT-Trading-Holdouts mit unabhängigen Preisdaten und Netto-PnL sind nicht bestätigt.
+5. Transparente prospektive PAPER-BUY/HOLD/SELL-/Exit-Quittungen aus dem **tatsächlichen** Nutzer-Ledger fehlen. Isolierter Erfolg mit synthetischen Orders ist kein Live-Nachweis.
+6. Die Installation von V4.4/V4.5 auf dem **persönlichen Windows-Rechner** darf nicht allein aus GitHub-Code oder CI angenommen werden. `Sniperbot0.1`-Diagnosen hatten altes R28-Schema.
+
+---
+
+## Historische V0.3–V0.7-Issues (nicht als neuer Status ausgeben)
+
 > **Offenes nach V0.7-Blindreplay (10.11.2026):** Keine verifizierte historische 30+14-Tage-as-of-Datenbasis mit Originalnachrichten/Socials, tatsächlicher damaliger Pooltiefe und kompletter Gewinner-/Verliererkohorte. 5 historische Gewinner als Stichprobe sind **nicht** ein valider Profitabilitäts-Backtest. DOGE-2013-PoW-Chain außerhalb der derzeit überwachten vier DEX-Chains. RSS-Inhalte/Publisher-Daten sind nicht automatisch unabhängige ursprüngliche Socialposts. Weiterhin keine unabhängigen realen DEX-Contract-/Sellability-Validatoren und keine echten externen autonomen Paper-Käufe/Exits. [Vollständige Ursachen und 225-Tage-Replay](HISTORICAL_BLIND_FIVE_CASES_20261110.md).
 
 ## V0.5 – weiter offene Risiken (09.11.2026)
