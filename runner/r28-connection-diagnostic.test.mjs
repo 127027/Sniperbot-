@@ -42,14 +42,14 @@ function mockApi({ai=false,gptReady=true,failBot=false}={}){
  };
  return {fetcher,seen};
 }
-test('R28 local report proves API exchange status and isolated signed paper roundtrip but not ChatGPT chat connection',async()=>{
+test('R29 local report proves GitHub receiver readiness with isolated signed test; never claims a live trade',async()=>{
  const m=mockApi();
  const result=await makeR28ConnectionReport({fetcher:m.fetcher,now});
  assert.equal(result.conclusion,'BOT_AND_GITHUB_GPT_RECEIVER_READY_NO_ORDER_PROOF');
  assert.equal(result.github_gpt_courier.local_signed_receiver_ready,true);
  assert.equal(result.github_gpt_courier.local_courier_heartbeat_recent,true);
  assert.equal(result.github_gpt_courier.actual_gpt_paper_buy_sell_roundtrip_verified,false);
- assert.equal(result.central_ai.real_openai_exchange_observed,true);
+ assert.equal(result.central_ai.real_openai_exchange_observed,false);
  assert.equal(result.isolated_signed_paper_roundtrip.passed,true);
  assert.equal(result.chat_session_direct_connection,false);
  assert.equal(result.no_wallet_or_private_balances_collected,true);
