@@ -29,7 +29,7 @@ test('documentation distinguishes stored Paper preferences from missing real-acc
  assert.match(doc,/Echtgeld.*LOCKED|LIVE_LOCKED/);
  assert.match(doc,/Cloud/);
  assert.match(doc,/nicht.*nachgewiesen|nicht.*implementiert|offen/i);
- assert.match(doc,/autonomer GPT-ausgewählter BUY.*Paper-Fill.*offen/s);
+ assert.match(doc,/Vollständiger autonomer GPT-BUY.*Paper-Fill.*OFFEN/s);
 });
 test('Windows guide requires exit liveness, preserves local data and no API key',()=>{
  const guide=read('ERSTER_START.txt');
