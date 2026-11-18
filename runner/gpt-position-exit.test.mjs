@@ -170,3 +170,28 @@ test('Restart keeps policy, provider outage never fabricates SELL; later quote p
   assert.equal(a.submissions,2); // BUY + one exit; no synthetic failure trade.
  }finally{a.cleanup()}
 });
+
+test('independent executor refuses forged early GPT policy SELL before GPT threshold',async()=>{
+ const a=setup();
+ try{
+  const recv=a.create();
+  const buy=decision('BUY','f'.repeat(32));
+  assert.equal((await recv.receive(envelope(buy))).status,'PAPER_FILLED');
+  const p=a.state.positions[0];
+  const kp=generateKeyPairSync('ed25519');
+  const sell=signGptPaperSignal({
+   action:'SELL',chain:'base',token_address:token,pool_address:pool,
+   decision_id:'gpt_'+'9'.repeat(32)}, {deviceId,keyPair:kp});
+  const keys=[{issuer:sell.issuer,key_id:sell.key_id,scope:'agent_execution',
+    revoked:false,public_key_pem:kp.publicKey.export({format:'pem',type:'spki'})}];
+  const attempt=applyAgentSignal(a.state,sell,keys,{
+   deviceId,quote:quote(.02),source:'GPT_GITHUB_POLICY_EXIT',
+   gptPolicyExit:{position_id:p.id,authorizing_decision_id:buy.decision_id,
+    policy_digest:p.gptExitPolicyDigest,trigger:'GPT_EXIT_STOP_LOSS'}
+  });
+  assert.equal(attempt.receipt.status,'BLOCKED');
+  assert.equal(attempt.receipt.reason,'GPT_POLICY_EXIT_TRIGGER_NOT_DUE_OR_QUOTE_INVALID');
+  assert.equal(attempt.next.positions.length,1);
+  assert.equal(attempt.next.cashUsdc,4950);
+ }finally{a.cleanup()}
+});
