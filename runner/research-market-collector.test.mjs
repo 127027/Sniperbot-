@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {collectSnapshot,MARKETS} from './research-market-collector.mjs';
+import {collectSnapshot,chooseBoundedResearchCandidates,MARKETS} from './research-market-collector.mjs';
 const now='2026-11-09T17:00:00.000Z';
 const token='0x'+'1'.repeat(40),pool='0x'+'2'.repeat(40),token2='0x'+'3'.repeat(40),pool2='0x'+'4'.repeat(40);
 const response=json=>({ok:true,json:async()=>json});
@@ -161,4 +161,66 @@ test('crosschecks two highest-quality economic EVM pools, not first two newest p
    'CROSS_PROVIDER_IDENTITY');
  assert(base.every(x=>x.unresolved_checks.includes('SELLABILITY')),
   'independent pair identity must never misrepresent token security');
+});
+
+test('R29 V5.0 never silently truncates page 2 to zero under high-volume 40-pool waves',async()=>{
+ const mk=(m,i,created)=>({
+  ...validPool(m,'0x'+i.toString(16).padStart(40,'0'),
+   '0x'+(i+100).toString(16).padStart(40,'0')),
+  attributes:{...validPool(m).attributes,
+   address:'0x'+(i+100).toString(16).padStart(40,'0'),
+   pool_created_at:created,base_token_price_usd:'0.0001',
+   reserve_in_usd:'80000',volume_usd:{m5:String(i*100)}}
+ });
+ const urls=[];
+ const fetcher=async url=>{
+  urls.push(url);
+  if(url.includes('geckoterminal')){
+   const m=getChain(url);
+   if(m?.chain!=='base')return response({data:[]});
+   const page2=url.includes('page=2');
+   const start=page2?21:1;
+   return response({data:Array.from({length:20},(_,idx)=>
+    mk(m,start+idx,page2?'2026-11-09T16:59:00Z':'2026-11-09T16:00:00Z'))});
+  }
+  return response({pairs:[]});
+ };
+ const result=await collectSnapshot({fetcher,now});
+ const baseRows=result.candidates.filter(c=>c.chain==='base');
+ assert.equal(baseRows.length,24,'per-chain safe bound retained');
+ assert.equal(result.summary.valid_source_identities_before_selection,40);
+ assert.equal(result.summary.omitted_by_per_chain_cap,16);
+ const base=result.coverage.find(x=>x.chain==='base'&&x.source==='GECKOTERMINAL');
+ assert.equal(base.provider_rows,40);
+ assert.equal(base.valid_identities,40);
+ assert.equal(base.included_in_snapshot,24);
+ assert.equal(base.omitted_by_research_cap,16);
+ assert(baseRows.some(c=>c.pool_created_at_utc==='2026-11-09T16:59:00.000Z'),
+  'fresh second-page pools cannot all disappear behind page-1 cap');
+ assert.equal(urls.filter(x=>x.includes('/new_pools?page=')).length,8,
+  'no additional collector requests or new bots');
+ assert.equal(result.paper_only,true);
+ assert.equal(result.actionable,false);
+ assert(baseRows.every(c=>c.unresolved_checks.includes('SELLABILITY')),
+  'research selection must not authorize any trades');
+});
+test('R29 V5.0 neutral controls rotate while no future data or trade strategy enters selection',()=>{
+ const now0='2026-11-09T17:00:00.000Z';
+ const rows=Array.from({length:40},(_,i)=>({
+  candidate_id:'base:contract'+String(i).padStart(3,'0')+':pool'+i,
+  pool_created_at_utc:'2026-11-09T16:00:00Z',
+  liquidity_usd:25000,volume_m5_usd:1500,
+  source:'GECKOTERMINAL_NEW_POOLS',promotion_biased:false
+ }));
+ const a=chooseBoundedResearchCandidates(rows,{now:now0});
+ const b=chooseBoundedResearchCandidates(rows,{now:now0});
+ assert.equal(a.length,24);
+ assert.deepEqual(a.map(x=>x.candidate_id),b.map(x=>x.candidate_id));
+ const later=chooseBoundedResearchCandidates(rows,{
+  now:'2026-11-09T17:10:00.000Z'});
+ assert.equal(later.length,24);
+ assert.notDeepEqual(a.map(x=>x.candidate_id),later.map(x=>x.candidate_id),
+  'neutral omitted candidates get another chance in later research windows');
+ await assert.rejects(async()=>chooseBoundedResearchCandidates(rows,{now:now0,limit:25}),
+  /BOUNDED_RESEARCH_SELECTION_INVALID/);
 });
