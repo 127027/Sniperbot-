@@ -1,3 +1,17 @@
+# Aktuelle Codex-Prioritäten – R29 V4.5 (18.11.2026)
+
+**KANONISCH:** [R29 V4.5 Wissen/Root-Causes/Abnahme](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Nur dieses Arbeitsprogramm ist aktuell. Der alte V0.3-P0-Passus darunter ist ein archivierter Entwicklungsplan und **kein Auftrag zu einem frischen Neuaufbau**.
+
+1. Bestehende prospektive ChatGPT-Automation, frische Quellen und GitHub-Entscheidungsarchive mit tatsächlichem Modell-/Receive-Beleg zusammenbringen; keine zweite lokale OpenAI-API und keine neuen Dots.
+2. **Vor jedem neuen autonomen Paper-BUY** positionsgebundenen, persistierten GPT-autorisierten Exit-/Notfall-Schutz mit aktuellen beidseitigen Quote-/Sellability-Gates und Restart-/Offline-/Replay-Tests in bestehenden Komponenten implementieren.
+3. Danach erst einen echten prospektiven unbekannten GPT-BUY→HOLD→SELL auf dem vorhandenen **virtuellen** Windows-Ledger mit echten lokalen Quittungen nachweisen. Historische 10 7+3-Blindtests unabhängig, as-of versiegelt und ohne nachträglich bekannte Coin-Namen.
+4. Jeden Commit mit richtiger CI/HEAD und CODE/CI/WINDOWS/GITHUB LIVE/OFFEN markieren; Ausgangsstand (18.11.): 64 Pools/24 Alerts kanonisch publiziert, 8 Receiver-IDs, letztes Receipt `NO_TRADE`, 0 bewiesene neue GPT-Fills. Paging PR #56, lokale BUY-/Exit-Rollen PR #58, GitHub-only PR #59 **bereits abgeschlossen**.
+5. Betrieb: `Sniperbot_Starten.bat` ohne Parameter; `central_ai.enabled:false` erwartet, `github_gpt_courier` prüfen. Keine lokalen Daten, DPAPI-Tokens, Guthaben oder Wallets löschen.
+
+---
+
+## Archivierter ursprünglicher V0.x-Aufgabenplan (nicht erneut komplett von P0 starten)
+
 # Codex-Arbeitsauftrag: Prioritäten, Teilpakete und Abnahmekriterien
 
 Alle Arbeiten ausschließlich an diesem neuen Projekt, idealerweise mit Review über Pull Requests. **Keine** Abhängigkeit von Hixton, keine Änderungen an bestehenden Hixton-Repositories/Dots/Automationen. **Keine** echten Orders, Wallet-/Payment-Integrationen ohne neue ausdrückliche Freigabe.
@@ -5,8 +19,8 @@ Alle Arbeiten ausschließlich an diesem neuen Projekt, idealerweise mit Review �
 ## P0 – Vollständige Windows-Verifikation / Codequalität
 
 - Öffne `README.md`, `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/REQUIREMENTS.md`, `docs/KNOWN_ISSUES.md` und teste den aktuellen Runner.
-- Windows-11-Test mit Node.js 22+: frisch geklontes Repo, `Windows_Starten.bat`, Browser-Funktionen, Offline-Modus, Defender-/Netzwerkfehler, Neustart, Persistenz.
-- Verbessere `Windows_Starten.bat` nur bei nachgewiesenem Problem; keine stille Installation, kein Startup/Registry-Eingriff.
+- Windows-11-Test mit Node.js 22+: frisch geklontes Repo, `Sniperbot_Starten.bat`, Browser-Funktionen, Offline-Modus, Defender-/Netzwerkfehler, Neustart, Persistenz.
+- Verbessere `Sniperbot_Starten.bat` nur bei nachgewiesenem Problem; keine stille Installation, kein Startup/Registry-Eingriff.
 - Sicherer Recovery-Pfad bei beschädigter JSON-Datei: Anwendungsfehler anzeigen, vorhandene Daten nicht überschreiben, Snapshot/Backup.
 - **Akzeptanz:** dokumentierte Windows-Schrittfolge und reproduzierbare CI- und End-to-End-Tests ohne Netzwerk.
 
@@ -60,7 +74,7 @@ Für jedes Paket: Problem + Änderung + Tests + Risiken + offene Punkte + Commit
 **Codex-Job auf dem Nutzer-Laptop (P0, höchste Priorität):**
 
 1. Verbundenes Windows-11-Testsystem bzw. Codex-Work-Computer-Zugriff bestätigen; falls nicht verfügbar, exakte Schritte und PowerShell-Befehle zur Durchführung durch den Nutzer liefern, aber keine Installation als erledigt bezeichnen.
-2. Repo `127027/Sniperbot-` auf dem Windows-PC klonen, Node-Version, `Windows_Tests.bat`, `Windows_Starten.bat`, Startport und Browser-Konsole testen. Keine Installation in ein Hixton-Verzeichnis.
+2. Repo `127027/Sniperbot-` auf dem Windows-PC klonen, Node-Version, `Windows_Tests.bat`, `Sniperbot_Starten.bat`, Startport und Browser-Konsole testen. Keine Installation in ein Hixton-Verzeichnis.
 3. Standard-Ablauf in frischem Benutzerprofil: 50 virtuelle EUR einzahlen, virtueller Test-USDC-Kauf, Test-Token halten, Bot pausieren, Exit-Regel aktivieren, Kursanstieg simulieren, Test-Exit ausführen, lokalen Zustands-Neustart prüfen. Screenshots/Logs und konkrete Fehler mit Build-ID erfassen.
 4. Den Fehler des Nutzers beim ChatGPT-ZIP-Download durch direkten GitHub-Clone umgehen; GUI/Firewall/Defender und Node-Laufzeit bei Bedarf beheben.
 5. Fehlende Funktionen gesondert als Issues/PRs entwickeln; Arbeit mit Tests belegen, sicherheitskritische Logik vor Automatisierung reviewen.
