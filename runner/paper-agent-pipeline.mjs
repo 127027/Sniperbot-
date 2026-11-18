@@ -8,6 +8,7 @@ import {validateChainAsset} from './chain-trade-intent-v2.mjs';
 import {action} from './core.mjs';
 import {isWithinPortfolioBudget} from './portfolio-budget.mjs';
 import {r29LivePaperEntryGate} from './live-paper-risk.mjs';
+import {validateGptExitPolicy,gptExitPolicyHash,validateGptExitBinding} from './gpt-position-exit.mjs';
 
 export const AGENT_SIGNAL_SCHEMA='sniper_agent_trade_signal.v1';
 export const AGENT_SIGNAL_DOMAIN='MemeSniper/agent_trade_signal.v1\n';
@@ -68,8 +69,8 @@ function validQuote(q,order,now){
   now-Date.parse(q.asOf)<=90000&&
   typeof q.symbol==='string'&&q.symbol.length<=32;
 }
-export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER',syntheticTest=false,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null}={}){
- if(!['SIGNED_LOCAL_ADAPTER','GITHUB_SIGNED_COURIER','CENTRAL_AI_LOCAL','LOCAL_PAPER_AUTOPILOT','GPT_GITHUB_LOCAL'].includes(source))throw Error('INVALID_AGENT_TRANSPORT_SOURCE');
+export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER',syntheticTest=false,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null,gptExitAuth=null,gptPolicyExit=null}={}){
+ if(!['SIGNED_LOCAL_ADAPTER','GITHUB_SIGNED_COURIER','CENTRAL_AI_LOCAL','LOCAL_PAPER_AUTOPILOT','GPT_GITHUB_LOCAL','GPT_GITHUB_POLICY_EXIT'].includes(source))throw Error('INVALID_AGENT_TRANSPORT_SOURCE');
  const verified=verifyAgentSignal(order,keys,{deviceId,now});
  const receipts=state.agentOrderReceipts||[];
  if(!Array.isArray(receipts)||receipts.length>250)throw Error('PAPER_AGENT_RECEIPTS_INVALID');
@@ -95,7 +96,14 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
  const amount=verified.amount,actionType=order.action;
  let positionId=null,pnl=null;
  const localAuto=source==='LOCAL_PAPER_AUTOPILOT'&&syntheticTest!==true;
- const gptPaper=source==='GPT_GITHUB_LOCAL'&&syntheticTest!==true;
+ const gptPaper=['GPT_GITHUB_LOCAL','GPT_GITHUB_POLICY_EXIT'].includes(source)&&syntheticTest!==true;
+ const policyExit=source==='GPT_GITHUB_POLICY_EXIT';
+ const gptBuyExitReady=(()=>{
+  if(!gptPaper||actionType!=='BUY')return true;
+  try{return /^gpt_[0-9a-f]{32}$/.test(gptExitAuth?.decision_id||'')&&
+   validateGptExitPolicy(gptExitAuth?.policy)!==null;
+  }catch{return false}
+ })();
  const autoGate=(localAuto||gptPaper)&&actionType==='BUY'?
   r29LivePaperEntryGate({state:gptPaper?{...state,automaticPaperBuys:true}:state,
    candidate:paperAutopilotCandidate,
@@ -108,7 +116,15 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   state.positions.some(p=>p.gptPaperDecision===true&&p.chain===order.chain&&
   eqAddress(order.chain,p.tokenAddress,order.token_address)&&
   eqAddress(order.chain,p.poolAddress,order.pool_address));
- if(!state.entriesEnabled&&actionType==='BUY')reason='PAPER_BOT_OFF';
+ if(gptPaper&&actionType==='BUY'&&!gptBuyExitReady)
+  reason='GPT_BUY_REQUIRES_SIGNED_POSITION_EXIT_POLICY';
+ else if(policyExit&&actionType!=='SELL')reason='GPT_POLICY_EXIT_SELL_ONLY';
+ else if(policyExit&&(!gptPolicyExit||!state.positions.some(p=>
+  p.id===gptPolicyExit.position_id&&
+  p.gptExitAuthorizedDecisionId===gptPolicyExit.authorizing_decision_id&&
+  p.gptExitPolicyDigest===gptPolicyExit.policy_digest&&
+  validateGptExitBinding(p))))reason='GPT_POLICY_EXIT_AUTHORIZATION_NOT_FOUND';
+ else if(!state.entriesEnabled&&actionType==='BUY')reason='PAPER_BOT_OFF';
  else if(!validQuote(quote,order,now))reason='MARKET_QUOTE_INVALID_OR_STALE';
  else if(localAuto&&actionType==='BUY'&&(!autoGate?.allowed||amount!==autoGate.amount_test_usdc))
   reason=autoGate?.reason||'LOCAL_PAPER_AUTOPILOT_RISK_BLOCKED';
@@ -149,7 +165,13 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
    if(attempted.positions.length>state.positions.length){
     next=localAuto||gptPaper?{...attempted,defaultExitMode:state.defaultExitMode,
       positions:attempted.positions.map(p=>state.positions.some(x=>x.id===p.id)?p:
-        {...p,...(gptPaper?{gptPaperDecision:true}:{paperAutopilot:true}),
+        {...p,...(gptPaper?{
+          gptPaperDecision:true,
+          gptExitPolicy:gptExitAuth.policy,
+          gptExitAuthorizedDecisionId:gptExitAuth.decision_id,
+          gptExitPolicyDigest:gptExitPolicyHash(gptExitAuth.policy),
+          gptExitReviewStatus:'GPT_EXIT_MONITOR_PENDING_FIRST_QUOTE'
+         }:{paperAutopilot:true}),
          entryLiquidityUsd:quote.liquidityUsd,
          safety:'PUBLIC_SECURITY_CHECKS_PAPER_ONLY',
          exitMode:gptPaper?'GPT_GUARD':'AUTO'} )}:attempted;
@@ -179,7 +201,8 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
       ...Object.fromEntries(keptCooldowns),
       [order.chain+':'+order.token_address.toLowerCase()]:new Date(now).toISOString()
     }}:closed;
-    status='PAPER_FILLED';reason=gptPaper?'GPT_AUTHORIZED_SELL_PAPER_ONLY':
+    status='PAPER_FILLED';reason=policyExit?'GPT_POLICY_AUTHORIZED_EXIT_PAPER_ONLY':
+      gptPaper?'GPT_AUTHORIZED_SELL_PAPER_ONLY':
       localAuto?'LOCAL_AUTOPILOT_SELL_PAPER_ONLY':'SIGNED_AGENT_SELL_PAPER_ONLY';
     positionId=old.id;pnl=Number((closed.closedPnl-state.closedPnl).toFixed(8));
    }else reason='SELL_BLOCKED_BY_MARKET_OR_LEDGER';
@@ -196,6 +219,8 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   received_at_utc:new Date(now).toISOString(),
   payload_sha256:digest,duplicate:false,
   synthetic_test:syntheticTest===true,
+  gpt_authorized_exit_policy_accepted:status==='PAPER_FILLED'&&gptPaper&&actionType==='BUY',
+  gpt_policy_exit_trigger:policyExit?(gptPolicyExit?.trigger||null):null,
   execution_evidence:syntheticTest===true?'SYNTHETIC_FIXTURE':
    (status==='PAPER_FILLED'&&(localAuto||gptPaper)?
     'PUBLIC_SECURITY_VERIFIED_INDICATIVE_DEX_QUOTE_NOT_EXECUTABLE':
