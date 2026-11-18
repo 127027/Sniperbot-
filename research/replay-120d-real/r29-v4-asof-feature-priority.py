@@ -389,26 +389,104 @@ def replay_features(source_dir,output,start,end,expected,read_day=download_featu
     f.unlink(missing_ok=True)
     if len(events)!=expected[d]["rows"]:raise ValueError("FEATURE_ROW_COUNT_INVALID")
     start_ts=datetime.combine(day,datetime.min.time(),timezone.utc).timestamp()
-    # Single chronological sort. A future feature cannot leak into an earlier hour.
+    # Original chronological as-of rows ONLY. Invalid/out-of-day source rows
+    # are explicitly archived with a reason rather than silently discarded.
     usable=[e for e in events if finite(e.get("t")) and
      start_ts<=e["t"]<start_ts+86400]
     usable.sort(key=lambda e:(e["t"],str(e.get("mint",""))))
+    omitted_clock=[e for e in events if not (finite(e.get("t")) and
+     start_ts<=e["t"]<start_ts+86400)]
+    if len(usable)+len(omitted_clock)!=len(events):
+     raise ValueError("SOURCE_ROW_CLOCK_RECONCILIATION_FAILED")
+    page_path=output.parent/"hourly-pages"/(d+".jsonl.gz")
+    decision_path=output.parent/"feature-decisions"/(d+".jsonl.gz")
+    shortlist_path=output.parent/"model-shortlists"/(d+".jsonl.gz")
+    for target in (page_path,decision_path,shortlist_path):
+     target.parent.mkdir(parents=True,exist_ok=True)
     pos=0;day_joined=0
-    reviews=[]
-    for hour in range(1,25):
-     cutoff=start_ts+hour*3600
-     with conn:
-      pos,stats=apply_rows_until(conn,usable,pos,cutoff,launch_times,
-       feature_cache,eligible_cache,expiry_cache)
-     day_joined+=stats["rows_joined_to_raw_launches"]
-     reviews.append(review_at_cached(eligible_cache,launch_times,expiry_cache,cutoff))
+    day_eligible_events=0;day_rejected_events=0
+    reasons=Counter();reviews=[];frame_index=[]
+    with gzip.open(page_path,"wt",encoding="utf8",compresslevel=6) as pg, \
+         gzip.open(decision_path,"wt",encoding="utf8",compresslevel=6) as audit, \
+         gzip.open(shortlist_path,"wt",encoding="utf8",compresslevel=6) as mq:
+     def audit_sink(record):
+      audit.write(json.dumps(record,separators=(",",":"),ensure_ascii=False)+"\n")
+     for x in omitted_clock:
+      reasons["FEATURE_TIMESTAMP_NOT_IN_ORIGINAL_SOURCE_DAY"]+=1
+      day_rejected_events+=1
+      audit_sink({"mint":x.get("mint"),"observed_t_unix":x.get("t"),
+       "eligible_asof_feature":False,"technical_score":0,
+       "reason":"FEATURE_TIMESTAMP_NOT_IN_ORIGINAL_SOURCE_DAY",
+       "GPT_decision":None,"provider_call_made":False})
+     for hour in range(1,25):
+      cutoff=start_ts+hour*3600
+      with conn:
+       pos,stats=apply_rows_until(conn,usable,pos,cutoff,launch_times,
+        feature_cache,eligible_cache,expiry_cache,audit_sink=audit_sink)
+      day_joined+=stats["rows_joined_to_raw_launches"]
+      day_eligible_events+=stats["eligible_feature_events"]
+      day_rejected_events+=stats["excluded_feature_events"]
+      reasons.update(stats["event_reason_counts"])
+      pages,suppressed,shortlist=review_all_pages_at_cached(
+       eligible_cache,launch_times,expiry_cache,cutoff)
+      eligible_count=pages[0]["eligible_count_not_truncated"] if pages else 0
+      emitted=0
+      for page in pages:
+       pg.write(json.dumps(page,separators=(",",":"),ensure_ascii=False)+"\n")
+       emitted+=len(page["selected_for_possible_GPT_review"])
+      if emitted!=eligible_count:
+       raise ValueError("CANDIDATE_PAGE_EXPORT_DROPPED_IDENTITIES")
+      mq.write(json.dumps(shortlist,separators=(",",":"),ensure_ascii=False)+"\n")
+      frame_index.append({
+       "asof_utc":capture.iso(cutoff),"eligible_candidate_count":eligible_count,
+       "full_pages_written":len(pages),"candidate_rows_written":emitted,
+       "candidate_rows_not_exported":eligible_count-emitted,
+       "review_queue_suggestions_not_actual_GPT_calls":shortlist["selected_count"],
+       "deferred_by_GPT_budget_but_still_in_archive":
+        shortlist["deferred_by_capacity_not_lost"],
+       "stale_feature_deferred_but_still_in_archive":
+        shortlist["deferred_due_to_stale_feature_not_lost"],
+       "technical_retention_not_eligible_at_hour":suppressed})
+      # Backwards compatible first-page summary, but it is not the full archive.
+      reviews.append(pages[0] if pages else page_from_ranked([],cutoff))
+      result["total_eligible_candidate_checkpoint_pairs"]+=eligible_count
+      result["total_exported_candidate_checkpoint_pairs"]+=emitted
+      result["total_candidate_pairs_deferred_but_preserved"]+=(
+       shortlist["deferred_by_capacity_not_lost"]+
+       shortlist["deferred_due_to_stale_feature_not_lost"])
+      result["total_shortlist_suggestions_not_actual_model_calls"]+=shortlist["selected_count"]
     if pos!=len(usable):raise ValueError("UNCONSUMED_ASOF_FEATURE_EVENTS")
+    if day_eligible_events+day_rejected_events!=len(events):
+     raise ValueError("DAILY_PER_FEATURE_EXCLUSION_REASON_RECONCILIATION_FAILED")
+    if sum(reasons.values())!=len(events):
+     raise ValueError("DAILY_REASON_COUNTS_UNACCOUNTED")
+    if any(f["candidate_rows_not_exported"] for f in frame_index):
+     raise ValueError("SILENT_PAGING_LOSS")
     result["days"].append({
      "day":d,"sha256":expected[d]["sha256"],"original_rows":len(events),
      "rows_with_valid_clock":len(usable),
      "features_joined_to_known_tokens":day_joined,
+     "daily_feature_events_technically_eligible":day_eligible_events,
+     "daily_feature_events_not_eligible":day_rejected_events,
+     "per_feature_event_reason_counts":dict(reasons),
+     "complete_hourly_page_archive":{
+      "path":str(page_path.relative_to(output.parent)),
+      "sha256":sha256_file(page_path),
+      "frames":24,"candidate_rows":sum(f["candidate_rows_written"] for f in frame_index)},
+     "all_feature_decisions_archive":{
+      "path":str(decision_path.relative_to(output.parent)),
+      "sha256":sha256_file(decision_path),"rows":len(events)},
+     "neutral_model_research_shortlists_archive":{
+      "path":str(shortlist_path.relative_to(output.parent)),
+      "sha256":sha256_file(shortlist_path),"frames":24},
+     "hourly_asof_full_export_index":frame_index,
      "hourly_asof_research_queue_frames":reviews,
      "real_model_calls":0,"real_trades":0})
+    result["total_feature_events_audited"]+=len(events)
+    result["total_feature_events_not_eligible"]+=day_rejected_events
+    combined=Counter(result["excluded_feature_reason_counts"])
+    combined.update(reasons)
+    result["excluded_feature_reason_counts"]=dict(combined)
     result["source_days"]+=1
     result["total_minute_feature_rows"]+=len(events)
     result["source_feature_rows_joined_to_all_neutral_launches"]+=day_joined
@@ -417,6 +495,12 @@ def replay_features(source_dir,output,start,end,expected,read_day=download_featu
      "SELECT count(*) FROM research_reactivations").fetchone()[0]
     print("R29_V4_ASOF_PRIORITY_DAY",d,len(events),
      "joined",day_joined,"end_hour_eligible",reviews[-1]["eligible_count_not_truncated"],flush=True)
+  result["distinct_mints_with_joined_feature"]=len(feature_cache)
+  result["source_launches_without_any_joined_feature"]=len(launch_times)-len(feature_cache)
+  if result["total_feature_events_audited"]!=result["total_minute_feature_rows"]:
+   raise ValueError("SOURCE_FEATURE_EVENT_AUDIT_INCOMPLETE")
+  if result["total_eligible_candidate_checkpoint_pairs"]!=result["total_exported_candidate_checkpoint_pairs"]:
+   raise ValueError("CANDIDATE_EXPORT_NOT_LOSSLESS")
  finally:conn.close()
  output.write_text(json.dumps(result,ensure_ascii=False,separators=(",",":"))+"\n")
  return result
