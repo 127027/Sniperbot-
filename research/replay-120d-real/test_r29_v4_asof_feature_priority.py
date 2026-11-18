@@ -1,4 +1,4 @@
-import importlib.util,sqlite3,tempfile,unittest
+import gzip,hashlib,importlib.util,json,sqlite3,tempfile,unittest
 from datetime import datetime,timezone,timedelta
 from pathlib import Path
 root=Path(__file__).parent
@@ -170,4 +170,95 @@ class ResearchQueue(unittest.TestCase):
   self.assertFalse(m.priority({**x,"flag_pool_drained":True})["eligible"])
   self.assertEqual(m.priority(x)["reason"],
    "EARLY_BUY_ACTIVITY_AND_SOL_RESERVE_RESEARCH_ONLY")
+
+ def test_all_cached_pages_and_shortlist_losslessly_cover_150_new_unknown_tokens(self):
+  self.add_mints(150)
+  launches={r[0]:r[1] for r in self.conn.execute("SELECT mint,t0 FROM launches")}
+  expiries={r[0]:r[1] for r in self.conn.execute("SELECT mint,expires FROM launches")}
+  prev={};eligible={}
+  events=[self.feat(self.mint(i),self.start+1800+i,buy=45+i%8)
+   for i in range(150)]
+  pos,stats=m.apply_rows_until(self.conn,events,0,self.start+3600,
+   launches,prev,eligible,expiries)
+  pages,skipped,queue=m.review_all_pages_at_cached(eligible,launches,expiries,
+   self.start+3600)
+  self.assertEqual(pos,150)
+  self.assertEqual(len(pages),3)
+  self.assertEqual([len(p["selected_for_possible_GPT_review"]) for p in pages],
+   [64,64,22])
+  emitted=[x["mint"] for p in pages for x in p["selected_for_possible_GPT_review"]]
+  self.assertEqual(len(set(emitted)),150)
+  self.assertEqual(queue["selected_count"],16)
+  self.assertEqual(queue["deferred_by_capacity_not_lost"],134)
+  self.assertEqual(queue["deferred_due_to_stale_feature_not_lost"],0)
+  self.assertFalse(any(x["gpt_model_call_made"] for p in pages
+   for x in p["selected_for_possible_GPT_review"]))
+  self.assertEqual(pages[2],m.review_at(self.conn,self.start+3600,2))
+  self.assertEqual(skipped["TECHNICALLY_ELIGIBLE_BUT_OBSERVATION_EXPIRED"],0)
+
+ def test_every_feature_rejection_works_as_explicit_auditable_reason(self):
+  self.add_mints(3)
+  unknown=self.mint(22)
+  events=[self.feat(self.mint(0),self.start+60,buy=1,reserve=0.1),
+   self.feat(self.mint(1),self.start+120,flag_pool_drained=True),
+   self.feat(self.mint(2),self.start+180,buy=90),
+   self.feat(unknown,self.start+190,buy=90)]
+  audited=[]
+  pos,stats=m.apply_rows_until(self.conn,events,0,self.start+3600,
+   audit_sink=audited.append)
+  self.assertEqual(pos,len(events))
+  self.assertEqual(len(audited),4)
+  self.assertEqual(stats["eligible_feature_events"],1)
+  self.assertEqual(stats["excluded_feature_events"],3)
+  self.assertEqual(stats["event_reason_counts"]["NO_MATCHING_ORIGINAL_TOKEN_LAUNCH"],1)
+  self.assertEqual(stats["event_reason_counts"]["OBSERVED_POOL_OR_BUNDLE_RISK"],1)
+  self.assertEqual(stats["event_reason_counts"]["INSUFFICIENT_ASOF_TECHNICAL_INTEREST"],1)
+  self.assertEqual(stats["rows_joined_to_raw_launches"],3)
+
+ def test_replay_archive_persists_all_pages_every_hour_and_reconciles_every_row(self):
+  with tempfile.TemporaryDirectory(prefix="r29-full-page-qa-") as td:
+   basedir=Path(td)
+   conn=sqlite3.connect(basedir/"source-only-48h.sqlite")
+   m.capture.init_db(conn)
+   with conn:
+    for i in range(150):
+     conn.execute("INSERT INTO launches VALUES(?,?,?,?,?)",
+      ("solana",self.mint(i),self.start,self.start+48*3600,"C"*40))
+   conn.close()
+   events=[self.feat(self.mint(i),self.start+10+i,buy=40+i%20)
+    for i in range(150)]
+   events.append(self.feat(self.mint(0),self.start+900,buy=45,flag_pool_drained=True))
+   startday=datetime.fromtimestamp(self.start,timezone.utc).date()
+   out=basedir/"ASOF_HOURLY_RESEARCH_QUEUE.json"
+   report=m.replay_features(basedir,out,startday,startday,
+    {str(startday):{"sha256":"a"*64,"rows":len(events)}},
+    read_day=lambda d,f,x:events)
+   self.assertEqual(report["source_days"],1)
+   self.assertEqual(report["total_minute_feature_rows"],151)
+   self.assertEqual(report["total_feature_events_audited"],151)
+   self.assertEqual(report["total_eligible_candidate_checkpoint_pairs"],
+    report["total_exported_candidate_checkpoint_pairs"])
+   self.assertEqual(report["gpt_model_calls"],0)
+   day=report["days"][0]
+   self.assertEqual(len(day["hourly_asof_full_export_index"]),24)
+   self.assertTrue(all(x["candidate_rows_not_exported"]==0
+    for x in day["hourly_asof_full_export_index"]))
+   self.assertEqual(day["all_feature_decisions_archive"]["rows"],151)
+   def archive(key):
+    a=day[key];p=basedir/a["path"]
+    self.assertEqual(hashlib.sha256(p.read_bytes()).hexdigest(),a["sha256"])
+    with gzip.open(p,"rt") as f:return [json.loads(line) for line in f]
+   pages=archive("complete_hourly_page_archive")
+   decisions=archive("all_feature_decisions_archive")
+   shortlist=archive("neutral_model_research_shortlists_archive")
+   self.assertEqual(len(decisions),151)
+   self.assertEqual(len(shortlist),24)
+   first=[p for p in pages if p["asof_utc"].startswith("2026-10-11T01:")]
+   self.assertEqual([len(p["selected_for_possible_GPT_review"]) for p in first],
+    [64,64,21])
+   self.assertEqual(sum(len(p["selected_for_possible_GPT_review"]) for p in first),149)
+   self.assertEqual(report["total_feature_events_not_eligible"],1)
+   self.assertEqual(report["source_launches_without_any_joined_feature"],0)
+   self.assertTrue(all(v["not_a_model_call"] for v in shortlist))
+
 if __name__=="__main__":unittest.main()
