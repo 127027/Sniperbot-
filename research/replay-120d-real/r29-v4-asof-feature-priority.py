@@ -5,7 +5,8 @@ All original mint IDs are already in the complete 48h neutral source ledger.
 No winner labels, ticker lookup, BUY/SELL strategy, model or local account access.
 Only feature rows <= each simulated hourly checkpoint can influence priority.
 """
-import argparse,csv,hashlib,json,math,sqlite3,tempfile
+import argparse,csv,gzip,hashlib,json,math,sqlite3,tempfile
+from collections import Counter
 from datetime import date,datetime,timedelta,timezone
 from pathlib import Path
 from urllib.request import Request,urlopen
@@ -82,11 +83,22 @@ def init_priority(conn):
   "PRIMARY KEY(mint,observed_t))")
  conn.commit()
 
-def apply_rows_until(conn,ordered,pos,cutoff,launch_times=None,feature_cache=None,eligible_cache=None,expiry_cache=None):
- processed=0;valid=0;unmatched=0
+def apply_rows_until(conn,ordered,pos,cutoff,launch_times=None,feature_cache=None,eligible_cache=None,expiry_cache=None,audit_sink=None):
+ processed=0;valid=0;unmatched=0;rejected=0;eligible_rows=0;reasons=Counter()
+ def audit(mint,t,eligible,score,reason):
+  nonlocal rejected,eligible_rows
+  reasons[reason]+=1
+  if eligible:eligible_rows+=1
+  else:rejected+=1
+  if audit_sink is not None:
+   audit_sink({"mint":mint,"observed_t_unix":t,
+    "eligible_asof_feature":bool(eligible),"technical_score":score,
+    "reason":reason,"GPT_decision":None,"provider_call_made":False})
  while pos<len(ordered) and ordered[pos]["t"]<=cutoff:
   x=ordered[pos];pos+=1;processed+=1
-  if not valid_row(x):continue
+  if not valid_row(x):
+   audit(x.get("mint"),x.get("t"),False,0,"INVALID_ASOF_FEATURE_ROW")
+   continue
   mint=x["mint"];t=x["t"]
   # launch from original complete neutral source, not a pre-selected shortlist
   if launch_times is not None:
@@ -95,8 +107,13 @@ def apply_rows_until(conn,ordered,pos,cutoff,launch_times=None,feature_cache=Non
    row=conn.execute("SELECT t0 FROM launches WHERE chain='solana' AND mint=?",
     (mint,)).fetchone()
    t0=row[0] if row else None
-  if t0 is None:unmatched+=1;continue
-  if t+0.002<t0:continue
+  if t0 is None:
+   unmatched+=1
+   audit(mint,t,False,0,"NO_MATCHING_ORIGINAL_TOKEN_LAUNCH")
+   continue
+  if t+0.002<t0:
+   audit(mint,t,False,0,"FEATURE_EVENT_BEFORE_ORIGINAL_LAUNCH")
+   continue
   if feature_cache is not None:
    previous=feature_cache.get(mint)
   else:
@@ -105,6 +122,7 @@ def apply_rows_until(conn,ordered,pos,cutoff,launch_times=None,feature_cache=Non
   if previous and previous[0]>t:raise ValueError("FEATURE_STATE_NONCHRONOLOGICAL")
   prev={"t":previous[0],"buys":previous[1]} if previous else None
   info=priority(x,prev)
+  audit(mint,t,info["eligible"],info["score"],info["reason"])
   # Extend only for NEW observed buy activity, not passive polling/age.
   # This is technical retention, never a BUY or GPT decision.
   if prev and finite(x["f_n_buys"]) and finite(prev["buys"]) and (
@@ -144,8 +162,12 @@ def apply_rows_until(conn,ordered,pos,cutoff,launch_times=None,feature_cache=Non
    else:
     eligible_cache.pop(mint,None)
   valid+=1
+ if processed!=eligible_rows+rejected:
+  raise ValueError("PER_FEATURE_EXCLUSION_REASON_RECONCILIATION_FAILED")
  return pos,{"rows_consumed":processed,"rows_joined_to_raw_launches":valid,
-  "rows_without_matching_launch":unmatched}
+  "rows_without_matching_launch":unmatched,
+  "eligible_feature_events":eligible_rows,"excluded_feature_events":rejected,
+  "event_reason_counts":dict(reasons)}
 
 def review_at(conn,asof,page=0):
  """Covers ALL eligible identities via pages; page zero is not the universe."""
