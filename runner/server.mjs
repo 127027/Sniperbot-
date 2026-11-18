@@ -15,6 +15,7 @@ import {paperDashboardView} from './dashboard-portfolio.mjs';
 import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
 import {startLocalPaperAutopilot} from './live-paper-autopilot.mjs';
 import {createGptPaperLocalReceiver} from './gpt-paper-local-receiver.mjs';
+import {validateGptExitBinding} from './gpt-position-exit.mjs';
 import {makePrivateGptSizeOffer} from './gpt-paper-size-negotiation.mjs';
 import {enrollPaperPublisherPublicKey} from './paper-publisher-trust.mjs';
 import {summarizePaperPipeline} from './pipeline-health.mjs';
@@ -380,8 +381,8 @@ const server=createServer(async(req,res)=>{
  private_paper_size_offer_transport:'AUTHENTICATED_LOCALHOST_ONLY',
  exit_guard_required_for_new_gpt_buy:true,
  continuous_gpt_exit_monitor_enabled:process.env.SNIPER_OFFLINE!=='1'&&deviceTopology.mode!=='FOLLOWER',
- gpt_positions_with_validated_exit_contract:state.positions.filter(p=>p.gptPaperDecision===true&&p.gptExitPolicyDigest).length,
- gpt_positions_missing_exit_contract:state.positions.filter(p=>p.gptPaperDecision===true&&!p.gptExitPolicyDigest).length,
+ gpt_positions_with_validated_exit_contract:state.positions.filter(p=>p.gptPaperDecision===true&&validateGptExitBinding(p)).length,
+ gpt_positions_missing_exit_contract:state.positions.filter(p=>p.gptPaperDecision===true&&!validateGptExitBinding(p)).length,
  latest_gpt_exit_status:state.gptExitMonitorLast?.status||null,
  latest_gpt_exit_reason:state.gptExitMonitorLast?.reason||null,
  received_decision_count:Object.keys(state.gptDecisionReplay||{}).length,
