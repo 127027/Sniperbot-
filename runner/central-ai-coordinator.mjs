@@ -34,6 +34,37 @@ export function reserveR29GptBudget(history,at,{limit=24}={}){
  if(valid.length>=limit)return {allowed:false,day_utc:day,used:valid.length,history:valid};
  return {allowed:true,day_utc:day,used:valid.length+1,history:[...valid,at]};
 }
+// Poll the EXISTING collector every five minutes, but request the paid model
+// only for a new time-valid early event or at the ordinary review cadence.
+// A local provider receipt is still required before claiming actual GPT work.
+export const R29_MODEL_EVENT_POLL_MS=5*60_000;
+const R29_URGENT_EVENTS=new Set(['SOLANA_STREAM_MIGRATION',
+ 'SOLANA_STREAM_NEW_TOKEN','NEW_POOL_FIRST_OBSERVED','MARKET_ACCELERATION']);
+const R29_EVENT_ID=/^research-alert-[a-f0-9]{32}$/;
+export function planR29ModelPolling(input,history,at){
+ const now=Date.parse(at),last=Date.parse(history?.last_model_attempt_utc||'');
+ if(!Number.isFinite(now)||!at.endsWith('Z'))throw Error('R29_MODEL_POLL_INVALID_TIME');
+ const alerts=input?.early_discovery?.status==='FRESH_PUBLIC_LOCAL_SNAPSHOT'&&
+  Array.isArray(input.early_discovery.alerts)?input.early_discovery.alerts:[];
+ const activeIds=[...new Set(alerts.filter(e=>R29_EVENT_ID.test(e?.event_id||'')&&
+   R29_URGENT_EVENTS.has(e?.event_type)&&
+   typeof e.observed_at_utc==='string'&&e.observed_at_utc.endsWith('Z')&&
+   Number.isFinite(Date.parse(e.observed_at_utc))&&
+   Date.parse(e.observed_at_utc)<=now&&
+   now-Date.parse(e.observed_at_utc)<=10*60_000)
+  .map(e=>e.event_id))].slice(0,24);
+ const seen=new Set(Array.isArray(history?.reviewed_urgent_events)?
+  history.reviewed_urgent_events:[]);
+ const newIds=activeIds.filter(id=>!seen.has(id));
+ const elapsed=Number.isFinite(last)?Math.max(0,now-last):Infinity;
+ const scheduled=nextR29RealModelDelayMs(input);
+ const due=elapsed>=scheduled||
+  (newIds.length>0&&elapsed>=R29_MODEL_EVENT_POLL_MS);
+ return {due,reason:due?(newIds.length&&elapsed>=R29_MODEL_EVENT_POLL_MS?
+  'NEW_EARLY_EVENT':'REGULAR_STRATEGY_REVIEW'):'NO_NEW_DUE_SIGNAL',
+  active_event_ids:activeIds,unreviewed_event_ids:newIds,
+  next_poll_ms:R29_MODEL_EVENT_POLL_MS};
+}
 const MIN_LIQ_USD=25000;
 const MIN_5M_VOL_USD=1000;
 const canonicalId=c=>c.chain+':'+c.poolAddress;
@@ -264,7 +295,11 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
    previous.actual_provider_response_count:0,
   last_api_response_is_real_provider_invocation:false,
   last_adaptive_delay_ms:null,model_budget_exhausted:false,
-  strategy_model_decides_only_after_source_review:true};
+  strategy_model_decides_only_after_source_review:true,
+  last_model_attempt_utc:typeof previous?.last_model_attempt_utc==='string'?
+   previous.last_model_attempt_utc:null,
+  reviewed_urgent_events:Array.isArray(previous?.reviewed_urgent_events)?
+   previous.reviewed_urgent_events.filter(x=>typeof x==='string'&&R29_EVENT_ID.test(x)).slice(-128):[]};
  let busy=false,stopped=false,timer=null;
  function persist(){
   mkdirSync(path.dirname(statusFile),{recursive:true});
@@ -272,7 +307,7 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
   writeFileSync(tmp,JSON.stringify(status,null,2)+'\n',{mode:0o600});
   renameSync(tmp,statusFile);
  }
- async function runOnce({modelApi=requestCentralAiAdvice,now=Date.now()}={}){
+ async function runOnce({modelApi=requestCentralAiAdvice,now=Date.now(),respectCadence=false}={}){
   if(busy||stopped)return {skipped:true,reason:busy?'IN_PROGRESS':'STOPPED'};
   busy=true;status.last_run_utc=new Date(now).toISOString();
   const runId=randomBytes(12).toString('hex');
@@ -298,6 +333,11 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
    status.last_market_regime=input.market_regime;
    status.real_wallet_reported=realWallet?.verified===true;
    status.last_adaptive_delay_ms=nextR29RealModelDelayMs(input);
+   const reviewPlan=planR29ModelPolling(input,status,new Date(at).toISOString());
+   if(respectCadence&&!reviewPlan.due){
+    status.last_outcome='SKIPPED_MODEL_CADENCE';
+    return {status:status.last_outcome,reason:reviewPlan.reason};
+   }
    // One real GPT NO_TRADE review/day even in quiet markets is allowed,
    // never a local speculative BUY. All attempts count before HTTP.
    const callAt=new Date().toISOString();
@@ -308,6 +348,9 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
     return {status:status.last_outcome};
    }
    status.provider_requests_utc=reservation.history;
+   status.last_model_attempt_utc=callAt;
+   status.reviewed_urgent_events=[...new Set([
+    ...status.reviewed_urgent_events,...reviewPlan.active_event_ids])].slice(-128);
    persist();
    const result=await modelApi(input,{apiKey,fetcher});
    const planned=planRecommendations(input,result.advice,{webSearchUsed:result.webSearchUsed});
@@ -354,10 +397,13 @@ export function startCentralAiCoordinator({apiKey,deviceId,dataDir,getState,subm
  function start(){
   const tick=async()=>{
    if(stopped)return;
-   await runOnce();
+   await runOnce({respectCadence:true});
    if(!stopped){
-    const delay=Number.isInteger(intervalMs)&&intervalMs>=3600000&&intervalMs<=DAY_MS?
-      intervalMs:status.last_adaptive_delay_ms||INTERVAL_MS;
+    // Five-minute cheap source polling is independent of the paid GPT schedule.
+    // intervalMs remains an optional explicit override (never below five minutes).
+    const delay=Number.isInteger(intervalMs)&&
+      intervalMs>=R29_MODEL_EVENT_POLL_MS&&intervalMs<=DAY_MS?
+      intervalMs:R29_MODEL_EVENT_POLL_MS;
     status.next_due_utc=new Date(Date.now()+delay).toISOString();persist();
     timer=setTimeout(tick,delay);timer.unref?.();
    }
