@@ -107,7 +107,7 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
  const autoGate=(localAuto||gptPaper)&&actionType==='BUY'?
   r29LivePaperEntryGate({state:gptPaper?{...state,automaticPaperBuys:true}:state,
    candidate:paperAutopilotCandidate,
-   quote,security:securityEvidence,now}):null;
+   quote,security:securityEvidence,now,gptSignedPaper:gptPaper}):null;
  const matchingAutoPosition=localAuto&&actionType==='SELL'&&
   state.positions.some(p=>p.paperAutopilot===true&&p.chain===order.chain&&
   eqAddress(order.chain,p.tokenAddress,order.token_address)&&
