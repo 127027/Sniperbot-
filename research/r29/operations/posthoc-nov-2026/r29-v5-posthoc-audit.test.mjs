@@ -22,7 +22,7 @@ test('V5 imports the exact 36 unverified users benchmark labels, not a forward w
  assert.equal(manifest.never_include_in_forward_model_input,true);
  assert(manifest.rows.every(r=>r.benchmark_only===true&&
   r.reported_gain_independently_verified===false));
- assert.equal(manifest.rows.filter(r=>r.external_contract_candidate).length,10);
+ assert.equal(manifest.rows.filter(r=>r.external_contract_candidate).length,14);
  assert.equal(manifest.rows[0].reported_pct,72843);
  assert.equal(manifest.rows[1].reported_pct,52441);
  assert.equal(manifest.rows[35].display_name,'DogWifJob (JOB)');
