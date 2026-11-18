@@ -5,6 +5,8 @@ import {createHash} from 'node:crypto';
 import {validTokenAddress} from './market.mjs';
 import {computePrivateGptCapacity,validatePrivateGptCapacity} from './gpt-paper-capacity-report.mjs';
 import {MIN_GPT_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
+import {buildPrivateDualAccountBotState} from './gpt-private-bot-state.mjs';
+import {readLiveTradingGate} from './live-mode-policy.mjs';
 export const SIZE_REQUEST_SCHEMA='sniper_r29_gpt_size_request.v1';
 export const SIZE_OFFER_SCHEMA='sniper_r29_private_gpt_size_offer.v1';
 export const SIZE_CHOICE_SCHEMA='sniper_r29_gpt_size_choice.v1';
@@ -40,12 +42,15 @@ export function makePrivateGptSizeOffer(request,state,{now=Date.now(),
  const at=new Date(now).toISOString();
  const capacity=computePrivateGptCapacity(state,{
   observed_at_utc:at,technical_max_stake_test_usdc});
+ const privateRevision=buildPrivateDualAccountBotState({
+  paperState:state,liveGate:readLiveTradingGate(),now}).paper.local_state_revision;
  const cash=typeof state?.cashUsdc==='number'&&cents(state.cashUsdc)&&
   state?.cashEur===0?Math.round(state.cashUsdc*100)/100:null;
  const allowed=validatePrivateGptCapacity(capacity,{asof_utc:at});
  const base={schema:SIZE_OFFER_SCHEMA,mode:'PAPER_ONLY',
   strategy:'GPT_ONLY',real_trading_enabled:false,
   request_id:request.request_id,request_sha256:hash(request),
+  local_paper_state_revision:privateRevision,
   candidate_id:request.chain+':'+request.token_address+':'+request.pool_address,
   observed_at_utc:at,valid_until_utc:new Date(now+120000).toISOString(),
   available_paper_cash_test_usdc:cash,
@@ -82,6 +87,10 @@ export function validateGptSizeChoice(choice,offer,state,{now=Date.now(),
  if(!Number.isFinite(expiration)||now>expiration||
   created<Date.parse(offer.observed_at_utc)||created>expiration)
   return fail('GPT_SIZE_OFFER_EXPIRED');
+ const currentRevision=buildPrivateDualAccountBotState({
+  paperState:state,liveGate:readLiveTradingGate(),now}).paper.local_state_revision;
+ if(offer.local_paper_state_revision!==currentRevision)
+  return fail('GPT_PRIVATE_PAPER_STATE_CHANGED_REVIEW_AGAIN');
  if(offer.private_authenticated_delivery_only!==true||
   offer.do_not_publish_public_github!==true||
   offer.actionable!==false||offer.trade_executed!==false||
