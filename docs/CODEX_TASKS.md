@@ -1,12 +1,16 @@
-# Aktuelle Codex-Prioritäten – R29 V4.5 (18.11.2026)
+# R29 V4.9 – Aktuelle Codex-Prioritäten (18.11.2026)
 
-**KANONISCH:** [R29 V4.5 Wissen/Root-Causes/Abnahme](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Nur dieses Arbeitsprogramm ist aktuell. Der alte V0.3-P0-Passus darunter ist ein archivierter Entwicklungsplan und **kein Auftrag zu einem frischen Neuaufbau**.
+**Aktuelle Referenz R29 V4.9:** [R29 V4.5-Wissensstand mit V4.6–V4.9-Nachträgen](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Die früheren Zustandszahlen und Altanweisungen unter der Archivmarkierung sind datierte Historie.
 
-1. Bestehende prospektive ChatGPT-Automation, frische Quellen und GitHub-Entscheidungsarchive mit tatsächlichem Modell-/Receive-Beleg zusammenbringen; keine zweite lokale OpenAI-API und keine neuen Dots.
-2. **Vor jedem neuen autonomen Paper-BUY** positionsgebundenen, persistierten GPT-autorisierten Exit-/Notfall-Schutz mit aktuellen beidseitigen Quote-/Sellability-Gates und Restart-/Offline-/Replay-Tests in bestehenden Komponenten implementieren.
-3. Danach erst einen echten prospektiven unbekannten GPT-BUY→HOLD→SELL auf dem vorhandenen **virtuellen** Windows-Ledger mit echten lokalen Quittungen nachweisen. Historische 10 7+3-Blindtests unabhängig, as-of versiegelt und ohne nachträglich bekannte Coin-Namen.
-4. Jeden Commit mit richtiger CI/HEAD und CODE/CI/WINDOWS/GITHUB LIVE/OFFEN markieren; Ausgangsstand (18.11.): 64 Pools/24 Alerts kanonisch publiziert, 8 Receiver-IDs, letztes Receipt `NO_TRADE`, 0 bewiesene neue GPT-Fills. Paging PR #56, lokale BUY-/Exit-Rollen PR #58, GitHub-only PR #59 **bereits abgeschlossen**.
-5. Betrieb: `Sniperbot_Starten.bat` ohne Parameter; `central_ai.enabled:false` erwartet, `github_gpt_courier` prüfen. Keine lokalen Daten, DPAPI-Tokens, Guthaben oder Wallets löschen.
+**Strategie:** ChatGPT allein entscheidet über neue Memecoins; GitHub übermittelt; der vorhandene Windows-Bot validiert und führt zulässige PAPER_ONLY-Aufträge aus. Ziel ist ein GPT-Signal mit **zwei getrennten dynamischen Kontozuständen**, nicht feste Einsätze und nicht ein zweiter Bot.
+
+**Ist/Soll strikt unterscheiden:** Paper bevorzugter Einsatz und Gesamtbudget werden lokal gespeichert; Änderungen auf 45/35 sind möglich (PR #65). Real ist LIVE_LOCKED/read-only Wallet. Eigene persistierte Real-Preferred-/Gesamtlimits und Real-Positionsreserve sind derzeit **nicht belegt**. Keine reale Order und kein stillschweigendes Übernehmen von Paper-Werten in Echtgeld.
+
+**Private Zustandsübermittlung:** GET /api/gpt/private/bot-state liefert nur lokal authentifiziert zwei Read-only-Snapshots. Ein sicherer privater Cloud-ChatGPT-Empfang ist **nicht nachgewiesen**. Kein Konto- oder Walletstand darf ins öffentliche GitHub.
+
+**Risikogates:** Separate Paper-Limits von 1 % pro Einzelposition und 3 % Gesamtexposition sind noch wirksam und können das dynamische User-Limit enger fassen. PR #61/#63: positionsgebundene GPT-Exit-Policy + Monitor im Code; PR #64: nur isolierter Test-Paper-Fill, **kein** autonomer Trade im persönlichen Ledger. Sicherheits- und Quote-Gates unverändert, echte BUY/SELL-Abnahme offen.
+
+**Betrieb:** ausschließlich Sniperbot_Starten.bat, keine lokale kostenpflichtige OpenAI-API, kein zusätzlicher API-Key, keine Echtgeld-Orders, keine neuen Bots/PayPal-/UI-Arbeiten, historische 10 as-of-Tests weiterhin getrennt.
 
 ---
 
