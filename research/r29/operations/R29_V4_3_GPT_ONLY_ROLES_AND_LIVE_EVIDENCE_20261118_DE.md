@@ -29,3 +29,10 @@ Stand: 18.11.2026. **PAPER_ONLY.** Dieses Dokument ist OPERATOR-/POSTHOC-KONTEXT
 4. **Zwei getrennte Belege:** zehn vorab isolierte historische Studien; prospektiver echter GPT→Windows-Paper-BUY→Exit mit Kauf-/Verkaufsquotes, Gebühren und unverwechselbaren Quittungen.
 
 Alle R29-Strategieerkenntnisse nach Beleglage speichern. Keine weiteren eigenständigen Bots, keine Echtgeldtransaktionen und keine erfundenen PnL-Angaben.
+
+## Abnahme und konkret geschlossener Event-Bridge-Fehler
+- [PR #58](https://github.com/127027/Sniperbot-/pull/58) am 18.11.2026 gemergt, Commit `d959b0f7695892e91f7d495d6a680cb7495b5e39`.
+- [Windows-/Linux-Paper-CI 44317312613](https://github.com/127027/Sniperbot-/actions/runs/44317312613) auf finalem Head `2cda85e37520d20f8f3b5161f4fec3d499f56cf6`: **SUCCESS**.
+- Neuer nachgewiesener Root Cause: `r27-early-bridge.mjs` hatte bisher aus neutralen frühen Markt-Alerts die ursprünglichen `event_id` und `event_type` entfernt. Der in PR #57 eingeführte fünfminütige GPT-Eventplaner fand deshalb in den wirklichen Übergabedaten keine triggerfähigen IDs.
+- Repariert: `earlyEventResearchLeads` validiert diese originalen Research-Ereignisse strikt zum **as-of-Zeitstempel des Collector-Snapshots**, nicht zur späteren Systemuhr. Nur die überprüften Identitätstypen und Zeitstempel werden als `paper_only=true`, `actionable=false` übergeben; Migrationen/Poolstarts können jetzt in der vorhandenen GPT-Ereignisplanung erkannt werden.
+- Regression: gültiges neues Poolereignis löst im reinen Zeitmodell eine frühe GPT-Fälligkeit aus; ungültige Identität nicht. **Noch kein tatsächlicher bezahlter Modellaufruf aus diesem Szenario, keine BUY-Order und keine Laptop-Evidenz.**
