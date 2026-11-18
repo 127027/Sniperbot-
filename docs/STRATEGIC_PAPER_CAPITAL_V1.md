@@ -1,3 +1,7 @@
+> **ARCHIV – R29 V4.9-VORRANG (18.11.2026):** Nachfolgende V0.x-/frühe R29-Aussagen sind historische Entwürfe, KEINE aktuelle Handels-, Kapital-, Start- oder Bot-Anweisung. [Maßgeblicher R29 V4.5-Wissensstand mit V4.6–V4.9-Nachträgen](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). IST: Paper-Präferenz und Gesamtlimit dynamisch gespeichert, jedoch weiterhin zusätzliche 1-%-/3-%-Paper-Risikogates; Echtgeld READ-ONLY/LIVE_LOCKED ohne eigenständiges bestätigtes Real-Positions-/Budgetledger. Vertraulicher Bot-Ist-Zustand nur lokal authentifiziert; keine automatische Cloud-GPT-Zustellung nachgewiesen. GPT ist alleinige strategische Instanz, ein vollständiger echter GPT-Paper-BUY/SELL bleibt offen. Keine alten festen Beträge, Score-Dots, zusätzliche Bots oder kostenpflichtige Modell-API aus diesen historischen Beispielen neu einführen.
+
+---
+
 > **Historischer Stand V0.5 – V0.6 ersetzt die unten beschriebene Min-/Max-pro-Trade-Regel!** Aktuell gilt: 1. Zahl = bevorzugte normale Positionsgröße; 2. Zahl = **Gesamtbudget** aller gleichzeitig offenen Paper-Positionen. Flexible Einzelbeträge ab 50 Test-USDC, gebundenes Kapital ist Cost Basis. [Gültige V0.6-Regeln](V06_TOTAL_BUDGET_AND_MULTI_SOURCE_DISCOVERY_20261110.md).
 
 # Memecoin Sniper: strategisches Paper-Kapital statt Score-Prozentformel
