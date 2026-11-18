@@ -25,6 +25,19 @@ export function attestOpenPositions({positions,ledgerFills,virtualAsofUtc}){
   assert(typeof f.fill_id==='string'&&f.fill_id.length>0&&!globalIds.has(f.fill_id),'DUPLICATE_GLOBAL_FILL');globalIds.add(f.fill_id);
   assert(utc(f.filled_at_utc)&&Date.parse(f.filled_at_utc)<=Date.parse(virtualAsofUtc),'GLOBAL_FILL_TIME_INVALID');
  }
+ // Independently reconcile every ledger position, including omitted open positions.
+ const balances=new Map();
+ for(const f of [...ledgerFills].sort((a,b)=>Date.parse(a.filled_at_utc)-Date.parse(b.filled_at_utc))){
+  assert(typeof f.position_id==='string'&&f.position_id.length>0&&f.status==='PAPER_FILLED'&&['BUY','SELL'].includes(f.side)&&Number.isSafeInteger(f.tokens_filled)&&f.tokens_filled>0,'GLOBAL_FILL_INVALID');
+  const prev=balances.get(f.position_id);
+  const identity=JSON.stringify([f.chain,f.token_address,f.pool_address]);
+  assert(!prev||prev.identity===identity,'GLOBAL_FILL_IDENTITY_MISMATCH');
+  const quantity=(prev?.quantity??0)+(f.side==='BUY'?f.tokens_filled:-f.tokens_filled);
+  assert(Number.isSafeInteger(quantity)&&quantity>=0,'GLOBAL_LEDGER_BALANCE_INVALID');
+  balances.set(f.position_id,{identity,quantity});
+ }
+ const reported=new Set(positions.map(p=>p.position_id));
+ for(const [id,b] of balances)assert(b.quantity===0||reported.has(id),'OMITTED_OPEN_POSITION');
  const seen=new Set();
  return positions.map(p=>{
   assert(!seen.has(p.position_id),'DUPLICATE_POSITION');seen.add(p.position_id);
@@ -76,6 +89,9 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  fail(()=>attestOpenPositions({positions:[p],ledgerFills:[fill,sell],virtualAsofUtc:at}),'POSITION_BALANCE_MISMATCH');
  fail(()=>attestOpenPositions({positions:[],ledgerFills:[fill,{...fill,position_id:'other'}],virtualAsofUtc:at}),'DUPLICATE_GLOBAL_FILL');
  fail(()=>attestOpenPositions({positions:[],ledgerFills:[{...fill,filled_at_utc:'2026-09-19T00:00:00Z'}],virtualAsofUtc:at}),'GLOBAL_FILL_TIME_INVALID');
- fail(()=>attestOpenPositions({positions:[p],ledgerFills:[{...sell,filled_at_utc:'2026-09-18T01:19:00Z'},fill],virtualAsofUtc:at}),'OPEN_FILL_NOT_FIRST');
+ fail(()=>attestOpenPositions({positions:[p],ledgerFills:[{...sell,filled_at_utc:'2026-09-18T01:19:00Z'},fill],virtualAsofUtc:at}),'GLOBAL_LEDGER_BALANCE_INVALID');
+ fail(()=>attestOpenPositions({positions:[],ledgerFills:[fill],virtualAsofUtc:at}),'OMITTED_OPEN_POSITION');
+ attestOpenPositions({positions:[],ledgerFills:[fill,{...sell,tokens_filled:10}],virtualAsofUtc:at});
+ fail(()=>attestOpenPositions({positions:[],ledgerFills:[{...fill,status:'BLOCKED'}],virtualAsofUtc:at}),'GLOBAL_FILL_INVALID');
  console.log('R29_SYNTHETIC_ATTESTATION_TESTS_PASS; NO_REAL_SOURCE_OR_FILL_ATTESTED');
 }
