@@ -3,6 +3,7 @@
  // portfolios, secrets, unverified remote orders or current-hindsight claims.
 import {readFile} from 'node:fs/promises';
 import {validTokenAddress} from './market.mjs';
+import {earlyEventResearchLeads} from './early-event-research.mjs';
 const MAX_AGE=200000,MAX_BYTES=600000;
 const chains=new Set(['solana','eth','base','bsc']);
 const valid=(x)=>typeof x==='number'&&Number.isFinite(x)&&x>=0;
@@ -35,18 +36,41 @@ export function sanitizeR27CollectorSnapshot(record,{now=Date.now()}={}){
   out.push(row);allow.add(identity);
  }
  const url=s=>typeof s==='string'&&s.startsWith('https://')&&s.length<=900?s:null;
- const alerts=(record.research_alerts||[]).filter(a=>a?.actionable===false&&
-  a.paper_only===true&&chains.has(a.chain)&&
+ // Preserve authenticated event identity and category from the EXISTING
+ // collector. V4.3's GPT event scheduler requires event_id + event_type;
+ // the previous bridge silently discarded both fields.
+ let neutralEarly=[];
+ try{neutralEarly=earlyEventResearchLeads(record,{now:Date.parse(record.published_at_utc),limit:8,maxAgeMs:600000}).leads}
+ catch{neutralEarly=[]} // malformed alerts cannot create a paid-model trigger
+ const earlyAlerts=neutralEarly.map(e=>({
+  event_id:e.event_id,event_type:e.event_type,
+  chain:e.chain,token_address:e.token_address,
+  pool_address:e.pool_address,
+  candidate_id:e.pool_address&&allow.has(e.chain+':'+e.pool_address)?
+   e.chain+':'+e.pool_address:null,
+  observed_at_utc:e.observed_at_utc,
+  source_timestamp_quality:e.source_timestamp_quality,
+  type:'EARLY_UNVERIFIED_PROVIDER_EVENT_NOT_TRADE',
+  independent_pool_identity_verified:false,
+  sellability_verified:false,actionable:false,paper_only:true
+ }));
+ // Older acceleration events remain research observations but NOT scheduler
+ // triggers unless they possess a verified original event identifier.
+ const legacyAlerts=(record.research_alerts||[]).filter(a=>
+  a?.actionable===false&&a.paper_only===true&&chains.has(a.chain)&&
   Number.isFinite(Date.parse(a.observed_at_utc))&&
   now-Date.parse(a.observed_at_utc)>=0&&now-Date.parse(a.observed_at_utc)<=3600000&&
-  allow.has(a.chain+':'+a.pool_address)).slice(0,24).map(a=>({
-   candidate_id:a.chain+':'+a.pool_address,
-   type:'PROVIDER_ACTIVITY_ACCELERATION_NOT_ORGANIC_PROOF',
-   observed_at_utc:a.observed_at_utc,
-   volume_ratio:valid(a.m5_volume_ratio)?a.m5_volume_ratio:null,
-   liquidity_usd:valid(a.current_liquidity_usd)?a.current_liquidity_usd:null,
-   source_urls:(a.source_urls||[]).map(url).filter(Boolean).slice(0,3),
-   valid_historical_social_proof:false}));
+  allow.has(a.chain+':'+a.pool_address)&&
+  !earlyAlerts.some(e=>e.event_id===a.event_id)).slice(0,24).map(a=>({
+  candidate_id:a.chain+':'+a.pool_address,
+  type:'PROVIDER_ACTIVITY_ACCELERATION_NOT_ORGANIC_PROOF',
+  observed_at_utc:a.observed_at_utc,
+  volume_ratio:valid(a.m5_volume_ratio)?a.m5_volume_ratio:null,
+  liquidity_usd:valid(a.current_liquidity_usd)?a.current_liquidity_usd:null,
+  source_urls:(a.source_urls||[]).map(url).filter(Boolean).slice(0,3),
+  valid_historical_social_proof:false
+ }));
+ const alerts=[...earlyAlerts,...legacyAlerts].slice(0,24);
  const exitReviews=(record.r27_exit_reviews||[]).filter(a=>a?.actionable===false&&
   a.paper_only===true&&a.recommended_action==='REVIEW_PAPER_POSITION_FOR_SELL'&&
   allow.has(a.chain+':'+a.pool_address)&&

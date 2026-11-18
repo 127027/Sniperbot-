@@ -1,4 +1,5 @@
-// R29 autonomous LOCAL paper-only trade supervisor: no OpenAI API, GitHub
+// Legacy LOCAL paper executor: maintain existing legacy exits ONLY.
+// GPT alone selects BUY; this worker cannot initiate new buys. No OpenAI API, GitHub
 // publisher token, fiat provider, wallet or real-order execution.
 import {generateKeyPairSync,randomBytes,sign} from 'node:crypto';
 import {appendFileSync,mkdirSync,readFileSync,writeFileSync,renameSync} from 'node:fs';
@@ -152,59 +153,11 @@ export function startLocalPaperAutopilot({deviceId,dataDir,getState,submit,
     status.last_outcome=status.last_receipt.status;
     return {status:status.last_outcome,receipt:status.last_receipt};
    }
-   // Exits remain operative after entries are paused.
-   if(!state?.entriesEnabled||!state?.automaticPaperBuys){
-    status.last_outcome='WAITING_FOR_PAPER_AUTOBUY_OPT_IN';
-    return {status:status.last_outcome};
-   }
-   const feed=readMarket(marketFile,{now:time});
-   status.last_research_source=feed.reason;
-   if(!feed.ok){
-    status.last_outcome='DATA_GAP_'+feed.reason;
-    return {status:status.last_outcome};
-   }
-   const candidates=choosePaperOpportunities(feed.snapshot,{limit:2,now:time});
-   if(candidates.length===0){
-    status.last_outcome='NO_SUITABLE_CROSS_VERIFIED_EVM_CANDIDATES';
-    return {status:status.last_outcome};
-   }
-   const decisions=[];
-   for(const candidate of candidates){
-    if(getState().positions.some(p=>p.chain===candidate.chain&&
-      p.tokenAddress?.toLowerCase()===candidate.token_address.toLowerCase()))continue;
-    let q=null,security=null;
-    try{
-      [q,security]=await Promise.all([
-       lookup(candidate.chain,candidate.token_address,fetch,candidate.pool_address),
-       securityCheck({chain:candidate.chain,token:candidate.token_address,
-        pool:candidate.pool_address,now:now()})
-      ]);
-    }catch(e){decisions.push({candidate_id:candidate.candidate_id,
-      reason:'MARKET_OR_SECURITY_PROVIDER_UNAVAILABLE'});continue;}
-    const quote=q?{...q,chain:candidate.chain,
-      tokenAddress:candidate.token_address,poolAddress:candidate.pool_address}:null;
-    const gate=r29LivePaperEntryGate({state:getState(),candidate,quote,security,now:now()});
-    decisions.push({candidate_id:candidate.candidate_id,reason:gate.reason,
-      amount_test_usdc:gate.amount_test_usdc});
-    if(!gate.allowed)continue;
-    const signed=signLocalPaperAutopilot({action:'BUY',chain:candidate.chain,
-     token:candidate.token_address,pool:candidate.pool_address,amount:gate.amount_test_usdc,
-     deviceId,keyPair,now:now()});
-    const receipt=await submit(signed,{source:'LOCAL_PAPER_AUTOPILOT',
-     localTrust:[trusted],qaQuote:quote,securityEvidence:security,
-     paperAutopilotCandidate:candidate});
-    status.entries_submitted++;
-    status.last_receipt=receipt?.receipt||{status:'REJECTED',reason:receipt?.error||'NO_PAPER_RECEIPT'};
-    if(status.last_receipt.status==='PAPER_FILLED')status.paper_fills_confirmed++;
-    status.last_decision={action:'BUY',candidate_id:candidate.candidate_id,
-      risk_limit:gate.amount_test_usdc,
-      reason:status.last_receipt.reason||status.last_receipt.status};
-    status.last_outcome=status.last_receipt.status;
-    return {status:status.last_outcome,receipt:status.last_receipt};
-   }
-   status.last_outcome='NO_VERIFIED_SAFE_ENTRY';
-   status.last_decision={action:'WATCH',reasons:decisions};
-   return {status:status.last_outcome,reasons:decisions};
+   // R29 GPT_ONLY: existing legacy positions may exit above, but this
+   // executor must not autonomously select a new coin or submit a BUY.
+   status.last_outcome='GPT_ONLY_LOCAL_AUTO_BUYS_DISABLED';
+   status.last_decision=null;
+   return {status:status.last_outcome};
   }catch(e){
    status.last_outcome='ERROR_FAIL_CLOSED';status.last_error=String(e?.message||e).slice(0,110);
    return {status:status.last_outcome,error:status.last_error};
