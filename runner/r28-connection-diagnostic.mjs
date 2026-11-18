@@ -12,6 +12,8 @@ const age=(s,now)=>Number.isFinite(Date.parse(s))?now-Date.parse(s):null;
 const CHECKS=[
  {name:'bot_health',path:'/api/health'},
  {name:'central_ai',path:'/api/central-ai/status'},
+ {name:'github_gpt_receiver',path:'/api/gpt/paper/status'},
+ {name:'r29_local_presence',path:'/api/r29/presence'},
  {name:'source_archive',path:'/api/r27/archive/status'},
  {name:'paper_agent_orders',path:'/api/paper/agent-orders'},
  {name:'paper_isolated_signature_roundtrip',path:'/api/paper/pipeline-selftest',post:true}
@@ -53,6 +55,14 @@ export async function makeR28ConnectionReport({
  }
  const bot=result.bot_health||{};
  const coordinator=result.central_ai?.coordinator||{};
+ const gpt=result.github_gpt_receiver||{};
+ const presence=result.r29_local_presence||{};
+ const gptReady=gpt.ok===true&&gpt.mode==='PAPER_ONLY'&&
+  gpt.strategy==='GPT_ONLY'&&gpt.local_gpt_bridge_ready===true;
+ const presenceStatus=presence.presence||presence.status||{};
+ const presenceAt=age(presenceStatus.checked_at_utc,now);
+ const presenceRecent=presenceAt!==null&&presenceAt>=0&&presenceAt<=30*60000&&
+  presenceStatus.local_paper_http_healthy===true&&presenceStatus.courier_enabled===true;
  const archive=result.source_archive||{};
  const orders=result.paper_agent_orders||{};
  const paper=result.paper_isolated_signature_roundtrip||{};
@@ -79,6 +89,20 @@ export async function makeR28ConnectionReport({
   local_only:true,no_wallet_or_private_balances_collected:true,
   bot:{online:bot.ok===true&&bot.mode==='PAPER_ONLY',
    uptime_seconds:Number.isFinite(bot.uptimeSec)?bot.uptimeSec:null},
+  github_gpt_courier:{
+   mode:'GITHUB_ONLY_NO_LOCAL_OPENAI_API',
+   strategy:'GPT_ONLY',
+   local_signed_receiver_ready:gptReady,
+   gpt_follow_enabled:bool(gpt.gpt_follow_enabled),
+   new_paper_entries_enabled:bool(gpt.paper_bot_enabled),
+   old_local_autopilot_enabled:false,
+   local_courier_heartbeat_recent:presenceRecent,
+   received_gpt_decisions_in_local_replay:Number.isInteger(gpt.received_decision_count)?
+    gpt.received_decision_count:0,
+   last_decision_id:clean(gpt.last_decision_id),
+   actual_strategic_gpt_model_response_verified:false,
+   actual_gpt_paper_buy_sell_roundtrip_verified:false,
+   note:'Receiver readiness is NOT proof of an actual ChatGPT decision, signed BUY, exit monitor or paper fill.'},
   central_ai:{enabled:bool(coordinator.enabled),
    real_openai_exchange_observed:recentModel,
    last_run_at_utc:fmt(coordinator.last_run_utc),
@@ -113,12 +137,12 @@ export async function makeR28ConnectionReport({
   transport_results:http,
   conclusion:!bot.ok?'BOT_NOT_REACHABLE':
    !validIsolated?'ISOLATED_SIGNED_PIPELINE_NOT_VERIFIED':
-   !coordinator.enabled?'BOT_AND_TEST_PIPELINE_OK_AI_DISABLED':
-   !recentModel?'LOCAL_AI_CONFIGURED_API_EXCHANGE_NOT_YET_PROVEN':
-   'LOCAL_AI_TO_BOT_REPORTS_PRESENT_NOT_CHAT_CLOUD_CONNECTION',
+   gptReady?'BOT_AND_GITHUB_GPT_RECEIVER_READY_NO_ORDER_PROOF':
+   'BOT_AND_TEST_PIPELINE_OK_GITHUB_GPT_RECEIVER_NOT_READY',
   notes:[
    'Only local HTTP and the isolated in-memory signed paper path are actively tested.',
-   'A recent model response proves local OpenAI API contact, not direct access from this ChatGPT conversation.',
+   'Canonical R29 uses ChatGPT-GitHub orders. A disabled local central-ai coordinator is expected; no separate OpenAI API key is needed.',
+   'Signed GitHub ownership and receiver readiness never prove model authorship, safe continuous GPT exits or real paper fills.',
    'A real AI-generated paper trade is proven only by an actual recorded coordinator receipt; no dummy trade is counted.'
   ]};
  return final;

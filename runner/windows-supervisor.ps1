@@ -5,8 +5,6 @@ param(
   [switch]$SelfTest,
   [switch]$NoBrowser,
   [switch]$WithResearchCollector,
-  [switch]$WithCentralAI,
-  [switch]$ResetAiKey,
   [switch]$WithR29,
   [switch]$AllowR29MainPaperDemo
 )
@@ -14,7 +12,6 @@ $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $paperUrl = 'http://127.0.0.1:3030'
 $tokenFile = Join-Path $env:LOCALAPPDATA 'MemeSniperPaper\secrets\research-github-token.dpapi'
-$aiKeyFile = Join-Path $env:LOCALAPPDATA 'MemeSniperPaper\secrets\openai-api-key.dpapi'
 $job = [IntPtr]::Zero
 $mutex = $null
 $ownsMutex = $false
@@ -136,43 +133,6 @@ function Read-ResearchToken {
     throw 'Windows kann den GitHub-Token nicht entschluesseln. Erneut mit Sniperbot_Starten.bat -ResetToken einrichten.'
   }
 }
-function Initialize-AiKey {
-  if($ResetAiKey -and (Test-Path -LiteralPath $aiKeyFile)){
-    Remove-Item -LiteralPath $aiKeyFile -Force
-    Write-Host '[AI] Bisheriger API-Key-Eintrag entfernt.' -ForegroundColor Yellow
-  }
-  if(Test-Path -LiteralPath $aiKeyFile){return $true}
-  Write-Host ''
-  Write-Host '[AI] Optionale stündliche KI-Recherche (separate OpenAI-API-Kosten).' -ForegroundColor Cyan
-  Write-Host 'Der API-Key wird NUR lokal per Windows-DPAPI geschützt. Nicht im Chat mitteilen.'
-  Write-Host 'Zum Überspringen einfach ENTER drücken; der Paper-Bot startet dann ohne KI.'
-  $secure=Read-Host 'OpenAI API-Key (verdeckt, optional)' -AsSecureString
-  if($null -eq $secure -or $secure.Length -lt 20){
-    if($null -ne $secure){$secure.Dispose()}
-    Write-Host '[AI] Kein API-Key. Zentraler KI-Prozess bleibt AUS.' -ForegroundColor Yellow
-    return $false
-  }
-  $encrypted=ConvertFrom-SecureString -SecureString $secure
-  [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($aiKeyFile)) | Out-Null
-  [IO.File]::WriteAllText($aiKeyFile+'.pending',$encrypted,[Text.Encoding]::UTF8)
-  Move-Item -LiteralPath ($aiKeyFile+'.pending') -Destination $aiKeyFile -Force
-  $secure.Dispose()
-  Write-Host '[AI] API-Key Windows-DPAPI-gespeichert.' -ForegroundColor Green
-  return $true
-}
-function Read-AiKey {
-  if(!(Test-Path -LiteralPath $aiKeyFile)){throw 'Kein KI-API-Key gespeichert.'}
-  try{
-    $encrypted=[IO.File]::ReadAllText($aiKeyFile,[Text.Encoding]::UTF8).Trim()
-    $secret=ConvertTo-SecureString -String $encrypted
-    $ptr=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret)
-    try{
-      $value=[Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
-      if(!$value.StartsWith('sk-') -or $value.Length -lt 20){throw 'Invalid OpenAI API key'}
-      return $value
-    }finally{[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr);$secret.Dispose()}
-  }catch{throw 'API-Key konnte nicht entschlüsselt werden. Mit -ResetAiKey neu einrichten.'}
-}
 function Assert-PortAvailable {
   $tcp = New-Object Net.Sockets.TcpClient
   try {
@@ -208,12 +168,9 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
     $info.EnvironmentVariables['SNIPER_GPT_BRIDGE_SECRET'] = $script:GptBridgeKey
   }
   if($role -eq 'BOT') {
-    if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){
-      $aiSecret=Read-AiKey
-      $info.EnvironmentVariables['SNIPER_OPENAI_API_KEY']=$aiSecret
-      $info.EnvironmentVariables['SNIPER_CENTRAL_AI_ENABLED']='1'
-      $aiSecret=$null
-    }
+    # GitHub is the ONLY GPT strategy source in canonical R29.
+    # Remove any inherited billed-API activation even from a caller shell.
+    $info.EnvironmentVariables['SNIPER_CENTRAL_AI_ENABLED'] = '0'
     $info.EnvironmentVariables['SNIPER_RESEARCH_FEED'] = $(if($WithResearchCollector){'1'}else{'0'})
     $info.EnvironmentVariables['SNIPER_RESEARCH_READ'] = $(if($WithResearchCollector){'1'}else{'0'})
     $info.EnvironmentVariables['SNIPER_LOCAL_DISCOVERY'] = '0'
@@ -224,7 +181,7 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
     # Exactly ONE authorised GPT source may control the same Paper ledger.
     # When user has separately enabled the locally billed Responses API,
     # GitHub remains a read-only research courier, not a second order issuer.
-    $info.EnvironmentVariables['SNIPER_GPT_PAPER_BRIDGE'] = $(if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){'0'}else{'1'})
+    $info.EnvironmentVariables['SNIPER_GPT_PAPER_BRIDGE'] = '1'
     $info.EnvironmentVariables['SNIPER_AGENT_PAPER_FEED'] = '0'
   }
   if($role -eq 'MARKET') {
@@ -246,7 +203,7 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
     $researchSecret=Read-ResearchToken
     $info.EnvironmentVariables['SNIPER_R29_GITHUB_TOKEN']=$researchSecret
     $info.EnvironmentVariables['SNIPER_R29_MAIN_PAPER_DEMO']=$(if($AllowR29MainPaperDemo){'1'}else{'0'})
-    $info.EnvironmentVariables['SNIPER_R29_GPT_SOURCE']=$(if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){'LOCAL_OPENAI_API'}else{'GITHUB_CHATGPT_COURIER'})
+    $info.EnvironmentVariables['SNIPER_R29_GPT_SOURCE']='GITHUB_CHATGPT_COURIER'
     $researchSecret=$null
   }
   $proc = New-Object Diagnostics.Process
@@ -376,8 +333,6 @@ try {
   if($AllowR29MainPaperDemo -and !$WithR29){throw 'R29 Paper-Demotest nur zusammen mit -WithR29 erlaubt.'}
   if($WithResearchCollector -or $WithR29){Initialize-ResearchToken}
   elseif($ResetToken){throw 'ResetToken nur im Forschungs-Collector- oder R29-Modus verwenden.'}
-  if($WithCentralAI){[void](Initialize-AiKey)}
-  elseif($ResetAiKey){throw 'ResetAiKey nur im zentralen KI-Modus verwenden.'}
   # Fresh in-memory capability shared ONLY with the paper server and GitHub
   # courier. No additional paid API key, GitHub write, file or user prompt.
   $bytes = New-Object byte[] 32
@@ -387,7 +342,7 @@ try {
   [Array]::Clear($bytes,0,$bytes.Length)
   $job=[SniperWindowsJob]::OpenKillOnClose()
   $bot=Start-Child 'BOT' 'runner/server.mjs' $node $job
-  if($WithResearchCollector -or $WithR29 -or ($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile))){
+  if($WithResearchCollector -or $WithR29){
     $market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job
     Write-Host '[R27] Lokales, append-only Quellenarchiv aktiv (nur öffentliche Marktdaten/Nachrichten).' -ForegroundColor Green
   }
@@ -423,14 +378,11 @@ try {
       Write-Host '[R29] EINMALIGER ChatGPT-Demo-KAUF/-VERKAUF im sichtbaren normalen Paper-Konto erlaubt: max. 50 TEST-USDC, NUR TEST!' -ForegroundColor Yellow
     }
   }
-  if($WithCentralAI -and (Test-Path -LiteralPath $aiKeyFile)){
-    Write-Host '[GPT API] Lokaler Responses-API-Koordinator EIN, adaptiv 1-24 Modellpruefungen pro Tag, ausschliesslich PAPER.' -ForegroundColor Green
-    Write-Host '[GPT API] OpenAI API kann separat kostenpflichtig sein. Kein Echthandel, keine Erfolgs- oder Verfuegbarkeitsgarantie.' -ForegroundColor Yellow
-    if($WithR29){Write-Host '[R29] GitHub-Forschungskanal bleibt lesend; zweiter GPT-GitHub-Orderkanal ist fuer dieses Startprofil deaktiviert.' -ForegroundColor Cyan}
-  } elseif($WithR29) {
-    Write-Host '[GPT] ChatGPT-GitHub-Diagnose ist strategischer Entscheider. Lokale kostenpflichtige OpenAI-API AUS.' -ForegroundColor Green
-    Write-Host '[GPT] Noch kein Live-Paper-Fill ohne nachgewiesenen GPT-Entscheid und lokale Freigabe.' -ForegroundColor Yellow
-  } else {Write-Host '[AI] Kostenpflichtiger lokaler KI-Prozess AUS; kein GitHub-GPT-Kanal gestartet.'}
+  if($WithR29) {
+    Write-Host '[GPT] ChatGPT entscheidet ueber den vorhandenen GitHub-Kurier; KEIN lokaler OpenAI-API-Key erforderlich.' -ForegroundColor Green
+    Write-Host '[GPT] GitHub-Heartbeat ist noch KEIN Modellentscheid oder bestaetigter Paper-Fill.' -ForegroundColor Yellow
+    Write-Host '[GPT] Vor neuen GPT-Paper-BUYs muss der kontinuierliche GPT-autorisierte Exit-Schutz abgenommen sein.' -ForegroundColor Yellow
+  } else {Write-Host '[GPT] Kein R29 GitHub-Kurier gestartet; keine GPT-Strategieauftraege.'}
   Write-Host '[INFO] Zum Beenden Q druecken oder dieses Fenster schliessen.'
   $restarts=@{BOT=0;MARKET=0;R29=0;SOLANA=0}
   while($true){
