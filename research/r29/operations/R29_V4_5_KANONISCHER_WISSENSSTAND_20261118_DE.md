@@ -1,4 +1,7 @@
-# Sniperbot R29 V4.5 – kanonischer Wissensstand und verbindliche Fortsetzung
+# Sniperbot R29 – kanonischer Wissensstand V4.5 bis V4.9 (Chronik)
+
+> **AKTUELLER VORRANG R29 V4.9 (18.11.2026):** Dieses Dokument ist eine fortlaufende Chronik ab V4.5; die **jüngsten V4.6–V4.9-Nachträge am Dateiende haben Vorrang vor älteren Statusmeldungen**. Insbesondere sind GPT-Exit-Code und Monitor-Liveness in PR #61/#63 implementiert, aber kein persönlicher autonomer GPT-BUY/SELL nachgewiesen. PR #65 bietet getrennte lokale private Read-only-Kontozustände, **keine automatische private Zustellung an Cloud-ChatGPT**. Eigene persistierte Echtgeld-Preferred-/Gesamtlimits/Real-Positionen sind weiterhin unbewiesen, LIVE_LOCKED. Benutzer-Paper-Budgetgrenzen werden dynamisch gespeichert, technische 1-%-/3-%-Paper-Risikogates bleiben zusätzlich aktiv. Ältere Aussagen zu acht IDs/ausgefallenem Feed/fehlendem Exit-Code sind damalige Befunde.
+
 
 **Aktiv ab 18.11.2026 (Europe/Berlin). Projektbetreiberfreigabe: GO für komplette Wissenssicherung.**
 Repository: `127027/Sniperbot-`; einziger kanonischer Entwicklungsbranch:
