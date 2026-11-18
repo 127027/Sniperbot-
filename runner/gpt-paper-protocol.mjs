@@ -3,6 +3,7 @@
 // the literal origin field is NOT a cryptographic proof of model identity.
 import {createHash} from 'node:crypto';
 import {validTokenAddress} from './market.mjs';
+import {validateGptExitPolicy} from './gpt-position-exit.mjs';
 
 export const GPT_PAPER_DECISION_PATH='research/r29/channel/gpt-paper-decision.json';
 export const GPT_PAPER_RECEIPT_PATH='research/r29/channel/gpt-paper-receipt.json';
@@ -10,6 +11,7 @@ export const GPT_PAPER_CONTEXT_PATH='research/r29/channel/gpt-paper-context.json
 export const GPT_PAPER_BRANCH='codex/r29-chatgpt-github-paper-cycle-20261115';
 export const GPT_PAPER_REPO='127027/Sniperbot-';
 export const GPT_PAPER_DECISION_SCHEMA='sniper_r29_gpt_paper_decision.v1';
+export const GPT_PAPER_DECISION_SCHEMA_V2='sniper_r29_gpt_paper_decision.v2';
 export const GPT_PAPER_POINTER_SCHEMA='sniper_r29_gpt_paper_pointer.v1';
 const decisionFields=[
  'schema','mode','strategy','decision_id','action','chain','token_address',
@@ -17,6 +19,7 @@ const decisionFields=[
  'source_review_sha256','source_observed_at_utc','evidence_ids',
  'security_assessment','score_0_100','reason_de','risk_level',
  'trade_type','real_trading_enabled'];
+const decisionFieldsV2=[...decisionFields,'exit_policy'];
 const pointerFields=['schema','mode','decision_id','archive_path',
  'archive_sha256','published_at_utc','real_trading_enabled'];
 const sameKeys=(x,arr)=>x&&typeof x==='object'&&!Array.isArray(x)&&
@@ -31,7 +34,9 @@ export const contentSha256=body=>createHash('sha256').update(body,'utf8').digest
 export const archivePath=(id,when)=>'research/r29/gpt-decisions/'+when.slice(0,10)+'/'+id+'.json';
 
 export function validateGptPaperDecision(d,{now=Date.now(),forExecution=false}={}){
- if(!sameKeys(d,decisionFields)||d.schema!==GPT_PAPER_DECISION_SCHEMA||
+ const v2=d?.schema===GPT_PAPER_DECISION_SCHEMA_V2;
+ if(!(v2?sameKeys(d,decisionFieldsV2):sameKeys(d,decisionFields))||
+  ![GPT_PAPER_DECISION_SCHEMA,GPT_PAPER_DECISION_SCHEMA_V2].includes(d.schema)||
   d.mode!=='PAPER_ONLY'||d.strategy!=='GPT_ONLY'||!decId(d.decision_id)||
   !['BUY','SELL','HOLD','WATCH','NO_TRADE'].includes(d.action)||
   d.trade_type!=='VIRTUAL_ONLY'||d.real_trading_enabled!==false||
@@ -53,6 +58,11 @@ export function validateGptPaperDecision(d,{now=Date.now(),forExecution=false}={
   observed>created||created-observed>48*3600000||
   (forExecution&&expires<=now))throw Error('GPT_DECISION_TIME_OR_SOURCE_INVALID');
  const trade=actionable.has(d.action);
+ // Old decision v1 is readable, but v1 BUY is blocked at the local executor.
+ if(v2){
+  if(d.action==='BUY')validateGptExitPolicy(d.exit_policy);
+  else if(d.exit_policy!==null)throw Error('GPT_NON_BUY_EXIT_POLICY_FORBIDDEN');
+ }
  if(expires-created>(trade?180000:26*3600000))
   throw Error('GPT_DECISION_TTL_TOO_LONG');
  if(trade){
@@ -74,7 +84,8 @@ export function validateGptPaperDecision(d,{now=Date.now(),forExecution=false}={
    throw Error('GPT_RESEARCH_ACTION_NOT_EXECUTABLE');
  return {trade,action:d.action,candidate_id:trade||d.action!=='NO_TRADE'?
    d.chain+':'+d.token_address+':'+d.pool_address:null,
-  decision_id:d.decision_id, expires_at_utc:d.expires_at_utc};
+  decision_id:d.decision_id, expires_at_utc:d.expires_at_utc,
+  signed_exit_policy:v2&&d.action==='BUY'?d.exit_policy:null};
 }
 
 export function validateGptPaperPointer(p,{now=Date.now()}={}){
