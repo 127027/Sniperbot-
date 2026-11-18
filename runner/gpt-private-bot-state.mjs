@@ -45,7 +45,7 @@ function paperCurrent(state,now){
   remaining_user_exposure_test_usdc:b.valid?cents(Math.max(0,b.cap_test_usdc-b.reserved_test_usdc)):null,
   available_for_new_buy_test_usdc:free,
   technical_single_share_cap:MAX_SINGLE_SHARE,
-  technical_total_share_cap:0.03,
+  technical_total_share_cap:MAX_TOTAL_SHARE,
   actual_loss_risk_is_not_nominal_size:true,
   full_private_state_valid:allowed,
   no_private_cloud_delivery_confirmed:true
