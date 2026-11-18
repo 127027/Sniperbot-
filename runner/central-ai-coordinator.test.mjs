@@ -9,7 +9,8 @@ import {freshState} from './core.mjs';
 import {applyAgentSignal,verifyAgentSignal} from './paper-agent-pipeline.mjs';
 import {snapshotForAi,planRecommendations,signLocalPaperSignal,
  startCentralAiCoordinator,requestCentralAiAdvice,
- nextR29RealModelDelayMs,reserveR29GptBudget} from './central-ai-coordinator.mjs';
+ nextR29RealModelDelayMs,reserveR29GptBudget,
+ planR29ModelPolling,R29_MODEL_EVENT_POLL_MS} from './central-ai-coordinator.mjs';
 
 const MINT=encodeBase58(Buffer.alloc(32,31));
 const POOL=encodeBase58(Buffer.alloc(32,32));
@@ -256,4 +257,46 @@ test('previously invisible low-liquidity unknown memecoin reaches GPT WATCH, nev
  assert.equal(watch.orders.length,0);
  const unsafe=planRecommendations(input,choice('BUY'),{webSearchUsed:true});
  assert.equal(unsafe.orders.length,0);
+});
+
+test('V4.3: five-minute event model gate is freshness-bound and deduplicated',()=>{
+ const at='2026-11-18T12:00:00.000Z';
+ const id='research-alert-'+'a'.repeat(32);
+ const e={event_id:id,event_type:'SOLANA_STREAM_MIGRATION',
+  observed_at_utc:'2026-11-18T11:59:00.000Z'};
+ const input={paper:{positions:[]},candidates:[],
+  early_discovery:{status:'FRESH_PUBLIC_LOCAL_SNAPSHOT',alerts:[e]},
+  news:{leads:[]}};
+ const first=planR29ModelPolling(input,{},at);
+ assert.equal(first.due,true);
+ const state={last_model_attempt_utc:at,reviewed_urgent_events:[]};
+ assert.equal(planR29ModelPolling(input,state,'2026-11-18T12:02:00.000Z').due,false);
+ const after5=planR29ModelPolling(input,state,'2026-11-18T12:05:00.000Z');
+ assert.equal(after5.due,true);
+ assert.equal(after5.reason,'NEW_EARLY_EVENT');
+ const seen={...state,reviewed_urgent_events:[id]};
+ assert.equal(planR29ModelPolling(input,seen,'2026-11-18T12:05:00.000Z').due,false);
+ const stale={...input,early_discovery:{...input.early_discovery,
+  alerts:[{...e,observed_at_utc:'2026-11-18T11:40:00.000Z'}]}};
+ assert.equal(planR29ModelPolling(stale,state,'2026-11-18T12:05:00.000Z').due,false);
+ assert.equal(R29_MODEL_EVENT_POLL_MS,300000);
+});
+test('V4.3: repeated local source polls do not spend extra model attempts',async()=>{
+ const dir=mkdtempSync(path.join(os.tmpdir(),'r29-v43-model-cadence-'));
+ let calls=0;
+ const service=startCentralAiCoordinator({deviceId,dataDir:dir,apiKey:'sk-fake',
+  getState:()=>ledger(),scan:async()=>market(),collectNews:async()=>news(),
+  collectMarketRegime:async()=>regime,submit:async()=>{throw Error('NO_ORDER');},
+  initialDelayMs:1000000});
+ const fake=async()=>{calls++;return {
+  advice:advice('WATCH',0),webSearchUsed:true,
+  model:'test-only',response_id:'resp_mock_123456789'};};
+ try{
+  assert.equal((await service.runOnce({modelApi:fake,respectCadence:true})).status,'NO_TRADE');
+  assert.equal((await service.runOnce({modelApi:fake,respectCadence:true})).status,
+   'SKIPPED_MODEL_CADENCE');
+  assert.equal(calls,1);
+  assert.equal(service.status().provider_requests_utc.length,1);
+  assert.equal(service.status().actual_provider_response_count,0);
+ }finally{service.stop();rmSync(dir,{recursive:true,force:true})}
 });
