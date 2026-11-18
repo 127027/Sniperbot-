@@ -381,8 +381,9 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
       console.error('[GPT R29] Positionskontext nicht aktualisiert:',
        String(e?.message||e).slice(0,100));
     }
-        if(/^[a-f0-9]{64}$/.test(process.env.SNIPER_GPT_BRIDGE_SECRET||'')&&
-           process.env.SNIPER_R29_GPT_SOURCE!=='LOCAL_OPENAI_API'){
+        // Canonical R29 has exactly one GPT strategy transport: GitHub courier.
+        // No competing, locally billed Responses-API strategist is supported.
+        if(/^[a-f0-9]{64}$/.test(process.env.SNIPER_GPT_BRIDGE_SECRET||'')){
       try{
         const outcome=await relayGptPaperDecision({
           token,localCapability:process.env.SNIPER_GPT_BRIDGE_SECRET});
