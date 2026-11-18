@@ -83,6 +83,11 @@ export function buildNeutralHistoricalModelInput(input){
   if(x.edited_at_utc!==undefined&&x.edited_at_utc!==null)when(x.edited_at_utc,asof,'POST_EDITED_IN_FUTURE');
   if(x.metrics_observed_at_utc!==undefined&&x.metrics_observed_at_utc!==null)
    when(x.metrics_observed_at_utc,asof,'ENGAGEMENT_METRICS_FROM_FUTURE');
+  // Engagement counts without a contemporaneous observation timestamp are not admissible.
+  if(x.engagement_metrics!==undefined&&x.engagement_metrics!==null){
+   requireValid(x.metrics_observed_at_utc!==undefined&&x.metrics_observed_at_utc!==null,'UNDATED_ENGAGEMENT_METRICS');
+   requireValid(timestamp(x.metrics_observed_at_utc)>=timestamp(x.published_at_utc),'METRICS_BEFORE_PUBLICATION');
+  }
   requireValid(str(x.source_archival_method),'ARCHIVAL_METHOD_REQUIRED');
   return cp(x);
  });
