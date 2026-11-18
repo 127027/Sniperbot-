@@ -8,7 +8,7 @@ import {validateChainAsset} from './chain-trade-intent-v2.mjs';
 import {action} from './core.mjs';
 import {isWithinPortfolioBudget} from './portfolio-budget.mjs';
 import {r29LivePaperEntryGate} from './live-paper-risk.mjs';
-import {validateGptExitPolicy,gptExitPolicyHash,validateGptExitBinding} from './gpt-position-exit.mjs';
+import {validateGptExitPolicy,gptExitPolicyHash,validateGptExitBinding,assessGptPaperExit} from './gpt-position-exit.mjs';
 
 export const AGENT_SIGNAL_SCHEMA='sniper_agent_trade_signal.v1';
 export const AGENT_SIGNAL_DOMAIN='MemeSniper/agent_trade_signal.v1\n';
@@ -124,6 +124,11 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   p.gptExitAuthorizedDecisionId===gptPolicyExit.authorizing_decision_id&&
   p.gptExitPolicyDigest===gptPolicyExit.policy_digest&&
   validateGptExitBinding(p))))reason='GPT_POLICY_EXIT_AUTHORIZATION_NOT_FOUND';
+ else if(policyExit&&(()=>{
+  const p=state.positions.find(p=>p.id===gptPolicyExit.position_id);
+  const a=assessGptPaperExit(p,quote,{now});
+  return !a.due||a.reason!==gptPolicyExit.trigger;
+ })())reason='GPT_POLICY_EXIT_TRIGGER_NOT_DUE_OR_QUOTE_INVALID';
  else if(!state.entriesEnabled&&actionType==='BUY')reason='PAPER_BOT_OFF';
  else if(!validQuote(quote,order,now))reason='MARKET_QUOTE_INVALID_OR_STALE';
  else if(localAuto&&actionType==='BUY'&&(!autoGate?.allowed||amount!==autoGate.amount_test_usdc))
