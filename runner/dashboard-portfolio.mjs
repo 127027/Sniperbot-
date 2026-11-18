@@ -1,7 +1,7 @@
 // R29 user-facing local-only trading portfolio view model.
 // No GitHub fixture balances, backend secrets, real-wallet keys, or live fills.
 // All valuations are INDICATIVE. Missing/stale quotes produce null, not zero.
-import {portfolioBudget} from './portfolio-budget.mjs';
+import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC,MIN_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
 const round8=n=>Math.round((n+Number.EPSILON)*1e8)/1e8;
 const finite=v=>typeof v==='number'&&Number.isFinite(v);
 const usableMoney=v=>finite(v)&&v>=0;
@@ -93,7 +93,8 @@ export function paperDashboardView(state,{now=Date.now()}={}){
    total_exposure_cap_test_usdc:budget.valid?budget.cap_test_usdc:null,
    total_reserved_test_usdc:budget.valid?budget.reserved_test_usdc:null,
    free_to_allocate_test_usdc:budget.free_to_allocate_test_usdc,
-   current_minimum_entry_test_usdc:50
+   current_minimum_entry_test_usdc:MIN_PAPER_ENTRY_USDC,
+   signed_gpt_minimum_entry_test_usdc:MIN_GPT_PAPER_ENTRY_USDC
   },
   positions,history,
   gpt_paper_last_decision:lastGpt,
