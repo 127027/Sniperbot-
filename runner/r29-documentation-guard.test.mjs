@@ -71,7 +71,8 @@ test('audit and source document cannot turn simulated or NO_TRADE evidence into 
  assert.equal(audit.proven_evidence_at_specific_utc_instants.gpt_courier_user_report.replay_decision_count,8);
  assert.equal(audit.proven_evidence_at_specific_utc_instants.gpt_courier_user_report.latest_public_receipt_action,'NO_TRADE');
  assert.equal(audit.proven_evidence_at_specific_utc_instants.gpt_courier_user_report.origin_model_signature_verified,false);
- assert.match(guide,/8.*nicht.*8|8.*keine.*8/i);
+ assert.match(guide,/8 empfangene Entscheidungen = 8 Käufe|8.*Entscheidungs-IDs/i);
+ assert.match(guide,/NICHT.*acht Aufträge|keine.*acht/i);
  assert.match(guide,/origin_model_signature_verified:false/);
  assert.match(guide,/241\.649/);
  assert.match(guide,/separat|separate/i);
