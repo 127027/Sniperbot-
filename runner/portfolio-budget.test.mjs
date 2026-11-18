@@ -81,3 +81,20 @@ test('legacy saved settings without explicit V0.6 budget use previous upper boun
  const after=buyNew(s,350,'too-much');
  assert.equal(after.positions.length,0);
 });
+
+test('R29 V4.8: GPT-signed virtual 5-49.99 TEST-USDC fits 1%-of-4999.01 risk cap without relaxing manual entry minimum',()=>{
+ const s=setup({cash:4999.01,preferred:50,budget:5000});
+ assert.equal(isWithinPortfolioBudget(s,25),false);
+ assert.equal(isWithinPortfolioBudget(s,25,{gptSignedPaper:true}),true);
+ assert.equal(isWithinPortfolioBudget(s,4.99,{gptSignedPaper:true}),false);
+ assert.equal(isWithinPortfolioBudget(s,50,{gptSignedPaper:true}),true,
+  'budget alone does not claim to enforce the independent 1%-equity risk gate');
+ const manual=buyNew(s,25,'manual');
+ assert.equal(manual.positions.length,0);
+ const signedCandidate={...paperSignal(),id:'demo:gpt-unit',tokenAddress:'gpt-unit',poolAddress:'gpt-pool'};
+ const signed=action({...s,candidates:[signedCandidate]},{
+  type:'GPT_SIGNED_BUY',id:signedCandidate.id,amount:25});
+ assert.equal(signed.positions.length,1);
+ assert.equal(signed.positions[0].amountUsdc,25);
+ assert.equal(signed.cashUsdc,4974.01);
+});
