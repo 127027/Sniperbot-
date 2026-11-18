@@ -1,3 +1,7 @@
+> **Verbindliche R29-V4.5-Präzisierung (18.11.2026):** Dieses Dokument ist ein historischer **Soll-/Anforderungskatalog**, keine aktuelle Implementierungsliste. Maßgeblich für die heutige Architektur ist [R29 V4.5](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md): bestehende ChatGPT-R29-Automationen als einzige Strategie → GitHub-Kurier → Windows-Paper-Bot; **keine lokal bezahlte OpenAI-API**, keine neue Agenteninfrastruktur; Start nur mit `Sniperbot_Starten.bat`. Paging (PR #56), Markt-Relay, Github-Kurier und lokaler Receiver existieren bereits. Prospektive echte GPT-Fills und kontinuierlicher signierter positionsgebundener Exit sind OFFEN; bis dahin keine neuen autonomen Paper-BUYs. Keine Echtgeld-/Wallet-/PayPal-Ausführung.
+
+---
+
 # Produktanforderungen – AI Meme Sniper (Soll-Zustand)
 
 **Status:** Anforderungskatalog für Codex, **nicht** Beschreibung bereits implementierter Funktionen. Stand 2026-11-06. Windows 11 ist das primäre Zielsystem. Kein Bezug zum Hixton-Projekt.
@@ -59,7 +63,7 @@ Die existierenden ChatGPT-Automationen laufen **nicht** automatisch in der lokal
 
 ## 7. Akzeptanzkriterien für die nächste Codex-Lieferung
 
-- Neuer Windows-Checkout startet reproduzierbar mit `Windows_Starten.bat`, keine unbekannten Dienste oder Geheimnisse nötig.
+- Neuer Windows-Checkout startet reproduzierbar mit `Sniperbot_Starten.bat`, keine unbekannten Dienste oder Geheimnisse nötig.
 - `50 € virtuell einzahlen → TEST-Kandidat → 50 Test-USDC simuliert kaufen → HOLD → Bot AUS → Exit-Regel läuft weiter` mit automatisierten Integrationstests.
 - Neustart erhält Portfolio und Buchungen; reproduzierbares Fehlerhandling bei defekten Daten, Offline-Modus und Provider-Timeout.
 - Scanner markiert Live-Daten, veraltete Daten und Demo-Daten klar unterschiedlich.
