@@ -29,7 +29,7 @@ test('documentation distinguishes stored Paper preferences from missing real-acc
  assert.match(doc,/Echtgeld.*LOCKED|LIVE_LOCKED/);
  assert.match(doc,/Cloud/);
  assert.match(doc,/nicht.*nachgewiesen|nicht.*implementiert|offen/i);
- assert.match(doc,/kein.*GPT.*Fill|kein.*GPT.*Trade/i);
+ assert.match(doc,/autonomer GPT-ausgewählter BUY.*Paper-Fill.*offen/s);
 });
 test('Windows guide requires exit liveness, preserves local data and no API key',()=>{
  const guide=read('ERSTER_START.txt');
@@ -37,7 +37,7 @@ test('Windows guide requires exit liveness, preserves local data and no API key'
  assert.match(guide,/Sniperbot_Starten\.bat/);
  assert.match(guide,/MemeSniperPaper/);
  assert.match(guide,/KEIN.*OpenAI/i);
- assert.match(guide,/kein.*BUY|KEIN.*Kauf/i);
+ assert.match(guide,/KEIN.*GPT-Paper-Trade/i);
 });
 test('older incompatible fixed-budget and multi-agent plans are visibly historical',()=>{
  const old=[
