@@ -1,3 +1,7 @@
+> **ARCHIV – 06./07.11.2026-Beobachtung:** Ältere fehlende direkte Dot-POST-Zustellung nicht mit aktueller R29-GitHub-Brücke verwechseln. Nach 18.11. ist der GitHub-Markttransport und der lokale authentifizierte R29-GPT-Receiver grundsätzlich nachgewiesen, letzte passende ID `gpt_e7c715480f009a0dd80040fa78c186a7` war `NO_TRADE`; keine neuen GPT-Paper-Fills/Exit-Schutz belegt. [Kanonischer R29-V4.5-Status](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Kein API-Key und keine neue ChatGPT-Dot-Instanz erforderlich.
+
+---
+
 > Ergänzung 07.11.2026: Historische Scout-Nachricht über GitHub im Windows-Bot empfangen; kein direkter Dot-POST. Siehe [Empfangsnachweis](SCOUT_INBOX_PROOF.md) und [informativer Eingang](RESEARCH_INBOX.md). Der folgende Stand beschreibt insbesondere den bisherigen direkten Gateway-Zugang.
 
 # Meme Scout: Verbindungsprüfung vom 06.11.2026
