@@ -174,7 +174,7 @@ test('GPT oversized amount is rejected by local risk even if its text says VERIF
   big.amount_test_usdc=100;
   const blocked=await a.r.receive(envelope(big));
   assert.equal(blocked.status,'BLOCKED');
-  assert.equal(blocked.reason,'GPT_SIZE_EXCEEDS_INDEPENDENT_RISK_CAP');
+  assert.equal(blocked.reason,'GPT_FRESH_PRIVATE_PAPER_CAPACITY_REJECTED');
   assert.equal(a.state.positions.length,0);
   assert.equal(a.signCount,0);
  }finally{a.cleanup()}
@@ -200,9 +200,9 @@ test('V4.8 regression: 4,999.01 TEST-USDC can open GPT-signed 25 paper position 
  const a=makeReceiver();
  try{
   a.setState({...a.state,cashUsdc:4999.01});
-  const candidate=candidate(Date.now()),q=quote(.02);
+  const observedCandidate=candidate(Date.now()),q=quote(.02);
   const gate=r29LivePaperEntryGate({
-   state:{...a.state,automaticPaperBuys:true},candidate,
+   state:{...a.state,automaticPaperBuys:true},candidate:observedCandidate,
    quote:q,security:safe(),now:Date.now(),gptSignedPaper:true});
   assert.equal(gate.allowed,true);
   assert.equal(gate.amount_test_usdc,49.99);
@@ -240,7 +240,7 @@ test('V4.8 signed small GPT amount cannot bypass 1% cap or allow small unsigned 
   oversized.amount_test_usdc=50;
   const result=await a.r.receive(envelope(oversized));
   assert.equal(result.status,'BLOCKED');
-  assert.equal(result.reason,'GPT_SIZE_EXCEEDS_INDEPENDENT_RISK_CAP');
+  assert.equal(result.reason,'GPT_FRESH_PRIVATE_PAPER_CAPACITY_REJECTED');
   assert.equal(a.state.positions.length,0);
   const state={...a.state,entriesEnabled:true,candidates:[{
    id:'manual:test',isDemo:true,chain:'demo',tokenAddress:'mint',
