@@ -80,6 +80,8 @@ export function buildNeutralHistoricalModelInput(input){
   when(x.published_at_utc,asof,'FUTURE_MEDIA_POST');
   when(x.archived_at_utc,asof,'RETROSPECTIVE_MEDIA_CAPTURE_NOT_ASOF');
   when(x.observed_at_utc,asof,'FUTURE_MEDIA_OBSERVATION');
+  requireValid(timestamp(x.archived_at_utc)>=timestamp(x.published_at_utc),'ARCHIVE_BEFORE_PUBLICATION');
+  requireValid(timestamp(x.observed_at_utc)>=timestamp(x.published_at_utc),'OBSERVATION_BEFORE_PUBLICATION');
   if(x.edited_at_utc!==undefined&&x.edited_at_utc!==null)when(x.edited_at_utc,asof,'POST_EDITED_IN_FUTURE');
   if(x.metrics_observed_at_utc!==undefined&&x.metrics_observed_at_utc!==null)
    when(x.metrics_observed_at_utc,asof,'ENGAGEMENT_METRICS_FROM_FUTURE');
@@ -97,6 +99,8 @@ export function buildNeutralHistoricalModelInput(input){
   when(x.learned_at_utc,asof,'LESSON_LEARNED_AFTER_DECISION');
   when(x.observation_at_utc,asof,'FUTURE_LESSON_OBSERVATION');
   when(x.application_not_before_utc,asof,'LESSON_RETROFIT_TO_PAST');
+  requireValid(timestamp(x.learned_at_utc)>=timestamp(x.observation_at_utc),'LESSON_LEARNED_BEFORE_OBSERVATION');
+  requireValid(timestamp(x.application_not_before_utc)>=timestamp(x.learned_at_utc),'LESSON_APPLIED_BEFORE_LEARNED');
   return cp(x);
  });
  const positions=input.open_positions.map(x=>{
