@@ -34,7 +34,8 @@ const candidate=time=>({
  promotion_biased:false,verification:'CROSS_PROVIDER_IDENTITY'});
 function decision(actionName='BUY',time=now,id='1'.repeat(32)){
  const trade=['BUY','SELL'].includes(actionName);
- return {schema:'sniper_r29_gpt_paper_decision.v1',mode:'PAPER_ONLY',
+ return {schema:actionName==='BUY'?'sniper_r29_gpt_paper_decision.v2':
+  'sniper_r29_gpt_paper_decision.v1',mode:'PAPER_ONLY',
  strategy:'GPT_ONLY',decision_id:'gpt_'+id,action:actionName,
  chain:trade?'base':null,token_address:trade?token:null,
  pool_address:trade?pool:null,
@@ -47,7 +48,12 @@ function decision(actionName='BUY',time=now,id='1'.repeat(32)){
  score_0_100:actionName==='BUY'?85:null,
  reason_de:'Rein virtuelle GPT-Entscheidung: unabhängige Sicherheits- und Marktprüfung erforderlich, keine Echtgeldorder.',
  risk_level:actionName==='BUY'?'HIGH':'UNKNOWN',
- trade_type:'VIRTUAL_ONLY',real_trading_enabled:false};
+ trade_type:'VIRTUAL_ONLY',real_trading_enabled:false,
+ ...(actionName==='BUY'?{exit_policy:{
+  schema:'sniper_gpt_position_exit_policy.v1',
+  stop_loss_pct:12,take_profit_pct:50,trailing_drawdown_pct:20,
+  max_hold_minutes:1440,min_exit_liquidity_usd:2000,
+  quote_max_age_seconds:90}}:{})};
 }
 const envelope=d=>({schema:'sniper_r29_local_gpt_relay.v1',
  decision:d,archive_sha256:contentSha256(JSON.stringify(d,null,2)+'\n'),
@@ -75,7 +81,8 @@ function makeReceiver(d){
     const result=applyAgentSignal(state,o,opts.localTrust,{
      deviceId,now:Date.now(),quote:opts.qaQuote,source:opts.source,
      paperAutopilotCandidate:opts.paperAutopilotCandidate,
-     securityEvidence:opts.securityEvidence});
+     securityEvidence:opts.securityEvidence,
+     gptExitAuth:opts.gptExitAuth,gptPolicyExit:opts.gptPolicyExit});
     state=result.next;return {receipt:result.receipt};
   }
  });
@@ -111,6 +118,8 @@ test('authorized GPT BUY -> signed local PAPER only -> GPT SELL -> replay protec
   assert.equal(a.state.cashUsdc,4950);
   assert.equal(a.state.positions[0].gptPaperDecision,true);
   assert.equal(a.state.positions[0].exitMode,'GPT_GUARD');
+  assert.equal(a.state.positions[0].gptExitAuthorizedDecisionId,buy.decision_id);
+  assert.equal(a.state.positions[0].gptExitPolicy.stop_loss_pct,12);
   assert.equal(a.state.automaticPaperBuys,false);
   const duplicate=await a.r.receive(buyEnvelope);
   assert.equal(duplicate.duplicate,true);
