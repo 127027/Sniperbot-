@@ -15,6 +15,12 @@ export function sanitizeGptPublicPositionContext(input,{now=Date.now()}={}){
    now-Date.parse(input.as_of_utc)>120000||
    !Array.isArray(input.positions)||input.positions.length>12)
    throw Error('GPT_POSITION_CONTEXT_UNVERIFIED');
+ // Publish only sanitized boolean capability and a short-lived monitor tick.
+ // Any legacy/malformed timestamp fails CLOSED. Never publish cash/qty/secrets.
+ const guard=input.exit_guard_required_for_new_gpt_buy===true;
+ const tick=input.exit_monitor_last_checked_at_utc;
+ const validTick=timeOk(tick)&&Date.parse(tick)<=now&&now-Date.parse(tick)<=90000;
+ const healthy=guard&&input.exit_monitor_heartbeat_recent===true&&validTick;
  const positions=input.positions.map(p=>{
   if(!['base','eth','bsc','solana'].includes(p?.chain)||
    !validTokenAddress(p.chain,p.token_address)||
@@ -36,6 +42,9 @@ export function sanitizeGptPublicPositionContext(input,{now=Date.now()}={}){
   mode:'PAPER_ONLY',real_trading_enabled:false,
   account_balances_published:false,position_amounts_published:false,
   gpt_follow_enabled:input.gpt_follow_enabled,paper_bot_enabled:input.paper_bot_enabled,
+  exit_guard_required_for_new_gpt_buy:guard,
+  exit_monitor_heartbeat_recent:healthy,
+  exit_monitor_last_checked_at_utc:validTick?tick:null,
   observed_at_utc:input.as_of_utc,positions,
   warning:'Only GPT-managed virtual position IDs; not proof of executable real swaps'};
 }
@@ -71,9 +80,12 @@ export async function syncGptPaperPublicPositionContext({token,
  const b=JSON.stringify(sanitized.positions);
  const unchanged=old?.schema===sanitized.schema&&
   old.gpt_follow_enabled===sanitized.gpt_follow_enabled&&
-  old.paper_bot_enabled===sanitized.paper_bot_enabled&&a===b;
+  old.paper_bot_enabled===sanitized.paper_bot_enabled&&
+  old.exit_guard_required_for_new_gpt_buy===sanitized.exit_guard_required_for_new_gpt_buy&&
+  old.exit_monitor_heartbeat_recent===sanitized.exit_monitor_heartbeat_recent&&a===b;
  if(unchanged&&timeOk(old?.observed_at_utc)&&observedNow-Date.parse(old.observed_at_utc)>=0&&
-    observedNow-Date.parse(old.observed_at_utc)<15*60000)
+    observedNow-Date.parse(old.observed_at_utc)<
+     (sanitized.exit_monitor_heartbeat_recent?2:15)*60000)
   return {status:'UNCHANGED',published:false,context:sanitized};
  const payload={message:'research(r29): public GPT-owned PAPER position targets (no balances)',
   branch:GPT_PAPER_BRANCH,
