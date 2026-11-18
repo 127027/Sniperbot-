@@ -5,7 +5,7 @@ const sha=x=>createHash('sha256').update(x).digest('hex');
 const check=(x,m)=>{if(!x)throw Error(m)};
 export async function verifyDetachedEvidence({frameBytes,virtualAsOfUtc,sourceClaims,ledgerClaim,modelClaim,verifySource,verifyLedger,verifyModel}){
  check(Buffer.isBuffer(frameBytes),'FRAME_BYTES_REQUIRED');
- check(/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\dZ$/.test(virtualAsOfUtc)&&Number.isFinite(Date.parse(virtualAsOfUtc)),'INVALID_ASOF');
+ check(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(virtualAsOfUtc)&&Number.isFinite(Date.parse(virtualAsOfUtc)),'INVALID_ASOF');
  check(Array.isArray(sourceClaims)&&sourceClaims.length>0,'SOURCES_REQUIRED');
  check(typeof verifySource==='function'&&typeof verifyLedger==='function'&&typeof verifyModel==='function','INDEPENDENT_VERIFIERS_REQUIRED');
  const digest=sha(frameBytes);
