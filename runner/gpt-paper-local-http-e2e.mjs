@@ -228,7 +228,7 @@ try{
   const buy=await post('/api/gpt/paper-decision',envelope(decision('BUY','b'.repeat(32))));
  assert.equal(buy.code,200);
  assert.equal(buy.data.receipt.status,'BLOCKED');
- assert.equal(buy.data.receipt.reason,'GPT_FOLLOW_OR_PAPER_BOT_DISABLED');
+ assert.equal(buy.data.receipt.reason,'GPT_BUY_REQUIRES_SIGNED_POSITION_EXIT_POLICY');
  assert.equal((await get('/api/dashboard/paper')).data.view.open_position_count,0);
  await stop();
  await boot(port);

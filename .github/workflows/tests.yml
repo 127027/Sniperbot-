@@ -143,6 +143,8 @@ jobs:
           path: research/replay-120d/generated/
           if-no-files-found: error
           retention-days: 30
+      - name: R29 V4.6 fail-closed GPT-signed per-position exits and restart/quote/Bot-OFF safety
+        run: node --test runner/gpt-position-exit.test.mjs
       - name: R29 GPT-only authenticated GitHub -> signed local paper BUY SELL, replay, no-cost and privacy checks
         run: node --test runner/gpt-paper-bridge.test.mjs runner/gpt-paper-github-relay.test.mjs
       - name: R29 GPT-only decision, owner-attributed courier, local risk and dashboard syntax

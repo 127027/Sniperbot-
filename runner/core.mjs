@@ -96,11 +96,16 @@ export function applyExits(s){
   const age=Date.now()-Date.parse(p.markAt);
   if(!Number.isFinite(age)||age<0||age>180000){p.quoteStatus='STALE / EXIT_UNAVAILABLE';continue}
   p.quoteStatus=p.isDemo?'SYNTHETIC':'INDICATIVE';
-  p.highWaterPrice=Math.max(p.highWaterPrice||p.entryPriceUsd,p.priceUsd);
+  // GPT high-water is advanced ONLY by the policy monitor on a fresh,
+  // exact-pool, liquidity-validated Paper quote – not legacy global marks.
+  if(p.gptPaperDecision!==true&&p.exitMode!=='GPT_GUARD')
+   p.highWaterPrice=Math.max(p.highWaterPrice||p.entryPriceUsd,p.priceUsd);
   // GPT_GUARD is not itself a signed GPT exit-policy. Never apply
   // the legacy global stop-loss as an unapproved GPT sale.
   if(p.gptPaperDecision===true||p.exitMode==='GPT_GUARD'){
-   p.quoteStatus='GPT_POSITION_EXIT_POLICY_NOT_AUTHORIZED';
+   p.quoteStatus=p.gptExitPolicyDigest?
+    'GPT_AUTHORIZED_EXIT_MONITOR_SEPARATE_FROM_LEGACY':
+    'GPT_POSITION_EXIT_POLICY_NOT_AUTHORIZED';
    continue;
   }
   if(!['AUTO','TRAILING'].includes(p.exitMode))continue;

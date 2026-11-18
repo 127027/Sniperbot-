@@ -2,6 +2,7 @@
 // loopback courier, locally signs any SAFE paper BUY/SELL and rechecks facts.
 // This process NEVER chooses a coin or creates a trade from local momentum.
 import {generateKeyPairSync,sign} from 'node:crypto';
+import {assessGptPaperExit,gptPolicyExitIntentId,validateGptExitBinding} from './gpt-position-exit.mjs';
 import {appendFileSync,mkdirSync,readFileSync} from 'node:fs';
 import path from 'node:path';
 import {AGENT_SIGNAL_SCHEMA,unsignedAgentSignal} from './paper-agent-pipeline.mjs';
@@ -90,6 +91,8 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
   if(!parsed.trade)receipt=safeResult(d,d.action,'GPT_RESEARCH_NO_ORDER');
   else if(Date.parse(d.expires_at_utc)<=instant)
    receipt=safeResult(d,'REJECTED','GPT_DECISION_EXPIRED_NO_PAPER_TRADE');
+  else if(d.action==='BUY'&&!parsed.signed_exit_policy)
+   receipt=safeResult(d,'BLOCKED','GPT_BUY_REQUIRES_SIGNED_POSITION_EXIT_POLICY');
   else if(getState()?.gptPaperFollow!==true||
    (d.action==='BUY'&&getState()?.entriesEnabled!==true))
    receipt=safeResult(d,'BLOCKED','GPT_FOLLOW_OR_PAPER_BOT_DISABLED');
@@ -145,7 +148,9 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
       qaQuote:q,source:'GPT_GITHUB_LOCAL',
       localTrust:[trusted],securityEvidence:security,
       paperAutopilotCandidate:candidate,
-      gptDecisionId:d.decision_id
+      gptDecisionId:d.decision_id,
+      gptExitAuth:d.action==='BUY'&&parsed.signed_exit_policy?
+       {decision_id:d.decision_id,policy:parsed.signed_exit_policy}:null
      });
      if(executed?.receipt)receipt=safeResult(d,executed.receipt.status,
       executed.receipt.reason);
@@ -178,8 +183,80 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
   }
   return receipt;
  };
+ // Runs on the EXISTING local Paper server – no new bot or model process.
+ // Exit triggers are authored inside the immutable GPT BUY decision and
+ // persisted in the same local ledger, not derived from global stop settings.
+ const runMonitor=async()=>{
+  const instant=now();
+  const positions=(getState()?.positions||[]).filter(p=>p.gptPaperDecision===true);
+  const summary={checked_at_utc:new Date(instant).toISOString(),
+   checked:0,due:0,filled:0,blocked:0,
+   paper_only:true,real_trading_enabled:false};
+  for(const prior of positions){
+   const live=getState()?.positions?.find(x=>x.id===prior.id);
+   if(!live)continue;
+   summary.checked++;
+   let q=null;
+   if(validateGptExitBinding(live)){
+    try{
+     const found=await lookup(live.chain,live.tokenAddress,fetch,live.poolAddress);
+     if(found)q={...found,chain:live.chain,
+      tokenAddress:live.tokenAddress,poolAddress:live.poolAddress};
+    }catch{}
+   }
+   const decision=assessGptPaperExit(live,q,{now:now()});
+   // Keep high-water and quote errors across restarts, including Bot AUS.
+   const before=getState(),current=before.positions.find(x=>x.id===live.id);
+   if(!current)continue;
+   const amended={...current,
+    highWaterPrice:decision.highWaterPrice?
+     Math.max(current.highWaterPrice||0,decision.highWaterPrice):
+     current.highWaterPrice,
+    gptExitReviewStatus:decision.reason,
+    gptExitLastReviewAt:new Date(now()).toISOString()};
+   commit({...before,positions:before.positions.map(x=>x.id===live.id?amended:x)});
+   if(!decision.due)continue;
+   summary.due++;
+   const minute=Math.floor(now()/60000);
+   const latest=getState().positions.find(x=>x.id===live.id);
+   if(!latest||latest.gptExitLastAttemptMinute===minute)continue;
+   // Persist the minute tombstone BEFORE submitting: no same-minute
+   // duplicate during restart/crash or concurrent 30s price updates.
+   const st=getState();
+   commit({...st,positions:st.positions.map(x=>x.id===live.id?
+    {...x,gptExitLastAttemptMinute:minute}:x)});
+   const d={action:'SELL',chain:live.chain,
+    token_address:live.tokenAddress,pool_address:live.poolAddress,
+    decision_id:gptPolicyExitIntentId(live,decision.reason,now())};
+   const signed=signGptPaperSignal(d,{deviceId,keyPair:kp,now:now()});
+   let receipt=null;
+   try{
+    const result=await submit(signed,{
+     qaQuote:q,source:'GPT_GITHUB_POLICY_EXIT',
+     localTrust:[trusted],gptPolicyExit:{
+      position_id:live.id,
+      authorizing_decision_id:live.gptExitAuthorizedDecisionId,
+      policy_digest:live.gptExitPolicyDigest,trigger:decision.reason
+     }});
+    receipt=result?.receipt||null;
+   }catch{}
+   if(receipt?.status==='PAPER_FILLED')summary.filled++;
+   else summary.blocked++;
+   const after=getState();
+   commit({...after,gptExitMonitorLast:{
+    checked_at_utc:new Date(now()).toISOString(),position_id:live.id,
+    trigger:decision.reason,status:receipt?.status||'BLOCKED',
+    reason:receipt?.reason||'GPT_EXIT_SUBMISSION_UNAVAILABLE',
+    paper_only:true,real_trading_enabled:false}});
+  }
+  return summary;
+ };
  return {receive:payload=>{
    const job=serial.then(()=>one(payload));
+   serial=job.catch(()=>{});
+   return job;
+ },monitor:()=>{
+   const job=serial.then(()=>runMonitor());
    serial=job.catch(()=>{});
    return job;
  },localTrust:[trusted]};

@@ -15,6 +15,7 @@ import {paperDashboardView} from './dashboard-portfolio.mjs';
 import {pollSignedPaperOrderFeed} from './github-signed-agent-feed.mjs';
 import {startLocalPaperAutopilot} from './live-paper-autopilot.mjs';
 import {createGptPaperLocalReceiver} from './gpt-paper-local-receiver.mjs';
+import {validateGptExitBinding} from './gpt-position-exit.mjs';
 import {makePrivateGptSizeOffer} from './gpt-paper-size-negotiation.mjs';
 import {enrollPaperPublisherPublicKey} from './paper-publisher-trust.mjs';
 import {summarizePaperPipeline} from './pipeline-health.mjs';
@@ -192,7 +193,7 @@ let livePaperAutopilot=null;
 let githubAgentFeedStatus={checked_at_utc:null,received_last:0,
  accepted_last:0,rejected_last:0,last_rejection:null,
  status:'NOT_CHECKED',last_error:null};
-function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_ADAPTER',localTrust=null,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null}={}){
+function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_ADAPTER',localTrust=null,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null,gptExitAuth=null,gptPolicyExit=null}={}){
  const job=async()=>{
   let keys;
   try{
@@ -216,7 +217,7 @@ function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_A
   try{
    const syntheticTest=process.env.SNIPER_OFFLINE==='1'&&
     process.env.SNIPER_PIPELINE_QA==='1'&&qaQuote!==null;
-   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source,syntheticTest,indicativePaper,paperAutopilotCandidate,securityEvidence});
+   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source,syntheticTest,indicativePaper,paperAutopilotCandidate,securityEvidence,gptExitAuth,gptPolicyExit});
    commit(result.next);
    return {ok:true,receipt:result.receipt,real_trade_executed:false,live_trading_enabled:false};
   }catch(e){return {error:String(e?.message||'AGENT_PAPER_PIPELINE_BLOCKED').slice(0,120),code:422}}
@@ -378,6 +379,12 @@ const server=createServer(async(req,res)=>{
  old_local_autopilot_enabled:false,
  private_paper_size_offer_supported:true,
  private_paper_size_offer_transport:'AUTHENTICATED_LOCALHOST_ONLY',
+ exit_guard_required_for_new_gpt_buy:true,
+ continuous_gpt_exit_monitor_enabled:process.env.SNIPER_OFFLINE!=='1'&&deviceTopology.mode!=='FOLLOWER',
+ gpt_positions_with_validated_exit_contract:state.positions.filter(p=>p.gptPaperDecision===true&&validateGptExitBinding(p)).length,
+ gpt_positions_missing_exit_contract:state.positions.filter(p=>p.gptPaperDecision===true&&!validateGptExitBinding(p)).length,
+ latest_gpt_exit_status:state.gptExitMonitorLast?.status||null,
+ latest_gpt_exit_reason:state.gptExitMonitorLast?.reason||null,
  received_decision_count:Object.keys(state.gptDecisionReplay||{}).length,
  last_decision_id:Object.keys(state.gptDecisionReplay||{}).slice(-1)[0]||null,
  paid_openai_api_required:false,real_trading_enabled:false});
@@ -1066,6 +1073,21 @@ if(process.env.SNIPER_OFFLINE!=='1'&&deviceTopology.mode==='FOLLOWER'){
 // Safe, low-frequency public polling; independent of browser. No private keys, no live execution.
 if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_LOCAL_DISCOVERY==='1')setInterval(()=>{void scan()},90000);
 if(process.env.SNIPER_OFFLINE!=='1')setInterval(()=>{void prices()},30000);
+// Existing server is the continuous Paper monitor. It resumes after restart,
+// watches positions even with dashboard Bot AUS, and never routes real swaps.
+let gptExitBusy=false;
+async function monitorGptExits(){
+ if(gptExitBusy||deviceTopology.mode==='FOLLOWER'||shuttingDown)return;
+ gptExitBusy=true;
+ try{await gptPaperReceiver.monitor()}
+ catch(e){console.error('GPT Paper position exit monitor:',
+  String(e?.message||'EXIT_MONITOR_UNAVAILABLE').slice(0,110))}
+ finally{gptExitBusy=false}
+}
+if(process.env.SNIPER_OFFLINE!=='1'){
+ setTimeout(()=>{void monitorGptExits()},8000);
+ setInterval(()=>{void monitorGptExits()},30000);
+}
 if(process.env.SNIPER_OFFLINE!=='1'&&process.env.SNIPER_LOCAL_DISCOVERY==='1')setTimeout(()=>{void scan()},2500);
 setInterval(()=>{if(deviceTopology.mode==='FOLLOWER')return;try{commit(evaluate(applyExits(state)))}catch(e){console.error('Research/Exit:',e.message)}},5000);
 let shuttingDown=false;
