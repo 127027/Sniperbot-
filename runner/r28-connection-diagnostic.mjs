@@ -118,7 +118,7 @@ export async function makeR28ConnectionReport({
    new_paper_fills_from_last_ai_cycle:filled,
    last_cycle_receipts:actualReceipts.length,
    model_not_confirmed_reason:recentModel?null:
-     coordinator.enabled!==true?'CENTRAL_AI_NOT_ACTIVE':
+     coordinator.enabled!==true?'LOCAL_PAID_API_DISABLED_BY_DESIGN_GITHUB_ONLY':
      coordinator.last_outcome==='ERROR_NO_ORDERS'?'LAST_RUN_FAILED':
      'NO_VERIFIED_COMPLETED_API_MODEL_EXCHANGE_YET'},
   research_archive:{active:bool(archive.active),
@@ -132,6 +132,8 @@ export async function makeR28ConnectionReport({
    signature_test_is_real_cloud_ai_connection:false},
   signed_order_receiver:{endpoint_reachable:orders.ok===true,
    publisher_connected:orders.signed_publisher_configured===true,
+   publisher_connected_scope:'SEPARATE_GENERIC_SIGNED_AGENT_PUBLISHER',
+   github_gpt_bridge_ready:gptReady,
    total_paper_fills_recorded:Number.isInteger(orders.paper_filled)?orders.paper_filled:null,
    real_trading_enabled:false},
   transport_results:http,
@@ -143,7 +145,7 @@ export async function makeR28ConnectionReport({
    'Only local HTTP and the isolated in-memory signed paper path are actively tested.',
    'Canonical R29 uses ChatGPT-GitHub orders. A disabled local central-ai coordinator is expected; no separate OpenAI API key is needed.',
    'Signed GitHub ownership and receiver readiness never prove model authorship, safe continuous GPT exits or real paper fills.',
-   'A real AI-generated paper trade is proven only by an actual recorded coordinator receipt; no dummy trade is counted.'
+   'A GPT Paper trade needs a real, attributable GitHub decision and corresponding verified local paper-ledger receipt; a generic or isolated coordinator receipt does not prove it.'
   ]};
  return final;
 }
