@@ -1,23 +1,18 @@
-# Offene Probleme und behobene Fehler – R29 V4.5 (18.11.2026)
+# R29 V4.9 – Bestätigte Fehler, offene Implementierungslücken (18.11.2026)
 
-**Detaillierte Root-Cause-Tabelle:** [R29 V4.5 Wissensstand § 4](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Die untenstehenden V0.3–V0.7-Issues bleiben ausschließlich historische Momentaufnahmen.
+**Aktuelle Referenz R29 V4.9:** [R29 V4.5-Wissensstand mit V4.6–V4.9-Nachträgen](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Die früheren Zustandszahlen und Altanweisungen unter der Archivmarkierung sind datierte Historie.
 
-## Bereits behoben – NICHT erneut implementieren
+**Strategie:** ChatGPT allein entscheidet über neue Memecoins; GitHub übermittelt; der vorhandene Windows-Bot validiert und führt zulässige PAPER_ONLY-Aufträge aus. Ziel ist ein GPT-Signal mit **zwei getrennten dynamischen Kontozuständen**, nicht feste Einsätze und nicht ein zweiter Bot.
 
-- **Historischer Paging-Verlust**: nur Seite 0/64 Kandidaten pro Stunde exportiert. PR #56, vollständig 310.540/310.540 Candidate-Time-Paare auf 5.054 Seiten, 0 Paging-Verluste, CI grün. Die `hourly_asof_research_queue_frames` sind nur Legacy-Kompatibilität, nicht die vollständigen Seiten.
-- **Fehlende aktuelle GitHub-Marktdaten als damalige Diagnose**: am 18.11.2026 um 14:30:57 UTC echter Laptop-Capture und kanonischer GitHub-Commit mit 64 Pools/24 Alerts verifiziert. Neue Staleness nur bei neuem Beleg behaupten.
-- **Falscher OpenAI-API-Key-Zweitweg**: PR #59 entfernt bezahlten lokalen Schlüssel-/Responses-Start aus R29. `central_ai.enabled:false` erwartet. Keine Nutzeraufforderung zur API-Einrichtung.
-- **Ungeprüfter lokaler spekulativer Autopilot-BUY** / **fremder globaler Exit aus `GPT_GUARD`**: PR #58 blockiert beides; GPT-SELL trotz `entriesEnabled:false` möglich. **Das repariert noch keine kontinuierliche positionsgebundene GPT-Exit-Policy.**
-- **GitHub-Transport grundsätzlich fehlend**: überholte Aussage; vorhandener ChatGPT/GitHub-Receiver zeigt `local_gpt_bridge_ready:true`, 8 Replay-IDs; letzter GitHub-Receipt `NO_TRADE`. **Transportfähigkeit ist nicht modellautorisierter Kauf.**
+**Ist/Soll strikt unterscheiden:** Paper bevorzugter Einsatz und Gesamtbudget werden lokal gespeichert; Änderungen auf 45/35 sind möglich (PR #65). Real ist LIVE_LOCKED/read-only Wallet. Eigene persistierte Real-Preferred-/Gesamtlimits und Real-Positionsreserve sind derzeit **nicht belegt**. Keine reale Order und kein stillschweigendes Übernehmen von Paper-Werten in Echtgeld.
 
-## Weiterhin OFFEN – priorisiert
+**Private Zustandsübermittlung:** GET /api/gpt/private/bot-state liefert nur lokal authentifiziert zwei Read-only-Snapshots. Ein sicherer privater Cloud-ChatGPT-Empfang ist **nicht nachgewiesen**. Kein Konto- oder Walletstand darf ins öffentliche GitHub.
 
-1. Nachweis eines autonomen tatsächlichen ChatGPT-R29-Forward-Decisions-Durchlaufs mit zeitgerechtem Input, Archiv, Eigentümernachweis, ggf. zusätzlicher nachweisbarer Modellherkunft und lokaler signierter Quittung.
-2. Vor jedem automatischen Paper-BUY ein **kontinuierlicher GPT-autorisierter positionsgebundener Exit-Vertrag**, mit sicheren frischen Quotes, TTL, Restart-/Offline-/Bot-AUS-Verhalten, Replay-Sperre, Sellability und bestätigtem GPT-SELL.
-3. Solana-Mint-/Pool-/LP-/Holder-/Sellability-Nachweise sind nicht vollständig; indikative zweigeteilte Quotes sind kein ausführbarer Kauf/Verkauf.
-4. Historische Datenlücke **241.649 Launches ohne Minutenmerkmale** bleibt UNKNOWN, nicht als 0 oder technische Ablehnung zählen. Vollständige zehn echte 7+3 as-of GPT-Trading-Holdouts mit unabhängigen Preisdaten und Netto-PnL sind nicht bestätigt.
-5. Transparente prospektive PAPER-BUY/HOLD/SELL-/Exit-Quittungen aus dem **tatsächlichen** Nutzer-Ledger fehlen. Isolierter Erfolg mit synthetischen Orders ist kein Live-Nachweis.
-6. Die Installation von V4.4/V4.5 auf dem **persönlichen Windows-Rechner** darf nicht allein aus GitHub-Code oder CI angenommen werden. `Sniperbot0.1`-Diagnosen hatten altes R28-Schema.
+**Risikogates:** Separate Paper-Limits von 1 % pro Einzelposition und 3 % Gesamtexposition sind noch wirksam und können das dynamische User-Limit enger fassen. PR #61/#63: positionsgebundene GPT-Exit-Policy + Monitor im Code; PR #64: nur isolierter Test-Paper-Fill, **kein** autonomer Trade im persönlichen Ledger. Sicherheits- und Quote-Gates unverändert, echte BUY/SELL-Abnahme offen.
+
+**Betrieb:** ausschließlich Sniperbot_Starten.bat, keine lokale kostenpflichtige OpenAI-API, kein zusätzlicher API-Key, keine Echtgeld-Orders, keine neuen Bots/PayPal-/UI-Arbeiten, historische 10 as-of-Tests weiterhin getrennt.
+
+**Bereits repariert:** PR #56 historisches Paging; PR #58 lokale Heuristik-BUYs; PR #59 lokaler bezahlter API-Pfad; PR #61/#63 Exit-Code und Monitor-Liveness; PR #62 falsches Kurier-Statusfeld; PR #64 signierter Kleinbetrags-QA-Deadlock und UI; PR #65 dynamische Paper-Präferenz und lokale private State-Revision. **OFFEN:** sichere private Cloud-Zustellung, Echtgeld-Strategieeinstellungen und Ledger, Abgleich GPT-Decision/State-Revisionen, echter prospektiver GPT-BUY/SELL/PnL, native Sellability-Nachweise.
 
 ---
 

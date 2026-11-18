@@ -1,4 +1,6 @@
-# R29 V4.5 – korrekter Windows-/ChatGPT-GitHub-Verbindungstest
+> **AKTUELL R29 V4.9 (18.11.2026):** [V4.5-Wissenschronik mit V4.6–V4.9-Ergebnissen](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Diese Anleitung prüft ausschließlich öffentliche/localhost-Verbindung; sie beweist weder autonome ChatGPT-Orders noch den privaten Windows→Cloud-GPT-Zustandsabgleich. PR #65: getrennte lokale read-only Paper-/Real-Zustände, nur mit Authentifizierung. Echtgeld LIVE_LOCKED, eigene Echtgeld-Einsatz-/Gesamtbudgets noch nicht bestätigt. Bei fehlendem GPT-Exit-Monitor-Heartbeat keine neuen Paper-BUYs; gültige SELLs separat.
+
+# R29 V4.9 – Windows-/ChatGPT-GitHub-Verbindungstest (R28-kompatibler Dateiname)
 
 **Aktiv ab 18.11.2026 – GitHub-only, PAPER_ONLY.** Früheres R28-Diagnoseskript heißt aus Kompatibilität weiter `runner/r28-connection-diagnostic.mjs`. Der gesonderte lokale kostenpflichtige OpenAI-API-Kanal ist nach PR #59 **absichtlich deaktiviert** und darf nicht als Einrichtungsfehler ausgegeben werden. Frühere R28-API-Anleitung: [historisches Archiv](archive/R28_VERBINDUNGSTEST_LEGACY_LOKAL_API_20261115.md). Maßgeblich für die Projektfortsetzung ist [R29 V4.5](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md).
 

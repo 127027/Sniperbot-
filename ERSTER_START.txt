@@ -1,36 +1,55 @@
-R29 V4.5 – AKTUELLE, VERBINDLICHE STARTANLEITUNG (18.11.2026)
+R29 V4.9 – AKTUELLE VERBINDLICHE WINDOWS-STARTANLEITUNG (18.11.2026)
 ================================================================
-Kanonisches Projektwissen:
+Verbindlicher R29 V4.5-Wissensstand mit V4.6–V4.9-Nachtraegen:
 research\r29\operations\R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md
 
-BESTAETIGT: ChatGPT-R29-Aufgaben -> GitHub -> vorhandener Windows-Bot.
-KEIN lokaler bezahlter OpenAI-API-Key. KEIN -WithCentralAI.
-KEINE neuen Bots, KEINE neuen Paper-BUYs ohne abgenommenen GPT-Exit-Schutz.
-ACHTUNG: Letztes Nutzer-JSON zeigte paper_bot_enabled=true. Der aktuelle
-Receiver erzwingt einen dauerhaften GPT-Exit-Vertrag vor BUY noch NICHT.
-Daher bis zum technischen Fix Dashboard BOT AUS lassen (neue Eintraege
-sperren; berechtigte GPT-SELLs bleiben bei Bot AUS laut PR #58 moeglich).
+ARCHITEKTUR: ChatGPT Forward -> GitHub -> EIN vorhandener Windows-Sniperbot.
+KEINE lokale kostenpflichtige OpenAI-API, KEIN -WithCentralAI, KEIN
+neuer GPT-Strategie-Bot und KEINE Echtgeld-Ausfuehrung.
 
+V4.9 IST: Paper-Preferred-Einsatz und Paper-Gesamtbudget werden
+dynamisch gespeichert, z. B. 75 -> 45 -> 35 ohne Codeaenderung.
+Getrennte lokale private Read-only-Snapshots Paper/Real mit Revision
+stehen nur authentifiziert auf localhost bereit.
+NICHT FERTIG: sichere private Uebertragung an Cloud-ChatGPT,
+persistierte Echtgeld-Preferred-/Total-Limits, echte Real-Positionen
+oder vollstaendiger GPT-Paper-BUY/HOLD/SELL auf Nutzerkonto.
+Paper-Risiko-Code begrenzt aktuell ausserdem einzelne BUYs auf
+1% Equity und insgesamt auf 3% Exposure, selbst wenn im Dashboard
+groessere Investitionslimits eingetragen sind. Diese Grenzen sind
+separat von den bevorzugten Benutzereinstellungen.
+
+V4.6/V4.7-CODE: signierter GPT-Exit-Vertrag plus 30s-Monitor und
+Freshness-Kaufblockade existieren; der tatsaechlich laufende
+Windows-Build und frischer Monitor-Heartbeat muessen separat
+verifiziert werden. V4.8-CI-BUY/SELL war ein isolierter QA-Test,
+KEIN autonomer realer GPT-Paper-Trade.
 
 WINDOWS:
-1) Vorherigen Bot mit Q beenden und private .local sowie
-   %LOCALAPPDATA%\MemeSniperPaper lokal sichern (niemals Github pushen).
-2) Aktuellen kanonischen R29-Branch separat entpacken.
-3) Die Datei Sniperbot_Starten.bat doppelklicken, OHNE Parameter.
-4) Im neuen Ordner node runner/r28-connection-diagnostic.mjs ausfuehren.
-5) Entscheidend: github_gpt_courier.local_signed_receiver_ready
-   und /api/gpt/paper/status: local_gpt_bridge_ready, gpt_follow_enabled.
-   central_ai.enabled=false ist in diesem Modus ERWARTET.
-   Bot nicht erreichbar? Erst Startfenster, localhost:3030 und Version pruefen.
-6) GitHub-Receiver bereit heisst NICHT, dass GPT einen BUY/SELL ausgefuehrt
-   hat. Letzte bestaetigte ID gpt_e7c715480f009a0dd80040fa78c186a7
-   war NO_TRADE; 8 registrierte IDs sind keine 8 Trades.
-7) Kein Guthaben/Position/Key/Wallet ruecksetzen. Keine Erfolgszahlen erfinden.
+1) Alten Bot mit Q sauber beenden, bestehende
+   %LOCALAPPDATA%\MemeSniperPaper- und .local-Daten privat sichern.
+   Keinen Seed/PAT/Wallet/Guthaben nach GitHub oder Chat senden.
+2) Aktuellen kanonischen Branch separat in NEUEN Ordner entpacken;
+   alte Installation erhalten, lokale Konten nicht ueberschreiben.
+3) Sniperbot_Starten.bat doppelklicken, OHNE Parameter.
+4) Zweites CMD-Fenster im NEUEN Ordner:
+   node runner/r28-connection-diagnostic.mjs
+   curl.exe -s http://127.0.0.1:3030/api/gpt/paper/status
+5) Dabei local_gpt_bridge_ready und gpt_follow_enabled pruefen;
+   exit_guard_required_for_new_gpt_buy=true und
+   gpt_exit_monitor_heartbeat_recent=true muessen bei neuen
+   GPT-BUYs aktuell sein. real_trading_enabled=false erwartet.
+6) Bis diese Sicherheit tatsaechlich nachgewiesen ist,
+   Dashboard 'Neue Paper-Kaeufe' auf AUS. Gueltige signierte
+   GPT-SELLs bleiben unabhaengig moeglich.
+7) Der private /api/gpt/private/bot-state-Endpunkt erfordert
+   vorhandene lokale Authentifizierung; nicht oeffentlich posten.
+   Seine Existenz beweist KEINE automatische Zustellung an GPT.
+8) Ein Receiver-Heartbeat, alte Entscheidungs-ID oder NO_TRADE
+   ist KEIN ausgefuehrter GPT-Kauf.
 
-18.11.2026 Windows-Live-Belege: 14:30:57 UTC -> 64 Pools/16 Headlines,
-GitHub kanonisch 64 Pools/24 Alerts, Publisher-Commit 5037000270707e53471e9a8eb32897231f7f6155.
-15:12:38 UTC -> Bot wieder online, 47 Pools/16 Headlines.
-Vor einer erneuten Live-Behauptung Zeitstempel neu nachlesen!
+Historische V4.4-/V0.20-Anleitungen beginnen unterhalb; sie sind
+keine heute gueltige Handlungsanweisung.
 
 DIE FOLGENDE V4.4- UND V0.20-ANLEITUNG IST ERGAENZEND/HISTORISCH.
 ================================================================

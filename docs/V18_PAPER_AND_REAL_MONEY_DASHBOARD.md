@@ -1,3 +1,7 @@
+> **ARCHIV / VERIFIZIERUNGSSTAND R29 V4.9 (18.11.2026):** Diese Datei dokumentiert ausschließlich die V0.18-Trennung der Ansichten, **keinen** vollständig implementierten Echtgeld-Tradingmodus. Laut aktuellem [R29 V4.5-Wissensstand mit V4.9-Nachtrag](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md) sind eigenständige gespeicherte Echtgeld-Preferred-/Gesamtbudgets, Echtgeld-Positions-/Reservierungsledger und Echtgeld-Trades nicht nachgewiesen; die Walletansicht ist READ-ONLY, LIVE bleibt LOCKED. Der neue private lokale Paper-/Real-Status ist nicht automatisch mit ChatGPT in der Cloud verbunden. Die alten Screens/Buttons bitte nicht verändern oder als Handelsfreigabe interpretieren.
+
+---
+
 # V0.18 · Sichtbarer Windows-Laptop-Bot: Paper- und Echtgeldoberfläche getrennt
 
 **Stand 10. November 2026 · Branch `codex/v18-paper-live-dashboard-split-20261110` · Draft PR #27.**
