@@ -1,3 +1,33 @@
+# Systemarchitektur – aktuell R29 V4.5 (18.11.2026)
+
+**Aktuelle Referenz:** [R29 V4.5 – kanonisches Projektwissen](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Die darunter unverändert erhaltene V0.3-Skizze ist historisch und darf nicht als heutiger Code- oder Startpfad verwendet werden.
+
+```text
+[Externe Read-only Markt-/News-/Social-/Chain-Quellen]
+       -> [Windows Collector, lokales .local-Archiv]
+       -> [Publisher + r29-canonical-market-relay]
+       -> [GitHub kanonischer R29 Markt-/Evidence-Kanal]
+       -> [bestehende ChatGPT Forward Automation: GPT einzige Strategie]
+       -> [owner-attributed Decision Archive+Pointer / TTL]
+       -> [GitHub-Kurier: Commit-/Archiv-Hash-Validierung]
+       -> [authentifizierter 127.0.0.1-GPT-Empfänger]
+       -> [separates technisches Paper-Risiko-/Quote-/Replay-/Signatur-Gate]
+       -> [ein einziges, privates lokales Paper-Ledger + Receipt]
+       -> [GPT signierte kontinuierliche positionsgebundene Exits: NOCH OFFEN]
+```
+
+- Einziger Windows-Benutzer-Starter `Sniperbot_Starten.bat`; Server localhost-Port 3030; `runner/windows-supervisor.ps1 -WithR29`.
+- Kein lokal kostenpflichtiger Modellaufruf, kein API-Key. Historisches `runner/central-ai-coordinator.mjs` ist vom regulären Server entkoppelt (PR #59). `central_ai.enabled:false` bedeutet hier nicht, dass GitHub GPT fehlt.
+- Ein zweiter vorhandener ChatGPT-Task macht **historische Blindtests, keine Live-Aufträge**. Fünf Analyse-Rollen sind nicht fünf zusätzliche verpflichtend zu erzeugende Bots.
+- GitHub-Heartbeat, Modellforschung, signierter lokaler Test, tatsächlich journalisierte LIVE-PAPER-Fills und echte Onchain-Trades sind unterschiedliche Evidenzkategorien.
+- Signatur/Owner-Attribution allein belegen weder Modellurheberschaft noch den sicheren unabhängigen Coin-Sell. Vertrags- und Marktfrische-Gates bleiben fail-closed.
+- Bisher nachgewiesen: Collector/GitHub-Relay (64 Pools/24 Alerts 18.11.), lokaler Receiver bereit mit 8 Replay-IDs, NO_TRADE-Receipt, kein echter GPT-BUY/SELL. Bis GPT-autorisierte Dauer-Exit-Policy installiert, **keine neuen autonomen Paper-BUYs**. Echtgeld ist strikt AUS.
+- Keine privaten Daten aus `.local` oder `%LOCALAPPDATA%\MemeSniperPaper` in das öffentliche Repo; keine separate Wallet-/PayPal-Entwicklung.
+
+---
+
+## Historisches V0.3-Architekturdesign (nicht mehr der aktuelle Starter/Status)
+
 # Architektur und Systemgrenzen
 
 **Aktueller Code V0.3** (lokal testbar) und **Zielarchitektur** sind absichtlich getrennt dargestellt.
