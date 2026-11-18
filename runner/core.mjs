@@ -100,7 +100,9 @@ export function applyExits(s){
   // GPT_GUARD is not itself a signed GPT exit-policy. Never apply
   // the legacy global stop-loss as an unapproved GPT sale.
   if(p.gptPaperDecision===true||p.exitMode==='GPT_GUARD'){
-   p.quoteStatus='GPT_POSITION_EXIT_POLICY_NOT_AUTHORIZED';
+   p.quoteStatus=p.gptExitPolicyDigest?
+    'GPT_AUTHORIZED_EXIT_MONITOR_SEPARATE_FROM_LEGACY':
+    'GPT_POSITION_EXIT_POLICY_NOT_AUTHORIZED';
    continue;
   }
   if(!['AUTO','TRAILING'].includes(p.exitMode))continue;
