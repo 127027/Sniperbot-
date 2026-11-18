@@ -7,6 +7,8 @@ import {freshState,action} from './core.mjs';
 import {applyAgentSignal} from './paper-agent-pipeline.mjs';
 import {assessEvmSecurityRaw} from './live-paper-security.mjs';
 import {createGptPaperLocalReceiver} from './gpt-paper-local-receiver.mjs';
+import {paperDashboardView} from './dashboard-portfolio.mjs';
+import {r29LivePaperEntryGate} from './live-paper-risk.mjs';
 import {contentSha256,archivePath,validateGptPaperDecision,
  validateGptPaperPointer} from './gpt-paper-protocol.mjs';
 
@@ -191,5 +193,60 @@ test('V4.3: pausing new entries does not prevent a fresh signed GPT SELL',async(
   const blocked=await a.r.receive(envelope(decision('BUY',now,'9'.repeat(32))));
   assert.equal(blocked.status,'BLOCKED');
   assert.equal(a.state.positions.length,0);
+ }finally{a.cleanup()}
+});
+
+test('V4.8 regression: 4,999.01 TEST-USDC can open GPT-signed 25 paper position under 1% and close with visible UI receipt',async()=>{
+ const a=makeReceiver();
+ try{
+  a.setState({...a.state,cashUsdc:4999.01});
+  const candidate=candidate(Date.now()),q=quote(.02);
+  const gate=r29LivePaperEntryGate({
+   state:{...a.state,automaticPaperBuys:true},candidate,
+   quote:q,security:safe(),now:Date.now()});
+  assert.equal(gate.allowed,true);
+  assert.equal(gate.amount_test_usdc,49.99);
+  const buy=decision('BUY',Date.now(),'a'.repeat(32));
+  buy.amount_test_usdc=25;
+  const receipt=await a.r.receive(envelope(buy));
+  assert.equal(receipt.status,'PAPER_FILLED');
+  assert.equal(a.state.positions.length,1);
+  assert.equal(a.state.positions[0].amountUsdc,25);
+  assert.equal(a.state.positions[0].gptPaperDecision,true);
+  const openUi=paperDashboardView(a.state);
+  assert.equal(openUi.open_position_count,1);
+  assert.equal(openUi.positions[0].gpt_paper_managed,true);
+  assert.equal(openUi.positions[0].invested_test_usdc,25);
+  assert.equal(openUi.positions[0].paper_only,true);
+  // No fake background settlement: a genuinely authenticated signed GPT
+  // paper SELL must be processed independently after a new price quote.
+  a.setPrice(.026);
+  const sell=decision('SELL',Date.now(),'b'.repeat(32));
+  const closed=await a.r.receive(envelope(sell));
+  assert.equal(closed.status,'PAPER_FILLED');
+  const result=paperDashboardView(a.state);
+  assert.equal(result.open_position_count,0);
+  assert(result.realized_pnl_test_usdc>0);
+  assert(a.state.cashUsdc>4999.01);
+  assert.equal(a.state.agentOrderReceipts.filter(r=>r.status==='PAPER_FILLED').length,2);
+  assert.equal(a.state.agentOrderReceipts.every(r=>r.real_trade_executed===false),true);
+ }finally{a.cleanup()}
+});
+test('V4.8 signed small GPT amount cannot bypass 1% cap or allow small unsigned manual buy',async()=>{
+ const a=makeReceiver();
+ try{
+  a.setState({...a.state,cashUsdc:4999.01});
+  const oversized=decision('BUY',Date.now(),'c'.repeat(32));
+  oversized.amount_test_usdc=50;
+  const result=await a.r.receive(envelope(oversized));
+  assert.equal(result.status,'BLOCKED');
+  assert.equal(result.reason,'GPT_SIZE_EXCEEDS_INDEPENDENT_RISK_CAP');
+  assert.equal(a.state.positions.length,0);
+  const state={...a.state,entriesEnabled:true,candidates:[{
+   id:'manual:test',isDemo:true,chain:'demo',tokenAddress:'mint',
+   poolAddress:'pool',priceUsd:1,asOf:new Date().toISOString()}]};
+  const manual=action(state,{type:'BUY',id:'manual:test',amount:25});
+  assert.equal(manual.positions.length,0,
+   'old unsigned manual minimum remains 50 TEST-USDC');
  }finally{a.cleanup()}
 });
