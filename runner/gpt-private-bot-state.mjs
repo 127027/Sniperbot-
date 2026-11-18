@@ -4,7 +4,7 @@
 // Public GitHub must NEVER receive this data or any deterministic state hash.
 import {createHash} from 'node:crypto';
 import {portfolioBudget} from './portfolio-budget.mjs';
-import {MAX_SINGLE_SHARE,paperAutoEquity} from './live-paper-risk.mjs';
+import {MAX_SINGLE_SHARE,MAX_TOTAL_SHARE,paperAutoEquity} from './live-paper-risk.mjs';
 
 export const PRIVATE_BOT_STATE_SCHEMA='sniper_r29_private_dual_account_state.v1';
 const currency=n=>typeof n==='number'&&Number.isFinite(n)&&n>=0;
