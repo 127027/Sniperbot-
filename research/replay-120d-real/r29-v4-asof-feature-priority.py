@@ -173,25 +173,37 @@ def review_at(conn,asof,page=0):
   "this_is_not_an_actual_GPT_model_invocation":True,
   "paper_trade_execution_verified":False}
 
-def review_at_cached(eligible_cache,launch_times,expiry_cache,asof,page=0):
- """Fast deterministic as-of view, byte-equivalent fields to SQL review_at.
+def ranked_eligible_at_cached(eligible_cache,launch_times,expiry_cache,asof):
+ """One full-universe-free as-of sort; never hard-cap eligible identities.
 
- O(number of currently eligible identities) instead of repeated JOIN+SORT of
- the entire ever-growing launch universe at every one of 408 hourly checks.
- The full neutral source ledger is never truncated or sampled.
+ Every previously eligible-but-expired identity is accounted for separately,
+ rather than silently lost. Historical rows arriving after asof are invalid.
  """
- if not finite(asof) or not isinstance(page,int) or page<0:
-  raise ValueError("INVALID_ASOF_RESEARCH_PAGE")
+ if not finite(asof):raise ValueError("INVALID_ASOF_RESEARCH_TIME")
  rows=[]
+ suppressed={"TECHNICALLY_ELIGIBLE_BUT_OBSERVATION_EXPIRED":0,
+  "NOT_YET_LAUNCHED":0}
  for mint,(last_t,buys,reserve,score,reason) in eligible_cache.items():
   t0=launch_times.get(mint)
   expiry=expiry_cache.get(mint)
-  if t0 is None or expiry is None:continue
-  if t0<=asof and expiry>asof and last_t<=asof:
+  if t0 is None or expiry is None:
+   raise ValueError("ACTIVE_FEATURE_WITHOUT_CAPTURED_SOURCE_LAUNCH")
+  if last_t>asof:raise ValueError("FUTURE_FEATURE_VISIBLE_IN_HISTORIC_REPLAY")
+  if t0>asof:
+   suppressed["NOT_YET_LAUNCHED"]+=1
+  elif expiry<=asof:
+   suppressed["TECHNICALLY_ELIGIBLE_BUT_OBSERVATION_EXPIRED"]+=1
+  else:
    rows.append((mint,t0,last_t,buys,reserve,score,reason))
  rows.sort(key=lambda r:(-r[5],-r[2],r[0]))
+ return rows,suppressed
+
+def page_from_ranked(rows,asof,page=0):
+ """Pure deterministic page representation, identical to legacy SQL output."""
+ if not finite(asof) or not isinstance(page,int) or page<0:
+  raise ValueError("INVALID_ASOF_RESEARCH_PAGE")
  n=len(rows)
- section=rows[page*REVIEW_BATCH_SIZE:(page+1)*REVIEW_BATCH_SIZE]
+ selected=rows[page*REVIEW_BATCH_SIZE:(page+1)*REVIEW_BATCH_SIZE]
  return {"asof_utc":capture.iso(asof),"eligible_count_not_truncated":n,
   "page":page,"page_size":REVIEW_BATCH_SIZE,
   "total_pages":(n+REVIEW_BATCH_SIZE-1)//REVIEW_BATCH_SIZE,
@@ -203,9 +215,76 @@ def review_at_cached(eligible_cache,launch_times,expiry_cache,asof,page=0):
    "technical_priority_score_not_breakout_probability":x[5],
    "technical_reason":x[6],"GPT_decision":None,
    "gpt_model_call_made":False,"buy_sell_quote_verified":False}
-   for x in section],
+   for x in selected],
   "this_is_not_an_actual_GPT_model_invocation":True,
   "paper_trade_execution_verified":False}
+
+def review_at_cached(eligible_cache,launch_times,expiry_cache,asof,page=0):
+ """Backwards-compatible single-page SQL-identical interface."""
+ rows,_=ranked_eligible_at_cached(eligible_cache,launch_times,expiry_cache,asof)
+ return page_from_ranked(rows,asof,page)
+
+def research_shortlist_from_ranked(rows,asof,max_candidates=16):
+ """Neutral 1..24 potential model frames/day, not model calls or trading.
+
+ All candidates remain in hourly-pages. A small cross-bucket, capped set
+ prevents old high cumulative-buy scores from monopolizing GPT attention.
+ Source freshness and observation window are explicit. No winner IDs or
+ future outcomes influence selection. Every nonchosen mint is DEFERRED,
+ not removed from archival research.
+ """
+ if not 1<=max_candidates<=32:raise ValueError("INVALID_RESEARCH_QUEUE_BUDGET")
+ eligible=[r for r in rows if 0<=asof-r[2]<=90*60]
+ newly_observed=sorted((r for r in eligible if asof-r[2]<=20*60),
+  key=lambda r:(-r[2],-r[5],r[0]))
+ young_launch=sorted((r for r in eligible if asof-r[1]<=2*3600),
+  key=lambda r:(-r[2],-r[5],r[0]))
+ high=sorted((r for r in eligible if asof-r[2]<=60*60),
+  key=lambda r:(-r[5],-r[2],r[0]))
+ older_watch=sorted((r for r in eligible if asof-r[1]>2*3600),
+  key=lambda r:(-r[2],-r[5],r[0]))
+ picked={}
+ for name,bucket,slots in (
+  ("FRESH_EVENT_RESEARCH",newly_observed,6),
+  ("YOUNG_LAUNCH_RESEARCH",young_launch,4),
+  ("HIGH_ASOF_PRIORITY",high,4),
+  ("OLDER_REACTIVATION_OR_CONTINUED_INTEREST",older_watch,2)):
+  used=0
+  for row in bucket:
+   if row[0] in picked:continue
+   picked[row[0]]=(name,row)
+   used+=1
+   if used>=slots or len(picked)>=max_candidates:break
+ if len(picked)<max_candidates:
+  for row in sorted(eligible,key=lambda r:(-r[2],-r[5],r[0])):
+   if row[0] not in picked:picked[row[0]]=("REMAINING_FRESH_RESEARCH_CAPACITY",row)
+   if len(picked)>=max_candidates:break
+ out=[{"mint":r[0],"queue_reason":reason,
+   "launch_at_utc":capture.iso(r[1]),
+   "last_feature_observed_at_utc":capture.iso(r[2]),
+   "technical_score_not_probability":r[5],
+   "feature_age_seconds":round(asof-r[2],3),
+   "launch_age_seconds":round(asof-r[1],3),
+   "GPT_decision":None,"real_model_call_occurred":False,
+   "buy_authorized":False}
+  for reason,r in picked.values()]
+ return {"asof_utc":capture.iso(asof),"not_a_model_call":True,
+  "max_candidate_suggestions_for_one_possible_GPT_analysis":max_candidates,
+  "selected_count":len(out),"model_input_suggestions":out,
+  "deferred_by_capacity_not_lost":len(eligible)-len(out),
+  "deferred_due_to_stale_feature_not_lost":len(rows)-len(eligible),
+  "entire_eligible_set_in_full_paginated_archive":True}
+
+def review_all_pages_at_cached(eligible_cache,launch_times,expiry_cache,asof):
+ """Build all pages FROM ONE sorted asof state and verify losslessness."""
+ ranked,excluded=ranked_eligible_at_cached(eligible_cache,launch_times,expiry_cache,asof)
+ n=len(ranked)
+ count=(n+REVIEW_BATCH_SIZE-1)//REVIEW_BATCH_SIZE
+ pages=[page_from_ranked(ranked,asof,i) for i in range(count)]
+ if sum(len(p["selected_for_possible_GPT_review"]) for p in pages)!=n or len({
+  x["mint"] for p in pages for x in p["selected_for_possible_GPT_review"]})!=n:
+  raise ValueError("CANDIDATE_PAGING_LOSS_OR_DUPLICATE")
+ return pages,excluded,research_shortlist_from_ranked(ranked,asof)
 
 def download_feature(day,target,expected):
  import pyarrow.parquet as pq
