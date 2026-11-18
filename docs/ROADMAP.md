@@ -1,17 +1,18 @@
-# R29 V4.5 – verbindliche nächste Meilensteine (18.11.2026)
+# R29 V4.9 – Aktuelle Roadmap (18.11.2026)
 
-[Quelle der Wahrheit und genaue Abnahmekriterien](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Unter dem Trenner ist der ehemalige V0.3-Plan nur historisch erhalten; seine offenen P1/P3 gelten nicht pauschal als noch fehlende Programmkomponenten.
+**Aktuelle Referenz R29 V4.9:** [R29 V4.5-Wissensstand mit V4.6–V4.9-Nachträgen](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Die früheren Zustandszahlen und Altanweisungen unter der Archivmarkierung sind datierte Historie.
 
-**Fertig und belegt:** Windows-GitHub-Research-Collector/Kanal, 18.11.2026 kanonischer frischer Capture mit 64 Pools/24 Alerts; vollständiger historischer Paging-Trichter PR #56; sicherer GPT-only-Rollen-Patch PR #58; GitHub-only ohne lokale bezahlte API PR #59; lokaler GPT-GitHub-Receiver bereit, NO_TRADE-Quittung.
+**Strategie:** ChatGPT allein entscheidet über neue Memecoins; GitHub übermittelt; der vorhandene Windows-Bot validiert und führt zulässige PAPER_ONLY-Aufträge aus. Ziel ist ein GPT-Signal mit **zwei getrennten dynamischen Kontozuständen**, nicht feste Einsätze und nicht ein zweiter Bot.
 
-**Nächste Ziele in dieser Reihenfolge:**
-1. Existierende prospektive ChatGPT-R29-Automation nachweislich neue as-of-Kandidaten prüfen lassen; valide GPT-Entscheidung/Archiv/Pointer/Windows-Receiver-Signatur mit UTC/SHA belegen.
-2. GPT-signierten **positionsgebundenen kontinuierlichen Exit- und Notfallvertrag** in bestehenden Paper-Komponenten implementieren; frische bidirektionale Ausführbarkeitsdaten, Idempotenz, Offline-/Neustart-/Bot-AUS-Prüfungen und Fail-closed-Regeln.
-3. **Erst nach Exit-Abnahme:** unbekannten Coin prospektiv GPT-BUY/HOLD/SELL im vorhandenen Paper-Ledger mit unabhängigen Quotes, Gebühren und quittiertem Ergebnis testen.
-4. Unabhängigen historischen 7+3-Blindtest mit echten as-of Quellen und Datenlücken-Protokoll fortführen, ohne postfreeze Namen/ATH einzumischen.
-5. Keine zusätzlichen Dots/Bots, keine zweite lokale OpenAI-API, kein UI-Neubau, keine Echtgeld-/PayPal-/Wallet-Arbeit.
+**Ist/Soll strikt unterscheiden:** Paper bevorzugter Einsatz und Gesamtbudget werden lokal gespeichert; Änderungen auf 45/35 sind möglich (PR #65). Real ist LIVE_LOCKED/read-only Wallet. Eigene persistierte Real-Preferred-/Gesamtlimits und Real-Positionsreserve sind derzeit **nicht belegt**. Keine reale Order und kein stillschweigendes Übernehmen von Paper-Werten in Echtgeld.
 
-**Belegverbot:** GitHub-Owner-Commits beweisen keine kryptografische Modellidentität; 8 empfangene Replay-IDs sind keine 8 Trades; isolierte Paper-Test-PnL ist kein Handelsnachweis.
+**Private Zustandsübermittlung:** GET /api/gpt/private/bot-state liefert nur lokal authentifiziert zwei Read-only-Snapshots. Ein sicherer privater Cloud-ChatGPT-Empfang ist **nicht nachgewiesen**. Kein Konto- oder Walletstand darf ins öffentliche GitHub.
+
+**Risikogates:** Separate Paper-Limits von 1 % pro Einzelposition und 3 % Gesamtexposition sind noch wirksam und können das dynamische User-Limit enger fassen. PR #61/#63: positionsgebundene GPT-Exit-Policy + Monitor im Code; PR #64: nur isolierter Test-Paper-Fill, **kein** autonomer Trade im persönlichen Ledger. Sicherheits- und Quote-Gates unverändert, echte BUY/SELL-Abnahme offen.
+
+**Betrieb:** ausschließlich Sniperbot_Starten.bat, keine lokale kostenpflichtige OpenAI-API, kein zusätzlicher API-Key, keine Echtgeld-Orders, keine neuen Bots/PayPal-/UI-Arbeiten, historische 10 as-of-Tests weiterhin getrennt.
+
+**Nächste Arbeit in dieser Reihenfolge:** 1) fehlenden vertraulichen Bot→ChatGPT-Zustandsweg und echte Kontorevisionen beweisen, ohne Public-GitHub-Leak; 2) prospektives GPT-Signal und sichere Paper-BUY/HOLD/SELL-Quittungen nachweisen; 3) Real-Kontoanforderungen später nach eigenständiger Freigabe sauber erfassen; 4) 10 historische 7+3-Blindtests getrennt fortsetzen. Keine erneute V4.2/V4.5-Entwicklung.
 
 ---
 
