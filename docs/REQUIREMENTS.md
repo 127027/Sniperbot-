@@ -1,3 +1,25 @@
+# R29 V5.0 – Produktanforderungen vor technischem V4.9-IST
+
+**VERBINDLICHER V5.0-ZIELVERTRAG (NUTZER GO):** [Autonomer GPT-Memecoin-Scout](../research/r29/operations/R29_V5_0_AUTONOMER_MEMECOIN_SCOUT_ZIELVERTRAG_20261118_DE.md) · [30-Tage-Fälle: ausdrücklich unbestätigt, nicht für Blindtest-Inputs](../research/r29/operations/R29_V5_0_MEMECOIN_30T_REFERENZFAELLE_UNVERIFIZIERT_20261118_DE.md). Die bisherige V4.9-Dokumentation unten ist der **technische Code-IST-Stand**, nicht die Definition eines bereits erreichten V5.0-Ergebnisses.
+
+**V5.0 ist ein vom Nutzer freigegebenes Entwicklungsziel, KEIN Nachweis einer fertig installierten Handelsfunktion.** Aktueller belegter Code-IST ist R29 V4.9 (PR #65) plus Dokumentationsabgleich PR #66. Der parallele Entwicklungsauftrag darf nur mit echten Code-/CI-/Windows-/ChatGPT-Belegen als erfüllt markiert werden.
+
+**Das Produktziel:** vorhandener 24/7-Windows-Collector sucht neu entstehende, vorher unbekannte Memecoins auf unterstützten Chains anhand aktueller Pools, Liquidität, Walletfluss, Social-/News-/Marktdaten. Die bestehende ChatGPT-Forward-Automation trifft **4–24 tatsächliche GPT-Vollreviews/Tag als Ziel**, priorisiert neue Ereignisse und entscheidet allein WATCH/BUY/HOLD/SELL/NO_TRADE, Einsatz und individuellen Exit. Stündlicher Wakeup ist NICHT garantiert eine GPT-Vollanalyse; 24/7 lokales Monitoring ist NICHT gleich 24/7 GPT-Aufrufe.
+
+**Beweisziel:** eindeutiger unbekannter Contract + zeitgerechter Fund → echte GPT-Entscheidung → authentifizierter GitHub-BUY → unabhängiger lokaler Paper-Sicherheits-/Quote-Check → echter persönlicher Paper-Ledger-Fill → GPT-autorisierter kontinuierlich überwachter SELL → Netto-PnL im vorhandenen Dashboard. Isolierte Tests und NO_TRADE sind keine autonomen Trades.
+
+**Zwei Konten, dieselben GPT-Signale (SOLL):** getrennte dynamische Paper-/Real-Präferenzen, Gesamtgrenzen, Positionen, Reservierungen und eigene Sicherheitsprüfungen. **IST V4.9:** Paper-Werte lokal dynamisch; Real READ-ONLY Wallet und LIVE_LOCKED ohne belegtes vollständiges eigenes Real-Handelsledger; privater lokaler Paper-/Real-Snapshot erreicht Cloud-GPT NICHT automatisch. Echtgeld bleibt gesperrt. Bestehende 1-%-/3-%-Paper-Risikogates gelten weiterhin und dürfen nicht stillschweigend entfallen.
+
+**Historische 30-Tage-Tabelle:** 36 **unbestätigte Betreiber-Referenzen**, keine komplette Marktgesamtheit, keine verifizierten ausführbaren Gewinnquoten und KEINE Gewinner-Whitelist. Nur POSTFREEZE-Diagnose; Blindtests brauchen neutralen as-of-Markt inklusive Verlierern. 7+3 Blindtests, Frische-/Quellen- und historische Price-/Fee-/Sellability-Abnahme weiterhin offen.
+
+**Nicht neu bauen:** zusätzlicher Bot/Dot, lokaler bezahlter OpenAI-API-Aufruf, GitHub-Kurier, repariertes Paging, neue UI, PayPal-/Wallet-Funktionen; keine vertraulichen Kontowerte in öffentliches GitHub, keine Echtgeldtransaktion.
+
+**V5.0-Abnahme:** (1) vollständige, nachgewiesene GPT-Reviewanzahl pro Tag, (2) unabhängige Contract-/Pool-/Security- und as-of-Preisbelege, (3) vollständiges prospektives lokales Paper-BUY/SELL-Receipt mit Gebühren-/Slippage-Modell, (4) neutrale historische Erfolgskohorte inklusive Verlierern und verpassten frühen Rallys; nie „alle 36 Referenzcoins erkannt/gekauft“ behaupten.
+
+---
+
+## Technischer Ausgangsstand R29 V4.9 (nachgewiesene Implementierung, historischer Kopf)
+
 > **AKTUELL R29 V4.9 (18.11.2026):** [R29 V4.5-Chronik mit V4.6–V4.9-Nachtrag](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). ZIEL: Ein strategisches GPT-Signal, getrennte dynamische Paper- und Echtgeld-Konten. IST: Paper-Preferred/Total-Limit ist gespeichert; Echtgeld-Preferred/Total-Limit und eigene Real-Positionsbuchhaltung sind **nicht nachgewiesen**, Real-Trading bleibt LOCKED. Privater Paper-/Real-Zustand ist nur lokal authentifiziert erreichbar; die sichere Cloud-ChatGPT-Zustellung fehlt. Paper-Code-Gates von 1 %/3 % sind zusätzlich weiterhin aktiv. PR #61/#63 Exit-Guard im Code; kein autonomer GPT-BUY/SELL-Fill bewiesen. Keine festen Einsätze, keine neuen Bots/zusätzlichen APIs, keine Echtgeldaktivierung.
 
 > **Historische R29-V4.5-Präzisierung (18.11.2026; ältere, unten überholte Statusbehauptungen):** Dieses Dokument ist ein historischer **Soll-/Anforderungskatalog**, keine aktuelle Implementierungsliste. Maßgeblich für die heutige Architektur ist [R29 V4.5](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md): bestehende ChatGPT-R29-Automationen als einzige Strategie → GitHub-Kurier → Windows-Paper-Bot; **keine lokal bezahlte OpenAI-API**, keine neue Agenteninfrastruktur; Start nur mit `Sniperbot_Starten.bat`. Paging (PR #56), Markt-Relay, Github-Kurier und lokaler Receiver existieren bereits. Prospektive echte GPT-Fills und kontinuierlicher signierter positionsgebundener Exit sind OFFEN; bis dahin keine neuen autonomen Paper-BUYs. Keine Echtgeld-/Wallet-/PayPal-Ausführung.
