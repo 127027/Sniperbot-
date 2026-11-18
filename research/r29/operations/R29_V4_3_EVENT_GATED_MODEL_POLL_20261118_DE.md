@@ -1,3 +1,7 @@
+> **R29 V4.5 Nachtrag – EXPERIMENTELLE LOKALE GPT-API-FORSCHUNG NICHT MEHR AKTIVER STRATEGIEPFAD.** Die darunter dokumentierte V4.3-Poll-/Budgetlogik war eine historische Code-/CI-Verbesserung der später bewusst entkoppelten lokalen API-Option. Nach Nutzerfreigabe und PR #59 ist die einzige aktuelle strategische Quelle ChatGPT über die bestehenden R29-Automationen und GitHub. Kein lokaler OpenAI-Key, keine wiederholte Scheduler-Neuentwicklung. Historischen Beleg erhalten, für aktuelle Fortsetzung [R29 V4.5](R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md) beachten.
+
+---
+
 # R29 V4.3 – Erster gezielter Schritt: event-gated GPT-Scheduling
 Stand: 18.11.2026. Nur PAPER_ONLY. Dieses Operator-Dokument darf niemals Input für historische Blindtest-Entscheidungen sein.
 
