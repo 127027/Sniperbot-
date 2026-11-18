@@ -7,12 +7,19 @@ import {makeR28ConnectionReport} from './r28-connection-diagnostic.mjs';
 import {r28CycleRecord,appendR28CycleAudit} from './r28-cycle-audit.mjs';
 const now=Date.parse('2026-11-15T09:30:00Z');
 const okay=(payload)=>({ok:true,status:200,json:async()=>({ok:true,...payload})});
-function mockApi({ai=true,failBot=false}={}){
+function mockApi({ai=false,gptReady=true,failBot=false}={}){
  const seen=[];
  const fetcher=async(url,options)=>{
   seen.push({url,method:options.method,origin:options.headers.origin,body:options.body});
   if(failBot)throw Error('offline');
   if(url.endsWith('/api/health'))return okay({mode:'PAPER_ONLY',uptimeSec:82});
+  if(url.endsWith('/api/gpt/paper/status'))return okay({
+   mode:'PAPER_ONLY',strategy:'GPT_ONLY',local_gpt_bridge_ready:gptReady,
+   gpt_follow_enabled:true,paper_bot_enabled:false,received_decision_count:0,
+   old_local_autopilot_enabled:false,last_decision_id:null});
+  if(url.endsWith('/api/r29/presence'))return okay({presence:{
+   checked_at_utc:'2026-11-15T09:29:00.000Z',
+   courier_enabled:true,local_paper_http_healthy:true}});
   if(url.endsWith('/api/central-ai/status'))return okay({coordinator:{
    enabled:ai,mode:'PAPER_ONLY',external_api_configured:ai,
    last_run_utc:'2026-11-15T09:28:00Z',
@@ -38,7 +45,10 @@ function mockApi({ai=true,failBot=false}={}){
 test('R28 local report proves API exchange status and isolated signed paper roundtrip but not ChatGPT chat connection',async()=>{
  const m=mockApi();
  const result=await makeR28ConnectionReport({fetcher:m.fetcher,now});
- assert.equal(result.conclusion,'LOCAL_AI_TO_BOT_REPORTS_PRESENT_NOT_CHAT_CLOUD_CONNECTION');
+ assert.equal(result.conclusion,'BOT_AND_GITHUB_GPT_RECEIVER_READY_NO_ORDER_PROOF');
+ assert.equal(result.github_gpt_courier.local_signed_receiver_ready,true);
+ assert.equal(result.github_gpt_courier.local_courier_heartbeat_recent,true);
+ assert.equal(result.github_gpt_courier.actual_gpt_paper_buy_sell_roundtrip_verified,false);
  assert.equal(result.central_ai.real_openai_exchange_observed,true);
  assert.equal(result.isolated_signed_paper_roundtrip.passed,true);
  assert.equal(result.chat_session_direct_connection,false);
@@ -54,8 +64,17 @@ test('R28 local report proves API exchange status and isolated signed paper roun
 test('R28 bot can be up and signed in-memory tests pass without any external AI API calls',async()=>{
  const {fetcher}=mockApi({ai:false});
  const r=await makeR28ConnectionReport({fetcher,now});
- assert.equal(r.conclusion,'BOT_AND_TEST_PIPELINE_OK_AI_DISABLED');
+ assert.equal(r.conclusion,'BOT_AND_GITHUB_GPT_RECEIVER_READY_NO_ORDER_PROOF');
+ assert.equal(r.github_gpt_courier.mode,'GITHUB_ONLY_NO_LOCAL_OPENAI_API');
+ assert.equal(r.github_gpt_courier.new_paper_entries_enabled,false);
  assert.equal(r.central_ai.real_openai_exchange_observed,false);
+ assert.equal(r.isolated_signed_paper_roundtrip.passed,true);
+});
+test('R28 preserves honest no-GPT-transport flag when local GitHub receiver not ready',async()=>{
+ const {fetcher}=mockApi({gptReady:false});
+ const r=await makeR28ConnectionReport({fetcher,now});
+ assert.equal(r.conclusion,'BOT_AND_TEST_PIPELINE_OK_GITHUB_GPT_RECEIVER_NOT_READY');
+ assert.equal(r.github_gpt_courier.local_signed_receiver_ready,false);
  assert.equal(r.isolated_signed_paper_roundtrip.passed,true);
 });
 test('R28 cannot claim successful communication with offline laptop',async()=>{
