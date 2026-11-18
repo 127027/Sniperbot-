@@ -104,7 +104,7 @@ test('GPT exit policy schema fails closed on missing, tampered and unrealistic t
   quote(.015,time),{now:time}).due,false);
  assert.equal(assessGptPaperExit(position,quote(.015,time),{now:time}).reason,
   'GPT_EXIT_STOP_LOSS');
- assert.equal(assessGptPaperExit({...position,openedAt:iso(time-1500000)},quote(.02,time),
+ assert.equal(assessGptPaperExit({...position,openedAt:iso(time-1441*60000)},quote(.02,time),
   {now:time}).reason,'GPT_EXIT_MAX_HOLD_EXPIRED');
 });
 test('V1 legacy GPT BUY and unsigned direct GPT BUY cannot open Paper position',async()=>{
