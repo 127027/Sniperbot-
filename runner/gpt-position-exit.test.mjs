@@ -76,7 +76,8 @@ function setup(){
      deviceId,now:Date.now(),quote:options.qaQuote,source:options.source,
      paperAutopilotCandidate:options.paperAutopilotCandidate,
      securityEvidence:options.securityEvidence,
-     gptExitAuth:options.gptExitAuth,gptPolicyExit:options.gptPolicyExit});
+     gptExitAuth:options.gptExitAuth,gptPolicyExit:options.gptPolicyExit,
+     gptExitMonitorReady:true});
     state=result.next;return {receipt:result.receipt};
    }});
  }
