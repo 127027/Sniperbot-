@@ -75,7 +75,10 @@ GitHub ist **Transport**, **nicht** das GPT-Modell, keine direkte Chat-zu-localh
 }
 ```
 
-Die Zahl **8** bedeutet registrierte Entscheidungs-IDs im lokalen Replay-/Receiver-State, **NICHT** acht Aufträge und **NICHT** acht Trades. Nutzer-Log enthielt noch alte R28-Diagnose ohne `github_gpt_courier`: Dieser einzelne Test wurde im vorhandenen Ordner `Sniperbot0.1` vor eindeutig bestätigtem V4.4-Laptop-Update ausgeführt. **Die tatsächlich installierte Codeversion kann nicht allein aus GitHub-Merge abgeleitet werden.**
+Die Zahl **8** bedeutet registrierte Entscheidungs-IDs im lokalen Replay-/Receiver-State, **NICHT** acht Aufträge und **NICHT** acht Trades.
+
+**AKTUELLER BETRIEBS-HINWEIS:** Das letzte Nutzer-Status-JSON hatte zugleich `paper_bot_enabled:true` und `gpt_follow_enabled:true`. Der aktuelle `gpt-paper-local-receiver.mjs` prüft bei einem BUY das lokale `entriesEnabled`, aber **noch keinen vollständigen GPT-signierten dauerhaften Exit-Vertrag als technische Kaufvoraussetzung**. Deshalb darf aus der dokumentierten *Policy* „keine neuen automatischen BUYs bis Exit-Abnahme“ **nicht** geschlossen werden, dass dies bereits überall im Code erzwungen wird. **Bis ein sicherer Code-Exit-Gate implementiert/abgenommen ist, den Paper-Bot im Dashboard auf AUS stellen (neue Einträge sperren); bestehende signierte GPT-SELLs bleiben dabei laut PR #58 ausführbar.** Keine Paper-Positionen oder Guthaben löschen.
+ Nutzer-Log enthielt noch alte R28-Diagnose ohne `github_gpt_courier`: Dieser einzelne Test wurde im vorhandenen Ordner `Sniperbot0.1` vor eindeutig bestätigtem V4.4-Laptop-Update ausgeführt. **Die tatsächlich installierte Codeversion kann nicht allein aus GitHub-Merge abgeleitet werden.**
 
 **GITHUB LIVE** `research/r29/channel/gpt-paper-receipt.json`: letzte passende ID
 `gpt_e7c715480f009a0dd80040fa78c186a7`, `received_at_utc: 2026-11-17T17:58:45.322Z`, `action:NO_TRADE`, `status:NO_TRADE`, `reason:GPT_RESEARCH_NO_ORDER`, `submitted_by:GITHUB_OWNER_ATTRIBUTED_GPT_RELAY`, `origin_model_signature_verified:false`; kein Wallet-/Kontobeleg. `research/r29/channel/gpt-paper-context.json` beim geprüften Stand `observed_at_utc:2026-11-18T15:12:44.163Z`, `gpt_follow_enabled:true`, `paper_bot_enabled:true`, `positions:[]`.
