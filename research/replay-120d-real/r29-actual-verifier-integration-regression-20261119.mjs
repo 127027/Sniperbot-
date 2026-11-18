@@ -1,0 +1,28 @@
+// R29 BACKTEST-ONLY. Exercise the actual pinned receipt verifier, not a duplicate test validator.
+// Synthetic fixtures only. No network, model, trading, wallet, or trust-anchor deployment.
+import assert from 'node:assert/strict';
+import {createHash,generateKeyPairSync,sign} from 'node:crypto';
+import {verifyPinnedReceipt} from './r29-pinned-ed25519-receipt-verifier.mjs';
+const sha=x=>createHash('sha256').update(x).digest('hex');
+const asof='2026-09-18T01:20:00Z';
+const frame=Buffer.from(JSON.stringify({virtual_asof_utc:asof,fixture:true}));
+const {publicKey,privateKey}=generateKeyPairSync('ed25519');
+const {publicKey:otherKey}=generateKeyPairSync('ed25519');
+const pem=publicKey.export({type:'spki',format:'pem'});
+const args={frameBytes:frame,pinnedPublicKeyPem:pem,expectedAsOfUtc:asof,expectedLedgerSha256:sha('ledger'),expectedModelRequestSha256:sha('request')};
+const receipt={schema:'r29-detached-receipt-v1',scope:'BACKTEST_ONLY',virtual_asof_utc:asof,original_capture_at_utc:'2026-09-18T01:19:00Z',model_called_at_utc:'2026-11-19T00:00:00Z',frame_sha256:sha(frame),source_sha256:sha('source'),ledger_sha256:args.expectedLedgerSha256,model_request_sha256:args.expectedModelRequestSha256,model_response_sha256:sha('response'),model_invocation_id:'SYNTHETIC-NOT-A-MODEL-CALL'};
+const signature=r=>sign(null,Buffer.from(JSON.stringify(r)),privateKey).toString('base64');
+const check=(r=receipt,override={})=>verifyPinnedReceipt({...args,receipt:r,signatureBase64:signature(r),...override});
+assert.equal(check().verified,true,'synthetic signed receipt accepted');
+const rejects=(label,fn)=>assert.throws(fn,undefined,label);
+rejects('wrong pinned key',()=>check(receipt,{pinnedPublicKeyPem:otherKey.export({type:'spki',format:'pem'})}));
+rejects('changed frame bytes',()=>check(receipt,{frameBytes:Buffer.from('changed')}));
+rejects('changed ledger binding',()=>check(receipt,{expectedLedgerSha256:sha('other ledger')}));
+rejects('changed model request binding',()=>check(receipt,{expectedModelRequestSha256:sha('other request')}));
+rejects('future capture',()=>check({...receipt,original_capture_at_utc:'2026-09-18T01:21:00Z'}));
+rejects('invalid UTC date',()=>check({...receipt,original_capture_at_utc:'2026-09-31T01:00:00Z'}));
+rejects('scope mismatch',()=>check({...receipt,scope:'LIVE'}));
+rejects('signature mismatch',()=>check(receipt,{signatureBase64:Buffer.alloc(64).toString('base64')}));
+rejects('forged invocation with old signature',()=>check({...receipt,model_invocation_id:'FORGED'},{signatureBase64:signature(receipt)}));
+rejects('future asof mismatch',()=>check(receipt,{expectedAsOfUtc:'2026-09-18T02:20:00Z'}));
+console.log('PASS actual verifier: 1 synthetic positive + 10 negative cases. Not evidence of historical provenance, trusted custody, GPT calls, quotes, fills or PnL.');
