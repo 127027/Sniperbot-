@@ -34,3 +34,21 @@ test('low capacity, stale snapshot or live-money context always fail closed',()=
  assert.equal(validatePrivateGptCapacity(x,{asof_utc:'2026-11-17T09:05:00Z',requested_test_usdc:100}).approved,false);
  assert.equal(computePrivateGptCapacity({...state(5000),realTradingEnabled:true},{observed_at_utc:now}).can_buy,false);
 });
+
+test('R29 V5.0 private GPT offer honors both 1% per-position and 3% of fresh total Paper equity',()=>{
+ const base=state(4870);
+ base.positions=[{amountUsdc:130,qty:130,priceUsd:1,markAt:now}];
+ const x=computePrivateGptCapacity(base,{observed_at_utc:now});
+ assert.equal(x.can_buy,true);
+ assert.equal(x.maximum_approved_buy_test_usdc,19.96,
+  'real 3% remaining exposure must bound advertised private GPT stake');
+ assert.equal(validatePrivateGptCapacity(x,{asof_utc:now,
+  requested_test_usdc:25}).approved,false);
+ assert.equal(validatePrivateGptCapacity(x,{asof_utc:now,
+  requested_test_usdc:15}).approved,true);
+ const full=state(4855);
+ full.positions=[{amountUsdc:145,qty:145,priceUsd:1,markAt:now}];
+ const blocked=computePrivateGptCapacity(full,{observed_at_utc:now});
+ assert.equal(blocked.can_buy,false,'<5 remaining under 3% cap is not spendable');
+ assert.equal(blocked.maximum_approved_buy_test_usdc,0);
+});
