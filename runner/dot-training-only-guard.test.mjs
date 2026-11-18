@@ -35,3 +35,18 @@ test('non-zero signals or bot output and activated execution are never allowed',
  const c=read();c.trade_execution=true;assert.throws(()=>validateDotTrainingReport(c),/TRADE_HANDOFF_NOT_PAUSED/);
  const d=read();d.signals=[];assert.throws(()=>validateDotTrainingReport(d),/FORBIDDEN_FIELD_signals/);
 });
+
+
+test('an independent historical Dot may record a compact read-only WATCH but never BUY',()=>{
+ const a=read();a.hypothetical_decisions=[{
+  date:'2024-10-10',subject:'example training narrative',decision:'WATCH',
+  buy_advisory:false,reason:'No verified original-time pool'}];
+ assert.equal(validateDotTrainingReport(a),a);
+ a.hypothetical_decisions[0].decision='PAPER_BUY_HYPOTHESIS';
+ assert.throws(()=>validateDotTrainingReport(a),/HYPOTHESIS_NOT_RESEARCH_ONLY/);
+});
+test('legacy WATCH without explicit buy_advisory false cannot evade training guard',()=>{
+ const a=read();a.hypothetical_decisions=[{
+  date:'2024-10-10',decision:'WATCH',reason:'Unknown'}];
+ assert.throws(()=>validateDotTrainingReport(a),/HYPOTHESIS_NOT_RESEARCH_ONLY/);
+});
