@@ -20,6 +20,11 @@ export function attestOriginalBytes({rawBytes,expectedSha256,sourceCapturedAtUtc
 }
 export function attestOpenPositions({positions,ledgerFills,virtualAsofUtc}){
  assert(Array.isArray(positions)&&Array.isArray(ledgerFills)&&utc(virtualAsofUtc),'BAD_LEDGER_INPUT');
+ const globalIds=new Set();
+ for(const f of ledgerFills){
+  assert(typeof f.fill_id==='string'&&f.fill_id.length>0&&!globalIds.has(f.fill_id),'DUPLICATE_GLOBAL_FILL');globalIds.add(f.fill_id);
+  assert(utc(f.filled_at_utc)&&Date.parse(f.filled_at_utc)<=Date.parse(virtualAsofUtc),'GLOBAL_FILL_TIME_INVALID');
+ }
  const seen=new Set();
  return positions.map(p=>{
   assert(!seen.has(p.position_id),'DUPLICATE_POSITION');seen.add(p.position_id);
@@ -36,7 +41,8 @@ export function attestOpenPositions({positions,ledgerFills,virtualAsofUtc}){
   assert(p.ledger_reconciled===true&&p.ledger_reconciled_asof_utc===virtualAsofUtc&&
    Number.isFinite(p.tokens_owned)&&p.tokens_owned>0,'UNRECONCILED_POSITION');
   // Conservative integer-only reconciliation until atomic-unit ledger schema is available.
-  const related=ledgerFills.filter(x=>x.position_id===p.position_id);
+  const related=ledgerFills.filter(x=>x.position_id===p.position_id).sort((a,b)=>Date.parse(a.filled_at_utc)-Date.parse(b.filled_at_utc));
+  assert(related[0]?.fill_id===p.opened_fill_id,'OPEN_FILL_NOT_FIRST');
   const ids=new Set(); let balance=0;
   for(const x of related){
    assert(typeof x.fill_id==='string'&&x.fill_id.length>0&&!ids.has(x.fill_id),'DUPLICATE_LEDGER_FILL');ids.add(x.fill_id);
@@ -68,5 +74,8 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  const sell={...fill,fill_id:'f2',side:'SELL',tokens_filled:3};
  attestOpenPositions({positions:[{...p,tokens_owned:7}],ledgerFills:[fill,sell],virtualAsofUtc:at});
  fail(()=>attestOpenPositions({positions:[p],ledgerFills:[fill,sell],virtualAsofUtc:at}),'POSITION_BALANCE_MISMATCH');
+ fail(()=>attestOpenPositions({positions:[],ledgerFills:[fill,{...fill,position_id:'other'}],virtualAsofUtc:at}),'DUPLICATE_GLOBAL_FILL');
+ fail(()=>attestOpenPositions({positions:[],ledgerFills:[{...fill,filled_at_utc:'2026-09-19T00:00:00Z'}],virtualAsofUtc:at}),'GLOBAL_FILL_TIME_INVALID');
+ fail(()=>attestOpenPositions({positions:[p],ledgerFills:[{...sell,filled_at_utc:'2026-09-18T01:19:00Z'},fill],virtualAsofUtc:at}),'OPEN_FILL_NOT_FIRST');
  console.log('R29_SYNTHETIC_ATTESTATION_TESTS_PASS; NO_REAL_SOURCE_OR_FILL_ATTESTED');
 }
