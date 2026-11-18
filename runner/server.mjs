@@ -94,6 +94,13 @@ const dynamicTradeInbox=await createDynamicTradeInbox({
  deviceId:localDevice.device_id,solanaWalletFile:walletFile
 });
 let walletCreationBusy=false,lastWalletBalanceAt=0,walletBalanceCache=null;
+let gptExitLastTick=null;
+const gptExitMonitorHealthy=()=>{
+ const checked=Date.parse(gptExitLastTick?.checked_at_utc||'');
+ return process.env.SNIPER_OFFLINE!=='1'&&deviceTopology.mode!=='FOLLOWER'&&
+  gptExitLastTick?.outcome==='OK'&&Number.isFinite(checked)&&
+  checked<=Date.now()&&Date.now()-checked<=90000;
+};
 const nativeTransferJournal=path.join(store.dir,'wallet','outgoing-sol-transfers');
 let nativeTransferChallenge=null,nativeTransferBusy=false;
 let walletBackupVerifiedAddress=null;
@@ -197,7 +204,7 @@ function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_A
  const job=async()=>{
   let keys;
   try{
-   if(['CENTRAL_AI_LOCAL','LOCAL_PAPER_AUTOPILOT','GPT_GITHUB_LOCAL'].includes(source)&&Array.isArray(localTrust)&&localTrust.length===1){
+   if(['CENTRAL_AI_LOCAL','LOCAL_PAPER_AUTOPILOT','GPT_GITHUB_LOCAL','GPT_GITHUB_POLICY_EXIT'].includes(source)&&Array.isArray(localTrust)&&localTrust.length===1){
     // Session-only public trust: private signing key never leaves coordinator memory.
     keys=localTrust;
    }else{
@@ -217,7 +224,7 @@ function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_A
   try{
    const syntheticTest=process.env.SNIPER_OFFLINE==='1'&&
     process.env.SNIPER_PIPELINE_QA==='1'&&qaQuote!==null;
-   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source,syntheticTest,indicativePaper,paperAutopilotCandidate,securityEvidence,gptExitAuth,gptPolicyExit});
+   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source,syntheticTest,indicativePaper,paperAutopilotCandidate,securityEvidence,gptExitAuth,gptPolicyExit,gptExitMonitorReady:gptExitMonitorHealthy()});
    commit(result.next);
    return {ok:true,receipt:result.receipt,real_trade_executed:false,live_trading_enabled:false};
   }catch(e){return {error:String(e?.message||'AGENT_PAPER_PIPELINE_BLOCKED').slice(0,120),code:422}}
@@ -381,6 +388,11 @@ const server=createServer(async(req,res)=>{
  private_paper_size_offer_transport:'AUTHENTICATED_LOCALHOST_ONLY',
  exit_guard_required_for_new_gpt_buy:true,
  continuous_gpt_exit_monitor_enabled:process.env.SNIPER_OFFLINE!=='1'&&deviceTopology.mode!=='FOLLOWER',
+ gpt_exit_monitor_heartbeat_recent:gptExitMonitorHealthy(),
+ gpt_exit_monitor_last_checked_at_utc:gptExitLastTick?.checked_at_utc||null,
+ gpt_exit_monitor_last_outcome:gptExitLastTick?.outcome||'NOT_YET_CHECKED',
+ gpt_exit_monitor_last_checked_positions:gptExitLastTick?.positions_checked??null,
+ gpt_exit_monitor_last_paper_exits_filled:gptExitLastTick?.paper_exits_filled??null,
  gpt_positions_with_validated_exit_contract:state.positions.filter(p=>p.gptPaperDecision===true&&validateGptExitBinding(p)).length,
  gpt_positions_missing_exit_contract:state.positions.filter(p=>p.gptPaperDecision===true&&!validateGptExitBinding(p)).length,
  latest_gpt_exit_status:state.gptExitMonitorLast?.status||null,
@@ -402,6 +414,9 @@ const server=createServer(async(req,res)=>{
    account_balances_excluded:true,position_amounts_excluded:true,
    gpt_follow_enabled:state.gptPaperFollow===true,
    paper_bot_enabled:state.entriesEnabled===true,
+   exit_guard_required_for_new_gpt_buy:true,
+   exit_monitor_heartbeat_recent:gptExitMonitorHealthy(),
+   exit_monitor_last_checked_at_utc:gptExitLastTick?.checked_at_utc||null,
    as_of_utc:new Date().toISOString(),positions});
  }
  if(req.method==='GET'&&route==='/api/central-ai/status')return reply(res,200,{ok:true,
@@ -1027,12 +1042,20 @@ const server=createServer(async(req,res)=>{
  if(!req.headers['content-type']?.startsWith('application/json'))return error(res,415,'JSON erforderlich');
  let raw='';try{for await(const chunk of req){raw+=chunk;if(raw.length>6000)throw Error('Anfrage zu groß')}}catch{return error(res,413,'Anfrage zu groß')}
  let a;try{a=JSON.parse(raw)}catch{return error(res,400,'Ungültiges JSON')}
- const allowed=new Set(['PREVIEW_PAPER_FUNDING','SET_PAPER_BALANCE','SET_CENTRAL_FOLLOW','SIMULATE_AGENTS','TOGGLE_BOT','SET_AUTO','SET_GPT_FOLLOW','SET_RANGE','SET_EXITS','DEPOSIT','WITHDRAW','EXCHANGE','EXCHANGE_BACK','BUY','SELL','RESET','SCAN','DEMO_SIGNAL','LOOKUP','DEMO_MOVE']);
+ const allowed=new Set(['PREVIEW_PAPER_FUNDING','SET_PAPER_BALANCE','SET_CENTRAL_FOLLOW','SIMULATE_AGENTS','TOGGLE_BOT','SET_BOT_ENTRIES','SET_AUTO','SET_GPT_FOLLOW','SET_RANGE','SET_EXITS','DEPOSIT','WITHDRAW','EXCHANGE','EXCHANGE_BACK','BUY','SELL','RESET','SCAN','DEMO_SIGNAL','LOOKUP','DEMO_MOVE']);
  if(!allowed.has(a?.type))return error(res,400,'Aktion nicht zulässig');
  if(deviceTopology.mode==='FOLLOWER'&&
   !operationAllowedWhenMasterOffline(a?.type,false))
   return error(res,409,'Keine Verbindung – ruf Andreas an; nur Ein-/Auszahlung erlaubt');
 
+ if(a.type==='SET_BOT_ENTRIES'){
+  // Exact requested state, not a toggle: repeated OFF can NEVER turn entries ON.
+  if(typeof a.enabled!=='boolean'||Object.keys(a).sort().join(',')!=='enabled,type')
+   return error(res,422,'Nur ein eindeutiger Ein/Aus-Wert ist erlaubt');
+  if(state.entriesEnabled===a.enabled)
+   return reply(res,200,{ok:true,entries_enabled:state.entriesEnabled,
+    already_set:true,real_trading_enabled:false});
+ }
  if(a.type==='PREVIEW_PAPER_FUNDING'){
   const result=previewFundingV09({amountEur:a.amountEur,eurPerUsdc:a.eurPerUsdc,
     providerFeeEur:a.providerFeeEur,spreadPct:a.spreadPct,networkFeeUsdc:a.networkFeeUsdc,
@@ -1061,7 +1084,7 @@ const server=createServer(async(req,res)=>{
   return reply(res,200,{ok:true,state});
  }
  const n=action(state,a);if(n===state)return error(res,422,'Aktion blockiert (Bot AUS, Guthaben, Grenzen oder ungültige Eingabe)');
- commit(evaluate(n));return reply(res,200,{ok:true,state});
+ commit(evaluate(n));return reply(res,200,{ok:true,state,entries_enabled:state.entriesEnabled});
 });
 server.requestTimeout=10000;server.headersTimeout=10000;
 server.listen(port,'127.0.0.1',()=>console.log(`MEME SNIPER V0.21 PAPER GATEWAY (kein LIVE) http://127.0.0.1:${port}`));
@@ -1079,9 +1102,17 @@ let gptExitBusy=false;
 async function monitorGptExits(){
  if(gptExitBusy||deviceTopology.mode==='FOLLOWER'||shuttingDown)return;
  gptExitBusy=true;
- try{await gptPaperReceiver.monitor()}
- catch(e){console.error('GPT Paper position exit monitor:',
-  String(e?.message||'EXIT_MONITOR_UNAVAILABLE').slice(0,110))}
+ try{
+  const result=await gptPaperReceiver.monitor();
+  gptExitLastTick={checked_at_utc:new Date().toISOString(),
+   outcome:'OK',positions_checked:result.checked||0,
+   paper_exits_filled:result.filled||0};
+ }catch(e){
+  gptExitLastTick={checked_at_utc:new Date().toISOString(),
+   outcome:'ERROR',positions_checked:0,paper_exits_filled:0};
+  console.error('GPT Paper position exit monitor:',
+   String(e?.message||'EXIT_MONITOR_UNAVAILABLE').slice(0,110))
+ }
  finally{gptExitBusy=false}
 }
 if(process.env.SNIPER_OFFLINE!=='1'){

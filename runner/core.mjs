@@ -15,6 +15,16 @@ const numeric=x=>Number(x);
 const finitePrice=x=>Number.isFinite(x)&&x>0;
 export function action(s,a){if(!a||typeof a!=='object')return s;
  switch(a.type){
+ case 'SET_BOT_ENTRIES':{
+  // Idempotent explicit entry pause/start. A retry cannot accidentally toggle
+  // Paper entries back ON, and existing GPT-authorized SELLs remain possible.
+  if(typeof a.enabled!=='boolean')return s;
+  if(s.entriesEnabled===a.enabled)return s;
+  return {...s,entriesEnabled:a.enabled,history:log(s,
+   a.enabled?'Bot AN':'Bot AUS',a.enabled?
+   'Neue Paper-Einstiege erlaubt; GPT-Policy und Safety Gates bleiben Pflicht':
+   'Neue Paper-Einstiege gestoppt, autorisierte Exit-Engine bleibt aktiv')};
+ }
  case 'TOGGLE_BOT':return {...s,entriesEnabled:!s.entriesEnabled,history:log(s,!s.entriesEnabled?'Bot AN':'Bot AUS',!s.entriesEnabled?'Neue Paper-Einstiege erlaubt':'Neue Paper-Einstiege gestoppt, Exit-Engine bleibt aktiv')};
  case 'SET_CENTRAL_FOLLOW':return {...s,centralPaperFollow:a.enabled===true,history:log(s,'Zentrale Paper-Ausführung',a.enabled===true?'Wartet auf gültige zentrale Aufträge; fehlende Publisher/Marktadapter blockieren':'Deaktiviert')};
  case 'SET_AUTO':return {...s,automaticPaperBuys:a.enabled===true,

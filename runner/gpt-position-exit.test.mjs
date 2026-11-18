@@ -76,7 +76,8 @@ function setup(){
      deviceId,now:Date.now(),quote:options.qaQuote,source:options.source,
      paperAutopilotCandidate:options.paperAutopilotCandidate,
      securityEvidence:options.securityEvidence,
-     gptExitAuth:options.gptExitAuth,gptPolicyExit:options.gptPolicyExit});
+     gptExitAuth:options.gptExitAuth,gptPolicyExit:options.gptPolicyExit,
+     gptExitMonitorReady:true});
     state=result.next;return {receipt:result.receipt};
    }});
  }
@@ -126,6 +127,24 @@ test('V1 legacy GPT BUY and unsigned direct GPT BUY cannot open Paper position',
   assert.equal(direct.receipt.status,'BLOCKED');
   assert.equal(direct.receipt.reason,'GPT_BUY_REQUIRES_SIGNED_POSITION_EXIT_POLICY');
   assert.equal(direct.next.positions.length,0);
+ }finally{a.cleanup()}
+});
+test('V2 GPT signed BUY fails closed when continuous 30s exit monitor has no valid heartbeat',()=>{
+ const a=setup();
+ try{
+  const kp=generateKeyPairSync('ed25519');
+  const buy=decision('BUY','a'.repeat(32));
+  const signed=signGptPaperSignal(buy,{deviceId,keyPair:kp});
+  const keys=[{issuer:signed.issuer,key_id:signed.key_id,scope:'agent_execution',
+   revoked:false,public_key_pem:kp.publicKey.export({type:'spki',format:'pem'})}];
+  const result=applyAgentSignal(a.state,signed,keys,{
+   deviceId,quote:quote(),source:'GPT_GITHUB_LOCAL',
+   paperAutopilotCandidate:candidate(),securityEvidence:security(),
+   gptExitAuth:{decision_id:buy.decision_id,policy:buy.exit_policy},
+   gptExitMonitorReady:false});
+  assert.equal(result.receipt.status,'BLOCKED');
+  assert.equal(result.receipt.reason,'GPT_BUY_REQUIRES_HEALTHY_CONTINUOUS_EXIT_MONITOR');
+  assert.equal(result.next.positions.length,0);
  }finally{a.cleanup()}
 });
 test('V2 signed GPT BUY persists policy; monitor SELLs after stop loss with Bot OFF + follow OFF',async()=>{

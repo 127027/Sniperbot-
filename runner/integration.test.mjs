@@ -78,3 +78,52 @@ test('Windows-paper-runner: EUR credit, paused entries, hold, auto-exit while OF
   await cmd({type:'NOT_SUPPORTED'},400);
  }finally{if(child)await stopServer(child);await rm(temp,{recursive:true,force:true})}
 });
+
+
+test('R29 V4.7 explicit Paper entry OFF is idempotent, persists, and GPT follow stays independent',async()=>{
+ const temp=await mkdtemp(path.join(tmpdir(),'sniper-v47-off-'));
+ const port=await freePort();
+ const base=`http://127.0.0.1:${port}`;
+ let child;
+ const command=async(input,expected=200)=>{
+  const response=await fetch(base+'/api/command',{
+   method:'POST',headers:{origin:base,'content-type':'application/json'},
+   body:JSON.stringify(input)});
+  assert.equal(response.status,expected,'HTTP '+input.type);
+  return response.json();
+ };
+ const status=async()=>{
+  const response=await fetch(base+'/api/gpt/paper/status');
+  assert.equal(response.status,200);
+  return response.json();
+ };
+ try{
+  child=await startServer(temp,port);
+  assert.equal((await status()).paper_bot_enabled,false);
+  const disabled=await command({type:'SET_BOT_ENTRIES',enabled:false});
+  assert.equal(disabled.entries_enabled,false);
+  assert.equal(disabled.already_set,true);
+  assert.equal((await command({type:'SET_BOT_ENTRIES',enabled:true})).entries_enabled,true);
+  assert.equal((await command({type:'SET_BOT_ENTRIES',enabled:true})).already_set,true);
+  await command({type:'SET_GPT_FOLLOW',enabled:true});
+  const paused=await command({type:'SET_BOT_ENTRIES',enabled:false});
+  assert.equal(paused.entries_enabled,false);
+  assert.equal((await command({type:'SET_BOT_ENTRIES',enabled:false})).already_set,true);
+  const summary=await status();
+  assert.equal(summary.paper_bot_enabled,false);
+  assert.equal(summary.gpt_follow_enabled,true);
+  assert.equal(summary.gpt_exit_monitor_heartbeat_recent,false,
+   'Offline CI cannot claim a continuously ticking market-connected monitor');
+  assert.equal(summary.gpt_exit_monitor_last_outcome,'NOT_YET_CHECKED');
+  assert.equal(summary.real_trading_enabled,false);
+  await command({type:'SET_BOT_ENTRIES',enabled:'false'},422);
+  await command({type:'SET_BOT_ENTRIES',enabled:false,unexpected:true},422);
+  assert.equal((await status()).paper_bot_enabled,false);
+  await stopServer(child);child=null;
+  child=await startServer(temp,port);
+  assert.equal((await status()).paper_bot_enabled,false,
+   'explicit pause must survive process restart');
+  assert.equal((await status()).gpt_follow_enabled,true,
+   'existing GPT strategic feed must stay on');
+ }finally{if(child)await stopServer(child);await rm(temp,{recursive:true,force:true})}
+});

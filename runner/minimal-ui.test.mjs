@@ -87,3 +87,33 @@ test('R29 two-tab user UI shows only verified regular Paper and read-only real w
  assert.equal(scripts.length,1);
  assert.doesNotThrow(()=>new Script(scripts[0][1],{filename:'r29-user-dashboard.js'}));
 });
+
+
+test('R29 V4.7 one-click Paper entry pause is explicitly OFF, not ambiguous toggle, with live-monitor proof',()=>{
+ const html=readFileSync(new URL('./dashboard.html',import.meta.url),'utf8');
+ const server=readFileSync(new URL('./server.mjs',import.meta.url),'utf8');
+ const pipeline=readFileSync(new URL('./paper-agent-pipeline.mjs',import.meta.url),'utf8');
+ const ledger=readFileSync(new URL('./core.mjs',import.meta.url),'utf8');
+ assert.match(html,/SET_BOT_ENTRIES/);
+ assert.match(html,/Neue Paper-Käufe PAUSIEREN/);
+ assert.match(html,/Neue Paper-Käufe AKTIVIEREN/);
+ assert.match(html,/result\.entries_enabled!==cmd\.enabled/);
+ assert.doesNotMatch(html,/sendPaperCommand\(\{type:'TOGGLE_BOT'\}\)/);
+ assert.match(server,/SET_BOT_ENTRIES/);
+ assert.match(server,/state\.entriesEnabled===a\.enabled/);
+ assert.match(ledger,/case 'SET_BOT_ENTRIES'/);
+ assert.match(server,/GPT_GITHUB_POLICY_EXIT'\]\.includes\(source\)/,
+  'ephemeral signed policy SELL MUST be authorized in real server, not just offline mock');
+ assert.match(server,/gptExitMonitorReady:gptExitMonitorHealthy\(\)/);
+ assert.match(server,/gpt_exit_monitor_heartbeat_recent:gptExitMonitorHealthy\(\)/);
+ assert.match(pipeline,/GPT_BUY_REQUIRES_HEALTHY_CONTINUOUS_EXIT_MONITOR/);
+ let paused=action(freshState(),{type:'SET_BOT_ENTRIES',enabled:false});
+ assert.equal(paused.entriesEnabled,false);
+ const enabled=action(paused,{type:'SET_BOT_ENTRIES',enabled:true});
+ assert.equal(enabled.entriesEnabled,true);
+ paused=action(enabled,{type:'SET_BOT_ENTRIES',enabled:false});
+ assert.equal(paused.entriesEnabled,false);
+ assert.equal(action(paused,{type:'SET_BOT_ENTRIES',enabled:false}),paused,
+  'repeat OFF MUST NOT flip Bot back ON');
+ assert.equal(action(paused,{type:'SET_BOT_ENTRIES',enabled:'false'}),paused);
+});
