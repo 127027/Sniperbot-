@@ -2,6 +2,7 @@
 // Do not publish numeric private paper capacity or account fields on public GitHub.
 // Pure read-only; no signing, mutation, transfer, payments or orders.
 import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
+import {MAX_SINGLE_SHARE,paperAutoEquity} from './live-paper-risk.mjs';
 const cents=x=>Math.floor((x+1e-8)*100)/100;
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
 const MIN=MIN_GPT_PAPER_ENTRY_USDC,MAX=5000;
