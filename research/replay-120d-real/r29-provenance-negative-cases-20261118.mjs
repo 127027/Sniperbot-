@@ -21,6 +21,8 @@ const rejects=async(name,change,expected)=>{
 };
 await rejects('missing independent verifiers',{verifySource:undefined},'INDEPENDENT_VERIFIERS_REQUIRED');
 await rejects('future or malformed UTC',{virtualAsOfUtc:'2026-09-18T01:20:00+00:00'},'INVALID_ASOF');
+await rejects('impossible calendar date',{virtualAsOfUtc:'2026-02-30T01:20:00Z'},'INVALID_ASOF');
+await rejects('invalid hour',{virtualAsOfUtc:'2026-09-18T25:20:00Z'},'INVALID_ASOF');
 await rejects('missing sources',{sourceClaims:[]},'SOURCES_REQUIRED');
 await rejects('unverified source',{verifySource:async()=>({verified:false,trustedVerifier:true,sourceSha256:sourceSha})},'SOURCE_PROVENANCE_UNVERIFIED');
 await rejects('source hash mismatch',{verifySource:async()=>({verified:true,trustedVerifier:true,sourceSha256:'b'.repeat(64)})},'SOURCE_PROVENANCE_UNVERIFIED');
