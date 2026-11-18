@@ -11,10 +11,11 @@ const virtualAsOfUtc='2026-09-18T01:20:00Z';
 const forged={
  frameBytes,virtualAsOfUtc,sourceClaims:[{sha256:sourceSha}],
  ledgerClaim:{},modelClaim:{},
- verifySource:async()=>({verified:true,trustedVerifier:true,sourceSha256:sourceSha}),
+ verifySource:async()=>({verified:true,trustedVerifier:true,sourceSha256:sourceSha,originalCaptureAtUtc:'2026-09-18T01:19:00Z'}),
  verifyLedger:async()=>({verified:true,trustedVerifier:true,frameSha256:digest}),
  verifyModel:async()=>({verified:true,trustedVerifier:true,frameSha256:digest})
 };
+// The forged capture timestamp is deliberately fabricated by the caller; it is NOT evidence.
 const admitted=await verifyDetachedEvidence(forged);
 if(admitted.admitted!==true)throw Error('EXPECTED_CALLBACK_BYPASS_NOT_REPRODUCED');
 console.log('EXPECTED VULNERABILITY REPRODUCED: forged callbacks admit frame; NOT independent provenance, NOT GPT execution');
