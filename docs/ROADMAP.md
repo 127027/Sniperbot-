@@ -1,3 +1,22 @@
+# R29 V4.5 – verbindliche nächste Meilensteine (18.11.2026)
+
+[Quelle der Wahrheit und genaue Abnahmekriterien](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Unter dem Trenner ist der ehemalige V0.3-Plan nur historisch erhalten; seine offenen P1/P3 gelten nicht pauschal als noch fehlende Programmkomponenten.
+
+**Fertig und belegt:** Windows-GitHub-Research-Collector/Kanal, 18.11.2026 kanonischer frischer Capture mit 64 Pools/24 Alerts; vollständiger historischer Paging-Trichter PR #56; sicherer GPT-only-Rollen-Patch PR #58; GitHub-only ohne lokale bezahlte API PR #59; lokaler GPT-GitHub-Receiver bereit, NO_TRADE-Quittung.
+
+**Nächste Ziele in dieser Reihenfolge:**
+1. Existierende prospektive ChatGPT-R29-Automation nachweislich neue as-of-Kandidaten prüfen lassen; valide GPT-Entscheidung/Archiv/Pointer/Windows-Receiver-Signatur mit UTC/SHA belegen.
+2. GPT-signierten **positionsgebundenen kontinuierlichen Exit- und Notfallvertrag** in bestehenden Paper-Komponenten implementieren; frische bidirektionale Ausführbarkeitsdaten, Idempotenz, Offline-/Neustart-/Bot-AUS-Prüfungen und Fail-closed-Regeln.
+3. **Erst nach Exit-Abnahme:** unbekannten Coin prospektiv GPT-BUY/HOLD/SELL im vorhandenen Paper-Ledger mit unabhängigen Quotes, Gebühren und quittiertem Ergebnis testen.
+4. Unabhängigen historischen 7+3-Blindtest mit echten as-of Quellen und Datenlücken-Protokoll fortführen, ohne postfreeze Namen/ATH einzumischen.
+5. Keine zusätzlichen Dots/Bots, keine zweite lokale OpenAI-API, kein UI-Neubau, keine Echtgeld-/PayPal-/Wallet-Arbeit.
+
+**Belegverbot:** GitHub-Owner-Commits beweisen keine kryptografische Modellidentität; 8 empfangene Replay-IDs sind keine 8 Trades; isolierte Paper-Test-PnL ist kein Handelsnachweis.
+
+---
+
+## Historische V0.3-Roadmap / damaliger Plan (archiviert)
+
 # Implementation roadmap / gap analysis
 
 ## Current version 0.3
