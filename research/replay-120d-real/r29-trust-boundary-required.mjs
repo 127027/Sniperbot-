@@ -3,6 +3,7 @@
 import {createHash} from 'node:crypto';
 const sha=x=>createHash('sha256').update(x).digest('hex');
 const check=(x,m)=>{if(!x)throw Error(m)};
+const strictUtc=s=>typeof s==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(s)&&Number.isFinite(Date.parse(s))&&new Date(s).toISOString().replace('.000Z','Z')===s;
 export async function verifyDetachedEvidence({frameBytes,virtualAsOfUtc,sourceClaims,ledgerClaim,modelClaim,verifySource,verifyLedger,verifyModel}){
  check(Buffer.isBuffer(frameBytes),'FRAME_BYTES_REQUIRED');
  check(typeof virtualAsOfUtc==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(virtualAsOfUtc)&&Number.isFinite(Date.parse(virtualAsOfUtc))&&new Date(virtualAsOfUtc).toISOString().replace('.000Z','Z')===virtualAsOfUtc,'INVALID_ASOF');
@@ -14,6 +15,9 @@ export async function verifyDetachedEvidence({frameBytes,virtualAsOfUtc,sourceCl
   check(claim?.sha256&&/^[a-f0-9]{64}$/i.test(claim.sha256),'INVALID_SOURCE_DIGEST');
   const proof=await verifySource(claim,virtualAsOfUtc);
   check(proof?.verified===true&&proof?.trustedVerifier===true&&proof?.sourceSha256===claim.sha256,'SOURCE_PROVENANCE_UNVERIFIED');
+  // A source hash alone says nothing about whether its contents existed at virtual as-of.
+  // The trusted verifier must independently attest original capture time, not merely event time.
+  check(strictUtc(proof.originalCaptureAtUtc)&&Date.parse(proof.originalCaptureAtUtc)<=Date.parse(virtualAsOfUtc),'SOURCE_CAPTURE_TIME_UNPROVEN');
  }
  const ledger=await verifyLedger(ledgerClaim,virtualAsOfUtc,digest);
  check(ledger?.verified===true&&ledger?.trustedVerifier===true&&ledger?.frameSha256===digest,'LEDGER_PROVENANCE_UNVERIFIED');
