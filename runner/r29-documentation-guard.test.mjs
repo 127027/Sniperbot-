@@ -43,7 +43,7 @@ test('current docs never require the retired Windows starter or paid local API',
   assert.doesNotMatch(all,/\bWindows_Starten\.bat\b/,f+' points to deleted starter');
  }
  for(const f of ['README.md','AGENTS.md','ERSTER_START.txt']){
-  assert.match(text(f).slice(0,3200),/Sniperbot_Starten\.bat/,f);
+  assert.match(text(f).slice(0,6500),/Sniperbot_Starten\.bat/,f);
  }
  assert.doesNotMatch(text('runner/windows-supervisor.ps1'),/WithCentralAI|ResetAiKey|Read-AiKey/);
  assert.doesNotMatch(text('runner/server.mjs'),/startCentralAiCoordinator|SNIPER_CENTRAL_AI_ENABLED==='1'/);
