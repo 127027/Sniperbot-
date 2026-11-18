@@ -30,7 +30,8 @@ function paperCurrent(state,now){
  const allowed=b.valid&&posValid&&currency(state?.cashUsdc)&&
   state.cashEur===0&&currency(equity);
  const free=allowed?cents(Math.min(b.free_to_allocate_test_usdc,
-  state.cashUsdc,equity*MAX_SINGLE_SHARE)):null;
+  state.cashUsdc,equity*MAX_SINGLE_SHARE,
+  Math.max(0,equity*MAX_TOTAL_SHARE-b.reserved_test_usdc))):null;
  const result={
   account:'PAPER',mode:'PAPER_ONLY',execution_enabled:state?.entriesEnabled===true,
   gpt_follow_enabled:state?.gptPaperFollow===true,
