@@ -39,7 +39,9 @@ export function action(s,a){if(!a||typeof a!=='object')return s;
  case 'SET_RANGE': {const min=numeric(a.min),max=numeric(a.max);if(!isAmount(min)||!isAmount(max)||min<50||min>max||max<50)return s;return {...s,minTrade:min,maxTrade:max,portfolioBudgetUsdc:max,history:log(s,'Paper-Budget eingestellt',`Wunsch-Einsatz ${min} Test-USDC; Gesamtbudget ${max} Test-USDC; flexible Käufe ab 50, offene Positionen bleiben unverändert`)}};
  case 'SET_EXITS':{const profit=numeric(a.profit),loss=numeric(a.loss),mode=a.mode;
  if(!isAmount(profit)||!isAmount(loss)||loss>=100||profit>500||!['HOLD','AUTO','TRAILING'].includes(mode)|| (mode==='TRAILING'&&(!isAmount(Number(a.trailing))||Number(a.trailing)>=100)))return s;
- return {...s,takeProfit:profit,stopLoss:loss,trailingPercent:mode==='TRAILING'?Number(a.trailing):s.trailingPercent,defaultExitMode:mode,positions:s.positions.map(p=>({...p,exitMode:mode,highWaterPrice:p.highWaterPrice||p.priceUsd})),history:log(s,'Exit-Regel',mode==='HOLD'?'Halten bis manuell verkauft wird':mode==='TRAILING'?`Paper-Trailing ${a.trailing}%, Stop-Loss ${loss}%`: `Legacy-Exit bei +${profit}% / -${loss}% (auch bei Bot AUS)`)}};
+ return {...s,takeProfit:profit,stopLoss:loss,trailingPercent:mode==='TRAILING'?Number(a.trailing):s.trailingPercent,defaultExitMode:mode,positions:s.positions.map(p=>p.gptPaperDecision===true?
+  {...p,highWaterPrice:p.highWaterPrice||p.priceUsd}:
+  {...p,exitMode:mode,highWaterPrice:p.highWaterPrice||p.priceUsd}),history:log(s,'Exit-Regel',mode==='HOLD'?'Halten bis manuell verkauft wird':mode==='TRAILING'?`Paper-Trailing ${a.trailing}%, Stop-Loss ${loss}%`: `Legacy-Exit bei +${profit}% / -${loss}% (auch bei Bot AUS)`)}};
  case 'DEPOSIT': {const eur=numeric(a.eur);if(!isAmount(eur))return s;return {...s,cashEur:round(s.cashEur+eur),history:log(s,'Testguthaben eingezahlt',`${eur.toFixed(2)} virtuelle EUR; KEINE Paypal-/Bankzahlung`)}};
  case 'WITHDRAW':{
   const eur=numeric(a.eur);
@@ -95,14 +97,20 @@ export function applyExits(s){
   if(!Number.isFinite(age)||age<0||age>180000){p.quoteStatus='STALE / EXIT_UNAVAILABLE';continue}
   p.quoteStatus=p.isDemo?'SYNTHETIC':'INDICATIVE';
   p.highWaterPrice=Math.max(p.highWaterPrice||p.entryPriceUsd,p.priceUsd);
-  if(!['AUTO','TRAILING','GPT_GUARD'].includes(p.exitMode))continue;
+  // GPT_GUARD is not itself a signed GPT exit-policy. Never apply
+  // the legacy global stop-loss as an unapproved GPT sale.
+  if(p.gptPaperDecision===true||p.exitMode==='GPT_GUARD'){
+   p.quoteStatus='GPT_POSITION_EXIT_POLICY_NOT_AUTHORIZED';
+   continue;
+  }
+  if(!['AUTO','TRAILING'].includes(p.exitMode))continue;
   // Trailing is only executed for synthetic fixtures until real sell quotes exist.
   if(p.exitMode==='TRAILING'&&!p.isDemo){p.quoteStatus='EXIT_UNAVAILABLE: keine ausführbare Sell-Quote';continue}
   const pct=(p.qty*p.priceUsd*.99/p.amountUsdc-1)*100;
   const drawdown=(1-p.priceUsd/p.highWaterPrice)*100;
   const exit=pct<=-n.stopLoss||(p.exitMode==='AUTO'?pct>=n.takeProfit:
    p.exitMode==='TRAILING'?drawdown>=n.trailingPercent:false);
-  if(exit){const sold=action(n,{type:'SELL',id:p.id});if(sold!==n){n=sold;n={...n,history:log(n,p.exitMode==='GPT_GUARD'?'GPT-NOTFALL-STOP':'AUTO-EXIT trotz Bot '+(n.entriesEnabled?'AN':'AUS'),`${p.symbol}: ${pct.toFixed(2)}% simuliert (${p.exitMode})`)}}}
+  if(exit){const sold=action(n,{type:'SELL',id:p.id});if(sold!==n){n=sold;n={...n,history:log(n,'AUTO-EXIT trotz Bot '+(n.entriesEnabled?'AN':'AUS'),`${p.symbol}: ${pct.toFixed(2)}% simuliert (${p.exitMode})`)}}}
  }
  return n;
 }
