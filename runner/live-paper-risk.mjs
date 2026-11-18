@@ -1,6 +1,6 @@
 // Strict risk gate for real-market, VIRTUAL-only R29 paper entries.
 // These are policy limits, not profit forecasts or actual executable swaps.
-import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
+import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC,MIN_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
 import {validTokenAddress} from './market.mjs';
 import {validatePaperSecurityEvidence} from './live-paper-security.mjs';
 
@@ -27,7 +27,7 @@ export function paperAutoEquity(state,{now=Date.now()}={}){
  return numeric(total)&&total>0?total:null;
 }
 export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.now(),
- risk=state?.paperLiveRisk}={}){
+ risk=state?.paperLiveRisk,gptSignedPaper=false}={}){
  const result=(status,reason,amount=0,equity=null)=>({
   schema:'r29_live_paper_entry_gate.v1',status,reason,
   allowed:status==='ALLOW_PAPER',amount_test_usdc:amount,
@@ -90,7 +90,8 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
  const maxByLiquidity=quote.liquidityUsd*0.005; // impact proxy; not executable
  const max= floorCents(Math.min(5000,maxByNominal,remaining,
   maxByRisk,maxByLiquidity,b.free_to_allocate_test_usdc));
- if(max<MIN_GPT_PAPER_ENTRY_USDC)return result('BLOCKED','MIN_ORDER_CONFLICTS_WITH_RISK_LIMITS',0,equity);
+ if(max<(gptSignedPaper?MIN_GPT_PAPER_ENTRY_USDC:MIN_PAPER_ENTRY_USDC))
+  return result('BLOCKED','MIN_ORDER_CONFLICTS_WITH_RISK_LIMITS',0,equity);
  // A missing dated trade ledger cannot establish daily and weekly loss limits.
  if(risk?.schema!=='r29_live_paper_risk_v1'||
   !numeric(risk.day_realized_pnl)||!numeric(risk.week_realized_pnl)||
