@@ -1,3 +1,7 @@
+> **HISTORISCHER ROLLEN-/FORSCHUNGSENTWURF (06.11.2026):** Fünf Analysefunktionen sind **keine Pflicht zum Erzeugen von fünf zusätzlichen ChatGPT-Automationen**. Am 18.11. wurden zwei bereits existierende aktive R29-Aufgaben geprüft (prospektiv/streng historisch); der Nutzer untersagt neue Bots und einen weiteren OpenAI-API-Key. [R29 V4.5 aktuellen Architektur- und Abnahmevertrag lesen](../research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md). Keine neuen Paper-BUYs ohne GPT-autorisierten Dauer-Exit.
+
+---
+
 # Verbindliche Forschungs- und Paper-Trading-Strategie – 5-Agent Meme Sniper
 
 **Freigabe des Product Owners: 2026-11-06.** Dieses Dokument beschreibt den **Zielzustand für Codex**, keine bereits laufende Strategie. **Keine Echtgeldtransaktionen, keine Wallet- oder PayPal-Anbindung. Hixton bleibt unangetastet.**
