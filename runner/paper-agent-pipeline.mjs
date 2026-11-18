@@ -153,7 +153,8 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
  else if(actionType==='BUY'){
   if(state.positions.some(p=>p.chain===order.chain&&
    eqAddress(order.chain,p.tokenAddress,order.token_address)))reason='POSITION_ALREADY_OPEN_OR_LEDGER_BLOCKED';
-  else if(!isWithinPortfolioBudget(state,amount))reason='PAPER_BUDGET_OR_FUNDS_INSUFFICIENT';
+  else if(!isWithinPortfolioBudget(state,amount,
+   {gptSignedPaper:gptPaper}))reason='PAPER_BUDGET_OR_FUNDS_INSUFFICIENT';
   else{
    const id=order.chain+':'+quote.poolAddress;
    const candidate={
@@ -168,7 +169,7 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
    const candidateState={...state,candidates:[candidate,...state.candidates.filter(c=>c.id!==id)].slice(0,90)};
    const orderState=localAuto||gptPaper?
      {...candidateState,defaultExitMode:gptPaper?'GPT_GUARD':'AUTO'}:candidateState;
-   const attempted=action(orderState,{type:'BUY',id,amount});
+   const attempted=action(orderState,{type:gptPaper?'GPT_SIGNED_BUY':'BUY',id,amount});
    if(attempted.positions.length>state.positions.length){
     next=localAuto||gptPaper?{...attempted,defaultExitMode:state.defaultExitMode,
       positions:attempted.positions.map(p=>state.positions.some(x=>x.id===p.id)?p:
