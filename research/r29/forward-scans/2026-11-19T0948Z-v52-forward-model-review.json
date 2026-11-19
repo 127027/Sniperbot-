@@ -1,0 +1,129 @@
+{
+  "schema": "r29_forward_gpt_model_review_v52.v1",
+  "run_class": "AUTOMATION",
+  "review_at_utc": "2026-11-19T09:48:32Z",
+  "operating_day": "2026-11-19_Europe_Berlin_0800",
+  "utc_day": "2026-11-19",
+  "review_kind": "FULL_GPT_MODEL_MARKET_SECURITY_AND_ACTIVITY_REVIEW",
+  "review_plan": "EVENT_DRIVEN_UP_TO_24",
+  "model_review_count_increment": 1,
+  "prior_distinct_model_review_count": "UNKNOWN_NOT_RECOUNTED",
+  "source_evidence": [
+    {
+      "path": "research/market/latest.json",
+      "blob_sha": "472b8857bfd6a10323e083f3dfb60e3dded8f19c",
+      "asof": "2026-11-19T09:42:28.844Z"
+    },
+    {
+      "path": "research/r29/channel/forward-source-health.json",
+      "blob_sha": "e87ab1c06191875486df5d81d18fc68dd9452f49",
+      "asof": "2026-11-19T09:42:52.171Z"
+    },
+    {
+      "path": "research/r29/channel/gpt-paper-security.json",
+      "blob_sha": "60e254a68eeb5e54af19262bb60cd2fbdbea2b13",
+      "asof": "2026-11-19T09:40:08.192Z"
+    },
+    {
+      "path": "research/r29/channel/gpt-paper-context.json",
+      "blob_sha": "7746a491247770bcdbab6de2d478fd469a098892",
+      "asof": "2026-11-19T09:47:09.450Z"
+    },
+    {
+      "path": "research/r29/channel/gpt-paper-receipt.json",
+      "blob_sha": "cfebbd348759dacab5d850091b151af2cba35106",
+      "asof": "2026-11-18T16:21:09.742Z"
+    },
+    {
+      "path": "research/r29/channel/solana-forward-evidence.json",
+      "blob_sha": "e1cfdf994aa8c78be943b16aee58e1bde48ad77a",
+      "asof": "2026-11-19T09:42:43.833Z"
+    }
+  ],
+  "market": {
+    "candidate_total": 54,
+    "by_chain": {
+      "solana": 20,
+      "base": 9,
+      "bsc": 19,
+      "eth": 6
+    },
+    "cross_provider_pool_identities": 8,
+    "zero_five_minute_volume": 18,
+    "alerts": 24,
+    "source_fresh_at_review_minutes": 6.05
+  },
+  "security_funnel_DIFFERENT_SNAPSHOT": {
+    "asof": "2026-11-19T09:38:23.351Z",
+    "total": 59,
+    "evm": 39,
+    "research_eligible": 2,
+    "security_checked": 2,
+    "full_buy_eligible": 0,
+    "first_failure_counts": {
+      "NON_EVM_CHAIN": 20,
+      "VOLUME_5M_LT_1000_OR_UNKNOWN": 2,
+      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 33,
+      "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 2
+    },
+    "checked_candidate_results": [
+      {
+        "candidate_id": "base:0x6956c783de8de5e6a36048b28bf955128398b6dd:0x1c609a2eb14ff1651306a94f905637f88e4fc009",
+        "decision": "WATCH",
+        "blockers": [
+          "HONEYPOT_POOL_UNVERIFIED",
+          "INDEPENDENT_WALLET_LP_AND_EXECUTABLE_QUOTES_MISSING"
+        ]
+      },
+      {
+        "candidate_id": "bsc:0x6925d40f23b0a719048ba1b19f9e0adc67a35bd7:0xd30d4cce889e77381b8e1316420f58844327aaf1",
+        "decision": "NO_TRADE",
+        "blockers": [
+          "GOPLUS_MISSING_CANNOT_SELL_ALL",
+          "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
+          "HONEYPOT_TOKEN_UNVERIFIED",
+          "HONEYPOT_POOL_UNVERIFIED"
+        ]
+      }
+    ]
+  },
+  "solana_review": {
+    "candidate_id": "solana:7JbfjrnP4hbM2pSHtd4qCrmDtCJtSSUiPvdNtNVpump:F1tth3KP9HsD3iGrfYWzdSBSon5SXRY5FAiQKR92kuGw",
+    "decision": "WATCH",
+    "blockers": [
+      "INCOMPLETE_MINT_HEADER",
+      "HOLDER_AND_LP_UNKNOWN",
+      "INDICATIVE_NOT_EXECUTABLE_TWO_WAY_QUOTES",
+      "SOLANA_EVM_RECEIVER_UNSUPPORTED"
+    ]
+  },
+  "position_review": {
+    "public_positions": 0,
+    "private_ledger_positions": "UNKNOWN"
+  },
+  "paper_activity": {
+    "public_context_follow": true,
+    "paper_bot_enabled": true,
+    "exit_monitor_heartbeat_recent": true,
+    "private_capacity": "UNKNOWN",
+    "local_executor_current_state": "UNKNOWN",
+    "last_public_receipt_action": "NO_TRADE",
+    "last_public_receipt_at_utc": "2026-11-18T16:21:09.742Z",
+    "personal_signed_prospective_paper_buy_fill": "NOT_VERIFIED",
+    "personal_signed_prospective_paper_sell_fill": "NOT_VERIFIED",
+    "continuous_windows_uptime": "UNKNOWN",
+    "elapsed_24_72_240h_no_buy": "UNKNOWN",
+    "diagnostic": "MARKET_DISCOVERY_EXISTS_BUT_NO_SECURITY_COMPLETE_BUY_ELIGIBLE_EVM_AND_NO_PRIVATE_LEDGER_PROOF"
+  },
+  "decision": "NO_TRADE",
+  "reason": "No verified eligible EVM pool with independent pool/contract/sellability/LP/wallet checks and executable two-way paper quotes. Solana research not EVM execution. Private limits and local fills unknown.",
+  "new_buy_pointer_created": false,
+  "paper_filled_claimed": false,
+  "decision_published": "RESEARCH_JOURNAL_ONLY_NO_ORDER_POINTER",
+  "local_receipt_for_this_review": "UNKNOWN",
+  "first_observed_source": "2026-11-19T09:42:28.844Z",
+  "first_gpt_review": "2026-11-19T09:48:32Z",
+  "model_origin_attestation": "CHATGPT_AUTOMATION_REVIEW_NOT_CRYPTOGRAPHICALLY_ATTESTED_GITHUB_AUTHORSHIP",
+  "follow_up": "Improve exact pool verification and independent executable two-way quotes; check local Windows deployment and private ledger locally, without publishing balances or weakening risk limits.",
+  "real_trading_enabled": false
+}
