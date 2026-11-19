@@ -18,6 +18,14 @@ jobs:
         env:
           CI: 'true'
         run: node research/replay-120d-real/r29-actual-verifier-integration-regression-20261119.mjs
+      - name: Offline historical as-of model-input gate regression
+        env:
+          CI: 'true'
+        run: node --test research/replay-120d-real/blind-neutral-market-gpt-input.test.mjs
+      - name: Offline original-capture-time regression
+        env:
+          CI: 'true'
+        run: node research/replay-120d-real/r29-capture-time-regression-20261118.mjs
       - name: Offline fail-closed admission regression
         env:
           CI: 'true'
