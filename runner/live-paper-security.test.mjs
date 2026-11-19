@@ -64,3 +64,28 @@ test('free read-only providers are restricted and fail closed on network errors'
  assert.equal(fail.provider_errors.length,2);
  await assert.rejects(collectEvmSecurity({chain:'solana',token,pool,fetcher:fake}),/INVALID_EVM_IDENTITY/);
 });
+
+test('V5.5: only signed GPT PAPER may tolerate missing GoPlus flags with exact simulated sell',()=>{
+ const now=Date.now(),partial=go();
+ delete partial.result[token].hidden_owner;
+ const s=assessEvmSecurityRaw({chain:'base',token,pool,goplus:partial,
+  honeypot:honey(),now});
+ const approved={chain:'base',token,pool,now,
+  allowUnknownGoPlusRiskForGptPaper:true};
+ assert.equal(s.approved,false);
+ assert.equal(s.paper_unknown_goplus_risk_eligible,true);
+ assert.equal(s.contract_authorities_ok,false);
+ assert.equal(validatePaperSecurityEvidence(s,{chain:'base',token,pool,now}),false);
+ assert.equal(validatePaperSecurityEvidence(s,approved),true);
+ assert.equal(validatePaperSecurityEvidence(s,{...approved,now:now+121000}),false);
+ assert.equal(validatePaperSecurityEvidence({...s,
+  risk_flags:['GOPLUS_MISSING_HIDDEN_OWNER','GOPLUS_RISK_IS_PROXY']},approved),false);
+ const explicitlyUnsafe=go();explicitlyUnsafe.result[token].is_proxy='1';
+ assert.equal(validatePaperSecurityEvidence(assessEvmSecurityRaw({
+  chain:'base',token,pool,goplus:explicitlyUnsafe,honeypot:honey(),now}),approved),false);
+ const notMatched=honey();notMatched.pair.pairAddress='0x'+'c'.repeat(40);
+ assert.equal(validatePaperSecurityEvidence(assessEvmSecurityRaw({
+  chain:'base',token,pool,goplus:partial,honeypot:notMatched,now}),approved),false);
+ assert.equal(validatePaperSecurityEvidence(assessEvmSecurityRaw({
+  chain:'base',token,pool,goplus:null,honeypot:honey(),now}),approved),false);
+});

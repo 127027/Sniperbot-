@@ -1278,5 +1278,35 @@
     },
     "root_cause_note": "Observed providers do not return sufficient verifiable contract/pool safety for examined candidates; not proven that a real otherwise safe BUY was blocked by TTL bug. Fix prevents post-expiry paper orders and stale consent races; still no trade guarantee.",
     "acceptance_status": "PENDING_PROSPECTIVE_GPT_BUY_SELL_AND_HISTORICAL_10_DAY_BLIND_TEST"
+  },
+  "v5_5_gpt_strategy_authority": {
+    "user_approval": "User explicit GO on 2026-11-19: make R29 GPT decide coin/BUY/SELL/HOLD/risk/amount and bot execute technical-only paper with proper safety",
+    "delivery_scope": "CODE_AND_TESTS_AWAITING_FINAL_CI_PERSONAL_WINDOWS_UPDATE_NOT_PROVEN",
+    "originals": [
+      "37348e7ca35 R29 risk limits Nov 15",
+      "6cb1a6a421b GoPlus/Honeypot missing risk gate Nov 15",
+      "f6410092f8a GPT schema score >=80 and self VERIFIED Nov 15",
+      "9dbb79ab144 quote identity Nov 15"
+    ],
+    "tested_changes": [
+      "GPT score cutoff and self-labeled VERIFIED cease to be execution gates",
+      "signed GPT-only Paper skips automatic local momentum/old 1%-3% risk policy and uses owner Paper portfolio cap+cash+liquidity impact",
+      "unknown GoPlus metadata tolerated ONLY with explicit GPT UNKNOWN acknowledgement, exact independent successful two-way simulation and no known danger; strict default unchanged",
+      "indicative-only BUY/SELL metadata never claims live sellability or real trade"
+    ],
+    "unchanged": [
+      "live locked",
+      "Solana unauthorized until independent verifiers exist",
+      "owner-authenticated courier/Ed25519/replay/exit monitoring",
+      "fresh exact DEX market quotes and pool matching",
+      "paper budget, quote liquidity and stale valuation checks",
+      "private balances not published",
+      "no new bots/API/tasks"
+    ],
+    "independent_report": "research/r29/operations/R29_V5_5_GPT_ALLEINIGE_STRATEGIE_PAPER_GATES_AUDIT_20261119_DE.md",
+    "source_confidence": "Prior code commits audited; no independent proof user expressly approved every old strategic limit",
+    "personal_prospective_gpt_paper_buy_sell_proven": false,
+    "jan_2026_real_gpt_blindtest_completed": false,
+    "real_trading_enabled": false
   }
 }

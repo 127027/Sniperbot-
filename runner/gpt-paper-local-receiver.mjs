@@ -134,6 +134,10 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
        chain:d.chain,token:d.token_address,pool:d.pool_address,now:now()});
      }catch{receipt=safeResult(d,'BLOCKED','INDEPENDENT_MARKET_OR_SECURITY_UNAVAILABLE')}
     }
+    if(!receipt&&d.action==='BUY'&&
+      security?.paper_unknown_goplus_risk_eligible===true&&
+      d.security_assessment!=='UNKNOWN')
+      receipt=safeResult(d,'BLOCKED','GPT_UNKNOWN_CONTRACT_RISK_NOT_ACKNOWLEDGED');
     if(!receipt&&d.action==='BUY'){
      const approval=r29LivePaperEntryGate({
       state:{...getState(),automaticPaperBuys:true},candidate,

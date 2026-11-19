@@ -20,12 +20,12 @@ const choice=(offer,amount,time='2026-11-17T17:01:00.000Z')=>({
  schema:SIZE_CHOICE_SCHEMA,mode:'PAPER_ONLY',strategy:'GPT_ONLY',
  request_id:offer.request_id,offer_sha256:offer.offer_sha256,
  amount_test_usdc:amount,created_at_utc:time,real_trading_enabled:false});
-test('private 1%-equity risk cap allows GPT to choose 25 while refusing impossible 250',()=>{
+test('private owner Paper budget allows GPT to choose its stake without the old 1% veto',()=>{
  const before=state(),original=JSON.stringify(before);
  const offer=makePrivateGptSizeOffer(request(),before,{now});
  assert.equal(offer.available_paper_cash_test_usdc,4999);
  assert.equal(offer.min_stake_test_usdc,5);
- assert.equal(offer.max_stake_test_usdc,49.99);
+ assert.equal(offer.max_stake_test_usdc,4999);
  assert.equal(offer.bot_does_not_choose_stake,true);
  assert.equal(offer.do_not_publish_public_github,true);
  const chosen=validateGptSizeChoice(choice(offer,25),offer,before,{
@@ -45,7 +45,7 @@ test('GPT cannot spend 5000 from 4999, cannot re-use an expired offer or forged 
   offer,s,{now:atT}).approved,false);
  assert.throws(()=>validateGptSizeRequest(request('2026-11-17T15:00:00Z'),{now}),/INVALID_OR_STALE/);
  assert.equal(validateGptSizeChoice(choice(offer,4.99),offer,s,{now:atT}).approved,false);
- assert.equal(validateGptSizeChoice(choice(offer,250),offer,s,{now:atT}).approved,false);
+ assert.equal(validateGptSizeChoice(choice(offer,250),offer,s,{now:atT}).approved,true);
 });
 test('public GitHub metadata never contains cash, max investment or private offer fields',()=>{
  const offer=makePrivateGptSizeOffer(request(),state(),{now});

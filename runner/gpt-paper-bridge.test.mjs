@@ -66,7 +66,7 @@ function ledger(){
   maxTrade:5000,portfolioBudgetUsdc:5000,minTrade:50,
   automaticPaperBuys:false};
 }
-function makeReceiver(d){
+function makeReceiver({securityOverride=null}={}){
  let state=ledger(),price=.02,signCount=0;
  const folder=mkdtempSync(path.join(tmpdir(),'gpt-paper-e2e-'));
  const r=createGptPaperLocalReceiver({
@@ -77,7 +77,7 @@ function makeReceiver(d){
     schema:'research_market_snapshot.v1',
     paper_only:true,actionable:false,candidates:[candidate(Date.now())]}}),
   lookup:async()=>quote(price),
-  securityCheck:async()=>safe(),
+  securityCheck:async()=>securityOverride||safe(),
   submit:async(o,opts)=>{
     signCount++;
     const result=applyAgentSignal(state,o,opts.localTrust,{
@@ -93,10 +93,10 @@ function makeReceiver(d){
   setPrice:x=>{price=x},get signCount(){return signCount},
   cleanup:()=>rmSync(folder,{force:true,recursive:true})};
 }
-test('strict ChatGPT protocol never promotes invalid, stale, unsigned research to a BUY',()=>{
+test('strict GPT protocol checks signature contract, not GPT trading score and risk preference',()=>{
  const d=decision();assert.equal(validateGptPaperDecision(d,{now}).trade,true);
- assert.throws(()=>validateGptPaperDecision({...d,score_0_100:79},{now}),/UNSAFE/);
- assert.throws(()=>validateGptPaperDecision({...d,security_assessment:'UNKNOWN'},{now}),/UNSAFE/);
+ assert.equal(validateGptPaperDecision({...d,score_0_100:79},{now}).trade,true);
+ assert.equal(validateGptPaperDecision({...d,security_assessment:'UNKNOWN'},{now}).trade,true);
  assert.throws(()=>validateGptPaperDecision({...d,mode:'LIVE'},{now}),/INVALID/);
  assert.throws(()=>validateGptPaperDecision({...d,expires_at_utc:iso(now+3600000)},{now}),/TTL/);
  assert.throws(()=>validateGptPaperDecision({...d,evidence_ids:[]},{now}),/UNSAFE/);
@@ -171,10 +171,10 @@ test('GPT oversized amount is rejected by local risk even if its text says VERIF
  const a=makeReceiver();
  try{
   const big=decision('BUY',now,'6'.repeat(32));
-  big.amount_test_usdc=100;
+  big.amount_test_usdc=1000;
   const blocked=await a.r.receive(envelope(big));
   assert.equal(blocked.status,'BLOCKED');
-  assert.equal(blocked.reason,'GPT_FRESH_PRIVATE_PAPER_CAPACITY_REJECTED');
+  assert.equal(blocked.reason,'GPT_SIZE_EXCEEDS_INDEPENDENT_RISK_CAP');
   assert.equal(a.state.positions.length,0);
   assert.equal(a.signCount,0);
  }finally{a.cleanup()}
@@ -196,7 +196,7 @@ test('V4.3: pausing new entries does not prevent a fresh signed GPT SELL',async(
  }finally{a.cleanup()}
 });
 
-test('V4.8 regression: 4,999.01 TEST-USDC can open GPT-signed 25 paper position under 1% and close with visible UI receipt',async()=>{
+test('V5.5: owner-budget GPT 25 paper position opens then closes with visible UI receipt',async()=>{
  const a=makeReceiver();
  try{
   a.setState({...a.state,cashUsdc:4999.01});
@@ -205,7 +205,7 @@ test('V4.8 regression: 4,999.01 TEST-USDC can open GPT-signed 25 paper position 
    state:{...a.state,automaticPaperBuys:true},candidate:observedCandidate,
    quote:q,security:safe(),now:Date.now(),gptSignedPaper:true});
   assert.equal(gate.allowed,true);
-  assert.equal(gate.amount_test_usdc,49.99);
+  assert.equal(gate.amount_test_usdc,600);
   const buy=decision('BUY',Date.now(),'a'.repeat(32));
   buy.amount_test_usdc=25;
   const receipt=await a.r.receive(envelope(buy));
@@ -232,15 +232,15 @@ test('V4.8 regression: 4,999.01 TEST-USDC can open GPT-signed 25 paper position 
   assert.equal(a.state.agentOrderReceipts.every(r=>r.real_trade_executed===false),true);
  }finally{a.cleanup()}
 });
-test('V4.8 signed small GPT amount cannot bypass 1% cap or allow small unsigned manual buy',async()=>{
+test('V5.5 GPT cannot bypass quote-liquidity impact guard or allow unsigned manual BUY',async()=>{
  const a=makeReceiver();
  try{
   a.setState({...a.state,cashUsdc:4999.01});
   const oversized=decision('BUY',Date.now(),'c'.repeat(32));
-  oversized.amount_test_usdc=50;
+  oversized.amount_test_usdc=601;
   const result=await a.r.receive(envelope(oversized));
   assert.equal(result.status,'BLOCKED');
-  assert.equal(result.reason,'GPT_FRESH_PRIVATE_PAPER_CAPACITY_REJECTED');
+  assert.equal(result.reason,'GPT_SIZE_EXCEEDS_INDEPENDENT_RISK_CAP');
   assert.equal(a.state.positions.length,0);
   const state={...a.state,entriesEnabled:true,candidates:[{
    id:'manual:test',isDemo:true,chain:'demo',tokenAddress:'mint',
@@ -300,4 +300,83 @@ test('V5.4: disabling GPT-follow during provider lookup prevents a late PAPER BU
   assert.equal(state.cashUsdc,5000);
   assert.equal(state.gptPaperFollow,false);
  }finally{rmSync(folder,{recursive:true,force:true})}
+});
+
+test('V5.5: GPT consciously accepts unknown GoPlus and completes indicative Paper BUY to SELL',async()=>{
+ const incomplete={...FLAGS};delete incomplete.hidden_owner;delete incomplete.is_whitelisted;
+ const sec=assessEvmSecurityRaw({chain:'base',token,pool,now:Date.now(),
+  goplus:{code:1,result:{[token]:incomplete}},
+  honeypot:{simulationSuccess:true,honeypotResult:{isHoneypot:false},
+   simulationResult:{buyTax:0,sellTax:0},token:{address:token},
+   pair:{pairAddress:pool},flags:[]}});
+ assert.equal(sec.approved,false);
+ assert.equal(sec.paper_unknown_goplus_risk_eligible,true);
+ const a=makeReceiver({securityOverride:sec});
+ try{
+  const buy=decision('BUY',Date.now(),'f'.repeat(32));
+  buy.amount_test_usdc=100;
+  buy.score_0_100=31;
+  buy.security_assessment='UNKNOWN';buy.risk_level='HIGH';
+  const r=await a.r.receive(envelope(buy));
+  assert.equal(r.status,'PAPER_FILLED');
+  assert.equal(a.state.positions.length,1);
+  assert.equal(a.state.positions[0].amountUsdc,100);
+  assert.equal(a.state.positions[0].safety,'GPT_AUTHORIZED_UNKNOWN_PROVIDER_RISK_INDICATIVE_PAPER');
+  const rec=a.state.agentOrderReceipts.at(-1);
+  assert.equal(rec.indicative_only,true);
+  assert.equal(rec.sellability_verified,false);
+  assert.equal(rec.sell_simulation_passed,true);
+  assert.equal(rec.execution_evidence,'GPT_ACCEPTED_UNKNOWN_GOPLUS_RISK_SIMULATED_SELL_INDICATIVE_QUOTE');
+  a.setPrice(.026);
+  const sold=await a.r.receive(envelope(decision('SELL',Date.now(),'a'.repeat(32))));
+  assert.equal(sold.status,'PAPER_FILLED');
+  assert.equal(a.state.positions.length,0);
+  assert.equal(paperDashboardView(a.state).open_position_count,0);
+  assert(paperDashboardView(a.state).realized_pnl_test_usdc>0);
+ }finally{a.cleanup()}
+});
+
+test('V5.5: GPT cannot hide UNKNOWN provider risk or override a known-dangerous contract',async()=>{
+ const incomplete={...FLAGS};delete incomplete.hidden_owner;
+ const hp={simulationSuccess:true,honeypotResult:{isHoneypot:false},
+  simulationResult:{buyTax:0,sellTax:0},token:{address:token},
+  pair:{pairAddress:pool},flags:[]};
+ const unknown=assessEvmSecurityRaw({chain:'base',token,pool,now:Date.now(),
+  goplus:{code:1,result:{[token]:incomplete}},honeypot:hp});
+ const a=makeReceiver({securityOverride:unknown});
+ try{
+  const d=decision('BUY',Date.now(),'d'.repeat(32));
+  assert.equal((await a.r.receive(envelope(d))).reason,
+   'GPT_UNKNOWN_CONTRACT_RISK_NOT_ACKNOWLEDGED');
+  assert.equal(a.state.positions.length,0);
+ }finally{a.cleanup()}
+ const dangerous=assessEvmSecurityRaw({chain:'base',token,pool,now:Date.now(),
+  goplus:{code:1,result:{[token]:{...incomplete,is_proxy:'1'}}},honeypot:hp});
+ assert.equal(dangerous.paper_unknown_goplus_risk_eligible,false);
+ const b=makeReceiver({securityOverride:dangerous});
+ try{
+  const d=decision('BUY',Date.now(),'e'.repeat(32));d.security_assessment='UNKNOWN';
+  assert.equal((await b.r.receive(envelope(d))).status,'BLOCKED');
+  assert.equal(b.state.positions.length,0);
+ }finally{b.cleanup()}
+});
+
+test('V5.5: GBP score is GPT strategy, market quote and owner budget still constrain paper entry',()=>{
+ const current=Date.now();
+ const s={...ledger(),automaticPaperBuys:true};
+ const lowMomentum={...quote(.02,current),volume5mUsd:0,buys5m:0,sells5m:3};
+ const poolCandidate=candidate(current);
+ const g=r29LivePaperEntryGate({state:s,candidate:poolCandidate,
+  quote:lowMomentum,security:safe(current),now:current,gptSignedPaper:true});
+ assert.equal(g.allowed,true);
+ assert.equal(g.amount_test_usdc,600);
+ assert.equal(r29LivePaperEntryGate({state:s,candidate:poolCandidate,quote:lowMomentum,
+  security:safe(current),now:current,gptSignedPaper:false}).allowed,false);
+ const capped={...s,portfolioBudgetUsdc:80};
+ assert.equal(r29LivePaperEntryGate({state:capped,candidate:poolCandidate,
+  quote:lowMomentum,security:safe(current),now:current,
+  gptSignedPaper:true}).amount_test_usdc,80);
+ const stale={...lowMomentum,asOf:iso(current-100000)};
+ assert.equal(r29LivePaperEntryGate({state:s,candidate:poolCandidate,
+  quote:stale,security:safe(current),now:current,gptSignedPaper:true}).allowed,false);
 });
