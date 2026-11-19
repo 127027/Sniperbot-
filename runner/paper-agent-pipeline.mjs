@@ -185,7 +185,9 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
           gptExitReviewStatus:'GPT_EXIT_MONITOR_PENDING_FIRST_QUOTE'
          }:{paperAutopilot:true}),
          entryLiquidityUsd:quote.liquidityUsd,
-         safety:'PUBLIC_SECURITY_CHECKS_PAPER_ONLY',
+         safety:gptPaper&&securityEvidence?.paper_unknown_goplus_risk_eligible===true?
+          'GPT_AUTHORIZED_UNKNOWN_PROVIDER_RISK_INDICATIVE_PAPER':
+          'PUBLIC_SECURITY_CHECKS_PAPER_ONLY',
          exitMode:gptPaper?'GPT_GUARD':'AUTO'} )}:attempted;
     status='PAPER_FILLED';reason=gptPaper?'GPT_AUTHORIZED_BUY_PAPER_ONLY':
       localAuto?'LOCAL_AUTOPILOT_BUY_PAPER_ONLY':'SIGNED_AGENT_BUY_PAPER_ONLY';
@@ -220,6 +222,9 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
    }else reason='SELL_BLOCKED_BY_MARKET_OR_LEDGER';
   }
  }
+ const unknownGptPaperRisk=gptPaper&&actionType==='BUY'&&
+  securityEvidence?.paper_unknown_goplus_risk_eligible===true&&
+  securityEvidence?.approved===false;
  const receipt={
   signal_id:order.signal_id,command_source:source,
   issuer:order.issuer,action:actionType,
@@ -234,13 +239,19 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   gpt_authorized_exit_policy_accepted:status==='PAPER_FILLED'&&gptPaper&&actionType==='BUY',
   gpt_policy_exit_trigger:policyExit?(gptPolicyExit?.trigger||null):null,
   execution_evidence:syntheticTest===true?'SYNTHETIC_FIXTURE':
-   (status==='PAPER_FILLED'&&(localAuto||gptPaper)?
+   (status==='PAPER_FILLED'&&unknownGptPaperRisk?
+    'GPT_ACCEPTED_UNKNOWN_GOPLUS_RISK_SIMULATED_SELL_INDICATIVE_QUOTE':
+    status==='PAPER_FILLED'&&gptPaper&&actionType==='SELL'?
+    'GPT_AUTHORIZED_SELL_INDICATIVE_DEX_QUOTE_NOT_EXECUTABLE':
+    status==='PAPER_FILLED'&&(localAuto||gptPaper)?
     'PUBLIC_SECURITY_VERIFIED_INDICATIVE_DEX_QUOTE_NOT_EXECUTABLE':
     status==='PAPER_FILLED'&&source==='CENTRAL_AI_LOCAL'&&indicativePaper===true?
     'INDICATIVE_DEX_QUOTE_NOT_EXECUTABLE':'UNVERIFIED'),
   indicative_only:syntheticTest!==true&&(source==='CENTRAL_AI_LOCAL'||localAuto||gptPaper),
   sellability_verified:false,
-  sell_simulation_passed:(localAuto||gptPaper)&&actionType==='BUY'&&securityEvidence?.approved===true,
+  sell_simulation_passed:(localAuto||gptPaper)&&actionType==='BUY'&&
+   securityEvidence?.honeypot_simulation_ok===true&&
+   securityEvidence?.exact_token_and_pair_verified===true,
   slippage_verified:false,
   real_trade_executed:false,wallet_debited:false,
   externally_funded:false,live_trading_enabled:false
