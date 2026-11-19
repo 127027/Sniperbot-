@@ -1,11 +1,13 @@
 // R29 LOCAL-ONLY capacity report for GPT: executor informs, GPT decides.
 // Do not publish numeric private paper capacity or account fields on public GitHub.
 // Pure read-only; no signing, mutation, transfer, payments or orders.
-import {portfolioBudget,MIN_PAPER_ENTRY_USDC,userCoinStake} from './portfolio-budget.mjs';
+import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC,userCoinStake} from './portfolio-budget.mjs';
 import {paperAutoEquity} from './live-paper-risk.mjs';
 const cents=x=>Math.floor((x+1e-8)*100)/100;
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
-const MIN=MIN_PAPER_ENTRY_USDC,MAX=5000;
+// Legacy v2 may have smaller valid signed amounts. New v3 OWNER_FIXED always
+// enforces 50-5000 via userCoinStake() in the receiver.
+const MIN=MIN_GPT_PAPER_ENTRY_USDC,MAX=5000;
 export const PRIVATE_SCHEMA='sniper_r29_private_gpt_paper_capacity.v1';
 export function computePrivateGptCapacity(state,{observed_at_utc,technical_max_stake_test_usdc=5000}={}){
  const base={schema:PRIVATE_SCHEMA,mode:'PAPER_ONLY',real_trading_enabled:false,
