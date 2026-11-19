@@ -22,7 +22,8 @@ const FLAGS={is_open_source:'1',is_proxy:'0',is_mintable:'0',
 const safe=(time=Date.now())=>assessEvmSecurityRaw({chain:'base',token,pool,now:time,
  goplus:{code:1,result:{[token]:FLAGS}},
  honeypot:{simulationSuccess:true,honeypotResult:{isHoneypot:false},
- simulationResult:{buyTax:0,sellTax:0},token:{address:token},pair:{pairAddress:pool},flags:[]}});
+ simulationResult:{buyTax:0,sellTax:0},token:{address:token},pairAddress:pool,chain:{id:'8453'},
+  pair:{chainId:'8453',pair:{address:pool}},flags:[]}});
 const quote=(price=.02,time=Date.now())=>({
  chain:'base',tokenAddress:token,poolAddress:pool,priceUsd:price,
  liquidityUsd:120000,volume5mUsd:14000,buys5m:57,sells5m:18,
@@ -308,7 +309,8 @@ test('V5.5: GPT consciously accepts unknown GoPlus and completes indicative Pape
   goplus:{code:1,result:{[token]:incomplete}},
   honeypot:{simulationSuccess:true,honeypotResult:{isHoneypot:false},
    simulationResult:{buyTax:0,sellTax:0},token:{address:token},
-   pair:{pairAddress:pool},flags:[]}});
+   pairAddress:pool,chain:{id:'8453'},
+  pair:{chainId:'8453',pair:{address:pool}},flags:[]}});
  assert.equal(sec.approved,false);
  assert.equal(sec.paper_unknown_goplus_risk_eligible,true);
  const a=makeReceiver({securityOverride:sec});
@@ -340,7 +342,8 @@ test('V5.5: GPT cannot hide UNKNOWN provider risk or override a known-dangerous 
  const incomplete={...FLAGS};delete incomplete.hidden_owner;
  const hp={simulationSuccess:true,honeypotResult:{isHoneypot:false},
   simulationResult:{buyTax:0,sellTax:0},token:{address:token},
-  pair:{pairAddress:pool},flags:[]};
+  pairAddress:pool,chain:{id:'8453'},
+  pair:{chainId:'8453',pair:{address:pool}},flags:[]};
  const unknown=assessEvmSecurityRaw({chain:'base',token,pool,now:Date.now(),
   goplus:{code:1,result:{[token]:incomplete}},honeypot:hp});
  const a=makeReceiver({securityOverride:unknown});
