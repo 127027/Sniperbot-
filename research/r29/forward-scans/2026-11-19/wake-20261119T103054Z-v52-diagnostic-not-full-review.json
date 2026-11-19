@@ -1,0 +1,83 @@
+{
+  "schema": "r29_v52_forward_wake_diagnostic.v1",
+  "run_class": "AUTOMATION",
+  "wake_at_utc": "2026-11-19T10:30:54Z",
+  "full_gpt_model_review_executed": false,
+  "reason": "Last distinct full model review at 09:48:32 UTC; 42m22s elapsed, below mandatory 60m minimum. Current sources checked; no duplicate full review counted.",
+  "last_full_review_at_utc": "2026-11-19T09:48:32Z",
+  "new_market_asof": "2026-11-19T10:23:05.135Z",
+  "market_source_age_seconds_at_wake": 469,
+  "market_snapshot_blob_sha": "329f8892702832634f3f1818ada96577cb09d78b",
+  "market_candidates": 63,
+  "market_chain_counts": {
+    "solana": 24,
+    "base": 9,
+    "bsc": 19,
+    "eth": 11
+  },
+  "cross_provider_identities": 8,
+  "security_snapshot_asof": "2026-11-19T09:38:23.351Z",
+  "security_checked_at_utc": "2026-11-19T09:40:08.192Z",
+  "security_snapshot_age_minutes_at_wake": 52.52,
+  "security_funnel": {
+    "total": 59,
+    "evm": 39,
+    "research_eligible": 2,
+    "checked": 2,
+    "full_buy_eligible": 0,
+    "first_failure_counts": {
+      "NON_EVM_CHAIN": 20,
+      "VOLUME_5M_LT_1000_OR_UNKNOWN": 2,
+      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 33,
+      "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 2
+    },
+    "checked_blockers": {
+      "base": [
+        "HONEYPOT_POOL_UNVERIFIED",
+        "WALLET_LP_EXECUTABLE_TWO_WAY_QUOTES_UNVERIFIED"
+      ],
+      "bsc": [
+        "GOPLUS_MISSING_CANNOT_SELL_ALL",
+        "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
+        "HONEYPOT_TOKEN_UNVERIFIED",
+        "HONEYPOT_POOL_UNVERIFIED"
+      ]
+    }
+  },
+  "security_snapshot_not_current_market_snapshot": true,
+  "solana_research": {
+    "candidate_id": "solana:DoY7PBCyV7JPRBi8u3TcP3RvGYqKMsnYvWT6ePAojDoH:3sfzHSS1FWyF6KcGQ6FaBL92QfdkRVCQaehc37YTrPtF",
+    "observed_at_utc": "2026-11-19T10:23:44.091Z",
+    "status": "WATCH",
+    "blockers": [
+      "INCOMPLETE_FINALIZED_MINT_HEADER",
+      "HOLDER_LP_SELLABILITY_UNVERIFIED",
+      "INDICATIVE_NOT_EXECUTABLE_QUOTES",
+      "SOLANA_EVM_RECEIVER_UNSUPPORTED"
+    ]
+  },
+  "public_context": {
+    "observed_at_utc": "2026-11-19T10:28:54.030Z",
+    "paper_bot_enabled": true,
+    "gpt_follow_enabled": true,
+    "exit_monitor_heartbeat_recent": true,
+    "public_positions": 0
+  },
+  "private_capacity": "UNKNOWN",
+  "private_ledger": "UNKNOWN",
+  "last_public_receipt": {
+    "at_utc": "2026-11-18T16:21:09.742Z",
+    "action": "NO_TRADE",
+    "paper_filled": false
+  },
+  "verified_new_personal_prospective_paper_buy": false,
+  "elapsed_24_72_240h_without_personal_buy": "UNKNOWN_INCOMPLETE_PRIVATE_LEDGER",
+  "windows_continuous_uptime": "UNKNOWN",
+  "decision": "WATCH_NO_TRADE",
+  "specific_reason": "Current market discovery is newer than security validation; no matching full EVM security/sellability/LP/independent executable quotes. Solana research is non-executable. Private capacity and ledger are inaccessible.",
+  "decision_published": "WAKE_DIAGNOSTIC_ONLY_NO_ORDER_POINTER",
+  "local_receipt_for_this_wake": "UNKNOWN",
+  "real_trading_enabled": false,
+  "posthoc_inputs_used": false,
+  "action": "At next eligible model review, revalidate current candidate exact pool IDs and independent EVM sellability/two-way quotes; verify private ledger only locally. No safety relaxation or new automation."
+}
