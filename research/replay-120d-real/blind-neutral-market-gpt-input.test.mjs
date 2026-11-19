@@ -120,3 +120,12 @@ test('as-of GPT frame includes read-only pool and migration triggers only after 
  p.market_events[1].provider_captured_at_utc='2026-10-15T12:00:01Z';
  assert.throws(()=>buildNeutralHistoricalModelInput(p),/MARKET_DATA_CAPTURED_AFTER_DECISION/);
 });
+
+test('108010-event historical frame fails closed rather than silently losing 8010 events',()=>{
+ const p=base();
+ p.market_events=Array(108010).fill(event);
+ assert.throws(()=>buildNeutralHistoricalModelInput(p),/INVALID_MARKET_INPUT/);
+ assert.equal(p.market_events.length,108010);
+ // A truncated 100000-event subset is not a certified complete historical frame.
+ // Do not count a GPT scan until a lossless, provenance-bound batching protocol exists.
+});
