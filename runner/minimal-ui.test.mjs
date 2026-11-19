@@ -117,3 +117,28 @@ test('R29 V4.7 one-click Paper entry pause is explicitly OFF, not ambiguous togg
   'repeat OFF MUST NOT flip Bot back ON');
  assert.equal(action(paused,{type:'SET_BOT_ENTRIES',enabled:'false'}),paused);
 });
+
+test('V5.7 user controls two separate per-coin stakes; amount settings never enable real trades',()=>{
+ const start={...freshState(),cashUsdc:5000,gptPaperFollow:true,
+  entriesEnabled:true,realTradingEnabled:false};
+ const paper=action(start,{type:'SET_COIN_STAKE',account:'PAPER',amount:250});
+ assert.equal(paper.paperCoinStakeUsdc,250);
+ assert.equal(paper.realCoinStakeUsdc,50);
+ assert.equal(paper.cashUsdc,5000);
+ assert.equal(paper.entriesEnabled,true);
+ const real=action(paper,{type:'SET_COIN_STAKE',account:'REAL',amount:500});
+ assert.equal(real.paperCoinStakeUsdc,250);
+ assert.equal(real.realCoinStakeUsdc,500);
+ assert.equal(real.realTradingEnabled,false);
+ assert.equal(real.positions.length,0);
+ for(const amount of [0,1,49.99,5000.01,25.005,Infinity,NaN,'50',null]){
+  assert.equal(action(real,{type:'SET_COIN_STAKE',account:'PAPER',amount}),real);
+ }
+ assert.equal(action(real,{type:'SET_COIN_STAKE',account:'LIVE',amount:50}),real);
+ const html=readFileSync(new URL('./dashboard.html',import.meta.url),'utf8');
+ assert.match(html,/Maximal vorhanden/);
+ assert.match(html,/Einsatz \/ Coin/);
+ assert.match(html,/SET_COIN_STAKE/);
+ assert.doesNotMatch(html,/id="preferredEntry"|id="exposureCap"|id="saveBudget"/);
+ assert.doesNotMatch(html,/höchstens 1 % des virtuellen Kontowerts/);
+});
