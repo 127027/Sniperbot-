@@ -7,37 +7,65 @@
   "wallet_or_account_data_included": false,
   "review_sha256": "e96be3c0fb71f4c8cb4826f2dbfc84421ea409f03e790877b6183cb0e6a78bd1",
   "review_observed_at_utc": "2026-11-19T06:05:27.139Z",
-  "market_snapshot_observed_at_utc": "2026-11-19T08:37:33.881Z",
+  "market_snapshot_observed_at_utc": "2026-11-19T09:38:23.351Z",
   "market_snapshot_is_order_authority": false,
   "local_market_read_status": "FRESH_LOCAL_PUBLIC_SNAPSHOT",
   "selection_diagnostic": {
     "schema": "sniper_r29_security_candidate_diagnostic.v1",
     "status": "RESEARCH_ELIGIBLE_NOT_TRADE_APPROVED",
-    "observed_market_rows": 63,
-    "evm_market_rows": 43,
-    "potential_research_candidates": 1,
+    "observed_market_rows": 59,
+    "evm_market_rows": 39,
+    "potential_research_candidates": 2,
     "first_failure_reason_counts": {
       "NON_EVM_CHAIN": 20,
-      "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 4,
-      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 37,
-      "VOLUME_5M_LT_1000_OR_UNKNOWN": 1
+      "VOLUME_5M_LT_1000_OR_UNKNOWN": 2,
+      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 33,
+      "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 2
     },
     "two_provider_contract_checks_still_separate": true,
     "independent_buyer_wallet_proof_still_missing": true,
     "real_executable_quote_still_missing": true,
     "this_diagnostic_cannot_authorize_trades": true
   },
-  "checked_at_utc": "2026-11-19T08:39:32.356Z",
-  "candidate_check_count": 1,
+  "checked_at_utc": "2026-11-19T09:40:08.192Z",
+  "candidate_check_count": 2,
   "status": "PARTIAL_SECURITY_RESEARCH_ONLY",
   "candidates": [
     {
-      "candidate_id": "bsc:0x01904f5e0eaab45155dfd8712f046f0146830181:0xe75d4ca75326ff697dbfb7758bc5cc0812a2fad3",
+      "candidate_id": "base:0x6956c783de8de5e6a36048b28bf955128398b6dd:0x1c609a2eb14ff1651306a94f905637f88e4fc009",
+      "chain": "base",
+      "token_address": "0x6956c783de8de5e6a36048b28bf955128398b6dd",
+      "pool_address": "0x1c609a2eb14ff1651306a94f905637f88e4fc009",
+      "checked_at_utc": "2026-11-19T09:40:08.192Z",
+      "verified_pool_observed_at_utc": "2026-11-19T09:38:23.351Z",
+      "source_scope": "FRESH_CROSS_PROVIDER_LOCAL_MARKET",
+      "also_listed_in_hourly_review": false,
+      "independent_provider_names": [
+        "GoPlus",
+        "Honeypot.is"
+      ],
+      "goplus_evaluated": true,
+      "honeypot_simulation_ok": true,
+      "contract_authorities_ok": true,
+      "token_and_pool_matched": false,
+      "basic_contract_and_sell_simulation_pass": false,
+      "risk_codes": [
+        "HONEYPOT_POOL_UNVERIFIED"
+      ],
+      "source_goplus": "https://api.gopluslabs.io/api/v1/token_security",
+      "source_honeypot": "https://api.honeypot.is/v2/IsHoneypot",
+      "independent_wallet_adoption_verified": false,
+      "independent_liquidity_redeemability_verified": false,
+      "cost_and_slippage_executable_verified": false,
+      "full_gpt_buy_gate_passed": false
+    },
+    {
+      "candidate_id": "bsc:0x6925d40f23b0a719048ba1b19f9e0adc67a35bd7:0xd30d4cce889e77381b8e1316420f58844327aaf1",
       "chain": "bsc",
-      "token_address": "0x01904f5e0eaab45155dfd8712f046f0146830181",
-      "pool_address": "0xe75d4ca75326ff697dbfb7758bc5cc0812a2fad3",
-      "checked_at_utc": "2026-11-19T08:39:32.356Z",
-      "verified_pool_observed_at_utc": "2026-11-19T08:37:33.881Z",
+      "token_address": "0x6925d40f23b0a719048ba1b19f9e0adc67a35bd7",
+      "pool_address": "0xd30d4cce889e77381b8e1316420f58844327aaf1",
+      "checked_at_utc": "2026-11-19T09:40:08.192Z",
+      "verified_pool_observed_at_utc": "2026-11-19T09:38:23.351Z",
       "source_scope": "FRESH_CROSS_PROVIDER_LOCAL_MARKET",
       "also_listed_in_hourly_review": false,
       "independent_provider_names": [
@@ -46,10 +74,11 @@
       ],
       "goplus_evaluated": true,
       "honeypot_simulation_ok": false,
-      "contract_authorities_ok": true,
+      "contract_authorities_ok": false,
       "token_and_pool_matched": false,
       "basic_contract_and_sell_simulation_pass": false,
       "risk_codes": [
+        "GOPLUS_MISSING_CANNOT_SELL_ALL",
         "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
         "HONEYPOT_TOKEN_UNVERIFIED",
         "HONEYPOT_POOL_UNVERIFIED"
