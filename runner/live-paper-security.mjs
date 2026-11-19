@@ -109,7 +109,7 @@ export function validatePaperSecurityEvidence(x,{chain,token,pool,now=Date.now()
   x.approved===false&&x.paper_unknown_goplus_risk_eligible===true&&
   x.contract_authorities_ok===false&&x.risk_flags.length>0&&
   x.risk_flags.every(s=>typeof s==='string'&&
-   /^GOPLUS_MISSING_[A-Z_]+$/.test(s));
+   /^GOPLUS_MISSING_[a-z_]+$/.test(s));
  return strict||unknown;
 }
 export async function collectEvmSecurity({chain,token,pool,fetcher=fetch,
