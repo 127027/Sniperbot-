@@ -22,6 +22,12 @@ export function storage(root){
   if(s.research&&(!Array.isArray(s.research.events)||!Array.isArray(s.research.candidates)||!Array.isArray(s.research.decisions)))throw Error('Ungültiger Research-Speicher');
   if(s.paperDecisions&&(!Array.isArray(s.paperDecisions.receipts)||!s.paperDecisions.revisions||typeof s.paperDecisions.revisions!=='object'||Array.isArray(s.paperDecisions.revisions)))throw Error('Ungültiger Entscheidungsspeicher');
   if(s.agentSignalReplay!==undefined&&(!s.agentSignalReplay||typeof s.agentSignalReplay!=='object'||Array.isArray(s.agentSignalReplay)||Object.entries(s.agentSignalReplay).some(([id,d])=>!/^sig_[a-f0-9]{32}$/.test(id)||!/^[a-f0-9]{64}$/.test(d))))throw Error('Ungültiger Signal-Wiederholschutz; kein Reset');
+  for(const value of [s.paperCoinStakeUsdc,s.realCoinStakeUsdc]){
+   if(value===undefined)continue; // older saved accounts migrate to 50
+   if(typeof value!=='number'||!Number.isFinite(value)||value<50||value>5000||
+      Math.abs(value*100-Math.round(value*100))>1e-5)
+    throw Error('Ungültige Einsatz-pro-Coin-Einstellung; Paper-Konto unverändert');
+  }
   if(s.gptPaperFollow!==undefined&&typeof s.gptPaperFollow!=='boolean')
    throw Error('Ungültige GPT-Paper-Freigabe; kein Reset');
   if(s.gptDecisionReplay!==undefined&&(!s.gptDecisionReplay||
