@@ -2,7 +2,7 @@
 // Do not publish numeric private paper capacity or account fields on public GitHub.
 // Pure read-only; no signing, mutation, transfer, payments or orders.
 import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
-import {MAX_SINGLE_SHARE,MAX_TOTAL_SHARE,paperAutoEquity} from './live-paper-risk.mjs';
+import {paperAutoEquity} from './live-paper-risk.mjs';
 const cents=x=>Math.floor((x+1e-8)*100)/100;
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
 const MIN=MIN_GPT_PAPER_ENTRY_USDC,MAX=5000;
@@ -25,15 +25,13 @@ export function computePrivateGptCapacity(state,{observed_at_utc,technical_max_s
   return {...base,reason:'TECHNICAL_RISK_LIMIT_INVALID'};
  const budget=portfolioBudget(state);
  if(!budget.valid)return {...base,reason:'LOCAL_PAPER_BUDGET_UNVERIFIED'};
- // Advertise only capacity consistent with the actual 1%-of-equity entry gate.
- // A larger private funding offer would repeatedly authorize impossible BUYs.
- // Unknown/stale existing position marks make equity untrustworthy: fail closed.
+ // GPT sets the stake: the owner-configured virtual Paper portfolio cap,
+ // currently unreserved cash and technical maximum are the boundaries.
+ // Unknown/stale existing position marks still fail closed. No amounts public.
  const equity=paperAutoEquity(state,{now:t});
  if(!finite(equity)||equity<=0)return {...base,reason:'FRESH_PAPER_EQUITY_REQUIRED'};
- const remainingTotal=Math.max(0,equity*MAX_TOTAL_SHARE-
-  budget.reserved_test_usdc);
  const approved=cents(Math.min(MAX,budget.free_to_allocate_test_usdc,
-  technical_max_stake_test_usdc,equity*MAX_SINGLE_SHARE,remainingTotal));
+  technical_max_stake_test_usdc));
  if(approved<MIN)return {...base,reason:'PAPER_FREE_CAPACITY_BELOW_GPT_MINIMUM'};
  return {...base,maximum_approved_buy_test_usdc:approved,can_buy:true,
   reason:'CURRENT_LOCAL_PAPER_CAPACITY_REQUIRES_FRESH_EXECUTOR_RECHECK'};
