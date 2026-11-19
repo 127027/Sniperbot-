@@ -66,7 +66,7 @@ test('R29 two-tab user UI shows only verified regular Paper and read-only real w
  for(const id of [
   'tabPaper','tabReal','availableValue','totalValue','openCount','openPnl',
   'realizedPnl','positionRows','historyList','toggleBot','paperSettings',
-  'preferredEntry','exposureCap','saveBudget','setPaperBalance',
+  'coinStakeControls','stakeAvailable','coinStake','saveCoinStake','setPaperBalance',
   'realUsdc','realSol','refreshWallet','diagnostics'
  ])assert.ok(html.includes('id="'+id+'"'),'missing R29 user-facing control '+id);
  for(const retired of [
