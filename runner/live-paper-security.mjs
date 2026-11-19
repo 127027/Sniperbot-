@@ -54,7 +54,13 @@ export function assessEvmSecurityRaw({chain,token,pool,goplus,honeypot,now=Date.
   simulation.pair.pairAddress.toLowerCase()===pair;
  const approved=missing.length===0&&unsafe.length===0&&
   simulationOk&&tokenMatched&&poolMatched&&
-  indicator(gp.is_open_source)===true;
+  indicator(gp?.is_open_source)===true;
+ // UNKNOWN GoPlus fields are not proof of danger or safety. Only the GPT-only
+ // indicative paper route may tolerate UNKNOWN when the provider did answer,
+ // no explicit dangerous flag exists and an independent, exact-pool two-way
+ // Honeypot.is simulation succeeds. Strict legacy approval stays unchanged.
+ const paperUnknownRiskEligible=gp!==null&&missing.length>0&&
+  unsafe.length===0&&simulationOk&&tokenMatched&&poolMatched;
  const reasons=[
   ...(gp?[]:['GOPLUS_UNAVAILABLE_OR_UNKNOWN']),
   ...missing.map(x=>'GOPLUS_MISSING_'+x),
@@ -70,28 +76,41 @@ export function assessEvmSecurityRaw({chain,token,pool,goplus,honeypot,now=Date.
   goplus_evaluated:gp!==null,honeypot_simulation_ok:simulationOk,
   contract_authorities_ok:missing.length===0&&unsafe.length===0,
   exact_token_and_pair_verified:tokenMatched&&poolMatched,
+  known_dangerous_contract_indicator:unsafe.length>0,
+  paper_unknown_goplus_risk_eligible:paperUnknownRiskEligible,
   risk_flags:reasons,approved,
   security_is_guaranteed:false,
   independent_executable_quote_verified:false,
   paper_only:true};
  return evidence;
 }
-export function validatePaperSecurityEvidence(x,{chain,token,pool,now=Date.now()}={}){
+export function validatePaperSecurityEvidence(x,{chain,token,pool,now=Date.now(),
+ allowUnknownGoPlusRiskForGptPaper=false}={}){
  if(x?.schema!=='r29_public_evm_security_gate.v1'||x.mode!=='PAPER_ONLY'||
-  x.paper_only!==true||x.approved!==true||
+  x.paper_only!==true||
   x.security_is_guaranteed!==false||
   x.independent_executable_quote_verified!==false||
   x.chain!==chain||safeAddress(chain,token)!==x.token_address||
   safeAddress(chain,pool)!==x.pool_address||
   !Array.isArray(x.provider_names)||
   x.provider_names.join(',')!=='GoPlus,Honeypot.is'||
-  !Array.isArray(x.risk_flags)||x.risk_flags.length!==0||
+  !Array.isArray(x.risk_flags)||x.risk_flags.length>30||
   x.goplus_evaluated!==true||x.honeypot_simulation_ok!==true||
-  x.contract_authorities_ok!==true||x.exact_token_and_pair_verified!==true||
+  x.exact_token_and_pair_verified!==true||
+  x.known_dangerous_contract_indicator!==false||
   !date(x.checked_at_utc)||Date.parse(x.checked_at_utc)>now||
   now-Date.parse(x.checked_at_utc)>120000)
   return false;
- return true;
+ const strict=x.approved===true&&x.risk_flags.length===0&&
+  x.contract_authorities_ok===true;
+ // A verified failed sell simulation, wrong pool, known dangerous GoPlus
+ // flag, absent provider, or altered flag list must ALWAYS fail closed.
+ const unknown=allowUnknownGoPlusRiskForGptPaper===true&&
+  x.approved===false&&x.paper_unknown_goplus_risk_eligible===true&&
+  x.contract_authorities_ok===false&&x.risk_flags.length>0&&
+  x.risk_flags.every(s=>typeof s==='string'&&
+   /^GOPLUS_MISSING_[A-Z_]+$/.test(s));
+ return strict||unknown;
 }
 export async function collectEvmSecurity({chain,token,pool,fetcher=fetch,
  now=Date.now()}={}){
