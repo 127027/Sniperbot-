@@ -40,7 +40,8 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
  const b=portfolioBudget(state);
  if(!b.valid)return result('BLOCKED','INVALID_PORTFOLIO_BUDGET');
  const equity=paperAutoEquity(state,{now});
- if(!numeric(equity)||equity<50)return result('BLOCKED','CANNOT_VALUE_EQUITY_FRESHLY');
+ if(!numeric(equity)||equity<(gptSignedPaper?MIN_GPT_PAPER_ENTRY_USDC:50))
+  return result('BLOCKED','CANNOT_VALUE_EQUITY_FRESHLY');
  if(!['base','eth','bsc'].includes(candidate?.chain)||
   !validTokenAddress(candidate.chain,candidate.token_address)||
   !validTokenAddress(candidate.chain,candidate.pool_address)||
@@ -58,7 +59,7 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
   quote.tokenAddress?.toLowerCase()!==candidate.token_address.toLowerCase()||
   quote.poolAddress?.toLowerCase()!==candidate.pool_address.toLowerCase()||
   !numeric(quote.priceUsd)||quote.priceUsd<=0||
-  !numeric(quote.liquidityUsd)||quote.liquidityUsd<50000||
+  !numeric(quote.liquidityUsd)||quote.liquidityUsd<(gptSignedPaper?1000:50000)||
   !numeric(Date.parse(quote.asOf))||Date.parse(quote.asOf)>now||
   now-Date.parse(quote.asOf)>60000||
   !numeric(candidate.price_usd)||candidate.price_usd<=0||
@@ -66,27 +67,36 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
   quote.priceUsd/candidate.price_usd>1.15||
   (numeric(candidate.liquidity_usd)&&quote.liquidityUsd<candidate.liquidity_usd*0.75))
   return result('BLOCKED','INDEPENDENT_MARKET_QUOTE_MISSING',0,equity);
- if(!numeric(quote.volume5mUsd)||quote.volume5mUsd<2000||
+ // GPT owns momentum/demand strategy: keep these heuristics for the
+ // older LOCAL autopilot only. Positive fresh prices, exact pair identity,
+ // liquidity-based sizing and buy/sell simulation remain mandatory.
+ if(!gptSignedPaper&&(!numeric(quote.volume5mUsd)||quote.volume5mUsd<2000||
   !numeric(quote.buys5m)||!numeric(quote.sells5m)||
-  quote.buys5m<20||quote.buys5m<=quote.sells5m*1.5)
+  quote.buys5m<20||quote.buys5m<=quote.sells5m*1.5))
   return result('BLOCKED','INSUFFICIENT_PUBLIC_BUY_ACTIVITY',0,equity);
  // Volume/liquidity outlier and deteriorating liquidity often imply manipulation.
- if(quote.volume5mUsd>quote.liquidityUsd*2.0)
+ if(!gptSignedPaper&&quote.volume5mUsd>quote.liquidityUsd*2.0)
   return result('BLOCKED','SUSPICIOUS_VOLUME_TO_LIQUIDITY',0,equity);
  if(!validatePaperSecurityEvidence(security,{chain:candidate.chain,
-  token:candidate.token_address,pool:candidate.pool_address,now}))
+  token:candidate.token_address,pool:candidate.pool_address,now,
+  allowUnknownGoPlusRiskForGptPaper:gptSignedPaper}))
   return result('BLOCKED','CONTRACT_SECURITY_OR_SELL_SIMULATION_UNVERIFIED',0,equity);
  const lastExit=state.paperAutopilotCooldowns?.[candidate.chain+':'+candidate.token_address.toLowerCase()];
- if(typeof lastExit==='string'&&Number.isFinite(Date.parse(lastExit))&&
+ if(!gptSignedPaper&&typeof lastExit==='string'&&Number.isFinite(Date.parse(lastExit))&&
     now-Date.parse(lastExit)>=0&&now-Date.parse(lastExit)<12*3600000)
   return result('BLOCKED','REENTRY_COOLDOWN_12H',0,equity);
  if(state.positions.some(p=>p.chain===candidate.chain&&
   p.tokenAddress?.toLowerCase()===candidate.token_address.toLowerCase()))
   return result('BLOCKED','POSITION_ALREADY_OPEN',0,equity);
  const occupied=state.positions.reduce((a,p)=>a+p.amountUsdc,0);
- const maxByNominal=equity*MAX_SINGLE_SHARE;
- const remaining=equity*MAX_TOTAL_SHARE-occupied;
- const maxByRisk=equity*MAX_RISK_FRACTION/(DEFAULT_STOP_FRACTION+0.02);
+ // The owner-configured PAPER portfolio cap and cash, not a second market
+ // strategist's 1%/3% loss allocation, govern a signed GPT paper entry.
+ // Legacy LOCAL autopilot retains its original strict risk formula.
+ const maxByNominal=gptSignedPaper?b.cap_test_usdc:equity*MAX_SINGLE_SHARE;
+ const remaining=gptSignedPaper?b.free_to_allocate_test_usdc:
+  equity*MAX_TOTAL_SHARE-occupied;
+ const maxByRisk=gptSignedPaper?b.free_to_allocate_test_usdc:
+  equity*MAX_RISK_FRACTION/(DEFAULT_STOP_FRACTION+0.02);
  const maxByLiquidity=quote.liquidityUsd*0.005; // impact proxy; not executable
  const max= floorCents(Math.min(5000,maxByNominal,remaining,
   maxByRisk,maxByLiquidity,b.free_to_allocate_test_usdc));
@@ -108,9 +118,9 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
  })(date);
  const daily=risk.day_utc===day?risk.day_realized_pnl:0;
  const weekly=risk.week_utc===isoWeek?risk.week_realized_pnl:0;
- if(daily<=-equity*MAX_DAILY_LOSS||
+ if(!gptSignedPaper&&(daily<=-equity*MAX_DAILY_LOSS||
   weekly<=-equity*MAX_WEEKLY_LOSS||
-  Number.isFinite(state.closedPnl)&&state.closedPnl<=-equity*MAX_WEEKLY_LOSS)
+  Number.isFinite(state.closedPnl)&&state.closedPnl<=-equity*MAX_WEEKLY_LOSS))
   return result('BLOCKED','DAILY_OR_WEEKLY_LOSS_CIRCUIT_BREAKER',0,equity);
  return result('ALLOW_PAPER','SECURITY_AND_RISK_GATES_PASSED',max,equity);
 }
