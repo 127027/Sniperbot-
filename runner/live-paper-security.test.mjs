@@ -12,7 +12,9 @@ const fields={is_open_source:'1',is_proxy:'0',is_mintable:'0',
 const go=()=>({code:1,result:{[token]:{...fields}}});
 const honey=()=>({simulationSuccess:true,honeypotResult:{isHoneypot:false},
  simulationResult:{buyTax:1,sellTax:1},
- token:{address:token},pair:{pairAddress:pool},flags:[]});
+ token:{address:token},pairAddress:pool,
+ chain:{id:'8453'},pair:{chainId:'8453',pair:{address:pool}},
+ flags:[]});
 test('independent GoPlus + exact Honeypot simulation can pass ONLY known explicit fields',()=>{
  const at=Date.now();
  const r=assessEvmSecurityRaw({chain:'base',token,pool,
@@ -42,7 +44,7 @@ test('reject risky or absent contract checks, honeypots, unsimulated sells, taxe
  assert.equal(assessEvmSecurityRaw({...base,honeypot:hp}).approved,false);
  hp.simulationSuccess=true;hp.simulationResult.sellTax=55;
  assert.equal(assessEvmSecurityRaw({...base,honeypot:hp}).approved,false);
- hp.simulationResult.sellTax=1;hp.pair.pairAddress='0x'+'c'.repeat(40);
+ hp.simulationResult.sellTax=1;hp.pairAddress='0x'+'c'.repeat(40);
  assert.equal(assessEvmSecurityRaw({...base,honeypot:hp}).approved,false);
  assert.equal(assessEvmSecurityRaw({...base,honeypot:null}).approved,false);
 });
@@ -83,9 +85,52 @@ test('V5.5: only signed GPT PAPER may tolerate missing GoPlus flags with exact s
  const explicitlyUnsafe=go();explicitlyUnsafe.result[token].is_proxy='1';
  assert.equal(validatePaperSecurityEvidence(assessEvmSecurityRaw({
   chain:'base',token,pool,goplus:explicitlyUnsafe,honeypot:honey(),now}),approved),false);
- const notMatched=honey();notMatched.pair.pairAddress='0x'+'c'.repeat(40);
+ const notMatched=honey();notMatched.pairAddress='0x'+'c'.repeat(40);
  assert.equal(validatePaperSecurityEvidence(assessEvmSecurityRaw({
   chain:'base',token,pool,goplus:partial,honeypot:notMatched,now}),approved),false);
  assert.equal(validatePaperSecurityEvidence(assessEvmSecurityRaw({
   chain:'base',token,pool,goplus:null,honeypot:honey(),now}),approved),false);
+});
+
+test('V5.6: real Honeypot.is v2 pool schema is accepted with correct token, chain and buy/sell simulation',async()=>{
+ const at=Date.now(),doc=honey();
+ assert.equal(doc.pairAddress,pool);
+ assert.equal(doc.pair.pair.address,pool);
+ const matches=assessEvmSecurityRaw({chain:'base',token,pool,
+  goplus:go(),honeypot:doc,now:at});
+ assert.equal(matches.approved,true);
+ assert.equal(matches.exact_token_and_pair_verified,true);
+ assert.equal(validatePaperSecurityEvidence(matches,{chain:'base',token,pool,now:at}),true);
+ const topOnly={...doc,pair:undefined};
+ assert.equal(assessEvmSecurityRaw({chain:'base',token,pool,
+  goplus:go(),honeypot:topOnly,now:at}).approved,true,
+  'documented root pairAddress is sufficient with token+chain');
+ const nestedOnly={...doc,pairAddress:undefined};
+ assert.equal(assessEvmSecurityRaw({chain:'base',token,pool,
+  goplus:go(),honeypot:nestedOnly,now:at}).approved,true,
+  'documented pair.pair.address is sufficient with token+chain');
+ const wrongChain={...doc,chain:{id:'56'}};
+ assert.equal(assessEvmSecurityRaw({chain:'base',token,pool,
+  goplus:go(),honeypot:wrongChain,now:at}).approved,false);
+ const wrongNestedChain={...doc,pair:{...doc.pair,chainId:'56'}};
+ assert.equal(assessEvmSecurityRaw({chain:'base',token,pool,
+  goplus:go(),honeypot:wrongNestedChain,now:at}).approved,false);
+ const conflicting={...doc,pair:{...doc.pair,
+  pair:{address:'0x'+'c'.repeat(40)}}};
+ assert.equal(assessEvmSecurityRaw({chain:'base',token,pool,
+  goplus:go(),honeypot:conflicting,now:at}).approved,false,
+  'contradictory vendor aliases must fail closed');
+ const missingIdentity={...doc,pairAddress:undefined,pair:undefined};
+ assert.equal(assessEvmSecurityRaw({chain:'base',token,pool,
+  goplus:go(),honeypot:missingIdentity,now:at}).approved,false);
+ const mismatchedToken={...doc,token:{address:'0x'+'c'.repeat(40)}};
+ assert.equal(assessEvmSecurityRaw({chain:'base',token,pool,
+  goplus:go(),honeypot:mismatchedToken,now:at}).approved,false);
+ const noSell={...doc,simulationSuccess:false};
+ assert.equal(assessEvmSecurityRaw({chain:'base',token,pool,
+  goplus:go(),honeypot:noSell,now:at}).approved,false);
+ const fetched=await collectEvmSecurity({chain:'base',token,pool,now:at,
+  fetcher:async url=>({ok:true,text:async()=>JSON.stringify(
+   url.includes('gopluslabs')?go():doc)})});
+ assert.equal(fetched.approved,true,'HTTP result with actual Honeypot v2 fields passes');
 });

@@ -1,4 +1,5 @@
 import {validateFreeStreamLead} from './solana-live-events.mjs';
+import {candidateId} from './research-watchlist.mjs';
 // Optional GitHub research snapshot bridge. DISABLED unless manually enabled on Windows.
 // Only writes the fixed non-actionable public research/market/latest.json on the work branch.
 // Never reads bot portfolio, trading state, wallets, orders or publisher signing keys.
@@ -10,6 +11,39 @@ const GITHUB_FILE_URL='https://api.github.com/repos/'+REPO+'/contents/'+FILE;
 export function assertResearch(s){
   if(!s||s.schema!=='research_market_snapshot.v1'||s.paper_only!==true||
      s.actionable!==false||!Array.isArray(s.candidates)||s.candidates.length>96)throw Error('Unsafe market research snapshot');
+  if(s.watch_candidates!==undefined){
+    const allowed=['candidate_id','chain','token_address','pool_address',
+      'first_seen_at_utc','last_seen_at_utc','observation_count','verification',
+      'last_indicative_price_usd','last_indicative_liquidity_usd',
+      'last_indicative_volume_m5_usd','source','research_status','paper_only',
+      'actionable','paper_entry_authorized'];
+    const ids=new Set();
+    const validWatch=x=>{
+      if(!x||typeof x!=='object'||Array.isArray(x)||
+        Object.keys(x).sort().join('|')!==[...allowed].sort().join('|')||
+        x.paper_only!==true||x.actionable!==false||
+        x.paper_entry_authorized!==false||
+        x.source!=='LOCAL_SCOUT_OBSERVATIONS'||
+        x.research_status!=='SCOUT_WATCH_NOT_GPT_DECISION'||
+        !['PROVIDER_ONLY','CROSS_PROVIDER_IDENTITY'].includes(x.verification)||
+        !Number.isInteger(x.observation_count)||x.observation_count<1||
+        x.observation_count>1000000)return false;
+      let id;try{id=candidateId(x.chain,x.token_address,x.pool_address)}
+      catch{return false}
+      if(id!==x.candidate_id||ids.has(id))return false;
+      ids.add(id);
+      const first=Date.parse(x.first_seen_at_utc),last=Date.parse(x.last_seen_at_utc),
+       at=Date.parse(s.published_at_utc);
+      if(!Number.isFinite(first)||!Number.isFinite(last)||!Number.isFinite(at)||
+        first>last||last>at||at-last>24*3600_000)return false;
+      return [x.last_indicative_price_usd,x.last_indicative_liquidity_usd,
+        x.last_indicative_volume_m5_usd].every(n=>n===null||
+         (typeof n==='number'&&Number.isFinite(n)&&n>=0));
+    };
+    if(!Array.isArray(s.watch_candidates)||s.watch_candidates.length>24||
+       s.watch_candidates.some(x=>!validWatch(x)))
+      throw Error('Unsafe read-only scout watch continuity');
+  }
   if(s.research_alerts!==undefined){
     const allowed=new Set(['event_id','event_type','candidate_id','chain',
       'token_address','pool_address','observed_at_utc','previous_observed_at_utc',

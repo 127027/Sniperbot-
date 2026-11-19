@@ -146,6 +146,20 @@ export function canonicalPublicMarketProjection(snapshot,{now=Date.now()}={}){
   producer:'R29 read-only current local market collector canonical relay',
   published_at_utc:at,collection_status:'OBSERVED_OR_PARTIAL',
   coverage,candidates,research_alerts:alerts.slice(0,24),
+  // Preserve independently recorded exact-pool SCOUT candidates for GPT
+  // across pages/scans. Old observations are visibly stale, never order proof.
+  watch_candidates:(snapshot.watch_candidates||[]).slice(0,24).map(x=>({
+    candidate_id:x.candidate_id,chain:x.chain,token_address:x.token_address,
+    pool_address:x.pool_address,first_seen_at_utc:x.first_seen_at_utc,
+    last_seen_at_utc:x.last_seen_at_utc,observation_count:x.observation_count,
+    verification:x.verification,
+    last_indicative_price_usd:x.last_indicative_price_usd,
+    last_indicative_liquidity_usd:x.last_indicative_liquidity_usd,
+    last_indicative_volume_m5_usd:x.last_indicative_volume_m5_usd,
+    source:'LOCAL_SCOUT_OBSERVATIONS',
+    research_status:'SCOUT_WATCH_NOT_GPT_DECISION',
+    paper_only:true,actionable:false,paper_entry_authorized:false
+  })),
   summary:{identities:candidates.length,discovery_cap_per_scan:96,
    pages_per_chain:0,cross_checked:candidates.filter(x=>
     x.verification==='CROSS_PROVIDER_IDENTITY').length,

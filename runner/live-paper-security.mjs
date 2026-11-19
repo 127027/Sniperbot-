@@ -50,8 +50,22 @@ export function assessEvmSecurityRaw({chain,token,pool,goplus,honeypot,now=Date.
  const identity=simulation?.token?.address;
  // Must prove the simulated token is the same as submitted token.
  const tokenMatched=typeof identity==='string'&&identity.toLowerCase()===address;
- const poolMatched=typeof simulation.pair?.pairAddress==='string'&&
-  simulation.pair.pairAddress.toLowerCase()===pair;
+ // Honeypot.is v2 documents pairAddress at RESPONSE ROOT, and
+ // pair.pair.address inside the pair object. The former local parser read
+ // pair.pairAddress (a legacy fixture-only shape) and rejected real API
+ // responses as HONEYPOT_POOL_UNVERIFIED. Require at least one published
+ // pool identity and reject conflicting aliases rather than picking one.
+ const observedPools=[
+  simulation.pairAddress,
+  simulation.pair?.pair?.address,
+  simulation.pair?.pairAddress // retain compatibility with old mock payloads
+ ].filter(x=>x!==undefined&&x!==null);
+ const pairChainIds=[simulation.chain?.id,simulation.pair?.chainId]
+  .filter(x=>x!==undefined&&x!==null);
+ const chainMatched=pairChainIds.every(x=>String(x)===String(CHAIN_IDS[chain]));
+ const poolMatched=observedPools.length>0&&chainMatched&&
+  observedPools.every(x=>typeof x==='string'&&
+   safeAddress(chain,x)===pair);
  const approved=missing.length===0&&unsafe.length===0&&
   simulationOk&&tokenMatched&&poolMatched&&
   indicator(gp?.is_open_source)===true;
