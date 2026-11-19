@@ -142,6 +142,15 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
      else if(d.amount_test_usdc>approval.amount_test_usdc)
       receipt=safeResult(d,'BLOCKED','GPT_SIZE_EXCEEDS_INDEPENDENT_RISK_CAP');
     }
+    // External quote/security checks are asynchronous. An otherwise valid
+    // GPT instruction can expire, or the owner can pause follow/entries,
+    // while those checks run. Never sign a refreshed local 90s order from
+    // an expired/withdrawn GPT instruction.
+    if(!receipt&&Date.parse(d.expires_at_utc)<=now())
+     receipt=safeResult(d,'REJECTED','GPT_DECISION_EXPIRED_BEFORE_PAPER_SUBMISSION');
+    if(!receipt&&(getState()?.gptPaperFollow!==true||
+      (d.action==='BUY'&&getState()?.entriesEnabled!==true)))
+     receipt=safeResult(d,'BLOCKED','GPT_FOLLOW_OR_PAPER_BOT_DISABLED');
     if(!receipt){
      const order=signGptPaperSignal(d,{deviceId,keyPair:kp,now:now()});
      const executed=await submit(order,{
