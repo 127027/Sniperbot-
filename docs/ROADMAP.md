@@ -101,3 +101,6 @@ Aktueller Quellcode ist **noch unverändert** und besitzt weiterhin den +15-%-De
 
 **Stand V0.4:** Ein lokaler Rollen-Gateway ist vorhanden; kein bestätigter echter Dot, kein verteilter Broker, kein plattformübergreifender produktiver Dienst und keine echten Gelder. Hixton unangetastet.
 
+## R29 V5.5 – aktueller Paper-GPT-Status (19.11.2026)
+
+**V5.5 umgesetzt (PR #74, 19.11.2026) – strategische GPT-Autonomie im Paper-Buy-Gate:** Score/Momentum und alte 1%-/3%-Eigenkapitalgrenzen blockieren autorisierte GPT-Paper-Aufträge nicht mehr; Hard-Gates bleiben technisch. Windows- und Linux-CI bestanden. **Nächste und noch offene Abnahme:** Nutzer aktualisiert/prüft privat den existierenden Windows-Bot, die stündliche GPT-Automation erzeugt einen wirklichen sicheren signierten BUY statt weiterer NO_TRADE-Signale, der Bot quittiert persönliche PAPER_FILLED-Position und lokalen Policy-SELL mit Netto-PnL. Solana-Sell-Simulation/Poolprüfung eigenständig belegen, keine Sicherheitsumgehung. Historischer 10-Tage-Test gesondert. [V5.5-Nachweis](../research/r29/operations/R29_V5_5_GPT_ALLEINIGE_STRATEGIE_PAPER_GATES_AUDIT_20261119_DE.md).
