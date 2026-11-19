@@ -197,7 +197,11 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
    throw Error('GPT_REPLAY_CAPACITY_EXCEEDED_FAIL_CLOSED');
   commit({...current,gptDecisionReplay:{...replay,[d.decision_id]:{
    archive_sha256:payload.archive_sha256,status:receipt.status,
-   reason:receipt.reason,at_utc:new Date(now()).toISOString()}}});
+   reason:receipt.reason,at_utc:new Date(now()).toISOString(),
+   // Local replay metadata for an honest UI, not a separate order or new
+   // authority. Older entries without these fields remain readable.
+   action:d.action,chain:d.chain,token_address:d.token_address,
+   pool_address:d.pool_address}}});
   try{
    mkdirSync(auditFolder,{recursive:true});
    appendFileSync(path.join(auditFolder,new Date(instant).toISOString().slice(0,10)+'.jsonl'),
