@@ -53,7 +53,7 @@ function paperCurrent(state,now){
  };
  return {...result,local_state_revision:hash(result)};
 }
-function realCurrent({realWalletOverview,realSettings,liveGate}={}){
+function realCurrent({paperState,realWalletOverview,realSettings,liveGate}={}){
  // Real trade limits/positions are not implemented in the current Windows
  // Paper store. Never read Paper controls as if they were real controls.
  const settings=realSettings&&typeof realSettings==='object'&&
@@ -75,6 +75,8 @@ function realCurrent({realWalletOverview,realSettings,liveGate}={}){
   execution_enabled:false,live_gate_locked:isLocked,
   selected_in_dashboard_does_not_authorize_trading:true,
   preferred_entry_usdc:settings?settings.preferred_entry_usdc:null,
+  user_fixed_coin_stake_setting_usdc:userCoinStake(paperState,{real:true}),
+  coin_stake_setting_cannot_enable_live:true,
   user_total_open_exposure_limit_usdc:settings?
    settings.total_open_exposure_limit_usdc:null,
   actual_verified_wallet_usdc:available,
@@ -97,7 +99,7 @@ export function buildPrivateDualAccountBotState({
  if(!Number.isFinite(now)||!paperState||!Array.isArray(paperState.positions))
   throw Error('PRIVATE_DUAL_ACCOUNT_INPUT_INVALID');
  const paper=paperCurrent(paperState,now);
- const real=realCurrent({realWalletOverview,realSettings,liveGate});
+ const real=realCurrent({paperState,realWalletOverview,realSettings,liveGate});
  return {
   schema:PRIVATE_BOT_STATE_SCHEMA,
   observed_at_utc:new Date(now).toISOString(),
