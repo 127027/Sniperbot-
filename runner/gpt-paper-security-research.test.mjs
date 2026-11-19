@@ -133,6 +133,12 @@ test('local research security -> GitHub only new review hashes, hourly hard cap'
   const first=await syncGptPaperSecurityResearch(opts);
   assert.equal(first.status,'PUBLISHED');
   assert.equal(first.checks,1);
+  const persisted=JSON.parse((await import('node:fs/promises')).readFile?
+   await (await import('node:fs/promises')).readFile(
+    path.join(output,'latest-public-report.json'),'utf8'):'{}');
+  assert.equal(persisted.schema,'sniper_r29_public_gpt_security_research.v1');
+  assert.equal(persisted.authorizes_paper_orders,false);
+  assert.equal(persisted.candidate_check_count,1);
   assert.equal(securityCalls,1);
   assert.equal(githubPuts,1);
   const second=await syncGptPaperSecurityResearch(opts);
