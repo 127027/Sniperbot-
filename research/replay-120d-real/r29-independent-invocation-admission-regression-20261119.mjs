@@ -21,7 +21,10 @@ for(const mutate of [
  e=>e.keyCustody.externally_pinned=false,
  e=>e.keyCustody.runner_isolated=false,
  e=>e.ledger.fill_only=false,
+ e=>delete e.ledger.fill_only,
  e=>e.invocation.attested=false
 ]){const e=good();mutate(e);assert.throws(()=>admitHistoricalDecision({verification,independentEvidence:e}));}
-assert.equal(admitHistoricalDecision({verification,independentEvidence:good()}).admitted,true);
-console.log('PASS: 14 negative cases and 1 synthetic structural positive; NO real model invocation or historical blind-test admission.');
+const structural=admitHistoricalDecision({verification,independentEvidence:good()});
+assert.equal(structural.structural_checks_passed,true);
+assert.equal(structural.admitted,false,'synthetic evidence must never claim independent admission');
+console.log('PASS: 15 negative cases and 1 synthetic structural positive; NO real model invocation or historical blind-test admission.');
