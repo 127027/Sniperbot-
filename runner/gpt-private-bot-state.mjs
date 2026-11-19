@@ -34,7 +34,7 @@ function paperCurrent(state,now){
  const result={
   account:'PAPER',mode:'PAPER_ONLY',execution_enabled:state?.entriesEnabled===true,
   gpt_follow_enabled:state?.gptPaperFollow===true,
-  preferred_entry_test_usdc:b.valid?userCoinStake(state):null,
+  preferred_entry_test_usdc:userCoinStake(state),
   owner_fixed_coin_stake_test_usdc:userCoinStake(state),
   gpt_does_not_decide_amount:true,
   user_total_open_exposure_limit_test_usdc:b.valid?b.cap_test_usdc:null,
