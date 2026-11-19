@@ -250,3 +250,54 @@ test('V4.8 signed small GPT amount cannot bypass 1% cap or allow small unsigned 
    'old unsigned manual minimum remains 50 TEST-USDC');
  }finally{a.cleanup()}
 });
+
+test('V5.4: an expiring GPT BUY is rejected after slow providers, not locally re-signed',async()=>{
+ let clock=Date.now(),state=ledger(),submits=0;
+ const started=clock,folder=mkdtempSync(path.join(tmpdir(),'gpt-v54-expiry-'));
+ try{
+  const d=decision('BUY',clock-30000,'d'.repeat(32));
+  const receiver=createGptPaperLocalReceiver({
+   deviceId,dataDir:folder,marketFile:path.join(folder,'latest.json'),
+   getState:()=>state,commit:s=>{state=s},now:()=>clock,
+   loadMarket:()=>({ok:true,snapshot:{candidates:[candidate(started)]}}),
+   // Models an independent market provider replying after GPT authorization
+   // has expired, but with a new perfectly valid quote and security report.
+   lookup:async()=>{clock=started+150000;return quote(.02,clock)},
+   securityCheck:async()=>safe(clock),
+   submit:async()=>{submits++;return {receipt:{status:'PAPER_FILLED',
+    reason:'UNEXPECTED_SUBMISSION'}}}
+  });
+  const receipt=await receiver.receive(envelope(d));
+  assert.equal(receipt.status,'REJECTED');
+  assert.equal(receipt.reason,'GPT_DECISION_EXPIRED_BEFORE_PAPER_SUBMISSION');
+  assert.equal(submits,0);
+  assert.equal(state.positions.length,0);
+  assert.equal(state.cashUsdc,5000);
+  assert.equal(state.gptDecisionReplay[d.decision_id].status,'REJECTED');
+ }finally{rmSync(folder,{recursive:true,force:true})}
+});
+
+test('V5.4: disabling GPT-follow during provider lookup prevents a late PAPER BUY',async()=>{
+ let clock=Date.now(),state=ledger(),submits=0;
+ const folder=mkdtempSync(path.join(tmpdir(),'gpt-v54-consent-'));
+ try{
+  const d=decision('BUY',clock,'e'.repeat(32));
+  const receiver=createGptPaperLocalReceiver({
+   deviceId,dataDir:folder,marketFile:path.join(folder,'latest.json'),
+   getState:()=>state,commit:s=>{state=s},now:()=>clock,
+   loadMarket:()=>({ok:true,snapshot:{candidates:[candidate(clock)]}}),
+   lookup:async()=>{state={...state,gptPaperFollow:false};
+    return quote(.02,clock)},
+   securityCheck:async()=>safe(clock),
+   submit:async()=>{submits++;return {receipt:{status:'PAPER_FILLED',
+    reason:'UNEXPECTED_SUBMISSION'}}}
+  });
+  const receipt=await receiver.receive(envelope(d));
+  assert.equal(receipt.status,'BLOCKED');
+  assert.equal(receipt.reason,'GPT_FOLLOW_OR_PAPER_BOT_DISABLED');
+  assert.equal(submits,0);
+  assert.equal(state.positions.length,0);
+  assert.equal(state.cashUsdc,5000);
+  assert.equal(state.gptPaperFollow,false);
+ }finally{rmSync(folder,{recursive:true,force:true})}
+});
