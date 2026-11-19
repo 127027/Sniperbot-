@@ -1099,5 +1099,71 @@
       "decision": "NO_TRADE",
       "no_private_account_data": true
     }
+  },
+  "forward_v52_diagnostic_latest": {
+    "review_type": "ACTUAL_CHATGPT_AUTOMATION_MODEL_REVIEW",
+    "review_at_utc": "2026-11-19T14:45:09Z",
+    "market_snapshot_at_utc": "2026-11-19T14:38:50.513Z",
+    "security_checked_at_utc": "2026-11-19T14:43:26.888Z",
+    "security_funnel": {
+      "total": 52,
+      "evm": 28,
+      "research_eligible": 2,
+      "checked": 2,
+      "first_failure_counts": {
+        "NON_EVM_CHAIN": 24,
+        "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 22,
+        "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 3,
+        "VOLUME_5M_LT_1000_OR_UNKNOWN": 1
+      },
+      "checked_rejected": 2,
+      "checked_rejection_codes": [
+        "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
+        "HONEYPOT_TOKEN_UNVERIFIED",
+        "HONEYPOT_POOL_UNVERIFIED"
+      ]
+    },
+    "reviewed_candidate_ids": [
+      "bsc:0xc7c4902bd7a96d491e532ab10fc8aabbf4a6c3ce:0x1bb22a5a575345782c9d9cab3969203b9f2c97f5",
+      "bsc:0x6053f59e2e7893fe26b879f07e325d3287707777:0x7f59f215e4608e47b2aa652c0deccfb64da50f85"
+    ],
+    "decision": "NO_TRADE",
+    "blockers": [
+      "SECURITY_HONEYPOT_POOL_UNVERIFIED",
+      "INDEPENDENT_WALLET_AND_LP_REDEEMABILITY_UNVERIFIED",
+      "EXECUTABLE_TWO_WAY_QUOTES_MISSING",
+      "PRIVATE_LOCAL_CAPACITY_UNKNOWN",
+      "PERSONAL_PAPER_FILLED_BUY_UNVERIFIED"
+    ],
+    "context_telemetry": {
+      "paper_bot_enabled": true,
+      "gpt_follow_enabled": true,
+      "exit_monitor_heartbeat_recent": true,
+      "observed_at_utc": "2026-11-19T14:45:12.919Z"
+    },
+    "receipt": {
+      "last_public_action": "NO_TRADE",
+      "last_public_received_at_utc": "2026-11-18T16:21:09.742Z",
+      "personal_signed_buy": "UNKNOWN",
+      "personal_signed_sell": "UNKNOWN",
+      "last_personal_buy_at_utc": "UNKNOWN",
+      "local_ledger_continuity": "UNKNOWN",
+      "hours_since_last_proven_personal_buy": "UNKNOWN"
+    },
+    "milestone_24h_72h_240h": "UNKNOWN_INSUFFICIENT_LOCAL_LEDGER_HISTORY",
+    "source_hashes": {
+      "market_blob": "302aac192550ef29c17784ccbeca26dabcdd1de4",
+      "security_blob": "15e8c24a4a36e81ab7fc213f805d9c752fb940ee"
+    },
+    "first_observed_source": "2026-11-19T14:42:59.329Z",
+    "first_gpt_review": "2026-11-19T14:45:09Z",
+    "decision_published": "UNKNOWN_NO_ORDER_POINTER",
+    "local_receipt": "UNKNOWN_NO_NEW_RECEIPT",
+    "recommendations": [
+      "Verify private Windows ledger receipt history locally without publishing balances or wallet data",
+      "Complete independent pool-specific honeypot and sellability checks and executable bidirectional quotes",
+      "Preserve Solana research-only boundary until independent chain security and EVM-compatible execution path exist"
+    ],
+    "note": "Security snapshot candidate counts are for its own 14:42:59Z market cohort, not necessarily latest.json at 14:38:50Z. Public context does not prove private execution. No BUY pointer issued."
   }
 }
