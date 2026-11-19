@@ -176,3 +176,24 @@ test('R29 V5.2 dashboard includes only genuine local virtual fill receipts; synt
  assert.equal(v.realized_pnl_test_usdc,0,
   'arbitrary fixture receipts must not mutate actual regular Paper ledger');
 });
+
+test('R29 V5.2 existing Paper dashboard shows sanitized market-to-security funnel without private balances publication',()=>{
+ const current=Date.parse('2026-11-19T08:00:00Z'),at=new Date(current).toISOString();
+ const collector={schema:'research_market_collector_status.v1',paper_only:true,
+  actionable:false,last_check_at_utc:at,candidate_count:56};
+ const security={schema:'sniper_r29_public_gpt_security_research.v1',
+  mode:'PAPER_RESEARCH_ONLY',actionable:false,authorizes_paper_orders:false,
+  checked_at_utc:at,candidate_check_count:2,
+  selection_diagnostic:{schema:'sniper_r29_security_candidate_diagnostic.v1',
+   evm_market_rows:36,potential_research_candidates:3,
+   first_failure_reason_counts:{INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED:30}},
+  candidates:[{full_gpt_buy_gate_passed:false},{full_gpt_buy_gate_passed:false}]};
+ const view=paperDashboardView({...freshState(),cashUsdc:5000},{
+  now:current,collector,security});
+ assert.equal(view.gpt_paper_research_funnel.observed_candidate_count,56);
+ assert.equal(view.gpt_paper_research_funnel.last_security_sample_research_eligible_evm,3);
+ assert.equal(view.gpt_paper_research_funnel.last_security_sample_actually_checked,2);
+ assert.equal(view.gpt_paper_research_funnel.last_security_sample_failed_full_trade_proof,2);
+ assert.equal(view.gpt_local_paper_fills,0);
+ assert.equal(view.live_trading_enabled,false);
+});
