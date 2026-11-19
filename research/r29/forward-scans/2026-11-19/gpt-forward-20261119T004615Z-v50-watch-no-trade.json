@@ -1,0 +1,98 @@
+{
+  "schema": "r29_forward_gpt_model_review.v1",
+  "provenance": "AUTOMATION",
+  "operating_day_utc": "2026-11-19",
+  "model_called_at_utc": "2026-11-19T00:46:15.226Z",
+  "plan_full_gpt_reviews_per_utc_day": 4,
+  "verified_prior_full_reviews_this_utc_day": 0,
+  "review_number_today": 1,
+  "asof_market_published_at_utc": "2026-11-19T00:41:06.073Z",
+  "market_source_age_seconds_at_model_call": 309,
+  "source_refs": [
+    {
+      "path": "research/market/latest.json",
+      "branch": "codex/r29-chatgpt-github-paper-cycle-20261115",
+      "source_capture_utc": "2026-11-19T00:41:06.073Z",
+      "branch_head_at_read": "90c1d29c05871ecbb794fd7646d087fd750a9b75"
+    },
+    {
+      "path": "research/r29/channel/forward-source-health.json",
+      "checked_at_utc": "2026-11-19T00:42:29.809Z"
+    },
+    {
+      "path": "research/r29/channel/gpt-paper-security.json",
+      "checked_at_utc": "2026-11-19T00:37:04.359Z"
+    },
+    {
+      "path": "research/r29/channel/solana-forward-evidence.json",
+      "observed_at_utc": "2026-11-19T00:42:25.893Z"
+    },
+    {
+      "path": "research/r29/channel/dynamic-research-review.json",
+      "sha256": "a5f09a03be833a41ad32261358ab0cb9fd950dfc2578f806578a73fd9fedb4f6",
+      "not_a_gpt_model_review": true
+    }
+  ],
+  "candidate_reviews": [
+    {
+      "candidate_id": "solana:28pSm8RBXspVZVbJ8ir8UVRCZ6xTcrBCWMmmsn3RJDDk:Bm1KiPZGJVjWNiBNX1mpKi3iYCMN6U45girT966s9vQq",
+      "first_observed_source": "2026-11-19T00:41:06.073Z",
+      "decision": "WATCH",
+      "evidence": "GeckoTerminal and DexScreener pool identity agrees; reported liquidity 20393.1159 USD and five-minute volume 699.946 USD",
+      "blockers": [
+        "Solana GPT EVM BUY receiver unsupported",
+        "finalized mint header inconclusive",
+        "holder/LP safety unknown",
+        "indicative quotes not executable",
+        "sellability not verified"
+      ]
+    },
+    {
+      "candidate_id": "base:0x5e1e10b54b450121af3c99ca2fd679fe6020e1f4:0xbd021ee01666560bc64d4a63e5d00cbd31d693f8",
+      "decision": "WATCH",
+      "blockers": [
+        "Honeypot pool unverified",
+        "token/pool match false",
+        "independent wallet and LP evidence missing",
+        "executable two-way quotes missing"
+      ]
+    },
+    {
+      "candidate_id": "bsc:0x54fca8036dd0c332e3cab03c7cdfb27fd6961f19:0x3cfddc0aaf1bc3bed3f32ea4762eeb8dda023e42",
+      "decision": "NO_TRADE",
+      "blockers": [
+        "honeypot simulation incomplete or risky",
+        "token/pool match false",
+        "wallet/LP evidence and executable quotes missing"
+      ]
+    }
+  ],
+  "open_gpt_positions_public_context": [],
+  "public_context_observed_at_utc": "2026-11-19T00:45:05.832Z",
+  "paper_bot_enabled_reported": true,
+  "gpt_follow_enabled_reported": true,
+  "exit_monitor_heartbeat_recent_reported": true,
+  "independent_local_order_authorization_verified": false,
+  "regular_paper_automatic_orders_enabled_reported": false,
+  "decision": "NO_TRADE",
+  "decision_reason": "No independently validated executable BUY and SELL quotes or complete contract, wallet, LP and sellability gates; Solana receiver blocked. Research-only, no pointer.",
+  "decision_published_at_utc": null,
+  "local_receipt_at_utc": null,
+  "local_receipt_status": "UNKNOWN_FOR_THIS_REVIEW",
+  "last_existing_receipt_decision_id": "gpt_9a02a1f1d8699bdd62f393ee2da028a0",
+  "last_existing_receipt_at_utc": "2026-11-18T16:21:09.742Z",
+  "paper_fills_confirmed_this_review": 0,
+  "private_capacity": "UNKNOWN",
+  "unknown_sources": [
+    "independent wallet flows",
+    "independent LP redemption",
+    "executable two-way paper quotes",
+    "validated social/news as-of evidence",
+    "verified Solana stream event finality",
+    "private capacity feedback"
+  ],
+  "no_buy_pointer": true,
+  "real_trading": false,
+  "posthoc_winners_used": false,
+  "historical_backtest_untouched": true
+}
