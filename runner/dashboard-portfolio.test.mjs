@@ -134,3 +134,45 @@ test('R29 V4.8 UI separates real locally received GPT decision journal and actua
  assert.equal(view.portfolio_budget.signed_gpt_minimum_entry_test_usdc,5);
  assert.equal(view.bot_enabled,false);
 });
+
+test('R29 V5.2 existing UI view reports factual GPT Paper BUYs, SELLs and 72h inactivity without inventing uptime',()=>{
+ const current=Date.parse('2026-11-19T08:00:00.000Z'),old=new Date(current-73*3600000).toISOString();
+ const s={...freshState(),entriesEnabled:true,gptPaperFollow:true,cashUsdc:5000,
+  gptDecisionReplay:{['gpt_'+'b'.repeat(32)]:{
+   status:'NO_TRADE',reason:'GPT_RESEARCH_NO_ORDER',at_utc:old}},
+  agentOrderReceipts:[]};
+ const v=paperDashboardView(s,{now:current}),d=v.gpt_paper_local_activity_diagnostic;
+ assert.equal(d.local_gpt_paper_buy_fills,0);
+ assert.equal(d.local_gpt_paper_sell_fills,0);
+ assert.equal(d.received_gpt_decisions_with_valid_timestamps,1);
+ assert.equal(d.primary_local_explanation,'GPT_NO_TRADE_OR_WATCH_ONLY');
+ assert.equal(d.review_priority,'72H_LOCAL_NO_BUY_DIAGNOSIS');
+ assert.equal(d.continuous_service_availability_verified,false);
+ assert.equal(d.retained_journal_complete_for_10_days,false);
+ assert.equal(v.gpt_local_paper_fills,0);
+ assert.equal(v.live_trading_enabled,false);
+ assert.equal(v.free_cash_test_usdc,5000);
+});
+test('R29 V5.2 dashboard includes only genuine local virtual fill receipts; synthetic fixtures are not trades',()=>{
+ const current=Date.parse('2026-11-19T08:00:00Z'),now=new Date(current).toISOString();
+ const s={...freshState(),cashUsdc:4970,
+  agentOrderReceipts:[
+   {command_source:'GPT_GITHUB_LOCAL',action:'BUY',status:'PAPER_FILLED',
+    received_at_utc:now,synthetic_test:true},
+   {command_source:'GPT_GITHUB_LOCAL',action:'BUY',status:'PAPER_FILLED',
+    received_at_utc:now,synthetic_test:false,real_trade_executed:false},
+   {command_source:'GPT_GITHUB_POLICY_EXIT',action:'SELL',status:'PAPER_FILLED',
+    received_at_utc:now,synthetic_test:false,real_trade_executed:false,
+    closed_pnl_test_usdc:5.5},
+   {command_source:'SIGNED_LOCAL_ADAPTER',action:'SELL',status:'PAPER_FILLED',
+    received_at_utc:now,synthetic_test:false}
+  ]};
+ const v=paperDashboardView(s,{now:current});
+ assert.equal(v.gpt_paper_local_activity_diagnostic.local_gpt_paper_buy_fills,1);
+ assert.equal(v.gpt_paper_local_activity_diagnostic.local_gpt_paper_sell_fills,1);
+ assert.equal(v.gpt_paper_local_activity_diagnostic.locally_recorded_gpt_paper_sell_pnl_test_usdc,5.5);
+ assert.equal(v.gpt_local_paper_fills,2);
+ assert.equal(v.gpt_local_paper_fills_are_not_model_proven,true);
+ assert.equal(v.realized_pnl_test_usdc,0,
+  'arbitrary fixture receipts must not mutate actual regular Paper ledger');
+});
