@@ -55,11 +55,24 @@ export function selectSecurityResearchCandidates(review,market,{now=Date.now(),l
   !Array.isArray(market.candidates)||market.candidates.length>96||
   !recent(market.published_at_utc,now,300000)||
   !Number.isInteger(limit)||limit<0||limit>2)return [];
- return [...new Map(market.candidates.map(c=>prepareSecurityCandidate(c,now))
+ const eligible=[...new Map(market.candidates.map(c=>prepareSecurityCandidate(c,now))
   .filter(Boolean).map(c=>[c.candidate_id,c])).values()]
   .sort((a,b)=>b.liquidity_usd-a.liquidity_usd||
     b.volume_m5_usd-a.volume_m5_usd||
-    a.candidate_id.localeCompare(b.candidate_id)).slice(0,limit);
+    a.candidate_id.localeCompare(b.candidate_id));
+ if(eligible.length<=limit)return eligible;
+ if(limit===0)return [];
+ // One slot keeps the strongest economically eligible pool. The remaining
+ // read-only provider-check slot rotates across otherwise-starved candidates
+ // each UTC hour; the same hour selects deterministically. The existing
+ // hourly 2-candidate hard limit and all BUY safety gates remain unchanged.
+ // No winner names, profit predictions, or GPT trading decisions here.
+ const primary=eligible[0];
+ const controls=eligible.slice(1).sort((a,b)=>
+  a.candidate_id.localeCompare(b.candidate_id));
+ const hour=Math.floor(now/3600000);
+ const rotated=controls[hour%controls.length];
+ return limit===1?[primary]:[primary,rotated];
 }
 // Diagnose why 0 security-provider calls happened. This public information
 // never relaxes the gate, authorizes BUYs, names a wallet, or reveals secrets.
