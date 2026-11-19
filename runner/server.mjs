@@ -180,6 +180,13 @@ function save(){store.save(state)}
 function commit(next){if(next!==state){store.save(next);state=next}}
 function reply(res,code,body){res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(body))}
 function error(res,code,msg){return reply(res,code,{ok:false,error:msg})}
+function readLocalResearchSummary(filename,limit){
+ try{
+  const raw=readFileSync(filename);
+  if(raw.length>limit)return null;
+  return JSON.parse(raw.toString('utf8'));
+ }catch{return null}
+}
 function corsAllowed(req){const origin=req.headers.origin;return !origin || origin===`http://127.0.0.1:${port}`}
 async function scan(){if(deviceTopology.mode==='FOLLOWER')return;if(scanning)return;scanning=true;
  try {const {results,errors,at}=await scanNewPools();
@@ -254,8 +261,16 @@ const server=createServer(async(req,res)=>{
   return res.end(readFileSync(path.join(root,'runner','dashboard.html')));
  }
  if(req.method==='GET'&&route==='/api/dashboard/paper'){
-  try{return reply(res,200,{ok:true,view:paperDashboardView(state)});}
-  catch(e){return error(res,503,'Paper-Portfoliostand kann nicht sicher dargestellt werden');}
+  try{
+   const collector=readLocalResearchSummary(
+    path.join(root,'.local','research-market','status.json'),500000);
+   const security=readLocalResearchSummary(
+    path.join(process.env.LOCALAPPDATA||path.join(root,'.local'),
+     'MemeSniperPaper','gpt-paper','security-research',
+     'latest-public-report.json'),50000);
+   return reply(res,200,{ok:true,view:paperDashboardView(state,{
+    collector,security,now:Date.now()})});
+  }catch(e){return error(res,503,'Paper-Portfoliostand kann nicht sicher dargestellt werden')}
  }
  if(req.method==='GET'&&route==='/api/state')return reply(res,200,{ok:true,mode:'PAPER_ONLY',dataSource:'GeckoTerminal / DEX Screener (read only)',state,health:{online:true,scanRunning:scanning,pricing,uptimeSec:Math.round(process.uptime()),central:centralStatus(),researchNetwork,localLearning:localResearchLearning(),dotStatus:buildDotStatus(state.researchInbox,{enabled:process.env.SNIPER_RESEARCH_FEED==='1'})}});
  if(req.method==='GET'&&route==='/api/r27/archive/status'){

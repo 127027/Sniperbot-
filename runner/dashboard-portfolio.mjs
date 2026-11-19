@@ -2,6 +2,8 @@
 // No GitHub fixture balances, backend secrets, real-wallet keys, or live fills.
 // All valuations are INDICATIVE. Missing/stale quotes produce null, not zero.
 import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC,MIN_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
+import {diagnoseGptPaperInactivity} from './gpt-paper-inactivity.mjs';
+import {summarizeLocalGptFunnel} from './gpt-paper-forward-funnel.mjs';
 const round8=n=>Math.round((n+Number.EPSILON)*1e8)/1e8;
 const finite=v=>typeof v==='number'&&Number.isFinite(v);
 const usableMoney=v=>finite(v)&&v>=0;
@@ -17,7 +19,7 @@ function quoteStatus(position,now){
   return 'STALE';
  return position?.isDemo===true?'SYNTHETIC':'INDICATIVE';
 }
-export function paperDashboardView(state,{now=Date.now()}={}){
+export function paperDashboardView(state,{now=Date.now(),collector=null,security=null}={}){
  if(!state||!Array.isArray(state.positions)||!Array.isArray(state.history)||
     !usableMoney(state.cashUsdc)||!usableMoney(state.cashEur)||
     !finite(state.closedPnl)||!Number.isFinite(now))
@@ -64,9 +66,9 @@ export function paperDashboardView(state,{now=Date.now()}={}){
   decision_id,at_utc:v.at_utc,status:plain(v.status,30),
   reason:plain(v.reason,100),local_receiver_journal_only:true
  }));
- const gptLocalPaperFills=Array.isArray(state.agentOrderReceipts)?
-  state.agentOrderReceipts.filter(r=>r.status==='PAPER_FILLED'&&
-   ['GPT_GITHUB_LOCAL','GPT_GITHUB_POLICY_EXIT'].includes(r.command_source)).length:0;
+ const gptActivity=diagnoseGptPaperInactivity(state,{now});
+ const gptLocalPaperFills=gptActivity.local_gpt_paper_buy_fills+
+  gptActivity.local_gpt_paper_sell_fills;
  const lastGpt=replay.length?{
   decision_id:replay[0][0],at_utc:replay[0][1].at_utc,
   status:plain(replay[0][1].status,40),
@@ -109,6 +111,8 @@ export function paperDashboardView(state,{now=Date.now()}={}){
   gpt_paper_recent_decisions:recentGpt,
   gpt_local_paper_fills:gptLocalPaperFills,
   gpt_local_paper_fills_are_not_model_proven:true,
+  gpt_paper_local_activity_diagnostic:gptActivity,
+  gpt_paper_research_funnel:summarizeLocalGptFunnel({collector,security,now}),
   pricing_warning:'Nur indikative Positionsbewertung, inklusive 1 % modellierter Ausstiegskosten. Keine ausführbare Sell-Quote und kein garantierter Auszahlungsbetrag.'
  };
 }

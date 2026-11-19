@@ -275,6 +275,13 @@ export async function syncGptPaperSecurityResearch({token,fetcher=fetch,
  const done=await put.json();
  if(!/^([a-f0-9]{40})$/.test(done?.commit?.sha||''))
   throw Error('GPT_SECURITY_GITHUB_COMMIT_INVALID');
+ // Cache the already public-whitelisted research report locally so the
+ // EXISTING Paper dashboard can show why no coin passed the funnel.
+ // Cache publication is read-only for trading; no wallets, capital, keys or orders.
+ const localSummary=path.join(folder,'latest-public-report.json');
+ const summaryTemp=localSummary+'.pending-'+process.pid;
+ await writeFile(summaryTemp,JSON.stringify(report)+'\n',{mode:0o600});
+ await rename(summaryTemp,localSummary);
  const temp=checkpoint+'.pending-'+process.pid;
  await writeFile(temp,JSON.stringify({review_sha256:report.review_sha256,
   checked_at_utc:report.checked_at_utc,status:report.status})+'\n',{mode:0o600});

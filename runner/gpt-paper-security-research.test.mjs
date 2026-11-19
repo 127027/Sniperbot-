@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
@@ -133,6 +133,11 @@ test('local research security -> GitHub only new review hashes, hourly hard cap'
   const first=await syncGptPaperSecurityResearch(opts);
   assert.equal(first.status,'PUBLISHED');
   assert.equal(first.checks,1);
+  const persisted=JSON.parse(readFileSync(
+   path.join(output,'latest-public-report.json'),'utf8'));
+  assert.equal(persisted.schema,'sniper_r29_public_gpt_security_research.v1');
+  assert.equal(persisted.authorizes_paper_orders,false);
+  assert.equal(persisted.candidate_check_count,1);
   assert.equal(securityCalls,1);
   assert.equal(githubPuts,1);
   const second=await syncGptPaperSecurityResearch(opts);
