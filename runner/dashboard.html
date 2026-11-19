@@ -292,9 +292,34 @@ function renderGptActivity(p){
   $('gptActivitySummary').textContent='Nur lokal gespeicherte Paper-Entscheidungen zählen.';
   return;
  }
- $('gptActivitySummary').textContent=p.bot_enabled?
-  'Neue Paper-Einstiege möglich – nur nach GPT-V2-Entscheidung, 1-%-Risikolimit, Security und funktionierendem Exit-Monitor.':
-  'Neue Paper-Einstiege pausiert. GitHub-GPT-Forschung und autorisierte Exits können weiterlaufen.';
+ const v52=p.gpt_paper_local_activity_diagnostic;
+ const explanations={
+  PAPER_ENTRIES_DISABLED:'Paper-Einstiege sind ausgeschaltet.',
+  GPT_FOLLOW_DISABLED:'GPT-Follow ist ausgeschaltet.',
+  PAPER_CAPACITY_OR_RISK_LIMIT:'Lokale Budget- oder Risikoabsage.',
+  CHAIN_SECURITY_NOT_SUPPORTED:'Blockchain-Sicherheitsprüfung fehlt.',
+  SECURITY_OR_MARKET_PROOF_MISSING:'Contract-, Markt- oder Verkaufsnachweis fehlt.',
+  EXIT_PROTECTION_NOT_READY:'Exit-Schutz noch nicht bereit.',
+  FRESH_DATA_OR_DELIVERY_GAP:'Marktdaten oder GPT-Auftrag nicht frisch.',
+  GPT_NO_TRADE_OR_WATCH_ONLY:'Bisher nur WATCH/NO_TRADE vom lokalen GPT-Kurier.',
+  NO_RECEIVED_GPT_DECISIONS:'Noch keine empfangene GPT-Entscheidung.',
+  NO_GPT_PAPER_BUY_IN_LOCAL_JOURNAL:'Kein bestätigter GPT-Kauf im lokalen Journal.'
+ };
+ const why=explanations[v52?.primary_local_explanation]||
+  'Lokaler Kaufgrund noch nicht bestimmbar.';
+ const threshold=v52?.review_priority?.startsWith('240H')?'10 Tage':
+  v52?.review_priority?.startsWith('72H')?'72 Stunden':
+  v52?.review_priority?.startsWith('24H')?'24 Stunden':null;
+ const counts=v52?
+  'Nachweisbare lokale Paper-Fills: '+v52.local_gpt_paper_buy_fills+
+  ' Käufe, '+v52.local_gpt_paper_sell_fills+' Verkäufe. ':'';
+ const possibleAlert=threshold?'Diagnose nötig: '+threshold+
+  ' seit dem letzten belegten Kauf bzw. der ersten verfügbaren GPT-Entscheidung ohne neuen bestätigten Paper-Kauf. ':'';
+ $('gptActivitySummary').textContent=(p.bot_enabled?
+  'Paper-Einstiege freigegeben; nur bei signierter GPT-Entscheidung und vollständiger Sicherheitsprüfung. ':
+  'Neue Paper-Einstiege pausiert; autorisierte Exits bleiben möglich. ')+
+  counts+possibleAlert+'Aktueller lokaler Hinweis: '+why+
+  ' Zeitfenster betreffen nur vorhandene lokale Nachweise, keine bestätigte PC-Dauerverfügbarkeit.';
  const rows=Array.isArray(p.gpt_paper_recent_decisions)?p.gpt_paper_recent_decisions:[];
  if(!rows.length){
   addElement(list,'li','Noch keine vom lokalen GitHub-Kurier empfangene GPT-Entscheidung.','sub');
