@@ -350,6 +350,16 @@ function renderGptActivity(p){
 }
 function renderPaper(){
  const p=paperView;
+ pill('stakeMode','PAPER · VIRTUELL','ok');
+ $('stakeAvailable').textContent=p?currency(p.maximum_available_for_gpt_paper_buy_test_usdc):'–';
+ $('saveCoinStake').disabled=commandBusy||!botReachable||!p;
+ $('coinStake').disabled=commandBusy||!botReachable||!p;
+ $('stakeNote').textContent=p?'Dein fester Einsatz wird beim nächsten gültigen GPT-Paper-BUY verwendet. Bei zu wenig frei verfügbarem Geld wird der Kauf nicht ausgeführt.':
+  'Lokales Paper-Konto nicht verfügbar.';
+ if($('coinStake').dataset.mode!=='paper'){
+  $('coinStake').value=p?.fixed_coin_stake_test_usdc??50;
+  $('coinStake').dataset.mode='paper';
+ }
  $('modeHeading').textContent='Paper-Portfolio';
  $('availableLabel').textContent='Verfügbares Testguthaben';
  $('availableValue').textContent=p?currency(p.free_cash_test_usdc):'–';
@@ -404,6 +414,16 @@ function renderPaper(){
  }
 }
 function renderReal(){
+ pill('stakeMode','ECHTGELD · GESPERRT','blocked');
+ $('stakeAvailable').textContent=walletOverview?
+  walletOverview.usdc_display+' USDC':walletStatus?.exists===false?'0,00 USDC':'–';
+ $('saveCoinStake').disabled=commandBusy||!botReachable;
+ $('coinStake').disabled=commandBusy||!botReachable;
+ $('stakeNote').textContent='Nur vorgemerkter Einsatz pro Coin. Kein Echtgeld-Kauf, keine Überweisung und keine automatische Freigabe.';
+ if($('coinStake').dataset.mode!=='real'){
+  $('coinStake').value=paperView?.real_coin_stake_setting_usdc??50;
+  $('coinStake').dataset.mode='real';
+ }
  $('modeHeading').textContent='Echtgeld-Portfolio';
  $('availableLabel').textContent='Verifizierte Wallet-USDC';
  $('availableValue').textContent=walletOverview?walletOverview.usdc_display+' USDC':'–';
