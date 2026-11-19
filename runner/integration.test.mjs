@@ -159,20 +159,22 @@ test('R29 V4.9 authenticated local-only dual account report re-reads changed Pap
   assert.equal(first.snapshot.real.live_gate_locked,true);
   assert.equal(first.snapshot.real.execution_enabled,false);
   assert.equal(first.transaction_sent,false);
-  await cmd({type:'SET_RANGE',min:75,max:3400});
+  await cmd({type:'SET_COIN_STAKE',account:'PAPER',amount:75});
   const loaded=await (await query({'x-sniper-gpt-bridge':secret})).json();
   assert.equal(loaded.snapshot.paper.preferred_entry_test_usdc,75);
-  assert.equal(loaded.snapshot.paper.user_total_open_exposure_limit_test_usdc,3400);
+  assert.equal(loaded.snapshot.paper.owner_fixed_coin_stake_test_usdc,75);
+   assert.equal(loaded.snapshot.paper.user_total_open_exposure_limit_test_usdc,null,
+    'empty virtual account does not invent available cash');
   const invalid=await fetch(base+'/api/command',{method:'POST',
    headers:{'content-type':'application/json'},
-   body:JSON.stringify({type:'SET_RANGE',min:35,max:20})});
+   body:JSON.stringify({type:'SET_COIN_STAKE',account:'PAPER',amount:35})});
   assert.equal(invalid.status,422);
   const unchanged=await (await query({'x-sniper-gpt-bridge':secret})).json();
   assert.equal(unchanged.snapshot.paper.local_state_revision,
    loaded.snapshot.paper.local_state_revision,'invalid settings must fail, not overwrite');
-  await cmd({type:'SET_RANGE',min:35,max:3400});
+  await cmd({type:'SET_COIN_STAKE',account:'PAPER',amount:80});
   const changed=await (await query({'x-sniper-gpt-bridge':secret})).json();
-  assert.equal(changed.snapshot.paper.preferred_entry_test_usdc,35);
+  assert.equal(changed.snapshot.paper.preferred_entry_test_usdc,80);
   assert.notEqual(changed.snapshot.paper.local_state_revision,loaded.snapshot.paper.local_state_revision);
   assert.equal(changed.snapshot.real.local_state_revision,loaded.snapshot.real.local_state_revision);
   const publicContext=await (await fetch(base+'/api/gpt/paper/context')).text();
