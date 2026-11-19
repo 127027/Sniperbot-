@@ -122,8 +122,13 @@ test('R29 V4.8 UI separates real locally received GPT decision journal and actua
   },
   agentOrderReceipts:[{command_source:'GPT_GITHUB_LOCAL',status:'BLOCKED'},
    {command_source:'SIGNED_LOCAL_ADAPTER',status:'PAPER_FILLED'},
-   {command_source:'GPT_GITHUB_LOCAL',status:'PAPER_FILLED'},
-   {command_source:'GPT_GITHUB_POLICY_EXIT',status:'PAPER_FILLED'}]};
+   {command_source:'GPT_GITHUB_LOCAL',status:'PAPER_FILLED',action:'BUY',
+    synthetic_test:false,real_trade_executed:false,
+    received_at_utc:'2026-11-18T16:22:00.000Z'},
+   {command_source:'GPT_GITHUB_POLICY_EXIT',status:'PAPER_FILLED',action:'SELL',
+    synthetic_test:false,real_trade_executed:false,
+    received_at_utc:'2026-11-18T16:24:00.000Z',
+    closed_pnl_test_usdc:0}]};
  const view=paperDashboardView(s,{now:Date.parse('2026-11-18T16:30:00Z')});
  assert.equal(view.gpt_paper_received_decisions,1);
  assert.equal(view.gpt_paper_recent_decisions.length,1);
