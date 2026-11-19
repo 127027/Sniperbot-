@@ -103,6 +103,15 @@ footer{margin-top:24px;border-top:1px solid var(--border);padding-top:18px;font-
   </div>
   <div id="modeNote" class="mode-note">Virtuelles Geld · keine Echtgeld-Orders</div>
 </div>
+<section class="card wide-section" id="coinStakeControls" aria-label="Einsatz pro Coin">
+ <div class="section-head"><h2>Einsatz pro Coin</h2><span id="stakeMode" class="pill">Paper · virtuell</span></div>
+ <div class="formgrid">
+  <div class="wallet-sum"><span class="label">Maximal vorhanden</span><b id="stakeAvailable">–</b></div>
+  <label class="field">Einsatz / Coin<input id="coinStake" type="number" min="50" max="5000" step="0.01" value="50" inputmode="decimal" aria-label="Einsatz pro Coin"></label>
+  <button id="saveCoinStake" class="btn primary" type="button">Einsatz speichern</button>
+ </div>
+ <p id="stakeNote" class="small-notice">GPT wählt den Coin. Der Bot verwendet deinen festgelegten Einsatz, sofern genug Guthaben verfügbar ist.</p>
+</section>
 <section class="summary" aria-label="Kontoübersicht">
   <div class="card primary-balance">
     <div><div id="availableLabel" class="label">Verfügbares Testguthaben</div><div id="availableValue" class="primary-value">–</div><div id="availableDetail" class="sub">Nur das reguläre Paper-Konto</div></div>
@@ -137,18 +146,13 @@ footer{margin-top:24px;border-top:1px solid var(--border);padding-top:18px;font-
   <ul class="activity-list" id="historyList"><li class="sub">Lade Trade-Historie …</li></ul>
 </section>
 <section class="wide-section" id="paperSettings">
-  <details><summary>Paper-Bot &amp; Einsatzgrenzen</summary>
+  <details><summary>GPT-Paper-Handel ein- und ausschalten</summary>
   <div class="details-content">
-    <p class="small-notice">Der bevorzugte Betrag ist ein Zielwert pro Trade. Das Gesamtlimit begrenzt dagegen den gleichzeitig investierten Betrag über alle offenen Positionen. Manuelle Käufe bleiben ab 50 TEST-USDC möglich; ein gültiger signierter GPT-Paper-Kauf darf ab 5 TEST-USDC beginnen und bleibt auf höchstens 1 % des virtuellen Kontowerts beschränkt.</p>
-    <div class="formgrid">
-      <label class="field">Bevorzugter Einsatz (TEST-USDC)<input id="preferredEntry" type="number" min="0.01" max="100000" step="0.01" inputmode="decimal"></label>
-      <label class="field">Gesamtlimit offener Einsätze (TEST-USDC)<input id="exposureCap" type="number" min="0.01" max="100000" step="0.01" inputmode="decimal"></label>
-      <button id="saveBudget" type="button" class="btn primary">Grenzen speichern</button>
-    </div>
-    <div id="budgetNote" class="sub">Einsatzgrenzen werden geladen …</div>
+    <p class="small-notice">Den Betrag pro Coin legst du oben fest. Das verfügbare virtuelle Guthaben wird nach Käufen automatisch aktualisiert.</p>
+    <div id="budgetNote" class="sub">Freies virtuelles Guthaben wird geladen …</div>
     <button id="toggleAutoPaper" type="button" class="btn">GPT-Paper-Entscheidungen aktivieren</button>
     <div id="autoPaperNote" class="small-notice">Nur ChatGPT-GitHub-Entscheidungen dürfen strategische Paper-Käufe und -Verkäufe auslösen. Lokaler Risiko- und Notfallstop bleibt aktiv.</div>
-    <div class="info">Signierte GPT-Paper-Käufe ab 5 TEST-USDC sind freigeschaltet, wenn GPT-Bewertung, unabhängige Sicherheitsprüfung, 1-%-Risikogrenze und aktiver Exit-Monitor erfolgreich sind. Manuelle Käufe bleiben ab 50 TEST-USDC möglich. Echtgeldhandel bleibt unabhängig davon ausgeschaltet.</div>
+    <div class="info">GPT entscheidet über Coin, BUY, SELL und Exit-Regeln. Bei gültigen V5.7-Aufträgen verwendet der Bot deinen festen Coin-Einsatz und prüft Guthaben, Vertrag, Pool, frische Quote und simulierte Verkaufbarkeit. Echtgeldhandel bleibt gesperrt.</div>
   </div></details>
   <details><summary>Virtuelles Testguthaben verwalten</summary>
   <div class="details-content">
@@ -391,12 +395,9 @@ function renderPaper(){
  $('balanceSettingsNote').textContent=p?.bot_enabled?'Zum Ändern des Guthabens den Bot pausieren.':
   p?.open_position_count?'Zum Ändern zuerst alle Positionen schließen.':'Änderung wirkt ausschließlich auf das virtuelle Testkonto.';
  if(p){
-  const b=p.portfolio_budget;
-  $('budgetNote').textContent='Belegte Einsätze: '+currency(b.total_reserved_test_usdc)+
-   ' · Für neue Paper-Trades verfügbar: '+currency(b.free_to_allocate_test_usdc);
+  $('budgetNote').textContent='Für neue GPT-Paper-Käufe verfügbar: '+
+   currency(p.maximum_available_for_gpt_paper_buy_test_usdc);
   if(!hasLoadedSettings){
-   $('preferredEntry').value=b.preferred_entry_test_usdc??50;
-   $('exposureCap').value=b.total_exposure_cap_test_usdc??50;
    $('newPaperBalance').value=(p.free_cash_test_usdc).toFixed(2);
    hasLoadedSettings=true;
   }
@@ -547,12 +548,28 @@ $('toggleAutoPaper').addEventListener('click',()=>{
    return;
   void sendPaperCommand({type:'SET_GPT_FOLLOW',enabled});
 });
-$('saveBudget').addEventListener('click',()=>{
- const min=Number($('preferredEntry').value),max=Number($('exposureCap').value);
- if(!Number.isFinite(min)||!Number.isFinite(max)||min<=0||max<min||max>100000){
-  feedback('Bitte gültige Werte wählen: bevorzugter Einsatz größer als null, Gesamtlimit mindestens so hoch.','negative');return;
+$('saveCoinStake').addEventListener('click',async()=>{
+ if(commandBusy||!botReachable){feedback('Lokaler Bot nicht erreichbar.','negative');return;}
+ const raw=$('coinStake').value,amount=Number(raw),
+  account=activeMode==='paper'?'PAPER':'REAL';
+ if(raw===''||!Number.isFinite(amount)||amount<50||amount>5000||
+   Math.abs(amount*100-Math.round(amount*100))>1e-5){
+  feedback('Einsatz / Coin muss zwischen 50 und 5.000 mit maximal zwei Nachkommastellen liegen.','negative');return;
  }
- void sendPaperCommand({type:'SET_RANGE',min,max});
+ commandBusy=true;$('saveCoinStake').disabled=true;
+ try{
+  const saved=await request('/api/command',{method:'POST',
+   headers:{'content-type':'application/json'},
+   body:JSON.stringify({type:'SET_COIN_STAKE',account,amount})});
+  if(saved.account!==account||saved.amount!==amount||
+   saved.real_trading_enabled!==false||saved.transaction_sent!==false)
+   throw Error('Einstellung vom lokalen Bot nicht bestätigt');
+  feedback(account==='PAPER'?
+   'Paper-Einsatz pro Coin gespeichert: '+currency(amount)+'. GPT entscheidet nur über Coins.':
+   'Echtgeld-Einsatz vorgemerkt: '+currency(amount)+'. Echtgeldhandel bleibt AUS.','positive');
+  await loadPaper();if(activeMode==='real')renderReal();
+ }catch(e){feedback('Einsatz nicht gespeichert: '+e.message,'negative');}
+ finally{commandBusy=false;$('saveCoinStake').disabled=false;}
 });
 $('setPaperBalance').addEventListener('click',()=>{
  const amount=Number($('newPaperBalance').value);
