@@ -313,12 +313,23 @@ function renderGptActivity(p){
  const counts=v52?
   'Nachweisbare lokale Paper-Fills: '+v52.local_gpt_paper_buy_fills+
   ' Käufe, '+v52.local_gpt_paper_sell_fills+' Verkäufe. ':'';
+ const funnel=p.gpt_paper_research_funnel;
+ const sample=funnel?.collection_recent&&funnel?.independent_security_research_recent?
+  ' Letzter Collector: '+String(funnel.observed_candidate_count??'unbekannt')+
+  ' Pools; letzte unabhängige EVM-Sicherheitsprobe: '+
+  String(funnel.last_security_sample_research_eligible_evm??'unbekannt')+
+  ' Kandidaten für weitere Prüfung, '+
+  String(funnel.last_security_sample_actually_checked??'unbekannt')+
+  ' davon geprüft, '+
+  String(funnel.last_security_sample_failed_full_trade_proof??'unbekannt')+
+  ' ohne vollständigen Kaufnachweis. ':
+  ' Collector-/Sicherheitsdaten fehlen oder sind veraltet. ';
  const possibleAlert=threshold?'Diagnose nötig: '+threshold+
   ' seit dem letzten belegten Kauf bzw. der ersten verfügbaren GPT-Entscheidung ohne neuen bestätigten Paper-Kauf. ':'';
  $('gptActivitySummary').textContent=(p.bot_enabled?
   'Paper-Einstiege freigegeben; nur bei signierter GPT-Entscheidung und vollständiger Sicherheitsprüfung. ':
   'Neue Paper-Einstiege pausiert; autorisierte Exits bleiben möglich. ')+
-  counts+possibleAlert+'Aktueller lokaler Hinweis: '+why+
+  counts+possibleAlert+sample+'Aktueller lokaler Hinweis: '+why+
   ' Zeitfenster betreffen nur vorhandene lokale Nachweise, keine bestätigte PC-Dauerverfügbarkeit.';
  const rows=Array.isArray(p.gpt_paper_recent_decisions)?p.gpt_paper_recent_decisions:[];
  if(!rows.length){
