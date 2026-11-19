@@ -21,8 +21,9 @@ function category(s){
 }
 export function diagnoseGptPaperInactivity(state,{now=Date.now()}={}){
  if(!state||!Number.isFinite(now)||!Array.isArray(state.agentOrderReceipts)||
-  typeof state.gptDecisionReplay!=='object'||state.gptDecisionReplay===null||
-  Array.isArray(state.gptDecisionReplay))
+  (state.gptDecisionReplay!==undefined&&
+   (typeof state.gptDecisionReplay!=='object'||state.gptDecisionReplay===null||
+    Array.isArray(state.gptDecisionReplay))))
   throw Error('R29_V52_LOCAL_PAPER_INACTIVITY_INPUT_INVALID');
  const ledger=state.agentOrderReceipts.filter(r=>r&&
   GPT_SOURCES.has(r.command_source)&&r.synthetic_test!==true&&
@@ -30,15 +31,15 @@ export function diagnoseGptPaperInactivity(state,{now=Date.now()}={}){
  const buys=ledger.filter(r=>r.action==='BUY'&&r.command_source==='GPT_GITHUB_LOCAL');
  const sells=ledger.filter(r=>r.action==='SELL');
  const times=xs=>xs.map(x=>goodTime(x.received_at_utc,now)).filter(x=>x!==null);
- const logged=Object.entries(state.gptDecisionReplay).filter(([id,x])=>
+ const logged=Object.entries(state.gptDecisionReplay||{}).filter(([id,x])=>
   /^gpt_[0-9a-f]{32}$/.test(id)&&x&&typeof x==='object'&&
   goodTime(x.at_utc,now)!==null);
  const dates=[...logged.map(([,x])=>goodTime(x.at_utc,now)),...times(ledger)];
- const first=dates.length?Math.min(...dates):null;
+ const first=dates.length?dates.reduce((a,b)=>Math.min(a,b),Infinity):null;
  const lastBuyTimes=times(buys),lastSellTimes=times(sells);
- const lastBuy=lastBuyTimes.length?Math.max(...lastBuyTimes):null;
- const lastSell=lastSellTimes.length?Math.max(...lastSellTimes):null;
- const lastActivity=dates.length?Math.max(...dates):null;
+ const lastBuy=lastBuyTimes.length?lastBuyTimes.reduce((a,b)=>Math.max(a,b),0):null;
+ const lastSell=lastSellTimes.length?lastSellTimes.reduce((a,b)=>Math.max(a,b),0):null;
+ const lastActivity=dates.length?dates.reduce((a,b)=>Math.max(a,b),0):null;
  const rejections=new Map();let noTrade=0,blocked=0,rejected=0;
  for(const [,x]of logged){
   if(x.status==='NO_TRADE'||x.status==='WATCH'||x.status==='HOLD')noTrade++;
