@@ -191,6 +191,9 @@ export function publicSecurityResearchReport({review,market=null,findings=[],now
    contract_authorities_ok:gate.contract_authorities_ok===true,
    token_and_pool_matched:gate.exact_token_and_pair_verified===true,
    basic_contract_and_sell_simulation_pass:gate.approved===true,
+   // Research-only: GPT may independently choose UNKNOWN paper risk.
+   // Neither a Buy authorisation nor an executable two-way trade quote.
+   paper_unknown_goplus_risk_eligible:gate.paper_unknown_goplus_risk_eligible===true,
    risk_codes:gate.risk_flags.map(y=>y.toUpperCase()),
    source_goplus:'https://api.gopluslabs.io/api/v1/token_security',
    source_honeypot:'https://api.honeypot.is/v2/IsHoneypot',
