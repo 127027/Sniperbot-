@@ -59,10 +59,25 @@ stehen nur authentifiziert auf localhost bereit.
 NICHT FERTIG: sichere private Uebertragung an Cloud-ChatGPT,
 persistierte Echtgeld-Preferred-/Total-Limits, echte Real-Positionen
 oder vollstaendiger GPT-Paper-BUY/HOLD/SELL auf Nutzerkonto.
-Paper-Risiko-Code begrenzt aktuell ausserdem einzelne BUYs auf
-1% Equity und insgesamt auf 3% Exposure, selbst wenn im Dashboard
-groessere Investitionslimits eingetragen sind. Diese Grenzen sind
-separat von den bevorzugten Benutzereinstellungen.
+V5.5 NEU (PR #74, 19.11.2026): NUR fuer authentische signierte
+GPT-PAPER-BUYs entfallen die separaten alten strategischen Grenzen
+1% je Kauf und 3% Gesamt-Exposure. Stattdessen gelten das vom
+Nutzer eingestellte virtuelle GESAMT-Portfolio-Budget, freies
+TEST-USDC und eine preis-/poolliquiditaetsgebundene
+Ordergroessenbegrenzung (max. 0,5% gemeldeter Pool-Liquiditaet).
+GPT waehlt weiterhin den einzelnen Betrag. Alte Nicht-GPT-Paper-
+Automatismen behalten ihre strengeren Limits.
+
+WICHTIG: Vor einem realistisch simulierten Paper-BUY muessen der
+exakte Token+Pool, eine frische Preisreferenz und eine unabhaengige
+erfolgreiche Kauf-/Verkaufs-Simulation fuer exakt diesen Pool
+belegt sein. NUR fehlende GoPlus-Risikofelder koennen bei
+einem ausdruecklich als UNKNOWN deklarierten GPT-Risiko fuer
+rein indikative Paper-Trades toleriert werden. Explizite Risiken
+und fehlgeschlagene Simulationen bleiben BLOCKED. Solana weiter
+nicht als eigenstaendiger GPT-Paper-Kauf unterstuetzt.
+GitHub-Merge allein aktualisiert NICHT den privaten Windows-PC.
+V5.5 ist CODE+CI-getestet, keine persoenliche Paper-Fill-Abnahme.
 
 V4.6/V4.7-CODE: signierter GPT-Exit-Vertrag plus 30s-Monitor und
 Freshness-Kaufblockade existieren; der tatsaechlich laufende

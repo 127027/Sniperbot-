@@ -155,3 +155,6 @@ Forschungsrollen gehören zentral zum Besitzerprojekt; Backend-/Event-Dienst mus
 
 Mobile App/PWA steuert nur die eigene Instanz. Eine vollständige mobile 24/7-Host-Engine ist noch kein bestätigter Bestand und braucht gesonderte Android/iOS-Hintergrundtests. Bot AUS sperrt neue Käufe, lokale Exits laufen unabhängig vom zentralen Forschungsnetz weiter. Konkrete Forschungsannahmen zu Haltefristen in [HOLD_EXIT_POLICY.md](HOLD_EXIT_POLICY.md), kein starres +15%-Gewinnziel als Wunschstrategie. Aktueller Nachweisstand in [IMPLEMENTATION_STATUS_2026-11-07.md](IMPLEMENTATION_STATUS_2026-11-07.md).
 
+## R29 V5.5 – aktueller Paper-GPT-Status (19.11.2026)
+
+**V5.5 (PR #74) – AUSFÜHRUNGSVERTRAG:** GPT ist alleiniger Marktstrategie-Entscheider. Die signierte GPT-PAPER-Route hat keine zweite Momentum-, 80-Punkte-, 1%-/3%-Strategie. In jeder Order bleiben aktuelle Kontoopt-in-, Contract/Pool-, frische Preis-, private Portfolio-Budget-/Cash-, LP-Impact- und unabhängig genaue Honeypot-Token+Pool-Sell-Simulation technisch Pflicht. UNKNOWN GoPlus-Metadaten sind nur in GPT-PAPER mit explizitem UNKNOWN-Acknowledgement und ohne bekannte Gefahrenzeichen zulässig. Alle Paper-Fills sind indikativ, keine ausgeführten realen Swaps; Solana bleibt technisch gesperrt. [Beleg](../research/r29/operations/R29_V5_5_GPT_ALLEINIGE_STRATEGIE_PAPER_GATES_AUDIT_20261119_DE.md).

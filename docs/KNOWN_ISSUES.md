@@ -106,3 +106,6 @@ Neue Produktspezifikation: [STRATEGY_5_AGENT_BIG_MOVES.md](STRATEGY_5_AGENT_BIG_
 
 Siehe [DISTRIBUTED_INSTANCES.md](DISTRIBUTED_INSTANCES.md), [HOLD_EXIT_POLICY.md](HOLD_EXIT_POLICY.md) und [IMPLEMENTATION_STATUS_2026-11-07.md](IMPLEMENTATION_STATUS_2026-11-07.md).
 
+## R29 V5.5 – aktueller Paper-GPT-Status (19.11.2026)
+
+**V5.5 – Behebung und offene Abnahme:** Starre 1%-Einzel/3%-Gesamt-Exposure-/Score80-/Momentum-Vetos für authentische GPT-Paper-BUYs durch PR #74 ersetzt; frühere V4.9-Beschreibungen dieser Grenzwerte sind HISTORISCH. Weiterhin aktuell: fehlende unabhängige exakte Token-/Pool-Sell-Simulation oder bekannte gefährliche Flags verhindern Kauf, Solana-GPT-Paper-Käufe ohne eigenen Adapter gesperrt, Windows-V5.5-Installation nicht verifiziert, privater BOT-Status nicht automatisch an Cloud-GPT übermittelt, prospektiver persönlicher GPT-BUY→SELL→PnL und Januar-Historien-Blindtest NICHT nachgewiesen. [V5.5-Ausführungsprüfung](../research/r29/operations/R29_V5_5_GPT_ALLEINIGE_STRATEGIE_PAPER_GATES_AUDIT_20261119_DE.md).
