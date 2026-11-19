@@ -6,6 +6,7 @@ import {adaptiveResearchTick} from './dynamic-research-scheduler.mjs';
 import {updateResearchOutcomes} from './dynamic-research-outcomes.mjs';
 import {detectR27ExitRisk} from './r27-exit-review.mjs';
 import {runFollowups} from './memecoin-followups.mjs';
+import {emptyMarketWatch,updateMarketWatch,publicMarketWatch} from './market-watch-continuity.mjs';
 import {detectEarlyMarketAcceleration,detectFirstSeenRecentPoolLeads} from './research-hype-triggers.mjs';
 import {readRecentSolanaStreamLeads} from './solana-live-events.mjs';
 import {collectNarrativeLeads} from './research-narrative-radar.mjs';
@@ -32,6 +33,7 @@ const fileTimestamp=iso=>iso.replace(/[-:.]/g,'');
 const statusFile=path.join(cache,'status.json');
 const latestFile=path.join(cache,'latest.json');
 const followupFile=path.join(root,'.local','research-learning','pools.json');
+const marketWatchFile=path.join(root,'.local','research-learning','market-watch.json');
 const alertFile=path.join(root,'.local','research-learning','market-alerts.json');
 const streamFolder=path.join(root,'.local','solana-live-stream');
 const newsFile=path.join(root,'.local','research-learning','news-captures.json');
@@ -164,7 +166,27 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
   try{r27Capture=await appendR27Capture(snapshot,news,{
     folder:r27ArchiveFolder,now});}
   catch(e){r27ArchiveError=String(e?.message||'R27_ARCHIVE_ERROR').slice(0,100)}
+  let scoutWatchStatus=null,scoutWatchError=null;
   if(success){
+    // One persistent exact-pool research queue feeds the existing public
+    // market snapshot/GPT relay, even when a watched pool drops off page 1.
+    // This never converts a WATCH observation into an order.
+    try{
+      let oldWatch=emptyMarketWatch();
+      try{
+        const raw=await readFile(marketWatchFile);
+        if(raw.length>512*1024)throw Error('R29_WATCH_LOCAL_FILE_TOO_LARGE');
+        oldWatch=JSON.parse(raw.toString('utf8'));
+      }catch(e){if(e.code!=='ENOENT')throw e}
+      const merged=updateMarketWatch(oldWatch,snapshot,{now:Date.parse(now)});
+      snapshot.watch_candidates=publicMarketWatch(merged.state,{now:Date.parse(now)});
+      await atomicJson(marketWatchFile,merged.state);
+      scoutWatchStatus={admitted:merged.admitted,refreshed:merged.refreshed,
+        retained_absent:merged.retained_absent,
+        evicted_capacity:merged.evicted_capacity,
+        public_watch_candidates:snapshot.watch_candidates.length};
+    }catch(e){scoutWatchError=String(e?.message||'R29_WATCH_RESEARCH_FAILED')
+      .replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,100)}
     let previous=null;
     try{previous=JSON.parse(await readFile(latestFile,'utf8'))}
     catch(e){if(e.code!=='ENOENT')alertError='PREVIOUS_SNAPSHOT_UNREADABLE'}
@@ -247,6 +269,8 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     last_check_at_utc:now,latest_local_snapshot_at_utc:success?now:null,
     status:success?'RUNNING_RESEARCH':'BLOCKED_RESEARCH_DATA_ACCESS',
     candidate_count:snapshot.candidates.length,
+    scout_watch_continuity:{status:scoutWatchError?'ERROR':scoutWatchStatus?'OK':'NOT_AVAILABLE',
+      details:scoutWatchStatus,error:scoutWatchError},
     coverage:snapshot.coverage,history:clean,followups,followup_error:followupError,
     narrative_radar:{lead_count:narrative.leads.length,coverage:narrative.coverage,error:narrativeError},
     r27_exit_review:{alerts:r27ExitRisk?.reviews.length||0,
