@@ -1,0 +1,104 @@
+{
+  "schema": "r29_forward_gpt_model_review.v1",
+  "provenance": "AUTOMATION",
+  "operating_day_utc": "2026-11-19",
+  "model_called_at_utc": "2026-11-19T01:51:29.630Z",
+  "plan_full_gpt_reviews_per_utc_day": 4,
+  "verified_prior_full_reviews_this_utc_day": 1,
+  "review_number_today": 2,
+  "asof_market_published_at_utc": "2026-11-19T01:41:57.832Z",
+  "market_source_age_seconds_at_model_call": 572,
+  "source_refs": [
+    {
+      "path": "research/market/latest.json",
+      "source_capture_utc": "2026-11-19T01:41:57.832Z",
+      "sha256": "UNKNOWN_NOT_COMPUTED"
+    },
+    {
+      "path": "research/r29/channel/forward-source-health.json",
+      "checked_at_utc": "2026-11-19T01:43:44.589Z",
+      "github_blob_sha": "881cdee2982362f585efded8df56fc943de89fc3"
+    },
+    {
+      "path": "research/r29/channel/gpt-paper-security.json",
+      "checked_at_utc": "2026-11-19T01:37:41.523Z",
+      "github_blob_sha": "3307863f2b07836137b64b09e7577b3235a4514d"
+    },
+    {
+      "path": "research/r29/channel/solana-forward-evidence.json",
+      "observed_at_utc": "2026-11-19T01:43:39.925Z"
+    },
+    {
+      "path": "research/r29/channel/dynamic-research-review.json",
+      "review_sha256": "a5f09a03be833a41ad32261358ab0cb9fd950dfc2578f806578a73fd9fedb4f6",
+      "not_a_gpt_model_review": true
+    }
+  ],
+  "candidate_reviews": [
+    {
+      "candidate_id": "solana:Bktp5U1qZx9XDoXg4T2HCLHQpzofeW6oRCgYT46nqYnK:74BgWyCaLioQ85cDh8nFiw5QYZgL74NUQewZhya5ayMm",
+      "first_observed_source": "2026-11-19T01:41:57.832Z",
+      "decision": "WATCH",
+      "evidence": "GeckoTerminal and DexScreener pool identity cross-reported; 29638.61 USD reported liquidity, 1271.91 USD five-minute volume, 4 buys and 0 sells; finalized mint header inconclusive; indicative two-way Jupiter quotes only",
+      "blockers": [
+        "Solana EVM BUY receiver unsupported",
+        "mint authorities and extensions UNKNOWN",
+        "holder concentration and LP control UNKNOWN",
+        "executable two-way quote and sellability not verified"
+      ]
+    },
+    {
+      "candidate_id": "base:0x8bfa8d104174999c0c1c8c73683545588bda2211:0x23f0cc71f72cfdb004851293a2cfc5ab5e3cc5cb",
+      "decision": "WATCH",
+      "first_observed_source": "2026-11-19T01:35:53.298Z",
+      "blockers": [
+        "HONEYPOT_POOL_UNVERIFIED",
+        "token_and_pool_matched false",
+        "independent wallet/LP and executable quotes missing"
+      ]
+    },
+    {
+      "candidate_id": "eth:0xd795cb7beec84f002b0a53dca8b59264ee0d5915:0xa9d79175be14f39f354fcfcb656011f1bafc4c70",
+      "decision": "NO_TRADE",
+      "first_observed_source": "2026-11-19T01:35:53.298Z",
+      "blockers": [
+        "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
+        "HONEYPOT_POOL_UNVERIFIED",
+        "token_and_pool_matched false",
+        "independent wallet/LP and executable quotes missing"
+      ]
+    }
+  ],
+  "chain_coverage": [
+    "solana",
+    "base",
+    "bsc",
+    "eth"
+  ],
+  "coverage_note": "Market collector covers four chains, BSC and ETH partial; no verified additional BSC candidate for full security evaluation in this review",
+  "open_gpt_positions_public_context": [],
+  "public_context_observed_at_utc": "2026-11-19T01:49:41.328Z",
+  "paper_bot_enabled_reported": true,
+  "gpt_follow_enabled_reported": true,
+  "exit_monitor_heartbeat_recent_reported": true,
+  "regular_paper_automatic_orders_enabled_reported": false,
+  "independent_local_order_authorization_verified": false,
+  "decision": "NO_TRADE",
+  "decision_reason": "Current market and security sources are research-only; EVM pair identity/sellability/LP/wallet/executable quotes fail; Solana receiver unsupported. No BUY pointer.",
+  "first_gpt_review": "2026-11-19T01:51:29.630Z",
+  "decision_published": "UNKNOWN_NO_ORDER_POINTER",
+  "local_receipt": "UNKNOWN_FOR_THIS_REVIEW",
+  "paper_fills_confirmed_this_review": 0,
+  "private_capacity": "UNKNOWN",
+  "unknown_sources": [
+    "independent wallet flows",
+    "LP redemption",
+    "executable two-way quotes",
+    "as-of validated social/news",
+    "Solana stream finality",
+    "private capacity"
+  ],
+  "posthoc_winners_used": false,
+  "historical_backtest_untouched": true,
+  "real_trading": false
+}
