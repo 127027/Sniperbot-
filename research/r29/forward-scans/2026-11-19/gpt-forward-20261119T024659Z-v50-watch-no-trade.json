@@ -1,0 +1,97 @@
+{
+  "schema": "r29_forward_gpt_model_review.v1",
+  "provenance": "AUTOMATION",
+  "operating_day_utc": "2026-11-19",
+  "model_called_at_utc": "2026-11-19T02:46:59.278Z",
+  "plan_full_gpt_reviews_per_utc_day": 4,
+  "verified_prior_full_reviews_this_utc_day": 2,
+  "review_number_today": 3,
+  "asof_market_published_at_utc": "2026-11-19T02:42:46.187Z",
+  "source_refs": [
+    {
+      "path": "research/market/latest.json",
+      "github_blob_sha": "c88e9350942a5db721a3fd44db091b9ed6fa6027"
+    },
+    {
+      "path": "research/r29/channel/forward-source-health.json",
+      "github_blob_sha": "df1bd4ccdd974f2dcf03a8cc8796e4cb51cffddc"
+    },
+    {
+      "path": "research/r29/channel/gpt-paper-security.json",
+      "github_blob_sha": "e81884f5a692b388e39576402d3f1ea8cb7bd243"
+    },
+    {
+      "path": "research/r29/channel/solana-forward-evidence.json",
+      "github_blob_sha": "d57677ecb3a4e6617048780b20b7ac8c2d8dbd09"
+    }
+  ],
+  "candidate_reviews": [
+    {
+      "candidate_id": "solana:FBUrQGXSYABK3qDvVCqWdRGEy3wEbxhGFMZmVvnQSdXg:GoUooyaAFw5oNggzEyiDwFoeremEvVMPkkC1kgM3JC55",
+      "first_observed_source": "2026-11-19T02:42:46.187Z",
+      "decision": "WATCH",
+      "evidence": "Cross-provider pool identity, reported liquidity 169495.48 USD, five-minute volume 3326.04 USD, 7 buys and 0 sells; research only",
+      "blockers": [
+        "Solana GPT-EVM BUY receiver unsupported",
+        "independent contract, holder and LP safety missing",
+        "executable two-way quotes and sellability unverified"
+      ]
+    },
+    {
+      "candidate_id": "solana:6J1bGNvYQ4g81x6WAR3T8B4Yvmax6Ac9hUBWfuRtt5Fu:JBrBoA31VftKLC9TQomdu7nKPHp8JKUyFjuHoHFNR9Yy",
+      "first_observed_source": "2026-11-19T02:44:47.597Z",
+      "decision": "WATCH",
+      "evidence": "Two market providers; finalized mint header inconclusive and indicative roundtrip quotes only, -270.09 bps indicative",
+      "blockers": [
+        "Mint program and authorities UNKNOWN",
+        "holder/LP security UNKNOWN",
+        "sellability and executable two-way quotes unverified",
+        "Solana BUY receiver unsupported"
+      ]
+    },
+    {
+      "candidate_id": "bsc:0xf09507e72c511b8f1ff90b53ed22845edd3ce099:0x060a54364b1bb10b3d5a558dd6fb03452a3c4169",
+      "first_observed_source": "2026-11-19T02:36:39.733Z",
+      "decision": "NO_TRADE",
+      "blockers": [
+        "Honeypot simulation incomplete or risky",
+        "token and pool match false",
+        "independent LP/wallet and executable quotes missing"
+      ]
+    },
+    {
+      "candidate_id": "eth:0x973d27f371b67adaa3f97077e34c704931ce4cc7:0xd8ad531074142b92e2f7a4dcfcf92e96deb2ca7f",
+      "first_observed_source": "2026-11-19T02:36:39.733Z",
+      "decision": "NO_TRADE",
+      "blockers": [
+        "Contract authority indicators missing or risky",
+        "pool not verified",
+        "wallet/LP and executable quote evidence absent"
+      ]
+    }
+  ],
+  "chain_coverage": [
+    "solana",
+    "base",
+    "bsc",
+    "eth"
+  ],
+  "coverage_note": "Base provider partial; no independently validated Base candidate for buy. Solana stream connected status is not verified finality and last connection report is old.",
+  "open_gpt_positions_public_context": [],
+  "public_context_observed_at_utc": "2026-11-19T02:46:36.516Z",
+  "paper_bot_enabled_reported": true,
+  "gpt_follow_enabled_reported": true,
+  "exit_monitor_heartbeat_recent_reported": true,
+  "regular_paper_automatic_orders_enabled_reported": false,
+  "independent_local_order_authorization_verified": false,
+  "decision": "NO_TRADE",
+  "decision_reason": "No candidate passed independent chain/contract/LP/wallet/sellability and executable quote gates. Research WATCH is not a BUY permission. No paper order pointer.",
+  "first_gpt_review": "2026-11-19T02:46:59.278Z",
+  "decision_published": "UNKNOWN_NO_ORDER_POINTER",
+  "local_receipt": "UNKNOWN_FOR_THIS_REVIEW",
+  "paper_fills_confirmed_this_review": 0,
+  "private_capacity": "UNKNOWN",
+  "posthoc_winners_used": false,
+  "historical_backtest_untouched": true,
+  "real_trading": false
+}
