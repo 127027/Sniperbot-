@@ -5,39 +5,38 @@
   "authorizes_paper_orders": false,
   "live_trading_enabled": false,
   "wallet_or_account_data_included": false,
-  "review_sha256": "6cdd7b02dab34ab2764f0a5ffaeefbe32f7d9e56d582cac35cd5851a4b66c917",
-  "review_observed_at_utc": "2026-11-19T14:32:46.369Z",
-  "market_snapshot_observed_at_utc": "2026-11-19T19:44:07.146Z",
+  "review_sha256": "813d32077558fbb1862c4764a0171578573b77ab5a8f85f61d428680e005d49b",
+  "review_observed_at_utc": "2026-11-19T20:33:14.130Z",
+  "market_snapshot_observed_at_utc": "2026-11-19T20:45:24.677Z",
   "market_snapshot_is_order_authority": false,
   "local_market_read_status": "FRESH_LOCAL_PUBLIC_SNAPSHOT",
   "selection_diagnostic": {
     "schema": "sniper_r29_security_candidate_diagnostic.v1",
     "status": "RESEARCH_ELIGIBLE_NOT_TRADE_APPROVED",
-    "observed_market_rows": 60,
-    "evm_market_rows": 36,
+    "observed_market_rows": 47,
+    "evm_market_rows": 23,
     "potential_research_candidates": 2,
     "first_failure_reason_counts": {
       "NON_EVM_CHAIN": 24,
-      "VOLUME_5M_LT_1000_OR_UNKNOWN": 3,
-      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 30,
-      "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 1
+      "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 4,
+      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 17
     },
     "two_provider_contract_checks_still_separate": true,
     "independent_buyer_wallet_proof_still_missing": true,
     "real_executable_quote_still_missing": true,
     "this_diagnostic_cannot_authorize_trades": true
   },
-  "checked_at_utc": "2026-11-19T19:45:50.181Z",
+  "checked_at_utc": "2026-11-19T20:46:27.252Z",
   "candidate_check_count": 2,
   "status": "PARTIAL_SECURITY_RESEARCH_ONLY",
   "candidates": [
     {
-      "candidate_id": "bsc:0x8b57675935ef8155e8d346022c3102cde6728009:0x006f41a2ff9269d681b2ef1f4fe68cdfac58f40a",
+      "candidate_id": "bsc:0x8d0eb7054664a84e16342340d5757eb05b901823:0x5049e5180558f1ec3996f51c4899aee044b33fdc",
       "chain": "bsc",
-      "token_address": "0x8b57675935ef8155e8d346022c3102cde6728009",
-      "pool_address": "0x006f41a2ff9269d681b2ef1f4fe68cdfac58f40a",
-      "checked_at_utc": "2026-11-19T19:45:50.181Z",
-      "verified_pool_observed_at_utc": "2026-11-19T19:44:07.146Z",
+      "token_address": "0x8d0eb7054664a84e16342340d5757eb05b901823",
+      "pool_address": "0x5049e5180558f1ec3996f51c4899aee044b33fdc",
+      "checked_at_utc": "2026-11-19T20:46:27.252Z",
+      "verified_pool_observed_at_utc": "2026-11-19T20:45:24.677Z",
       "source_scope": "FRESH_CROSS_PROVIDER_LOCAL_MARKET",
       "also_listed_in_hourly_review": false,
       "independent_provider_names": [
@@ -49,6 +48,7 @@
       "contract_authorities_ok": true,
       "token_and_pool_matched": false,
       "basic_contract_and_sell_simulation_pass": false,
+      "paper_unknown_goplus_risk_eligible": false,
       "risk_codes": [
         "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
         "HONEYPOT_TOKEN_UNVERIFIED",
@@ -62,12 +62,12 @@
       "full_gpt_buy_gate_passed": false
     },
     {
-      "candidate_id": "bsc:0xa8964791970d69f5616ce29e0901a7f68d318960:0xcd8dc4d21b816a77b5633fadc49816170ef60f11",
+      "candidate_id": "bsc:0xd38d851e7d7472bfd1e4045e43881ddde8877777:0xaee927821fbf25cb86b3b23292587a0523ad4199",
       "chain": "bsc",
-      "token_address": "0xa8964791970d69f5616ce29e0901a7f68d318960",
-      "pool_address": "0xcd8dc4d21b816a77b5633fadc49816170ef60f11",
-      "checked_at_utc": "2026-11-19T19:45:50.181Z",
-      "verified_pool_observed_at_utc": "2026-11-19T19:44:07.146Z",
+      "token_address": "0xd38d851e7d7472bfd1e4045e43881ddde8877777",
+      "pool_address": "0xaee927821fbf25cb86b3b23292587a0523ad4199",
+      "checked_at_utc": "2026-11-19T20:46:27.252Z",
+      "verified_pool_observed_at_utc": "2026-11-19T20:45:24.677Z",
       "source_scope": "FRESH_CROSS_PROVIDER_LOCAL_MARKET",
       "also_listed_in_hourly_review": false,
       "independent_provider_names": [
@@ -76,11 +76,11 @@
       ],
       "goplus_evaluated": true,
       "honeypot_simulation_ok": false,
-      "contract_authorities_ok": false,
+      "contract_authorities_ok": true,
       "token_and_pool_matched": false,
       "basic_contract_and_sell_simulation_pass": false,
+      "paper_unknown_goplus_risk_eligible": false,
       "risk_codes": [
-        "GOPLUS_MISSING_CANNOT_SELL_ALL",
         "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
         "HONEYPOT_TOKEN_UNVERIFIED",
         "HONEYPOT_POOL_UNVERIFIED"
