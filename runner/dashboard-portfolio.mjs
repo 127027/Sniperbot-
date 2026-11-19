@@ -1,7 +1,7 @@
 // R29 user-facing local-only trading portfolio view model.
 // No GitHub fixture balances, backend secrets, real-wallet keys, or live fills.
 // All valuations are INDICATIVE. Missing/stale quotes produce null, not zero.
-import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC,MIN_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
+import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC,MIN_PAPER_ENTRY_USDC,userCoinStake} from './portfolio-budget.mjs';
 import {diagnoseGptPaperInactivity} from './gpt-paper-inactivity.mjs';
 import {summarizeLocalGptFunnel} from './gpt-paper-forward-funnel.mjs';
 const round8=n=>Math.round((n+Number.EPSILON)*1e8)/1e8;
@@ -56,6 +56,7 @@ export function paperDashboardView(state,{now=Date.now(),collector=null,security
  const netAll=reliable?sum(positions.map(p=>p.estimated_net_exit_test_usdc)):null;
  const openPnl=reliable?sum(positions.map(p=>p.estimated_pnl_test_usdc)):null;
  const budget=portfolioBudget(state);
+ const gptSpendable=portfolioBudget(state,{gptSignedPaper:true});
  const replay=state.gptDecisionReplay&&
    typeof state.gptDecisionReplay==='object'&&!Array.isArray(state.gptDecisionReplay)?
    Object.entries(state.gptDecisionReplay)
@@ -89,6 +90,10 @@ export function paperDashboardView(state,{now=Date.now(),collector=null,security
   local_paper_autopilot_available:false,
   live_trading_enabled:false,
   currency:'TEST-USDC',
+  fixed_coin_stake_test_usdc:userCoinStake(state),
+  real_coin_stake_setting_usdc:userCoinStake(state,{real:true}),
+  maximum_available_for_gpt_paper_buy_test_usdc:gptSpendable.free_to_allocate_test_usdc,
+  gpt_paper_amount_selected_by:'USER_DASHBOARD_ONLY',
   free_cash_test_usdc:cash,
   virtual_eur_component_test_only:state.cashEur,
   virtual_usdc_component:state.cashUsdc,
