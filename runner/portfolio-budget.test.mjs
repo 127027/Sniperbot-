@@ -98,3 +98,20 @@ test('R29 V4.8: GPT-signed virtual 5-49.99 TEST-USDC fits 1%-of-4999.01 risk cap
  assert.equal(signed.positions[0].amountUsdc,25);
  assert.equal(signed.cashUsdc,4974.01);
 });
+
+test('V5.7 GPT-only budget uses actual free cash, not legacy 50 maximum cap',()=>{
+ let s={...freshState(),cashUsdc:5000,maxTrade:50,portfolioBudgetUsdc:50};
+ assert.equal(portfolioBudget(s).free_to_allocate_test_usdc,50,
+  'retired manual legacy budget remains in effect on old routes');
+ assert.equal(portfolioBudget(s,{gptSignedPaper:true}).free_to_allocate_test_usdc,5000);
+ assert.equal(isWithinPortfolioBudget(s,500,{gptSignedPaper:true}),true);
+ assert.equal(isWithinPortfolioBudget(s,500),false);
+ s={...s,cashUsdc:2500,positions:[{amountUsdc:2500}]};
+ assert.equal(portfolioBudget(s,{gptSignedPaper:true}).reserved_test_usdc,2500);
+ assert.equal(portfolioBudget(s,{gptSignedPaper:true}).free_to_allocate_test_usdc,2500);
+ assert.equal(isWithinPortfolioBudget(s,2500,{gptSignedPaper:true}),true);
+ assert.equal(isWithinPortfolioBudget(s,2500.01,{gptSignedPaper:true}),false);
+ s={...s,cashUsdc:0};
+ assert.equal(portfolioBudget(s,{gptSignedPaper:true}).free_to_allocate_test_usdc,0);
+ assert.equal(isWithinPortfolioBudget(s,50,{gptSignedPaper:true}),false);
+});
