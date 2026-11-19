@@ -28,11 +28,11 @@ test('V4.9 private dual-state is versioned separately; no tabs, wallet address, 
  assert.equal(s.private_authenticated_localhost_only,true);
  assert.equal(s.remote_gpt_delivery_verified,false);
  assert.equal(s.must_not_publish_to_public_github,true);
- assert.equal(s.paper.preferred_entry_test_usdc,75);
- assert.equal(s.paper.user_total_open_exposure_limit_test_usdc,3400);
+ assert.equal(s.paper.preferred_entry_test_usdc,50);
+ assert.equal(s.paper.user_total_open_exposure_limit_test_usdc,5000);
  assert.equal(s.paper.available_virtual_balance_test_usdc,5000);
- assert.equal(s.paper.remaining_user_exposure_test_usdc,3400);
- assert.equal(s.paper.available_for_new_buy_test_usdc,50);
+ assert.equal(s.paper.remaining_user_exposure_test_usdc,5000);
+ assert.equal(s.paper.available_for_new_buy_test_usdc,5000);
  assert.equal(s.real.actual_verified_wallet_usdc,100);
  assert.equal(s.real.preferred_entry_usdc,null);
  assert.equal(s.real.user_total_open_exposure_limit_usdc,null);
@@ -43,24 +43,25 @@ test('V4.9 private dual-state is versioned separately; no tabs, wallet address, 
  assert(!JSON.stringify(s).includes('SECRET_WALLET_ADDRESS_SHOULD_NOT_LEAK'));
  assert(!JSON.stringify(s).includes('public_key'));
 });
-test('V4.9 changing 75 to 45 and 35 or Paper total cap affects only Paper version; no fixed preference',()=>{
- const a=paper(),old=snap(a);
- const low=action(a,{type:'SET_RANGE',min:45,max:3400});
- assert.equal(low.minTrade,45);
- const x=snap(low);
- assert.equal(x.paper.preferred_entry_test_usdc,45);
- assert.notEqual(x.paper.local_state_revision,old.paper.local_state_revision);
- assert.equal(x.real.local_state_revision,old.real.local_state_revision);
- assert.equal(proof(old,x,25).paper.reason,'PAPER_STATE_CHANGED_REQUIRE_FRESH_GPT_DECISION');
- assert.equal(proof(x,x,25).paper.allowed,true,
-  'GPT can choose 25 independent of 45 user preference within current risks');
- const lower=action(low,{type:'SET_RANGE',min:35,max:75});
- const z=snap(lower);
- assert.equal(z.paper.preferred_entry_test_usdc,35);
- assert.equal(z.paper.user_total_open_exposure_limit_test_usdc,75);
- assert.equal(z.real.local_state_revision,x.real.local_state_revision);
- assert.equal(proof(z,z,55).paper.allowed,false); // independent 1%-equity cap
- assert.equal(proof(z,z,25).paper.allowed,true);
+test('V5.7 distinct Paper and Real user-fixed coin settings independently change private revisions',()=>{
+ const a=paper(),before=snap(a);
+ const paperChanged=action(a,{type:'SET_COIN_STAKE',account:'PAPER',amount:80});
+ const x=snap(paperChanged);
+ assert.equal(x.paper.preferred_entry_test_usdc,80);
+ assert.equal(x.paper.owner_fixed_coin_stake_test_usdc,80);
+ assert.equal(x.paper.available_for_new_buy_test_usdc,5000);
+ assert.notEqual(x.paper.local_state_revision,before.paper.local_state_revision);
+ assert.equal(x.real.local_state_revision,before.real.local_state_revision);
+ assert.equal(proof(before,x,80).paper.reason,'PAPER_STATE_CHANGED_REQUIRE_FRESH_GPT_DECISION');
+ assert.equal(proof(x,x,80).paper.allowed,true);
+ const realChanged=action(paperChanged,{type:'SET_COIN_STAKE',account:'REAL',amount:125});
+ const y=snap(realChanged);
+ assert.equal(y.real.user_fixed_coin_stake_setting_usdc,125);
+ assert.notEqual(y.real.local_state_revision,x.real.local_state_revision);
+ assert.equal(y.paper.local_state_revision,x.paper.local_state_revision);
+ assert.equal(y.real.execution_enabled,false);
+ assert.equal(y.real.available_to_execute,false);
+ assert.equal(proof(x,y,80).real.reason,'REAL_STATE_CHANGED_REQUIRE_FRESH_GPT_DECISION');
 });
 test('V4.9 real settings synthetic fixtures are independent and LIVE remains locked; no real transaction',()=>{
  const current=paper();
@@ -85,7 +86,7 @@ test('V4.9 independently account-bound positions and stale expiry cannot authori
  const occupied={...p,cashUsdc:4960,positions:[pos]};
  const s=snap(occupied);
  assert.equal(s.paper.reserved_open_cost_test_usdc,40);
- assert.equal(s.paper.remaining_user_exposure_test_usdc,3360);
+ assert.equal(s.paper.remaining_user_exposure_test_usdc,4960);
  assert.equal(s.paper.open_position_count,1);
  assert.equal(s.real.open_position_count,null);
  const sold={...occupied,cashUsdc:4990,positions:[]};
@@ -126,7 +127,7 @@ test('V4.9 existing authenticated private GPT size offer ties choice to Paper se
   created_at_utc:iso(now+1000),real_trading_enabled:false};
  const unchanged=validateGptSizeChoice(choice,offer,p,{now:now+1000});
  assert.equal(unchanged.approved,true);
- const changed=action(p,{type:'SET_RANGE',min:35,max:3400});
+ const changed=action(p,{type:'SET_COIN_STAKE',account:'PAPER',amount:80});
  const rejected=validateGptSizeChoice(choice,offer,changed,{now:now+1000});
  assert.equal(rejected.approved,false);
  assert.equal(rejected.reason,'GPT_PRIVATE_PAPER_STATE_CHANGED_REVIEW_AGAIN');
@@ -134,21 +135,19 @@ test('V4.9 existing authenticated private GPT size offer ties choice to Paper se
  assert.equal(p.positions.length,0);
 });
 
-test('R29 V5.0 private Paper state reports current 3% total cap rather than overstating free budget',()=>{
- const p=paper();
- p.cashUsdc=4870;
- p.positions=[{id:'paper:occupied130',chain:'base',
-  tokenAddress:'0x'+'a'.repeat(40),poolAddress:'0x'+'b'.repeat(40),
-  amountUsdc:130,qty:130,priceUsd:1,markAt:iso(now)}];
- const snapshot=snap(p);
- assert.equal(snapshot.paper.preferred_entry_test_usdc,75);
- assert.equal(snapshot.paper.user_total_open_exposure_limit_test_usdc,3400);
- assert.equal(snapshot.paper.reserved_open_cost_test_usdc,130);
- assert.equal(snapshot.paper.remaining_user_exposure_test_usdc,3270);
- assert.equal(snapshot.paper.technical_single_share_cap,0.01);
- assert.equal(snapshot.paper.technical_total_share_cap,0.03);
- assert.equal(snapshot.paper.available_for_new_buy_test_usdc,19.96);
- assert.equal(proof(snapshot,snapshot,25).paper.allowed,false);
- assert.equal(proof(snapshot,snapshot,15).paper.allowed,true);
- assert.equal(snapshot.real.execution_enabled,false);
+test('V5.7 private state reports actually spendable Paper cash rather than old 1%-3% policy',()=>{
+ const p=paper();p.cashUsdc=4870;
+ p.positions=[{id:'paper:occupied130',chain:'base',tokenAddress:'0x'+'a'.repeat(40),
+  poolAddress:'0x'+'b'.repeat(40),amountUsdc:130,qty:130,
+  priceUsd:1,markAt:iso(now)}];
+ const s=snap(p);
+ assert.equal(s.paper.preferred_entry_test_usdc,50);
+ assert.equal(s.paper.user_total_open_exposure_limit_test_usdc,5000);
+ assert.equal(s.paper.reserved_open_cost_test_usdc,130);
+ assert.equal(s.paper.remaining_user_exposure_test_usdc,4870);
+ assert.equal(s.paper.technical_single_share_cap,null);
+ assert.equal(s.paper.technical_total_share_cap,null);
+ assert.equal(s.paper.available_for_new_buy_test_usdc,4870);
+ assert.equal(proof(s,s,50).paper.allowed,true);
+ assert.equal(s.real.execution_enabled,false);
 });
