@@ -1,0 +1,58 @@
+{
+  "schema": "r29_forward_wake_no_full_review.v1",
+  "provenance": "AUTOMATION",
+  "wake_observed_at_utc": "2026-11-19T05:07:19Z",
+  "operating_day_utc": "2026-11-19",
+  "asof_market_published_at_utc": "2026-11-19T05:06:41.086Z",
+  "source_refs": [
+    {
+      "path": "research/market/latest.json",
+      "github_blob_sha": "154f5f651e8bbf078070a21b8cde3c700954e1dd"
+    },
+    {
+      "path": "research/r29/channel/forward-source-health.json",
+      "github_blob_sha": "abfe23e0a1bbf9ab1b085bcc1d91cd9d3e33d8ef"
+    },
+    {
+      "path": "research/r29/channel/solana-forward-evidence.json",
+      "github_blob_sha": "19158dd164e247dc8122648f9e9137db75c87c23"
+    },
+    {
+      "path": "research/r29/channel/gpt-paper-context.json",
+      "github_blob_sha": "c3bfd2e02dad51cf1b7713f3c8b07d4136c53f11"
+    }
+  ],
+  "last_full_gpt_review_at_utc": "2026-11-19T04:55:01.469Z",
+  "verified_full_gpt_reviews_today": 4,
+  "full_gpt_review_performed": false,
+  "reason": "Only 12m17s since prior full model review; strict >=60-minute interval. New market alerts observed, but cannot count a distinct full GPT review or issue strategy order until next eligible wake. Reevaluate new evidence at next hourly wake.",
+  "observations": {
+    "new_market_snapshot": true,
+    "source_status": "CANONICAL_RESEARCH_FEED_RECENT",
+    "solana_stream_finality_verified": false,
+    "solana_mint_evidence_status": "FINALIZED_MINT_HEADER_INCONCLUSIVE",
+    "solana_quote_status": "INDICATIVE_TWO_WAY_PRICES_ONLY",
+    "public_context_paper_bot_enabled": true,
+    "public_context_gpt_follow_enabled": true,
+    "public_context_exit_monitor_heartbeat_recent": true,
+    "local_executor_authorization_independently_verified": false,
+    "public_open_gpt_positions": 0,
+    "last_receipt_action": "NO_TRADE",
+    "last_receipt_at_utc": "2026-11-18T16:21:09.742Z"
+  },
+  "decision": "NO_TRADE_NO_NEW_POINTER",
+  "blockers": [
+    "Full model review minimum 60-minute interval not elapsed",
+    "Solana GPT BUY receiver unsupported",
+    "Independent holder/LP/sellability and executable two-way quotes unverified",
+    "No local independent order authorization"
+  ],
+  "first_observed_source": "2026-11-19T05:06:41.086Z",
+  "first_gpt_review": "NOT_PERFORMED_THIS_WAKE",
+  "decision_published": "NOT_PUBLISHED",
+  "local_receipt": "UNKNOWN_NO_NEW_DECISION",
+  "paper_fills_confirmed_this_wake": 0,
+  "posthoc_winners_used": false,
+  "real_trading_enabled": false,
+  "historical_backtest_untouched": true
+}
