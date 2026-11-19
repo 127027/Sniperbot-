@@ -1,0 +1,120 @@
+{
+  "schema": "r29_forward_gpt_model_review_v52.v1",
+  "run_class": "AUTOMATION",
+  "review_at_utc": "2026-11-19T17:46:30Z",
+  "utc_day": "2026-11-19",
+  "operating_day": "2026-11-19_Europe_Berlin_0800",
+  "review_kind": "FULL_GPT_MODEL_MARKET_SECURITY_AND_ACTIVITY_REVIEW",
+  "model_review_count_increment": 1,
+  "other_verified_today": "2026-11-19T09:48:32Z",
+  "verified_distinct_today_at_least": 2,
+  "source_evidence": {
+    "market": {
+      "sha": "d9388b0fa2c9fadd86f8662a833db6bd6a9fdebf",
+      "asof": "2026-11-19T17:43:59.470Z",
+      "age_seconds": 150.53
+    },
+    "security": {
+      "sha": "36b62b9563dff8a97240b046b3022d2629fa2af3",
+      "checked": "2026-11-19T17:45:09.853Z"
+    },
+    "source_health": {
+      "sha": "b3a59447ee570b70413ae47bf094498ef8972e34",
+      "checked": "2026-11-19T17:45:06.876Z"
+    },
+    "context": {
+      "sha": "d4999e6e3d624b3201360234c2801679fa97e1a9",
+      "asof": "2026-11-19T17:46:03.989Z",
+      "age_seconds": 26.011
+    },
+    "receipt": {
+      "sha": "cfebbd348759dacab5d850091b151af2cba35106",
+      "asof": "2026-11-18T16:21:09.742Z"
+    },
+    "solana": {
+      "sha": "bd3ad672cb15e376c098734f00af21925a497804",
+      "asof": "2026-11-19T17:45:01.796Z"
+    }
+  },
+  "security_funnel": {
+    "total": 51,
+    "evm": 31,
+    "research_eligible": 2,
+    "checked": 2,
+    "full_buy_gate_passed": 0,
+    "first_failure_counts": {
+      "NON_EVM_CHAIN": 20,
+      "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 3,
+      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 25,
+      "VOLUME_5M_LT_1000_OR_UNKNOWN": 1
+    }
+  },
+  "candidate_reviews": [
+    {
+      "candidate_id": "bsc:0xcb2eca1eea519db253f5c5e301814626d6a15761:0x4963df823f7384ec02d5689bdec92f1b1b20e4b3",
+      "decision": "NO_TRADE",
+      "blockers": [
+        "GOPLUS_MISSING_CANNOT_SELL_ALL",
+        "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
+        "HONEYPOT_TOKEN_UNVERIFIED",
+        "HONEYPOT_POOL_UNVERIFIED",
+        "INDEPENDENT_WALLET_LP_AND_EXECUTABLE_QUOTES_MISSING"
+      ]
+    },
+    {
+      "candidate_id": "bsc:0xded53e79d394d05c9553bcc91a1d176ad58a7777:0x524ce06a49e9bd743bbcc1a1d2cb569a39917213",
+      "decision": "NO_TRADE",
+      "blockers": [
+        "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
+        "HONEYPOT_TOKEN_UNVERIFIED",
+        "HONEYPOT_POOL_UNVERIFIED",
+        "INDEPENDENT_WALLET_LP_AND_EXECUTABLE_QUOTES_MISSING"
+      ]
+    },
+    {
+      "candidate_id": "solana:5khuhUYhhAFdrhE7FQ3XRUaSHsvKUnFBhVy8UD1qdAoU:HZa7PeSGmYyjGMZMEQsQdSKbeAsVuo1hAqYG2nbdJNT4",
+      "decision": "WATCH",
+      "blockers": [
+        "INCOMPLETE_MINT_HEADER",
+        "HOLDER_LP_SELLABILITY_UNKNOWN",
+        "INDICATIVE_QUOTES_NOT_EXECUTABLE",
+        "SOLANA_NOT_SUPPORTED_BY_EVM_BUY_RECEIVER"
+      ]
+    }
+  ],
+  "context": {
+    "paper_bot_enabled": true,
+    "gpt_follow_enabled": true,
+    "exit_guard_required_for_new_gpt_buy": true,
+    "public_heartbeat_reported_recent": true,
+    "local_executor_heartbeat_at_order_time": "UNKNOWN",
+    "private_capacity": "UNKNOWN",
+    "private_ledger": "UNKNOWN"
+  },
+  "paper_activity": {
+    "last_public_receipt_action": "NO_TRADE",
+    "last_public_receipt_status": "NO_TRADE",
+    "last_proven_personal_paper_buy": "UNKNOWN",
+    "local_journal_start": "UNKNOWN",
+    "continuous_windows_uptime": "UNKNOWN",
+    "threshold_24h_72h_240h": "UNKNOWN_NOT_PROVABLE"
+  },
+  "timing": {
+    "first_observed_source": "2026-11-19T17:43:59.470Z",
+    "first_gpt_review": "2026-11-19T17:46:30Z",
+    "decision_published": "RESEARCH_JOURNAL_ONLY",
+    "local_receipt": "UNKNOWN"
+  },
+  "decision": "NO_TRADE",
+  "reason": "Two research-eligible EVM pools both failed independent security/sellability validation; executable bidirectional quotes and private executor capacity not proven. Solana research is not EVM order eligibility.",
+  "no_order_pointer": true,
+  "no_paper_fill_claimed": true,
+  "no_private_data_published": true,
+  "model_origin_attestation": "AUTOMATION_MODEL_REVIEW_NOT_CRYPTOGRAPHIC_GITHUB_ORIGIN_PROOF",
+  "deduplication": "Existing 2026-11-19 activity cause unchanged; no new threshold alert or user notification.",
+  "next_actions": [
+    "Improve independent token/pool matching, LP redeemability, holder/wallet evidence and executable two-way paper quotes for eligible EVM pools",
+    "Verify fresh local executor and signed private PAPER_FILLED BUY ledger without publishing private data",
+    "Continue scheduled reviews; no unsafe order to meet time threshold"
+  ]
+}
