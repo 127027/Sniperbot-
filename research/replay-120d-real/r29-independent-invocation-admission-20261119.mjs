@@ -12,11 +12,11 @@ export function admitHistoricalDecision({verification,independentEvidence}={}){
  if(!hex(e.source.sha256)||!hex(e.ledger.sha256)||!hex(e.invocation.request_sha256)||!hex(e.invocation.response_sha256))fail('INDEPENDENT_HASH_REQUIRED');
  if(e.source.sha256!==e.receipt?.source_sha256||e.ledger.sha256!==e.receipt?.ledger_sha256||e.invocation.request_sha256!==e.receipt?.model_request_sha256||e.invocation.response_sha256!==e.receipt?.model_response_sha256)fail('INDEPENDENT_BINDING_MISMATCH');
  if(typeof e.invocation.id!=='string'||!e.invocation.id||e.invocation.id!==e.receipt?.model_invocation_id)fail('INDEPENDENT_INVOCATION_ID_MISMATCH');
- if(e.keyCustody.externally_pinned!==true||e.keyCustody.runner_isolated!==true||e.source.original_capture_verified!==true||e.ledger.fill_only===false)fail('TRUST_BOUNDARY_UNPROVEN');
+ if(e.keyCustody.externally_pinned!==true||e.keyCustody.runner_isolated!==true||e.source.original_capture_verified!==true||e.ledger.fill_only!==true)fail('TRUST_BOUNDARY_UNPROVEN');
  // The independentEvidence object must be created by a separately trusted
  // service. Caller-supplied booleans are NOT proof: do not expose this as a
  // public admission endpoint or interpret a passing unit test as a blind test.
- return {admitted:true,scope:'conditional structural gate only; requires independent trusted runner'};
+ return {admitted:false,structural_checks_passed:true,scope:'NOT ADMITTED: caller-supplied evidence cannot establish independent trust; external runner attestation required'};
 }
 export function verifyAndAdmitHistoricalDecision({receiptVerificationArgs,independentEvidence}={}){
  const verification=verifyPinnedReceipt(receiptVerificationArgs||{});
