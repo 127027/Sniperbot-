@@ -65,8 +65,30 @@ export function paperDashboardView(state,{now=Date.now(),collector=null,security
     .sort((a,b)=>Date.parse(b[1].at_utc)-Date.parse(a[1].at_utc)):[];
  const recentGpt=replay.slice(0,8).map(([decision_id,v])=>({
   decision_id,at_utc:v.at_utc,status:plain(v.status,30),
-  reason:plain(v.reason,100),local_receiver_journal_only:true
+  reason:plain(v.reason,100),local_receiver_journal_only:true,
+  action:['BUY','SELL','WATCH','NO_TRADE','REJECT','HOLD'].includes(v.action)?
+   v.action:null,
+  chain:['solana','base','bsc','eth'].includes(v.chain)?v.chain:null,
+  token_address:plain(v.token_address,100)||null
  }));
+ const funnel=summarizeLocalGptFunnel({collector,security,now});
+ // Collector and safety observations are visible as activity, but never
+ // labelled GPT decisions. Freshness gates prevent old scans looking live.
+ const researchActivity=[
+  ...(funnel.collection_recent?[{
+   source:'MARKET_COLLECTOR',at_utc:funnel.last_collector_check_at_utc,
+   observed_count:funnel.observed_candidate_count,
+   security_checks:null,
+   paper_trade_executed:false,gpt_decision:false
+  }]:[]),
+  ...(funnel.independent_security_research_recent?[{
+   source:'INDEPENDENT_SECURITY_RESEARCH',
+   at_utc:funnel.security_checked_at_utc,
+   observed_count:funnel.last_security_sample_research_eligible_evm,
+   security_checks:funnel.last_security_sample_actually_checked,
+   paper_trade_executed:false,gpt_decision:false
+  }]:[])
+ ].sort((a,b)=>Date.parse(b.at_utc)-Date.parse(a.at_utc));
  const gptActivity=diagnoseGptPaperInactivity(state,{now});
  const gptLocalPaperFills=gptActivity.local_gpt_paper_buy_fills+
   gptActivity.local_gpt_paper_sell_fills;
@@ -117,7 +139,8 @@ export function paperDashboardView(state,{now=Date.now(),collector=null,security
   gpt_local_paper_fills:gptLocalPaperFills,
   gpt_local_paper_fills_are_not_model_proven:true,
   gpt_paper_local_activity_diagnostic:gptActivity,
-  gpt_paper_research_funnel:summarizeLocalGptFunnel({collector,security,now}),
+  gpt_paper_research_funnel:funnel,
+  gpt_paper_research_activity:researchActivity,
   pricing_warning:'Nur indikative Positionsbewertung, inklusive 1 % modellierter Ausstiegskosten. Keine ausführbare Sell-Quote und kein garantierter Auszahlungsbetrag.'
  };
 }

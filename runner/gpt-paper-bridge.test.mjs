@@ -163,6 +163,10 @@ test('no GPT local follow opt-in, unsafe archive mismatch, and NO_TRADE never ex
   await assert.rejects(a.r.receive(tampered),/HASH_MISMATCH/);
   const no=await a.r.receive(envelope(decision('NO_TRADE',now,'5'.repeat(32))));
   assert.equal(no.status,'NO_TRADE');
+  const recorded=a.state.gptDecisionReplay['gpt_'+'5'.repeat(32)];
+  assert.equal(recorded.action,'NO_TRADE');
+  assert.equal(recorded.chain,null);
+  assert.equal(recorded.token_address,null);
   assert.equal(a.signCount,0);
   assert.equal(a.state.positions.length,0);
   assert.equal(a.state.cashUsdc,5000);
