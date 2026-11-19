@@ -1,5 +1,7 @@
 # R29 V5.0 – Hier beginnen: autonomer GPT-Memecoin-Scout
 
+**Historische Januar-2026-Testprüfung (19.11.2026):** [01.–10.01. Markt-Audit und Blindtest-Preflight](research/r29/operations/postfreeze-jan2026-ten-day/R29_JAN_2026_10_TAGE_MARKTAUDIT_UND_BLINDTEST_PREFLIGHT_DE.md) – Solana-Pump.fun-Teilmarkt mit 246.870 registrierten Starts, 30 rückblickenden Beispielen und 40 **nicht ausgeführten** GPT-Review-Slots. **Kein echter GPT-Backtest, keine authentischen BUY/SELL-Entscheidungen oder Paper-PnL belegt**; ohne zeitgerechte vollständige Kandidaten-/Security-/Quote-Daten keine Gewinnerlisten in GPT-Blind-Inputs übernehmen. Keine weiteren Bots, kein Echtgeld.
+
 **VERBINDLICHER V5.0-ZIELVERTRAG (NUTZER GO):** [R29 V4.5–V4.9-Wissenschronik](research/r29/operations/R29_V4_5_KANONISCHER_WISSENSSTAND_20261118_DE.md) · [Autonomer GPT-Memecoin-Scout](research/r29/operations/R29_V5_0_AUTONOMER_MEMECOIN_SCOUT_ZIELVERTRAG_20261118_DE.md) · [30-Tage-Fälle: ausdrücklich unbestätigt, nicht für Blindtest-Inputs](research/r29/operations/R29_V5_0_MEMECOIN_30T_REFERENZFAELLE_UNVERIFIZIERT_20261118_DE.md). Die bisherige V4.9-Dokumentation unten ist der **technische Code-IST-Stand**, nicht die Definition eines bereits erreichten V5.0-Ergebnisses.
 
 **V5.0 ist ein vom Nutzer freigegebenes Entwicklungsziel, KEIN Nachweis einer fertig installierten Handelsfunktion.** Aktueller belegter Code-IST ist R29 V4.9 (PR #65) plus Dokumentationsabgleich PR #66. Der parallele Entwicklungsauftrag darf nur mit echten Code-/CI-/Windows-/ChatGPT-Belegen als erfüllt markiert werden.
