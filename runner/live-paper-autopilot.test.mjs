@@ -22,7 +22,8 @@ const security=(at=now)=>assessEvmSecurityRaw({chain:'base',token,pool,now:at,
  goplus:{code:1,result:{[token]:validFlags}},
  honeypot:{simulationSuccess:true,honeypotResult:{isHoneypot:false},
   simulationResult:{buyTax:0,sellTax:0},token:{address:token},
-  pair:{pairAddress:pool},flags:[]}});
+  pairAddress:pool,chain:{id:'8453'},
+  pair:{chainId:'8453',pair:{address:pool}},flags:[]}});
 const quote=(price=0.02,at=now)=>({chain:'base',tokenAddress:token,
  poolAddress:pool,priceUsd:price,liquidityUsd:120000,
  volume5mUsd:14000,buys5m:57,sells5m:18,
