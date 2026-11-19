@@ -1,0 +1,22 @@
+name: R29 offline receipt regression (BACKTEST-ONLY)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  receipt-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Offline synthetic verifier regression
+        env:
+          CI: 'true'
+        run: node research/replay-120d-real/r29-actual-verifier-integration-regression-20261119.mjs
+# No secrets, historical market downloads, API requests, wallets or order pointers.
+# Passing tests demonstrate structural crypto checks only, never a genuine GPT blindtest.
