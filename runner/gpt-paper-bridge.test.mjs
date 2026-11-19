@@ -67,7 +67,7 @@ function ledger(){
   maxTrade:5000,portfolioBudgetUsdc:5000,minTrade:50,
   automaticPaperBuys:false};
 }
-function makeReceiver({securityOverride=null}={}){
+function makeReceiver({securityOverride=null,onLookup=null}={}){
  let state=ledger(),price=.02,signCount=0;
  const folder=mkdtempSync(path.join(tmpdir(),'gpt-paper-e2e-'));
  const r=createGptPaperLocalReceiver({
@@ -77,7 +77,7 @@ function makeReceiver({securityOverride=null}={}){
   loadMarket:()=>({ok:true,snapshot:{
     schema:'research_market_snapshot.v1',
     paper_only:true,actionable:false,candidates:[candidate(Date.now())]}}),
-  lookup:async()=>quote(price),
+  lookup:async()=>{if(onLookup)await onLookup();return quote(price)},
   securityCheck:async()=>securityOverride||safe(),
   submit:async(o,opts)=>{
     signCount++;
@@ -382,4 +382,67 @@ test('V5.5: GBP score is GPT strategy, market quote and owner budget still const
  const stale={...lowMomentum,asOf:iso(current-100000)};
  assert.equal(r29LivePaperEntryGate({state:s,candidate:poolCandidate,
   quote:stale,security:safe(current),now:current,gptSignedPaper:true}).allowed,false);
+});
+
+test('V5.7: GPT-v3 BUY does not name a stake; user Paper setting alone selects 50 or 250',async()=>{
+ const a=makeReceiver();
+ try{
+  const d=decision('BUY',Date.now(),'3'.repeat(32));
+  d.schema='sniper_r29_gpt_paper_decision.v3';
+  d.sizing_mode='LOCAL_USER_COIN_STAKE';d.amount_test_usdc=null;
+  assert.equal(validateGptPaperDecision(d,{now:Date.now()}).owner_fixed_coin_stake,true);
+  assert.throws(()=>validateGptPaperDecision({...d,amount_test_usdc:80},
+   {now:Date.now()}),/UNSAFE/);
+  assert.throws(()=>validateGptPaperDecision({...d,sizing_mode:'MODEL_DECIDES'},
+   {now:Date.now()}),/INVALID/);
+  const chosen=action(a.state,{type:'SET_COIN_STAKE',account:'PAPER',amount:250});
+  a.setState(chosen);
+  const filled=await a.r.receive(envelope(d));
+  assert.equal(filled.status,'PAPER_FILLED');
+  assert.equal(a.state.positions.length,1);
+  assert.equal(a.state.positions[0].amountUsdc,250);
+  assert.equal(a.state.cashUsdc,4750);
+  assert.equal(paperDashboardView(a.state).fixed_coin_stake_test_usdc,250);
+  assert.equal(paperDashboardView(a.state).maximum_available_for_gpt_paper_buy_test_usdc,4750);
+  a.setPrice(.026);
+  const sold=await a.r.receive(envelope(decision('SELL',Date.now(),'4'.repeat(32))));
+  assert.equal(sold.status,'PAPER_FILLED');
+  assert.equal(a.state.positions.length,0);
+  assert(a.state.cashUsdc>5000,'sales return virtual proceeds to actual cash');
+ }finally{a.cleanup()}
+});
+test('V5.7: an owner stake increase during asynchronous checks cannot silently alter the signed BUY',async()=>{
+ let release,entered;
+ const reached=new Promise(resolve=>entered=resolve);
+ const gate=new Promise(resolve=>release=resolve);
+ const a=makeReceiver({onLookup:async()=>{entered();await gate}});
+ try{
+  const d=decision('BUY',Date.now(),'5'.repeat(32));
+  d.schema='sniper_r29_gpt_paper_decision.v3';
+  d.sizing_mode='LOCAL_USER_COIN_STAKE';d.amount_test_usdc=null;
+  const pending=a.r.receive(envelope(d));
+  await reached;
+  a.setState(action(a.state,{type:'SET_COIN_STAKE',account:'PAPER',amount:80}));
+  release();
+  const blocked=await pending;
+  assert.equal(blocked.status,'BLOCKED');
+  assert.equal(blocked.reason,'USER_COIN_STAKE_CHANGED_DURING_SECURITY_CHECK');
+  assert.equal(a.signCount,0);
+  assert.equal(a.state.positions.length,0);
+  assert.equal(a.state.cashUsdc,5000);
+ }finally{a.cleanup()}
+});
+test('V5.7: user-fixed 50 Paper BUY cannot overspend 20 remaining TEST-USDC',async()=>{
+ const a=makeReceiver();
+ try{
+  a.setState({...a.state,cashUsdc:20,portfolioBudgetUsdc:50});
+  const d=decision('BUY',Date.now(),'6'.repeat(32));
+  d.schema='sniper_r29_gpt_paper_decision.v3';
+  d.sizing_mode='LOCAL_USER_COIN_STAKE';d.amount_test_usdc=null;
+  const blocked=await a.r.receive(envelope(d));
+  assert.equal(blocked.status,'BLOCKED');
+  assert.equal(blocked.reason,'GPT_FRESH_PRIVATE_PAPER_CAPACITY_REJECTED');
+  assert.equal(a.state.positions.length,0);
+  assert.equal(a.signCount,0);
+ }finally{a.cleanup()}
 });
