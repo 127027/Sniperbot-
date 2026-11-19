@@ -206,3 +206,39 @@ test('public local market-read failures remain explicit enums, cannot leak arbit
   review:modelReview,now:at,marketReadStatus:'/home/user/.secret/private.key'
  }),/MARKET_STATUS_INVALID/);
 });
+
+test('R29 V5.1 security research rotates the second eligible EVM pool instead of repeatedly starving it',()=>{
+ const candidates=Array.from({length:4},(_,i)=>{
+  const tokenAddress='0x'+String(i+1).repeat(40);
+  const poolAddress='0x'+String(i+5).repeat(40);
+  return {
+   ...market.candidates[0],token_address:tokenAddress,pool_address:poolAddress,
+   candidate_id:'base:'+tokenAddress+':'+poolAddress,
+   liquidity_usd:120000-i*10000,volume_m5_usd:16000-i*500
+  };
+ });
+ const checked=new Set();
+ for(let hour=0;hour<3;hour++){
+  const tick=at+hour*3600000,clock=new Date(tick).toISOString();
+  const fresh={...market,published_at_utc:clock,
+   candidates:candidates.map(c=>({...c,observed_at_utc:clock}))};
+  const picked=selectSecurityResearchCandidates(modelReview,fresh,{now:tick});
+  assert.equal(picked.length,2,'unchanged provider 2-per-hour research bound');
+  assert.equal(picked[0].candidate_id,candidates[0].candidate_id,
+   'strongest verified market pool retains first slot');
+  assert.equal(picked[1].source,'FRESH_CROSS_PROVIDER_LOCAL_MARKET');
+  assert.notEqual(picked[0].candidate_id,picked[1].candidate_id);
+  assert.deepEqual(picked,selectSecurityResearchCandidates(modelReview,fresh,{now:tick}),
+   'no random or future-derived prioritization');
+  checked.add(picked[1].candidate_id);
+  assert.equal(selectSecurityResearchCandidates(modelReview,fresh,{now:tick,limit:1}).length,1);
+  assert.equal(selectSecurityResearchCandidates(modelReview,fresh,{now:tick,limit:0}).length,0);
+ }
+ assert.equal(checked.size,3,'all other three eligible contracts are eventually checked');
+ assert.deepEqual([...checked].sort(),
+  candidates.slice(1).map(c=>c.candidate_id).sort());
+ // Rotating the RESEARCH checks does not authorize any orders or certify sellability.
+ const unknown=assessEvmSecurityRaw({chain:'base',token,pool,now:at,
+  goplus:null,honeypot:null});
+ assert.equal(unknown.approved,false);
+});
