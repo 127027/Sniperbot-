@@ -1200,5 +1200,60 @@
     "user_live_paper_ledger_mutated": false,
     "real_money_trading_enabled": false,
     "canonical_implementation_state_not_overridden": true
+  },
+  "v5_3_execution_blockers": {
+    "approval": "GO V5.3 on 2026-11-19; actual GPT paper BUY->SELL and Jan 1-10 blindtest; all Echtgeld LOCKED",
+    "evidence_at_utc": "2026-11-19T18:45:37.140Z",
+    "source": "research/r29/channel/gpt-paper-security.json",
+    "funnel": {
+      "observed_pools": 61,
+      "evm": 37,
+      "security_research_eligible": 3,
+      "actually_checked": 2,
+      "full_buy_gate_passed": 0,
+      "concrete_failures": [
+        "GoPlus required safety fields missing or negative",
+        "Honeypot.is exact pool not verified"
+      ]
+    },
+    "recent_public_collector_observation": "2026-11-19T18:57:16.836Z",
+    "most_recent_public_receipt": {
+      "action": "NO_TRADE",
+      "received_at_utc": "2026-11-18T16:21:09.742Z"
+    },
+    "published_windows_context": {
+      "observed_at_utc": "2026-11-19T19:05:32.181Z",
+      "paper_bot_enabled": true,
+      "gpt_follow_enabled": true,
+      "exit_monitor_heartbeat_recent": true
+    },
+    "code_boundaries": {
+      "supported_gpt_buy_chains": [
+        "base",
+        "bsc",
+        "eth"
+      ],
+      "solana_paper_buy_supported": false,
+      "gpt_buy_ttl_max_seconds": 180,
+      "local_candidate_observation_age_max_seconds": 300,
+      "independent_quote_age_max_seconds": 60,
+      "security_snapshot_age_max_seconds": 120,
+      "auto_paper_single_equity_cap": 0.01,
+      "auto_paper_total_equity_cap": 0.03,
+      "automatic_private_bot_state_delivery_to_cloud_gpt_verified": false
+    },
+    "evidence_missing": [
+      "No current personal Windows GPT BUY PAPER_FILLED proof",
+      "No current personal authorized automated Paper SELL and PnL proof",
+      "No proof TTL rejected an otherwise safe BUY",
+      "No historically authenticated 40 January 2026 GPT reviews",
+      "No full January 1-10 as-of multichain neutral candidate and executable bidirectional quote tape"
+    ],
+    "diagnosis": "Actual checked candidates fail security; do not treat as confirmed software defect or silently relax safety gates.",
+    "existing_automations_updated_to_v53": true,
+    "automations_schedule_changed": false,
+    "code_or_risk_gates_changed": false,
+    "real_money_trading_enabled": false,
+    "next": "Only after a naturally valid candidate: trace fresh GPT V2 signed BUY -> courier -> real local Paper receipt -> 30s policy SELL -> PnL; independent Jan as-of tape before real historical reviews."
   }
 }
