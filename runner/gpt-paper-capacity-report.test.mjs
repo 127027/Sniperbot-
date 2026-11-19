@@ -4,14 +4,15 @@ import {computePrivateGptCapacity,validatePrivateGptCapacity} from './gpt-paper-
 const now='2026-11-17T09:00:00Z';
 const state=cash=>({cashUsdc:cash,cashEur:0,positions:[],
  maxTrade:5000,portfolioBudgetUsdc:5000,minTrade:50,real_trading_enabled:false});
-test('private GPT limit is aligned with 1% Paper equity even if free cash is 4999',()=>{
+test('private GPT offer respects owner-selected Paper portfolio cap and cash, not 1% equity',()=>{
  const x=computePrivateGptCapacity(state(4999),{observed_at_utc:now});
  assert.equal(x.can_buy,true);
  assert.equal(x.minimum_approved_buy_test_usdc,5);
- assert.equal(x.maximum_approved_buy_test_usdc,49.99);
+ assert.equal(x.maximum_approved_buy_test_usdc,4999);
  assert.equal(x.private_authenticated_delivery_only,true);
  assert.equal(x.do_not_publish_public_github,true);
  assert.equal(validatePrivateGptCapacity(x,{asof_utc:'2026-11-17T09:01:00Z',requested_test_usdc:5000}).approved,false);
+ assert.equal(validatePrivateGptCapacity(x,{asof_utc:'2026-11-17T09:01:00Z',requested_test_usdc:250}).approved,true);
  assert.equal(validatePrivateGptCapacity(x,{asof_utc:'2026-11-17T09:01:00Z',requested_test_usdc:49.99}).approved,true);
 });
 test('open position reserves, technical risk cap and cash all constrain amount',()=>{
@@ -29,26 +30,39 @@ test('EUR is never treated as one-to-one USDC even when FX is allegedly verified
 });
 test('low capacity, stale snapshot or live-money context always fail closed',()=>{
  assert.equal(computePrivateGptCapacity(state(4.99),{observed_at_utc:now}).can_buy,false);
- assert.equal(computePrivateGptCapacity(state(4999.01),{observed_at_utc:now}).maximum_approved_buy_test_usdc,49.99);
+ assert.equal(computePrivateGptCapacity(state(4999.01),{observed_at_utc:now}).maximum_approved_buy_test_usdc,4999.01);
  const x=computePrivateGptCapacity(state(5000),{observed_at_utc:now});
  assert.equal(validatePrivateGptCapacity(x,{asof_utc:'2026-11-17T09:05:00Z',requested_test_usdc:100}).approved,false);
  assert.equal(computePrivateGptCapacity({...state(5000),realTradingEnabled:true},{observed_at_utc:now}).can_buy,false);
 });
 
-test('R29 V5.0 private GPT offer honors both 1% per-position and 3% of fresh total Paper equity',()=>{
+test('V5.5 private GPT offer honors owner reserve and fresh valuation, not old 1%/3% veto',()=>{
  const base=state(4870);
  base.positions=[{amountUsdc:130,qty:130,priceUsd:1,markAt:now}];
  const x=computePrivateGptCapacity(base,{observed_at_utc:now});
  assert.equal(x.can_buy,true);
- assert.equal(x.maximum_approved_buy_test_usdc,19.96,
-  'real 3% remaining exposure must bound advertised private GPT stake');
+ assert.equal(x.maximum_approved_buy_test_usdc,4870,
+  'virtual available cash and owner total exposure budget bound a GPT stake');
  assert.equal(validatePrivateGptCapacity(x,{asof_utc:now,
-  requested_test_usdc:25}).approved,false);
+  requested_test_usdc:25}).approved,true);
  assert.equal(validatePrivateGptCapacity(x,{asof_utc:now,
   requested_test_usdc:15}).approved,true);
  const full=state(4855);
  full.positions=[{amountUsdc:145,qty:145,priceUsd:1,markAt:now}];
  const blocked=computePrivateGptCapacity(full,{observed_at_utc:now});
- assert.equal(blocked.can_buy,false,'<5 remaining under 3% cap is not spendable');
- assert.equal(blocked.maximum_approved_buy_test_usdc,0);
+ assert.equal(blocked.can_buy,true,'owner Paper budget still has unreserved cash');
+ assert.equal(blocked.maximum_approved_buy_test_usdc,4855);
+});
+
+
+test('owner-configured Paper exposure cap, not 1%/3%, independently limits GPT sizing',()=>{
+ const s=state(5000);s.portfolioBudgetUsdc=200;
+ const x=computePrivateGptCapacity(s,{observed_at_utc:now});
+ assert.equal(x.maximum_approved_buy_test_usdc,200);
+ const position=state(4980);
+ position.portfolioBudgetUsdc=200;
+ position.positions=[{amountUsdc:20,qty:20,priceUsd:1,markAt:now}];
+ assert.equal(computePrivateGptCapacity(position,{observed_at_utc:now}).maximum_approved_buy_test_usdc,180);
+ assert.equal(computePrivateGptCapacity(s,{observed_at_utc:now,
+  technical_max_stake_test_usdc:80}).maximum_approved_buy_test_usdc,80);
 });
