@@ -126,10 +126,12 @@ footer{margin-top:24px;border-top:1px solid var(--border);padding-top:18px;font-
   <div class="toolbar-left"><h2 id="modeHeading" class="section-title">Paper-Portfolio</h2><span id="botBadge" class="pill">Bot-Status wird geladen</span></div>
   <button id="toggleBot" class="btn primary" type="button" disabled>Bot …</button>
 </div>
-<section class="card wide-section" aria-label="GPT-Forschung und Paper-Handelsaufträge">
-  <div class="section-head"><h2>GPT-Aktivität &amp; Paper-Handel</h2><span id="gptDecisionCount" class="sub">Warte auf GitHub-GPT-Status</span></div>
-  <p class="small-notice" id="gptActivitySummary">Hier erscheinen echte lokal empfangene GitHub-GPT-Entscheidungen, auch WATCH und NO_TRADE. Nur bestätigte Paper-Fills verändern den Kontostand.</p>
+<section class="card wide-section" aria-label="GPT-Entscheidungen und reale Marktbeobachtung">
+  <div class="section-head"><h2>GPT-Entscheidungen &amp; Marktaktivität</h2><span id="gptDecisionCount" class="sub">Warte auf lokalen GPT-Status</span></div>
+  <p class="small-notice" id="gptActivitySummary">Nur echte lokal empfangene GitHub-GPT-Entscheidungen zählen als GPT-Entscheidungen. Marktscans sind keine BUY-Signale; nur bestätigte Paper-Fills verändern das Konto.</p>
   <ul class="activity-list" id="gptActivityList"><li class="sub">Noch keine Entscheidung geladen …</li></ul>
+  <h3 class="section-title" style="font-size:14px;margin:20px 0 4px">Aktuelle Marktscans (keine GPT-Entscheidungen)</h3>
+  <ul class="activity-list" id="researchActivityList"><li class="sub">Noch keine Marktbeobachtung geladen …</li></ul>
 </section>
 <section class="card" aria-label="Offene Trading-Positionen">
   <div class="section-head"><h2>Offene Positionen</h2><span id="positionTime" class="sub">Aktualisierung ausstehend</span></div>
@@ -288,11 +290,13 @@ function renderHistory(view){
 }
 function renderGptActivity(p){
  const list=$('gptActivityList');clearChildren(list);
+ const research=$('researchActivityList');clearChildren(research);
  $('gptDecisionCount').textContent=p?
   String(p.gpt_paper_received_decisions||0)+' Entscheidungen · '+
   String(p.gpt_local_paper_fills||0)+' lokale GPT-Paper-Fills':'Nicht erreichbar';
  if(!p){
   addElement(list,'li','Keine überprüfbare lokale GPT-Historie geladen.','sub');
+  addElement(research,'li','Kein lokaler Marktstatus verfügbar.','sub');
   $('gptActivitySummary').textContent='Nur lokal gespeicherte Paper-Entscheidungen zählen.';
   return;
  }
@@ -335,6 +339,24 @@ function renderGptActivity(p){
   'Neue Paper-Einstiege pausiert; autorisierte Exits bleiben möglich. ')+
   counts+possibleAlert+sample+'Aktueller lokaler Hinweis: '+why+
   ' Zeitfenster betreffen nur vorhandene lokale Nachweise, keine bestätigte PC-Dauerverfügbarkeit.';
+ const observations=Array.isArray(p.gpt_paper_research_activity)?
+  p.gpt_paper_research_activity:[];
+ if(!observations.length){
+  addElement(research,'li','Kein frischer lokaler Marktscan oder Sicherheitsbericht nachgewiesen.','sub');
+ }
+ for(const item of observations.slice(0,2)){
+  const li=document.createElement('li');
+  const scan=item.source==='MARKET_COLLECTOR';
+  addElement(li,'div',(scan?'Marktscanner':'Unabhängige Sicherheitsprüfung')+
+   ' · '+stamp(item.at_utc),'activity-name');
+  const count=typeof item.observed_count==='number'?String(item.observed_count):'unbekannt';
+  addElement(li,'div',scan?
+   'Beobachtete Pools: '+count+' · nur Recherche, KEINE GPT-BUY-Entscheidung':
+   'Potenzielle Forschungskandidaten: '+count+
+    ' · unabhängig geprüft: '+(item.security_checks??'unbekannt')+
+    ' · kein Nachweis eines kaufbaren Coins','activity-detail');
+  research.appendChild(li);
+ }
  const rows=Array.isArray(p.gpt_paper_recent_decisions)?p.gpt_paper_recent_decisions:[];
  if(!rows.length){
   addElement(list,'li','Noch keine vom lokalen GitHub-Kurier empfangene GPT-Entscheidung.','sub');
@@ -342,8 +364,13 @@ function renderGptActivity(p){
  }
  for(const d of rows){
   const li=document.createElement('li');
-  addElement(li,'div',String(d.status||'UNBEKANNT')+' · '+stamp(d.at_utc),'activity-name');
-  addElement(li,'div','Lokaler GPT-Kurier: '+String(d.reason||'Keine Begründung')+
+  addElement(li,'div','GPT '+String(d.action||'ENTSCHEIDUNG')+
+   ' · '+String(d.status||'UNBEKANNT')+' · '+stamp(d.at_utc),'activity-name');
+  const contract=typeof d.token_address==='string'&&d.token_address.length>15?
+   d.token_address.slice(0,9)+'…'+d.token_address.slice(-5):'';
+  addElement(li,'div','GitHub → lokaler Kurier: '+
+   String(d.reason||'Keine Begründung')+
+   (d.chain?' · '+d.chain:'')+(contract?' · '+contract:'')+
    ' · '+String(d.decision_id||'').slice(0,24)+'…','activity-detail');
   list.appendChild(li);
  }
