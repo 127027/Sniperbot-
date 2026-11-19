@@ -378,7 +378,8 @@ test('V5.5: GBP score is GPT strategy, market quote and owner budget still const
  const capped={...s,portfolioBudgetUsdc:80};
  assert.equal(r29LivePaperEntryGate({state:capped,candidate:poolCandidate,
   quote:lowMomentum,security:safe(current),now:current,
-  gptSignedPaper:true}).amount_test_usdc,80);
+  gptSignedPaper:true}).amount_test_usdc,600,
+  'V5.7 user-only per-coin stake ignores legacy overall exposure slider');
  const stale={...lowMomentum,asOf:iso(current-100000)};
  assert.equal(r29LivePaperEntryGate({state:s,candidate:poolCandidate,
   quote:stale,security:safe(current),now:current,gptSignedPaper:true}).allowed,false);
