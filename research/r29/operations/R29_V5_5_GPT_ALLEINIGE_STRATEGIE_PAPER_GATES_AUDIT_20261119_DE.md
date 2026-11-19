@@ -1,0 +1,43 @@
+# R29 V5.5 – Wer entscheidet im Paper-Modus? Ursachenanalyse, konkrete Umsetzung, Grenzen
+
+**Nutzerauftrag: ausdrücklich GO.** Der vorhandene ChatGPT-R29-Agent soll allein die Strategie entscheiden; der lokale Bot darf keine zweite Marktstrategie ausführen. Ziel BUY/SELL bleibt ausschließlich virtuell. Vorliegende GitHub-Historie belegt die Einführung zusätzlicher R29-Regeln; sie beweist **nicht**, dass der Nutzer jede einzelne Grenze ausdrücklich verlangt oder bestätigt hat.
+
+## Nachvollzogene Ursprünge in der GitHub-Historie
+
+| Ursprung | Commit (15./18. November 2026) | Ursprüngliche technische Absicht | Beurteilung |
+|---|---|---|---|
+| Zusätzliche 1%-Einzel- / 3%-Gesamtexposition und 0,25%-Risikomodell | [37348e7](https://github.com/127027/Sniperbot-/commit/37348e7ca35) | Kapital- und Verlustbegrenzer des alten autonomen Local-Autopilots | Für GPT-PAPER **nicht dasselbe wie das vom Nutzer im Dashboard gesetzte Gesamtbudget** |
+| Vollständige GoPlus-/Honeypot-Sicherheitsfelder | [6cb1a6a](https://github.com/127027/Sniperbot-/commit/6cb1a6a421b) | Contract-Hard-Gate, damit risikoreiche virtuelle Trades wie potenziell Echtgeld handelbar erscheinen | UNKNOWN ≠ bekannter Contract-Risikonachweis; jedoch **fehlerhafte/fehlende Sell-Simulation oder Poolidentität bleiben harte technische Ablehnung** |
+| Score 80/100 und `security_assessment: VERIFIED` für BUY | [f641009](https://github.com/127027/Sniperbot-/commit/f6410092f8a) | Strikter GPT-Papierordner, ursprünglich als Anti-Scheinsignal-Schutz | Ein **vom Modell selbst ausgewählter** BUY kann schon am Score-Schwellenwert geblockt werden; die selbst erklärte `VERIFIED`-Kennung **ist kein unabhängiger technischer Sicherheitsbeleg** |
+| Min. 20 Käufe in 5 Minuten und 1,5× Verkäufe, min. 2.000 USD 5m-Volumen | [37348e7](https://github.com/127027/Sniperbot-/commit/37348e7ca35) und spätere Verschärfungen | Legacy-Lokalautopilot-Momentumfilter | Strategische Vorselektion, kein notwendiger Beweis der technischen Papierbuchung |
+| Exakte Contract-/Pool-/Quote-Bindung | [9dbb79a](https://github.com/127027/Sniperbot-/commit/9dbb79ab144) | Verwechslung mit falschem Pool oder veraltetem Preis verhindern | **Technische Pflicht** |
+| GPT-V2-Exit-Vertrag und Local-Exit-Monitor | [6b43f08](https://github.com/127027/Sniperbot-/commit/6b43f0863e6) | Jeder GPT-BUY erhält einen vorab autorisierten unabhängigen Paper-Exit | **Technische Pflicht** |
+| V5.4: asynchrone Provider-Rückläufe vor Signierung erneut auf GPT-Ablauf/Freigabe prüfen | [PR #73](https://github.com/127027/Sniperbot-/pull/73) | Abgelaufene oder widerrufene BUYs nicht signieren | **Technische Pflicht** |
+
+Kein GitHub-Commit allein belegt eine spezifische Nutzerzustimmung zu jedem strategischen Grenzwert. Einige Regeln waren als Schutz vor unrealistischem Echtgeld-ähnlichem Trading gemeint, wurden aber auf den vom Nutzer gewünschten **experimentellen virtuellen GPT-Handel** übertragen.
+
+## V5.5 – technische Aufgabentrennung und Änderungen
+
+**GPT entscheidet exklusiv** Coin, BUY/WATCH/HOLD/SELL/NO_TRADE, eigene Konfidenz, Risikoakzeptanz und gewünschten Einsatz (mindestens 5 TEST-USDC für signierte GPT-PAPER-BUYs). Der **lokale Executor** prüft die authentifizierte GitHub-Zustellung und signiert lokal, aktuellen Owner-GPT-Follow, einmalige Replay-ID, gültigen GPT-V2-Exit-Vertrag, exakte Chain-/Pool-/Token-Identität, aktuelle unabhängige DEX-Screener-Preisreferenz, verfügbare virtuelle Mittel, vom Nutzer eingestelltes Gesamtpositionsbudget, eine größenabhängige 0,5%-LP-Impact-Obergrenze und eine unabhängig exakte positive Honeypot.is-Kauf-/Verkaufssimulation.
+
+1. `runner/gpt-paper-protocol.mjs`: `score_0_100>=80` und die Selbstbeschreibung `security_assessment: VERIFIED` sind für GPT-BUY **keine zusätzlichen unabhängigen strategischen Veto-Regeln** mehr. Vorhandene Schema-/Identitäts-/Signatur-/Zeit-/Exit-V2-Anforderungen bleiben.
+2. `runner/live-paper-risk.mjs`: Nur bei **bereits signierten** GPT-Paper-Entscheidungen entfallen feste alte Momentum- und 1%-/3%-Eigenkapital-Prozentsätze, alte lokale Momentum-Cooldown- und Daily-/Weekly-Stop-Formeln. Verfügbares Kapital und **vom Nutzer eingestelltes** Paper-Gesamtportfolio-Limit bleiben harte Kontogrenzen; exakter frischer Quote, exakter Chain-/Pool-/Token-Match, valide positive Preis-/LP-Information, 0,5%-LP-Sizing, keine doppelte Position und datierte Buchführung bleiben technisch Pflicht. Der alte LOCAL Autopilot bleibt streng und entwickelt keinen zweiten strategischen BUY-Prozess.
+3. `runner/gpt-paper-capacity-report.mjs`: Privates, ausschließlich lokal sichtbares GPT-Budgetangebot folgt demselben Nutzergesamtbudget und freiem Cash, statt dem alten 1%-/3%-Doppellimit. Beträge nicht an öffentliches GitHub übertragen; kein betragsändernder Bot-Automatismus.
+4. `runner/live-paper-security.mjs`: Die bisherige **strenge** GoPlus+Honeypot-Validierung bleibt Default für andere Aufträge. Nur für authentische, individuell gebundene GPT-Paper-Käufe darf ein **explizit UNKNOWN** GoPlus-Feld toleriert werden, falls GoPlus den Contract überhaupt geliefert hat, **keine** bekannt gefährliche Contract-Flag aktiv ist, Honeypot.is eine **erfolgreiche Zweiweg-Simulation mit konkreter Token- und Pooladresse** liefert und beide Belege frisch sind. GoPlus-false bleibt false und wird **niemals** in approved/sicher umgelabelt. Ein explizites Honeypot-/Blacklist-/Proxy-/Mint-/Owner-Risiko, falsch gematchter Pool, fehlgeschlagener oder ausbleibender Honeypot-Sell-Simulationsnachweis und fehlender Provider bleiben geblockt.
+5. `runner/gpt-paper-local-receiver.mjs`: Ein BUY mit unbekannten GoPlus-Feldern erfordert vom echten GPT explizit `security_assessment: UNKNOWN`; eine fälschlich behauptete `VERIFIED`-Bewertung wird abgelehnt. Der bestehende nach-asynchroner-Provider-Prüfung ausgeführte Ablauf-/Consent-Check bleibt.
+6. `runner/paper-agent-pipeline.mjs`: Solche Fills werden im **existierenden Paper-Ledger** gespeichert, aber ausdrücklich als `GPT_AUTHORIZED_UNKNOWN_PROVIDER_RISK_INDICATIVE_PAPER` / `indicative_only:true` / `sellability_verified:false` / `real_trade_executed:false` kennzeichnet. Ein gelungener Honeypot-Sell-Simulationstest ist **kein** belegbarer live ausführbarer Verkauf. Kein Wallet oder Echtgeld.
+7. `runner/gpt-paper-security-research.mjs`: Die neue öffentliche Information `paper_unknown_goplus_risk_eligible` ist ausschließlich eine transparente **Research-Eigenschaft** und niemals eine Orderfreigabe; ein späterer aktueller lokaler vollständiger Recheck ist obligatorisch.
+
+## Absichtlich unverändert
+
+- **Keine Solana-Freigabe auf Verdacht:** Der aktuelle GPT-Paper-Executor besitzt nur EVM-Mint-/Pool-/Provider-Checks; Solana benötigt eine eigenständige nachweisbar richtige Verifizierung. Das ist eine echte technische Feature-Lücke, keine strategische GPT-Entscheidung.
+- Keine alten oder fremden Research-Signale zu signierten GPT-BUYs hochstufen. Nur GitHub-owner-attribuierte Entscheidung, lokale Capability, eigene Ed25519-Signatur, Replay-Schutz, individueller GPT-Exit.
+- Kein Echtgeldausführungspfad, keine privaten Walletdaten auf GitHub, keine zusätzlichen Bots/APIs/Benutzeroberflächen.
+- Ohne frische exakte Quotes, Liquidität, gültigen User-Budgetraum oder plausible unabhängige simulierte Sellability weiterhin `BLOCKED`.
+- Die DEX-Screener-Kursreferenz ist ein **indikatives Marktangebot**, keine ausführbare zweifache swap-Quote; Gewinn/Verlust im Ledger entspricht einem **vereinfachten virtuellen Modell**. Kein echter Handel.
+
+## Testplan und Abnahme
+
+Regressionen: `runner/gpt-paper-bridge.test.mjs` (GPT-Score <80 und UNKNOWN erlaubt, 100 TEST-USDC BUY mit fehlendem GoPlus-Feld+erfolgreicher exakter Simulation und späterem SELL, Dashboard-Netto-PnL; bekannte GoPlus-Gefahren/fehlende Risikoanerkennung geblockt; schwaches Markt-Momentum durch GPT entschieden, Nutzerbudget sowie Quote-Frische unverändert), `runner/live-paper-security.test.mjs` (strict versus GPT-only-Unknown), `runner/gpt-paper-capacity-report.test.mjs`, `runner/gpt-paper-size-negotiation.test.mjs`, bestehende LOCAL- und Windows-/Linux-Tests.
+
+**Offene echte Live-Abnahme:** Für diesen Pull Request liegen keine authentische frische GPT-BUY-Entscheidung, kein persönlicher Windows-Bot-`PAPER_FILLED`-BUY, kein vom tatsächlichen lokalen Monitor autorisierter SELL und keine persönliche PnL-Quittung vor. Die GitHub-Tests simulieren dieses Verhalten **isoliert** und sind keine echten prospektiven GPT-Trades. Solana und Januar-10-Tage-Modell-Blindtest ebenfalls offen. Erst **nach Installation auf deinem Windows-PC** kann die neue Codefassung lokal wirken; der GitHub-Merge installiert sie nicht selbst.
