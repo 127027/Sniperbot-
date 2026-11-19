@@ -202,3 +202,47 @@ test('R29 V5.2 existing Paper dashboard shows sanitized market-to-security funne
  assert.equal(view.gpt_local_paper_fills,0);
  assert.equal(view.live_trading_enabled,false);
 });
+
+test('V5.8 UI exposes independent actual scan timestamps without claiming GPT decisions or paper buys',()=>{
+ const t=Date.parse('2026-11-19T22:30:00Z');
+ const collector={schema:'research_market_collector_status.v1',paper_only:true,
+  actionable:false,last_check_at_utc:new Date(t-30000).toISOString(),
+  candidate_count:63};
+ const security={schema:'sniper_r29_public_gpt_security_research.v1',
+  mode:'PAPER_RESEARCH_ONLY',actionable:false,authorizes_paper_orders:false,
+  checked_at_utc:new Date(t-50000).toISOString(),candidate_check_count:2,
+  selection_diagnostic:{schema:'sniper_r29_security_candidate_diagnostic.v1',
+   evm_market_rows:28,potential_research_candidates:4,
+   first_failure_reason_counts:{}},candidates:[]};
+ const state={...freshState(),cashUsdc:5000,gptDecisionReplay:{
+  ['gpt_'+'c'.repeat(32)]:{status:'NO_TRADE',
+   reason:'GPT_RESEARCH_NO_ORDER',action:'NO_TRADE',
+   chain:null,token_address:null,
+   at_utc:new Date(t-20000).toISOString()}}};
+ const view=paperDashboardView(state,{now:t,collector,security});
+ assert.equal(view.gpt_paper_recent_decisions[0].action,'NO_TRADE');
+ assert.equal(view.gpt_paper_research_activity.length,2);
+ assert.deepEqual(view.gpt_paper_research_activity.map(x=>x.source),
+  ['MARKET_COLLECTOR','INDEPENDENT_SECURITY_RESEARCH']);
+ assert.equal(view.gpt_paper_research_activity[0].observed_count,63);
+ assert.equal(view.gpt_paper_research_activity[1].security_checks,2);
+ for(const event of view.gpt_paper_research_activity){
+  assert.equal(event.gpt_decision,false);
+  assert.equal(event.paper_trade_executed,false);
+ }
+ assert.equal(view.gpt_local_paper_fills,0);
+ assert.equal(view.free_cash_test_usdc,5000);
+});
+test('V5.8 stale or untrusted research cannot create UI activity or fake a trade',()=>{
+ const t=Date.parse('2026-11-19T22:30:00Z');
+ const forged={schema:'research_market_collector_status.v1',paper_only:true,
+  actionable:true,last_check_at_utc:new Date(t).toISOString(),candidate_count:80};
+ const stale={schema:'sniper_r29_public_gpt_security_research.v1',
+  mode:'PAPER_RESEARCH_ONLY',actionable:false,authorizes_paper_orders:false,
+  checked_at_utc:new Date(t-3*3600000).toISOString(),candidate_check_count:2};
+ const view=paperDashboardView({...freshState(),cashUsdc:5000},{
+  now:t,collector:forged,security:stale});
+ assert.deepEqual(view.gpt_paper_research_activity,[]);
+ assert.equal(view.gpt_paper_received_decisions,0);
+ assert.equal(view.gpt_local_paper_fills,0);
+});
