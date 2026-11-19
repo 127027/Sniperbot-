@@ -12,8 +12,8 @@ new Script(scripts[0][1],{filename:'runner/dashboard.html'});
 const controls=[
  'tabPaper','tabReal','availableValue','totalValue','openCount','openPnl',
  'realizedPnl','positionRows','historyList','toggleBot',
- 'paperSettings','realSettings','preferredEntry','exposureCap',
- 'saveBudget','setPaperBalance','newPaperBalance',
+ 'paperSettings','realSettings','coinStakeControls','stakeAvailable','coinStake',
+ 'saveCoinStake','setPaperBalance','newPaperBalance',
  'realUsdc','realSol','refreshWallet','walletInfo',
  'diagCourier','diagMain','diagnostics'
 ];
