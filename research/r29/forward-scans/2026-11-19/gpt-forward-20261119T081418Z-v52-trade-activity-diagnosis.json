@@ -1,0 +1,155 @@
+{
+  "schema": "r29_forward_gpt_model_review.v1",
+  "provenance": "AUTOMATION",
+  "operating_day_utc": "2026-11-19",
+  "model_called_at_utc": "2026-11-19T08:14:18Z",
+  "timestamp_precision": "AUTOMATION_RUNTIME_CLOCK_SECOND_PRECISION",
+  "review_number_today": 6,
+  "verified_prior_full_reviews_this_utc_day": 5,
+  "plan_full_gpt_reviews_per_utc_day": 12,
+  "asof_market_published_at_utc": "2026-11-19T08:09:11.044Z",
+  "source_age_at_review_seconds": 307,
+  "source_refs": [
+    {
+      "path": "research/market/latest.json",
+      "github_blob_sha": "32efa71a5bcc57a035630da2549a1c6b49b7b68d"
+    },
+    {
+      "path": "research/r29/channel/gpt-paper-security.json",
+      "github_blob_sha": "d559eb92dd5ad155bba4f5ad445fc78119917126"
+    },
+    {
+      "path": "research/r29/channel/forward-source-health.json",
+      "github_blob_sha": "07f0e667d797cadbe6ae2f4a14fd1ffd0f79769c"
+    },
+    {
+      "path": "research/r29/channel/gpt-paper-context.json",
+      "github_blob_sha": "cac88d5fe6c7d41ee1f0e6a5c42d831f28dbc96f"
+    },
+    {
+      "path": "research/r29/channel/gpt-paper-receipt.json",
+      "github_blob_sha": "cfebbd348759dacab5d850091b151af2cba35106"
+    },
+    {
+      "path": "research/r29/channel/solana-forward-evidence.json",
+      "github_blob_sha": "8de185fe8133686741ae73a84d337f98568c6c1c"
+    }
+  ],
+  "market_funnel_current": {
+    "observed_candidates": 53,
+    "solana": 24,
+    "evm": 29,
+    "base": 3,
+    "bsc": 19,
+    "eth": 7,
+    "cross_provider_identities": 8,
+    "alerts": 24,
+    "source_status": "PARTIAL_RESEARCH_NOT_ORDER_AUTHORITY"
+  },
+  "security_funnel_last_available": {
+    "observed_at_utc": "2026-11-19T07:39:11.688Z",
+    "market_snapshot_at_utc": "2026-11-19T07:38:46.833Z",
+    "observed_market_rows": 56,
+    "evm_market_rows": 36,
+    "research_eligible": 3,
+    "security_checked": 2,
+    "full_buy_gate_passed": 0,
+    "first_failure_reason_counts": {
+      "NON_EVM_CHAIN": 20,
+      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 30,
+      "VOLUME_5M_LT_1000_OR_UNKNOWN": 1,
+      "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 2
+    },
+    "security_checked_blockers": [
+      {
+        "chain": "base",
+        "risk_codes": [
+          "GOPLUS_MISSING_CANNOT_SELL_ALL",
+          "HONEYPOT_POOL_UNVERIFIED"
+        ]
+      },
+      {
+        "chain": "bsc",
+        "risk_codes": [
+          "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
+          "HONEYPOT_TOKEN_UNVERIFIED",
+          "HONEYPOT_POOL_UNVERIFIED"
+        ]
+      }
+    ],
+    "warning": "OLDER_SECURITY_SAMPLE_NOT_CURRENT_53_ROW_FUNNEL; NO CROSS_SNAPSHOT_COUNT_MERGE"
+  },
+  "candidate_reviews": [
+    {
+      "candidate_id": "solana:13xUVPEGXRaxvZFyEwR6MCSNYF7CqJLDCvbgGUySkpgt:BSnWx1N7UKySYKM8xikDciRJoyhKsSEk7hv5yvThPpDN",
+      "first_observed_source": "2026-11-19T08:09:11.044Z",
+      "decision": "WATCH",
+      "reason": "Cross-provider pool and finalized legacy mint header, but holder/LP and independent sellability unverified; indicative quotes only",
+      "blockers": [
+        "SOLANA_EVM_BUY_RECEIVER_UNSUPPORTED",
+        "HOLDER_CONCENTRATION_UNVERIFIED",
+        "LP_CONTROL_UNVERIFIED",
+        "EXECUTABLE_BIDIRECTIONAL_QUOTES_UNVERIFIED"
+      ]
+    },
+    {
+      "candidate_id": "base:0x59bf835008a99f3abde0c04796846194dd18bfe0:0xa178667382e8200ec999d5349ec521f70ae6ff1b",
+      "first_observed_source": "2026-11-19T07:38:46.833Z",
+      "decision": "NO_TRADE",
+      "reason": "Prior security review: cannot_sell_all missing and exact pool unverified",
+      "blockers": [
+        "GOPLUS_MISSING_CANNOT_SELL_ALL",
+        "HONEYPOT_POOL_UNVERIFIED",
+        "EXECUTABLE_QUOTE_MISSING"
+      ]
+    },
+    {
+      "candidate_id": "bsc:0x9e1fee2c48fcd8ecaaa0601309d6f87cc8a4817f:0x58c118f58c957481a7e6d4ecf75d9b567ed0a671",
+      "first_observed_source": "2026-11-19T07:38:46.833Z",
+      "decision": "NO_TRADE",
+      "reason": "Prior security review incomplete honeypot simulation and unverified pool",
+      "blockers": [
+        "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
+        "HONEYPOT_POOL_UNVERIFIED",
+        "EXECUTABLE_QUOTE_MISSING"
+      ]
+    }
+  ],
+  "public_context": {
+    "observed_at_utc": "2026-11-19T08:13:15.522Z",
+    "paper_bot_enabled": true,
+    "gpt_follow_enabled": true,
+    "exit_monitor_heartbeat_recent": true,
+    "positions": 0,
+    "local_order_authority_verified": false
+  },
+  "trade_inactivity": {
+    "latest_public_receipt_at_utc": "2026-11-18T16:21:09.742Z",
+    "latest_public_receipt_action": "NO_TRADE",
+    "latest_confirmed_personal_gpt_paper_buy": "UNKNOWN",
+    "local_ledger_complete": "UNKNOWN",
+    "continuous_windows_uptime": "UNKNOWN",
+    "hours_without_buy_proven": "UNKNOWN",
+    "threshold_24h_72h_240h": "NOT_PROVABLE_FROM_PUBLIC_RECEIPT_HISTORY",
+    "cause_classes": [
+      "SECURITY_FUNNEL_ZERO_APPROVED",
+      "NO_EXECUTABLE_TWO_WAY_QUOTES",
+      "PRIVATE_CAPACITY_NOT_DELIVERED_TO_CLOUD_GPT",
+      "LOCAL_PERSONAL_PAPER_FILL_NOT_VERIFIED"
+    ],
+    "recommended_corrections": [
+      "Refresh exact-pool independent security evidence for every research-eligible EVM candidate",
+      "Verify holder/LP and executable bidirectional fee/slippage quotes without bypassing safety",
+      "After backing up personal Paper data install canonical V5.2 build and verify local /api/gpt/paper/status plus local signed PAPER_FILLED ledger",
+      "Do not publish private balances or issue probe BUYs"
+    ]
+  },
+  "decision": "NO_TRADE",
+  "first_gpt_review": "2026-11-19T08:14:18Z",
+  "decision_published": "UNKNOWN_NO_ORDER_POINTER",
+  "local_receipt": "UNKNOWN_FOR_THIS_REVIEW",
+  "paper_fills_confirmed_this_review": 0,
+  "posthoc_winners_used": false,
+  "historical_backtest_untouched": true,
+  "real_trading_enabled": false
+}
