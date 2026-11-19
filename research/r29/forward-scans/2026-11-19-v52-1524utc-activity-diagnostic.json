@@ -1,0 +1,71 @@
+{
+  "schema": "r29_v5_2_forward_activity_diagnostic.v1",
+  "evidence_class": "AUTOMATION_WAKE_DIAGNOSTIC_NOT_GPT_FULL_STRATEGY_REVIEW",
+  "checked_at_utc": "2026-11-19T15:24:24Z",
+  "source_refs": {
+    "market": "261f9b731ec4c52666c9108d9b9c6aa74ca42722",
+    "security": "15e8c24a4a36e81ab7fc213f805d9c752fb940ee",
+    "context": "c577f32988f971fe7100ad62e98b1b1f5ba8ecb9",
+    "receipt": "cfebbd348759dacab5d850091b151af2cba35106"
+  },
+  "market_published_at_utc": "2026-11-19T15:19:32.594Z",
+  "security_checked_at_utc": "2026-11-19T14:43:26.888Z",
+  "security_funnel": {
+    "total": 52,
+    "evm": 28,
+    "research_eligible": 2,
+    "checked": 2,
+    "first_failure_reasons": {
+      "NON_EVM_CHAIN": 24,
+      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 22,
+      "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 3,
+      "VOLUME_5M_LT_1000_OR_UNKNOWN": 1
+    },
+    "checked_candidate_risks": {
+      "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK": 2,
+      "HONEYPOT_TOKEN_UNVERIFIED": 2,
+      "HONEYPOT_POOL_UNVERIFIED": 2
+    },
+    "full_buy_gate_passed": 0
+  },
+  "gpt_full_reviews_new_this_run": 0,
+  "decision": "NO_TRADE",
+  "blockers": [
+    "SECURITY_RESEARCH_STALE_RELATIVE_TO_CURRENT_MARKET",
+    "BOTH_EVM_CANDIDATES_HONEYPOT_AND_POOL_IDENTITY_UNVERIFIED",
+    "INDEPENDENT_WALLET_LP_AND_EXECUTABLE_TWO_WAY_QUOTES_MISSING",
+    "PRIVATE_CAPACITY_UNAVAILABLE_TO_CLOUD",
+    "LOCAL_PERSONAL_PAPER_FILLED_BUY_UNVERIFIED"
+  ],
+  "paper_context": {
+    "paper_bot_enabled": true,
+    "gpt_follow_enabled": true,
+    "exit_monitor_heartbeat_recent_at_publication": true,
+    "observed_at_utc": "2026-11-19T15:23:46.681Z",
+    "local_revalidation_required": true
+  },
+  "latest_public_receipt": {
+    "action": "NO_TRADE",
+    "status": "NO_TRADE",
+    "received_at_utc": "2026-11-18T16:21:09.742Z",
+    "paper_fill": false
+  },
+  "last_personal_prospective_gpt_paper_buy": "UNKNOWN",
+  "local_journal_start": "UNKNOWN",
+  "continuous_windows_uptime": "UNKNOWN",
+  "thresholds_24_72_240h": "UNKNOWN_WITHOUT_COMPLETE_LOCAL_LEDGER",
+  "timeline": {
+    "first_observed_source": "2026-11-19T15:19:32.594Z",
+    "first_gpt_review": "UNKNOWN",
+    "decision_published": "NOT_PUBLISHED_AS_TRADE_DECISION",
+    "local_receipt": "UNKNOWN_FOR_CURRENT_CANDIDATES"
+  },
+  "corrections": [
+    "Collect complete local signed ledger receipts privately and distinguish BUY/SELL from NO_TRADE",
+    "Recheck exact EVM pool identity and independent honeypot sell simulation",
+    "Validate LP redeemability, independent buyer wallets and fresh executable bidirectional quotes",
+    "Confirm Windows deployment, local exit-monitor liveness and private risk caps without public disclosure"
+  ],
+  "solana": "RESEARCH_ONLY_NOT_EVM_PAPER_EXECUTABLE",
+  "real_trading_enabled": false
+}
