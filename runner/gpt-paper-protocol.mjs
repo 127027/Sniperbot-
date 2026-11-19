@@ -13,6 +13,7 @@ export const GPT_PAPER_BRANCH='codex/r29-chatgpt-github-paper-cycle-20261115';
 export const GPT_PAPER_REPO='127027/Sniperbot-';
 export const GPT_PAPER_DECISION_SCHEMA='sniper_r29_gpt_paper_decision.v1';
 export const GPT_PAPER_DECISION_SCHEMA_V2='sniper_r29_gpt_paper_decision.v2';
+export const GPT_PAPER_DECISION_SCHEMA_V3='sniper_r29_gpt_paper_decision.v3';
 export const GPT_PAPER_POINTER_SCHEMA='sniper_r29_gpt_paper_pointer.v1';
 const decisionFields=[
  'schema','mode','strategy','decision_id','action','chain','token_address',
@@ -21,6 +22,8 @@ const decisionFields=[
  'security_assessment','score_0_100','reason_de','risk_level',
  'trade_type','real_trading_enabled'];
 const decisionFieldsV2=[...decisionFields,'exit_policy'];
+// GPT selects coin, BUY and exit; only the local owner settings select stake.
+const decisionFieldsV3=[...decisionFieldsV2,'sizing_mode'];
 const pointerFields=['schema','mode','decision_id','archive_path',
  'archive_sha256','published_at_utc','real_trading_enabled'];
 const sameKeys=(x,arr)=>x&&typeof x==='object'&&!Array.isArray(x)&&
@@ -36,8 +39,11 @@ export const archivePath=(id,when)=>'research/r29/gpt-decisions/'+when.slice(0,1
 
 export function validateGptPaperDecision(d,{now=Date.now(),forExecution=false}={}){
  const v2=d?.schema===GPT_PAPER_DECISION_SCHEMA_V2;
- if(!(v2?sameKeys(d,decisionFieldsV2):sameKeys(d,decisionFields))||
-  ![GPT_PAPER_DECISION_SCHEMA,GPT_PAPER_DECISION_SCHEMA_V2].includes(d.schema)||
+ const v3=d?.schema===GPT_PAPER_DECISION_SCHEMA_V3;
+ if(!(v3?sameKeys(d,decisionFieldsV3):
+   v2?sameKeys(d,decisionFieldsV2):sameKeys(d,decisionFields))||
+  ![GPT_PAPER_DECISION_SCHEMA,GPT_PAPER_DECISION_SCHEMA_V2,
+    GPT_PAPER_DECISION_SCHEMA_V3].includes(d.schema)||
   d.mode!=='PAPER_ONLY'||d.strategy!=='GPT_ONLY'||!decId(d.decision_id)||
   !['BUY','SELL','HOLD','WATCH','NO_TRADE'].includes(d.action)||
   d.trade_type!=='VIRTUAL_ONLY'||d.real_trading_enabled!==false||
@@ -60,10 +66,12 @@ export function validateGptPaperDecision(d,{now=Date.now(),forExecution=false}={
   (forExecution&&expires<=now))throw Error('GPT_DECISION_TIME_OR_SOURCE_INVALID');
  const trade=actionable.has(d.action);
  // Old decision v1 is readable, but v1 BUY is blocked at the local executor.
- if(v2){
+ if(v2||v3){
   if(d.action==='BUY')validateGptExitPolicy(d.exit_policy);
   else if(d.exit_policy!==null)throw Error('GPT_NON_BUY_EXIT_POLICY_FORBIDDEN');
  }
+ if(v3&&d.sizing_mode!==(d.action==='BUY'?'LOCAL_USER_COIN_STAKE':null))
+  throw Error('GPT_LOCAL_STAKE_MODE_INVALID');
  if(expires-created>(trade?180000:26*3600000))
   throw Error('GPT_DECISION_TTL_TOO_LONG');
  if(trade){
@@ -75,11 +83,11 @@ export function validateGptPaperDecision(d,{now=Date.now(),forExecution=false}={
    // a PAPER attempt. The local receiver independently validates identity,
    // quotes, sell simulation, budget and stored exit authorization.
    // A GPT score or research label is not an execution safety proof.
-   (d.action==='BUY'&&(
-    typeof d.amount_test_usdc!=='number'||!Number.isFinite(d.amount_test_usdc)||
+   (d.action==='BUY'&& (v3?d.amount_test_usdc!==null:
+    (typeof d.amount_test_usdc!=='number'||!Number.isFinite(d.amount_test_usdc)||
     d.amount_test_usdc<(v2?MIN_GPT_PAPER_ENTRY_USDC:MIN_PAPER_ENTRY_USDC)||
     d.amount_test_usdc>5000||
-    Math.abs(d.amount_test_usdc*100-Math.round(d.amount_test_usdc*100))>0.00001))||
+    Math.abs(d.amount_test_usdc*100-Math.round(d.amount_test_usdc*100))>0.00001)))||
    (d.action==='SELL'&&d.amount_test_usdc!==null))
    throw Error('GPT_DECISION_TRADE_INCOMPLETE_OR_UNSAFE');
  }else if(d.amount_test_usdc!==null||
@@ -90,7 +98,8 @@ export function validateGptPaperDecision(d,{now=Date.now(),forExecution=false}={
  return {trade,action:d.action,candidate_id:trade||d.action!=='NO_TRADE'?
    d.chain+':'+d.token_address+':'+d.pool_address:null,
   decision_id:d.decision_id, expires_at_utc:d.expires_at_utc,
-  signed_exit_policy:v2&&d.action==='BUY'?d.exit_policy:null};
+  signed_exit_policy:(v2||v3)&&d.action==='BUY'?d.exit_policy:null,
+  owner_fixed_coin_stake:v3&&d.action==='BUY'};
 }
 
 export function validateGptPaperPointer(p,{now=Date.now()}={}){

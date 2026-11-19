@@ -3,8 +3,8 @@
 // trades, sign instructions or change the currently locked live executor.
 // Public GitHub must NEVER receive this data or any deterministic state hash.
 import {createHash} from 'node:crypto';
-import {portfolioBudget} from './portfolio-budget.mjs';
-import {MAX_SINGLE_SHARE,MAX_TOTAL_SHARE,paperAutoEquity} from './live-paper-risk.mjs';
+import {portfolioBudget,userCoinStake} from './portfolio-budget.mjs';
+import {paperAutoEquity} from './live-paper-risk.mjs';
 
 export const PRIVATE_BOT_STATE_SCHEMA='sniper_r29_private_dual_account_state.v1';
 const currency=n=>typeof n==='number'&&Number.isFinite(n)&&n>=0;
@@ -15,7 +15,7 @@ const id=x=>typeof x==='string'&&x.length>0&&x.length<=200;
 const liveLimit=x=>currency(x)&&Math.abs(x*100-Math.round(x*100))<0.00001;
 
 function paperCurrent(state,now){
- const b=portfolioBudget(state);
+ const b=portfolioBudget(state,{gptSignedPaper:true});
  const positions=Array.isArray(state?.positions)?state.positions:[];
  const posValid=positions.every(p=>id(p?.id)&&currency(p.amountUsdc)&&p.amountUsdc>0);
  const open=posValid?positions.map(p=>({
@@ -30,12 +30,13 @@ function paperCurrent(state,now){
  const allowed=b.valid&&posValid&&currency(state?.cashUsdc)&&
   state.cashEur===0&&currency(equity);
  const free=allowed?cents(Math.min(b.free_to_allocate_test_usdc,
-  state.cashUsdc,equity*MAX_SINGLE_SHARE,
-  Math.max(0,equity*MAX_TOTAL_SHARE-b.reserved_test_usdc))):null;
+  state.cashUsdc,5000)):null;
  const result={
   account:'PAPER',mode:'PAPER_ONLY',execution_enabled:state?.entriesEnabled===true,
   gpt_follow_enabled:state?.gptPaperFollow===true,
-  preferred_entry_test_usdc:b.valid?b.preferred_test_usdc:null,
+  preferred_entry_test_usdc:userCoinStake(state),
+  owner_fixed_coin_stake_test_usdc:userCoinStake(state),
+  gpt_does_not_decide_amount:true,
   user_total_open_exposure_limit_test_usdc:b.valid?b.cap_test_usdc:null,
   available_virtual_balance_test_usdc:cash,
   reserved_open_cost_test_usdc:b.valid?b.reserved_test_usdc:null,
@@ -44,15 +45,15 @@ function paperCurrent(state,now){
   open_positions:posValid?open:null,
   remaining_user_exposure_test_usdc:b.valid?cents(Math.max(0,b.cap_test_usdc-b.reserved_test_usdc)):null,
   available_for_new_buy_test_usdc:free,
-  technical_single_share_cap:MAX_SINGLE_SHARE,
-  technical_total_share_cap:MAX_TOTAL_SHARE,
+  technical_single_share_cap:null,
+  technical_total_share_cap:null,
   actual_loss_risk_is_not_nominal_size:true,
   full_private_state_valid:allowed,
   no_private_cloud_delivery_confirmed:true
  };
  return {...result,local_state_revision:hash(result)};
 }
-function realCurrent({realWalletOverview,realSettings,liveGate}={}){
+function realCurrent({paperState,realWalletOverview,realSettings,liveGate}={}){
  // Real trade limits/positions are not implemented in the current Windows
  // Paper store. Never read Paper controls as if they were real controls.
  const settings=realSettings&&typeof realSettings==='object'&&
@@ -74,6 +75,8 @@ function realCurrent({realWalletOverview,realSettings,liveGate}={}){
   execution_enabled:false,live_gate_locked:isLocked,
   selected_in_dashboard_does_not_authorize_trading:true,
   preferred_entry_usdc:settings?settings.preferred_entry_usdc:null,
+  user_fixed_coin_stake_setting_usdc:userCoinStake(paperState,{real:true}),
+  coin_stake_setting_cannot_enable_live:true,
   user_total_open_exposure_limit_usdc:settings?
    settings.total_open_exposure_limit_usdc:null,
   actual_verified_wallet_usdc:available,
@@ -96,7 +99,7 @@ export function buildPrivateDualAccountBotState({
  if(!Number.isFinite(now)||!paperState||!Array.isArray(paperState.positions))
   throw Error('PRIVATE_DUAL_ACCOUNT_INPUT_INVALID');
  const paper=paperCurrent(paperState,now);
- const real=realCurrent({realWalletOverview,realSettings,liveGate});
+ const real=realCurrent({paperState,realWalletOverview,realSettings,liveGate});
  return {
   schema:PRIVATE_BOT_STATE_SCHEMA,
   observed_at_utc:new Date(now).toISOString(),

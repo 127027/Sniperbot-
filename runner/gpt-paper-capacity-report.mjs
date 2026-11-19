@@ -1,16 +1,19 @@
 // R29 LOCAL-ONLY capacity report for GPT: executor informs, GPT decides.
 // Do not publish numeric private paper capacity or account fields on public GitHub.
 // Pure read-only; no signing, mutation, transfer, payments or orders.
-import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
+import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC,userCoinStake} from './portfolio-budget.mjs';
 import {paperAutoEquity} from './live-paper-risk.mjs';
 const cents=x=>Math.floor((x+1e-8)*100)/100;
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
+// Legacy v2 may have smaller valid signed amounts. New v3 OWNER_FIXED always
+// enforces 50-5000 via userCoinStake() in the receiver.
 const MIN=MIN_GPT_PAPER_ENTRY_USDC,MAX=5000;
 export const PRIVATE_SCHEMA='sniper_r29_private_gpt_paper_capacity.v1';
 export function computePrivateGptCapacity(state,{observed_at_utc,technical_max_stake_test_usdc=5000}={}){
  const base={schema:PRIVATE_SCHEMA,mode:'PAPER_ONLY',real_trading_enabled:false,
   observed_at_utc,minimum_approved_buy_test_usdc:MIN,
   maximum_approved_buy_test_usdc:0,can_buy:false,
+  configured_coin_stake_test_usdc:userCoinStake(state),
   capacity_is_not_strategy_or_order:true,
   private_authenticated_delivery_only:true,do_not_publish_public_github:true};
  const t=Date.parse(observed_at_utc||'');
@@ -23,7 +26,7 @@ export function computePrivateGptCapacity(state,{observed_at_utc,technical_max_s
  if(!finite(technical_max_stake_test_usdc)||technical_max_stake_test_usdc<0||
   technical_max_stake_test_usdc>5000)
   return {...base,reason:'TECHNICAL_RISK_LIMIT_INVALID'};
- const budget=portfolioBudget(state);
+ const budget=portfolioBudget(state,{gptSignedPaper:true});
  if(!budget.valid)return {...base,reason:'LOCAL_PAPER_BUDGET_UNVERIFIED'};
  // GPT sets the stake: the owner-configured virtual Paper portfolio cap,
  // currently unreserved cash and technical maximum are the boundaries.

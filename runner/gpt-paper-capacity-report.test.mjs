@@ -55,14 +55,17 @@ test('V5.5 private GPT offer honors owner reserve and fresh valuation, not old 1
 });
 
 
-test('owner-configured Paper exposure cap, not 1%/3%, independently limits GPT sizing',()=>{
+test('V5.7 signed GPT Paper uses actual free cash, not retired total cap',()=>{
  const s=state(5000);s.portfolioBudgetUsdc=200;
  const x=computePrivateGptCapacity(s,{observed_at_utc:now});
- assert.equal(x.maximum_approved_buy_test_usdc,200);
- const position=state(4980);
- position.portfolioBudgetUsdc=200;
+ assert.equal(x.maximum_approved_buy_test_usdc,5000);
+ assert.equal(x.configured_coin_stake_test_usdc,50);
+ const position=state(4980);position.portfolioBudgetUsdc=200;
  position.positions=[{amountUsdc:20,qty:20,priceUsd:1,markAt:now}];
- assert.equal(computePrivateGptCapacity(position,{observed_at_utc:now}).maximum_approved_buy_test_usdc,180);
+ assert.equal(computePrivateGptCapacity(position,{observed_at_utc:now}).maximum_approved_buy_test_usdc,4980);
  assert.equal(computePrivateGptCapacity(s,{observed_at_utc:now,
   technical_max_stake_test_usdc:80}).maximum_approved_buy_test_usdc,80);
+ const less=state(100);less.paperCoinStakeUsdc=250;
+ assert.equal(computePrivateGptCapacity(less,{observed_at_utc:now}).maximum_approved_buy_test_usdc,100);
+ assert.equal(computePrivateGptCapacity(less,{observed_at_utc:now}).configured_coin_stake_test_usdc,250);
 });

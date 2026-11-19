@@ -12,6 +12,7 @@ import {r29LivePaperEntryGate} from './live-paper-risk.mjs';
 import {lookupToken} from './market.mjs';
 import {collectEvmSecurity} from './live-paper-security.mjs';
 import {computePrivateGptCapacity,validatePrivateGptCapacity} from './gpt-paper-capacity-report.mjs';
+import {userCoinStake} from './portfolio-budget.mjs';
 
 const SHA=/^[a-f0-9]{40}$/;
 const DIGEST=/^[a-f0-9]{64}$/;
@@ -53,16 +54,22 @@ function matchedIdentity(c,d){
   c.candidate_id?.toLowerCase()===
    (d.chain+':'+d.token_address+':'+d.pool_address).toLowerCase();
 }
-export function signGptPaperSignal(decision,{deviceId,keyPair,now=Date.now()}={}){
+export function signGptPaperSignal(decision,{deviceId,keyPair,now=Date.now(),
+ ownerFixedBuyStake=null}={}){
  if(!/^device_[0-9a-f]{32}$/.test(deviceId||'')||
   !['BUY','SELL'].includes(decision?.action)||
   !Number.isFinite(now))throw Error('GPT_SIGNING_INVALID_PARAMETERS');
+ const stake=decision.action==='BUY'?
+  ownerFixedBuyStake??decision.amount_test_usdc:null;
+ if(decision.action==='BUY'&&(!finite(stake)||stake<5||stake>5000||
+    Math.abs(stake*100-Math.round(stake*100))>1e-5))
+  throw Error('GPT_USER_COIN_STAKE_INVALID');
  const msg={schema:AGENT_SIGNAL_SCHEMA,target_device_id:deviceId,
   signal_id:'sig_'+decision.decision_id.slice(4),
   issuer:'sniper-gpt-paper-bridge',key_id:'ephemeral-session',
   chain:decision.chain,action:decision.action,
   token_address:decision.token_address,pool_address:decision.pool_address,
-  size_test_usdc:decision.action==='BUY'?decision.amount_test_usdc.toFixed(2):null,
+  size_test_usdc:decision.action==='BUY'?stake.toFixed(2):null,
   created_at_utc:new Date(now).toISOString(),
   expires_at_utc:new Date(now+90000).toISOString()};
  return {...msg,signature:sign(null,Buffer.from(unsignedAgentSignal(msg),'utf8'),
@@ -87,10 +94,17 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
   const parsed=validateGptRelayEnvelope(payload,{now:instant});
   const existing=fromState(getState(),d,payload.archive_sha256);
   if(existing)return {...existing,duplicate:true};
+  // Only v3 delegates sizing to the locally configured owner amount. Older
+  // signed v2 orders remain executable with their explicitly archived value.
+  const fixedStake=parsed.owner_fixed_coin_stake===true;
+  const requestedStake=d.action==='BUY'?
+   fixedStake?userCoinStake(getState()):d.amount_test_usdc:null;
   let receipt;
   if(!parsed.trade)receipt=safeResult(d,d.action,'GPT_RESEARCH_NO_ORDER');
   else if(Date.parse(d.expires_at_utc)<=instant)
    receipt=safeResult(d,'REJECTED','GPT_DECISION_EXPIRED_NO_PAPER_TRADE');
+  else if(d.action==='BUY'&&(!finite(requestedStake)||requestedStake<50&&fixedStake))
+   receipt=safeResult(d,'BLOCKED','USER_CONFIGURED_COIN_STAKE_INVALID');
   else if(d.action==='BUY'&&!parsed.signed_exit_policy)
    receipt=safeResult(d,'BLOCKED','GPT_BUY_REQUIRES_SIGNED_POSITION_EXIT_POLICY');
   else if(getState()?.gptPaperFollow!==true||
@@ -101,7 +115,7 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
     observed_at_utc:new Date(instant).toISOString()
    }),{
     asof_utc:new Date(instant).toISOString(),
-    requested_test_usdc:d.amount_test_usdc
+    requested_test_usdc:requestedStake
    }).approved)
    receipt=safeResult(d,'BLOCKED','GPT_FRESH_PRIVATE_PAPER_CAPACITY_REJECTED');
   else if(!['base','bsc','eth'].includes(d.chain))
@@ -143,20 +157,23 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
       state:{...getState(),automaticPaperBuys:true},candidate,
       quote:q,security,now:now(),gptSignedPaper:true});
      if(!approval.allowed)receipt=safeResult(d,'BLOCKED',approval.reason);
-     else if(d.amount_test_usdc>approval.amount_test_usdc)
+     else if(requestedStake>approval.amount_test_usdc)
       receipt=safeResult(d,'BLOCKED','GPT_SIZE_EXCEEDS_INDEPENDENT_RISK_CAP');
     }
     // External quote/security checks are asynchronous. An otherwise valid
     // GPT instruction can expire, or the owner can pause follow/entries,
     // while those checks run. Never sign a refreshed local 90s order from
     // an expired/withdrawn GPT instruction.
+    if(!receipt&&fixedStake&&userCoinStake(getState())!==requestedStake)
+     receipt=safeResult(d,'BLOCKED','USER_COIN_STAKE_CHANGED_DURING_SECURITY_CHECK');
     if(!receipt&&Date.parse(d.expires_at_utc)<=now())
      receipt=safeResult(d,'REJECTED','GPT_DECISION_EXPIRED_BEFORE_PAPER_SUBMISSION');
     if(!receipt&&(getState()?.gptPaperFollow!==true||
       (d.action==='BUY'&&getState()?.entriesEnabled!==true)))
      receipt=safeResult(d,'BLOCKED','GPT_FOLLOW_OR_PAPER_BOT_DISABLED');
     if(!receipt){
-     const order=signGptPaperSignal(d,{deviceId,keyPair:kp,now:now()});
+     const order=signGptPaperSignal(d,{deviceId,keyPair:kp,now:now(),
+      ownerFixedBuyStake:fixedStake?requestedStake:null});
      const executed=await submit(order,{
       qaQuote:q,source:'GPT_GITHUB_LOCAL',
       localTrust:[trusted],securityEvidence:security,

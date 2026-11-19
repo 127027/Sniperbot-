@@ -37,7 +37,7 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
  });
  if(!Number.isFinite(now)||state?.entriesEnabled!==true||
     state?.automaticPaperBuys!==true)return result('BLOCKED','PAPER_AUTOPILOT_NOT_OPTED_IN');
- const b=portfolioBudget(state);
+ const b=portfolioBudget(state,{gptSignedPaper});
  if(!b.valid)return result('BLOCKED','INVALID_PORTFOLIO_BUDGET');
  const equity=paperAutoEquity(state,{now});
  if(!numeric(equity)||equity<(gptSignedPaper?MIN_GPT_PAPER_ENTRY_USDC:50))

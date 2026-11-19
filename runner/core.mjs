@@ -5,7 +5,7 @@ export const PAPER_EUR_TO_TEST_USDC=1; // intentionally NOT a market EUR/USD quo
 const round=(x)=>Math.round((x+Number.EPSILON)*1e8)/1e8;
 const time=()=>new Date().toISOString();
 export function freshState(){return {version:3,entriesEnabled:false,automaticPaperBuys:false,centralPaperFollow:false,gptPaperFollow:false,gptDecisionReplay:{},
- minTrade:50,maxTrade:50,portfolioBudgetUsdc:null,takeProfit:15,stopLoss:10,defaultExitMode:'HOLD',trailingPercent:25,
+ minTrade:50,maxTrade:50,portfolioBudgetUsdc:null,paperCoinStakeUsdc:50,realCoinStakeUsdc:50,takeProfit:15,stopLoss:10,defaultExitMode:'HOLD',trailingPercent:25,
  cashEur:0,cashUsdc:0,positions:[],candidates:[],history:[],agentOrderReceipts:[],agentSignalReplay:{},closedPnl:0,
  paperLiveRisk:newPaperRiskLedger(),
  lastScan:null,scanErrors:[],priceUpdatedAt:null,scanRunning:false,lastError:null};}
@@ -45,6 +45,20 @@ export function action(s,a){if(!a||typeof a!=='object')return s;
   const next=Math.round(amount*100)/100,old=round(s.cashEur+s.cashUsdc);
   if(s.cashEur===0&&s.cashUsdc===next&&!s.entriesEnabled)return s;
   return {...s,entriesEnabled:amount===0?false:s.entriesEnabled,cashEur:0,cashUsdc:next,history:log(s,'Testkapital festgelegt',`Virtuelles Guthaben gesamt ${old.toFixed(2)} → ${next.toFixed(2)} TEST-USDC; keine Einzahlung, Auszahlung oder echte Umwandlung`)};
+ }
+ case 'SET_COIN_STAKE':{
+  // Exact account separation; REAL preference is inert while LIVE is locked.
+  if(!['PAPER','REAL'].includes(a.account)||typeof a.amount!=='number'||
+   !Number.isFinite(a.amount)||a.amount<50||a.amount>5000||
+   Math.abs(a.amount*100-Math.round(a.amount*100))>1e-5)return s;
+  const key=a.account==='PAPER'?'paperCoinStakeUsdc':'realCoinStakeUsdc';
+  if(s[key]===a.amount)return s;
+  const detail=a.account==='PAPER'?
+   'GPT-Paper-BUY nutzt festen vom Nutzer gewählten Coin-Einsatz; freie TEST-USDC bleiben erforderlich':
+   'Echtgeld-Einsatz nur als lokale Einstellung gespeichert, LIVE bleibt gesperrt';
+  return {...s,[key]:a.amount,history:log(s,
+   a.account==='PAPER'?'Paper-Coin-Einsatz gespeichert':'Echtgeld-Coin-Einsatz vorgemerkt',
+   detail)};
  }
  case 'SET_RANGE': {const min=numeric(a.min),max=numeric(a.max);if(!isAmount(min)||!isAmount(max)||min>max)return s;return {...s,minTrade:min,maxTrade:max,portfolioBudgetUsdc:max,history:log(s,'Paper-Budget eingestellt',`Wunsch-Einsatz ${min} Test-USDC; Gesamtbudget ${max} Test-USDC; flexible Käufe ab 50, offene Positionen bleiben unverändert`)}};
  case 'SET_EXITS':{const profit=numeric(a.profit),loss=numeric(a.loss),mode=a.mode;

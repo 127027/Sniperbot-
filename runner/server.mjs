@@ -1098,12 +1098,25 @@ const server=createServer(async(req,res)=>{
  if(!req.headers['content-type']?.startsWith('application/json'))return error(res,415,'JSON erforderlich');
  let raw='';try{for await(const chunk of req){raw+=chunk;if(raw.length>6000)throw Error('Anfrage zu groß')}}catch{return error(res,413,'Anfrage zu groß')}
  let a;try{a=JSON.parse(raw)}catch{return error(res,400,'Ungültiges JSON')}
- const allowed=new Set(['PREVIEW_PAPER_FUNDING','SET_PAPER_BALANCE','SET_CENTRAL_FOLLOW','SIMULATE_AGENTS','TOGGLE_BOT','SET_BOT_ENTRIES','SET_AUTO','SET_GPT_FOLLOW','SET_RANGE','SET_EXITS','DEPOSIT','WITHDRAW','EXCHANGE','EXCHANGE_BACK','BUY','SELL','RESET','SCAN','DEMO_SIGNAL','LOOKUP','DEMO_MOVE']);
+ const allowed=new Set(['PREVIEW_PAPER_FUNDING','SET_PAPER_BALANCE','SET_CENTRAL_FOLLOW','SIMULATE_AGENTS','TOGGLE_BOT','SET_BOT_ENTRIES','SET_AUTO','SET_GPT_FOLLOW','SET_COIN_STAKE','SET_RANGE','SET_EXITS','DEPOSIT','WITHDRAW','EXCHANGE','EXCHANGE_BACK','BUY','SELL','RESET','SCAN','DEMO_SIGNAL','LOOKUP','DEMO_MOVE']);
  if(!allowed.has(a?.type))return error(res,400,'Aktion nicht zulässig');
  if(deviceTopology.mode==='FOLLOWER'&&
   !operationAllowedWhenMasterOffline(a?.type,false))
   return error(res,409,'Keine Verbindung – ruf Andreas an; nur Ein-/Auszahlung erlaubt');
 
+ if(a.type==='SET_COIN_STAKE'){
+  // Both account preferences are local; no live executor is enabled.
+  if(Object.keys(a).sort().join(',')!=='account,amount,type'||
+   !['PAPER','REAL'].includes(a.account)||typeof a.amount!=='number'||
+   !Number.isFinite(a.amount)||a.amount<50||a.amount>5000||
+   Math.abs(a.amount*100-Math.round(a.amount*100))>1e-5)
+   return error(res,422,'Einsatz pro Coin nur 50 bis 5000 mit zwei Nachkommastellen');
+  const next=action(state,a);
+  if(next!==state)commit(next);
+  return reply(res,200,{ok:true,account:a.account,amount:a.amount,
+   real_trading_enabled:false,transaction_sent:false,
+   setting_only:a.account==='REAL'});
+ }
  if(a.type==='SET_BOT_ENTRIES'){
   // Exact requested state, not a toggle: repeated OFF can NEVER turn entries ON.
   if(typeof a.enabled!=='boolean'||Object.keys(a).sort().join(',')!=='enabled,type')

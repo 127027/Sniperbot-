@@ -12,8 +12,8 @@ new Script(scripts[0][1],{filename:'runner/dashboard.html'});
 const controls=[
  'tabPaper','tabReal','availableValue','totalValue','openCount','openPnl',
  'realizedPnl','positionRows','historyList','toggleBot',
- 'paperSettings','realSettings','preferredEntry','exposureCap',
- 'saveBudget','setPaperBalance','newPaperBalance',
+ 'paperSettings','realSettings','coinStakeControls','stakeAvailable','coinStake',
+ 'saveCoinStake','setPaperBalance','newPaperBalance',
  'realUsdc','realSol','refreshWallet','walletInfo',
  'diagCourier','diagMain','diagnostics'
 ];
@@ -30,7 +30,7 @@ for(const outdated of [
 for(const needed of [
  '/api/dashboard/paper','/api/wallet/overview','/api/wallet/status',
  '/api/r29/main-paper/status','/api/command',
- 'portfolio_budget','quote_status','estimated_net_exit_test_usdc'
+ 'maximum_available_for_gpt_paper_buy_test_usdc','quote_status','estimated_net_exit_test_usdc'
 ]){
  if(!html.includes(needed))throw Error('R29_DASHBOARD_DATA_CONTRACT_MISSING_'+needed);
 }
