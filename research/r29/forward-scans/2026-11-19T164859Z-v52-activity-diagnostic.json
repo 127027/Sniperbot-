@@ -1,0 +1,60 @@
+{
+  "schema": "r29_v5_2_forward_activity_diagnostic.v1",
+  "diagnostic_at_utc": "2026-11-19T16:48:59Z",
+  "evidence_class": "AUTOMATION_DIAGNOSTIC_NOT_FULL_GPT_MODEL_REVIEW",
+  "market_snapshot_at_utc": "2026-11-19T16:43:02.447Z",
+  "market_age_seconds": 357,
+  "source_health_checked_at_utc": "2026-11-19T16:43:26.963Z",
+  "context_observed_at_utc": "2026-11-19T16:46:55.879Z",
+  "context_age_seconds": 123,
+  "context_heartbeat_reported_recent": true,
+  "context_current_freshness_gate": "NOT_PROVEN_AT_REVIEW_TIME",
+  "security_checked_at_utc": "2026-11-19T16:44:20.547Z",
+  "security_funnel": {
+    "total": 51,
+    "evm": 31,
+    "research_eligible": 3,
+    "security_checked": 2,
+    "full_buy_gate_passed": 0,
+    "first_failure_counts": {
+      "NON_EVM_CHAIN": 20,
+      "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 2,
+      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 25,
+      "VOLUME_5M_LT_1000_OR_UNKNOWN": 1
+    }
+  },
+  "paper_context": {
+    "paper_bot_enabled": true,
+    "gpt_follow_enabled": true,
+    "exit_guard_required_for_new_gpt_buy": true,
+    "local_monitor_currently_verified": false,
+    "private_capacity": "UNKNOWN"
+  },
+  "local_receipt": {
+    "last_public_receipt_action": "NO_TRADE",
+    "last_public_receipt_status": "NO_TRADE",
+    "last_public_receipt_utc": "2026-11-18T16:21:09.742Z",
+    "personal_prospective_paper_filled_buy": "UNKNOWN_NO_POSITIVE_EVIDENCE",
+    "continuous_windows_runtime": "UNKNOWN",
+    "last_genuine_buy_utc": "UNKNOWN",
+    "local_journal_start_utc": "UNKNOWN",
+    "threshold_24h_72h_240h": "UNKNOWN_INSUFFICIENT_LOCAL_JOURNAL_HISTORY"
+  },
+  "gpt_full_reviews_today_verified": "UNKNOWN_NOT_COUNTED_BY_THIS_DIAGNOSTIC",
+  "decision": "NO_TRADE",
+  "blockers": [
+    "CURRENT_CONTEXT_HEARTBEAT_NOT_FRESH_ENOUGH",
+    "INDEPENDENT_CONTRACT_POOL_SELLABILITY_LP_NOT_FULLY_VERIFIED",
+    "EXECUTABLE_BIDIRECTIONAL_QUOTE_MISSING",
+    "PRIVATE_CAPACITY_NOT_CLOUD_VERIFIABLE",
+    "SOLANA_RESEARCH_ONLY_EVM_RECEIVER"
+  ],
+  "next_actions": [
+    "Verify local Windows V5.2 installation and live heartbeat at executor time without public private state",
+    "Improve independent pool/LP/sellability and executable bidirectional quote evidence for eligible EVM candidates",
+    "Reconcile private PAPER_FILLED BUY-only journal with public receipt by decision_id, do not infer continuous runtime",
+    "Do not publish BUY pointer or count deterministic research as GPT full review"
+  ],
+  "no_order_created": true,
+  "no_private_data_published": true
+}
