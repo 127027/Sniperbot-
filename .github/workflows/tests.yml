@@ -33,7 +33,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: cmd
         run: call Sniperbot_Starten.bat -SelfTest
-      - name: R29 V6.9 Windows GitHub-only egress: no market, safety, Solana or paid AI APIs
+      - name: "R29 V6.9 Windows GitHub-only egress - block non-GitHub APIs"
         run: node --test runner/github-only-network-policy.test.mjs
       - run: node --check runner/github-only-network-policy.mjs
       - name: R29 V5.9 GPT-only hourly daily review index cannot claim SCOUT scans as GPT
