@@ -3,6 +3,7 @@
 // No provider API, network request, GPT-model invocation, order or wallet access.
 // No hindsight winner list is passed into the forward decision pass.
 import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {mkdirSync,writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -182,6 +183,7 @@ export function asofReplay24h({snapshots,reviews=[],decisions=[],receipts=[],
   gpt_full_reviews_observed:archivedReviews.length,
   gpt_actions:archivedReviews.reduce((o,r)=>(o[r.action]=(o[r.action]||0)+1,o),{}),
   signed_buy_decisions_published:buys.length,
+  unverifiable_gpt_decision_pointers:actualDecisions.filter(x=>x.status==='MISSING_OR_INVALID_ARCHIVE').length,
   public_paper_filled_receipts:filled.length,
   archived_buy_and_filled_pairs:verifiedNewBuys.length,
   strict_replay_virtual_buy_count:0,strict_replay_virtual_sell_count:0,
@@ -247,15 +249,36 @@ function archivedReviewsFromGit(rows){
  }
  return [...earliest.values()];
 }
-function archiveActions(rows,kind){
- return rows.map(x=>({
-  decision_id:x.snapshot?.decision_id||null,
-  action:kind==='receipt'?x.snapshot?.action||null:
-    x.snapshot?.action||'POINTER_ONLY',
-  status:kind==='receipt'?x.snapshot?.status||null:null,
-  published_commit_at_utc:x.committed_at_utc,
-  commit_sha:x.commit_sha
- }));
+export function archiveActions(rows,kind,{readArchive=(commit,filename)=>
+ git(['show',commit+':'+filename],{maxBuffer:200000})}={}){
+ if(!['decision','receipt'].includes(kind)||!Array.isArray(rows))
+  throw Error('R29_REPLAY_ARCHIVE_ACTION_INPUT_INVALID');
+ return rows.map(x=>{
+  const d=x.snapshot||{};
+  let action=kind==='receipt'?d.action||null:'UNKNOWN_UNVERIFIED_POINTER';
+  let status=kind==='receipt'?d.status||null:'MISSING_OR_INVALID_ARCHIVE';
+  if(kind==='decision'&&
+    d.schema==='sniper_r29_gpt_paper_pointer.v1'&&
+    /^gpt_[a-f0-9]{32}$/.test(d.decision_id||'')&&
+    typeof d.archive_path==='string'&&
+    /^research\/r29\/gpt-decisions\/\d{4}-\d\d-\d\d\/gpt_[a-f0-9]{32}\.json$/.test(d.archive_path)&&
+    d.archive_path.endsWith('/'+d.decision_id+'.json')&&
+    /^[a-f0-9]{64}$/.test(d.archive_sha256||'')){
+   try{
+    const raw=readArchive(x.commit_sha,d.archive_path);
+    if(createHash('sha256').update(raw,'utf8').digest('hex')===d.archive_sha256){
+     const stored=JSON.parse(raw);
+     if(stored.decision_id===d.decision_id&&stored.mode==='PAPER_ONLY'&&
+        ['BUY','SELL','HOLD','WATCH','NO_TRADE'].includes(stored.action)&&
+        stored.created_at_utc===d.published_at_utc){
+      action=stored.action;status='ARCHIVE_SHA256_AND_ID_MATCH';
+     }
+    }
+   }catch{}
+  }
+  return {decision_id:d.decision_id||null,action,status,
+   published_commit_at_utc:x.committed_at_utc,commit_sha:x.commit_sha};
+ });
 }
 export function renderMarkdown(r){
  const lines=[
@@ -349,6 +372,7 @@ if(process.argv[1]&&fileURLToPath(import.meta.url)===path.resolve(process.argv[1
   doublerLowToPeak:r.any_low_to_later_high_observed_over_100_pct,
   gptReviews:r.gpt_full_reviews_observed,
   gptBuys:r.signed_buy_decisions_published,
+  unverifiablePointers:r.unverifiable_gpt_decision_pointers,
   publicFills:r.public_paper_filled_receipts,
   strictBuys:r.strict_replay_virtual_buy_count,
   provider429:r.provider_429_status_count,
