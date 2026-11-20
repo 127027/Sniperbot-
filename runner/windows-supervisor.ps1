@@ -155,6 +155,10 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
   $info.RedirectStandardOutput = $false
   $info.RedirectStandardError = $false
   $info.EnvironmentVariables['SNIPER_SUPERVISED'] = '1'
+  # V6.9 user-requested GITHUB-ONLY: enforced BEFORE every Node child imports.
+  # Overwrite inherited NODE_OPTIONS: never permit bypass via caller shell.
+  $info.EnvironmentVariables['SNIPER_NETWORK_POLICY'] = 'GITHUB_ONLY'
+  $info.EnvironmentVariables['NODE_OPTIONS'] = '--import=./runner/github-only-network-policy.mjs'
   # Remove inherited parent secrets from the Paper-Bot. Only the collector receives a copy.
   $info.EnvironmentVariables.Remove('SNIPER_MARKET_GITHUB_TOKEN')
   $info.EnvironmentVariables.Remove('SNIPER_MARKET_PUBLISH')
@@ -171,8 +175,8 @@ function Start-Child([string]$role,[string]$scriptName,[string]$nodePath,[IntPtr
     # GitHub is the ONLY GPT strategy source in canonical R29.
     # Remove any inherited billed-API activation even from a caller shell.
     $info.EnvironmentVariables['SNIPER_CENTRAL_AI_ENABLED'] = '0'
-    $info.EnvironmentVariables['SNIPER_RESEARCH_FEED'] = $(if($WithResearchCollector){'1'}else{'0'})
-    $info.EnvironmentVariables['SNIPER_RESEARCH_READ'] = $(if($WithResearchCollector){'1'}else{'0'})
+    $info.EnvironmentVariables['SNIPER_RESEARCH_FEED'] = '0'
+    $info.EnvironmentVariables['SNIPER_RESEARCH_READ'] = '0'
     $info.EnvironmentVariables['SNIPER_LOCAL_DISCOVERY'] = '0'
     # No-cost, local, Paper-only decision supervisor. Requires BOTH user UI toggles.
     # Sole strategist is the GitHub research GPT. The former self-selecting
@@ -342,16 +346,10 @@ try {
   [Array]::Clear($bytes,0,$bytes.Length)
   $job=[SniperWindowsJob]::OpenKillOnClose()
   $bot=Start-Child 'BOT' 'runner/server.mjs' $node $job
-  if($WithResearchCollector -or $WithR29){
-    $market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job
-    Write-Host '[R27] Lokales, append-only Quellenarchiv aktiv (nur öffentliche Marktdaten/Nachrichten).' -ForegroundColor Green
-  }
-  # Only the two free read-only PumpPortal channels are subscribed.
-  # This child never receives the GitHub PAT, GPT signing secret or wallet keys.
-  if($WithR29 -and $env:SNIPER_SOLANA_STREAM -ne '0') {
-    $solanaStream=Start-Child 'SOLANA' 'runner/solana-live-stream.mjs' $node $job
-    Write-Host '[SOLANA] Free new-token/migration WebSocket started; paid trade feeds OFF.' -ForegroundColor Green
-  }
+  # V6.9: no external market API collector and NO PumpPortal WebSocket.
+  # GitHub remains the only remote connection. Legacy local code is inert
+  # and cannot be started by the normal single-click launcher.
+  Write-Host '[GITHUB-ONLY] Externe Markt-/Sicherheits-APIs und Solana-Stream AUS.' -ForegroundColor Yellow
   if($WithR29 -and (Test-Path -LiteralPath $tokenFile)) {
     $r29Courier=Start-Child 'R29' 'runner/r29-windows-courier.mjs' $node $job
     Write-Host '[R29] GitHub-Kurier aktiv. Keine zweite Sandbox-Bilanz, keine Live-Trades, keine OpenAI-API-Kosten.' -ForegroundColor Green
@@ -369,7 +367,7 @@ try {
   }
   Write-Host ''
   Write-Host '[OK] Lokaler Bot sichtbar gestartet; keine Anmeldung an GitHub erforderlich.' -ForegroundColor Green
-  if($WithResearchCollector){Write-Host '[OPTIONAL] Separater Markt-Collector explizit gestartet.'}
+  if($WithResearchCollector){Write-Host '[GITHUB-ONLY] Research-Collector nicht gestartet (keine externen APIs).' -ForegroundColor Yellow}
   if($WithR29){
     Write-Host '[GPT] Nur ChatGPT-GitHub-Entscheidungen koennen die Paper-Strategie ausloesen; lokal bleibt die Risk Engine.' -ForegroundColor Green
     if($null -ne $r29Courier){Write-Host '[R29] GitHub-Pipeline AKTIV (Standard: nur isoliertes Papier)' -ForegroundColor Green}
@@ -394,34 +392,7 @@ try {
       Assert-PortAvailable
       $bot=Start-Child 'BOT' 'runner/server.mjs' $node $job
     }
-    if($null -ne $market -and $market.HasExited){
-      $restarts.MARKET++
-      if($restarts.MARKET -gt 3){throw 'Markt-Collector 3x unerwartet beendet. Alles wird gestoppt.'}
-      Write-Host ('[WARNUNG] Markt-Collector beendet. Neustart '+$restarts.MARKET+'/3') -ForegroundColor Yellow
-      Start-Sleep -Seconds ([Math]::Pow(2,$restarts.MARKET))
-      $market=Start-Child 'MARKET' 'runner/research-market-daemon.mjs' $node $job
-    }
-    if($null -ne $solanaStream -and $solanaStream.HasExited){
-      $restarts.SOLANA++
-      $streamBlocked=$false
-      $streamStatusFile=Join-Path $root '.local\solana-live-stream\status.json'
-      try{
-        if(Test-Path -LiteralPath $streamStatusFile){
-          $lastStreamStatus=Get-Content -LiteralPath $streamStatusFile -Raw | ConvertFrom-Json
-          if($lastStreamStatus.status -in @('PROVIDER_REJECTED','BLOCKED_PERSISTENCE')){
-            $streamBlocked=$true
-          }
-        }
-      }catch{}
-      if($streamBlocked -or $restarts.SOLANA -gt 3){
-        Write-Host '[WARNUNG] Solana Research-Stream pausiert/gesperrt; Paper-Bot und Markt-Collector bleiben aktiv. Status unter .local\solana-live-stream\status.json pruefen.' -ForegroundColor Yellow
-        $solanaStream=$null
-      }else{
-        Write-Host ('[WARNUNG] Solana stream Neustart '+$restarts.SOLANA+'/3') -ForegroundColor Yellow
-        Start-Sleep -Seconds ([Math]::Pow(2,$restarts.SOLANA))
-        $solanaStream=Start-Child 'SOLANA' 'runner/solana-live-stream.mjs' $node $job
-      }
-    }
+    # V6.9: market and Solana children intentionally never run.
     if($null -ne $r29Courier -and $r29Courier.HasExited){
       $restarts.R29++
       if($restarts.R29 -gt 3){throw 'R29 Kurier 3x unerwartet beendet. Alles wird gestoppt.'}

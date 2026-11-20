@@ -12,10 +12,7 @@ import {syncAdaptivePublicPresence,syncAdaptivePublicReview} from './r29-adaptiv
 import {syncLocalPaperAutoHeartbeat} from './live-paper-public-status.mjs';
 import {relayGptPaperDecision} from './gpt-paper-github-relay.mjs';
 import {syncGptPaperPublicPositionContext} from './gpt-paper-position-publisher.mjs';
-import {syncGptPaperSecurityResearch} from './gpt-paper-security-research.mjs';
 import {syncPublicForwardSourceHealth} from './forward-source-health.mjs';
-import {mirrorFreshLocalMarketToCanonical} from './r29-canonical-market-relay.mjs';
-import {syncPublicForwardSolanaResearch} from './solana-forward-evidence.mjs';
 import {GPT_FORWARD_STATUS_PATH,publicGptForwardStatus} from './gpt-forward-review-status.mjs';
 
 const REPO='127027/Sniperbot-';
@@ -376,26 +373,7 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
     if(Date.now()-lastSourceDiagnosticAt>=10*60_000){
       lastSourceDiagnosticAt=Date.now();
       try{
-        // Canonical R29 market copy is independent of the old Gateway branch.
-        // Fail closed when the local capture is absent, stale or malformed.
-        try{
-          const mirrored=await mirrorFreshLocalMarketToCanonical({token});
-          if(mirrored.published)console.log('[GPT R29] Aktuellen Research-Frame sicher nach R29 gespiegelt:',
-            mirrored.market_candidates,'Pool-Beobachtungen, keine Orders');
-        }catch(e){
-          console.error('[GPT R29] R29 canonical market mirror DATA_GAP:',
-            String(e?.message||e).replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,90));
-        }
-        // One safe finalized mint+indicative roundtrip dossier per courier cycle.
-        // No wallet, GPT order, trade authority or native asset transfers.
-        try{
-          const sol=await syncPublicForwardSolanaResearch({token});
-          if(sol.published)console.log('[GPT R29] Solana-Mint/Quote-Nachweis:',
-            sol.mint_status,'·',sol.quote_status,'· nur Forschung, keine Orders');
-        }catch(e){
-          console.error('[GPT R29] Solana-Vorauspruefung DATA_GAP:',
-            String(e?.message||e).replace(/[^A-Z0-9_ -]/gi,'').slice(0,90));
-        }
+        // V6.9: no legacy market mirror, Solana RPC or Jupiter API.
         const health=await syncPublicForwardSourceHealth({token});
         if(health.published)console.log('[GPT R29] Market source health:',
           health.public.market_source_status,'· Solana:',
@@ -413,18 +391,9 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
       const latestReview=await syncAdaptivePublicReview({token});
       if(latestReview.published)console.log('[R29] Letzter Forschungsreview auf GitHub: ',
         latestReview.public.candidates.length+' Kandidaten, keine Paper-Orders');
-      // Independent, READ-ONLY contract/sellability research for GPT.
-      // No trading rights, at most two fresh EVM checks per hour.
-      try{
-        const gptSecurity=await syncGptPaperSecurityResearch({token});
-        if(gptSecurity.published)console.log(
-          '[GPT R29] Sicherheitsforschung veröffentlicht:',
-          gptSecurity.checks,'Kandidaten; niemals automatisch kaufen');
-      }catch(e){
-        console.error('[GPT R29] Public Security Research DATA_GAP:',
-          String(e?.message||e).slice(0,100));
-      }
-            const auto=await syncLocalPaperAutoHeartbeat({token});
+      // V6.9: GoPlus/Honeypot API sampling permanently disconnected from
+      // the GitHub courier. GPT may still author its own public-web research.
+      const auto=await syncLocalPaperAutoHeartbeat({token});
       if(auto.published)console.log('[R29] Lokaler Live-Paper-Prozessstatus zu GitHub übertragen:',
        auto.public.last_outcome,' · Virtuelle Fills:',auto.public.confirmed_virtual_paper_fill_count);
     }catch(e) {
