@@ -76,7 +76,7 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
   !numeric(quote.priceUsd)||quote.priceUsd<=0||
   !numeric(quote.liquidityUsd)||quote.liquidityUsd<(gptSignedPaper?1000:50000)||
   !numeric(Date.parse(quote.asOf))||Date.parse(quote.asOf)>now||
-  now-Date.parse(quote.asOf)>60000||
+  now-Date.parse(quote.asOf)>(webOnly?90000:60000)||
   !numeric(candidate.price_usd)||candidate.price_usd<=0||
   quote.priceUsd/candidate.price_usd<0.85||
   quote.priceUsd/candidate.price_usd>1.15||
