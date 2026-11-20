@@ -259,3 +259,14 @@ test('an older independently identified trending pool is researchable but cannot
  assert.equal(report.authorizes_paper_orders,false);
  assert.equal(report.candidates[0].full_gpt_buy_gate_passed,false);
 });
+
+test('V6.5 exact ranked pool may be investigated independently but never authorizes an order by research alone',()=>{
+ const ranked={...market,candidates:[{...market.candidates[0],
+  source:'R29_RANKING_CROSS_PROVIDER_POOL'}]};
+ const picks=selectSecurityResearchCandidates(modelReview,ranked,{now:at});
+ assert.equal(picks.length,1);
+ const report=publicSecurityResearchReport({review:modelReview,market:ranked,
+  findings:[{...picks[0],gate:facts()}],now:at});
+ assert.equal(report.authorizes_paper_orders,false);
+ assert.equal(report.candidates[0].full_gpt_buy_gate_passed,false);
+});

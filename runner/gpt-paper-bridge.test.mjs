@@ -67,7 +67,7 @@ function ledger(){
   maxTrade:5000,portfolioBudgetUsdc:5000,minTrade:50,
   automaticPaperBuys:false};
 }
-function makeReceiver({securityOverride=null,onLookup=null}={}){
+function makeReceiver({securityOverride=null,onLookup=null,sourceOverride=null}={}){
  let state=ledger(),price=.02,signCount=0;
  const folder=mkdtempSync(path.join(tmpdir(),'gpt-paper-e2e-'));
  const r=createGptPaperLocalReceiver({
@@ -76,7 +76,8 @@ function makeReceiver({securityOverride=null,onLookup=null}={}){
   now:()=>Date.now(),
   loadMarket:()=>({ok:true,snapshot:{
     schema:'research_market_snapshot.v1',
-    paper_only:true,actionable:false,candidates:[candidate(Date.now())]}}),
+    paper_only:true,actionable:false,candidates:[{...candidate(Date.now()),
+      ...(sourceOverride?{source:sourceOverride}:{})}]}}),
   lookup:async()=>{if(onLookup)await onLookup();return quote(price)},
   securityCheck:async()=>securityOverride||safe(),
   submit:async(o,opts)=>{
@@ -449,5 +450,17 @@ test('V5.7: user-fixed 50 Paper BUY cannot overspend 20 remaining TEST-USDC',asy
   assert.equal(blocked.reason,'GPT_FRESH_PRIVATE_PAPER_CAPACITY_REJECTED');
   assert.equal(a.state.positions.length,0);
   assert.equal(a.signCount,0);
+ }finally{a.cleanup()}
+});
+
+test('V6.5 signed GPT PAPER BUY is executable for independently proven ranked EVM pool in isolated fixture only',async()=>{
+ const a=makeReceiver({sourceOverride:'R29_RANKING_CROSS_PROVIDER_POOL'});
+ try{
+  const result=await a.r.receive(envelope(decision('BUY',Date.now(),'d'.repeat(32))));
+  assert.equal(result.status,'PAPER_FILLED');
+  assert.equal(a.state.cashUsdc,4950);
+  assert.equal(a.state.positions.length,1);
+  assert.equal(a.state.positions[0].gptPaperDecision,true);
+  assert.equal(a.state.automaticPaperBuys,false);
  }finally{a.cleanup()}
 });

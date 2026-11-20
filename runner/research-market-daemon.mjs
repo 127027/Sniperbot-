@@ -11,6 +11,7 @@ import {detectEarlyMarketAcceleration,detectFirstSeenRecentPoolLeads} from './re
 import {readRecentSolanaStreamLeads} from './solana-live-events.mjs';
 import {collectNarrativeLeads} from './research-narrative-radar.mjs';
 import {updateLocalRankingResearch} from './research-public-ranking-discovery.mjs';
+import {resolveRankingPoolCandidates} from './r29-ranking-pool-resolver.mjs';
 import {updateLocalNewsJournal} from './research-news-journal.mjs';
 import {readPublicPoolReadbacks} from './readback-public-bridge.mjs';
 import {publishResearchSnapshot,publishingEnabled} from './research-market-publisher.mjs';
@@ -149,7 +150,7 @@ async function acquireLock(){
 async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
  now=new Date().toISOString(),publish=false}={}){
   const snapshot=await collectSnapshot({fetcher,now});
-  const success=snapshot.collection_status!=='BLOCKED_RESEARCH_DATA_ACCESS';
+  let success=snapshot.collection_status!=='BLOCKED_RESEARCH_DATA_ACCESS';
   let marketAlerts={schema:'research_market_triggers.v1',paper_only:true,actionable:false,
    events:[],evaluated_pairs:0,reason:'NO_LIVE_SNAPSHOT'};
   let alertJournal=null,alertError=null;
@@ -157,6 +158,7 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
   let narrative={leads:[],coverage:[]},narrativeError=null;
   let news={leads:[],coverage:[],new_saved_events:0,stored_events:0},newsError=null;
   let ranking={leads:[],coverage:[]},rankingError=null;
+  let rankingPools={resolved:[],checks:[]},rankingPoolError=null;
   let readbackBridgeError=null;
   // Even if DEX providers are blocked, the public news stream may still run.
   // Poll feeds at most every 15 min; retain first local capture for later replay.
@@ -166,6 +168,39 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
   // Cached for 30 min to avoid 8 HTML requests on each 2-minute pool cycle.
   try{ranking=await updateLocalRankingResearch({filename:rankingFile,fetcher,now})}
   catch(e){rankingError=String(e?.message||'RANKING_RESEARCH_UNAVAILABLE').replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,95)}
+  // V6.5: A ranked token is NOT a tradable pool. Select at most 2 neutral
+  // ranking token leads per 2-minute cycle; independently match exact pair
+  // IDs on DEX Screener and GeckoTerminal before adding research candidates.
+  // Safety, sellability and executable quotes remain UNKNOWN.
+  try{
+    rankingPools=await resolveRankingPoolCandidates({
+      leads:ranking.leads,candidates:snapshot.candidates,fetcher,now,limit:2});
+    const byChain=new Map();
+    for(const x of snapshot.candidates)
+      byChain.set(x.chain,(byChain.get(x.chain)||0)+1);
+    let admitted=0,capacitySkipped=0;
+    for(const candidate of rankingPools.resolved){
+      if(snapshot.candidates.length>=96||(byChain.get(candidate.chain)||0)>=24){
+        capacitySkipped++;continue;
+      }
+      if(snapshot.candidates.some(x=>x.candidate_id===candidate.candidate_id))continue;
+      snapshot.candidates.push(candidate);
+      byChain.set(candidate.chain,(byChain.get(candidate.chain)||0)+1);
+      admitted++;
+    }
+    rankingPools.admitted=admitted;
+    rankingPools.capacitySkipped=capacitySkipped;
+    if(admitted){
+      success=true;snapshot.collection_status='OBSERVED_OR_PARTIAL';
+      snapshot.summary.identities=snapshot.candidates.length;
+      snapshot.summary.cross_checked=snapshot.candidates.filter(
+        x=>x.verification==='CROSS_PROVIDER_IDENTITY').length;
+    }
+    snapshot.summary.ranking_cross_provider_resolved=admitted;
+    snapshot.summary.ranking_cross_provider_capacity_skipped=capacitySkipped;
+  }catch(e){rankingPoolError=String(e?.message||'RANKING_POOL_RESOLUTION_FAILED')
+    .replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,95)}
+
   // Prospective evidence: capture the exact public data first seen by THIS
   // collector, without modifying any existing historical or paper portfolio.
   // Deliberately never backdate the capture to a source's claimed publish time.
@@ -291,7 +326,10 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     public_rankings:{last_capture_at_utc:ranking.checked_at_utc??null,
       lead_count:ranking.leads.length,coverage:ranking.coverage,
       cached:ranking.cached===true,error:rankingError,
-      trading_authorized:false,source_independent_of_geckoterminal:true},
+      trading_authorized:false,source_independent_of_geckoterminal:true,
+      exact_pool_research_admitted:rankingPools.admitted||0,
+      pool_provider_check_status:rankingPools.checks||[],
+      pool_research_error:rankingPoolError},
     news_radar:{last_check_at_utc:news.checked_at_utc??null,
       public_news_leads:news.leads.length,new_local_events:news.new_saved_events,
       local_archive_count:news.stored_events,coverage:news.coverage,error:newsError},

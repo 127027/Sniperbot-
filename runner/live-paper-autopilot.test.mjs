@@ -156,3 +156,25 @@ test('V4.3: legacy local executor never creates new BUY even when old toggle is 
   assert.equal(saved.live_trading_enabled,false);
  }finally{worker.stop();rmSync(dir,{recursive:true,force:true})}
 });
+
+test('V6.5 exact-pool rankings and trending pools still require every existing independent risk gate',()=>{
+ for(const source of ['GECKOTERMINAL_TRENDING_POOLS','R29_RANKING_CROSS_PROVIDER_POOL']){
+  const verified={...cand(),source};
+  const ok=r29LivePaperEntryGate({state:ledger(),candidate:verified,
+    quote:quote(),security:security(),now});
+  assert.equal(ok.allowed,true,'complete independent security and quote proof needed');
+  const unsafe=r29LivePaperEntryGate({state:ledger(),candidate:verified,
+    quote:quote(),security:null,now});
+  assert.equal(unsafe.allowed,false);
+  assert.equal(unsafe.reason,'CONTRACT_SECURITY_OR_SELL_SIMULATION_UNVERIFIED');
+  const noIdentity=r29LivePaperEntryGate({state:ledger(),
+    candidate:{...verified,verification:'PROVIDER_ONLY'},quote:quote(),
+    security:security(),now});
+  assert.equal(noIdentity.allowed,false);
+  assert.equal(noIdentity.reason,'PAIR_NOT_CROSS_PROVIDER_VERIFIED');
+  const paid=r29LivePaperEntryGate({state:ledger(),
+    candidate:{...verified,promotion_biased:true},quote:quote(),
+    security:security(),now});
+  assert.equal(paid.allowed,false);
+ }
+});

@@ -17,7 +17,7 @@ export const CANONICAL_MARKET_PATH='research/market/latest.json';
 export const CANONICAL_MARKET_URL='https://api.github.com/repos/'+REPO+'/contents/'+CANONICAL_MARKET_PATH;
 const ISO=x=>typeof x==='string'&&x.endsWith('Z')&&Number.isFinite(Date.parse(x));
 const SOURCES=new Set(['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS',
- 'DEXSCREENER_PROMOTED_PROFILE_FALLBACK']);
+ 'DEXSCREENER_PROMOTED_PROFILE_FALLBACK','R29_RANKING_CROSS_PROVIDER_POOL']);
 const VERIFICATION=new Set(['PROVIDER_ONLY','CROSS_PROVIDER_IDENTITY']);
 const CHECKS=new Set(['INDEPENDENT_PAIR_IDENTITY','CONTRACT','LIQUIDITY_RISK','SELLABILITY','PAID_PROFILE_BIAS']);
 const SOURCE_HOSTS=new Set(['api.geckoterminal.com','api.dexscreener.com','pumpportal.fun']);

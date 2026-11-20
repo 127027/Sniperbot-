@@ -51,7 +51,8 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
   Date.parse(candidate.first_local_observed_at_utc)>now||
   now-Date.parse(candidate.first_local_observed_at_utc)>300000)
   return result('BLOCKED','CANDIDATE_STALE_OR_UNOBSERVED',0,equity);
- if(candidate.source!=='GECKOTERMINAL_NEW_POOLS'||candidate.promotion_biased===true)
+ if(!['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS',
+   'R29_RANKING_CROSS_PROVIDER_POOL'].includes(candidate.source)||candidate.promotion_biased===true)
   return result('BLOCKED','PROMOTED_POOL_NOT_INDEPENDENT_DISCOVERY',0,equity);
  if(candidate.verification!=='CROSS_PROVIDER_IDENTITY')
   return result('BLOCKED','PAIR_NOT_CROSS_PROVIDER_VERIFIED',0,equity);
