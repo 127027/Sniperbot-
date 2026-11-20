@@ -395,6 +395,18 @@ function renderGptActivity(p){
     ' · kein Nachweis eines kaufbaren Coins','activity-detail');
   research.appendChild(li);
  }
+ const sourceDiag=p.gpt_paper_market_source_diagnostic;
+ if(sourceDiag?.fresh===true&&sourceDiag.source_problem_count>0){
+  const li=document.createElement('li');
+  addElement(li,'div','Datenquellen unvollständig · '+sourceDiag.source_problem_count+
+   ' GeckoTerminal-Quellprobleme','activity-name');
+  addElement(li,'div',sourceDiag.source_problems.map(x=>
+   x.chain+' '+x.source+': '+x.status).join(' · ')+
+   ' · Kandidaten durch Chain-Limit ausgelassen: '+
+   String(sourceDiag.lost_by_per_chain_limit??'unbekannt')+
+   ' · kein vollständiges Marktuniversum','activity-detail');
+  research.appendChild(li);
+ }
  const rows=Array.isArray(p.gpt_paper_recent_decisions)?p.gpt_paper_recent_decisions:[];
  if(!rows.length){
   addElement(list,'li','Noch keine vom lokalen GitHub-Kurier empfangene GPT-Entscheidung.','sub');
