@@ -141,3 +141,67 @@ test('no capture, no auth and stale frame never reach GitHub',async()=>{
   }),/STALE_OR_UNAVAILABLE/);
  }finally{await rm(dir,{recursive:true,force:true})}
 });
+
+test('timestamped general news and token-profile catalysts survive relay as non-trading leads',()=>{
+ const s=snapshot();
+ s.news_leads=[{
+  event_id:'news-'+'a'.repeat(32),source_name:'BBCWorld',
+  source_url:'https://www.bbc.com/news/articles/public-event',
+  title:'Beloved zoo hippo dies',original_published_at_utc:'2026-11-17T17:50:00.000Z',
+  first_observed_at_utc:at,
+  source_timestamp_quality:'RSS_PUBLISHER_CLAIM_NOT_INDEPENDENTLY_ARCHIVED',
+  signal_categories:['GENERAL_EVENT_CATALYST_CANDIDATE','MEME_CULTURE_CANDIDATE'],
+  chain:null,token_address:null,pool_address:null,candidate_id:null,
+  original_post_content_independently_verified:false,paper_only:true,actionable:false
+ }];
+ s.narrative_leads=[{
+  chain:'solana',token_address:mint,observed_at_utc:at,
+  origin:'DEXSCREENER_METADATA_ONLY',
+  source_urls:['https://api.dexscreener.com/token-profiles/latest/v1'],
+  signal_categories:['NEW_TOKEN_PROFILE'],paid_promotion_seen:false,
+  organic_social_verified:false,candidate_id:candidateId,pool_address:pool,
+  paper_only:true,actionable:false,probability_pct:null,
+  claim_status:'SAME_CHAIN_TOKEN_POOL_LINK_NOT_SAFETY_VALIDATED'
+ }];
+ s.news_coverage=[{feed:'BBCWorld',status:'OK',internal_secret:'NEVER_PUBLISH'}];
+ s.narrative_coverage=[{source:'NEW_TOKEN_PROFILE',status:'OK',local_wallet:'NEVER_PUBLISH'}];
+ const v=canonicalPublicMarketProjection(s,{now});
+ assert.equal(v.news_leads.length,1);
+ assert.equal(v.narrative_leads.length,1);
+ assert.equal(v.news_leads[0].candidate_id,null);
+ assert.equal(v.narrative_leads[0].candidate_id,candidateId);
+ assert.equal(v.narrative_leads[0].organic_social_verified,false);
+ assert.equal(v.narrative_leads[0].probability_pct,null);
+ assert.equal(v.actionable,false);
+ assert.equal(v.summary.news_events_available,1);
+ assert.equal(v.summary.narrative_tokens_available,1);
+ assert(!JSON.stringify(v).includes('NEVER_PUBLISH'));
+});
+test('future headlines and unlinked paid token profiles cannot become BUY signals',()=>{
+ const s=snapshot();
+ s.news_leads=[{
+  event_id:'news-'+'b'.repeat(32),source_name:'BBCWorld',
+  source_url:'https://example.org/record',title:'New zoo animal report',
+  original_published_at_utc:'2026-11-17T18:30:00.000Z',
+  first_observed_at_utc:at,source_timestamp_quality:'RSS_PUBLISHER_CLAIM_NOT_INDEPENDENTLY_ARCHIVED',
+  signal_categories:['GENERAL_EVENT_CATALYST_CANDIDATE'],
+  chain:null,token_address:null,pool_address:null,candidate_id:null,
+  original_post_content_independently_verified:false,paper_only:true,actionable:false
+ }];
+ const otherMint='7'.repeat(44);
+ s.narrative_leads=[{
+  chain:'solana',token_address:otherMint,observed_at_utc:at,
+  origin:'DEXSCREENER_METADATA_ONLY',
+  source_urls:['https://api.dexscreener.com/token-boosts/latest/v1'],
+  signal_categories:['PAID_BOOST'],paid_promotion_seen:true,
+  organic_social_verified:false,candidate_id:null,pool_address:null,
+  paper_only:true,actionable:false,probability_pct:null,
+  claim_status:'UNVERIFIED_COIN_OR_NARRATIVE'
+ }];
+ const v=canonicalPublicMarketProjection(s,{now});
+ assert.equal(v.news_leads.length,0,'publisher dates later than first observation rejected');
+ assert.equal(v.narrative_leads.length,1);
+ assert.equal(v.narrative_leads[0].candidate_id,null);
+ assert.equal(v.narrative_leads[0].paid_promotion_seen,true);
+ assert.equal(v.narrative_leads[0].actionable,false);
+});
