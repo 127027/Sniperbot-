@@ -161,7 +161,7 @@ export function publicSecurityResearchReport({review,market=null,findings=[],now
      market.actionable===false&&
      recent(market.published_at_utc,now,300000)&&
      market.candidates?.some(c=>c.candidate_id===chain+':'+token+':'+pool&&
-      c.source==='GECKOTERMINAL_NEW_POOLS'&&
+      ['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS'].includes(c.source)&&
       c.verification==='CROSS_PROVIDER_IDENTITY'&&
       c.promotion_biased===false&&
       recent(c.observed_at_utc,now,300000)):
