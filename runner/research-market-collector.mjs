@@ -33,7 +33,7 @@ async function getJson(url,fetcher){
   return response.json();
 }
 function identity(chain,token,pool){try{return candidateId(chain,token,pool)}catch{return null}}
-function gtRecord(raw,m,now,url){
+function gtRecord(raw,m,now,url,source='GECKOTERMINAL_NEW_POOLS'){
   const att=raw?.attributes,baseTokenId=raw?.relationships?.base_token?.data?.id;
   if(!att||typeof baseTokenId!=='string'||!baseTokenId.startsWith(m.gecko+'_'))return null;
   const token=baseTokenId.slice(m.gecko.length+1),pool=att.address;
@@ -44,7 +44,7 @@ function gtRecord(raw,m,now,url){
     liquidity_usd:numeric(att.reserve_in_usd),volume_m5_usd:numeric(att.volume_usd?.m5),
     price_usd:numeric(att.base_token_price_usd),buys_m5:numeric(att.transactions?.m5?.buys),
     sells_m5:numeric(att.transactions?.m5?.sells),
-    source:'GECKOTERMINAL_NEW_POOLS',verification:'PROVIDER_ONLY',
+    source,verification:'PROVIDER_ONLY',
     promotion_biased:false,source_urls:[url],
     unresolved_checks:['INDEPENDENT_PAIR_IDENTITY','CONTRACT','LIQUIDITY_RISK','SELLABILITY']};
 }
@@ -124,7 +124,8 @@ export function prioritizeIdentityCrosschecks(rows,{chain,limit=2}={}){
   return 1;
  };
  return dedup(rows.filter(c=>c?.chain===chain&&
-  c.source==='GECKOTERMINAL_NEW_POOLS'&&c.promotion_biased===false))
+  ['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS'].includes(c.source)&&
+  c.promotion_biased===false))
   .sort((a,b)=>tier(b)-tier(a)||
    (b.liquidity_usd||0)-(a.liquidity_usd||0)||
    (b.volume_m5_usd||0)-(a.volume_m5_usd||0)||
@@ -142,7 +143,8 @@ export async function collectSnapshot({fetcher=fetch,now=new Date().toISOString(
   // chain give wider coverage, NOT a complete history of all launches.
   if(!Number.isInteger(pages)||pages<1||pages>2)throw Error('Unzulässiges Discovery-Seitenlimit');
   const surveyed=await Promise.all(MARKETS.map(async m=>{
-    const rows=[],failures=[];
+    const rows=[],failures=[],trendingRows=[];
+    let trendingSucceeded=false,trendingError=null,rateLimited=false;
     let count=0,successfulPages=0;
     for(let page=1;page<=pages;page++){
       const url=GT+'/networks/'+m.gecko+'/new_pools?page='+page;
@@ -155,15 +157,32 @@ export async function collectSnapshot({fetcher=fetch,now=new Date().toISOString(
       }catch(e){
         failures.push(reason(e));
         // Never multiply 429 or other provider errors with unnecessary retries.
-        if(e?.status===429)break;
+        if(e?.status===429){rateLimited=true;break}
       }
     }
-    const valid=dedup(rows);
+    // A second neutral, non-paid source includes OLDER pools with new momentum.
+    // It is a prospective research signal, never a verified breakout or BUY.
+    // Do not retry after a 429 on the newest-pool source.
+    if(!rateLimited){
+      const url=GT+'/networks/'+m.gecko+'/trending_pools?duration=5m&page=1';
+      try{
+        const data=await getJson(url,fetcher);
+        if(!Array.isArray(data?.data))throw Error('Malformed trending pools');
+        trendingSucceeded=true;
+        trendingRows.push(...data.data.slice(0,20)
+          .map(p=>gtRecord(p,m,now,url,'GECKOTERMINAL_TRENDING_POOLS')).filter(Boolean));
+      }catch(e){trendingError=reason(e)}
+    }else trendingError='SKIPPED_AFTER_RATE_LIMIT';
+    // Prefer canonical NEW_POOL identity when both endpoints describe the
+    // same pair. Older trending-only pools remain visible to the GPT relay.
+    const valid=dedup([...trendingRows,...rows]);
     return {m,rows:chooseBoundedResearchCandidates(valid,{now,limit:24}),
-     sourceIdentitiesBeforeCap:valid.length,count,successfulPages,failures};
+     sourceIdentitiesBeforeCap:valid.length,count,successfulPages,failures,
+     trendingSucceeded,trendingError,trendingCount:trendingRows.length};
   }));
   for(const item of surveyed){
-    const {m,rows,sourceIdentitiesBeforeCap,count,successfulPages,failures}=item;
+    const {m,rows,sourceIdentitiesBeforeCap,count,successfulPages,failures,
+      trendingSucceeded,trendingError,trendingCount}=item;
     candidates.push(...rows);
     const status=successfulPages===0?(failures[0]||'SOURCE_UNAVAILABLE'):
       failures.length?'PARTIAL':'OK';
@@ -173,7 +192,10 @@ export async function collectSnapshot({fetcher=fetch,now=new Date().toISOString(
       included_in_snapshot:rows.length,
       omitted_by_research_cap:sourceIdentitiesBeforeCap-rows.length,
       ...(failures.length?{failed_pages:failures}: {})});
-    if(!successfulPages)failed.push(m);
+    coverage.push({chain:m.chain,source:'GECKOTERMINAL_TRENDING',
+      status:trendingSucceeded?'OK':trendingError||'SOURCE_UNAVAILABLE',
+      provider_rows:trendingCount,valid_identities:trendingCount});
+    if(!successfulPages&&!trendingSucceeded)failed.push(m);
   }
   // Limit independent pair lookups to two per chain to respect free provider rates.
   for(const m of MARKETS){
@@ -231,6 +253,7 @@ export async function collectSnapshot({fetcher=fetch,now=new Date().toISOString(
       omitted_by_per_chain_cap:surveyed.reduce((n,x)=>n+x.sourceIdentitiesBeforeCap-x.rows.length,0),
       cross_checked:found.filter(x=>x.verification==='CROSS_PROVIDER_IDENTITY').length,
       promotional_only:found.filter(x=>x.promotion_biased).length,
+      trending_pools_observed:found.filter(x=>x.source==='GECKOTERMINAL_TRENDING_POOLS').length,
       note:'Research only: prices are NOT executable quotes; Contract, LP and sellability remain UNKNOWN.'}
   };
 }

@@ -7,6 +7,7 @@ import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {candidateId} from './research-watchlist.mjs';
+import {validTokenAddress} from './market.mjs';
 import {assertResearch} from './research-market-publisher.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -15,7 +16,8 @@ export const CANONICAL_MARKET_BRANCH='codex/r29-chatgpt-github-paper-cycle-20261
 export const CANONICAL_MARKET_PATH='research/market/latest.json';
 export const CANONICAL_MARKET_URL='https://api.github.com/repos/'+REPO+'/contents/'+CANONICAL_MARKET_PATH;
 const ISO=x=>typeof x==='string'&&x.endsWith('Z')&&Number.isFinite(Date.parse(x));
-const SOURCES=new Set(['GECKOTERMINAL_NEW_POOLS','DEXSCREENER_PROMOTED_PROFILE_FALLBACK']);
+const SOURCES=new Set(['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS',
+ 'DEXSCREENER_PROMOTED_PROFILE_FALLBACK']);
 const VERIFICATION=new Set(['PROVIDER_ONLY','CROSS_PROVIDER_IDENTITY']);
 const CHECKS=new Set(['INDEPENDENT_PAIR_IDENTITY','CONTRACT','LIQUIDITY_RISK','SELLABILITY','PAID_PROFILE_BIAS']);
 const SOURCE_HOSTS=new Set(['api.geckoterminal.com','api.dexscreener.com','pumpportal.fun']);
@@ -114,6 +116,79 @@ function publicAlert(e,at,candidates){
  }
  return out;
 }
+
+// News and DEX narrative observations are independent RESEARCH inputs.
+// Unknown URL fields, private metadata, inferred token identities and
+// instructions contained in headlines never cross this public projection.
+const NEWS_TAGS=new Set(['PUBLIC_NEWS_NARRATIVE_LEAD','MEME_CULTURE_CANDIDATE',
+ 'PUBLIC_FIGURE_CONTEXT','POSSIBLE_CRYPTO_TOKEN_CONTEXT',
+ 'GENERAL_EVENT_CATALYST_CANDIDATE']);
+const NARRATIVE_TAGS=new Set(['NEW_TOKEN_PROFILE','COMMUNITY_TAKEOVER_UNVERIFIED','PAID_BOOST']);
+function safeNewsLink(link){
+ try{
+  if(typeof link!=='string'||link.length>900||/\s/.test(link))return null;
+  const url=new URL(link);
+  if(url.protocol!=='https:'||url.username||url.password||url.port||
+     !url.hostname.includes('.')||url.hostname==='localhost')return null;
+  return url.toString();
+ }catch{return null}
+}
+function publicNewsLead(e,at){
+ if(!e||e.paper_only!==true||e.actionable!==false||
+   !/^news-[a-f0-9]{32}$/.test(e.event_id||'')||
+   !timeWindow(e.first_observed_at_utc,Date.parse(at),60*60_000)||
+   !ISO(e.original_published_at_utc)||
+   Date.parse(e.original_published_at_utc)>Date.parse(e.first_observed_at_utc)+60000||
+   e.source_timestamp_quality!=='RSS_PUBLISHER_CLAIM_NOT_INDEPENDENTLY_ARCHIVED'||
+   e.original_post_content_independently_verified!==false||
+   e.chain!==null||e.token_address!==null||
+   e.pool_address!==null||e.candidate_id!==null||
+   typeof e.source_name!=='string'||!/^[A-Za-z0-9_-]{2,40}$/.test(e.source_name)||
+   typeof e.title!=='string'||e.title.length<3||e.title.length>700)return null;
+ const url=safeNewsLink(e.source_url);
+ const categories=Array.isArray(e.signal_categories)?
+   [...new Set(e.signal_categories.filter(t=>NEWS_TAGS.has(t)))].slice(0,4):[];
+ if(!url||!categories.length)return null;
+ return {event_id:e.event_id,source_name:e.source_name,source_url:url,
+  title:e.title.replace(/[\u0000-\u001f<>]/g,' ').slice(0,250),
+  original_published_at_utc:e.original_published_at_utc,
+  first_observed_at_utc:e.first_observed_at_utc,
+  source_timestamp_quality:e.source_timestamp_quality,
+  signal_categories:categories,chain:null,token_address:null,pool_address:null,
+  candidate_id:null,original_post_content_independently_verified:false,
+  paper_only:true,actionable:false};
+}
+function publicNarrativeLead(e,at,candidates){
+ if(!e||e.paper_only!==true||e.actionable!==false||
+    e.origin!=='DEXSCREENER_METADATA_ONLY'||e.organic_social_verified!==false||
+    e.probability_pct!==null||!timeWindow(e.observed_at_utc,Date.parse(at),60*60_000)||
+    !['solana','base','bsc','eth'].includes(e.chain)||
+    !validTokenAddress(e.chain,e.token_address)||
+    typeof e.paid_promotion_seen!=='boolean')return null;
+ const categories=Array.isArray(e.signal_categories)?
+   [...new Set(e.signal_categories.filter(t=>NARRATIVE_TAGS.has(t)))].slice(0,3):[];
+ const urls=onlySourceUrls(e.source_urls);
+ if(!categories.length||!urls.length||!urls.every(u=>new URL(u).hostname==='api.dexscreener.com'))return null;
+ const matches=candidates.filter(c=>c.chain===e.chain&&c.token_address===e.token_address);
+ const linked=matches.length===1&&e.candidate_id===matches[0].candidate_id&&
+   e.pool_address===matches[0].pool_address;
+ return {chain:e.chain,token_address:e.token_address,observed_at_utc:e.observed_at_utc,
+  origin:'DEXSCREENER_METADATA_ONLY',source_urls:urls,signal_categories:categories,
+  paid_promotion_seen:e.paid_promotion_seen,organic_social_verified:false,
+  candidate_id:linked?matches[0].candidate_id:null,
+  pool_address:linked?matches[0].pool_address:null,
+  paper_only:true,actionable:false,probability_pct:null,
+  claim_status:linked?'SAME_CHAIN_TOKEN_POOL_LINK_NOT_SAFETY_VALIDATED':
+    matches.length>1?'MULTIPLE_POOLS_REQUIRE_REVIEW':'UNVERIFIED_COIN_OR_NARRATIVE'};
+}
+function publicCoverage(raw,allowed,max){
+ if(!Array.isArray(raw))return [];
+ return raw.slice(0,max).filter(x=>x&&allowed.has(x.feed||x.source)&&
+  ['OK','SOURCE_UNAVAILABLE'].includes(x.status))
+  .map(x=>({...(x.feed?{feed:x.feed}:{source:x.source}),
+   status:x.status}));
+}
+
 export function canonicalPublicMarketProjection(snapshot,{now=Date.now()}={}){
  assertResearch(snapshot);
  if(!Number.isFinite(now)||snapshot.collection_status!=='OBSERVED_OR_PARTIAL'||
@@ -134,18 +209,29 @@ export function canonicalPublicMarketProjection(snapshot,{now=Date.now()}={}){
  }
  const coverage=(snapshot.coverage||[]).slice(0,12).map(c=>({
   chain:['solana','base','bsc','eth'].includes(c.chain)?c.chain:'unknown',
-  source:['GECKOTERMINAL','DEXSCREENER_PROFILES_FALLBACK'].includes(c.source)?
+  source:['GECKOTERMINAL','GECKOTERMINAL_TRENDING',
+    'DEXSCREENER_PROFILES_FALLBACK'].includes(c.source)?
    c.source:'OTHER',
   status:['OK','PARTIAL','PROMOTED_PROFILES_ONLY','NO_PAIR_IDENTITIES'].includes(c.status)?
    c.status:'SOURCE_INCOMPLETE',
   provider_rows:Math.max(0,Math.min(2000,Math.floor(BOUNDED(c.provider_rows)||0))),
   valid_identities:Math.max(0,Math.min(2000,Math.floor(BOUNDED(c.valid_identities)||0)))
  }));
+ const newsLeads=[...new Map((snapshot.news_leads||[])
+  .map(e=>publicNewsLead(e,at)).filter(Boolean).map(e=>[e.event_id,e])).values()].slice(0,16);
+ const narrativeLeads=[...new Map((snapshot.narrative_leads||[])
+  .map(e=>publicNarrativeLead(e,at,candidates)).filter(Boolean)
+  .map(e=>[e.chain+':'+e.token_address,e])).values()].slice(0,24);
  const publicSnapshot={
   schema:'research_market_snapshot.v1',paper_only:true,actionable:false,
   producer:'R29 read-only current local market collector canonical relay',
   published_at_utc:at,collection_status:'OBSERVED_OR_PARTIAL',
   coverage,candidates,research_alerts:alerts.slice(0,24),
+  news_leads:newsLeads,narrative_leads:narrativeLeads,
+  news_coverage:publicCoverage(snapshot.news_coverage,
+   new Set(['Decrypt','BeInCrypto','Cointelegraph','BBCWorld','BBCBusiness','BBCTech','BBCEntertainment','BBCUSCanada']),8),
+  narrative_coverage:publicCoverage(snapshot.narrative_coverage,
+   new Set(['NEW_TOKEN_PROFILE','COMMUNITY_TAKEOVER_UNVERIFIED','PAID_BOOST']),3),
   // Preserve independently recorded exact-pool SCOUT candidates for GPT
   // across pages/scans. Old observations are visibly stale, never order proof.
   watch_candidates:(snapshot.watch_candidates||[]).slice(0,24).map(x=>({
@@ -164,6 +250,8 @@ export function canonicalPublicMarketProjection(snapshot,{now=Date.now()}={}){
    pages_per_chain:0,cross_checked:candidates.filter(x=>
     x.verification==='CROSS_PROVIDER_IDENTITY').length,
    promotional_only:candidates.filter(x=>x.promotion_biased).length,
+   news_events_available:newsLeads.length,narrative_tokens_available:narrativeLeads.length,
+   news_and_narratives_are_research_only:true,
    note:'Canonical fallback from current local capture, no safety, exit quote or trading authority.'}
  };
  assertResearch(publicSnapshot);

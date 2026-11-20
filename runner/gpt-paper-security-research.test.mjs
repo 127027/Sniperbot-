@@ -247,3 +247,15 @@ test('R29 V5.1 security research rotates the second eligible EVM pool instead of
   goplus:null,honeypot:null});
  assert.equal(unknown.approved,false);
 });
+
+test('an older independently identified trending pool is researchable but cannot skip security',()=>{
+ const older={...market,candidates:[{...market.candidates[0],
+  source:'GECKOTERMINAL_TRENDING_POOLS'}]};
+ const eligible=selectSecurityResearchCandidates(modelReview,older,{now:at});
+ assert.equal(eligible.length,1);
+ assert.equal(eligible[0].candidate_id,id);
+ const report=publicSecurityResearchReport({review:modelReview,market:older,
+  findings:[{...eligible[0],gate:facts()}],now:at});
+ assert.equal(report.authorizes_paper_orders,false);
+ assert.equal(report.candidates[0].full_gpt_buy_gate_passed,false);
+});

@@ -156,7 +156,7 @@ export function assertResearch(s){
       throw Error('Unsafe public pool readback payload');
   }
   if(s.news_coverage!==undefined&&
-     (!Array.isArray(s.news_coverage)||s.news_coverage.length>3))
+     (!Array.isArray(s.news_coverage)||s.news_coverage.length>8))
     throw Error('Unsafe public news provider status');
   if(s.narrative_coverage!==undefined&&
      (!Array.isArray(s.narrative_coverage)||s.narrative_coverage.length>3))
