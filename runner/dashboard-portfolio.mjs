@@ -47,6 +47,7 @@ export function paperDashboardView(state,{now=Date.now(),collector=null,security
    is_synthetic:p.isDemo===true,
    paper_autopilot:p.paperAutopilot===true,
    gpt_paper_managed:p.gptPaperDecision===true,
+   web_only_indicative:p.safety==='INDICATIVE_WEB_PRICE_SELLABILITY_UNKNOWN',
    paper_only:true
   };
  });
@@ -180,6 +181,8 @@ export function paperDashboardView(state,{now=Date.now(),collector=null,security
   gpt_paper_received_decisions:replay.length,
   gpt_paper_recent_decisions:recentGpt,
   gpt_local_paper_fills:gptLocalPaperFills,
+  web_only_indicative_open_positions:positions.filter(p=>p.web_only_indicative).length,
+  web_only_paper_evidence_warning:'Web-Paper handelt nur mit INDIZIERTEN Preisbeobachtungen. Keine unabhängig ausführbare Börsenquote, keine garantierte Verkaufsfähigkeit und keine Echtgeldorders.',
   gpt_local_paper_fills_are_not_model_proven:true,
   gpt_paper_local_activity_diagnostic:gptActivity,
   gpt_paper_research_funnel:funnel,

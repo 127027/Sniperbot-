@@ -9,6 +9,7 @@ import {action} from './core.mjs';
 import {isWithinPortfolioBudget,MIN_PAPER_ENTRY_USDC,MIN_GPT_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
 import {r29LivePaperEntryGate} from './live-paper-risk.mjs';
 import {validateGptExitPolicy,gptExitPolicyHash,validateGptExitBinding,assessGptPaperExit} from './gpt-position-exit.mjs';
+import {validateGptWebPriceEvidence} from './gpt-web-price-evidence.mjs';
 
 export const AGENT_SIGNAL_SCHEMA='sniper_agent_trade_signal.v1';
 export const AGENT_SIGNAL_DOMAIN='MemeSniper/agent_trade_signal.v1\n';
@@ -72,7 +73,7 @@ function validQuote(q,order,now){
   now-Date.parse(q.asOf)<=90000&&
   typeof q.symbol==='string'&&q.symbol.length<=32;
 }
-export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER',syntheticTest=false,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null,gptExitAuth=null,gptPolicyExit=null,gptExitMonitorReady=false}={}){
+export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote=null,source='SIGNED_LOCAL_ADAPTER',syntheticTest=false,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null,gptExitAuth=null,gptPolicyExit=null,gptExitMonitorReady=false,gptWebEvidence=null}={}){
  if(!['SIGNED_LOCAL_ADAPTER','GITHUB_SIGNED_COURIER','CENTRAL_AI_LOCAL','LOCAL_PAPER_AUTOPILOT','GPT_GITHUB_LOCAL','GPT_GITHUB_POLICY_EXIT'].includes(source))throw Error('INVALID_AGENT_TRANSPORT_SOURCE');
  const verified=verifyAgentSignal(order,keys,{deviceId,now,
   signedGptPaperInternal:source==='GPT_GITHUB_LOCAL'&&gptExitAuth!==null});
@@ -102,6 +103,17 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
  const localAuto=source==='LOCAL_PAPER_AUTOPILOT'&&syntheticTest!==true;
  const gptPaper=['GPT_GITHUB_LOCAL','GPT_GITHUB_POLICY_EXIT'].includes(source)&&syntheticTest!==true;
  const policyExit=source==='GPT_GITHUB_POLICY_EXIT';
+ let webPriceVerified=false;
+ if(gptPaper&&quote?.source==='GPT_WEB_PRICE_INDICATIVE'&&gptWebEvidence){
+  try{
+   const web=validateGptWebPriceEvidence(gptWebEvidence,{
+    chain:order.chain,token:order.token_address,
+    pool:order.pool_address,now});
+   webPriceVerified=web.priceUsd===quote.priceUsd&&
+    web.liquidityUsd===quote.liquidityUsd&&web.asOf===quote.asOf;
+  }catch{}
+ }
+ const webPaper=gptPaper&&quote?.source==='GPT_WEB_PRICE_INDICATIVE';
  const gptBuyExitReady=(()=>{
   if(!gptPaper||actionType!=='BUY')return true;
   try{return /^gpt_[0-9a-f]{32}$/.test(gptExitAuth?.decision_id||'')&&
@@ -111,7 +123,8 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
  const autoGate=(localAuto||gptPaper)&&actionType==='BUY'?
   r29LivePaperEntryGate({state:gptPaper?{...state,automaticPaperBuys:true}:state,
    candidate:paperAutopilotCandidate,
-   quote,security:securityEvidence,now,gptSignedPaper:gptPaper}):null;
+   quote,security:securityEvidence,now,gptSignedPaper:gptPaper,
+   gptWebEvidence:webPriceVerified?gptWebEvidence:null}):null;
  const matchingAutoPosition=localAuto&&actionType==='SELL'&&
   state.positions.some(p=>p.paperAutopilot===true&&p.chain===order.chain&&
   eqAddress(order.chain,p.tokenAddress,order.token_address)&&
@@ -136,6 +149,7 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   return !a.due||a.reason!==gptPolicyExit.trigger;
  })())reason='GPT_POLICY_EXIT_TRIGGER_NOT_DUE_OR_QUOTE_INVALID';
  else if(!state.entriesEnabled&&actionType==='BUY')reason='PAPER_BOT_OFF';
+ else if(webPaper&&!webPriceVerified)reason='GPT_WEB_PAPER_PRICE_EVIDENCE_INVALID';
  else if(!validQuote(quote,order,now))reason='MARKET_QUOTE_INVALID_OR_STALE';
  else if(localAuto&&actionType==='BUY'&&(!autoGate?.allowed||amount!==autoGate.amount_test_usdc))
   reason=autoGate?.reason||'LOCAL_PAPER_AUTOPILOT_RISK_BLOCKED';
@@ -162,12 +176,12 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   else{
    const id=order.chain+':'+quote.poolAddress;
    const candidate={
-    id,source:'DEX Screener',chain:order.chain,
+    id,source:webPaper?'GPT_WEB_PRICE_INDICATIVE':'DEX Screener',chain:order.chain,
     tokenAddress:order.token_address,poolAddress:quote.poolAddress,
     symbol:quote.symbol||order.token_address.slice(0,8),
     name:quote.name||'Von Agent gemeldeter Token',
     priceUsd:quote.priceUsd,asOf:quote.asOf,isDemo:false,
-    paperEligible:true,safety:'NICHT VERIFIZIERT',
+    paperEligible:true,safety:webPaper?'INDICATIVE_WEB_ONLY_UNVERIFIED':'NICHT VERIFIZIERT',
     liquidityUsd:quote.liquidityUsd
    };
    const candidateState={...state,candidates:[candidate,...state.candidates.filter(c=>c.id!==id)].slice(0,90)};
@@ -185,7 +199,8 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
           gptExitReviewStatus:'GPT_EXIT_MONITOR_PENDING_FIRST_QUOTE'
          }:{paperAutopilot:true}),
          entryLiquidityUsd:quote.liquidityUsd,
-         safety:gptPaper&&securityEvidence?.paper_unknown_goplus_risk_eligible===true?
+         safety:webPaper?'INDICATIVE_WEB_PRICE_SELLABILITY_UNKNOWN':
+          gptPaper&&securityEvidence?.paper_unknown_goplus_risk_eligible===true?
           'GPT_AUTHORIZED_UNKNOWN_PROVIDER_RISK_INDICATIVE_PAPER':
           'PUBLIC_SECURITY_CHECKS_PAPER_ONLY',
          exitMode:gptPaper?'GPT_GUARD':'AUTO'} )}:attempted;
@@ -239,7 +254,9 @@ export function applyAgentSignal(state,order,keys,{deviceId,now=Date.now(),quote
   gpt_authorized_exit_policy_accepted:status==='PAPER_FILLED'&&gptPaper&&actionType==='BUY',
   gpt_policy_exit_trigger:policyExit?(gptPolicyExit?.trigger||null):null,
   execution_evidence:syntheticTest===true?'SYNTHETIC_FIXTURE':
-   (status==='PAPER_FILLED'&&unknownGptPaperRisk?
+   (status==='PAPER_FILLED'&&webPaper?
+    'GPT_WEB_PAGE_INDICATIVE_PAPER_FILL_NOT_EXECUTABLE_SELLABILITY_UNKNOWN':
+    status==='PAPER_FILLED'&&unknownGptPaperRisk?
     'GPT_ACCEPTED_UNKNOWN_GOPLUS_RISK_SIMULATED_SELL_INDICATIVE_QUOTE':
     status==='PAPER_FILLED'&&gptPaper&&actionType==='SELL'?
     'GPT_AUTHORIZED_SELL_INDICATIVE_DEX_QUOTE_NOT_EXECUTABLE':

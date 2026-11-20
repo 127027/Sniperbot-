@@ -3,6 +3,7 @@
 import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC,MIN_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
 import {validTokenAddress} from './market.mjs';
 import {validatePaperSecurityEvidence} from './live-paper-security.mjs';
+import {validateGptWebPriceEvidence} from './gpt-web-price-evidence.mjs';
 
 const floorCents=n=>Math.floor((n+1e-9)*100)/100;
 const numeric=n=>typeof n==='number'&&Number.isFinite(n);
@@ -27,7 +28,7 @@ export function paperAutoEquity(state,{now=Date.now()}={}){
  return numeric(total)&&total>0?total:null;
 }
 export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.now(),
- risk=state?.paperLiveRisk,gptSignedPaper=false}={}){
+ risk=state?.paperLiveRisk,gptSignedPaper=false,gptWebEvidence=null}={}){
  const result=(status,reason,amount=0,equity=null)=>({
   schema:'r29_live_paper_entry_gate.v1',status,reason,
   allowed:status==='ALLOW_PAPER',amount_test_usdc:amount,
@@ -40,9 +41,19 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
  const b=portfolioBudget(state,{gptSignedPaper});
  if(!b.valid)return result('BLOCKED','INVALID_PORTFOLIO_BUDGET');
  const equity=paperAutoEquity(state,{now});
+ // Experimental GPT WEB PAPER: vetted syntax/freshness and two exact
+ // public HTML page references permit INDICATIVE virtual prices, never
+ // independently verified executable swaps or known token safety.
+ let webQuote=null;
+ if(gptSignedPaper&&gptWebEvidence){
+  try{webQuote=validateGptWebPriceEvidence(gptWebEvidence,{
+   chain:candidate?.chain,token:candidate?.token_address,
+   pool:candidate?.pool_address,now});}catch{}
+ }
+ const webOnly=webQuote!==null;
  if(!numeric(equity)||equity<(gptSignedPaper?MIN_GPT_PAPER_ENTRY_USDC:50))
   return result('BLOCKED','CANNOT_VALUE_EQUITY_FRESHLY');
- if(!['base','eth','bsc'].includes(candidate?.chain)||
+ if(!(webOnly?['solana','base','eth','bsc']:['base','eth','bsc']).includes(candidate?.chain)||
   !validTokenAddress(candidate.chain,candidate.token_address)||
   !validTokenAddress(candidate.chain,candidate.pool_address)||
   candidate.candidate_id!==candidate.chain+':'+candidate.token_address+':'+candidate.pool_address)
@@ -51,22 +62,30 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
   Date.parse(candidate.first_local_observed_at_utc)>now||
   now-Date.parse(candidate.first_local_observed_at_utc)>300000)
   return result('BLOCKED','CANDIDATE_STALE_OR_UNOBSERVED',0,equity);
- if(!['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS',
-   'R29_RANKING_CROSS_PROVIDER_POOL'].includes(candidate.source)||candidate.promotion_biased===true)
+ if(!(webOnly?candidate.source==='GPT_WEB_PRICE_INDICATIVE':
+  ['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS',
+   'R29_RANKING_CROSS_PROVIDER_POOL'].includes(candidate.source))||
+   candidate.promotion_biased===true)
   return result('BLOCKED','PROMOTED_POOL_NOT_INDEPENDENT_DISCOVERY',0,equity);
- if(candidate.verification!=='CROSS_PROVIDER_IDENTITY')
+ if(candidate.verification!==(webOnly?'TWO_INDEPENDENT_PUBLIC_WEB_PRICE_PAGES':'CROSS_PROVIDER_IDENTITY'))
   return result('BLOCKED','PAIR_NOT_CROSS_PROVIDER_VERIFIED',0,equity);
- if(!quote||quote.source!=='DEX Screener'||quote.chain!==candidate.chain||
+ if(!quote||(webOnly?quote.source!=='GPT_WEB_PRICE_INDICATIVE':
+    quote.source!=='DEX Screener')||quote.chain!==candidate.chain||
   quote.tokenAddress?.toLowerCase()!==candidate.token_address.toLowerCase()||
   quote.poolAddress?.toLowerCase()!==candidate.pool_address.toLowerCase()||
   !numeric(quote.priceUsd)||quote.priceUsd<=0||
   !numeric(quote.liquidityUsd)||quote.liquidityUsd<(gptSignedPaper?1000:50000)||
   !numeric(Date.parse(quote.asOf))||Date.parse(quote.asOf)>now||
-  now-Date.parse(quote.asOf)>60000||
+  now-Date.parse(quote.asOf)>(webOnly?90000:60000)||
   !numeric(candidate.price_usd)||candidate.price_usd<=0||
   quote.priceUsd/candidate.price_usd<0.85||
   quote.priceUsd/candidate.price_usd>1.15||
-  (numeric(candidate.liquidity_usd)&&quote.liquidityUsd<candidate.liquidity_usd*0.75))
+  (numeric(candidate.liquidity_usd)&&quote.liquidityUsd<candidate.liquidity_usd*0.75)||
+  (webOnly&&(quote.priceUsd!==webQuote.priceUsd||
+   quote.liquidityUsd!==webQuote.liquidityUsd||
+   quote.asOf!==webQuote.asOf||
+   quote.tokenAddress?.toLowerCase()!==webQuote.token_address.toLowerCase()||
+   quote.poolAddress?.toLowerCase()!==webQuote.pool_address.toLowerCase())))
   return result('BLOCKED','INDEPENDENT_MARKET_QUOTE_MISSING',0,equity);
  // GPT owns momentum/demand strategy: keep these heuristics for the
  // older LOCAL autopilot only. Positive fresh prices, exact pair identity,
@@ -78,7 +97,7 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
  // Volume/liquidity outlier and deteriorating liquidity often imply manipulation.
  if(!gptSignedPaper&&quote.volume5mUsd>quote.liquidityUsd*2.0)
   return result('BLOCKED','SUSPICIOUS_VOLUME_TO_LIQUIDITY',0,equity);
- if(!validatePaperSecurityEvidence(security,{chain:candidate.chain,
+ if(!webOnly&&!validatePaperSecurityEvidence(security,{chain:candidate.chain,
   token:candidate.token_address,pool:candidate.pool_address,now,
   allowUnknownGoPlusRiskForGptPaper:gptSignedPaper}))
   return result('BLOCKED','CONTRACT_SECURITY_OR_SELL_SIMULATION_UNVERIFIED',0,equity);
@@ -123,7 +142,9 @@ export function r29LivePaperEntryGate({state,candidate,quote,security,now=Date.n
   weekly<=-equity*MAX_WEEKLY_LOSS||
   Number.isFinite(state.closedPnl)&&state.closedPnl<=-equity*MAX_WEEKLY_LOSS))
   return result('BLOCKED','DAILY_OR_WEEKLY_LOSS_CIRCUIT_BREAKER',0,equity);
- return result('ALLOW_PAPER','SECURITY_AND_RISK_GATES_PASSED',max,equity);
+ return result('ALLOW_PAPER',webOnly?
+  'INDICATIVE_WEB_PAPER_PRICE_RISK_AND_SELLABILITY_UNKNOWN':
+  'SECURITY_AND_RISK_GATES_PASSED',max,equity);
 }
 export function newPaperRiskLedger(now=Date.now()){
  const date=new Date(now);

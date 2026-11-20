@@ -208,7 +208,7 @@ let livePaperAutopilot=null;
 let githubAgentFeedStatus={checked_at_utc:null,received_last:0,
  accepted_last:0,rejected_last:0,last_rejection:null,
  status:'NOT_CHECKED',last_error:null};
-function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_ADAPTER',localTrust=null,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null,gptExitAuth=null,gptPolicyExit=null}={}){
+function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_ADAPTER',localTrust=null,indicativePaper=false,paperAutopilotCandidate=null,securityEvidence=null,gptExitAuth=null,gptPolicyExit=null,gptWebEvidence=null}={}){
  const job=async()=>{
   let keys;
   try{
@@ -235,7 +235,7 @@ function submitSignedAgentPaperOrder(signed,{qaQuote=null,source='SIGNED_LOCAL_A
   try{
    const syntheticTest=process.env.SNIPER_OFFLINE==='1'&&
     process.env.SNIPER_PIPELINE_QA==='1'&&qaQuote!==null;
-   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source,syntheticTest,indicativePaper,paperAutopilotCandidate,securityEvidence,gptExitAuth,gptPolicyExit,gptExitMonitorReady:gptExitMonitorHealthy()});
+   const result=applyAgentSignal(state,signed,keys,{deviceId:localDevice.device_id,quote,source,syntheticTest,indicativePaper,paperAutopilotCandidate,securityEvidence,gptExitAuth,gptPolicyExit,gptWebEvidence,gptExitMonitorReady:gptExitMonitorHealthy()});
    commit(result.next);
    return {ok:true,receipt:result.receipt,real_trade_executed:false,live_trading_enabled:false};
   }catch(e){return {error:String(e?.message||'AGENT_PAPER_PIPELINE_BLOCKED').slice(0,120),code:422}}

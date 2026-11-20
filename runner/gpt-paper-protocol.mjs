@@ -5,6 +5,7 @@ import {createHash} from 'node:crypto';
 import {validTokenAddress} from './market.mjs';
 import {validateGptExitPolicy} from './gpt-position-exit.mjs';
 import {MIN_GPT_PAPER_ENTRY_USDC,MIN_PAPER_ENTRY_USDC} from './portfolio-budget.mjs';
+import {validateGptWebPriceEvidence} from './gpt-web-price-evidence.mjs';
 
 export const GPT_PAPER_DECISION_PATH='research/r29/channel/gpt-paper-decision.json';
 export const GPT_PAPER_RECEIPT_PATH='research/r29/channel/gpt-paper-receipt.json';
@@ -14,6 +15,9 @@ export const GPT_PAPER_REPO='127027/Sniperbot-';
 export const GPT_PAPER_DECISION_SCHEMA='sniper_r29_gpt_paper_decision.v1';
 export const GPT_PAPER_DECISION_SCHEMA_V2='sniper_r29_gpt_paper_decision.v2';
 export const GPT_PAPER_DECISION_SCHEMA_V3='sniper_r29_gpt_paper_decision.v3';
+// V4 is an opt-in, explicitly non-executable PUBLIC-WEB PRICE paper experiment.
+// No real wallet, onchain trade, proven exit liquidity or onchain sell simulation.
+export const GPT_PAPER_DECISION_SCHEMA_V4='sniper_r29_gpt_paper_decision.v4';
 export const GPT_PAPER_POINTER_SCHEMA='sniper_r29_gpt_paper_pointer.v1';
 const decisionFields=[
  'schema','mode','strategy','decision_id','action','chain','token_address',
@@ -24,6 +28,7 @@ const decisionFields=[
 const decisionFieldsV2=[...decisionFields,'exit_policy'];
 // GPT selects coin, BUY and exit; only the local owner settings select stake.
 const decisionFieldsV3=[...decisionFieldsV2,'sizing_mode'];
+const decisionFieldsV4=[...decisionFieldsV3,'web_market_evidence'];
 const pointerFields=['schema','mode','decision_id','archive_path',
  'archive_sha256','published_at_utc','real_trading_enabled'];
 const sameKeys=(x,arr)=>x&&typeof x==='object'&&!Array.isArray(x)&&
@@ -40,10 +45,12 @@ export const archivePath=(id,when)=>'research/r29/gpt-decisions/'+when.slice(0,1
 export function validateGptPaperDecision(d,{now=Date.now(),forExecution=false}={}){
  const v2=d?.schema===GPT_PAPER_DECISION_SCHEMA_V2;
  const v3=d?.schema===GPT_PAPER_DECISION_SCHEMA_V3;
- if(!(v3?sameKeys(d,decisionFieldsV3):
+ const v4=d?.schema===GPT_PAPER_DECISION_SCHEMA_V4;
+ if(!(v4?sameKeys(d,decisionFieldsV4):
+   v3?sameKeys(d,decisionFieldsV3):
    v2?sameKeys(d,decisionFieldsV2):sameKeys(d,decisionFields))||
   ![GPT_PAPER_DECISION_SCHEMA,GPT_PAPER_DECISION_SCHEMA_V2,
-    GPT_PAPER_DECISION_SCHEMA_V3].includes(d.schema)||
+    GPT_PAPER_DECISION_SCHEMA_V3,GPT_PAPER_DECISION_SCHEMA_V4].includes(d.schema)||
   d.mode!=='PAPER_ONLY'||d.strategy!=='GPT_ONLY'||!decId(d.decision_id)||
   !['BUY','SELL','HOLD','WATCH','NO_TRADE'].includes(d.action)||
   d.trade_type!=='VIRTUAL_ONLY'||d.real_trading_enabled!==false||
@@ -66,14 +73,25 @@ export function validateGptPaperDecision(d,{now=Date.now(),forExecution=false}={
   (forExecution&&expires<=now))throw Error('GPT_DECISION_TIME_OR_SOURCE_INVALID');
  const trade=actionable.has(d.action);
  // Old decision v1 is readable, but v1 BUY is blocked at the local executor.
- if(v2||v3){
+ if(v2||v3||v4){
   if(d.action==='BUY')validateGptExitPolicy(d.exit_policy);
   else if(d.exit_policy!==null)throw Error('GPT_NON_BUY_EXIT_POLICY_FORBIDDEN');
  }
- if(v3&&d.sizing_mode!==(d.action==='BUY'?'LOCAL_USER_COIN_STAKE':null))
+ if((v3||v4)&&d.sizing_mode!==(d.action==='BUY'?'LOCAL_USER_COIN_STAKE':null))
   throw Error('GPT_LOCAL_STAKE_MODE_INVALID');
  if(expires-created>(trade?180000:26*3600000))
   throw Error('GPT_DECISION_TTL_TOO_LONG');
+ if(v4){
+  if(trade){
+   // This is an INDICATIVE virtual-experiment transaction, NOT an
+   // independently verified executable swap. Risk must never be called LOW.
+   if(d.security_assessment!=='UNKNOWN'||d.risk_level!=='HIGH')
+    throw Error('GPT_WEB_ONLY_PAPER_MUST_DISCLOSE_UNVERIFIED_RISK');
+   validateGptWebPriceEvidence(d.web_market_evidence,{
+    chain:d.chain,token:d.token_address,pool:d.pool_address,now});
+  }else if(d.web_market_evidence!==null)
+   throw Error('GPT_NON_TRADE_MUST_NOT_CARRY_WEB_PRICE');
+ }
  if(trade){
   if(!['solana','base','bsc','eth'].includes(d.chain)||
    !validTokenAddress(d.chain,d.token_address)||
@@ -83,7 +101,7 @@ export function validateGptPaperDecision(d,{now=Date.now(),forExecution=false}={
    // a PAPER attempt. The local receiver independently validates identity,
    // quotes, sell simulation, budget and stored exit authorization.
    // A GPT score or research label is not an execution safety proof.
-   (d.action==='BUY'&& (v3?d.amount_test_usdc!==null:
+   (d.action==='BUY'&& ((v3||v4)?d.amount_test_usdc!==null:
     (typeof d.amount_test_usdc!=='number'||!Number.isFinite(d.amount_test_usdc)||
     d.amount_test_usdc<(v2?MIN_GPT_PAPER_ENTRY_USDC:MIN_PAPER_ENTRY_USDC)||
     d.amount_test_usdc>5000||
@@ -98,8 +116,10 @@ export function validateGptPaperDecision(d,{now=Date.now(),forExecution=false}={
  return {trade,action:d.action,candidate_id:trade||d.action!=='NO_TRADE'?
    d.chain+':'+d.token_address+':'+d.pool_address:null,
   decision_id:d.decision_id, expires_at_utc:d.expires_at_utc,
-  signed_exit_policy:(v2||v3)&&d.action==='BUY'?d.exit_policy:null,
-  owner_fixed_coin_stake:v3&&d.action==='BUY'};
+  signed_exit_policy:(v2||v3||v4)&&d.action==='BUY'?d.exit_policy:null,
+  owner_fixed_coin_stake:(v3||v4)&&d.action==='BUY',
+  indicative_web_paper_only:v4&&trade,
+  web_market_evidence:v4&&trade?d.web_market_evidence:null};
 }
 
 export function validateGptPaperPointer(p,{now=Date.now()}={}){
