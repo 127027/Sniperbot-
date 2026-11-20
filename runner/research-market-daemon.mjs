@@ -10,6 +10,7 @@ import {emptyMarketWatch,updateMarketWatch,publicMarketWatch} from './market-wat
 import {detectEarlyMarketAcceleration,detectFirstSeenRecentPoolLeads} from './research-hype-triggers.mjs';
 import {readRecentSolanaStreamLeads} from './solana-live-events.mjs';
 import {collectNarrativeLeads} from './research-narrative-radar.mjs';
+import {updateLocalRankingResearch} from './research-public-ranking-discovery.mjs';
 import {updateLocalNewsJournal} from './research-news-journal.mjs';
 import {readPublicPoolReadbacks} from './readback-public-bridge.mjs';
 import {publishResearchSnapshot,publishingEnabled} from './research-market-publisher.mjs';
@@ -37,6 +38,7 @@ const marketWatchFile=path.join(root,'.local','research-learning','market-watch.
 const alertFile=path.join(root,'.local','research-learning','market-alerts.json');
 const streamFolder=path.join(root,'.local','solana-live-stream');
 const newsFile=path.join(root,'.local','research-learning','news-captures.json');
+const rankingFile=path.join(root,'.local','research-learning','public-ranking-captures.json');
 const r27ArchiveFolder=path.join(process.env.LOCALAPPDATA||path.join(root,'.local'),
  'MemeSniperPaper','r27-evidence','captures');
 const readbackFile=path.join(root,'.local','research-learning','pool-readbacks','latest.json');
@@ -154,11 +156,16 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
   let solanaStreamLeads=[],solanaStreamReadError=null;
   let narrative={leads:[],coverage:[]},narrativeError=null;
   let news={leads:[],coverage:[],new_saved_events:0,stored_events:0},newsError=null;
+  let ranking={leads:[],coverage:[]},rankingError=null;
   let readbackBridgeError=null;
   // Even if DEX providers are blocked, the public news stream may still run.
   // Poll feeds at most every 15 min; retain first local capture for later replay.
   try{news=await updateLocalNewsJournal({filename:newsFile,fetcher,now})}
   catch(e){newsError=String(e?.message||'NEWS_JOURNAL_UNAVAILABLE').replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,95)}
+  // Independent prospectively captured token links; never convert into POOL identities.
+  // Cached for 30 min to avoid 8 HTML requests on each 2-minute pool cycle.
+  try{ranking=await updateLocalRankingResearch({filename:rankingFile,fetcher,now})}
+  catch(e){rankingError=String(e?.message||'RANKING_RESEARCH_UNAVAILABLE').replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,95)}
   // Prospective evidence: capture the exact public data first seen by THIS
   // collector, without modifying any existing historical or paper portfolio.
   // Deliberately never backdate the capture to a source's claimed publish time.
@@ -231,6 +238,8 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
     catch(e){narrativeError=String(e?.message||'NARRATIVE_UNAVAILABLE').slice(0,90)}
     snapshot.narrative_leads=narrative.leads;
     snapshot.narrative_coverage=narrative.coverage;
+    snapshot.ranking_leads=ranking.leads;
+    snapshot.ranking_coverage=ranking.coverage;
     snapshot.news_leads=news.leads;
     snapshot.news_coverage=news.coverage;
     // Return only locally confirmed, still-fresh PUBLIC pool identity notes
@@ -279,6 +288,10 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
       observations:r27Capture?.pools||0,headlines:r27Capture?.headlines||0,
       sha256:r27Capture?.sha256_payload||null,error:r27ArchiveError,
       independent_asof_verification:false},
+    public_rankings:{last_capture_at_utc:ranking.checked_at_utc??null,
+      lead_count:ranking.leads.length,coverage:ranking.coverage,
+      cached:ranking.cached===true,error:rankingError,
+      trading_authorized:false,source_independent_of_geckoterminal:true},
     news_radar:{last_check_at_utc:news.checked_at_utc??null,
       public_news_leads:news.leads.length,new_local_events:news.new_saved_events,
       local_archive_count:news.stored_events,coverage:news.coverage,error:newsError},
