@@ -224,3 +224,32 @@ test('R29 V5.0 neutral controls rotate while no future data or trade strategy en
  await assert.rejects(async()=>chooseBoundedResearchCandidates(rows,{now:now0,limit:25}),
   /BOUNDED_RESEARCH_SELECTION_INVALID/);
 });
+
+test('older non-promoted trending pool gets a second discovery route and remains research only',async()=>{
+ const oldToken='0x'+'d'.repeat(40),oldPool='0x'+'e'.repeat(40);
+ const urls=[];
+ const fetcher=async url=>{
+  urls.push(url);
+  if(url.includes('/networks/base/trending_pools?')){
+   const m=getChain(url),pool=validPool(m,oldToken,oldPool);
+   return response({data:[{...pool,attributes:{...pool.attributes,
+    pool_created_at:'2026-10-28T12:00:00Z',reserve_in_usd:'88000',
+    volume_usd:{m5:'26000'},transactions:{m5:{buys:55,sells:12}}}}]});
+  }
+  if(url.includes('geckoterminal'))return response({data:[]});
+  if(url.includes('/latest/dex/pairs/base/'))return response({pairs:[
+   {chainId:'base',baseToken:{address:oldToken},pairAddress:oldPool}]});
+  return response({pairs:[]});
+ };
+ const s=await collectSnapshot({fetcher,now});
+ const c=s.candidates.find(c=>c.token_address===oldToken);
+ assert(c,'old pool with renewed volume must not disappear just because it is not new');
+ assert.equal(c.source,'GECKOTERMINAL_TRENDING_POOLS');
+ assert.equal(c.verification,'CROSS_PROVIDER_IDENTITY');
+ assert.equal(c.promotion_biased,false);
+ assert.equal(c.observed_at_utc,now);
+ assert.equal(s.paper_only,true);assert.equal(s.actionable,false);
+ assert(c.unresolved_checks.includes('SELLABILITY'));
+ assert(urls.some(u=>u.includes('/networks/base/trending_pools?duration=5m')));
+ assert(s.coverage.some(x=>x.source==='GECKOTERMINAL_TRENDING'&&x.status==='OK'));
+});
