@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {asofReplay24h,renderMarkdown} from './r29-24h-blind-git-replay.mjs';
+import {createHash} from 'node:crypto';
+import {asofReplay24h,renderMarkdown,archiveActions} from './r29-24h-blind-git-replay.mjs';
 
 const start='2026-11-19T20:48:09.000Z',end='2026-11-20T20:48:09.000Z';
 const token='0x'+'1'.repeat(40),pool='0x'+'2'.repeat(40);
@@ -97,4 +98,23 @@ test('review claims count only after actual Git publication, not as model infere
 test('invalid window lengths and bankrolls rejected without touching any account',()=>{
  assert.throws(()=>asofReplay24h({startUtc:start,endUtc:start,snapshots:[]}),/INVALID/);
  assert.throws(()=>asofReplay24h({startUtc:start,endUtc:end,snapshots:[],stake:6000,budget:5000}),/INVALID/);
+});
+
+test('archived Git decision pointer counts BUY only after exact owner-public SHA256 archive, not pointer alone',()=>{
+ const decision_id='gpt_'+'f'.repeat(32);
+ const raw=JSON.stringify({decision_id,mode:'PAPER_ONLY',action:'BUY',
+  created_at_utc:one})+'\\n';
+ const pointer={schema:'sniper_r29_gpt_paper_pointer.v1',
+  decision_id,mode:'PAPER_ONLY',archive_path:'research/r29/gpt-decisions/2026-11-19/'+decision_id+'.json',
+  archive_sha256:createHash('sha256').update(raw).digest('hex'),
+  published_at_utc:one};
+ const row={commit_sha:'a'.repeat(40),committed_at_utc:two,snapshot:pointer};
+ const verified=archiveActions([row],'decision',{readArchive:()=>raw});
+ assert.equal(verified[0].action,'BUY');
+ assert.equal(verified[0].status,'ARCHIVE_SHA256_AND_ID_MATCH');
+ const corrupt=archiveActions([row],'decision',{readArchive:()=>raw+'tampered'});
+ assert.equal(corrupt[0].action,'UNKNOWN_UNVERIFIED_POINTER');
+ assert.equal(corrupt[0].status,'MISSING_OR_INVALID_ARCHIVE');
+ const missing=archiveActions([row],'decision',{readArchive:()=>{throw Error('missing')}});
+ assert.equal(missing[0].action,'UNKNOWN_UNVERIFIED_POINTER');
 });
