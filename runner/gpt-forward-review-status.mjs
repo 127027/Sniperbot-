@@ -7,7 +7,7 @@ const MIN_HOUR_MS=60*60_000;
 const validUtc=s=>typeof s==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/.test(s)&&
  Number.isFinite(Date.parse(s));
 const asUtc=s=>Date.parse(s);
-const digest=s=>typeof s==='string'&&/^[a-f0-9]{64}$/.test(s);
+const blob=s=>typeof s==='string'&&/^[a-f0-9]{40}$/.test(s);
 const id=s=>typeof s==='string'&&/^gptreview_[a-f0-9]{32}$/.test(s);
 const act=new Set(['BUY','WATCH','HOLD','SELL','NO_ACTION']);
 const safePath=s=>typeof s==='string'&&
@@ -38,7 +38,7 @@ export function validateGptForwardStatus(x,{now=Date.now()}={}){
    !validUtc(r.market_observed_at_utc)||
    asUtc(r.market_observed_at_utc)>asUtc(r.completed_at_utc)||
    asUtc(r.completed_at_utc)-asUtc(r.market_observed_at_utc)>30*60_000||
-   !digest(r.market_source_sha256)||!safePath(r.artifact_path)||
+   !blob(r.market_source_blob_sha)||!safePath(r.artifact_path)||
    !r.artifact_path.includes('/'+x.utc_day+'/')||
    !Number.isInteger(r.candidates_seen)||r.candidates_seen<0||r.candidates_seen>5000||
    !Number.isInteger(r.candidates_reviewed)||r.candidates_reviewed<1||
