@@ -41,8 +41,8 @@ test('public provider 429 becomes unavailable, unrelated news never fabricates a
    {title:'Today local weather in Barcelona',link:'https://source.example/weather',date:pub}
   ])};
  }});
- assert.equal(requests,3);
- assert.equal(result.coverage.filter(r=>r.status==='OK').length,2);
+ assert.equal(requests,8);
+ assert.equal(result.coverage.filter(r=>r.status==='OK').length,7);
  assert.equal(result.coverage.filter(r=>r.status==='SOURCE_UNAVAILABLE').length,1);
  assert.equal(result.leads.length,1,'same news URL is deduplicated across publishers');
  assert.equal(result.leads[0].candidate_id,null,'no contract inferred from ticker/animal');
@@ -57,4 +57,35 @@ test('bounded parsed items with no network and no unaudited script injection',()
  const malicious=parseResearchNewsRSS(rss([{title:'Meme coin <script>alert(1)</script>',
   link:'https://source.example/x',date:pub}]),{feed:'Test',observed_at_utc:now});
  assert(!malicious[0].title.includes('<script>'));
+});
+
+test('general-world culture and IPO catalysts are observed without winner names or token guesses',()=>{
+ const xml=rss([
+  {title:'Beloved zoo hippo dies after becoming a popular attraction',
+   link:'https://news.example/hippo',date:pub},
+  {title:'Major video game franchise releases its next installment',
+   link:'https://news.example/game',date:pub},
+  {title:'Artificial intelligence startup prepares IPO debut',
+   link:'https://news.example/ipo',date:pub},
+  {title:'A random weather report with no event',link:'https://news.example/weather',date:pub}
+ ]);
+ const rows=parseResearchNewsRSS(xml,{feed:'BBCWorld',observed_at_utc:now});
+ assert.equal(rows.length,3);
+ assert(rows.every(e=>e.signal_categories.includes('GENERAL_EVENT_CATALYST_CANDIDATE')));
+ assert(rows.every(e=>e.candidate_id===null&&e.actionable===false));
+ assert(!rows.some(e=>e.source_url.includes('weather')));
+});
+test('fair source sampling preserves general-world news after crypto feeds fill their own lists',async()=>{
+ const result=await collectResearchNews({now,fetcher:async url=>{
+  const source=new URL(url).pathname.replace(/[^a-z]/g,'')||'crypto';
+  return {ok:true,headers:{get:()=>null},text:async()=>rss(Array.from({length:12},(_,i)=>({
+   title:source.includes('rss')?'Beloved zoo animal dies after viral story':'Solana meme coin launch '+i,
+   link:'https://news.example/'+source+'-'+i,date:pub
+  })))};
+ }});
+ assert.equal(result.coverage.length,8);
+ assert.equal(result.leads.length,16);
+ assert(result.leads.some(e=>e.source_name.startsWith('BBC')),
+  'general-source event must not be crowded out');
+ assert(result.leads.every(e=>e.actionable===false&&e.candidate_id===null));
 });
