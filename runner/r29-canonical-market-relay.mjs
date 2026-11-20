@@ -16,7 +16,8 @@ export const CANONICAL_MARKET_BRANCH='codex/r29-chatgpt-github-paper-cycle-20261
 export const CANONICAL_MARKET_PATH='research/market/latest.json';
 export const CANONICAL_MARKET_URL='https://api.github.com/repos/'+REPO+'/contents/'+CANONICAL_MARKET_PATH;
 const ISO=x=>typeof x==='string'&&x.endsWith('Z')&&Number.isFinite(Date.parse(x));
-const SOURCES=new Set(['GECKOTERMINAL_NEW_POOLS','DEXSCREENER_PROMOTED_PROFILE_FALLBACK']);
+const SOURCES=new Set(['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS',
+ 'DEXSCREENER_PROMOTED_PROFILE_FALLBACK']);
 const VERIFICATION=new Set(['PROVIDER_ONLY','CROSS_PROVIDER_IDENTITY']);
 const CHECKS=new Set(['INDEPENDENT_PAIR_IDENTITY','CONTRACT','LIQUIDITY_RISK','SELLABILITY','PAID_PROFILE_BIAS']);
 const SOURCE_HOSTS=new Set(['api.geckoterminal.com','api.dexscreener.com','pumpportal.fun']);
@@ -208,7 +209,8 @@ export function canonicalPublicMarketProjection(snapshot,{now=Date.now()}={}){
  }
  const coverage=(snapshot.coverage||[]).slice(0,12).map(c=>({
   chain:['solana','base','bsc','eth'].includes(c.chain)?c.chain:'unknown',
-  source:['GECKOTERMINAL','DEXSCREENER_PROFILES_FALLBACK'].includes(c.source)?
+  source:['GECKOTERMINAL','GECKOTERMINAL_TRENDING',
+    'DEXSCREENER_PROFILES_FALLBACK'].includes(c.source)?
    c.source:'OTHER',
   status:['OK','PARTIAL','PROMOTED_PROFILES_ONLY','NO_PAIR_IDENTITIES'].includes(c.status)?
    c.status:'SOURCE_INCOMPLETE',
