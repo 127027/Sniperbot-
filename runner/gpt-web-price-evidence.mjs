@@ -31,7 +31,8 @@ export function validateGptWebPriceEvidence(e,{chain,token,pool,now=Date.now()}=
    String(e.pool_address).toLowerCase()!==pool.toLowerCase()||
    e.quote_quality!=='INDICATIVE_WEB_ONLY'||e.sellability_verified!==false||
    e.executable_quote_verified!==false||!finitePos(e.price_usd)||
-   e.price_usd>=1e9||!finitePos(e.liquidity_usd)||e.liquidity_usd<10000||
+   e.price_usd<1e-15||e.price_usd>=1e9||!finitePos(e.liquidity_usd)||
+   e.liquidity_usd<10000||e.liquidity_usd>1e13||
    !Array.isArray(e.sources)||e.sources.length<2||e.sources.length>3)
   throw Error('GPT_WEB_PRICE_SCHEMA_OR_IDENTITY_INVALID');
  const at=obs(e.observed_at_utc);
@@ -55,7 +56,8 @@ export function validateGptWebPriceEvidence(e,{chain,token,pool,now=Date.now()}=
   if(u.protocol!=='https:'||u.port||u.username||u.password||
    u.href.length>500||!allowedHost.has(u.hostname)||u.hash)
    throw Error('GPT_WEB_SOURCE_URL_NOT_ALLOWED');
-  const text=(u.pathname+u.search).toLowerCase();
+  // Exact identity must be in the webpage path, never token-stuffed query params.
+  const text=u.pathname.toLowerCase();
   if(!text.includes(token.toLowerCase())&&!text.includes(pool.toLowerCase()))
    throw Error('GPT_WEB_SOURCE_LACKS_EXACT_TOKEN_OR_POOL');
   const host=hostRoot(u.hostname);
