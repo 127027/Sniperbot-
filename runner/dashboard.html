@@ -126,6 +126,13 @@ footer{margin-top:24px;border-top:1px solid var(--border);padding-top:18px;font-
   <div class="toolbar-left"><h2 id="modeHeading" class="section-title">Paper-Portfolio</h2><span id="botBadge" class="pill">Bot-Status wird geladen</span></div>
   <button id="toggleBot" class="btn primary" type="button" disabled>Bot …</button>
 </div>
+<section class="card wide-section" aria-label="Echte GPT-Forschungsdurchläufe pro UTC-Tag">
+  <div class="section-head"><h2>GPT-Vollanalysen heute</h2><span id="gptReviewCount" class="pill">Noch nicht belegt</span></div>
+  <div id="gptReviewCadence" class="small-notice">Warte auf das GPT-Modelljournal von GitHub.</div>
+  <div id="gptReviewLast" class="small-notice">Stündliche Bot-Scans sind keine GPT-Vollanalysen.</div>
+  <ul id="gptReviewList" class="activity-list"><li class="sub">Noch keine GPT-Review-Nachweise.</li></ul>
+  <p class="small-notice">GPT-Rechercheberichte sind Modellangaben, keine unabhängige kryptografische Modellattestierung. Ein GPT-Review ist weder automatisch eine Order noch ein bestätigter Paper-Kauf.</p>
+</section>
 <section class="card wide-section" aria-label="GPT-Entscheidungen und reale Marktbeobachtung">
   <div class="section-head"><h2>GPT-Entscheidungen &amp; Marktaktivität</h2><span id="gptDecisionCount" class="sub">Warte auf lokalen GPT-Status</span></div>
   <p class="small-notice" id="gptActivitySummary">Nur echte lokal empfangene GitHub-GPT-Entscheidungen zählen als GPT-Entscheidungen. Marktscans sind keine BUY-Signale; nur bestätigte Paper-Fills verändern das Konto.</p>
@@ -288,6 +295,37 @@ function renderHistory(view){
   list.appendChild(li);
  }
 }
+function renderGptForward(p){
+ const x=p?.gpt_forward_reviews;
+ const list=$('gptReviewList');clearChildren(list);
+ if(!x?.available){
+  pill('gptReviewCount','0 nachgewiesen · Ziel 4–24','blocked');
+  $('gptReviewCadence').textContent='Kein gültiger, aktueller GPT-Review-Index für den heutigen UTC-Tag. Die SCOUT-Marktscans zählen ausdrücklich nicht.';
+  $('gptReviewLast').textContent='Letzter GPT-Vollreview: nicht belegbar';
+  addElement(list,'li','Noch keine bestätigbaren GPT-Vollreviews im lokalen Tagesjournal.','sub');
+  return;
+ }
+ pill('gptReviewCount',String(x.completed_reviews_today)+' / '+String(x.target_per_day)+' GPT-Berichte',
+  x.completed_reviews_today>=4?'ok':'blocked');
+ $('gptReviewCadence').textContent='GPT-geplantes Tagesziel: '+
+  String(x.target_per_day)+' Reviews · Marktdynamik: '+
+  String(x.model_chosen_activity_level||'unbekannt')+
+  ' · Grund: '+String(x.cadence_reason||'Nicht angegeben');
+ $('gptReviewLast').textContent='Letzter GPT-Vollreview: '+
+  stamp(x.last_review_at_utc)+' · nächster geplanter Review: '+
+  stamp(x.next_due_at_utc)+' · Modellidentität nicht unabhängig attestiert';
+ const rows=Array.isArray(x.recent)?x.recent:[];
+ if(!rows.length)addElement(list,'li','Heute noch keine GPT-Vollanalyse dokumentiert.','sub');
+ for(const r of rows){
+  const li=document.createElement('li');
+  addElement(li,'div','GPT-Review · '+String(r.action||'UNBEKANNT')+
+   ' · '+stamp(r.completed_at_utc),'activity-name');
+  addElement(li,'div',String(r.candidates_reviewed)+' von '+
+   String(r.candidates_seen)+' beobachteten Coins detailliert bewertet · '+
+   'kein Paper-Fill ohne eigene Empfangsquittung','activity-detail');
+  list.appendChild(li);
+ }
+}
 function renderGptActivity(p){
  const list=$('gptActivityList');clearChildren(list);
  const research=$('researchActivityList');clearChildren(research);
@@ -427,6 +465,7 @@ function renderPaper(){
  $('positionNote').textContent='Paper-Bewertungen sind indikativ; inklusive modellierter 1 % Verkaufskosten. Veraltete oder fehlende Kurse werden nicht als Gewinn angezeigt.';
  renderPositions(p);
  renderHistory(p);
+ renderGptForward(p);
  renderGptActivity(p);
  $('setPaperBalance').disabled=!p||p.bot_enabled||p.open_position_count>0||commandBusy;
  $('balanceSettingsNote').textContent=p?.bot_enabled?'Zum Ändern des Guthabens den Bot pausieren.':
@@ -485,7 +524,7 @@ function render(){
  $('paperSettings').hidden=!paper;
  $('realSettings').hidden=paper;
  $('modeNote').textContent=paper?'Virtuelles Geld · keine Echtgeld-Orders':'Verifizierte Blockchain-Bestände · Echtgeldhandel ausgeschaltet';
- if(paper)renderPaper();else {renderReal();renderGptActivity(null);}
+ if(paper)renderPaper();else {renderReal();renderGptForward(null);renderGptActivity(null);}
 }
 function selectMode(mode){
  if(!['paper','real'].includes(mode))return;
