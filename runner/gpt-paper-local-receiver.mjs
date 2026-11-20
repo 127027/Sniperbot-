@@ -11,6 +11,7 @@ import {readLocalPaperMarketSnapshot} from './live-paper-autopilot.mjs';
 import {r29LivePaperEntryGate} from './live-paper-risk.mjs';
 import {lookupToken} from './market.mjs';
 import {collectEvmSecurity} from './live-paper-security.mjs';
+import {validateGptWebPriceEvidence} from './gpt-web-price-evidence.mjs';
 import {computePrivateGptCapacity,validatePrivateGptCapacity} from './gpt-paper-capacity-report.mjs';
 import {userCoinStake} from './portfolio-budget.mjs';
 
@@ -118,7 +119,7 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
     requested_test_usdc:requestedStake
    }).approved)
    receipt=safeResult(d,'BLOCKED','GPT_FRESH_PRIVATE_PAPER_CAPACITY_REJECTED');
-  else if(!['base','bsc','eth'].includes(d.chain))
+  else if(!parsed.indicative_web_paper_only&&!['base','bsc','eth'].includes(d.chain))
    receipt=safeResult(d,'BLOCKED','SOLANA_SECURITY_GATE_NOT_YET_SUPPORTED');
   else{
    const before=getState();
@@ -129,7 +130,24 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
     receipt=safeResult(d,'BLOCKED','NO_MATCHING_GPT_OWNED_PAPER_POSITION');
    else{
     let candidate=null,q=null,security=null;
-    if(d.action==='BUY'){
+    // V4 GitHub-only public-WEB research PAPER experiment. An accepted
+    // virtual fill is NEVER an executable quote or a sellability guarantee.
+    // Strict proof schema is already authenticated with decision archive SHA.
+    if(parsed.indicative_web_paper_only){
+     const w=validateGptWebPriceEvidence(parsed.web_market_evidence,{
+      chain:d.chain,token:d.token_address,pool:d.pool_address,now:instant});
+     q={...w,tokenAddress:d.token_address,poolAddress:d.pool_address,
+      chain:d.chain};
+     if(d.action==='BUY')candidate={
+      chain:d.chain,token_address:d.token_address,pool_address:d.pool_address,
+      candidate_id:d.chain+':'+d.token_address+':'+d.pool_address,
+      price_usd:w.priceUsd,liquidity_usd:w.liquidityUsd,
+      first_local_observed_at_utc:w.asOf,
+      observed_at_utc:w.asOf,source:'GPT_WEB_PRICE_INDICATIVE',
+      verification:'TWO_INDEPENDENT_PUBLIC_WEB_PRICE_PAGES',
+      promotion_biased:false,paper_only:true,web_paper_experiment:true};
+    }
+    if(d.action==='BUY'&&!parsed.indicative_web_paper_only){
      const local=loadMarket(marketFile,{now:instant});
      if(!local?.ok)receipt=safeResult(d,'BLOCKED','LOCAL_SOURCE_NOT_FRESH');
      else{
@@ -139,7 +157,7 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
        first_local_observed_at_utc:found.observed_at_utc};
      }
     }
-    if(!receipt){
+    if(!receipt&&!parsed.indicative_web_paper_only){
      try{
       const rawQuote=await lookup(d.chain,d.token_address,fetch,d.pool_address);
       if(rawQuote)q={...rawQuote,chain:d.chain,tokenAddress:d.token_address,
@@ -155,7 +173,8 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
     if(!receipt&&d.action==='BUY'){
      const approval=r29LivePaperEntryGate({
       state:{...getState(),automaticPaperBuys:true},candidate,
-      quote:q,security,now:now(),gptSignedPaper:true});
+      quote:q,security,now:now(),gptSignedPaper:true,
+      gptWebEvidence:parsed.web_market_evidence});
      if(!approval.allowed)receipt=safeResult(d,'BLOCKED',approval.reason);
      else if(requestedStake>approval.amount_test_usdc)
       receipt=safeResult(d,'BLOCKED','GPT_SIZE_EXCEEDS_INDEPENDENT_RISK_CAP');
@@ -177,6 +196,7 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
      const executed=await submit(order,{
       qaQuote:q,source:'GPT_GITHUB_LOCAL',
       localTrust:[trusted],securityEvidence:security,
+      gptWebEvidence:parsed.web_market_evidence,
       paperAutopilotCandidate:candidate,
       gptDecisionId:d.decision_id,
       gptExitAuth:d.action==='BUY'&&parsed.signed_exit_policy?
@@ -231,7 +251,8 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
    if(!live)continue;
    summary.checked++;
    let q=null;
-   if(validateGptExitBinding(live)){
+   if(validateGptExitBinding(live)&&
+      live.safety!=='INDICATIVE_WEB_PRICE_SELLABILITY_UNKNOWN'){
     try{
      const found=await lookup(live.chain,live.tokenAddress,fetch,live.poolAddress);
      if(found)q={...found,chain:live.chain,
