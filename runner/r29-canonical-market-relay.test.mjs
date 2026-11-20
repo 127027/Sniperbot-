@@ -312,3 +312,18 @@ test('V6.4 unsupported ranked chain remains research-only, never in pool candida
  assert.equal(v.candidates.length,1);
  assert(v.candidates.every(x=>x.chain!=='robinhood'));
 });
+
+test('V6.5 two-provider verified ranking pool is sent to GPT as research only',()=>{
+ const s=snapshot();
+ s.candidates[0].source='R29_RANKING_CROSS_PROVIDER_POOL';
+ s.candidates[0].source_urls=[
+  'https://api.geckoterminal.com/api/v2/networks/solana/tokens/'+mint+'/pools?page=1',
+  'https://api.dexscreener.com/token-pairs/v1/solana/'+mint
+ ];
+ const v=canonicalPublicMarketProjection(s,{now});
+ assert.equal(v.candidates.length,1);
+ assert.equal(v.candidates[0].source,'R29_RANKING_CROSS_PROVIDER_POOL');
+ assert.equal(v.candidates[0].verification,'CROSS_PROVIDER_IDENTITY');
+ assert(v.candidates[0].unresolved_checks.includes('SELLABILITY'));
+ assert.equal(v.actionable,false);
+});
