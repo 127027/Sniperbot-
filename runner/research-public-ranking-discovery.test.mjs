@@ -54,7 +54,7 @@ test('V6.4 neutral discovery fetches fixed URLs and supports unsupported chains 
  const x=await collectPublicRankingResearch({now:at,fetcher});
  assert.equal(requests,8);
  assert.equal(x.coverage.length,8);
- assert.equal(x.leads.length,8);
+ assert.equal(x.leads.length,6,'duplicate token links across NEW and GAINERS pages deduplicate by chain/address');
  assert(x.leads.some(l=>l.chain==='robinhood'));
  assert(x.leads.some(l=>l.chain==='arc'));
  assert(x.leads.every(l=>l.actionable===false&&l.pool_address===null));
