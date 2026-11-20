@@ -120,6 +120,7 @@ export async function resolveRankingPoolCandidates({leads=[],candidates=[],fetch
   }
  }
  return {schema:'r29_ranked_pool_research.v1',paper_only:true,actionable:false,
-  observed_at_utc:now,resolved,checks,source:'CROSS_PROVIDER_EXACT_TOKEN_POOL_MATCH',
+  observed_at_utc:now,attempted:slots.length,resolved,checks,
+  source:'CROSS_PROVIDER_EXACT_TOKEN_POOL_MATCH',
   warning:'Ranks may be hindsight biased. Two provider pool identity does not prove organic adoption, contract safety, sellability, or executable quotes.'};
 }
