@@ -17,6 +17,8 @@ const DS='https://api.dexscreener.com';
 const numeric=x=>x===undefined||x===null||x===''?null:(Number.isFinite(Number(x))&&Number(x)>=0?Number(x):null);
 const utc=x=>{const t=Date.parse(x);return Number.isFinite(t)&&t>0?new Date(t).toISOString():null};
 const reason=e=>{
+  if(e?.code==='INVALID_PROVIDER_JSON'||e?.code==='INVALID_PROVIDER_SCHEMA')
+    return 'PROVIDER_RESPONSE_INVALID';
   if(e?.status===429)return 'HTTP_429_RATE_LIMIT';
   if(Number.isInteger(e?.status))return 'HTTP_'+e.status;
   const cause=String(e?.cause?.code||e?.code||'').toUpperCase();
@@ -30,7 +32,19 @@ async function getJson(url,fetcher){
   const response=await fetcher(u.href,{headers:{accept:'application/json','user-agent':'MemeSniperResearchCollector/1.0'},
     signal:AbortSignal.timeout(12000)});
   if(!response?.ok){const e=Error('Provider HTTP error');e.status=response?.status;throw e}
-  return response.json();
+  try{return await response.json()}
+  catch{const e=Error('Invalid provider JSON');e.code='INVALID_PROVIDER_JSON';throw e}
+}
+async function getPoolPage(url,fetcher){
+  // Do not hammer a rate-limited free API: 429 is a hard stop for this
+  // cycle. One bounded backoff retry is allowed only on transient 5xx.
+  // There is no paid API, no hidden provider fallback and no forged pool.
+  try{return await getJson(url,fetcher)}
+  catch(e){
+    if(![500,502,503,504].includes(e?.status))throw e;
+    await new Promise(resolve=>setTimeout(resolve,300));
+    return getJson(url,fetcher);
+  }
 }
 function identity(chain,token,pool){try{return candidateId(chain,token,pool)}catch{return null}}
 function gtRecord(raw,m,now,url,source='GECKOTERMINAL_NEW_POOLS'){
@@ -149,8 +163,8 @@ export async function collectSnapshot({fetcher=fetch,now=new Date().toISOString(
     for(let page=1;page<=pages;page++){
       const url=GT+'/networks/'+m.gecko+'/new_pools?page='+page;
       try{
-        const data=await getJson(url,fetcher);
-        if(!Array.isArray(data?.data))throw Error('Malformed pool data');
+        const data=await getPoolPage(url,fetcher);
+        if(!Array.isArray(data?.data)){const e=Error('Malformed pool data');e.code='INVALID_PROVIDER_SCHEMA';throw e}
         successfulPages++;
         count+=data.data.length;
         rows.push(...data.data.map(p=>gtRecord(p,m,now,url)).filter(Boolean));
@@ -166,8 +180,8 @@ export async function collectSnapshot({fetcher=fetch,now=new Date().toISOString(
     if(!rateLimited){
       const url=GT+'/networks/'+m.gecko+'/trending_pools?duration=5m&page=1';
       try{
-        const data=await getJson(url,fetcher);
-        if(!Array.isArray(data?.data))throw Error('Malformed trending pools');
+        const data=await getPoolPage(url,fetcher);
+        if(!Array.isArray(data?.data)){const e=Error('Malformed trending pools');e.code='INVALID_PROVIDER_SCHEMA';throw e}
         trendingSucceeded=true;
         trendingRows.push(...data.data.slice(0,20)
           .map(p=>gtRecord(p,m,now,url,'GECKOTERMINAL_TRENDING_POOLS')).filter(Boolean));
