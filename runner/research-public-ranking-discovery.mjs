@@ -105,7 +105,11 @@ export async function updateLocalRankingResearch({filename,fetcher=fetch,now=new
    Array.isArray(cached.coverage)&&cached.coverage.length===RANKING_SOURCES.length&&
    Number.isFinite(age)&&age>=0&&age<RANKING_CACHE_MS)
    return {...cached,cached:true};
- }catch(e){if(e.code!=='ENOENT')throw e}
+ }catch(e){
+  // A damaged local read-only cache must not disable prospective discovery.
+  // Never edit portfolio state or any file outside this dedicated cache.
+  if(e.code&&e.code!=='ENOENT')throw e;
+ }
  const next=await collectPublicRankingResearch({fetcher,now});
  await mkdir(dirname(filename),{recursive:true});
  const tmp=filename+'.tmp-'+process.pid;
