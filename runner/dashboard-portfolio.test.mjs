@@ -246,3 +246,27 @@ test('V5.8 stale or untrusted research cannot create UI activity or fake a trade
  assert.equal(view.gpt_paper_received_decisions,0);
  assert.equal(view.gpt_local_paper_fills,0);
 });
+
+
+test('V6.1 dashboard reports live Gecko failures and dropped candidate count without exposing private fields',()=>{
+ const now=Date.parse('2026-11-20T12:00:00Z');
+ const collector={
+  schema:'research_market_collector_status.v1',
+  paper_only:true,actionable:false,
+  last_check_at_utc:'2026-11-20T11:59:00Z',
+  latest_local_snapshot_at_utc:'2026-11-20T11:59:00Z',
+  status:'RUNNING_RESEARCH',candidate_count:3,
+  coverage:[{chain:'solana',source:'GECKOTERMINAL',
+   status:'HTTP_429_RATE_LIMIT',omitted_by_research_cap:2,
+   private_key:'SECRET_NEVER_EXPORT'},
+   {chain:'eth',source:'GECKOTERMINAL_TRENDING',
+    status:'SKIPPED_AFTER_RATE_LIMIT'}]
+ };
+ const view=paperDashboardView(freshState(),{collector,now});
+ const d=view.gpt_paper_market_source_diagnostic;
+ assert.equal(d.complete_source_universe,false);
+ assert.equal(d.lost_by_per_chain_limit,2);
+ assert.equal(d.source_problem_count,2);
+ assert.equal(d.source_problems[0].status,'HTTP_429_RATE_LIMIT');
+ assert(!JSON.stringify(view).includes('SECRET_NEVER_EXPORT'));
+});
