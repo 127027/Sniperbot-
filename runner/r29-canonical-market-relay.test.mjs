@@ -264,3 +264,51 @@ test('V6.1 untrusted coverage text and private fields are never leaked',()=>{
  assert(!JSON.stringify(v).includes('NEVER_EXPORT'));
  assert(!JSON.stringify(v).includes('CREDENTIALS'));
 });
+
+test('V6.4 canonical relay publishes ranking token clues without manufacturing missing pool IDs',()=>{
+ const s=snapshot();
+ const token='0x'+'a'.repeat(40);
+ const atTime=s.published_at_utc;
+ const lead={
+  chain:'bsc',token_address:token,observed_at_utc:atTime,
+  source:'SASA_PUBLIC_RANKING_RESEARCH',source_key:'BSC_NEW',
+  source_url:'https://sasapad.fun/top/new-bnb-chain-meme-coins/',
+  token_url:'https://sasapad.fun/x/bsc/'+token+'/',
+  pool_address:null,candidate_id:null,
+  contract_identity_independently_verified:false,pool_identity_verified:false,
+  trade_safety_verified:false,paper_entry_authorized:false,
+  paper_only:true,actionable:false,
+  claim_status:'RANKING_TOKEN_LEAD_NOT_POOL_OR_EARLY_SIGNAL'
+ };
+ s.ranking_leads=[lead,{...lead}];
+ s.local_private_key='NEVER_EXPORT';
+ s.ranking_coverage=[{source:'BSC_NEW',status:'OK',token_leads:1,
+  observed_at_utc:atTime,user_balance:4999}];
+ const out=canonicalPublicMarketProjection(s,{now});
+ assert.equal(out.ranking_leads.length,1);
+ assert.equal(out.ranking_coverage.length,1);
+ assert.equal(out.summary.independent_ranking_research_leads,1);
+ assert.equal(out.ranking_leads[0].pool_address,null);
+ assert.equal(out.ranking_leads[0].candidate_id,null);
+ assert.equal(out.ranking_leads[0].paper_entry_authorized,false);
+ assert(!JSON.stringify(out).includes('NEVER_EXPORT'));
+ assert(!JSON.stringify(out).includes('4999'));
+});
+test('V6.4 unsupported ranked chain remains research-only, never in pool candidates',()=>{
+ const s=snapshot(),token='0x'+'c'.repeat(40);
+ s.ranking_leads=[{
+  chain:'robinhood',token_address:token,observed_at_utc:at,
+  source:'SASA_PUBLIC_RANKING_RESEARCH',source_key:'ROBINHOOD_NEW',
+  source_url:'https://sasapad.fun/top/new-robinhood-chain-meme-coins/',
+  token_url:'https://sasapad.fun/x/robinhood/'+token+'/',
+  pool_address:null,candidate_id:null,contract_identity_independently_verified:false,
+  pool_identity_verified:false,trade_safety_verified:false,
+  paper_entry_authorized:false,paper_only:true,actionable:false,
+  claim_status:'RANKING_TOKEN_LEAD_NOT_POOL_OR_EARLY_SIGNAL'
+ }];
+ const v=canonicalPublicMarketProjection(s,{now});
+ assert.equal(v.ranking_leads.length,1);
+ assert.equal(v.summary.unsupported_ranking_chain_leads,1);
+ assert.equal(v.candidates.length,1);
+ assert(v.candidates.every(x=>x.chain!=='robinhood'));
+});

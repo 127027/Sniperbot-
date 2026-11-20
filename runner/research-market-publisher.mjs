@@ -121,6 +121,34 @@ export function assertResearch(s){
          Object.keys(e).some(k=>!allowed.has(k))))
       throw Error('Unsafe public news research payload');
   }
+  // V6.4: prospective public token links are research-only. They are
+  // deliberately NOT pool identities, valid quotes or BUY candidates.
+  if(s.ranking_leads!==undefined){
+    const allowed=['chain','token_address','observed_at_utc','source','source_key',
+      'source_url','token_url','pool_address','candidate_id',
+      'contract_identity_independently_verified','pool_identity_verified',
+      'trade_safety_verified','paper_entry_authorized','paper_only',
+      'actionable','claim_status'];
+    const chains=new Set(['solana','base','bsc','eth','robinhood','arc']);
+    const keys=new Set(['SOLANA_NEW','SOLANA_GAINERS','BSC_NEW','BSC_GAINERS',
+     'BASE_NEW','ETH_GAINERS','ROBINHOOD_NEW','ARC_NEW']);
+    if(!Array.isArray(s.ranking_leads)||s.ranking_leads.length>48||
+      s.ranking_leads.some(e=>!e||Object.keys(e).sort().join('|')!==allowed.sort().join('|')||
+       !chains.has(e.chain)||!keys.has(e.source_key)||
+       e.paper_only!==true||e.actionable!==false||
+       e.paper_entry_authorized!==false||e.pool_address!==null||
+       e.candidate_id!==null||e.contract_identity_independently_verified!==false||
+       e.pool_identity_verified!==false||e.trade_safety_verified!==false||
+       e.source!=='SASA_PUBLIC_RANKING_RESEARCH'||
+       e.claim_status!=='RANKING_TOKEN_LEAD_NOT_POOL_OR_EARLY_SIGNAL'||
+       typeof e.token_url!=='string'||!e.token_url.startsWith('https://sasapad.fun/x/')||
+       typeof e.source_url!=='string'||!e.source_url.startsWith('https://sasapad.fun/top/')||
+       !Number.isFinite(Date.parse(e.observed_at_utc))))
+      throw Error('Unsafe independent ranking research payload');
+  }
+  if(s.ranking_coverage!==undefined&&
+    (!Array.isArray(s.ranking_coverage)||s.ranking_coverage.length>8))
+    throw Error('Unsafe independent ranking provider coverage');
   // Only sanitized local readback provenance may be sent to the public Dot feed.
   // No keys, balances, wallet material, orders, risk PASS or executable quotes.
   if(s.pool_readbacks!==undefined){
