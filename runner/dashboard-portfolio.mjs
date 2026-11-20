@@ -4,6 +4,7 @@
 import {portfolioBudget,MIN_GPT_PAPER_ENTRY_USDC,MIN_PAPER_ENTRY_USDC,userCoinStake} from './portfolio-budget.mjs';
 import {diagnoseGptPaperInactivity} from './gpt-paper-inactivity.mjs';
 import {summarizeLocalGptFunnel} from './gpt-paper-forward-funnel.mjs';
+import {localGptForwardView} from './gpt-forward-review-status.mjs';
 const round8=n=>Math.round((n+Number.EPSILON)*1e8)/1e8;
 const finite=v=>typeof v==='number'&&Number.isFinite(v);
 const usableMoney=v=>finite(v)&&v>=0;
@@ -19,7 +20,7 @@ function quoteStatus(position,now){
   return 'STALE';
  return position?.isDemo===true?'SYNTHETIC':'INDICATIVE';
 }
-export function paperDashboardView(state,{now=Date.now(),collector=null,security=null}={}){
+export function paperDashboardView(state,{now=Date.now(),collector=null,security=null,gptForward=null}={}){
  if(!state||!Array.isArray(state.positions)||!Array.isArray(state.history)||
     !usableMoney(state.cashUsdc)||!usableMoney(state.cashEur)||
     !finite(state.closedPnl)||!Number.isFinite(now))
@@ -141,6 +142,7 @@ export function paperDashboardView(state,{now=Date.now(),collector=null,security
   gpt_paper_local_activity_diagnostic:gptActivity,
   gpt_paper_research_funnel:funnel,
   gpt_paper_research_activity:researchActivity,
+  gpt_forward_reviews:localGptForwardView(gptForward,{now}),
   pricing_warning:'Nur indikative Positionsbewertung, inklusive 1 % modellierter Ausstiegskosten. Keine ausführbare Sell-Quote und kein garantierter Auszahlungsbetrag.'
  };
 }
