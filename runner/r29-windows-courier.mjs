@@ -282,6 +282,34 @@ export async function syncR29WindowsSandbox({token,folder,fetcher=fetch,
  const published=await publishR29Status(status,{token,fetcher});
  return {status,published,skipped_unchanged:false};
 }
+// V6.8: local-only, read-only evidence of the GPT index synchronization.
+// Without this, a stale UI can show 3/12 indefinitely while GitHub has 5/12
+// and the background courier only emits an invisible console error.
+export function writeGptForwardSyncDiagnostic({folder,now=Date.now(),
+ status='ERROR',reason=null,reviewCount=null}={}){
+ if(typeof folder!=='string'||!path.isAbsolute(folder)||!Number.isFinite(now)||
+   !['SYNCED','ERROR'].includes(status)||
+   !(reviewCount===null||(Number.isInteger(reviewCount)&&reviewCount>=0&&reviewCount<=24)))
+  throw Error('GPT_FORWARD_SYNC_DIAGNOSTIC_INVALID');
+ const safeError=typeof reason==='string'&&
+   (/^(?:GPT_FORWARD_REVIEW_STATUS_INVALID|GPT_FORWARD_LOCAL_FOLDER_INVALID|
+     R29_GITHUB_READ_HTTP_[0-9]{3}|R29_GITHUB_CONTENTS_INVALID|
+     R29_GITHUB_CONTENTS_TOO_LARGE)$/.test(reason.replace(/\\s+/g,'')))?
+   reason.replace(/\\s+/g,''):'GITHUB_OR_LOCAL_SYNC_FAILED';
+ const diagnostic={
+   schema:'sniper_r29_gpt_forward_sync_diagnostic.v1',
+   checked_at_utc:new Date(now).toISOString(),
+   status,reason:status==='SYNCED'?null:safeError,
+   completed_reviews_today:status==='SYNCED'?reviewCount:null,
+   read_only:true,trade_authorized:false,real_trading_enabled:false
+ };
+ mkdirSync(folder,{recursive:true});
+ const file=path.join(folder,'gpt-forward-sync-diagnostic.json');
+ const temp=file+'.pending-'+process.pid;
+ writeFileSync(temp,JSON.stringify(diagnostic,null,2)+'\\n',{mode:0o600});
+ renameSync(temp,file);
+ return diagnostic;
+}
 // Transport a read-only, model-authored GPT review index to the existing
 // Windows dashboard. Never claim GitHub attribution cryptographically attests
 // a model invocation. This data has ZERO order authority and no account info.
@@ -300,6 +328,8 @@ export async function syncGptForwardReviewStatus({token,folder,now=Date.now(),fe
   writeFileSync(pending,raw,{mode:0o600});
   renameSync(pending,file);
  }
+ writeGptForwardSyncDiagnostic({folder,now,status:'SYNCED',
+  reviewCount:status.available?status.completed_reviews_today:0});
  return {status,published:false,read_only:true};
 }
 if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href){
@@ -335,6 +365,8 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
         report.status.completed_reviews_today+'/'+report.status.target_per_day,
         'GPT-dokumentiert; NICHT unabhängig attestiert');
     }catch(e){
+      try{writeGptForwardSyncDiagnostic({folder,status:'ERROR',
+        reason:String(e?.message||e)});}catch{}
       console.error('[GPT V5.9] Modell-Review-Index noch nicht verifizierbar:',
         String(e?.message||e).slice(0,100));
     }
