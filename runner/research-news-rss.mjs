@@ -33,7 +33,7 @@ function safeUrl(u){
 function relevance(title,description){
  const text=(title+' '+description).toLowerCase();
  const crypto=/(meme\s?coin|memecoin|meme\s?token|pump\.fun|token launch|new crypto token|viral|doge|pepe|penguin|squirrel|shiba|solana|celebrity coin|trump|elon musk)/i;
- const topics=/(video games?|gaming|game studio|film|movies?|music artist|hippo|zoo|wildlife|animals?|artificial intelligence|ai startup|initial public offering|\bipo\b|stock market debut|social media|internet sensation)/i;
+ const topics=/(video games?|\bgames?\b|gaming|game studio|film|movies?|music artist|hippo|zoo|wildlife|animals?|artificial intelligence|\bai\b|ai startup|initial public offering|\bipo\b|stock market debut|social media|internet sensation)/i;
  const events=/(launch(?:ed|es)?|releas(?:es|ed)?|debut(?:s|ed)?|premiere[sd]?|goes public|initial public offering|\bipo\b|dies|died|death|passes away|breaks? record|goes viral|viral sensation|trending|viral)/i;
  const tags=[];
  if(crypto.test(text))tags.push('PUBLIC_NEWS_NARRATIVE_LEAD');
