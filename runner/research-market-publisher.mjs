@@ -149,6 +149,32 @@ export function assertResearch(s){
   if(s.ranking_coverage!==undefined&&
     (!Array.isArray(s.ranking_coverage)||s.ranking_coverage.length>8))
     throw Error('Unsafe independent ranking provider coverage');
+  // V6.7: only bounded rank-to-pool attempt counts and known outcome codes.
+  // Never copy private account information or a BUY authorization.
+  if(s.ranking_pool_resolution!==undefined){
+    const x=s.ranking_pool_resolution;
+    const allowed=['schema','paper_only','actionable','attempted',
+      'cross_provider_matched','admitted','capacity_skipped','checks','status'];
+    const states=new Set(['POOL_RESEARCH_ERROR','NO_ELIGIBLE_TOKEN_LEADS',
+      'NO_CROSS_PROVIDER_POOL_MATCH','MATCHED_POOL_RESEARCH_ONLY']);
+    const outcomes=new Set(['POOL_IDENTITY_NOT_CROSS_PROVIDER_CONFIRMED',
+      'POOL_ADDRESS_INVALID','POOL_PRICE_OR_LIQUIDITY_UNAVAILABLE',
+      'CROSS_PROVIDER_PRICE_MISMATCH','POOL_CANONICAL_ID_MISMATCH',
+      'RESEARCH_POOL_MATCHED_NOT_TRADE_APPROVED','RATE_LIMITED',
+      'PROVIDER_UNAVAILABLE_OR_INVALID']);
+    const count=n=>Number.isInteger(n)&&n>=0&&n<=4;
+    if(!x||typeof x!=='object'||Array.isArray(x)||
+      Object.keys(x).sort().join('|')!==[...allowed].sort().join('|')||
+      x.schema!=='r29_ranking_pool_resolution.v1'||x.paper_only!==true||
+      x.actionable!==false||!states.has(x.status)||
+      ![x.attempted,x.cross_provider_matched,x.admitted,x.capacity_skipped].every(count)||
+      x.cross_provider_matched>x.attempted||x.admitted>x.cross_provider_matched||
+      x.admitted+x.capacity_skipped>x.cross_provider_matched||
+      !Array.isArray(x.checks)||x.checks.length>x.attempted||
+      x.checks.some(v=>!v||Object.keys(v).sort().join('|')!=='chain|status'||
+        !['solana','base','bsc','eth'].includes(v.chain)||!outcomes.has(v.status)))
+      throw Error('Unsafe ranking-pool diagnostics');
+  }
   // Only sanitized local readback provenance may be sent to the public Dot feed.
   // No keys, balances, wallet material, orders, risk PASS or executable quotes.
   if(s.pool_readbacks!==undefined){
