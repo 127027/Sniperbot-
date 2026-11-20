@@ -96,6 +96,8 @@ test('V4 independent public-web quote BUY -> real local PAPER LEDGER -> SELL; no
   assert.equal(replay.duplicate,true);
   assert.equal(submitCalls,1);
 
+  // User pauses new entries; previously opened GPT-managed paper position may still sell.
+  state={...state,entriesEnabled:false};
   const sell=decision('SELL','2'.repeat(32),.000018);
   const result=await receiver.receive(envelope(sell));
   assert.equal(result.status,'PAPER_FILLED',result.reason);
