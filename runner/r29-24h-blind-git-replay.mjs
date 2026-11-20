@@ -117,6 +117,17 @@ export function asofReplay24h({snapshots,reviews=[],decisions=[],receipts=[],
     a.candidate_id.localeCompare(b.candidate_id));
  const doubledAtAnyPoint=repeat.filter(x=>x.best_seen_low_to_later_high_pct>=100)
   .sort((a,b)=>b.best_seen_low_to_later_high_pct-a.best_seen_low_to_later_high_pct);
+ // Research-quality filter is deliberately NOT a safety/tradability approval.
+ // Spotty two-sample and >100x changes remain in the RAW appendix, not in
+ // the primary research shortlist. Repeated quotes and initial independent
+ // pool identity merely reduce obvious price-scale and sampling anomalies.
+ const reviewableDoublers=doubleFromFirst.filter(x=>
+  x.observations>=3&&x.first_liquidity_usd>=10000&&
+  x.first_verification==='CROSS_PROVIDER_IDENTITY'&&
+  x.first_to_later_peak_pct<=9900);
+ const extremeUnverified=doubleFromFirst.filter(x=>
+  x.first_to_later_peak_pct>9900);
+ const onlyTwoSamples=doubleFromFirst.filter(x=>x.observations===2);
  const validEvent=(ev,key)=>{
   const at=time(ev?.published_commit_at_utc);
   return at!==null&&at>=start&&at<=end&&ev?.[key];
@@ -126,6 +137,22 @@ export function asofReplay24h({snapshots,reviews=[],decisions=[],receipts=[],
     time(x.completed_at_utc)<=time(x.published_commit_at_utc)&&
     ['BUY','WATCH','HOLD','SELL','NO_ACTION'].includes(x.action))
   .sort((a,b)=>Date.parse(a.published_commit_at_utc)-Date.parse(b.published_commit_at_utc));
+ // Post-hoc evaluation only. These future labels MUST NEVER enter a
+ // prospective GPT review or be counted as actually reviewed contracts.
+ const reviewOpportunityDiagnostics=archivedReviews.map(r=>{
+  const at=time(r.published_commit_at_utc);
+  const last=chronicle.filter(s=>time(s.available_at_utc)<=at).at(-1);
+  const available=new Set(last?.candidate_ids||[]);
+  const eventuallyDoubled=doubleFromFirst.filter(x=>
+    available.has(x.candidate_id)&&time(x.max_price_at_utc)>at).length;
+  return {review_id:r.review_id,review_completed_at_utc:r.completed_at_utc,
+   review_published_at_utc:r.published_commit_at_utc,
+   nearest_archived_market_snapshot_utc:last?.available_at_utc||null,
+   market_rows_available_at_latest_snapshot:available.size,
+   snapshot_contains_pool_with_later_observed_100pct_excursion:eventuallyDoubled,
+   model_actually_reviewed_these_future_movers:'NOT_VERIFIED',
+   classifier_past_tense_only:true};
+ });
  const actualDecisions=decisions.filter(x=>validEvent(x,'decision_id'));
  const actualReceipts=receipts.filter(x=>validEvent(x,'decision_id'));
  const buys=actualDecisions.filter(x=>x.action==='BUY');
@@ -149,6 +176,9 @@ export function asofReplay24h({snapshots,reviews=[],decisions=[],receipts=[],
   omitted_by_provider_caps_across_snapshots:omitted,
   first_to_peak_observed_over_100_pct:doubleFromFirst.length,
   any_low_to_later_high_observed_over_100_pct:doubledAtAnyPoint.length,
+  research_quality_shortlist_doublers:reviewableDoublers.length,
+  extreme_over_100x_unverified_price_jumps:extremeUnverified.length,
+  doubled_with_two_samples_only:onlyTwoSamples.length,
   gpt_full_reviews_observed:archivedReviews.length,
   gpt_actions:archivedReviews.reduce((o,r)=>(o[r.action]=(o[r.action]||0)+1,o),{}),
   signed_buy_decisions_published:buys.length,
@@ -165,9 +195,11 @@ export function asofReplay24h({snapshots,reviews=[],decisions=[],receipts=[],
   coverage_limitation:'Only committed GitHub candidate samples; missing prices, 429, per-chain caps, rapidly disappeared coins and unobserved chains excluded',
   market_observations:chronicle.map(({candidate_ids,...a})=>a),
   actual_gpt_reviews:archivedReviews,
+  review_opportunity_diagnostics:reviewOpportunityDiagnostics,
   published_trade_decisions:actualDecisions,
   paper_receipts:actualReceipts,
   top_first_to_peak_movers:doubleFromFirst.slice(0,30),
+  top_research_quality_shortlist:reviewableDoublers.slice(0,30),
   top_low_to_later_high_movers:doubledAtAnyPoint.slice(0,30),
   all_first_to_peak_doublers:doubleFromFirst,
   all_low_to_later_high_doublers:doubledAtAnyPoint,
@@ -201,7 +233,13 @@ function archivedReviewsFromGit(rows){
  const earliest=new Map();
  for(const row of rows.sort((a,b)=>Date.parse(a.committed_at_utc)-Date.parse(b.committed_at_utc))){
   for(const r of row.snapshot?.reviews||[]){
-   if(!earliest.has(r.review_id))earliest.set(r.review_id,{
+   // The actual 20 November archive contains a corrected malformed review ID.
+   // Count unique actual review events, not the old and fixed identifier
+   // as two separate model calls.
+   if(!/^gptreview_[a-f0-9]{32}$/.test(r.review_id||''))continue;
+   if(time(r.completed_at_utc)===null||typeof r.artifact_path!=='string')continue;
+   const eventKey=r.completed_at_utc+'|'+r.artifact_path;
+   if(!earliest.has(eventKey))earliest.set(eventKey,{
     review_id:r.review_id,completed_at_utc:r.completed_at_utc,
     published_commit_at_utc:row.committed_at_utc,action:r.action,
     candidates_seen:r.candidates_seen,candidates_reviewed:r.candidates_reviewed});
@@ -234,28 +272,40 @@ export function renderMarkdown(r){
   '| Pools mit mindestens 2 Preisbeobachtungen | '+r.pools_with_multiple_price_samples+' |',
   '| Erstbeobachtung → späterer Peak über 100% | '+r.first_to_peak_observed_over_100_pct+' |',
   '| Historisches Tief → späteres Hoch über 100% | '+r.any_low_to_later_high_observed_over_100_pct+' |',
+  '| Research-Qualitäts-Shortlist (keine Handelsfreigabe) | '+r.research_quality_shortlist_doublers+' |',
+  '| Extrembewegungen >100x, nicht unabhängig validiert | '+r.extreme_over_100x_unverified_price_jumps+' |',
+  '| Verdoppler mit nur 2 historischen Kursbeobachtungen | '+r.doubled_with_two_samples_only+' |',
   '| Quellstatus 429 (Snapshots, nicht einmalige Fehlversuche) | '+r.provider_429_status_count+' |',
   '| Archivierte GPT-Vollreviews | '+r.gpt_full_reviews_observed+' |',
   '| Archivierte GPT-BUYs | '+r.signed_buy_decisions_published+' |',
   '| Archivierte öffentliche PAPER_FILLED-Receipts | '+r.public_paper_filled_receipts+' |',
   '| Streng belegte Replay-Käufe | '+r.strict_replay_virtual_buy_count+' |',
   '',
-  '## Stärkste im Verlauf tatsächlich beobachtete Kursbewegungen',
+  '## Für die Forschung priorisierte Kursbewegungen (NICHT handelbar bestätigt)',
   '',
   'Berechnung: erster archivierter Kurs eines Pools bis zu dessen späterem archiviertem Höchstkurs; keine Ausführbarkeitszusage.',
   '',
   '| Chain / Contract / Pool | Erstsichtung | Beobachtungen | Kursbewegung | 50 TEST-USDC theoretischer Peakwert |',
   '|---|---|---:|---:|---:|'
  ];
- for(const x of r.top_first_to_peak_movers.slice(0,25)){
+ for(const x of r.top_research_quality_shortlist.slice(0,25)){
   lines.push('| '+x.chain+' / '+x.token_address+' / '+x.pool_address+
    ' | '+x.first_seen_commit_utc+' | '+x.observations+
    ' | +'+x.first_to_later_peak_pct+'% | '+x.theoretical_50_first_to_peak_end+' |');
  }
- if(!r.top_first_to_peak_movers.length)lines.push('| Keine mit mehreren Samples belegte Bewegung über +100% | – | – | – | – |');
+ if(!r.top_research_quality_shortlist.length)lines.push('| Keine Bewegung mit den zusätzlichen Qualitätsmerkmalen belegt | – | – | – | – |');
+ lines.push('','Der vollständige Rohdaten-Anhang in der JSON-Datei enthält auch extreme und schlecht belegte Werte. Diese sind nicht als realisierbare Gewinne zu bewerten.');
  lines.push('', '## Was GPT tatsächlich dokumentierte', '',
   'GPT-Aktionen: '+JSON.stringify(r.gpt_actions)+'.',
   'Es wurde kein GPT-Modell bei jedem historischen Zeitpunkt erneut ausgeführt. Das Archiv rekonstruiert nur tatsächlich bekannte Entscheidungen.',
+  '',
+  '### Welche späteren Verdoppler waren in den letzten veröffentlichten Snapshots vor den GPT-Reviews enthalten?',
+  '',
+  '| Review veröffentlicht UTC | Pools im neuesten verfügbaren Snapshot | Pools daraus mit späterem beobachtetem >100%-Anstieg |',
+  '|---|---:|---:|',
+  ...r.review_opportunity_diagnostics.map(x=>'| '+x.review_published_at_utc+' | '+x.market_rows_available_at_latest_snapshot+' | '+x.snapshot_contains_pool_with_later_observed_100pct_excursion+' |'),
+  '',
+  'Die letzte Spalte ist eine NACHTRÄGLICHE Auswertung, kein Nachweis, dass GPT diese Coins geprüft oder rechtzeitig als BUY erkannt hat.',
   '',
   '## Warum der strenge Replay keine Käufe ausführt', '');
  for(const x of r.strict_execution_blockers)lines.push('- '+x);
@@ -302,7 +352,11 @@ if(process.argv[1]&&fileURLToPath(import.meta.url)===path.resolve(process.argv[1
   publicFills:r.public_paper_filled_receipts,
   strictBuys:r.strict_replay_virtual_buy_count,
   provider429:r.provider_429_status_count,
-  top:r.top_first_to_peak_movers.slice(0,5).map(x=>({
+  researchShortlist:r.research_quality_shortlist_doublers,
+  extremeUnverified:r.extreme_over_100x_unverified_price_jumps,
+  onlyTwoPriceSamples:r.doubled_with_two_samples_only,
+  reviewOpportunityCounts:r.review_opportunity_diagnostics.map(x=>x.snapshot_contains_pool_with_later_observed_100pct_excursion),
+  top:r.top_research_quality_shortlist.slice(0,8).map(x=>({
     id:x.candidate_id,pct:x.first_to_later_peak_pct,
     first:x.first_seen_commit_utc,peak:x.max_price_at_utc,
     n:x.observations,beginPrice:x.first_price_usd,peakPrice:x.max_price_after_first_usd
