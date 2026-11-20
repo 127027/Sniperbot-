@@ -6,7 +6,7 @@ const iso=h=>new Date(Date.parse(day+'T00:00:00Z')+h*3600000).toISOString();
 const review=(h,i)=>({
  review_id:'gptreview_'+i.toString(16).padStart(32,'0'),
  completed_at_utc:iso(h),market_observed_at_utc:iso(h-.05),
- market_source_sha256:'a'.repeat(64),
+ market_source_blob_sha:'a'.repeat(40),
  artifact_path:'research/r29/gpt-strategy/experiences/'+day+'/review-'+i+'.md',
  candidates_seen:60,candidates_reviewed:8,action:'WATCH',model_review_completed:true
 });
