@@ -181,6 +181,39 @@ function publicNarrativeLead(e,at,candidates){
   claim_status:linked?'SAME_CHAIN_TOKEN_POOL_LINK_NOT_SAFETY_VALIDATED':
     matches.length>1?'MULTIPLE_POOLS_REQUIRE_REVIEW':'UNVERIFIED_COIN_OR_NARRATIVE'};
 }
+// V6.4: additional neutral public ranking candidates, NOT market pools,
+// not independent contract validation, not an early pre-breakout observation.
+// Preserve unsupported chains for research only; never as executable candidates.
+const RANKINGS=new Set(['SOLANA_NEW','SOLANA_GAINERS','BSC_NEW','BSC_GAINERS',
+ 'BASE_NEW','ETH_GAINERS','ROBINHOOD_NEW','ARC_NEW']);
+function publicRankingLead(x,at){
+ if(!x||x.paper_only!==true||x.actionable!==false||
+  x.paper_entry_authorized!==false||x.pool_address!==null||
+  x.candidate_id!==null||x.pool_identity_verified!==false||
+  x.contract_identity_independently_verified!==false||
+  x.trade_safety_verified!==false||
+  x.source!=='SASA_PUBLIC_RANKING_RESEARCH'||
+  x.claim_status!=='RANKING_TOKEN_LEAD_NOT_POOL_OR_EARLY_SIGNAL'||
+  !RANKINGS.has(x.source_key)||
+  !timeWindow(x.observed_at_utc,Date.parse(at),60*60_000)||
+  !['solana','base','bsc','eth','robinhood','arc'].includes(x.chain))return null;
+ const evm=['base','bsc','eth','robinhood','arc'].includes(x.chain);
+ if(!(evm?/^0x[a-f0-9]{40}$/.test(x.token_address||''):
+   validTokenAddress('solana',x.token_address)))return null;
+ const source='https://sasapad.fun/top/';
+ if(typeof x.source_url!=='string'||!x.source_url.startsWith(source)||
+   !/^https:\/\/sasapad\.fun\/top\/[a-z0-9-]+\/$/.test(x.source_url))
+  return null;
+ const url='https://sasapad.fun/x/'+x.chain+'/'+x.token_address+'/';
+ if(x.token_url!==url)return null;
+ return {chain:x.chain,token_address:x.token_address,
+  observed_at_utc:x.observed_at_utc,source:x.source,source_key:x.source_key,
+  source_url:x.source_url,token_url:url,pool_address:null,candidate_id:null,
+  contract_identity_independently_verified:false,pool_identity_verified:false,
+  trade_safety_verified:false,paper_entry_authorized:false,
+  paper_only:true,actionable:false,
+  claim_status:'RANKING_TOKEN_LEAD_NOT_POOL_OR_EARLY_SIGNAL'};
+}
 function publicCoverage(raw,allowed,max){
  if(!Array.isArray(raw))return [];
  return raw.slice(0,max).filter(x=>x&&allowed.has(x.feed||x.source)&&
@@ -235,12 +268,23 @@ export function canonicalPublicMarketProjection(snapshot,{now=Date.now()}={}){
  const narrativeLeads=[...new Map((snapshot.narrative_leads||[])
   .map(e=>publicNarrativeLead(e,at,candidates)).filter(Boolean)
   .map(e=>[e.chain+':'+e.token_address,e])).values()].slice(0,24);
+ const rankingLeads=[...new Map((snapshot.ranking_leads||[])
+  .map(x=>publicRankingLead(x,at)).filter(Boolean)
+  .map(x=>[x.chain+':'+x.token_address,x])).values()].slice(0,48);
+ const rankingCoverage=(snapshot.ranking_coverage||[]).slice(0,8)
+  .filter(x=>x&&RANKINGS.has(x.source)&&
+   ['OK','NO_VALID_TOKEN_LINKS','SOURCE_UNAVAILABLE'].includes(x.status))
+  .map(x=>({source:x.source,status:x.status,
+   token_leads:Math.max(0,Math.min(40,Math.floor(BOUNDED(x.token_leads)||0))),
+   observed_at_utc:timeWindow(x.observed_at_utc,Date.parse(at),60*60_000)?
+    x.observed_at_utc:null}));
  const publicSnapshot={
   schema:'research_market_snapshot.v1',paper_only:true,actionable:false,
   producer:'R29 read-only current local market collector canonical relay',
   published_at_utc:at,collection_status:'OBSERVED_OR_PARTIAL',
   coverage,candidates,research_alerts:alerts.slice(0,24),
   news_leads:newsLeads,narrative_leads:narrativeLeads,
+  ranking_leads:rankingLeads,ranking_coverage:rankingCoverage,
   news_coverage:publicCoverage(snapshot.news_coverage,
    new Set(['Decrypt','BeInCrypto','Cointelegraph','BBCWorld','BBCBusiness','BBCTech','BBCEntertainment','BBCUSCanada']),8),
   narrative_coverage:publicCoverage(snapshot.narrative_coverage,
@@ -274,6 +318,8 @@ export function canonicalPublicMarketProjection(snapshot,{now=Date.now()}={}){
     x.verification==='CROSS_PROVIDER_IDENTITY').length,
    promotional_only:candidates.filter(x=>x.promotion_biased).length,
    news_events_available:newsLeads.length,narrative_tokens_available:narrativeLeads.length,
+   independent_ranking_research_leads:rankingLeads.length,
+   unsupported_ranking_chain_leads:rankingLeads.filter(x=>['robinhood','arc'].includes(x.chain)).length,
    news_and_narratives_are_research_only:true,
    note:'Canonical fallback from current local capture, no safety, exit quote or trading authority.'}
  };
