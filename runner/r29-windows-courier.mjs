@@ -304,7 +304,7 @@ export function writeGptForwardSyncDiagnostic({folder,now=Date.now(),
  mkdirSync(folder,{recursive:true});
  const file=path.join(folder,'gpt-forward-sync-diagnostic.json');
  const temp=file+'.pending-'+process.pid;
- writeFileSync(temp,JSON.stringify(diagnostic,null,2)+'\\n',{mode:0o600});
+ writeFileSync(temp,JSON.stringify(diagnostic,null,2)+'\n',{mode:0o600});
  renameSync(temp,file);
  return diagnostic;
 }
