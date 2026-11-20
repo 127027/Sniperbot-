@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,readFileSync,rmSync} from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {syncR29WindowsSandbox,requestGithubFile} from './r29-windows-courier.mjs';
+import {syncR29WindowsSandbox,requestGithubFile,syncGptForwardReviewStatus,writeGptForwardSyncDiagnostic} from './r29-windows-courier.mjs';
 import {R29_SCHEMA,R29_TEST_ASSET,R29_INTENT_PATH,R29_WINDOWS_STATUS_PATH} from '../research/r29/r29-paper-protocol.mjs';
 
 const PAT='github_pat_R29_FAKE_ONLY_DO_NOT_USE_1234567890';
@@ -94,4 +94,51 @@ test('GitHub REST pin cannot fetch arbitrary path and never accepts malformed ba
   /R29_UNEXPECTED_PATH/);
  await assert.rejects(()=>requestGithubFile(R29_INTENT_PATH,{token:'',fetcher:async()=>{}}),
   /R29_GITHUB_TOKEN_REQUIRED/);
+});
+
+test('V6.8 sync real canonical GPT review index to the same local file read by dashboard',async()=>{
+ const dir=mkdtempSync(path.join(os.tmpdir(),'r29-forward-sync-'));
+ const raw=readFileSync(new URL('../research/r29/channel/gpt-forward-review-status.json',import.meta.url),'utf8');
+ const published=JSON.parse(raw);
+ const now=Date.parse(published.updated_at_utc)+10000;
+ const fetcher=async(url,options)=>{
+   assert(url.includes('/research/r29/channel/gpt-forward-review-status.json'));
+   assert.equal(options.headers.authorization,'Bearer '+PAT);
+   return {ok:true,status:200,json:async()=>({
+     type:'file',encoding:'base64',sha:'e'.repeat(40),
+     content:Buffer.from(raw).toString('base64')
+   })};
+ };
+ try{
+   const read=await syncGptForwardReviewStatus({token:PAT,folder:dir,now,fetcher});
+   assert.equal(read.status.available,true);
+   assert.equal(read.status.completed_reviews_today,published.reviews.length);
+   const cached=JSON.parse(readFileSync(path.join(dir,'gpt-forward-status.json'),'utf8'));
+   const sync=JSON.parse(readFileSync(path.join(dir,'gpt-forward-sync-diagnostic.json'),'utf8'));
+   assert.equal(cached.completed_reviews_today,published.reviews.length);
+   assert.equal(sync.status,'SYNCED');
+   assert.equal(sync.completed_reviews_today,published.reviews.length);
+   assert.equal(sync.trade_authorized,false);
+   assert.equal(sync.real_trading_enabled,false);
+   assert(!JSON.stringify(sync).includes(PAT));
+ }finally{rmSync(dir,{force:true,recursive:true})}
+});
+
+test('V6.8 failed GPT review index sync is recorded locally, not misreported as fresh',()=>{
+ const dir=mkdtempSync(path.join(os.tmpdir(),'r29-forward-fail-'));
+ try{
+   const t=Date.parse('2026-11-20T20:00:00Z');
+   writeGptForwardSyncDiagnostic({folder:dir,now:t,status:'ERROR',
+     reason:'GPT_FORWARD_REVIEW_STATUS_INVALID'});
+   let x=JSON.parse(readFileSync(path.join(dir,'gpt-forward-sync-diagnostic.json'),'utf8'));
+   assert.equal(x.status,'ERROR');
+   assert.equal(x.reason,'GPT_FORWARD_REVIEW_STATUS_INVALID');
+   assert.equal(x.completed_reviews_today,null);
+   writeGptForwardSyncDiagnostic({folder:dir,now:t,status:'ERROR',
+     reason:'SECRET_WALLET_INFO_123'});
+   x=JSON.parse(readFileSync(path.join(dir,'gpt-forward-sync-diagnostic.json'),'utf8'));
+   assert.equal(x.reason,'GITHUB_OR_LOCAL_SYNC_FAILED');
+   assert(!JSON.stringify(x).includes('SECRET_WALLET'));
+   assert.throws(()=>writeGptForwardSyncDiagnostic({folder:dir,status:'SYNCED',reviewCount:99}));
+ }finally{rmSync(dir,{force:true,recursive:true})}
 });

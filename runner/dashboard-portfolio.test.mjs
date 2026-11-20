@@ -270,3 +270,26 @@ test('V6.1 dashboard reports live Gecko failures and dropped candidate count wit
  assert.equal(d.source_problems[0].status,'HTTP_429_RATE_LIMIT');
  assert(!JSON.stringify(view).includes('SECRET_NEVER_EXPORT'));
 });
+
+test('V6.8 reports courier GPT review sync failure without touching balances or making fake reviews',()=>{
+ const at=Date.parse('2026-11-20T20:00:00Z');
+ const state={...freshState(),cashUsdc:4999.01};
+ const failure={schema:'sniper_r29_gpt_forward_sync_diagnostic.v1',
+   checked_at_utc:new Date(at).toISOString(),status:'ERROR',
+   reason:'GPT_FORWARD_REVIEW_STATUS_INVALID',
+   completed_reviews_today:null,read_only:true,trade_authorized:false,
+   real_trading_enabled:false};
+ const view=paperDashboardView(state,{now:at+1000,gptForwardSync:failure});
+ assert.equal(view.gpt_forward_sync_diagnostic.status,'ERROR');
+ assert.equal(view.gpt_forward_sync_diagnostic.reason,'GPT_FORWARD_REVIEW_STATUS_INVALID');
+ assert.equal(view.gpt_forward_sync_diagnostic.completed_reviews_today,null);
+ assert.equal(view.gpt_forward_reviews.completed_reviews_today,0);
+ assert.equal(view.free_cash_test_usdc,4999.01);
+ assert.equal(state.cashUsdc,4999.01);
+ const tampered=paperDashboardView(state,{now:at+1000,
+  gptForwardSync:{...failure,reason:'<SECRET>',real_trading_enabled:true}});
+ assert.equal(tampered.gpt_forward_sync_diagnostic,null);
+ const unknown=paperDashboardView(state,{now:at+1000,
+  gptForwardSync:{...failure,reason:'<SECRET>'}});
+ assert.equal(unknown.gpt_forward_sync_diagnostic.reason,null);
+});

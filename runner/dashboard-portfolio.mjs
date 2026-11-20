@@ -20,7 +20,7 @@ function quoteStatus(position,now){
   return 'STALE';
  return position?.isDemo===true?'SYNTHETIC':'INDICATIVE';
 }
-export function paperDashboardView(state,{now=Date.now(),collector=null,security=null,gptForward=null}={}){
+export function paperDashboardView(state,{now=Date.now(),collector=null,security=null,gptForward=null,gptForwardSync=null}={}){
  if(!state||!Array.isArray(state.positions)||!Array.isArray(state.history)||
     !usableMoney(state.cashUsdc)||!usableMoney(state.cashEur)||
     !finite(state.closedPnl)||!Number.isFinite(now))
@@ -64,6 +64,21 @@ export function paperDashboardView(state,{now=Date.now(),collector=null,security
     .filter(([id,v])=>/^gpt_[a-f0-9]{32}$/.test(id)&&v&&
       typeof v==='object'&&!Array.isArray(v)&&safeTime(v.at_utc))
     .sort((a,b)=>Date.parse(b[1].at_utc)-Date.parse(a[1].at_utc)):[];
+ const sync=gptForwardSync;
+ const syncAge=Date.parse(sync?.checked_at_utc||'');
+ const cleanGptSync=sync?.schema==='sniper_r29_gpt_forward_sync_diagnostic.v1'&&
+   sync.read_only===true&&sync.trade_authorized===false&&
+   sync.real_trading_enabled===false&&
+   ['SYNCED','ERROR'].includes(sync.status)&&
+   Number.isFinite(syncAge)&&syncAge<=now&&now-syncAge<=24*3600_000&&
+   (sync.completed_reviews_today===null||
+    (Number.isInteger(sync.completed_reviews_today)&&sync.completed_reviews_today>=0&&
+    sync.completed_reviews_today<=24))?
+    {status:sync.status,checked_at_utc:sync.checked_at_utc,
+     completed_reviews_today:sync.status==='SYNCED'?sync.completed_reviews_today:null,
+     reason:sync.status==='ERROR'&&
+       typeof sync.reason==='string'&&/^[A-Z0-9_]{1,100}$/.test(sync.reason)?
+       sync.reason:null}:null;
  const recentGpt=replay.slice(0,8).map(([decision_id,v])=>({
   decision_id,at_utc:v.at_utc,status:plain(v.status,30),
   reason:plain(v.reason,100),local_receiver_journal_only:true,
@@ -171,6 +186,7 @@ export function paperDashboardView(state,{now=Date.now(),collector=null,security
   gpt_paper_market_source_diagnostic:marketSourceDiagnostic,
   gpt_paper_research_activity:researchActivity,
   gpt_forward_reviews:localGptForwardView(gptForward,{now}),
+  gpt_forward_sync_diagnostic:cleanGptSync,
   pricing_warning:'Nur indikative Positionsbewertung, inklusive 1 % modellierter Ausstiegskosten. Keine ausführbare Sell-Quote und kein garantierter Auszahlungsbetrag.'
  };
 }

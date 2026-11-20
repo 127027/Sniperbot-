@@ -268,11 +268,14 @@ const server=createServer(async(req,res)=>{
     path.join(process.env.LOCALAPPDATA||path.join(root,'.local'),
      'MemeSniperPaper','gpt-paper','security-research',
      'latest-public-report.json'),50000);
+   const gptFolder=path.join(process.env.LOCALAPPDATA||path.join(root,'.local'),
+     'MemeSniperPaper','r29-isolated-sandbox');
    const gptForward=readLocalResearchSummary(
-    path.join(process.env.LOCALAPPDATA||path.join(root,'.local'),
-     'MemeSniperPaper','r29-isolated-sandbox','gpt-forward-status.json'),50000);
+     path.join(gptFolder,'gpt-forward-status.json'),50000);
+   const gptForwardSync=readLocalResearchSummary(
+     path.join(gptFolder,'gpt-forward-sync-diagnostic.json'),4096);
    return reply(res,200,{ok:true,view:paperDashboardView(state,{
-    collector,security,gptForward,now:Date.now()})});
+    collector,security,gptForward,gptForwardSync,now:Date.now()})});
   }catch(e){return error(res,503,'Paper-Portfoliostand kann nicht sicher dargestellt werden')}
  }
  if(req.method==='GET'&&route==='/api/state')return reply(res,200,{ok:true,mode:'PAPER_ONLY',dataSource:'GeckoTerminal / DEX Screener (read only)',state,health:{online:true,scanRunning:scanning,pricing,uptimeSec:Math.round(process.uptime()),central:centralStatus(),researchNetwork,localLearning:localResearchLearning(),dotStatus:buildDotStatus(state.researchInbox,{enabled:process.env.SNIPER_RESEARCH_FEED==='1'})}});
