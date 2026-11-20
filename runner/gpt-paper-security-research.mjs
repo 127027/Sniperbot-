@@ -31,7 +31,7 @@ function prepareSecurityCandidate(c,now){
  if(!allowed.has(c?.chain)||
    !/^((eth)|(base)|(bsc)):0x[a-f0-9]{40}:0x[a-f0-9]{40}$/.test(c.candidate_id||'')||
    c.candidate_id!==c.chain+':'+c.token_address+':'+c.pool_address||
-   c.source!=='GECKOTERMINAL_NEW_POOLS'||
+   !['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS'].includes(c.source)||
    c.verification!=='CROSS_PROVIDER_IDENTITY'||
    c.promotion_biased!==false||
    !recent(c.observed_at_utc,now,300000)||
@@ -105,7 +105,7 @@ export function explainSecurityResearchSelection(review,market,{now=Date.now()}=
     c.candidate_id!==c.chain+':'+c.token_address+':'+c.pool_address){
    mark("POOL_OR_TOKEN_ADDRESS_IDENTITY_INVALID");continue;
   }
-  if(c.source!=="GECKOTERMINAL_NEW_POOLS"){
+  if(!['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS'].includes(c.source)){
    mark("NOT_NEUTRAL_GECKOTERMINAL_NEW_POOL");continue;
   }
   if(c.verification!=="CROSS_PROVIDER_IDENTITY"){
