@@ -81,3 +81,39 @@ export function publicGptForwardStatus(value,{now=Date.now()}={}){
   model_identity_attested:false,trade_authorized:false,
   real_trading_enabled:false};
 }
+
+export function localGptForwardView(value,{now=Date.now()}={}){
+ const empty=publicGptForwardStatus(null,{now});
+ if(!value||value.schema!==GPT_FORWARD_STATUS_SCHEMA||
+  value.real_trading_enabled!==false||value.trade_authorized!==false||
+  value.model_identity_attested!==false||
+  value.utc_day!==new Date(now).toISOString().slice(0,10)||
+  value.available!==true||
+  !Number.isInteger(value.completed_reviews_today)||
+  value.completed_reviews_today<0||value.completed_reviews_today>24||
+  !Number.isInteger(value.target_per_day)||value.target_per_day<4||
+  value.target_per_day>24||
+  !validUtc(value.next_due_at_utc)||
+  !(value.last_review_at_utc===null||validUtc(value.last_review_at_utc))||
+  (value.completed_reviews_today>0&&!value.last_review_at_utc)||
+  !Array.isArray(value.recent)||value.recent.length>6)
+  return empty;
+ return {
+  ...empty,available:true,completed_reviews_today:value.completed_reviews_today,
+  target_per_day:value.target_per_day,
+  model_chosen_activity_level:value.model_chosen_activity_level,
+  cadence_reason:typeof value.cadence_reason==='string'?
+   value.cadence_reason.slice(0,500):null,
+  last_review_at_utc:value.last_review_at_utc,
+  next_due_at_utc:value.next_due_at_utc,
+  recent:value.recent.filter(r=>r&&act.has(r.action)&&
+   validUtc(r.completed_at_utc)&&
+   Number.isInteger(r.candidates_seen)&&r.candidates_seen>=0&&
+   Number.isInteger(r.candidates_reviewed)&&
+   r.candidates_reviewed>=1&&r.candidates_reviewed<=r.candidates_seen)
+   .slice(0,6).map(r=>({action:r.action,
+    completed_at_utc:r.completed_at_utc,
+    candidates_seen:r.candidates_seen,candidates_reviewed:r.candidates_reviewed})),
+  reason:'GPT_REPORTED_REVIEWS_NOT_INDEPENDENT_MODEL_ATTESTATION'
+ };
+}
