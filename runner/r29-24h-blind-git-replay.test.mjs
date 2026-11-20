@@ -103,7 +103,7 @@ test('invalid window lengths and bankrolls rejected without touching any account
 test('archived Git decision pointer counts BUY only after exact owner-public SHA256 archive, not pointer alone',()=>{
  const decision_id='gpt_'+'f'.repeat(32);
  const raw=JSON.stringify({decision_id,mode:'PAPER_ONLY',action:'BUY',
-  created_at_utc:one})+'\\n';
+  created_at_utc:one})+'\n';
  const pointer={schema:'sniper_r29_gpt_paper_pointer.v1',
   decision_id,mode:'PAPER_ONLY',archive_path:'research/r29/gpt-decisions/2026-11-19/'+decision_id+'.json',
   archive_sha256:createHash('sha256').update(raw).digest('hex'),
