@@ -31,7 +31,7 @@ function prepareSecurityCandidate(c,now){
  if(!allowed.has(c?.chain)||
    !/^((eth)|(base)|(bsc)):0x[a-f0-9]{40}:0x[a-f0-9]{40}$/.test(c.candidate_id||'')||
    c.candidate_id!==c.chain+':'+c.token_address+':'+c.pool_address||
-   !['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS'].includes(c.source)||
+   !['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS','R29_RANKING_CROSS_PROVIDER_POOL'].includes(c.source)||
    c.verification!=='CROSS_PROVIDER_IDENTITY'||
    c.promotion_biased!==false||
    !recent(c.observed_at_utc,now,300000)||
@@ -105,7 +105,7 @@ export function explainSecurityResearchSelection(review,market,{now=Date.now()}=
     c.candidate_id!==c.chain+':'+c.token_address+':'+c.pool_address){
    mark("POOL_OR_TOKEN_ADDRESS_IDENTITY_INVALID");continue;
   }
-  if(!['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS'].includes(c.source)){
+  if(!['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS','R29_RANKING_CROSS_PROVIDER_POOL'].includes(c.source)){
    mark("NOT_NEUTRAL_GECKOTERMINAL_NEW_POOL");continue;
   }
   if(c.verification!=="CROSS_PROVIDER_IDENTITY"){
@@ -161,7 +161,7 @@ export function publicSecurityResearchReport({review,market=null,findings=[],now
      market.actionable===false&&
      recent(market.published_at_utc,now,300000)&&
      market.candidates?.some(c=>c.candidate_id===chain+':'+token+':'+pool&&
-      ['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS'].includes(c.source)&&
+      ['GECKOTERMINAL_NEW_POOLS','GECKOTERMINAL_TRENDING_POOLS','R29_RANKING_CROSS_PROVIDER_POOL'].includes(c.source)&&
       c.verification==='CROSS_PROVIDER_IDENTITY'&&
       c.promotion_biased===false&&
       recent(c.observed_at_utc,now,300000)):
