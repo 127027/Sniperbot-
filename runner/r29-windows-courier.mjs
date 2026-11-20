@@ -291,11 +291,9 @@ export function writeGptForwardSyncDiagnostic({folder,now=Date.now(),
    !['SYNCED','ERROR'].includes(status)||
    !(reviewCount===null||(Number.isInteger(reviewCount)&&reviewCount>=0&&reviewCount<=24)))
   throw Error('GPT_FORWARD_SYNC_DIAGNOSTIC_INVALID');
- const safeError=typeof reason==='string'&&
-   (/^(?:GPT_FORWARD_REVIEW_STATUS_INVALID|GPT_FORWARD_LOCAL_FOLDER_INVALID|
-     R29_GITHUB_READ_HTTP_[0-9]{3}|R29_GITHUB_CONTENTS_INVALID|
-     R29_GITHUB_CONTENTS_TOO_LARGE)$/.test(reason.replace(/\\s+/g,'')))?
-   reason.replace(/\\s+/g,''):'GITHUB_OR_LOCAL_SYNC_FAILED';
+ const safeReason=typeof reason==='string'?reason.trim():'';
+ const safeError=/^(?:GPT_FORWARD_REVIEW_STATUS_INVALID|GPT_FORWARD_LOCAL_FOLDER_INVALID|R29_GITHUB_READ_HTTP_[0-9]{3}|R29_GITHUB_CONTENTS_INVALID|R29_GITHUB_CONTENTS_TOO_LARGE)$/.test(safeReason)?
+   safeReason:'GITHUB_OR_LOCAL_SYNC_FAILED';
  const diagnostic={
    schema:'sniper_r29_gpt_forward_sync_diagnostic.v1',
    checked_at_utc:new Date(now).toISOString(),
