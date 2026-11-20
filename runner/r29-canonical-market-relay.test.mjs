@@ -327,3 +327,28 @@ test('V6.5 two-provider verified ranking pool is sent to GPT as research only',(
  assert(v.candidates[0].unresolved_checks.includes('SELLABILITY'));
  assert.equal(v.actionable,false);
 });
+
+test('V6.7 canonical ranking-pool diagnostics explain zero pool promotions without authorizing paper orders',()=>{
+ const s=snapshot();
+ s.ranking_pool_resolution={
+  schema:'r29_ranking_pool_resolution.v1',paper_only:true,actionable:false,
+  attempted:2,cross_provider_matched:0,admitted:0,capacity_skipped:0,
+  checks:[{chain:'solana',status:'RATE_LIMITED'},
+   {chain:'bsc',status:'POOL_IDENTITY_NOT_CROSS_PROVIDER_CONFIRMED'}],
+  status:'NO_CROSS_PROVIDER_POOL_MATCH'
+ };
+ const projected=canonicalPublicMarketProjection(s,{now});
+ assert.deepEqual(projected.ranking_pool_resolution,s.ranking_pool_resolution);
+ assert.equal(projected.summary.ranking_pool_attempted,2);
+ assert.equal(projected.summary.ranking_pool_cross_provider_matched,0);
+ assert.equal(projected.summary.ranking_pool_admitted,0);
+ assert.equal(projected.actionable,false);
+ assert.equal(Object.hasOwn(projected,'orders'),false);
+ assert.equal(projected.candidates.length,1);
+ const secret={...s,ranking_pool_resolution:{...s.ranking_pool_resolution,
+  private_wallet_key:'NEVER_LEAK'}};
+ assert.throws(()=>canonicalPublicMarketProjection(secret,{now}),/Unsafe ranking-pool diagnostics/);
+ const forged={...s,ranking_pool_resolution:{...s.ranking_pool_resolution,
+  actionable:true}};
+ assert.throws(()=>canonicalPublicMarketProjection(forged,{now}),/Unsafe ranking-pool diagnostics/);
+});
