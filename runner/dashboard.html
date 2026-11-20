@@ -541,7 +541,9 @@ function renderPaper(){
   ' · '+stamp(last.at_utc)+' · '+(last.reason||'Kein Grund verfügbar'):
   'Letzte bestätigte GPT-Entscheidung: keine, noch keine bestätigten GPT-Trades';
  $('positionTime').textContent=p?'Stand: '+stamp(p.as_of_utc):'Nicht verfügbar';
- $('positionNote').textContent='Schätzwerte nach 1 % modellierten Verkaufskosten. Fehlende Kurse bleiben offen.';
+ $('positionNote').textContent=p?.web_only_indicative_open_positions>0?
+  'WEB-PAPER (EXPERIMENT): Preise nur auf öffentlichen Webseiten beobachtet, kein bestätigter ausführbarer DEX-Kauf, keine verifizierte Verkaufbarkeit. '+String(p.web_only_indicative_open_positions)+' solche Position(en) offen. Ausstiege brauchen neue gültige Web-Preisbelege.':
+  'Schätzwerte nach 1 % modellierten Verkaufskosten. Fehlende Kurse bleiben offen.';
  renderPositions(p);
  renderHistory(p);
  renderGptForward(p);
