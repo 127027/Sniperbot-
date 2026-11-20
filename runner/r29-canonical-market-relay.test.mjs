@@ -280,7 +280,8 @@ test('V6.4 canonical relay publishes ranking token clues without manufacturing m
   paper_only:true,actionable:false,
   claim_status:'RANKING_TOKEN_LEAD_NOT_POOL_OR_EARLY_SIGNAL'
  };
- s.ranking_leads=[lead,{...lead,private_key:'NEVER_EXPORT'}];
+ s.ranking_leads=[lead,{...lead}];
+ s.local_private_key='NEVER_EXPORT';
  s.ranking_coverage=[{source:'BSC_NEW',status:'OK',token_leads:1,
   observed_at_utc:atTime,user_balance:4999}];
  const out=canonicalPublicMarketProjection(s,{now});
