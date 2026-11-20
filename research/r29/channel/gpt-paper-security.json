@@ -5,38 +5,70 @@
   "authorizes_paper_orders": false,
   "live_trading_enabled": false,
   "wallet_or_account_data_included": false,
-  "review_sha256": "bd5d9078446dc883ebabb827824de2d78adfbdf0786f063c6f2055a90520a773",
-  "review_observed_at_utc": "2026-11-20T15:43:57.688Z",
-  "market_snapshot_observed_at_utc": "2026-11-20T17:54:02.697Z",
+  "review_sha256": "20bef12dfc35ab5897a7ea7b6a86a1aae2a19be1e2861ee945728fe3a2406600",
+  "review_observed_at_utc": "2026-11-20T18:04:11.204Z",
+  "market_snapshot_observed_at_utc": "2026-11-20T18:55:04.653Z",
   "market_snapshot_is_order_authority": false,
   "local_market_read_status": "FRESH_LOCAL_PUBLIC_SNAPSHOT",
   "selection_diagnostic": {
     "schema": "sniper_r29_security_candidate_diagnostic.v1",
     "status": "RESEARCH_ELIGIBLE_NOT_TRADE_APPROVED",
-    "observed_market_rows": 52,
-    "evm_market_rows": 28,
+    "observed_market_rows": 56,
+    "evm_market_rows": 36,
     "potential_research_candidates": 3,
     "first_failure_reason_counts": {
-      "NON_EVM_CHAIN": 24,
-      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 22,
-      "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 3
+      "NON_EVM_CHAIN": 20,
+      "VOLUME_5M_LT_1000_OR_UNKNOWN": 1,
+      "INDEPENDENT_PAIR_IDENTITY_NOT_CONFIRMED": 30,
+      "POOL_LIQUIDITY_LT_20000_OR_UNKNOWN": 2
     },
     "two_provider_contract_checks_still_separate": true,
     "independent_buyer_wallet_proof_still_missing": true,
     "real_executable_quote_still_missing": true,
     "this_diagnostic_cannot_authorize_trades": true
   },
-  "checked_at_utc": "2026-11-20T17:54:28.622Z",
+  "checked_at_utc": "2026-11-20T18:55:08.575Z",
   "candidate_check_count": 2,
   "status": "PARTIAL_SECURITY_RESEARCH_ONLY",
   "candidates": [
     {
-      "candidate_id": "base:0x109df82109cd7269f82cfd3f6524f351d22228ca:0xeba3c696d41859a7ea521e21ca0c2d2646a570a9",
+      "candidate_id": "bsc:0xe75cff05a6d6b9862a0882652d557b835b1cf72a:0xae94d12414b33cb1b451e5bb85ba227305b58317",
+      "chain": "bsc",
+      "token_address": "0xe75cff05a6d6b9862a0882652d557b835b1cf72a",
+      "pool_address": "0xae94d12414b33cb1b451e5bb85ba227305b58317",
+      "checked_at_utc": "2026-11-20T18:55:08.575Z",
+      "verified_pool_observed_at_utc": "2026-11-20T18:55:04.653Z",
+      "source_scope": "FRESH_CROSS_PROVIDER_LOCAL_MARKET",
+      "also_listed_in_hourly_review": false,
+      "independent_provider_names": [
+        "GoPlus",
+        "Honeypot.is"
+      ],
+      "goplus_evaluated": true,
+      "honeypot_simulation_ok": false,
+      "contract_authorities_ok": true,
+      "token_and_pool_matched": false,
+      "basic_contract_and_sell_simulation_pass": false,
+      "paper_unknown_goplus_risk_eligible": false,
+      "risk_codes": [
+        "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
+        "HONEYPOT_TOKEN_UNVERIFIED",
+        "HONEYPOT_POOL_UNVERIFIED"
+      ],
+      "source_goplus": "https://api.gopluslabs.io/api/v1/token_security",
+      "source_honeypot": "https://api.honeypot.is/v2/IsHoneypot",
+      "independent_wallet_adoption_verified": false,
+      "independent_liquidity_redeemability_verified": false,
+      "cost_and_slippage_executable_verified": false,
+      "full_gpt_buy_gate_passed": false
+    },
+    {
+      "candidate_id": "base:0x9f38dea4ecb97e58ea3b958b447a638b878ebb3f:0xff1af4483a1de32b9c92806d9cc9a4e46962ed5f",
       "chain": "base",
-      "token_address": "0x109df82109cd7269f82cfd3f6524f351d22228ca",
-      "pool_address": "0xeba3c696d41859a7ea521e21ca0c2d2646a570a9",
-      "checked_at_utc": "2026-11-20T17:54:28.622Z",
-      "verified_pool_observed_at_utc": "2026-11-20T17:54:02.697Z",
+      "token_address": "0x9f38dea4ecb97e58ea3b958b447a638b878ebb3f",
+      "pool_address": "0xff1af4483a1de32b9c92806d9cc9a4e46962ed5f",
+      "checked_at_utc": "2026-11-20T18:55:08.575Z",
+      "verified_pool_observed_at_utc": "2026-11-20T18:55:04.653Z",
       "source_scope": "FRESH_CROSS_PROVIDER_LOCAL_MARKET",
       "also_listed_in_hourly_review": false,
       "independent_provider_names": [
@@ -51,38 +83,6 @@
       "paper_unknown_goplus_risk_eligible": true,
       "risk_codes": [
         "GOPLUS_MISSING_CANNOT_SELL_ALL"
-      ],
-      "source_goplus": "https://api.gopluslabs.io/api/v1/token_security",
-      "source_honeypot": "https://api.honeypot.is/v2/IsHoneypot",
-      "independent_wallet_adoption_verified": false,
-      "independent_liquidity_redeemability_verified": false,
-      "cost_and_slippage_executable_verified": false,
-      "full_gpt_buy_gate_passed": false
-    },
-    {
-      "candidate_id": "bsc:0x53812875583ebc53f30c9ecddc73ab4111a73214:0x70f8bd6b6d1b96fa196b9929d2e8d1577167949f",
-      "chain": "bsc",
-      "token_address": "0x53812875583ebc53f30c9ecddc73ab4111a73214",
-      "pool_address": "0x70f8bd6b6d1b96fa196b9929d2e8d1577167949f",
-      "checked_at_utc": "2026-11-20T17:54:28.622Z",
-      "verified_pool_observed_at_utc": "2026-11-20T17:54:02.697Z",
-      "source_scope": "FRESH_CROSS_PROVIDER_LOCAL_MARKET",
-      "also_listed_in_hourly_review": false,
-      "independent_provider_names": [
-        "GoPlus",
-        "Honeypot.is"
-      ],
-      "goplus_evaluated": true,
-      "honeypot_simulation_ok": false,
-      "contract_authorities_ok": false,
-      "token_and_pool_matched": false,
-      "basic_contract_and_sell_simulation_pass": false,
-      "paper_unknown_goplus_risk_eligible": false,
-      "risk_codes": [
-        "GOPLUS_MISSING_CANNOT_SELL_ALL",
-        "HONEYPOT_SIMULATION_INCOMPLETE_OR_RISK",
-        "HONEYPOT_TOKEN_UNVERIFIED",
-        "HONEYPOT_POOL_UNVERIFIED"
       ],
       "source_goplus": "https://api.gopluslabs.io/api/v1/token_security",
       "source_honeypot": "https://api.honeypot.is/v2/IsHoneypot",
