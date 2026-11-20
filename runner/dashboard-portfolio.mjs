@@ -73,6 +73,33 @@ export function paperDashboardView(state,{now=Date.now(),collector=null,security
   token_address:plain(v.token_address,100)||null
  }));
  const funnel=summarizeLocalGptFunnel({collector,security,now});
+ // Read-only source diagnostics from the recent local collector status.
+ // Never treat promotional fallback identities as complete market coverage.
+ const coverage=funnel.collection_recent&&Array.isArray(collector?.coverage)?
+  collector.coverage.slice(0,16):[];
+ const knownStatuses=new Set(['OK','PARTIAL','HTTP_429_RATE_LIMIT',
+  'SKIPPED_AFTER_RATE_LIMIT','TIMEOUT','SOURCE_UNAVAILABLE',
+  'PROVIDER_RESPONSE_INVALID','NETWORK_ENOTFOUND','NETWORK_EAI_AGAIN',
+  'NETWORK_ECONNRESET','NETWORK_ECONNREFUSED','PROMOTED_PROFILES_ONLY',
+  'NO_PAIR_IDENTITIES']);
+ const sourceProblems=coverage.filter(x=>x&&x.source?.startsWith('GECKOTERMINAL')&&
+  x.status!=='OK').map(x=>({
+   chain:plain(x.chain,12),source:plain(x.source,32),
+   status:knownStatuses.has(x.status)?x.status:/^HTTP_[45][0-9]{2}$/.test(x.status||'')?
+    x.status:'SOURCE_INCOMPLETE'
+  })).slice(0,8);
+ const sourceLoss=coverage.reduce((n,x)=>n+
+  (Number.isInteger(x?.omitted_by_research_cap)&&x.omitted_by_research_cap>=0?
+   Math.min(2000,x.omitted_by_research_cap):0),0);
+ const marketSourceDiagnostic={
+  fresh:funnel.collection_recent,
+  observed_rows:funnel.collection_recent?funnel.observed_candidate_count:null,
+  source_problem_count:sourceProblems.length,
+  source_problems:sourceProblems,
+  lost_by_per_chain_limit:funnel.collection_recent?sourceLoss:null,
+  complete_source_universe:false,
+  research_only:true
+ };
  // Collector and safety observations are visible as activity, but never
  // labelled GPT decisions. Freshness gates prevent old scans looking live.
  const researchActivity=[
@@ -141,6 +168,7 @@ export function paperDashboardView(state,{now=Date.now(),collector=null,security
   gpt_local_paper_fills_are_not_model_proven:true,
   gpt_paper_local_activity_diagnostic:gptActivity,
   gpt_paper_research_funnel:funnel,
+  gpt_paper_market_source_diagnostic:marketSourceDiagnostic,
   gpt_paper_research_activity:researchActivity,
   gpt_forward_reviews:localGptForwardView(gptForward,{now}),
   pricing_warning:'Nur indikative Positionsbewertung, inklusive 1 % modellierter Ausstiegskosten. Keine ausführbare Sell-Quote und kein garantierter Auszahlungsbetrag.'

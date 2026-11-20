@@ -253,3 +253,37 @@ test('older non-promoted trending pool gets a second discovery route and remains
  assert(urls.some(u=>u.includes('/networks/base/trending_pools?duration=5m')));
  assert(s.coverage.some(x=>x.source==='GECKOTERMINAL_TRENDING'&&x.status==='OK'));
 });
+
+
+test('V6.1 retries one transient 503 on a new-pool page, without loosening research-only boundary',async()=>{
+ let calls=0;
+ const fetcher=async url=>{
+  if(url.includes('/networks/base/new_pools?page=1')&&++calls===1)
+   return {ok:false,status:503};
+  if(url.includes('geckoterminal'))return response(fakeGT(getChain(url)));
+  return response({pairs:[]});
+ };
+ const v=await collectSnapshot({fetcher,now,pages:1});
+ assert.equal(calls,2);
+ assert.equal(v.coverage.find(x=>x.chain==='base'&&x.source==='GECKOTERMINAL').status,'OK');
+ assert.equal(v.paper_only,true);
+ assert.equal(v.actionable,false);
+});
+test('V6.1 never retries a Gecko 429 and labels malformed provider JSON explicitly',async()=>{
+ let rateCalls=0;
+ const fetcher=async url=>{
+  if(url.includes('/networks/base/new_pools?page=1')){
+   rateCalls++;return {ok:false,status:429};
+  }
+  if(url.includes('/networks/eth/new_pools?page=1'))
+   return {ok:true,json:async()=>{throw Error('not JSON')}};
+  if(url.includes('geckoterminal'))return response(fakeGT(getChain(url)));
+  if(url.includes('token-profiles'))return response([]);
+  return response({pairs:[]});
+ };
+ const v=await collectSnapshot({fetcher,now,pages:1});
+ assert.equal(rateCalls,1);
+ assert.equal(v.coverage.find(x=>x.chain==='base'&&x.source==='GECKOTERMINAL').status,'HTTP_429_RATE_LIMIT');
+ assert.equal(v.coverage.find(x=>x.chain==='eth'&&x.source==='GECKOTERMINAL').status,'PROVIDER_RESPONSE_INVALID');
+ assert.equal(v.actionable,false);
+});
