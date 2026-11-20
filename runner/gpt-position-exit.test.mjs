@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,rmSync} from 'node:fs';
+import {mkdtempSync,rmSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {generateKeyPairSync} from 'node:crypto';
@@ -81,7 +81,7 @@ function setup(){
     state=result.next;return {receipt:result.receipt};
    }});
  }
- return {create,get state(){return state;},setState:s=>{state=s},
+ return {create,dir,get state(){return state;},setState:s=>{state=s},
   setPrice:p=>{price=p},setQuoteFailed:b=>{failQuote=b},
   get submissions(){return submissions},
   cleanup:()=>rmSync(dir,{recursive:true,force:true})};
@@ -166,6 +166,22 @@ test('V2 signed GPT BUY persists policy; monitor SELLs after stop loss with Bot 
   assert.equal(a.state.agentOrderReceipts.length,2);
   assert.equal(a.state.agentOrderReceipts[1].reason,'GPT_POLICY_AUTHORIZED_EXIT_PAPER_ONLY');
   assert.equal(a.state.agentOrderReceipts[1].real_trade_executed,false);
+  // The REAL local policy monitor audit must bind the BUY to the EXIT,
+  // report the provider mark, and never leak portfolio cash or wallet data.
+  const daily=path.join(a.dir,'gpt-paper','decision-journal',iso(Date.now()).slice(0,10)+'.jsonl');
+  const events=readFileSync(daily,'utf8').trim().split('\n').map(JSON.parse);
+  const sells=events.filter(e=>e.schema==='sniper_r29_gpt_policy_exit_audit.v1');
+  assert.equal(sells.length,1);
+  assert.equal(sells[0].parent_gpt_buy_decision_id,buy.decision_id);
+  assert.equal(sells[0].position_id,a.state.agentOrderReceipts[1].position_id);
+  assert.equal(sells[0].trigger,'GPT_EXIT_STOP_LOSS');
+  assert.equal(sells[0].receipt_status,'PAPER_FILLED');
+  assert.equal(sells[0].quote_source,'DEX Screener');
+  assert.equal(sells[0].quote_price_usd,.015);
+  assert.equal(sells[0].account_balance_or_wallet_logged,false);
+  assert.equal(a.state.gptExitMonitorLast.audit_status,'LOCAL_JOURNAL_WRITTEN');
+  assert(!JSON.stringify(sells).includes('cashUsdc'));
+  assert(!JSON.stringify(sells).includes('private_key'));
   assert.equal((await recv.monitor()).filled,0);
   assert.equal(a.state.agentOrderReceipts.length,2);
  }finally{a.cleanup()}
@@ -187,6 +203,9 @@ test('Restart keeps policy, provider outage never fabricates SELL; later quote p
   assert.equal(later.filled,1);
   assert.equal(a.state.positions.length,0);
   assert.equal(a.submissions,2); // BUY + one exit; no synthetic failure trade.
+  const events=readFileSync(path.join(a.dir,'gpt-paper','decision-journal',
+    iso(Date.now()).slice(0,10)+'.jsonl'),'utf8').trim().split('\n').map(JSON.parse);
+  assert.equal(events.filter(e=>e.schema==='sniper_r29_gpt_policy_exit_audit.v1').length,1);
  }finally{a.cleanup()}
 });
 

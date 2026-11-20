@@ -278,6 +278,15 @@ export function canonicalPublicMarketProjection(snapshot,{now=Date.now()}={}){
    token_leads:Math.max(0,Math.min(40,Math.floor(BOUNDED(x.token_leads)||0))),
    observed_at_utc:timeWindow(x.observed_at_utc,Date.parse(at),60*60_000)?
     x.observed_at_utc:null}));
+ // Source-trace is public research only: do not export token selection,
+ // personal funds, device identity, free-text errors, or any order status.
+ const rank=snapshot.ranking_pool_resolution;
+ const rankingPoolResolution=rank?{
+   schema:'r29_ranking_pool_resolution.v1',paper_only:true,actionable:false,
+   attempted:rank.attempted,cross_provider_matched:rank.cross_provider_matched,
+   admitted:rank.admitted,capacity_skipped:rank.capacity_skipped,
+   status:rank.status,checks:rank.checks.map(x=>({chain:x.chain,status:x.status}))
+ }:null;
  const publicSnapshot={
   schema:'research_market_snapshot.v1',paper_only:true,actionable:false,
   producer:'R29 read-only current local market collector canonical relay',
@@ -285,6 +294,7 @@ export function canonicalPublicMarketProjection(snapshot,{now=Date.now()}={}){
   coverage,candidates,research_alerts:alerts.slice(0,24),
   news_leads:newsLeads,narrative_leads:narrativeLeads,
   ranking_leads:rankingLeads,ranking_coverage:rankingCoverage,
+  ...(rankingPoolResolution?{ranking_pool_resolution:rankingPoolResolution}:{}),
   news_coverage:publicCoverage(snapshot.news_coverage,
    new Set(['Decrypt','BeInCrypto','Cointelegraph','BBCWorld','BBCBusiness','BBCTech','BBCEntertainment','BBCUSCanada']),8),
   narrative_coverage:publicCoverage(snapshot.narrative_coverage,
@@ -318,6 +328,10 @@ export function canonicalPublicMarketProjection(snapshot,{now=Date.now()}={}){
     x.verification==='CROSS_PROVIDER_IDENTITY').length,
    promotional_only:candidates.filter(x=>x.promotion_biased).length,
    news_events_available:newsLeads.length,narrative_tokens_available:narrativeLeads.length,
+   ranking_pool_attempted:rankingPoolResolution?.attempted??null,
+   ranking_pool_cross_provider_matched:rankingPoolResolution?.cross_provider_matched??null,
+   ranking_pool_admitted:rankingPoolResolution?.admitted??null,
+   ranking_pool_capacity_skipped:rankingPoolResolution?.capacity_skipped??null,
    independent_ranking_research_leads:rankingLeads.length,
    unsupported_ranking_chain_leads:rankingLeads.filter(x=>['robinhood','arc'].includes(x.chain)).length,
    news_and_narratives_are_research_only:true,

@@ -276,11 +276,43 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
    }catch{}
    if(receipt?.status==='PAPER_FILLED')summary.filled++;
    else summary.blocked++;
+   // V6.7: durable LOCAL audit of the automatically triggered exit. A policy
+   // SELL must not disappear from the trace just because it did not arrive
+   // through the explicit GPT GitHub decision pointer. No account balances,
+   // private keys or real-wallet data are written. Ledger receipt stays truth.
+   let exitAuditWritten=false;
+   try{
+     mkdirSync(auditFolder,{recursive:true});
+     const record={
+       schema:'sniper_r29_gpt_policy_exit_audit.v1',
+       at_utc:new Date(now()).toISOString(),
+       event:'GPT_POLICY_EXIT_ATTEMPT',
+       decision_id:d.decision_id,
+       parent_gpt_buy_decision_id:live.gptExitAuthorizedDecisionId,
+       position_id:live.id,
+       chain:live.chain,token_address:live.tokenAddress,
+       pool_address:live.poolAddress,
+       trigger:decision.reason,
+       receipt_status:receipt?.status||'BLOCKED',
+       receipt_reason:receipt?.reason||'GPT_EXIT_SUBMISSION_UNAVAILABLE',
+       quote_source:q?.source==='DEX Screener'?'DEX Screener':null,
+       quote_price_usd:finite(q?.priceUsd)?q.priceUsd:null,
+       quote_observed_at_utc:typeof q?.asOf==='string'&&
+         Number.isFinite(Date.parse(q.asOf))?q.asOf:null,
+       modeled_pnl_pct:finite(decision.pnl_pct_modelled)?decision.pnl_pct_modelled:null,
+       synthetic_fixture:false,paper_only:true,real_trading_enabled:false,
+       account_balance_or_wallet_logged:false
+     };
+     appendFileSync(path.join(auditFolder,new Date(instant).toISOString().slice(0,10)+'.jsonl'),
+       JSON.stringify(record)+'\n',{mode:0o600});
+     exitAuditWritten=true;
+   }catch{summary.audit_write_errors=(summary.audit_write_errors||0)+1;}
    const after=getState();
    commit({...after,gptExitMonitorLast:{
     checked_at_utc:new Date(now()).toISOString(),position_id:live.id,
     trigger:decision.reason,status:receipt?.status||'BLOCKED',
     reason:receipt?.reason||'GPT_EXIT_SUBMISSION_UNAVAILABLE',
+    audit_status:exitAuditWritten?'LOCAL_JOURNAL_WRITTEN':'LOCAL_JOURNAL_FAILED',
     paper_only:true,real_trading_enabled:false}});
   }
   return summary;

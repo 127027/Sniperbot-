@@ -34,6 +34,7 @@ test('independent provider pair-match promotes current ranking token to research
  const mocked=fakes();
  const x=await resolveRankingPoolCandidates({leads:[lead()],now:at,fetcher:mocked.fetcher});
  assert.equal(mocked.calls.length,2);
+ assert.equal(x.attempted,1);
  assert.equal(x.resolved.length,1);
  const c=x.resolved[0];
  assert.equal(c.source,RESOLVED_RANKING_SOURCE);
@@ -52,6 +53,7 @@ test('wrong pool, divergent provider prices and 429 never invent a ranked pool',
  for(const opts of [{differentPair:true},{differentPrice:true},{rateLimit:true}]){
   const {fetcher}=fakes(opts);
   const x=await resolveRankingPoolCandidates({leads:[lead()],now:at,fetcher});
+  assert.equal(x.attempted,1);
   assert.equal(x.resolved.length,0);
   assert.equal(x.checks.length,1);
  }
