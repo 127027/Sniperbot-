@@ -219,3 +219,48 @@ test('old trending pool stays visible to GPT without being treated as an authori
  assert.equal(v.candidates[0].unresolved_checks.includes('SELLABILITY'),true);
  assert.equal(v.actionable,false);
 });
+
+
+test('V6.1 preserves exact outage reasons and page/cap losses for GPT without trade authorization',()=>{
+ const s=snapshot();
+ s.coverage=[
+  {chain:'solana',source:'GECKOTERMINAL',status:'HTTP_429_RATE_LIMIT',
+   pages_ok:0,pages_requested:2,provider_rows:0,valid_identities:0,
+   omitted_by_research_cap:0},
+  {chain:'solana',source:'GECKOTERMINAL_TRENDING',status:'SKIPPED_AFTER_RATE_LIMIT',
+   provider_rows:0,valid_identities:0},
+  {chain:'base',source:'GECKOTERMINAL',status:'PARTIAL',
+   pages_ok:1,pages_requested:2,provider_rows:30,valid_identities:29,
+   omitted_by_research_cap:5},
+  {chain:'bsc',source:'GECKOTERMINAL',status:'HTTP_503',
+   pages_ok:0,pages_requested:2,provider_rows:0,valid_identities:0}
+ ];
+ s.summary={...s.summary,pages_per_chain:2,
+  valid_source_identities_before_selection:29,omitted_by_per_chain_cap:5};
+ const v=canonicalPublicMarketProjection(s,{now});
+ assert.equal(v.coverage[0].status,'HTTP_429_RATE_LIMIT');
+ assert.equal(v.coverage[1].status,'SKIPPED_AFTER_RATE_LIMIT');
+ assert.equal(v.coverage[2].pages_ok,1);
+ assert.equal(v.coverage[2].omitted_by_research_cap,5);
+ assert.equal(v.coverage[3].status,'HTTP_503');
+ assert.equal(v.summary.omitted_by_per_chain_cap,5);
+ assert.equal(v.summary.source_identifiers_before_selection,29);
+ assert.equal(v.summary.research_universe_complete,false);
+ assert.equal(v.summary.provider_coverage_failed,3);
+ assert.equal(v.paper_only,true);
+ assert.equal(v.actionable,false);
+ assert.equal(v.candidates.length,1);
+});
+test('V6.1 untrusted coverage text and private fields are never leaked',()=>{
+ const s=snapshot();
+ s.coverage=[{chain:'eth',source:'GECKOTERMINAL',status:'TOKEN_SECRET_SHOULD_NOT_EXPORT',
+  pages_ok:999,pages_requested:-1,omitted_by_research_cap:'CREDENTIALS',
+  private_key:'NEVER_EXPORT'}];
+ const v=canonicalPublicMarketProjection(s,{now});
+ assert.equal(v.coverage[0].status,'SOURCE_INCOMPLETE');
+ assert.equal(Object.hasOwn(v.coverage[0],'pages_ok'),false);
+ assert.equal(Object.hasOwn(v.coverage[0],'pages_requested'),false);
+ assert.equal(Object.hasOwn(v.coverage[0],'omitted_by_research_cap'),false);
+ assert(!JSON.stringify(v).includes('NEVER_EXPORT'));
+ assert(!JSON.stringify(v).includes('CREDENTIALS'));
+});
