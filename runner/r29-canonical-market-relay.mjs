@@ -212,10 +212,23 @@ export function canonicalPublicMarketProjection(snapshot,{now=Date.now()}={}){
   source:['GECKOTERMINAL','GECKOTERMINAL_TRENDING',
     'DEXSCREENER_PROFILES_FALLBACK'].includes(c.source)?
    c.source:'OTHER',
-  status:['OK','PARTIAL','PROMOTED_PROFILES_ONLY','NO_PAIR_IDENTITIES'].includes(c.status)?
-   c.status:'SOURCE_INCOMPLETE',
+  // Retain bounded, explicit failure reasons. Previously every HTTP 429,
+  // timeout, DNS failure and skipped trending request became SOURCE_INCOMPLETE,
+  // making the real Windows bottleneck impossible for GPT to diagnose.
+  status:['OK','PARTIAL','PROMOTED_PROFILES_ONLY','NO_PAIR_IDENTITIES',
+   'HTTP_429_RATE_LIMIT','SKIPPED_AFTER_RATE_LIMIT','TIMEOUT',
+   'SOURCE_UNAVAILABLE','NETWORK_ENOTFOUND','NETWORK_EAI_AGAIN',
+   'NETWORK_ECONNRESET','NETWORK_ECONNREFUSED'].includes(c.status)?
+   c.status:/^HTTP_(?:[45][0-9]{2})$/.test(c.status||'')?
+    c.status:'SOURCE_INCOMPLETE',
   provider_rows:Math.max(0,Math.min(2000,Math.floor(BOUNDED(c.provider_rows)||0))),
-  valid_identities:Math.max(0,Math.min(2000,Math.floor(BOUNDED(c.valid_identities)||0)))
+  valid_identities:Math.max(0,Math.min(2000,Math.floor(BOUNDED(c.valid_identities)||0))),
+  ...(Number.isInteger(c.pages_ok)&&c.pages_ok>=0&&c.pages_ok<=2?
+   {pages_ok:c.pages_ok}:{}),
+  ...(Number.isInteger(c.pages_requested)&&c.pages_requested>=1&&c.pages_requested<=2?
+   {pages_requested:c.pages_requested}:{}),
+  ...(Number.isInteger(c.omitted_by_research_cap)&&c.omitted_by_research_cap>=0?
+   {omitted_by_research_cap:Math.min(2000,c.omitted_by_research_cap)}:{})
  }));
  const newsLeads=[...new Map((snapshot.news_leads||[])
   .map(e=>publicNewsLead(e,at)).filter(Boolean).map(e=>[e.event_id,e])).values()].slice(0,16);
@@ -247,7 +260,17 @@ export function canonicalPublicMarketProjection(snapshot,{now=Date.now()}={}){
     paper_only:true,actionable:false,paper_entry_authorized:false
   })),
   summary:{identities:candidates.length,discovery_cap_per_scan:96,
-   pages_per_chain:0,cross_checked:candidates.filter(x=>
+   pages_per_chain:Number.isInteger(snapshot.summary?.pages_per_chain)?
+    Math.max(0,Math.min(2,snapshot.summary.pages_per_chain)):0,
+   source_identifiers_before_selection:Math.max(0,Math.min(20000,
+    Math.floor(BOUNDED(snapshot.summary?.valid_source_identities_before_selection)||0))),
+   omitted_by_per_chain_cap:Math.max(0,Math.min(20000,
+    Math.floor(BOUNDED(snapshot.summary?.omitted_by_per_chain_cap)||0))),
+   provider_coverage_ok:coverage.filter(x=>x.status==='OK').length,
+   provider_coverage_failed:coverage.filter(x=>!['OK','PARTIAL','PROMOTED_PROFILES_ONLY',
+    'NO_PAIR_IDENTITIES'].includes(x.status)).length,
+   research_universe_complete:false,
+   cross_checked:candidates.filter(x=>
     x.verification==='CROSS_PROVIDER_IDENTITY').length,
    promotional_only:candidates.filter(x=>x.promotion_biased).length,
    news_events_available:newsLeads.length,narrative_tokens_available:narrativeLeads.length,
