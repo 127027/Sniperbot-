@@ -205,3 +205,17 @@ test('future headlines and unlinked paid token profiles cannot become BUY signal
  assert.equal(v.narrative_leads[0].paid_promotion_seen,true);
  assert.equal(v.narrative_leads[0].actionable,false);
 });
+
+test('old trending pool stays visible to GPT without being treated as an authorized BUY',()=>{
+ const s=snapshot();
+ s.candidates[0].source='GECKOTERMINAL_TRENDING_POOLS';
+ s.candidates[0].pool_created_at_utc='2026-11-01T18:00:00.000Z';
+ s.candidates[0].source_urls=['https://api.geckoterminal.com/api/v2/networks/solana/trending_pools?duration=5m&page=1'];
+ const v=canonicalPublicMarketProjection(s,{now});
+ assert.equal(v.candidates.length,1);
+ assert.equal(v.candidates[0].source,'GECKOTERMINAL_TRENDING_POOLS');
+ assert.equal(v.candidates[0].promotion_biased,false);
+ assert.equal(v.candidates[0].verification,'CROSS_PROVIDER_IDENTITY');
+ assert.equal(v.candidates[0].unresolved_checks.includes('SELLABILITY'),true);
+ assert.equal(v.actionable,false);
+});
