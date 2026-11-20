@@ -128,7 +128,7 @@ footer{margin-top:24px;border-top:1px solid var(--border);padding-top:18px;font-
 <section class="card wide-section" id="coinStakeControls" aria-label="Einsatz pro Coin">
  <div class="section-head"><h2>Einsatz pro Coin</h2><span id="stakeMode" class="pill">Paper · virtuell</span></div>
  <div class="formgrid">
-  <div class="stake-available"><span class="label">Maximal verfügbar</span><b id="stakeAvailable">–</b></div>
+  <div class="stake-available"><span class="label">Maximal vorhanden</span><b id="stakeAvailable">–</b></div>
   <label class="field">Einsatz / Coin<input id="coinStake" type="number" min="50" max="5000" step="0.01" value="50" inputmode="decimal" aria-label="Einsatz pro Coin"></label>
   <button id="saveCoinStake" class="btn primary" type="button">Einsatz speichern</button>
  </div>
@@ -592,7 +592,7 @@ function render(){
  $('tabReal').setAttribute('aria-selected',String(!paper));
  $('paperSettings').hidden=!paper;
  $('realSettings').hidden=paper;
- $('modeNote').textContent=paper?'Nur virtuelles Geld':'Echtgeldhandel gesperrt · Wallet-Anzeige';
+ $('modeNote').textContent=paper?'Nur virtuelles Geld':'Verifizierte Blockchain-Bestände · Echtgeldhandel ausgeschaltet';
  $('gptOverview').hidden=!paper;
  $('gptDetailedLog').hidden=!paper;
  if(paper)renderPaper();else {renderReal();renderGptForward(null);renderGptActivity(null);}
