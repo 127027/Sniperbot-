@@ -322,7 +322,10 @@ function renderGptForward(p){
    ' · '+stamp(r.completed_at_utc),'activity-name');
   addElement(li,'div',String(r.candidates_reviewed)+' von '+
    String(r.candidates_seen)+' beobachteten Coins detailliert bewertet · '+
-   'kein Paper-Fill ohne eigene Empfangsquittung','activity-detail');
+   (r.source_mode==='GPT_INDEPENDENT_WEB_ONLY'?'GPT-Webrecherche ohne lokalen Collector':
+    r.source_mode==='COLLECTOR_PLUS_GPT_WEB'?'GPT-Webrecherche + lokale Zusatzdaten':
+    'Lokaler Marktsnapshot als Forschungsquelle')+
+   ' · kein Paper-Fill ohne eigene Empfangsquittung','activity-detail');
   list.appendChild(li);
  }
 }

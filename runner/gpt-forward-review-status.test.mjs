@@ -61,3 +61,48 @@ test('Windows-courier cached report never converts collector data into GPT model
  const next=localGptForwardView(today,{now:Date.parse('2026-11-21T01:00:00Z')});
  assert.equal(next.completed_reviews_today,0);
 });
+
+
+test('V6.2 GPT WEB_ONLY reviews can be counted without a running Windows market collector',()=>{
+ const independent={
+  ...review(7,3),
+  market_observed_at_utc:null,
+  market_source_blob_sha:null,
+  source_mode:'GPT_INDEPENDENT_WEB_ONLY',
+  web_source_evidence_sha256:'f'.repeat(64),
+  independent_web_source_count:3
+ };
+ const s=status([review(1,1),independent]);
+ const validated=validateGptForwardStatus(s,{now});
+ assert.equal(validated.reviews.length,2);
+ const pub=publicGptForwardStatus(validated,{now});
+ assert.equal(pub.completed_reviews_today,2);
+ assert.equal(pub.recent[0].source_mode,'GPT_INDEPENDENT_WEB_ONLY');
+ const local=localGptForwardView(pub,{now});
+ assert.equal(local.recent[0].source_mode,'GPT_INDEPENDENT_WEB_ONLY');
+ assert.equal(local.trade_authorized,false);
+});
+test('V6.2 rejected web-only claims never manufacture valid GPT-review counts',()=>{
+ const reviewWeb={...review(7,3),
+  market_observed_at_utc:null,market_source_blob_sha:null,
+  source_mode:'GPT_INDEPENDENT_WEB_ONLY',
+  web_source_evidence_sha256:'f'.repeat(64),
+  independent_web_source_count:3};
+ for(const broken of [
+  {...reviewWeb,source_mode:'LOCAL_SCOUT'},
+  {...reviewWeb,web_source_evidence_sha256:'missing'},
+  {...reviewWeb,independent_web_source_count:0},
+  {...reviewWeb,market_observed_at_utc:iso(6)},
+  {...reviewWeb,market_source_blob_sha:'a'.repeat(40)},
+  {...reviewWeb,model_review_completed:false}
+ ]){
+  assert.throws(()=>validateGptForwardStatus(status([review(1,1),broken]),{now}),/INVALID/);
+ }
+});
+test('V6.2 combined GPT web plus optional collector stays research-only',()=>{
+ const both={...review(7,3),source_mode:'COLLECTOR_PLUS_GPT_WEB',
+  web_source_evidence_sha256:'b'.repeat(64),independent_web_source_count:2};
+ const v=publicGptForwardStatus(status([both]),{now});
+ assert.equal(v.recent[0].source_mode,'COLLECTOR_PLUS_GPT_WEB');
+ assert.equal(v.trade_authorized,false);
+});

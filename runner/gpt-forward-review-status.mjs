@@ -8,6 +8,8 @@ const validUtc=s=>typeof s==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)
  Number.isFinite(Date.parse(s));
 const asUtc=s=>Date.parse(s);
 const blob=s=>typeof s==='string'&&/^[a-f0-9]{40}$/.test(s);
+const sha256=s=>typeof s==='string'&&/^[a-f0-9]{64}$/.test(s);
+const sourceModes=new Set(['COLLECTOR_PLUS_GPT_WEB','GPT_INDEPENDENT_WEB_ONLY']);
 const id=s=>typeof s==='string'&&/^gptreview_[a-f0-9]{32}$/.test(s);
 const act=new Set(['BUY','WATCH','HOLD','SELL','NO_ACTION']);
 const safePath=s=>typeof s==='string'&&
@@ -35,10 +37,29 @@ export function validateGptForwardStatus(x,{now=Date.now()}={}){
   if(!r||!id(r.review_id)||seen.has(r.review_id)||
    !validUtc(r.completed_at_utc)||r.completed_at_utc.slice(0,10)!==x.utc_day||
    asUtc(r.completed_at_utc)>now+30000||
-   !validUtc(r.market_observed_at_utc)||
-   asUtc(r.market_observed_at_utc)>asUtc(r.completed_at_utc)||
-   asUtc(r.completed_at_utc)-asUtc(r.market_observed_at_utc)>30*60_000||
-   !blob(r.market_source_blob_sha)||!safePath(r.artifact_path)||
+   // Legacy indexed reviews have a fresh Git market blob. Newly indexed
+   // independent WEB_ONLY GPT reviews may be documented without a running
+   // Windows collector, using their own immutable Git journal and source hash.
+   // A model-authored index is NOT an independent model attestation.
+   !(r.source_mode===undefined?
+     validUtc(r.market_observed_at_utc)&&
+     asUtc(r.market_observed_at_utc)<=asUtc(r.completed_at_utc)&&
+     asUtc(r.completed_at_utc)-asUtc(r.market_observed_at_utc)<=30*60_000&&
+     blob(r.market_source_blob_sha):
+     sourceModes.has(r.source_mode)&&
+     (r.source_mode==='GPT_INDEPENDENT_WEB_ONLY'?
+       r.market_observed_at_utc===null&&r.market_source_blob_sha===null&&
+       sha256(r.web_source_evidence_sha256)&&
+       Number.isInteger(r.independent_web_source_count)&&
+       r.independent_web_source_count>=2&&r.independent_web_source_count<=100:
+       validUtc(r.market_observed_at_utc)&&
+       asUtc(r.market_observed_at_utc)<=asUtc(r.completed_at_utc)&&
+       asUtc(r.completed_at_utc)-asUtc(r.market_observed_at_utc)<=30*60_000&&
+       blob(r.market_source_blob_sha)&&
+       sha256(r.web_source_evidence_sha256)&&
+       Number.isInteger(r.independent_web_source_count)&&
+       r.independent_web_source_count>=2&&r.independent_web_source_count<=100))||
+   !safePath(r.artifact_path)||
    !r.artifact_path.includes('/'+x.utc_day+'/')||
    !Number.isInteger(r.candidates_seen)||r.candidates_seen<0||r.candidates_seen>5000||
    !Number.isInteger(r.candidates_reviewed)||r.candidates_reviewed<1||
@@ -75,7 +96,7 @@ export function publicGptForwardStatus(value,{now=Date.now()}={}){
   recent:x.reviews.slice(-6).reverse().map(r=>({
    completed_at_utc:r.completed_at_utc,action:r.action,
    candidates_seen:r.candidates_seen,candidates_reviewed:r.candidates_reviewed,
-   artifact_path:r.artifact_path,trade_authorized:false
+   artifact_path:r.artifact_path,source_mode:r.source_mode||'COLLECTOR_RESEARCH_ONLY',trade_authorized:false
   })),
   reason:'GPT_REPORTED_REVIEWS_NOT_INDEPENDENT_MODEL_ATTESTATION',
   model_identity_attested:false,trade_authorized:false,
@@ -112,6 +133,7 @@ export function localGptForwardView(value,{now=Date.now()}={}){
    Number.isInteger(r.candidates_reviewed)&&
    r.candidates_reviewed>=1&&r.candidates_reviewed<=r.candidates_seen)
    .slice(0,6).map(r=>({action:r.action,
+    source_mode:sourceModes.has(r.source_mode)?r.source_mode:'COLLECTOR_RESEARCH_ONLY',
     completed_at_utc:r.completed_at_utc,
     candidates_seen:r.candidates_seen,candidates_reviewed:r.candidates_reviewed})),
   reason:'GPT_REPORTED_REVIEWS_NOT_INDEPENDENT_MODEL_ATTESTATION'
