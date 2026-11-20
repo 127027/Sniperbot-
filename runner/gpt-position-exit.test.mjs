@@ -179,6 +179,9 @@ test('V2 signed GPT BUY persists policy; monitor SELLs after stop loss with Bot 
   assert.equal(sells[0].quote_source,'DEX Screener');
   assert.equal(sells[0].quote_price_usd,.015);
   assert.equal(sells[0].account_balance_or_wallet_logged,false);
+  assert.equal(sells[0].price_evidence_class,'PUBLIC_INDICATIVE_QUOTE_PAPER_ONLY');
+  assert.equal(sells[0].executable_buy_sell_quote_verified,false);
+  assert.equal(Object.hasOwn(sells[0],'synthetic_fixture'),false);
   assert.equal(a.state.gptExitMonitorLast.audit_status,'LOCAL_JOURNAL_WRITTEN');
   assert(!JSON.stringify(sells).includes('cashUsdc'));
   assert(!JSON.stringify(sells).includes('private_key'));
