@@ -337,7 +337,11 @@ function renderGptForward(p){
   pill('gptReviewCount','0 nachgewiesen · Ziel 4–24','blocked');
   $('gptReviewCadence').textContent='Kein gültiger, aktueller GPT-Review-Index für den heutigen UTC-Tag. Die SCOUT-Marktscans zählen ausdrücklich nicht.';
   $('gptLastReviewSummary').textContent='Kein aktueller Bericht';
-  $('gptSyncNote').textContent='GPT-Abgleich noch nicht bestätigt. Eine laufende Marktsuche ist kein GPT-Review.';
+  const sync=p?.gpt_forward_sync_diagnostic;
+  $('gptSyncNote').textContent=sync?.status==='ERROR'?
+   'GPT-Kurier konnte den GitHub-Review-Index nicht synchronisieren: '+
+    String(sync.reason||'Unbekannt')+' · '+stamp(sync.checked_at_utc):
+   'GPT-Abgleich nicht bestätigt. Eine Marktsuche allein ist kein GPT-Review.';
   $('gptReviewLast').textContent='Letzter GPT-Vollreview: nicht belegbar';
   addElement(list,'li','Noch keine bestätigbaren GPT-Vollreviews im lokalen Tagesjournal.','sub');
   return;
@@ -355,9 +359,15 @@ function renderGptForward(p){
  $('gptLastReviewSummary').textContent=last?
   String(last.action||'Review')+' · '+stamp(x.last_review_at_utc):'Kein Bericht';
  const lag=Date.now()-Date.parse(x.last_review_at_utc||'');
- $('gptSyncNote').textContent=Number.isFinite(lag)&&lag>2*60*60_000?
-  'Letzter lokaler GPT-Bericht ist über 2 Stunden alt. GitHub-Synchronisierung unter Diagnose prüfen.':
-  'GPT-Angaben stammen aus dem lokal synchronisierten Modelljournal; kein bestätigter Paper-Kauf.';
+ const sync=p?.gpt_forward_sync_diagnostic;
+ $('gptSyncNote').textContent=sync?.status==='ERROR'?
+   'GPT-Kurier meldet Synchronisierungsfehler: '+String(sync.reason||'Unbekannt')+
+    ' · '+stamp(sync.checked_at_utc):
+   sync?.status==='SYNCED'&&sync.completed_reviews_today!==x.completed_reviews_today?
+   'GPT-Index und lokale Anzeige widersprechen sich. Dateiabgleich im Diagnosebereich prüfen.':
+   Number.isFinite(lag)&&lag>2*60*60_000?
+   'Letzter vollständiger GPT-Review liegt über 2 Stunden zurück; es gab seitdem keinen neuen archivierten Review.':
+   'GPT-Review aus lokal synchronisiertem Journal · kein bestätigter Paper-Kauf.';
  const rows=Array.isArray(x.recent)?x.recent:[];
  if(!rows.length)addElement(list,'li','Heute noch keine GPT-Vollanalyse dokumentiert.','sub');
  for(const r of rows){
