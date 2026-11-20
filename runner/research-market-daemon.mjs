@@ -201,6 +201,21 @@ async function runCycle({fetcher=fetch,publisher=publishResearchSnapshot,
   }catch(e){rankingPoolError=String(e?.message||'RANKING_POOL_RESOLUTION_FAILED')
     .replace(/[^a-zA-Z0-9_. -]/g,'').slice(0,95)}
 
+  // V6.7: persist only bounded, public, non-actionable reasons WHY a ranked
+  // token did not become an independent pool. No ranking is a BUY signal.
+  snapshot.ranking_pool_resolution={
+    schema:'r29_ranking_pool_resolution.v1',paper_only:true,actionable:false,
+    attempted:rankingPools.attempted||0,
+    cross_provider_matched:rankingPools.resolved?.length||0,
+    admitted:rankingPools.admitted||0,
+    capacity_skipped:rankingPools.capacitySkipped||0,
+    checks:rankingPools.checks||[],
+    status:rankingPoolError?'POOL_RESEARCH_ERROR':
+      (rankingPools.attempted||0)===0?'NO_ELIGIBLE_TOKEN_LEADS':
+      (rankingPools.resolved?.length||0)===0?'NO_CROSS_PROVIDER_POOL_MATCH':
+      'MATCHED_POOL_RESEARCH_ONLY'
+  };
+
   // Prospective evidence: capture the exact public data first seen by THIS
   // collector, without modifying any existing historical or paper portfolio.
   // Deliberately never backdate the capture to a source's claimed publish time.
