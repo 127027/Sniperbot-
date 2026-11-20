@@ -114,6 +114,10 @@ jobs:
         run: node --test runner/solana-forward-evidence.test.mjs runner/solana-swap-quote.test.mjs runner/solana-swap-roundtrip.test.mjs runner/solana-mint-risk.test.mjs
       - name: R29 Solana market evidence and courier syntax
         run: node --check runner/solana-forward-evidence.mjs && node --check runner/solana-swap-quote.mjs && node --check runner/r29-windows-courier.mjs
+      - name: R29 V6.4 independent public rankings prospectively observed, no historic winners or order authority
+        run: node --test runner/research-public-ranking-discovery.test.mjs
+      - name: R29 V6.4 independent ranking discovery source + bridge syntax
+        run: node --check runner/research-public-ranking-discovery.mjs && node --check runner/research-market-daemon.mjs && node --check runner/r29-canonical-market-relay.mjs
       - name: R29 canonical fresh local pool feed relay to GPT GitHub branch without balances/orders
         run: node --test runner/r29-canonical-market-relay.test.mjs
       - name: R29 canonical market relay source syntax and no automatic trades
