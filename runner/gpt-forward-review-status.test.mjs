@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateGptForwardStatus,publicGptForwardStatus,GPT_FORWARD_STATUS_SCHEMA} from './gpt-forward-review-status.mjs';
+import {validateGptForwardStatus,publicGptForwardStatus,localGptForwardView,GPT_FORWARD_STATUS_SCHEMA} from './gpt-forward-review-status.mjs';
 const day='2026-11-20';
 const iso=h=>new Date(Date.parse(day+'T00:00:00Z')+h*3600000).toISOString();
 const review=(h,i)=>({
@@ -46,4 +46,18 @@ test('stale previous-day reports do not imply daily reviews',()=>{
  assert.equal(next.available,false);assert.equal(next.completed_reviews_today,0);
  assert.equal(next.reason,'GPT_REVIEW_INDEX_PREVIOUS_UTC_DAY');
  assert.equal(publicGptForwardStatus(null,{now}).target_per_day,null);
+});
+
+test('Windows-courier cached report never converts collector data into GPT model scans',()=>{
+ const today=publicGptForwardStatus(status(),{now});
+ const safe=localGptForwardView(today,{now});
+ assert.equal(safe.available,true);
+ assert.equal(safe.completed_reviews_today,2);
+ assert.equal(safe.recent[0].candidates_reviewed,8);
+ const forged={...today,trade_authorized:true};
+ assert.equal(localGptForwardView(forged,{now}).available,false);
+ const unknown={...today,model_identity_attested:true};
+ assert.equal(localGptForwardView(unknown,{now}).completed_reviews_today,0);
+ const next=localGptForwardView(today,{now:Date.parse('2026-11-21T01:00:00Z')});
+ assert.equal(next.completed_reviews_today,0);
 });
