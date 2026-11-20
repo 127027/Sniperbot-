@@ -16,6 +16,7 @@ import {syncGptPaperSecurityResearch} from './gpt-paper-security-research.mjs';
 import {syncPublicForwardSourceHealth} from './forward-source-health.mjs';
 import {mirrorFreshLocalMarketToCanonical} from './r29-canonical-market-relay.mjs';
 import {syncPublicForwardSolanaResearch} from './solana-forward-evidence.mjs';
+import {GPT_FORWARD_STATUS_PATH,publicGptForwardStatus} from './gpt-forward-review-status.mjs';
 
 const REPO='127027/Sniperbot-';
 const base='https://api.github.com/repos/'+REPO+'/contents/';
@@ -31,7 +32,7 @@ function check(token){
 }
 export async function requestGithubFile(relative,{token,fetcher=fetch}={}){
  check(token);
- if(![R29_INTENT_PATH,R29_WINDOWS_STATUS_PATH,R29_MAIN_INTENT_PATH,R29_MAIN_STATUS_PATH,R29_REGULAR_PRESENCE_PATH].includes(relative))
+ if(![R29_INTENT_PATH,R29_WINDOWS_STATUS_PATH,R29_MAIN_INTENT_PATH,R29_MAIN_STATUS_PATH,R29_REGULAR_PRESENCE_PATH,GPT_FORWARD_STATUS_PATH].includes(relative))
   throw Error('R29_UNEXPECTED_PATH');
  const url=base+relative+'?ref='+encodeURIComponent(R29_BRANCH)+'&v='+Date.now();
  const response=await fetcher(url,{method:'GET',redirect:'error',
@@ -281,6 +282,26 @@ export async function syncR29WindowsSandbox({token,folder,fetcher=fetch,
  const published=await publishR29Status(status,{token,fetcher});
  return {status,published,skipped_unchanged:false};
 }
+// Transport a read-only, model-authored GPT review index to the existing
+// Windows dashboard. Never claim GitHub attribution cryptographically attests
+// a model invocation. This data has ZERO order authority and no account info.
+export async function syncGptForwardReviewStatus({token,folder,now=Date.now(),fetcher=fetch}={}){
+ if(typeof folder!=='string'||!path.isAbsolute(folder)||!Number.isFinite(now))
+  throw Error('GPT_FORWARD_LOCAL_FOLDER_INVALID');
+ const remote=await requestGithubFile(GPT_FORWARD_STATUS_PATH,{token,fetcher});
+ const status=publicGptForwardStatus(remote.data,{now});
+ mkdirSync(folder,{recursive:true});
+ const file=path.join(folder,'gpt-forward-status.json');
+ const raw=JSON.stringify(status,null,2)+'\n';
+ let old=null;
+ try{old=readFileSync(file,'utf8')}catch{}
+ if(old!==raw){
+  const pending=file+'.pending-'+process.pid;
+  writeFileSync(pending,raw,{mode:0o600});
+  renameSync(pending,file);
+ }
+ return {status,published:false,read_only:true};
+}
 if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href){
  const token=process.env.SNIPER_R29_GITHUB_TOKEN;
  const folder=process.env.LOCALAPPDATA?
@@ -307,6 +328,16 @@ if(import.meta.url===new URL('file://'+path.resolve(process.argv[1]||'/')).href)
     const presence=await syncR29RegularPresence({token,folder});
     console.log('[R29] EINE Startdatei / regulärer Paper-Kurier:',presence.status.local_paper_http_healthy?
      'Bot erreichbar':'Bot nicht erreichbar','· GitHub Heartbeat OK · GPT-only Paper-Aufträge mit gesonderter Freigabe');
+    // This read-only model-review counter never increments from SCOUT market ticks.
+    try{
+      const report=await syncGptForwardReviewStatus({token,folder});
+      if(report.status.available)console.log('[GPT V5.9] Modell-Review-Journal:',
+        report.status.completed_reviews_today+'/'+report.status.target_per_day,
+        'GPT-dokumentiert; NICHT unabhängig attestiert');
+    }catch(e){
+      console.error('[GPT V5.9] Modell-Review-Index noch nicht verifizierbar:',
+        String(e?.message||e).slice(0,100));
+    }
     // Research-only bridge is completely separate from the Paper ledger.
     // Missing market archive must never block normal GitHub heartbeat.
     // Publish only publicly safe source freshness flags every ~10 minutes.
