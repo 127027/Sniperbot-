@@ -217,7 +217,7 @@ export function canonicalPublicMarketProjection(snapshot,{now=Date.now()}={}){
   // making the real Windows bottleneck impossible for GPT to diagnose.
   status:['OK','PARTIAL','PROMOTED_PROFILES_ONLY','NO_PAIR_IDENTITIES',
    'HTTP_429_RATE_LIMIT','SKIPPED_AFTER_RATE_LIMIT','TIMEOUT',
-   'SOURCE_UNAVAILABLE','NETWORK_ENOTFOUND','NETWORK_EAI_AGAIN',
+   'SOURCE_UNAVAILABLE','PROVIDER_RESPONSE_INVALID','NETWORK_ENOTFOUND','NETWORK_EAI_AGAIN',
    'NETWORK_ECONNRESET','NETWORK_ECONNREFUSED'].includes(c.status)?
    c.status:/^HTTP_(?:[45][0-9]{2})$/.test(c.status||'')?
     c.status:'SOURCE_INCOMPLETE',
