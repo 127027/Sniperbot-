@@ -300,7 +300,9 @@ export function createGptPaperLocalReceiver({deviceId,dataDir,marketFile,
        quote_observed_at_utc:typeof q?.asOf==='string'&&
          Number.isFinite(Date.parse(q.asOf))?q.asOf:null,
        modeled_pnl_pct:finite(decision.pnl_pct_modelled)?decision.pnl_pct_modelled:null,
-       synthetic_fixture:false,paper_only:true,real_trading_enabled:false,
+       price_evidence_class:'PUBLIC_INDICATIVE_QUOTE_PAPER_ONLY',
+       executable_buy_sell_quote_verified:false,
+       paper_only:true,real_trading_enabled:false,
        account_balance_or_wallet_logged:false
      };
      appendFileSync(path.join(auditFolder,new Date(instant).toISOString().slice(0,10)+'.jsonl'),
