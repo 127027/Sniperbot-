@@ -37,6 +37,8 @@ jobs:
         run: node --test runner/gpt-forward-review-status.test.mjs
       - run: node --check runner/gpt-forward-review-status.mjs
       - run: node runner/dashboard-syntax-check.mjs
+      - name: R29 V6.6 compact end-user dashboard and hidden full diagnostics
+        run: node --test runner/r29-v66-clean-dashboard.test.mjs
       - name: R29 real Paper dashboard balance and positions pricing fail-closed
         run: node --test runner/dashboard-portfolio.test.mjs runner/gpt-paper-inactivity.test.mjs runner/gpt-paper-forward-funnel.test.mjs
       - run: node runner/test.mjs
