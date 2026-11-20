@@ -1,0 +1,48 @@
+name: R29 one-time 24h offline as-of Git replay
+on:
+  push:
+    branches:
+      - codex/r29-v610-24h-git-asof-replay-20261120
+    paths:
+      - runner/r29-24h-blind-git-replay.mjs
+      - runner/r29-24h-blind-git-replay.test.mjs
+      - .github/workflows/r29-24h-offline-git-replay.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    name: Replay archived Git history without external provider APIs
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SNIPER_OFFLINE: '1'
+      SNIPER_NETWORK_POLICY: GITHUB_ONLY
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check offline replay syntax and anti-hindsight tests
+        run: |
+          node --check runner/r29-24h-blind-git-replay.mjs
+          node --test runner/r29-24h-blind-git-replay.test.mjs
+      - name: Run 19-20 November 24h chronological archive replay
+        run: |
+          node runner/r29-24h-blind-git-replay.mjs \
+            2026-11-19T20:48:09.000Z \
+            2026-11-20T20:48:09.000Z \
+            "$RUNNER_TEMP/r29-24h-report"
+      - name: Archive immutable replay evidence for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: R29-24H-ASOF-GITHUB-REPLAY-NOV19-20
+          path: ${{ runner.temp }}/r29-24h-report/
+          if-no-files-found: warn
+          retention-days: 30
