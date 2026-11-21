@@ -1,0 +1,31 @@
+name: R29 validate GPT review index before Windows synchronization
+on:
+  push:
+    paths:
+      - research/r29/channel/gpt-forward-review-status.json
+      - research/r29/gpt-strategy/experiences/**
+      - runner/r29-review-index-integrity.mjs
+      - runner/gpt-forward-review-status.mjs
+  pull_request:
+    paths:
+      - research/r29/channel/gpt-forward-review-status.json
+      - runner/r29-review-index-integrity.mjs
+      - runner/gpt-forward-review-status.mjs
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate model review IDs and local source journal references
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fail CI on malformed GPT review IDs, missing journals or evidence SHA
+        run: node runner/r29-review-index-integrity.mjs
+      - name: Verify anti-forgery and report consistency tests
+        run: node --test runner/r29-review-index-integrity.test.mjs
