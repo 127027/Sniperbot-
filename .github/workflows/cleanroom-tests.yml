@@ -30,6 +30,10 @@ jobs:
         continue-on-error: true
         timeout-minutes: 2
         run: node scripts/forensic-probe-15nov.mjs
+      - name: Live public JSON discovery probe (research only)
+        continue-on-error: true
+        timeout-minutes: 2
+        run: node scripts/probe-live-discovery.mjs
       - name: Upload forensic diagnostic (not a trade receipt)
         if: always()
         uses: actions/upload-artifact@v4
