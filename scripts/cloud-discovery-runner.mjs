@@ -9,6 +9,7 @@ import {makeResearchHandoff} from '../src/feed-handoff.mjs';
 import {emptyMarketMemory,mergeMemory} from '../src/market-memory.mjs';
 import {fairRecheckPlan,recordRecheckAttempt} from '../src/discovery-fair-queue.mjs';
 import {makeCaptureObservationBatch,scoreAsOf,labelAfterHorizon} from '../src/forward-learning.mjs';
+import {chooseNextDiscoveryPage} from '../src/discovery-page-scheduler.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -25,7 +26,7 @@ const root='research/feeds/'+new Date(request.created_at_utc).toISOString().slic
 await mkdir(root,{recursive:true});
 const chosen=chooseNetwork(request,Number(process.env.GITHUB_RUN_NUMBER)||0);
 const now=()=>new Date().toISOString();
-const fetches=[],dexChecks=[],fallback=[],artifacts=[];
+const fetches=[],dexChecks=[],fallback=[],rechecked=[],artifacts=[];
 async function fetchRaw(url,provider,fileName){
  const started=now();
  const response=await fetch(url,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(16000)});
@@ -49,7 +50,8 @@ try{precedingMemory=JSON.parse(await readFile(memoryFile,'utf8'));}
 catch(err){if(err.code!=='ENOENT')throw err;precedingMemory=emptyMarketMemory();}
 const oldCheckpoint=precedingMemory.checkpoints[chosen.chain+':GECKOTERMINAL'];
 const unvisited=Math.max(1,oldCheckpoint?.next_page_to_consider||1);
-const scanPage=(unvisited>1&&(Number(process.env.GITHUB_RUN_NUMBER)||0)%2===0)?unvisited:1;
+const pageDecision=chooseNextDiscoveryPage(oldCheckpoint);
+const scanPage=pageDecision.page;
 const mainUrl='https://api.geckoterminal.com/api/v2/networks/'+chosen.network
  +'/new_pools?include=base_token,quote_token&page='+scanPage;
 try{
@@ -81,8 +83,20 @@ for(const c of targets){
  try{
   const data=await fetchRaw(url,'DEXSCREENER','dex-'+chain+'-'+String(pool).replace(/[^a-zA-Z0-9]/g,'')+'.raw.json');
   if(c.contract){
-   dexChecks.push({chain,pool,source: data.evidence.body_path,
-    ...crossCheckDexPair({candidate:c,response:data.json,checkedAtUtc:data.evidence.received_at_utc})});
+   const check=crossCheckDexPair({candidate:c,response:data.json,checkedAtUtc:data.evidence.received_at_utc});
+   dexChecks.push({chain,pool,source:data.evidence.body_path,...check});
+   if(check.matched===true&&Number.isFinite(check.dexscreener_price_usd)
+     &&check.dexscreener_price_usd>0&&Number.isFinite(check.dexscreener_liquidity_usd)){
+      rechecked.push({chain,pool,contract:c.contract,symbol:c.symbol||null,
+       pool_kind:c.pool_kind||null,
+       observed_at_utc:data.evidence.received_at_utc,
+       source_api:'DEXSCREENER_VERIFIED_RECHECK',
+       source_raw_path:data.evidence.body_path,
+       observed_price_usd:check.dexscreener_price_usd,
+       liquidity_usd:check.dexscreener_liquidity_usd,
+       volume_24h_usd:null,category:'RECHECK',
+       trade_authorized:false});
+   }
   }else{
    const rec=fromDexPairOnly({chain,pool,response:data.json,capturedAtUtc:data.evidence.received_at_utc});
    dexChecks.push({chain,pool,source:data.evidence.body_path,status:rec.status,
@@ -96,7 +110,9 @@ for(const c of targets){
 }
 const metrics=collectSampleMetrics({geckoDecoded:decoded,dexChecks,fallbackCandidates:fallback,requests:fetches});
 metrics.discovery_page=scanPage;
+metrics.discovery_page_reason=pageDecision.reason;
 metrics.previous_chain_page_checkpoint=oldCheckpoint?.next_page_to_consider??null;
+metrics.verified_recheck_price_observations=rechecked.length;
 const data={schema:1,kind:'DOT2_PUBLIC_CAPTURE_EVIDENCE',mode:'PAPER_RESEARCH_ONLY',
   request_path:path,requested_at_utc:request.created_at_utc,captured_completed_at_utc:now(),
   source_chain:chosen.chain,network_rotation:chosen.rotation,selected_page:scanPage,
@@ -128,6 +144,21 @@ const mergedDex=mergeMemory(memory,{candidates:fallback,
  sourcePath:filename,sourceCapturedAtUtc:data.captured_completed_at_utc,
  provider:'DEXSCREENER',chain:null,page:1});
 memory=mergedDex.memory;
+const recheckObservationPath=root+'/dex-recheck-observations.json';
+await writeFile(recheckObservationPath,JSON.stringify({
+ schema:1,kind:'UNFILTERED_VERIFIED_EXACT_POOL_DEX_RECHECKS',
+ captured_at_utc:data.captured_completed_at_utc,
+ total_rechecks_with_actual_prices:rechecked.length,
+ observations:rechecked,
+ disclaimer:'Provider quote-as-of unverified; this is only a historical observed capture, not an executable BUY quote.'
+},null,2)+'\n','utf8');
+artifacts.push(recheckObservationPath);
+if(rechecked.length){
+ const mergedRechecks=mergeMemory(memory,{candidates:rechecked,
+  sourcePath:recheckObservationPath,sourceCapturedAtUtc:data.captured_completed_at_utc,
+  provider:'DEXSCREENER_RECHECK',chain:null,page:1});
+ memory=mergedRechecks.memory;
+}
 for(const attempt of attempts)memory=recordRecheckAttempt(memory,{
  chain:attempt.chain,pool:attempt.pool,attemptAtUtc:attempt.checked_at_utc,
  status:attempt.status,sourcePath:attempt.source_path
@@ -136,7 +167,7 @@ for(const attempt of attempts)memory=recordRecheckAttempt(memory,{
 const observationPath='research/observations/'+new Date(data.captured_completed_at_utc).toISOString().slice(0,10)+'/'+runId+'.json';
 const batch=makeCaptureObservationBatch({
  capturedAtUtc:data.captured_completed_at_utc,sourcePath:filename,
- geckoCandidates:decoded?.candidates||[],dexFallbackCandidates:fallback});
+ geckoCandidates:decoded?.candidates||[],dexFallbackCandidates:[...fallback,...rechecked]});
 await mkdir('research/observations/'+new Date(data.captured_completed_at_utc).toISOString().slice(0,10),{recursive:true});
 await writeFile(observationPath,JSON.stringify(batch,null,2)+'\n','utf8');
 const previous=[];
@@ -174,6 +205,9 @@ const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
  imported_existing_dot2:mergedOld.added,
  new_gecko_pools:mergedGecko.added,
  new_dex_fallback_pools:mergedDex.added,
+ actual_rechecked_prices:rechecked.length,
+ dex_recheck_observation_path:recheckObservationPath,
+ scan_page_decision:pageDecision,
  updated_pool_observations:mergedOld.updated+mergedGecko.updated+mergedDex.updated,
  coverage:memory.checkpoints,stats:memory.stats,
  historic_rechecks_next:nextPlan.candidates,
@@ -204,4 +238,4 @@ const latest={schema:1,kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',mode:'PAPER_RES
 await mkdir('research/feeds',{recursive:true});
 await writeFile('research/feeds/latest.json',JSON.stringify(latest,null,2)+'\n','utf8');
 console.log('DOT2_CAPTURE_DONE',JSON.stringify({evidence_path:filename,request_path:path,
- network:chosen.chain,metrics,memory_stats:memory.stats,memory_checkpoint:memoryCheckpointPath,prospective:prospectiveRanking.counts,fair_backlog:plan.backlog_count,errors:data.errors}));
+ network:chosen.chain,metrics,memory_stats:memory.stats,memory_checkpoint:memoryCheckpointPath,prospective:prospectiveRanking.counts,recheck_prices:rechecked.length,fair_backlog:plan.backlog_count,errors:data.errors}));
