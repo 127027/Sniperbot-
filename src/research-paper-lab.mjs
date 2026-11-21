@@ -12,13 +12,13 @@ export const PAPER_LAB_PRESETS=Object.freeze({
     minVolumeUsd:500,maxRecentCloseRangeRatio:3,maxBuysPerCoinPerDay:2,
     reentryCooldownHours:6,minPriorCandles:3}
 });
-export function runResearchPaperLab({date,pools=[],preset='exploratory',startBalance=5000,amountPerCoin=50}={}){
+export function runResearchPaperLab({date,pools=[],preset='exploratory',startBalance=5000,amountPerCoin=50,mediaEvidence=[]}={}){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(date||'')||!Number.isFinite(Date.parse(date+'T00:00:00Z')))throw Error('INVALID_DAY');
- if(!Array.isArray(pools)||!PAPER_LAB_PRESETS[preset])throw Error('INVALID_EXPERIMENT');
+ if(!Array.isArray(pools)||!PAPER_LAB_PRESETS[preset]||!Array.isArray(mediaEvidence))throw Error('INVALID_EXPERIMENT');
  const rules=PAPER_LAB_PRESETS[preset],start=Date.parse(date+'T00:00:00Z'),minute=60000;
  let cash=startBalance;const open=new Map(),entryHistory=new Map(),events=[],scans=[],counts={buys:0,sells:0,watches:0,dataGaps:0,blockedEntries:0,reentryGuardBlocks:0};
  let realized=0;
- const inputs=pools.map((p,i)=>({id:p.id||String(i),symbol:p.symbol||null,chain:p.chain||null,pool_created_at_utc:p.pool_created_at_utc,
+ const inputs=pools.map((p,i)=>({id:p.id||String(i),symbol:p.symbol||null,chain:p.chain||null,contract:p.contract||null,pool:p.pool||null,pool_created_at_utc:p.pool_created_at_utc,
    pool_at:ms(p.pool_created_at_utc),candles:Array.isArray(p.candles)?p.candles:[]}));
  for(let hour=0;hour<24;hour++){
   const tick=start+hour*3600000+35*minute,dot2=tick-20*minute;
@@ -91,11 +91,28 @@ export function runResearchPaperLab({date,pools=[],preset='exploratory',startBal
           const inCooldown=rules.reentryCooldownHours!==undefined&&previousEntries.length>0
             &&tick-previousEntries.at(-1)<rules.reentryCooldownHours*3600000;
           const weakHistory=rules.minPriorCandles!==undefined&&availableHistory.length<rules.minPriorCandles;
+          // V1.5 research-only: TWO distinct origins with an EXACT contract,
+          // published and originally CAPTURED before this decision. Generic
+          // Trump/DOGE memes or retroactively found news NEVER activate it.
+          const mediaSources=new Set(mediaEvidence.filter(m=>{
+            const pub=ms(m?.published_at_utc),seen=ms(m?.first_captured_at_utc);
+            if(!coin.contract||!coin.chain||!m?.independent_origin_verified
+              ||!m?.source_origin||!m?.contract||!m?.chain||!m?.pool)return false;
+            const sameChain=String(m.chain).toLowerCase()===String(coin.chain).toLowerCase();
+            const sameContract=coin.chain==='solana'?m.contract===coin.contract:
+              String(m.contract).toLowerCase()===String(coin.contract).toLowerCase();
+            const samePool=coin.pool&&(coin.chain==='solana'?m.pool===coin.pool:
+              String(m.pool).toLowerCase()===String(coin.pool).toLowerCase());
+            return sameChain&&sameContract&&samePool&&pub!==null&&seen!==null
+              &&pub<=tick&&seen<=tick&&tick-seen<=4*3600000;
+          }).map(m=>m.source_origin));
+          const mediaVerified=mediaSources.size>=2;
+          const mediaAdjustedMinPct=mediaVerified?Math.max(3,rules.momentumMinPct-1):rules.momentumMinPct;
           const guarded=atCap||inCooldown||weakHistory;
           const volatilityTooHigh=rules.maxRecentCloseRangeRatio!==undefined
            &&range!==null&&range>rules.maxRecentCloseRangeRatio;
-          if(!guarded&&!volatilityTooHigh&&rise>=rules.momentumMinPct&&rise<=rules.momentumMaxPct&&volume>=rules.minVolumeUsd&&cash>=amountPerCoin){
-            action='BUY_EXPERIMENT';reason='RECENT_CLOSED_CANDLE_MOMENTUM';
+          if(!guarded&&!volatilityTooHigh&&rise>=mediaAdjustedMinPct&&rise<=rules.momentumMaxPct&&volume>=rules.minVolumeUsd&&cash>=amountPerCoin){
+            action='BUY_EXPERIMENT';reason=mediaVerified?'CLOSED_CANDLE_MOMENTUM_PLUS_VERIFIED_CONTRACT_NEWS':'RECENT_CLOSED_CANDLE_MOMENTUM';
             const spend=amountPerCoin,filledPrice=price*(1+.004+.005),
              units=(spend*(1-.0075))/filledPrice;
             open.set(coin.id,{spent:spend,units,entry_price_usd:price,at_utc:at(tick)});
@@ -110,7 +127,7 @@ export function runResearchPaperLab({date,pools=[],preset='exploratory',startBal
             reason=atCap?'MAX_DAILY_BUYS_PER_POOL':inCooldown?'WAIT_6_HOUR_REENTRY_COOLDOWN':
              weakHistory?'INSUFFICIENT_CLOSED_HISTORY':volatilityTooHigh?'HIGH_RECENT_CLOSE_RANGE':
              rise>rules.momentumMaxPct?'TOO_EXTREME_MOMENTUM':
-             rise<rules.momentumMinPct?'NO_MOMENTUM':
+             rise<mediaAdjustedMinPct?'NO_MOMENTUM':
              volume<rules.minVolumeUsd?'VOLUME_TOO_LOW':'NO_CASH';
           }
         }
@@ -119,7 +136,7 @@ export function runResearchPaperLab({date,pools=[],preset='exploratory',startBal
    }
    if(action==='DATA_GAP')counts.dataGaps++;
    if(action==='WATCH_EXPERIMENT')counts.watches++;
-   scan.decisions.push({symbol:coin.symbol,chain:coin.chain,action,reason,observed_price_usd:price});
+   scan.decisions.push({symbol:coin.symbol,chain:coin.chain,action,reason,observed_price_usd:price,media_sufficient_evidence:reason==='CLOSED_CANDLE_MOMENTUM_PLUS_VERIFIED_CONTRACT_NEWS'});
   }
   scans.push(scan);
  }
@@ -132,7 +149,7 @@ export function runResearchPaperLab({date,pools=[],preset='exploratory',startBal
   date,preset,entry_amount_test_usdc:amountPerCoin,
   initial_cash_test_usdc:startBalance,remaining_cash_test_usdc:cash,
   realized_hypothetical_pnl_test_usdc:realized,open_positions:notionalOpen,
-  counts,events,scans,
+  counts,events,scans,media_research_only:mediaEvidence.length>0,
   verified_historical_paper_orders:0,verified_client_fills:0,
   verified_real_profit_test_usdc:null,
   warnings:['Known post-hoc example pools; not unbiased discovery.','Prices are retrospectively reconstructed single-source OHLCV, not proven actual available fill quotes.','Fees, spread, impact and virtual fills are assumptions; actual slippage, liquidity and sellability not proven.','Experiment output must NEVER be written to signals/orders/ or treated as real Dot4 trade receipts.']};
