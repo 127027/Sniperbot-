@@ -26,6 +26,18 @@ jobs:
           node-version: 22
       - name: Run tests
         run: npm test
+      - name: Non-trading historical GeckoTerminal probe (informational only)
+        continue-on-error: true
+        timeout-minutes: 2
+        run: node scripts/forensic-probe-15nov.mjs
+      - name: Upload forensic diagnostic (not a trade receipt)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-ohlcv-probe
+          path: probe-artifacts/*.json
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Isolated tree assertion
         run: |
           test ! -e runner
