@@ -9,6 +9,7 @@ import {makeResearchHandoff} from '../src/feed-handoff.mjs';
 import {emptyMarketMemory,mergeMemory} from '../src/market-memory.mjs';
 import {fairRecheckPlan,recordRecheckAttempt} from '../src/discovery-fair-queue.mjs';
 import {makeCaptureObservationBatch,scoreAsOf,labelAfterHorizon} from '../src/forward-learning.mjs';
+import {makeAsOfForecastSnapshot,settleMatureForecastSnapshot} from '../src/forward-oracle-journal.mjs';
 import {chooseNextDiscoveryPage} from '../src/discovery-page-scheduler.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
@@ -185,6 +186,43 @@ try{
 const prospectiveRanking=scoreAsOf({batches:previous,asOfUtc:data.captured_completed_at_utc});
 const rankingPath='research/observations/'+new Date(data.captured_completed_at_utc).toISOString().slice(0,10)+'/'+runId+'-asof-ranking.json';
 await writeFile(rankingPath,JSON.stringify(prospectiveRanking,null,2)+'\n','utf8');
+const forwardRoot='research/forecasts/'+new Date(data.captured_completed_at_utc).toISOString().slice(0,10);
+await mkdir(forwardRoot,{recursive:true});
+const forecast=makeAsOfForecastSnapshot({ranking:prospectiveRanking,batches:previous});
+const forecastPath=forwardRoot+'/'+runId+'-asof.json';
+await writeFile(forecastPath,JSON.stringify(forecast,null,2)+'\n','utf8');
+// Evaluate previous forecasts only when actual time has moved past their
+// future horizon; retain unknown where a matched future quote is missing.
+const pastForecasts=[];
+try {
+ const all=(await readdir('research/forecasts',{recursive:true}))
+   .filter(x=>/(^|\/)\d+-asof\.json$/.test(x)).sort();
+ for(const relative of all.slice(-60)){
+  try{
+   const x=JSON.parse(await readFile('research/forecasts/'+relative,'utf8'));
+   if(x.kind==='R29_PROSPECTIVE_ORACLE_FORECAST_SNAPSHOT'&&
+    x.as_of_utc<data.captured_completed_at_utc)pastForecasts.push(x);
+  }catch{/* corrupted historic snapshot is never accepted as a valid oracle label */}
+ }
+}catch(err){if(err.code!=='ENOENT')throw err;}
+const matureResults=pastForecasts.slice(-4).map(x=>
+ settleMatureForecastSnapshot({snapshot:x,batches:previous,asOfUtc:data.captured_completed_at_utc}));
+const matureForecastPath=forwardRoot+'/'+runId+'-matured.json';
+await writeFile(matureForecastPath,JSON.stringify({
+ schema:1,kind:'R29_PROSPECTIVE_ORACLE_MATURED_SCAN_BATCH',
+ at_utc:data.captured_completed_at_utc,source_forecasts:matureResults,
+ total_observed_endpoint_labels:matureResults.reduce((sum,x)=>sum+x.observed,0),
+ no_buys_authorized:true
+},null,2)+'\n','utf8');
+await mkdir('research/forecasts',{recursive:true});
+await writeFile('research/forecasts/latest.json',JSON.stringify({
+ schema:1,kind:'R29_LATEST_FORWARD_ORACLE_JOURNAL',
+ as_of_utc:data.captured_completed_at_utc,forecast_path:forecastPath,
+ matured_path:matureForecastPath,forecast_count:forecast.predictions.length,
+ rankable_asof:forecast.rankable_inputs,
+ mature_result_observations:matureResults.reduce((sum,x)=>sum+x.observed,0),
+ oracle_is_not_live_strategy:true,paper_orders_published:0
+},null,2)+'\n','utf8');
 // Labels only for a previous scan whose full 24h has elapsed; never label
 // the current observation using future values.
 const maturePrior=previous.filter(x=>x.captured_at_utc&&Date.parse(x.captured_at_utc)+24*3600000<=Date.parse(data.captured_completed_at_utc))
@@ -214,6 +252,7 @@ const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
  fair_recheck_attempts:attempts,
  fair_recheck_backlog_remaining:plan.backlog_count,
  observation_path:observationPath,ranking_path:rankingPath,
+ forecast_path:forecastPath,matured_forecast_path:matureForecastPath,
  matured_label_path:matureLabelsPath,
  prospective_ranking_counts:prospectiveRanking.counts,
  no_history_age_cutoff:true,no_trades_authorized:true,
@@ -222,6 +261,7 @@ await writeFile(memoryCheckpointPath,JSON.stringify(memoryCheckpoint,null,2)+'\n
 await writeFile('research/state/latest.json',JSON.stringify({
  schema:1,checkpoint_path:memoryCheckpointPath,memory_path:memoryPath,
  observation_path:observationPath,ranking_path:rankingPath,
+ forecast_path:forecastPath,matured_forecast_path:matureForecastPath,
  matured_label_path:matureLabelsPath,
  created_at_utc:data.captured_completed_at_utc,stats:memory.stats},null,2)+'\n','utf8');
 const handoff=makeResearchHandoff({evidence:data,atUtc:data.captured_completed_at_utc});
@@ -232,6 +272,7 @@ const latest={schema:1,kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',mode:'PAPER_RES
   request_path:path,evidence_path:filename,handoff_path:handoffPath,captured_at_utc:data.captured_completed_at_utc,
   source_chain:chosen.chain,metrics,handoff_counts:handoff.counts,
  observation_path:observationPath,ranking_path:rankingPath,
+ forecast_path:forecastPath,matured_forecast_path:matureForecastPath,
  matured_label_path:matureLabelsPath,prospective_counts:prospectiveRanking.counts,
  fair_recheck_backlog_remaining:plan.backlog_count,market_memory_path:memoryPath,memory_checkpoint_path:memoryCheckpointPath,memory_stats:memory.stats,source_evidence_paths:artifacts,
   trading_ready:false,orders_created:0};
