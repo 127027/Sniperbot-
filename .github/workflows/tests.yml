@@ -33,6 +33,12 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: cmd
         run: call Sniperbot_Starten.bat -SelfTest
+      - name: "R29 V6.12 review IDs/journal SHA and real 4/8/12/24 GPT cadence"
+        run: node --test runner/r29-review-index-integrity.test.mjs runner/r29-gpt-review-cadence.test.mjs
+      - run: node runner/r29-review-index-integrity.mjs
+      - run: node --check runner/r29-review-index-integrity.mjs && node --check runner/r29-gpt-review-cadence.mjs
+      - name: "R29 V6.12 reject stale V4 quote with explicit owner-verified public receipt"
+        run: node --test runner/gpt-paper-github-relay.test.mjs
       - name: "R29 V6.11 signed GitHub web-price experimental Paper BUY/SELL without external APIs"
         run: node --test runner/gpt-web-price-evidence.test.mjs runner/gpt-web-v4-paper-roundtrip.test.mjs
       - run: node --check runner/gpt-web-price-evidence.mjs
