@@ -4,11 +4,13 @@
 import {mkdir,writeFile} from 'node:fs/promises';
 import {normalizeHistoricalCandles,closeAsOf} from '../src/historical-candles.mjs';
 import {evaluateHourlyPricePatterns} from '../src/forensic-price-patterns.mjs';
+import {runResearchPaperLab} from '../src/research-paper-lab.mjs';
 const date='2026-11-15',end=Math.floor(Date.parse('2026-11-16T00:00:00Z')/1000);
 const tokens=[
  {symbol:'DOPE',chain:'bsc',contract:'0xd0a8827e6b5cfc0044fd4cc0b2f4965819f6db19',group:'RETROSPECTIVE_GAINER_BIASED'},
  {symbol:'BLG_Champion',chain:'bsc',contract:'0xdfb03956407b2281a9d6203848fc0349bb47015f',group:'RETROSPECTIVE_LOSER_BIASED'}
 ];
+const researchPools=[];
 const result={schema:1,purpose:'AVAILABILITY_PROBE_ONLY_NOT_TRADING_BACKTEST',date,
   run_captured_at_utc:new Date().toISOString(),selection_bias:'TWO_KNOWN_POST_DAY_POSITIVE_AND_NEGATIVE_EXAMPLES',
   automated_paper_orders:0,synthetic_fills:0,results:[]};
@@ -48,6 +50,7 @@ for(const token of tokens){
      last_completed_candle_close_usd:closeAsOf(tape,date+'T'+s+':00Z')?.close_usd??null
    }));
    out.data_class=tape.reconstruction_type;
+   researchPools.push({id:token.chain+':'+pool,symbol:token.symbol,chain:token.chain,pool_created_at_utc:out.pool_created_at,candles:tape.candles});
    out.hourly_pattern_diagnostic=evaluateHourlyPricePatterns({date,tape,pool_created_at_utc:out.pool_created_at});
    out.hourly_price_patterns=out.hourly_pattern_diagnostic.patterns;
    await mkdir('probe-artifacts',{recursive:true});
@@ -58,5 +61,13 @@ for(const token of tokens){
  console.log('FORENSIC_RESEARCH_RESULT',JSON.stringify(out));
 }
 await mkdir('probe-artifacts',{recursive:true});
+for(const preset of ['exploratory','conservative']){
+ const experiment=runResearchPaperLab({date,pools:researchPools,preset});
+ await writeFile('probe-artifacts/2026-11-15-research-paper-'+preset+'.json',JSON.stringify(experiment,null,2)+'\n');
+ console.log('RESEARCH_LAB_SUMMARY',JSON.stringify({preset,pools:researchPools.length,counts:experiment.counts,
+  realized_hypothetical_pnl_test_usdc:experiment.realized_hypothetical_pnl_test_usdc,
+  open_positions:experiment.open_positions.length,verified_paper_orders:0}));
+ for(const ev of experiment.events)console.log('RESEARCH_LAB_EVENT',JSON.stringify({preset,...ev}));
+}
 await writeFile('probe-artifacts/2026-11-15-gecko-reconstruction-probe.json',JSON.stringify(result,null,2)+'\n');
 console.log('PROBE_SUMMARY',JSON.stringify({count:result.results.length,successful_candles:result.results.filter(x=>x.candle_count>0).length,claim_of_live_trade:false}));
