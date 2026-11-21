@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {newState,settlePaper,Reject} from '../src/core.mjs';
 import {GitHubTransport} from '../src/github.mjs';
 import {researchDue,chooseCadence} from '../src/cadence.mjs';
-function make(now){const coin={chain:'base',contract:'ExampleContract123',pool:'ExamplePool123',symbol:'X'};
+function make(now){const coin={chain:'base',contract:'ExampleContract123',pool:'ExamplePool123',symbol:'EX'};
   return {id:'client-test-buy-001',mode:'PAPER',action:'BUY',authority:'dot-4-strategy',dots:['dot-2-discovery','dot-3-risk','dot-4-strategy'],reason:'Two independent source indicative price observations',quote_quality:'INDICATIVE_WEB_ONLY',created_at:new Date(now).toISOString(),expires_at:new Date(now+180000).toISOString(),coin,amount_test_usdc:50,quotes:['dexscreener.com','geckoterminal.com'].map((host,i)=>({provider_id:'source-'+i,source_url:'https://'+host+'/base/pools/ExamplePool123',observed_at:new Date(now-180000).toISOString(),price_usdc:.001,liquidity_usdc:25000,chain:'base',contract:coin.contract,pool:coin.pool}))};}
 test('two independent client ledgers',()=>{const t=Date.now(),a=newState(),b=newState();assert.notEqual(a.clientId,b.clientId);assert.equal(settlePaper(make(t),a,t).state.cash,4950);assert.equal(settlePaper(make(t),b,t).state.cash,4950);});
 test('offline signals expire',()=>{const t=Date.now();assert.throws(()=>settlePaper(make(t),newState(),t+600000),e=>e instanceof Reject&&e.code==='ORDER_EXPIRED');});
