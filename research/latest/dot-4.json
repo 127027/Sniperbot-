@@ -1,18 +1,18 @@
 {
   "schema": 1,
   "dot": "dot-4",
-  "updated_at_utc": "2026-11-21T16:33:59.483Z",
+  "updated_at_utc": "2026-11-21T17:35:47.000Z",
   "status": "DATA_GAP",
-  "journal_path": "research/journal/dot-4/2026-11-21/20261121T163359483Z-dot4-v07-turn5.json",
-  "journal_blob_sha": "8cec21b2c1ccf6924f01b35b2cd488ce61dab19e",
+  "journal_path": "research/journal/dot-4/2026-11-21/20261121T173547Z-dot4-v09-turn6.json",
+  "journal_blob_sha": "ec4d13465a8f3e420e311188691a157fcdb8672c",
   "review_type": "HOURLY_EXIT_CHECK_ONLY",
   "cadence_target_per_24h": 4,
   "next_full_review_due_at_utc": "2026-11-21T16:36:45.466Z",
-  "summary": "No confirmed client fills or open positions; no Dot3 candidate risk-eligible; missing full token contracts and independent exact-pool quotes. No BUY or SELL without evidence.",
+  "summary": "Hourly exit check: no confirmed fills/positions; Dot3 zero eligible, no BUY/SELL. Last full review unchanged; next due 16:36:45Z. Historical Dot2 feed cannot serve as fresh quote.",
   "counts": {
     "reviewed": 0,
-    "watch": 4,
-    "no_trade": 10,
+    "watch": 7,
+    "no_trade": 21,
     "buy": 0,
     "sell": 0,
     "orders_published": 0,
@@ -20,10 +20,11 @@
     "confirmed_open_positions": 0
   },
   "errors": [
-    "NO_CONFIRMED_CLIENT_PAPER_FILLED_RECEIPTS",
-    "NO_CONFIRMED_OPEN_POSITIONS",
-    "NO_DOT3_RISK_ELIGIBLE_CANDIDATE",
-    "NO_VERIFIED_CURRENT_TWO_DOMAIN_QUOTES",
-    "FULL_REVIEW_NOT_DUE"
+    "RECEIPTS_DIRECTORY_NOT_FOUND_HTTP_404",
+    "NO_DOT3_ELIGIBLE_CANDIDATE",
+    "NO_TWO_DOMAIN_COMPLETE_MATCHING_QUOTES",
+    "NO_TAX_HONEYPOT_SELLABILITY_PROOF",
+    "DOT2_CAPTURE_OLDER_THAN_TEN_MINUTES_AT_WAKE",
+    "FULL_REVIEW_NOT_YET_DUE"
   ]
 }
