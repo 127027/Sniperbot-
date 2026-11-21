@@ -56,3 +56,6 @@ Siehe [INDICATIVE_WEB_PAPER.md](INDICATIVE_WEB_PAPER.md). Dot3 darf für den PAP
 
 ## V0.9: Aktiver JSON-Erfassungspfad in den Dot-Journalen
 Lies [DOT2_CAPTURE_PROTOCOL_V09.md](DOT2_CAPTURE_PROTOCOL_V09.md). Die bislang isolierte CI-JSON-Forschung verfügt jetzt über eine neue im Cleanroom-Branch testweise erfolgreich gestartete GitHub-Actions-Pipeline: Stündlich vom bestehenden Dot2 per GitHub-Request-Datei ausgelöst, persistierte Original-API-Rohdaten und `research/feeds/latest.json`, separates `dot2-to-dot3-handoff.json` für Dot3. **Keine** automatische Order- oder Sicherheitsfreigabe. Dot4 muss Preisquellen zum tatsächlichen Handelszeitpunkt erneut prüfen; bei :35 ist die :15-Suche zu alt als Quote.
+
+## V1.0: All-Time-Marktgedächtnis und inkrementelle Scans
+Lies [MARKET_MEMORY_V10.md](MARKET_MEMORY_V10.md). Alle fünf Dots verwenden den gemeinsamen GitHub-Marktindex und behalten die gesamte tatsächlich gespeicherte historische Datensicht. Ohne Alterslimit auf rückblickende Recherche, aber mit begrenztem API-Budget pro Scan und unveränderten aktuellen BUY-/SELL-Quote-Gates. Rohdaten werden nicht gelöscht. Jeder echte Dot2-Request erzeugt GitHub-Capture + Market-Memory-Checkpoint; Dot1/3/4/5 lesen ihn und berichten ihre eigene tatsächliche Tätigkeit. Historische Replay-Simulationen enthalten keine Zeitreise.
