@@ -17,7 +17,7 @@ test('historical day without original observations remains DATA_GAP',()=>{
  assert.equal(r.ending_cash_test_usdc,5000);assert.equal(r.summary.fullReviews,4);
 });
 test('two timestamped synthetic snapshots trigger BUY then hourly SELL even if full review not due',()=>{
- const r=replaySignalDecisions({date,snapshots:[synth(0,.001),synth(6,.0011),synth(7,.0014)]});
+ const r=replaySignalDecisions({date,snapshots:[synth(5,.001),synth(6,.0011),synth(7,.0014)]});
  assert.equal(r.summary.fullReviews,4);
  assert.equal(r.summary.buys,1);assert.equal(r.summary.sells,1);
  assert.equal(r.events[6].actions[0].action,'BUY');
@@ -28,18 +28,36 @@ test('two timestamped synthetic snapshots trigger BUY then hourly SELL even if f
 });
 test('future-publication evidence cannot cause trade even if price rises',()=>{
  const after='2026-10-13T00:00:00.000Z';
- const r=replaySignalDecisions({date,snapshots:[synth(0,.001),synth(6,.0011,{source_pub_at:after})]});
+ const r=replaySignalDecisions({date,snapshots:[synth(5,.001),synth(6,.0011,{source_pub_at:after})]});
  assert.equal(r.summary.buys,0);assert.equal(r.summary.sells,0);
  assert.equal(r.events[6].blocked_sources[0].reason,'QUOTE_FUTURE_OR_UNDATED');
 });
 test('late archived source cannot retroactively trade',()=>{
  const after='2026-10-13T00:00:00.000Z';
- const r=replaySignalDecisions({date,snapshots:[synth(0,.001),synth(6,.0011,{archive_at:after})]});
+ const r=replaySignalDecisions({date,snapshots:[synth(5,.001),synth(6,.0011,{archive_at:after})]});
  assert.equal(r.summary.buys,0);assert.equal(r.events[6].blocked_sources[0].reason,'FUTURE_OR_UNVERIFIED_ARCHIVE');
 });
 test('falling synthetic markets trigger an hourly stop instead of claiming a winner',()=>{
- const r=replaySignalDecisions({date,snapshots:[synth(0,.001),synth(6,.0011),synth(7,.0008)]});
+ const r=replaySignalDecisions({date,snapshots:[synth(5,.001),synth(6,.0011),synth(7,.0008)]});
  assert.equal(r.summary.buys,1);assert.equal(r.summary.sells,1);
  assert.equal(r.events[7].actions[0].reason,'STOP_LOSS');
  assert.ok(r.ending_cash_test_usdc<5000);
+});
+
+test('six-hour-old baseline cannot produce BUY',()=>{
+ const r=replaySignalDecisions({date,snapshots:[synth(0,.001),synth(6,.0015)]});
+ assert.equal(r.summary.buys,0);
+});
+test('wrong pool detail URL is rejected before entering momentum history',()=>{
+ const wrong=synth(5,.001);
+ wrong.quotes[1].source_url='https://dexscreener.com/base/'+coin.contract;
+ const r=replaySignalDecisions({date,snapshots:[wrong,synth(6,.0011)]});
+ assert.equal(r.summary.buys,0);
+ assert.equal(r.events[5].blocked_sources[0].reason,'QUOTE_GATE_SOURCE_POOL_URL_MISMATCH');
+});
+test('divergent prices cannot enter historical momentum observations',()=>{
+ const wrong=synth(5,.001);wrong.quotes[1].price_usdc=.002;
+ const r=replaySignalDecisions({date,snapshots:[wrong,synth(6,.0011)]});
+ assert.equal(r.summary.buys,0);
+ assert.equal(r.events[5].blocked_sources[0].reason,'QUOTE_GATE_PRICE_DISAGREEMENT');
 });

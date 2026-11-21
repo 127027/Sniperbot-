@@ -48,3 +48,8 @@ Nur reale Daten markieren diese Schritte als bestanden; keine synthetischen Trad
 - [ ] Prospektive BUY-/SELL-Entscheidungen im Backtest ohne Zukunftswissen nachgewiesen
 - [ ] Historische Strategiewirksamkeit / Reparatur V0.3 anhand echter Fills nachgewiesen
 - [ ] GitHub-CI des neuen Replay-Tests erfolgreich
+
+## V0.4 Iteration 2
+- [x] Momentumvergleich auf maximal 2 Stunden begrenzt und frühere Quotes ebenfalls durch sämtliche Quellengates geprüft
+- [ ] Neuer CI-Lauf bestanden
+- [ ] Historische Quote-Coverage am 12.10. reicht für echte Blindhandelsbewertung

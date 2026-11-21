@@ -2,7 +2,7 @@
 // There is no network access, GitHub write, wallet, OpenAI call, or hindsight winner input.
 // This is NOT the cloud GPT strategy; it tests that the same PAPER execution gates
 // can create both BUY and SELL from pre-existing market observations.
-import {newState,settlePaper,Reject,marketKey,DEFAULT_POLICY} from './core.mjs';
+import {newState,settlePaper,inspectOrder,Reject,marketKey,DEFAULT_POLICY} from './core.mjs';
 import {researchDue} from './cadence.mjs';
 
 const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
@@ -26,6 +26,10 @@ function gate(snapshot,now){
    const published=ms(q.source_published_at_utc);
    if(t===null||published===null||t>observed||published>observed||t>now||published>now)return 'QUOTE_FUTURE_OR_UNDATED';
  }
+ // A previous momentum reference has to pass the exact same PAPER quote,
+ // liquidity and pool identity gates; otherwise later momentum is contaminated.
+ try{inspectOrder(policyOrder(snapshot,now,'BUY',0),newState(),now,DEFAULT_POLICY);}
+ catch(error){return error instanceof Reject?'QUOTE_GATE_'+error.code:'QUOTE_GATE_UNEXPECTED_ERROR';}
  return null;
 }
 function policyOrder(snapshot,now,action,idx){
@@ -42,8 +46,8 @@ export function replaySignalDecisions({date,snapshots=[],targetPer24h=4,params={
  if(![4,8,12,24].includes(targetPer24h))throw Error('INVALID_TARGET');
  if(!Array.isArray(snapshots))throw Error('INVALID_SNAPSHOTS');
  const start=ms(date+'T00:00:00Z'),end=start+86400000;
- const p={entryMomentumPct:5,takeProfitPct:20,stopLossPct:10,...params};
- if(![p.entryMomentumPct,p.takeProfitPct,p.stopLossPct].every(x=>typeof x==='number'&&Number.isFinite(x)&&x>0))throw Error('INVALID_PARAMS');
+ const p={entryMomentumPct:5,takeProfitPct:20,stopLossPct:10,maxMomentumAgeHours:2,...params};
+ if(![p.entryMomentumPct,p.takeProfitPct,p.stopLossPct,p.maxMomentumAgeHours].every(x=>typeof x==='number'&&Number.isFinite(x)&&x>0))throw Error('INVALID_PARAMS');
  const state=newState(),initial=state.cash,events=[],sums={dataGap:0,available:0,fullReviews:0,buys:0,sells:0};
  let ledger=state,lastReview=null,sequence=0;
  const history=new Map();
@@ -90,6 +94,8 @@ export function replaySignalDecisions({date,snapshots=[],targetPer24h=4,params={
        if(ledger.positions[key])continue;
        const prev=history.get(key);
        if(!prev)continue;
+       const prevAt=ms(prev.at_utc),currentAt=ms(candidate.observed_at_utc);
+       if(prevAt===null||currentAt===null||currentAt<=prevAt||currentAt-prevAt>p.maxMomentumAgeHours*3600000)continue;
        const price=candidate.quotes.reduce((sum,q)=>sum+q.price_usdc,0)/candidate.quotes.length;
        const rise=(price/prev.price-1)*100;
        if(!(rise>=p.entryMomentumPct))continue;

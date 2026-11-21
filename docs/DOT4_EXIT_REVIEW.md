@@ -12,3 +12,6 @@
 
 ## Backtest-Integrität
 Die neue Datei \`src/point-in-time-strategy.mjs\` ist eine vollständig isolierte und deterministische **SHADOW-Modellstrategie**, keine GPT-Automation. Sie berechnet BUY/SELL nur aus chronologischen, zeitlich zugelassenen Quellenbeobachtungen. Ihre synthetischen Tests beweisen den Codepfad, **nicht** echte historische Gewinne am 12.10.2026. Für einen realen Tages-Backtest müssen unabhängige, mit Zeitstempel und Originalquelle belegte Snapshot-Daten aus der Vergangenheit vorliegen; rückblickende Gewinnerlisten sind keine Marktsignale.
+
+## Iteration 2
+Ein zuvor gesehener Preis als Momentum-Baseline muss bereits zum damaligen Zeitpunkt die vollständigen Paper-Quotenprüfungen bestanden haben und darf maximal zwei Stunden älter sein. Keine Übernahme rückblickender Tagesgewinner oder ungültiger Quellen als historische Voraussicht.
