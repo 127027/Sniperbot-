@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "kind": "R29_CLEANROOM_BACKTEST_ITERATION_3_VERIFIED_OUTCOME",
+  "date": "2026-10-12",
+  "status": "ENGINE_TESTS_PASS_HISTORICAL_RESULTS_NOT_VERIFIABLE",
+  "software": {
+    "test_run_urls": [
+      "https://github.com/127027/Sniperbot-/actions/runs/44901653794",
+      "https://github.com/127027/Sniperbot-/actions/runs/44901794295"
+    ],
+    "first_round": {
+      "pass": 39,
+      "fail": 0
+    },
+    "second_round": {
+      "pass": 42,
+      "fail": 0
+    },
+    "verified_executions": [
+      "UNIT_TEST_SYNTHETIC_BUY",
+      "UNIT_TEST_SYNTHETIC_TAKE_PROFIT_SELL",
+      "UNIT_TEST_SYNTHETIC_STOP_LOSS_SELL"
+    ],
+    "real_github_orders_published_in_replay": 0
+  },
+  "historical": {
+    "start_utc": "2026-10-12T00:00:00Z",
+    "end_utc": "2026-10-13T00:00:00Z",
+    "original_point_in_time_two_source_price_samples": 0,
+    "verified_historical_BUY": 0,
+    "verified_historical_SELL": 0,
+    "verified_historical_fills": 0,
+    "pnl": "UNKNOWN_NOT_COMPUTABLE",
+    "starting_test_usdc": 5000,
+    "ending_test_usdc_without_trades": 5000
+  },
+  "improvements": [
+    "Fix negative volume-change cadence and two-confirmation downshift",
+    "Limit published order TTL to 5 minutes",
+    "Isolated policy infers BUY from earlier observations instead of pre-fed BUY",
+    "Hourly SELL check for confirmed open positions outside full 4/8/12/24 review cadence",
+    "Disallow future-published or late-archived source observations",
+    "Disallow historical price baseline older than two hours",
+    "Verify history source URLs, price divergence and pool identity before using prior price"
+  ],
+  "test_day_acceptance": false,
+  "blocking_reason": "The freely available retrospective Oct 12 market archives do not supply the full contemporaneous multi-venue contract/quote/identity stream necessary to establish which choices Dot 2, 3 and 4 would have made at actual timestamps. Synthetic test profit cannot satisfy historical acceptance.",
+  "next_iteration": "Collect genuine immutable point-in-time source observations prospectively; backtest with frozen data, preserve control cohort and do not optimize on hindsight winner list."
+}

@@ -44,3 +44,6 @@ Siehe [REPAIR_V03.md](REPAIR_V03.md). Dot 2 sucht vollständige Contracts durch 
 
 ## V0.4: Positionsverkauf bei jedem Dot-4-Wake
 Siehe [DOT4_EXIT_REVIEW.md](DOT4_EXIT_REVIEW.md). Beim stündlichen Wake prüft Dot 4 bestätigte offene Paper-Positionen zuerst auf echte SELL-Belege, auch wenn der vollständige GPT-Neucoin-Review gemäß 4/8/12/24 noch nicht fällig ist. Der Vollreview-Zähler bleibt unverändert. Datenlücken und fehlende Quittungen verhindern erfundene Positionen/SELLs.
+
+## V0.4: lückenloses Point-in-time-Quellenarchiv
+Vor jedem automatischen historischen Verbesserungs-Replay [MARKET_OBSERVATION_ARCHIVE.md](MARKET_OBSERVATION_ARCHIVE.md) und [HISTORICAL_REPLAY_ACCEPTANCE.md](HISTORICAL_REPLAY_ACCEPTANCE.md) lesen. Dot 2/3/4 speichern Quellen, tatsächliche Beobachtungszeiten und (wenn vorhanden) unabhängige Provider-Zeitstempel. Dot 5/6 darf historische Tagesgewinnerlisten nur für den NACHträglichen Score verwenden. Tages- und Backtest-Erfolge sind voneinander zu trennen.

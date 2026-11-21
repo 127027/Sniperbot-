@@ -45,3 +45,6 @@ Das lokale pure Helper-Modul `src/daily-audit.mjs` (`npm test`) kann standardisi
 
 ### Ehrlichkeitsregel
 Wenn Webseiten/Downloads oder GitHub-Schreibzugriff fehlen: Journal/Report soweit möglich, `DATA_GAP` und konkrete Reparatur. Fehlende Dateien nicht als 0 zählen. Keine gewonnenen Chancen allein aus Kenntnis der späteren Kursspitze behaupten.
+
+## V0.4 – automatische wiederholte Blind-Replay-Prüfung
+Bei jeder täglichen Prüfung zuerst [HISTORICAL_REPLAY_ACCEPTANCE.md](HISTORICAL_REPLAY_ACCEPTANCE.md) sowie [MARKET_OBSERVATION_ARCHIVE.md](MARKET_OBSERVATION_ARCHIVE.md) lesen. Den festen Testtag 12.10.2026 auf neu verfügbare tatsächlich zeitgerecht belegbare Rohquellen erneut prüfen. Für prospektive Tage die eigenen GitHub-Journals (keine rückblickenden Gewinnerlisten) mit `src/point-in-time-strategy.mjs` nur als ISOLIERTEN Shadow-Test prüfen. Jede Verbesserung auf gleich bleibender Eingabe und danach einem unabhängigen Holdout messen. Kein neues historisches Siegerwissen in Dot 2/3/4 einspeisen. Wenn weiterhin DATA_GAP, kein erfundener BUY, SELL oder Erfolg; stattdessen die fehlende Coverage und priorisierte Datenerfassungsverbesserung dokumentieren.
