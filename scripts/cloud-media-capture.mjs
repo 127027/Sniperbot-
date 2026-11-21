@@ -4,6 +4,7 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {decodeMediaSource,mergeMediaMemory,emptyMediaMemory,mediaAsOfSignals,
  matchMediaPoolHypotheses} from '../src/media-research.mjs';
+import {makePairedMediaMarketRankings,evaluatePairedAB} from '../src/media-ab-evaluation.mjs';
 const branch='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+branch)throw Error('WRONG_BRANCH');
 const runId=process.env.GITHUB_RUN_ID;
@@ -89,14 +90,22 @@ const market=JSON.parse(await readFile('research/state/market-memory.json','utf8
 const linked=matchMediaPoolHypotheses(signals,market);
 const linkPath=root+'/pool-hypotheses.json';
 await writeFile(linkPath,JSON.stringify(linked,null,2)+'\n','utf8');
+// This market ranking was frozen BEFORE the current media HTTP fetches.
+// Current media articles are therefore NOT retroactively visible to the market ranking.
+const frozenMarketRank=JSON.parse(await readFile(latestMarket.ranking_path,'utf8'));
+const paired=makePairedMediaMarketRankings({marketRanking:frozenMarketRank,mediaMemory:memory});
+const evaluation=evaluatePairedAB({paired,labels:null});
+const pairedPath=root+'/paired-ab-market-media.json';
+await writeFile(pairedPath,JSON.stringify({paired,evaluation},null,2)+'\n','utf8');
 await writeFile('research/media/latest.json',JSON.stringify({
  schema:1,kind:'R29_LATEST_MEDIA_RESEARCH',captured_at_utc:completed,
  evidence_path:batchPath,signals_path:signalsPath,memory_path:path,
- pool_hypotheses_path:linkPath,counts,added_unique_events:merged.added,
+ pool_hypotheses_path:linkPath,paired_ab_path:pairedPath,paired_ab_status:evaluation.status,
+ counts,added_unique_events:merged.added,
  repeated_items:merged.repeated,topic_count:signals.topics.length,
  media_memory_stats:memory.stats,orders_published:0},null,2)+'\n','utf8');
 console.log('R29_V14_MEDIA_CAPTURE',JSON.stringify({run_id:runId,market_capture:latestMarket.evidence_path,
  available:counts.available,attempted:counts.attempted,errors:counts.failed,
- events:counts.accepted_events,topics:signals.topics.length,
+ events:counts.accepted_events,topics:signals.topics.length,paired_ab_status:evaluation.status,
  memory_unique:memory.stats.unique_events,source_statuses:statuses.map(s=>[s.source,s.status]),
  no_orders:true}));
