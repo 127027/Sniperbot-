@@ -50,7 +50,7 @@ test('six-hour-old baseline cannot produce BUY',()=>{
 });
 test('wrong pool detail URL is rejected before entering momentum history',()=>{
  const wrong=synth(5,.001);
- wrong.quotes[1].source_url='https://dexscreener.com/base/'+coin.contract;
+ wrong.quotes[1].source_url='https://www.geckoterminal.com/base/pools/'+coin.contract;
  const r=replaySignalDecisions({date,snapshots:[wrong,synth(6,.0011)]});
  assert.equal(r.summary.buys,0);
  assert.equal(r.events[5].blocked_sources[0].reason,'QUOTE_GATE_SOURCE_POOL_URL_MISMATCH');
