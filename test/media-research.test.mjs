@@ -26,6 +26,8 @@ test('two fetches of same headline add only one distinct observation',()=>{
  const s=mediaAsOfSignals(b.memory,{asOfUtc:'2026-11-21T22:00:00Z'});
  assert.equal(s.topics.find(x=>x.topic==='DOGE').recent_distinct_observations,1);
  assert.equal(s.orders,0);
+ assert.equal(s.comparison_window_qualified,false);
+ assert.equal(s.topics.find(x=>x.topic==='DOGE').attention_delta_observed,null);
 });
 test('public Bluesky feed: use only topic-matched posts, not every account',()=>{
  const body=JSON.stringify({feed:[{post:{uri:'at://did:plc:abc/app.bsky.feed.post/xyz',

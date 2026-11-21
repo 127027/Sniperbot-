@@ -78,6 +78,11 @@ export function mergeMediaMemory(existing,{batchPath,capturedAtUtc,sources=[]}={
   }
  }
  m.captures.push(batchPath);
+ // Record earliest actual HTTP-observed media time; without enough duration
+ // a fresh RSS dataset must not masquerade as a sudden viral acceleration.
+ const eventTimes=Object.values(m.events).map(e=>iso(e.first_captured_at_utc)).filter(Boolean).sort();
+ if(!m.collection_started_at_utc)m.collection_started_at_utc=eventTimes[0]||t;
+ m.last_capture_at_utc=t;
  m.stats={unique_events:Object.keys(m.events).length,
   valid_topic_events:Object.values(m.events).filter(x=>x.topics.length>0).length,
   captures:m.captures.length,attempted_sources:Object.keys(m.source_status).length,
@@ -88,6 +93,8 @@ export function mediaAsOfSignals(memory,{asOfUtc,windowHours=24}={}){
  const t=iso(asOfUtc);
  if(memory?.kind!=='R29_MEDIA_MEMORY'||!t||!Number.isInteger(windowHours)||windowHours<1)throw Error('BAD_MEDIA_ASOF');
  const now=Date.parse(t),dur=windowHours*3600000,groups=new Map();
+ const first=iso(memory.collection_started_at_utc);
+ const comparisonWindowQualified=!!first&&now-Date.parse(first)>=2*dur&&memory.captures.length>=3;
  for(const e of Object.values(memory.events)){
   const p=iso(e.published_at_utc),c=iso(e.first_captured_at_utc);
   if(!p||!c||p>t||c>t||now-Date.parse(c)>2*dur)continue;
@@ -102,12 +109,15 @@ export function mediaAsOfSignals(memory,{asOfUtc,windowHours=24}={}){
   return {topic,recent_distinct_observations:recent.length,previous_window_distinct_observations:older,
    distinct_source_ids:new Set(recent.map(x=>x.source)).size,
    recent_sample_urls:recent.slice(0,4).map(x=>x.url),
-   attention_delta_observed:recent.length-older,
+   attention_delta_observed:comparisonWindowQualified?recent.length-older:null,
+   trend_window_status:comparisonWindowQualified?'TWO_WINDOWS_OBSERVED_COVERAGE_STILL_PARTIAL':
+     'INSUFFICIENT_COVERAGE_TO_INFER_MENTION_GROWTH',
    measurement:'FETCHED_PUBLIC_ARTICLE_OR_POST_URLS_NOT_GLOBAL_MENTIONS',
    unverified_media_to_token_relation:true,risk_eligible:false,order_authorized:false};
  }).sort((a,b)=>b.recent_distinct_observations-a.recent_distinct_observations||a.topic.localeCompare(b.topic));
  return {schema:1,kind:'R29_MEDIA_ASOF_SIGNALS',as_of_utc:t,
   topics:signals,source_coverage:memory.source_status,
+  comparison_window_qualified:comparisonWindowQualified,
   global_social_media_coverage:false,verifiable_viral_breakout:false,orders:0};
 }
 export function matchMediaPoolHypotheses(signals,marketMemory){
