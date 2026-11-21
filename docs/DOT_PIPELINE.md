@@ -62,3 +62,6 @@ Lies [MARKET_MEMORY_V10.md](MARKET_MEMORY_V10.md). Alle fünf Dots verwenden den
 
 ## V1.2 – Dot3/Dot4 Risk- und Wiedereinstiegsverbesserung
 Beachte [DOT3_DOT4_V12.md](DOT3_DOT4_V12.md). Dot3 bearbeitet eine evidence-gated priorisierte Risikoprüfliste. Dot4 testet das neue Guarded-Reentry-Preset ausschließlich im retrospektiven Forschungslabor auf eingefrorenen sechs Pooldaten; echte Paper-Order benötigt nach wie vor originalen aktuellen Dot3-ELIGIBLE-Beleg plus frische unabhängige Quotes und Client-Quittung. Kein Fail-Open wegen DATA_GAP.
+
+## V1.3 – Prospektiv und fair statt Gewinnerlisten
+Lies [V13_FORWARD_BLIND_LEARNING.md](V13_FORWARD_BLIND_LEARNING.md). Pro echtem Dot2-GitHub-Capture sämtliche tatsächlich gesehenen Pools ohne Winner-Selektion speichern, faire Recheck-Rotation führen, zeitliche Preis-/Volumenmerkmale nur aus vorherigen Captures ableiten, nach 24h getrennt labeln, nur mit gemischten positiven/negativen Ergebnissen früherer Zeitfenster lernen. Kein BUY ohne tatsächliche Dot3-ELIGIBLE-Risikofreigabe und frische Orderquotes.
