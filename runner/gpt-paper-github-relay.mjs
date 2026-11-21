@@ -88,13 +88,29 @@ export async function relayGptPaperDecision({token,localCapability,
     archiveFile.data?.decision_id!==pointer.decision_id||
     archiveFile.data?.created_at_utc!==pointer.published_at_utc)
   throw Error('GPT_RELAY_ARCHIVE_HASH_MISMATCH');
- const validated=validateGptPaperDecision(archiveFile.data,{now,forExecution:false});
  const d=archiveFile.data;
- // Expired BUY/SELL is reported as rejection; no paper order should be
- // attempted. Non-trading archive records can be processed later.
- const expired=validated.trade&&Date.parse(d.expires_at_utc)<=now;
+ // V6.12: GitHub delivery takes time. A once-valid V4 web observation may
+ // expire before the courier sees it. Fail CLOSED without a local order,
+ // but publish an explicit receipt instead of silently logging an error
+ // while the UI continues showing the last WATCH signal.
+ let validated=null,staleWebReason=null;
+ try{validated=validateGptPaperDecision(d,{now,forExecution:false});}
+ catch(e){
+  const reason=String(e?.message||'');
+  if(d.schema==='sniper_r29_gpt_paper_decision.v4'&&
+   ['GPT_WEB_PRICE_STALE_OR_FUTURE','GPT_WEB_SOURCE_STALE_OR_FUTURE'].includes(reason)&&
+   ['BUY','SELL'].includes(d.action)&&
+   Number.isFinite(Date.parse(d.created_at_utc))&&
+   Date.parse(d.created_at_utc)<=now)
+   staleWebReason=reason;
+  else throw e;
+ }
+ // A stale quote cannot be "refreshed" by its GitHub arrival time. Neither
+ // a stale quote nor an expired trade is sent to the regular Paper account.
+ const expired=['BUY','SELL'].includes(d.action)&&
+  Date.parse(d.expires_at_utc)<=now;
  let response;
- if(!expired){
+ if(!expired&&!staleWebReason){
   const r=await localFetcher('http://127.0.0.1:3030/api/gpt/paper-decision',{
     method:'POST',redirect:'error',signal:AbortSignal.timeout(35000),
     headers:{'content-type':'application/json',
@@ -110,7 +126,9 @@ export async function relayGptPaperDecision({token,localCapability,
  }
  const received=sanitizeGptPaperReceipt(expired?
   {status:'REJECTED',reason:'GPT_DECISION_EXPIRED_NO_EXECUTION'}:
-  response?.receipt,d,{now});
+  staleWebReason?
+   {status:'REJECTED',reason:staleWebReason}:
+   response?.receipt,d,{now});
  let published=null;
  // Receipts are public but contain neither balances nor token addresses.
  const headers=githubHeaders(token);
@@ -133,6 +151,7 @@ export async function relayGptPaperDecision({token,localCapability,
  }
  return {status:received.status,reason:received.reason,decision_id:d.decision_id,
   action:d.action,owner_commit_verified:true,model_signature_verified:false,
-  forwarded_to_local:!expired,published_receipt_commit:published,
+  forwarded_to_local:!expired&&!staleWebReason,
+  published_receipt_commit:published,
   real_trading_enabled:false};
 }
