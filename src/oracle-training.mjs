@@ -12,7 +12,7 @@ export function auditOracleManifest(manifest){
  const seen=new Set(),items=manifest.items.map(m=>{
   if(!Number.isInteger(m.id)||seen.has(m.id))throw Error('DUPLICATE_OR_INVALID_MANIFEST_ID');
   seen.add(m.id);
-  const chain=canonicalChain(m.chain),hasPool=poolValid(chain,m.pool_id),hasContract=tokenValid(chain,m.token_contract);
+  const chain=canonicalChain(m.chain),hasPool=poolValid(chain,m.pool_id,'UNISWAP_V4_POOL_ID'),hasContract=tokenValid(chain,m.token_contract);
   if(!chain)throw Error('UNSUPPORTED_MANIFEST_CHAIN');
   return {id:m.id,name:m.name,chain,pool:m.pool_id||null,contract:m.token_contract||null,
    archive_pct:m.reported_rolling_24h_pct??null,source_url:m.pool_source_url||m.archive_source_url||null,
