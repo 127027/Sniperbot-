@@ -34,3 +34,13 @@ test('memory cleanup never destroys source or order evidence',()=>{
  const c=compactMemoryWithoutEvidenceLoss(m);
  assert.deepEqual(c.deleted_files,[]);assert.equal(c.memory.stats.total_discovered,1);
 });
+
+test('newer real capture persists changed price with older raw history retained',()=>{
+ let m=add(null,'first','2026-11-21T00:00:00Z',[{...c('2026-11-21T00:00:00Z'),observed_price_usd:2,liquidity_usd:10000}]).memory;
+ m=add(m,'second','2026-11-21T01:00:00Z',[{...c('2026-11-21T01:00:00Z'),observed_price_usd:3,liquidity_usd:11000}]).memory;
+ const v=Object.values(m.pools)[0];
+ assert.equal(v.last_snapshot.price_usd,3);
+ assert.equal(v.last_snapshot.previous_price_usd,2);
+ assert.equal(v.source_refs.length,2);
+ assert.equal(m.checkpoints['base:GECKOTERMINAL'].next_page_to_consider,2);
+});

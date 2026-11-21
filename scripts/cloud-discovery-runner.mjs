@@ -39,19 +39,26 @@ async function fetchRaw(url,provider,fileName){
  catch{throw Error('INVALID_JSON_RESPONSE');}
 }
 let decoded=null;
+// On a chain's first visit capture page 1; on later visits alternate fresh
+// page 1 and the next unvisited page. A checkpoint is not global coverage.
+const memoryFile='research/state/market-memory.json';
+let precedingMemory;
+try{precedingMemory=JSON.parse(await readFile(memoryFile,'utf8'));}
+catch(err){if(err.code!=='ENOENT')throw err;precedingMemory=emptyMarketMemory();}
+const oldCheckpoint=precedingMemory.checkpoints[chosen.chain+':GECKOTERMINAL'];
+const unvisited=Math.max(1,oldCheckpoint?.next_page_to_consider||1);
+const scanPage=(unvisited>1&&(Number(process.env.GITHUB_RUN_NUMBER)||0)%2===0)?unvisited:1;
 const mainUrl='https://api.geckoterminal.com/api/v2/networks/'+chosen.network
- +'/new_pools?include=base_token,quote_token&page=1';
+ +'/new_pools?include=base_token,quote_token&page='+scanPage;
 try{
- const got=await fetchRaw(mainUrl,'GECKOTERMINAL','gecko-'+chosen.chain+'-page1.raw.json');
- decoded=decodeGeckoNewPools({network:chosen.chain,response:got.json,capturedAtUtc:got.evidence.received_at_utc,page:1});
+ const got=await fetchRaw(mainUrl,'GECKOTERMINAL','gecko-'+chosen.chain+'-page'+scanPage+'.raw.json');
+ decoded=decodeGeckoNewPools({network:chosen.chain,response:got.json,capturedAtUtc:got.evidence.received_at_utc,page:scanPage});
 }catch(error){fetches.at(-1)?.http_ok===false ? (fetches.at(-1).error=String(error.message||error)) :
  fetches.push({provider:'GECKOTERMINAL',url:mainUrl,error:String(error.message||error).slice(0,100)});}
 const incoming=JSON.parse(await readFile('research/latest/dot-2.json','utf8'));
 const known=Array.isArray(incoming?.candidates)?incoming.candidates:[];
 const memoryPath='research/state/market-memory.json';
-let memory;
-try{memory=JSON.parse(await readFile(memoryPath,'utf8'));}
-catch(error){if(error.code!=='ENOENT')throw error;memory=emptyMarketMemory();}
+let memory=precedingMemory;
 const plan=planIncrementalScan(memory,{asOfUtc:now(),maxRechecks:request.max_dex_pairs});
 const targets=[
  ...(decoded?.candidates||[]).filter(c=>c.contract).slice(0,2),
@@ -81,9 +88,11 @@ for(const c of targets){
  }catch(error){dexChecks.push({chain,pool,status:'DEX_ERROR',error:String(error.message||error).slice(0,100)});}
 }
 const metrics=collectSampleMetrics({geckoDecoded:decoded,dexChecks,fallbackCandidates:fallback,requests:fetches});
+metrics.discovery_page=scanPage;
+metrics.previous_chain_page_checkpoint=oldCheckpoint?.next_page_to_consider??null;
 const data={schema:1,kind:'DOT2_PUBLIC_CAPTURE_EVIDENCE',mode:'PAPER_RESEARCH_ONLY',
   request_path:path,requested_at_utc:request.created_at_utc,captured_completed_at_utc:now(),
-  source_chain:chosen.chain,network_rotation:chosen.rotation,selected_page:1,
+  source_chain:chosen.chain,network_rotation:chosen.rotation,selected_page:scanPage,
   coverage_is_global:false,coverage_is_all_chains:false,gecko:decoded,
   dex_checks:dexChecks,dex_fallback_candidates:fallback,
   api_evidence:fetches,metrics,
@@ -102,10 +111,10 @@ const mergedOld=mergeMemory(memory,{candidates:known,
  provider:'DOT2_PRIOR_JOURNAL',chain:null,page:1});
 memory=mergedOld.memory;
 const mergedGecko=mergeMemory(memory,{candidates:decoded?.candidates||[],
- sourcePath:decoded?root+'/gecko-'+chosen.chain+'-page1.raw.json':filename,
+ sourcePath:decoded?root+'/gecko-'+chosen.chain+'-page'+scanPage+'.raw.json':filename,
  sourceCapturedAtUtc:data.captured_completed_at_utc,
  sourceSha256:fetches.find(x=>x.provider==='GECKOTERMINAL')?.response_sha256||null,
- provider:'GECKOTERMINAL',chain:chosen.chain,page:1,
+ provider:'GECKOTERMINAL',chain:chosen.chain,page:scanPage,
  fetchStatus:decoded?'OK':(data.errors[0]?.error||'SOURCE_ERROR')});
 memory=mergedGecko.memory;
 const mergedDex=mergeMemory(memory,{candidates:fallback,

@@ -28,6 +28,12 @@ export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtU
    memory.pools[k]={chain:canonical,pool,contract:validContract,symbol:c.symbol||null,
     first_seen_at_utc:seen,last_seen_at_utc:seen,first_source_path:sourcePath,
     last_source_path:sourcePath,observation_count:1,source_refs:[ref],
+    last_snapshot:{
+      observed_at_utc:seen,source_path:sourcePath,provider,
+      price_usd:Number.isFinite(c.observed_price_usd)&&c.observed_price_usd>0?c.observed_price_usd:
+        Number.isFinite(c.price_usd)&&c.price_usd>0?c.price_usd:null,
+      liquidity_usd:Number.isFinite(c.liquidity_usd)&&c.liquidity_usd>=0?c.liquidity_usd:null
+    },
     contract_conflicts:[],source_categories:[c.category||'UNCATEGORIZED'],
     status:'PENDING_RESEARCH_NOT_BUY_ELIGIBLE'};
    added++;continue;
@@ -39,6 +45,15 @@ export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtU
   if(Date.parse(seen)>Date.parse(old.last_seen_at_utc)){
    old.last_seen_at_utc=seen;old.last_source_path=sourcePath;
    if(c.symbol)old.symbol=c.symbol;
+   const price=Number.isFinite(c.observed_price_usd)&&c.observed_price_usd>0?c.observed_price_usd:
+     Number.isFinite(c.price_usd)&&c.price_usd>0?c.price_usd:null;
+   const liq=Number.isFinite(c.liquidity_usd)&&c.liquidity_usd>=0?c.liquidity_usd:null;
+   if(price!==null||liq!==null){
+     old.last_snapshot={observed_at_utc:seen,source_path:sourcePath,provider,
+       price_usd:price,liquidity_usd:liq,
+       previous_price_usd:old.last_snapshot?.price_usd??null,
+       previous_liquidity_usd:old.last_snapshot?.liquidity_usd??null};
+   }
   }
   if(Date.parse(seen)<Date.parse(old.first_seen_at_utc)){
    old.first_seen_at_utc=seen;old.first_source_path=sourcePath;
@@ -56,7 +71,7 @@ export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtU
  memory.checkpoints[checkpointKey]={chain:chain||null,provider,page,
   last_attempt_at_utc:t,last_success_at_utc:fetchStatus==='OK'?t:(prev.last_success_at_utc||null),
   last_source_path:sourcePath,last_status:fetchStatus,
-  next_page_to_consider:fetchStatus==='OK'?page+1:page,
+  next_page_to_consider:fetchStatus==='OK'?Math.max(page+1,prev.next_page_to_consider||1):page,
   // Cursor means last observed paging position, not proof that later pages were captured.
   backlog_open:true};
  memory.generated_at_utc=t;memory.last_ingested_source_path=sourcePath;
