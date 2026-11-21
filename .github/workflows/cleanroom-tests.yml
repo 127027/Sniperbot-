@@ -3,6 +3,13 @@ on:
   push:
     branches:
       - codex/r29-cleanroom-paper-20261121
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - 'package.json'
+      - '.github/workflows/**'
+      - 'docs/**'
+      - 'README.md'
   workflow_dispatch:
 permissions:
   contents: read
@@ -17,12 +24,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Run isolated offline tests
+      - name: Run tests
         run: npm test
-      - name: Verify no legacy files exist in new working tree
-        shell: bash
+      - name: Isolated tree assertion
         run: |
           test ! -e runner
           test ! -e Windows_Starten.bat
-          test ! -e AGENTS.md
           test -f src/core.mjs

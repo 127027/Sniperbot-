@@ -5,9 +5,10 @@ export const BRANCH='codex/r29-cleanroom-paper-20261121';
 const ROOT=`https://api.github.com/repos/${REPO}/contents/`;
 const encPath=path=>path.split('/').map(encodeURIComponent).join('/');
 export class GitHubTransport {
-  constructor(token) {
-    if (!token) throw Error('GITHUB_TOKEN required for receipt publishing/authenticated polling');
-    this.token=token;
+  constructor(token,clientId='paper-local-0001'){
+    if(!token)throw Error('GITHUB_TOKEN required for receipt publishing/authenticated polling');
+    if(!/^[a-zA-Z0-9_-]{8,80}$/.test(clientId))throw Error('INVALID_CLIENT_ID');
+    this.token=token;this.clientId=clientId;
   }
   async request(path,{method='GET',body}={}) {
     const url=`${ROOT}${encPath(path)}${method==='GET'?`?ref=${encodeURIComponent(BRANCH)}`:''}`;
@@ -27,8 +28,10 @@ export class GitHubTransport {
     if (expectedSha&&expectedSha!==actual) throw new Reject('POINTER_SHA_MISMATCH',`Index SHA mismatch: ${path}`);
     return {data:JSON.parse(raw),sha:actual};
   }
-  async publishReceipt(id,receipt) {
-    const path=`receipts/${id}.json`;
+  async publishReceipt(id,receipt){
+    if(!/^[a-zA-Z0-9_-]{8,80}$/.test(id))throw Error('INVALID_RECEIPT_ID');
+    const path=`receipts/${this.clientId}/${id}.json`;
+    receipt={...receipt,client_id:this.clientId};
     const content=Buffer.from(JSON.stringify(receipt,null,2)+'\n','utf8').toString('base64');
     await this.request(path,{method:'PUT',body:{message:`r29 clean-paper: record ${id} result`,
       content,branch:BRANCH}});

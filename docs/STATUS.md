@@ -1,29 +1,27 @@
-# R29 Cleanroom acceptance checklist
+# R29 Cleanroom V0.2 — Belegpflichtige Abnahme
 
-## Stage A — Cleanroom technical build
-- [x] New independent code tree, no old bot code imported
-- [x] Paper-only engine and new 5,000 TEST-USDC ledger
-- [x] 50 TEST-USDC per coin, risk checks and idempotency
-- [x] SHA-pinned GitHub order files and receipt transport
-- [x] Synthetic BUY/SELL in isolated in-memory demo
-- [ ] Verified GitHub delivery on actual cleanroom branch
-- [ ] Verified Windows machine installation and persistence
-- [ ] Verified receipt returned and read by Dot 5
-- [ ] Tests run from **exact remote checkout**
+## Technische Infrastruktur
+- [x] Von altem Bot vollständig unabhängiger Paper-Code
+- [x] GitHub SHA-gepinnte unveränderliche Paper-Order
+- [x] Mehrere Client-IDs und je Client eindeutige Receipt-Dateien
+- [x] Eigenes Papierkonto pro Device, kein gemeinsames Cloud-Guthaben
+- [x] Fälligkeitsregel für dynamische 4/8/12/24 GPT-Analysen
+- [x] Simulierte offline Engine-/GitHub-Tests
+- [ ] Neue GitHub-Branch-CI tatsächlich grün
+- [ ] Echter Cloud-Dot-4-GitHub-Orderpointer nachgewiesen
+- [ ] Neues Windows-Gerät installiert und GitHub-Receipt zurückgemeldet
 
-## Stage B — Dot research pipeline
-- [ ] Inspect existing five Dot configuration and their actual available functions
-- [ ] Assign roles and configure *new* cleanroom schedule independently from legacy jobs
-- [ ] Prove adaptive 4/8/12/24 scan decisions really affect cleanroom schedule
-- [ ] Prove independent timely public quotes for a prospective pool
-- [ ] Prove full discovery-to-order-to-Windows chain
-- [ ] Daily missed-opportunity and failure audit
+## Fünf unabhängige Cloud-Dots
+- [ ] Dot 1 aktiv mit tatsächlicher Marktaktivität und Scanplanung
+- [ ] Dot 2 aktiv mit aktuell überprüften neuen Pool-Identitäten
+- [ ] Dot 3 aktiv mit unabhängigen Preisquellen und Risiken
+- [ ] Dot 4 aktiv mit nachweislich abgeschlossener GPT-Strategie und BUY/SELL-Publisher
+- [ ] Dot 5 aktiv mit konkreten GitHub-Liefer-/Client-Quittungsprüfungen
+- [ ] Tagesaudit überwacht fehlende Kandidaten und fehlende Signale
 
-## Stage C — Prospective productive-paper acceptance
-- [ ] Genuine live Dot research selects coin
-- [ ] Dot-4 BUY order reaches Windows, yields PAPER_FILLED
-- [ ] Dot-4 or authorized policy SELL order reaches Windows, yields PAPER_FILLED
-- [ ] Local paper ledger and public receipts reconcile
-- [ ] Historical blind replay uses only time-appropriate data
+## Produktive PAPER-Abnahme
+- [ ] Echter prospektiver Coin, GPT-BUY, lokale PAPER_FILLED-Quittung
+- [ ] Später GPT-SELL und zweite echte lokale PAPER_FILLED-Quittung
+- [ ] 21 historische Nacht-Kandidaten im Blind-Replay ohne Zukunftswissen geprüft
 
-No artificial fills count for stage C.
+Nur reale Daten markieren diese Schritte als bestanden; keine synthetischen Trades, kein ausgedachtes Markt-Radar. Fünf stündliche Dots sind best effort, kein lückenloser Marktdatenstream.

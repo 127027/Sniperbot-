@@ -1,5 +1,5 @@
 // R29 clean-room virtual exchange: no blockchain transactions, wallet or legacy bot imports.
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 export const CHAINS = new Set(['solana', 'ethereum', 'base', 'bsc']);
 export const DEFAULT_POLICY = Object.freeze({
   startingBalance: 5000, entryAmount: 50, maxPositions: 30,
@@ -22,7 +22,7 @@ export function gitBlobSha(text) {
   return createHash('sha1').update(`blob ${data.length}\0`).update(data).digest('hex');
 }
 export function newState(policy = DEFAULT_POLICY) {
-  return { schema: 1, mode: 'PAPER_ONLY', cash: policy.startingBalance, positions: {},
+  return { schema: 1, mode: 'PAPER_ONLY', clientId: `client-${randomBytes(8).toString('hex')}`, cash: policy.startingBalance, positions: {},
     processed: {}, receipts: {}, nextSequence: 1, startedAt: new Date().toISOString() };
 }
 export function inspectOrder(order, state, nowMs, policy = DEFAULT_POLICY) {
@@ -44,17 +44,28 @@ export function inspectOrder(order, state, nowMs, policy = DEFAULT_POLICY) {
     fail('INVALID_COIN_ID','Chain, contract, symbol and pool must be explicit');
   if (!Array.isArray(order.quotes) || order.quotes.length < 2)
     fail('MISSING_QUOTES','Two independent quote sources required');
-  const providers=new Set(), prices=[], liquidities=[];
+  const indicative=order.quote_quality==='INDICATIVE_WEB_ONLY';
+  if(order.quote_quality!==undefined&&!['FRESH_WEB','INDICATIVE_WEB_ONLY'].includes(order.quote_quality))
+    fail('INVALID_QUOTE_QUALITY','Unsupported quote quality');
+  const ageLimit=indicative?600000:policy.maxQuoteAgeMs;
+  const providers=new Set(),domains=new Set(), prices=[], liquidities=[];
   for (const q of order.quotes) {
     if (!q || !ident(q.provider_id) || providers.has(q.provider_id))
       fail('DUPLICATE_QUOTE_SOURCE','Quote sources must be distinct');
     providers.add(q.provider_id);
     if (!positive(q.price_usdc) || !positive(q.liquidity_usdc))
       fail('INVALID_QUOTE','Price or liquidity invalid');
+    if(indicative){
+      let host;
+      try{const u=new URL(q.source_url);if(u.protocol!=='https:')throw Error();host=u.hostname.replace(/^www\./,'');}
+      catch{fail('INVALID_SOURCE_URL','Indicative quote needs HTTPS source URL');}
+      if(domains.has(host))fail('DUPLICATE_QUOTE_DOMAIN','Two distinct web domains required');
+      domains.add(host);
+    }
     if (q.chain!==c.chain || q.contract!==c.contract || q.pool!==c.pool)
       fail('QUOTE_POOL_MISMATCH','Quote references another pool');
     const at=Date.parse(q.observed_at);
-    if (!Number.isFinite(at) || at>nowMs+10_000 || nowMs-at>policy.maxQuoteAgeMs)
+    if (!Number.isFinite(at) || at>nowMs+10_000 || at>createdAt+10_000 || nowMs-at>ageLimit)
       fail('STALE_QUOTE','Quote outside freshness window');
     prices.push(q.price_usdc); liquidities.push(q.liquidity_usdc);
   }
@@ -110,6 +121,8 @@ export function settlePaper(order, previous, timeMs, policy=DEFAULT_POLICY) {
       realized_pnl_test_usdc:round(proceeds-position.costTestUsdc)};
   }
   const fullReceipt={schema:1,mode:'PAPER',id:order.id,sequence:state.nextSequence++,
+    quote_quality:order.quote_quality||'FRESH_WEB',
+    quote_verification:'DOT_ASSERTED_NOT_INDEPENDENTLY_VERIFIED',
     status:'PAPER_FILLED',timestamp:new Date(timeMs).toISOString(),coin:order.coin,
     quote_sources:order.quotes.map(q=>q.provider_id),simulated:true,
     pricing_model:'median quotes + modeled spread/impact + fee',
