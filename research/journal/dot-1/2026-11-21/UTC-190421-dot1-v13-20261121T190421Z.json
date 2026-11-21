@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "dot": "dot-1",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "observed_at_utc": "2026-11-21T19:04:21Z",
+  "status": "DATA_GAP",
+  "target_per_24h": 4,
+  "previous_target_per_24h": 4,
+  "consecutive_quiet_checks": 0,
+  "reason": "13 capture batches span different chains; no verified consecutive same-chain hourly new-pool/volume deltas; V1.3 as-of ranking 0/9 rankable; single undated HTML page cannot establish hourly peak; preserve prior target",
+  "sources": [
+    {
+      "url": "https://www.geckoterminal.com/explore/new-crypto-pools/solana",
+      "type": "PUBLIC_HTML",
+      "observation": "dynamic listing; no provider-stamped comparable hourly snapshot; not used as delta"
+    },
+    {
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/feeds/latest.json",
+      "type": "GITHUB_CAPTURE",
+      "captured_at_utc": "2026-11-21T19:00:16.776Z",
+      "chain": "ethereum"
+    },
+    {
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/state/checkpoints/44938541583.json",
+      "type": "GITHUB_CHECKPOINT"
+    },
+    {
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/observations/2026-11-21/44938541583-asof-ranking.json",
+      "type": "PROSPECTIVE_ASOF"
+    }
+  ],
+  "metrics": {
+    "memory_total_discovered": 78,
+    "memory_observation_batches": 13,
+    "complete_contracts": 78,
+    "latest_capture_chain": "ethereum",
+    "latest_capture_at_utc": "2026-11-21T19:00:16.776Z",
+    "latest_capture_pools": 3,
+    "latest_capture_complete_contracts": 3,
+    "latest_capture_rechecks": 6,
+    "latest_capture_errors": [],
+    "prospective_observed_unique_pools": 9,
+    "prospective_rankable": 0,
+    "prospective_insufficient_repeated_data": 9,
+    "fair_recheck_backlog": 69,
+    "verified_same_chain_hourly_delta": false,
+    "new_pools_per_hour": null,
+    "volume_delta_per_hour": null,
+    "orders_verified": null,
+    "positions_verified": null
+  },
+  "coverage": {
+    "chains": [
+      "solana",
+      "base",
+      "ethereum",
+      "bsc",
+      "robinhood",
+      "cronos"
+    ],
+    "latest_capture_only": "ethereum",
+    "bsc_capture_checkpoint_missing": true,
+    "all_chains_current_hour": false
+  },
+  "candidates": [],
+  "candidate_note": "No new chain+contract+pool identity from public HTML verified during this wake; V1.3 as-of research list has nine WATCH_INSUFFICIENT_REPEATED_EVIDENCE, not eligible trades.",
+  "errors": [
+    "No comparable successive timestamped same-chain capture deltas",
+    "HTML dynamic list lacks reliable provider as-of timestamp",
+    "BSC absent from current market-memory GECKOTERMINAL checkpoint",
+    "Orders and open client positions not independently verified"
+  ],
+  "next_checkpoint": "Next hourly wake: compare new GitHub feed and prior same-chain checkpoint for actual pool/volume/transaction deltas; retain DATA_GAP until proven; no BUY/SELL",
+  "orders_created": 0
+}
