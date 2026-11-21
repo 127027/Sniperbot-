@@ -1,128 +1,50 @@
-> **NEUE VERBINDLICHE PRODUKTSPEZIFIKATION (07.11.2026): Ein gemeinsames Forschungsnetzwerk, beliebig viele voneinander isolierte Sniperbot-Installationen.** Jeder Empfänger nutzt sein **eigenes** virtuelles bzw. später gesondert freigegebenes echtes Konto, eigene Wallet, Guthaben, Einstellungen und Trading-Engine. Die fünf zentralen Forschungsrollen publizieren nur Kaufkandidaten und Exit-Hinweise an alle ausdrücklich abonnierenden Instanzen. **Keine fremden Kontozugriffe, keine fremden Orders, kein gemeinsames Guthaben.** Eine nachweisliche Dot-Zustellung und ein zentraler Geräte-Broadcast fehlen heute noch. Siehe [Mehrgeräte-Sollarchitektur](docs/DISTRIBUTED_INSTANCES.md), [Signalverteiler-Protokoll](docs/SIGNAL_DISTRIBUTION_PROTOCOL.md), [Halte-/Exit-Policy](docs/HOLD_EXIT_POLICY.md), [Ist-/Soll-Stand](docs/IMPLEMENTATION_STATUS_2026-11-07.md).
+# R29 Cleanroom — separate GitHub-only PAPER bot
 
-> **Stand heute: V0.4, ausschließlich PAPER.** GitHub ist Code-/Forschungsprojekt, nicht laufender Live-Broker. Eine Installation auf Windows ≠ unabhängige native Android-Engine. Echte PayPal-Zahlungen, Wallets und Handel sind NICHT implementiert oder freigegeben.
+**New code from scratch. PAPER ONLY. No legacy bot imports, wallets, transactions or existing ledger.** This special Git branch contains its own clean file tree; it is not a rewrite of the original `main` bot.
 
-# Implementierungsstand V0.4 – lokaler Forschungs-Gateway
+- Repo: `127027/Sniperbot-`
+- Isolated branch: `codex/r29-cleanroom-paper-20261121`
+- Windows: Node.js 20+ (standard library only, no packages to install)
+- Fresh virtual ledger: **5,000 TEST-USDC**
+- Exact BUY amount: **50 TEST-USDC** per coin
+- All real-money functionality absent
+- Previous 4,999.01 TEST-USDC and all legacy automation/workflows remain untouched
 
-Neu: authentifizierte rollengetrennte Research-API, persistente Belege/Stimmen/Gegenargumente,
-5/5-Prüfung und separate synthetische Risikoprüfung, idempotente Paper-Käufe,
-mehrere Positionen mit Min/Max-Einsatz je Coin und Demo-Trailing ohne feste Gewinnkappung.
-Der Scanner entdeckt weiterhin neue Pools; es gibt keine feste Liste von 20 Coins.
-Min/Max gilt je Kauf; keine zusätzliche Positionsanzahl- oder Gesamteinsatzgrenze.
+## The full delivery path
 
-**Echte Dots sind noch nicht verbunden.** Externe Research-Nachrichten können lokal
-angenommen werden, lösen aber ohne implementierte unabhängige On-Chain-/Sell-Adapter
-keine automatischen Käufe aus. Der vollständige Auto-Ablauf ist mit erfundenen
-Testcoins geprüft. Heuristischer Scanner-Autokauf ist abgeschaltet.
+The five GPT Dots are responsible for research, candidate discovery, price/risk evidence, GPT strategy and signal publishing/auditing. See [their separate job specification](docs/DOT_ROLES.md).
 
-Windows-Daten liegen standardmäßig unter `%LOCALAPPDATA%/MemeSniperPaper`, außerhalb
-von OneDrive. Bestehende `.local/paper-state-v03.json` wird einmalig kopiert und als
-Migrationsbackup erhalten. `SNIPER_DATA_DIR` überschreibt den Speicherort.
-Beschädigte Daten stoppen den Start, statt das Portfolio zurückzusetzen.
+1. Dot 4 decides BUY/SELL and Dot 5 publishes a new immutable `signals/orders/<id>.json` to this branch.
+2. Dot 5 adds `{ "path": "signals/orders/<id>.json", "sha": "<exact Git blob SHA>" }` to `signals/index.json`.
+3. Windows polls `signals/index.json` on this cleanroom branch only, checks SHA and local risk policies, then executes a **virtual** trade into its own local ledger.
+4. Windows writes `receipts/<id>.json` through GitHub (or retries later if GitHub is unavailable). Only a true `PAPER_FILLED` receipt constitutes completed paper execution.
 
-Anleitung, Schnittstellen, Dot-Anbindung und Grenzen: [GATEWAY_V04.md](docs/GATEWAY_V04.md).
-Tests: `node runner/test.mjs` und `node --test runner/*.test.mjs`.
+The `examples/order.sample.json` is deliberately expired and **not listed in the signal index**. The initial index has **zero orders**.
 
-Die nachfolgende V0.3-Dokumentation beschreibt den historischen Ausgangsstand;
-bei Widersprüchen gilt der oben verlinkte V0.4-Implementierungsstand.
+## Windows setup (requires user action)
 
----
+1. Install Node.js 20+ and Git.
+2. Clone this branch into a **brand-new folder**, not the old Sniperbot folder:
+   `git clone --branch codex/r29-cleanroom-paper-20261121 --single-branch https://github.com/127027/Sniperbot-.git R29-CleanPaper`
+3. `cd R29-CleanPaper`
+4. Run `npm test` (seven tests) or `npm run demo` (fully offline synthetic BUY+SELL; no changes to GitHub or the real paper ledger).
+5. Create a **fine-grained GitHub PAT**, repository scope `127027/Sniperbot-`, Contents **read/write**. The token is necessary to publish GitHub receipts and avoid anonymous rate limits. Keep it private.
+6. In PowerShell start `./scripts/Start-CleanPaper.ps1` and enter that token in its hidden prompt. It sets PAPER mode and runs the cleanroom bot; stop the script to stop polling.
 
-# Meme Sniper AI – Lokal, minimalistisch, Windows
+The new ledger is stored only at `%USERPROFILE%\\.r29-cleanpaper\\state.json` unless `R29_STATE_DIR` is explicitly specified. Do not use a legacy state directory.
 
-**Version 0.3 + Codex-Handoff (06.11.2026) – ausschließlich TEST-/PAPER-TRADING; keine echten Einzahlungen, Auszahlungen, Kryptowährungskäufe oder Wallet-Zugriffe.**
+## Technical protections
 
-## In drei Schritten starten
+- No real trading code, API keys for exchanges or wallet functions; `LIVE` orders rejected.
+- SHA-pinned immutable order contents and unique IDs prevent accidental double execution.
+- Two pool-identical quote assertions from different named sources, <=90 seconds old, max 3% quoted price divergence.
+- Quoted liquidity >=5,000 USD; order size <=1% of quoted liquidity; maximum 30 open positions.
+- Fees modeled at 0.75%, 0.40% simulated spread, plus liquidity-dependent price impact.
+- Logs and receipts distinguish `PAPER_FILLED`, `PAPER_REJECTED`, failed GitHub requests and pending publication.
+- All fills are **paper model output**, never actual historical executable trades.
 
-1. **Node.js 22 LTS oder neuer** installieren: https://nodejs.org
-2. ZIP in einen eigenen Ordner entpacken.
-3. `Windows_Starten.bat` doppelklicken. Dashboard: **http://127.0.0.1:3030**. Das schwarze Terminal-Fenster geöffnet lassen.
+**Important limitation:** Windows does not obtain an independent market price outside GitHub. The Dots' source evidence is only self-attested and not a cryptographic proof. If web research/GitHub forwarding takes too long, a legitimately blocked trade is preferable to an invented fresh price.
 
-Keine `npm install` für die Startversion nötig. Zum Testen: `Windows_Tests.bat` bzw. `node runner/test.mjs` und `node --test runner/integration.test.mjs`. Der HTTP-Integrationstest arbeitet **offline** mit einem separaten temporären Datenordner und verändert dein Portfolio nicht.
+## Status / what is still missing
 
-## Erstes Szenario: 50 € Testguthaben → Sniper-Testkauf
-
-1. Dashboard öffnen, **Testguthaben +50 €** klicken. Es wird nur eine virtuelle Zahl gespeichert – es fließt kein Geld.
-2. Auf **Bot AN** schalten. Standardgröße ist **50–50 Test-USDC**, also genau eine Position von 50 Test-USDC.
-3. Auf **Testsignal erstellen** klicken. Der angezeigte `TEST`-Coin ist vollständig erfunden, damit der Ablauf ohne Marktfeed überprüfbar ist.
-4. **Testkauf 50** klicken (oder vorher den optionalen Paper-Autokauf einschalten, dann kauft ein Demo-Signal ebenfalls automatisch). Beim Kauf wandelt der Server die 50 virtuellen EUR automatisch 1:1 in Test-USDC. Das ist ein absichtlich fiktiver Umrechnungskurs und kein tatsächlicher EUR/USD/USDC-Wechselkurs. Modellierte Kaufkosten 1 %.
-5. Position erscheint unter **Gekaufte Coins**. Standardmäßig **HOLD**, sie bleibt also liegen bis du sie verkaufst.
-6. Optional **Legacy-Demo-Ausstiege** aktivieren (+15 % / −10 %). **Dies ist noch nicht die geplante adaptive Sniper-Verkaufsstrategie.** Auch wenn Bot AUS ist, bleibt der Exitprozess für bestehende Positionen aktiv, solange der Laptop-Runner läuft.
-7. Über **Verkaufen** wird ein Testverkauf gebucht. Nur frei verfügbares virtuelles EUR-Guthaben kann abgehoben werden; vorher Test-USDC zurück in Demo-EUR tauschen (bei vorhandenem freien Test-USDC).
-
-## Vier Chain-Scanner (nur lesend)
-
-Das Dashboard ruft über den lokalen Node-Server öffentliche **GeckoTerminal**-Endpunkte für neue Pools auf Solana, Base, BNB Chain und Ethereum ab. Der Server benutzt außerdem **DEX Screener** für Token-Details und die Schätzung des aktuellen Positionswerts. Es können **nur beobachtete handelbare DEX-Tokens** angezeigt werden; das ist noch kein Zugang zu *jeder* Kryptowährung oder zu zentralisierten Börsen. Manuelle Contract-Suche über Chain + Token-Adresse ist möglich.
-
-Scoring erfolgt nur anhand einfacher Marktkennzahlen. **Es ist keine KI-Prognose, kein Vertragssicherheitsnachweis und keine Garantie für eine tatsächlich verkäufliche Position.** Gelegentlich fehlen Daten und die Quellen können ausfallen. Der App-Status zeigt das an. Die simulierten Testkäufe basieren auf beobachteten Preismeldungen; reale Orderausführung und echte Wallet-Swaps sind nicht enthalten.
-
-## Einstellungen
-
-- Bot AN/AUS: **AUS verhindert neue Paperkäufe**, aber bestehende Positionen werden weiter markiert und beim AUTO-Exit automatisch geschlossen.
-- Paper-Autokauf optional: nur falls Scanner einen Kandidaten nach einer konservativen, nicht auditierenden Punktelogik markiert und ausreichend Testguthaben vorhanden ist. Die Funktion ist standardmäßig AUS.
-- Positionsgröße flexibel: `50–50`, `200–400` oder frei eingeben; max. 1 Position gleichzeitig in der aktuellen Testversion (**mehrere** parallele Positionen sind für Codex als Anforderung spezifiziert).
-- Exit: Standard **HOLD** (Position bleibt liegen), alternativ **LEGACY AUTO** mit Stop-Loss/Take-Profit (aktuell +15 %; Ablösung in Arbeit).
-- Testguthaben-Ein-/Auszahlung und 1:1-Testumtausch; **keine PayPal- oder Bankanbindung**.
-
-## 24/7
-
-Runner läuft im schwarzen Terminal im Hintergrund – unabhängig vom Browser, aber **nicht unabhängig von Windows/Laptop**. Windows-Energiesparmodus deaktivieren; nach Windows-Neustart manuell neu starten. Keine Autostart-Aufgabe wird ohne Einwilligung eingerichtet. Die Daten bleiben lokal in `.local/paper-state-v03.json`, nicht in GitHub.
-
-## GitHub / Codex
-
-Das offizielle Repository ist **[127027/Sniperbot-](https://github.com/127027/Sniperbot-)**. Es ist derzeit **öffentlich**: keine Zugangsdaten oder echten Kundendaten committen. Auf deinem Laptop mit Git klonen und lokal testen; Codex liest `AGENTS.md` und den Arbeitsauftrag unter `docs/CODEX_TASKS.md`. Ein älteres Helper-Skript für neue private Repositories wird nicht benötigt.
-
-### Vollständige Codex-Übergabedokumentation
-
-- [AGENTS.md](AGENTS.md): verbindliche Codex-/Agenten-Regeln
-- [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md): vollständiges Nutzerziel inkl. Multi-Agenten-System und langfristigem HOLD
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): Ist- und Soll-Architektur
-- [docs/AGENT_PROTOCOL.md](docs/AGENT_PROTOCOL.md): skalierbare Agentenereignisse (noch **nicht** implementiert)
-- [docs/CODEX_TASKS.md](docs/CODEX_TASKS.md): Prioritäten P0–P6 mit Abnahmekriterien
-- [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md): nachweislich offene Funktionen
-- [docs/SECURITY.md](docs/SECURITY.md): Sicherheitsgrenzen und Datenschutz
-- [docs/GITHUB_VERÖFFENTLICHEN.md](docs/GITHUB_VERÖFFENTLICHEN.md): GitHub-Veröffentlichung ohne Eingriff in Hixton
-- [docs/ROADMAP.md](docs/ROADMAP.md): Meilensteine
-- [.github/workflows/tests.yml](.github/workflows/tests.yml): Offline-CI
-
-**Wichtig für Codex:** Ein möglicher 100-facher Coin-Anstieg (50 EUR → 5.000 EUR) ist ein hypothetischer Wunschfall, kein Profitversprechen. Langfristige HOLDs, mehrere getrennte Käufe und 1..N Agenten sind Zielzustand; der Prototyp kann das noch nicht vollständig. Das vorhandene GitHub-Repository ist das Ziel für die Übergabe.
-
-
-## Anbieterquellen
-
-- https://apiguide.geckoterminal.com/getting-started
-- https://docs.dexscreener.com/api/reference
-- https://cli.github.com/manual/gh_repo_create
-
-**Sicherheitsgrenze:** Kein automatischer Echtgeldhandel und keine echte Zahlungsannahme. Die bestehenden Hixton-Repos/Dots werden nicht benötigt oder geändert.
-
-## Designvorschau
-
-Die Desktop- und Smartphone-Vorschau ist im ursprünglichen Windows-Übergabepaket vorhanden; die beiden Bilddateien sind noch **nicht** in diesem Repository eingecheckt. Für den tatsächlichen Programmstand gilt der Quellcode unter `runner/`.
-
-Codex kann die visuellen Akzeptanztests auf Windows wiederholen und dabei aktuelle Screenshots erzeugen.
-
-Die Bilder zeigen einen Testzustand. Sie beweisen keine aktuelle Kurs-/KI-/Transaktionsanbindung.
-
-## Codex übernehmen lassen – Laptop und alle Forschungsagenten
-
-**Aktueller GitHub-Ort:** https://github.com/127027/Sniperbot- (öffentlich sichtbar; niemals Zugangsdaten committen). **Codex ist der technische Maintainer**, der den Stand auf Windows 11 klont, startet, Fehlermeldungen untersucht, reproduzierbare Tests durchführt und Patches in diesem Repository erstellt – nur soweit Codex tatsächlich Zugriff auf den Laptop erhält. Dazu `AGENTS.md` und `docs/CODEX_TASKS.md` lesen.
-
-**Forschungsrollen:** 1..N spezialisierte Agenten/Dots suchen Coins, teilen recherchierte Belege und Gegenargumente, validieren potenzielle Kandidaten gegenseitig und senden erst über einen noch zu bauenden, authentifizierten Gateway strukturierte Vorschläge an die lokale Paper-Risk-Engine. Kein Agent darf unmittelbar Orderbefehle auslösen. Voraussetzung sind unabhängige On-Chain-Checks, Pool-Liquidität, Verkaufbarkeit, Budgets und `Bot AN`.
-
-Aktuelle Grenzen: Die Dot-zu-Bot-Kommunikation ist NICHT integriert; Coin-Qualifikation und Exit-Realismus müssen entwickelt und getestet werden. Langfristige Portfolio-Strategie ist vorgesehen, aber derzeit ist höchstens eine simulierte Position gleichzeitig unterstützt.
-
-**GitHub-Verwendung auf Windows:** `git clone https://github.com/127027/Sniperbot-.git` und `cd Sniperbot-`, dann `Windows_Tests.bat` sowie `Windows_Starten.bat`. Node.js 22+ benötigt. Die lokale API erscheint nur unter http://127.0.0.1:3030. Für das Ziel eines nicht-technischen Nutzers sollte Codex einen sicheren Windows-Installer bzw. Starter entwickeln.
-
-## Strategiewechsel: Fünf Agenten und langfristiger High-Upside-Sniper (freigegeben am 06.11.2026)
-
-**Verbindlicher neuer Codex-Auftrag:** [Fünf-Agenten-Strategie, dynamische Positionsgrößen, adaptive Exits](docs/STRATEGY_5_AGENT_BIG_MOVES.md). Codex-Details und Abnahmetests: [docs/CODEX_TASKS.md](docs/CODEX_TASKS.md) und GitHub-Issues.
-
-- **Ziel:** Früh vor einer breiten organischen Memecoin-Nachfragewelle einsteigen; mögliche starke Kursanstiege über Tage/Wochen begleiten. 50 auf 5.000 ist eine extreme hypothetische 100×-Entwicklung, kein Beleg und kein Versprechen.
-- **Fünf Fachrollen:** News/Discovery, Social-Momentum, On-Chain/Liquidität, Contract-/Rug-Risiko, unabhängige Opportunity-/QA-Prüfung. Vor Paper-Autokauf soll vorläufig 5/5 aktueller, unabhängiger Reviews plus ein externes hartes Risk-Gate nötig sein. Andere verfügbare Forschungsagenten können später unterstützen (Registry 1..N).
-- **Bot-Einsätze:** Nutzerdefiniertes Minimum/Maximum, z. B. 50–1000 TEST-USDC; je Kandidat ist 0 oder ein Wert dazwischen möglich. Kein automatisches Maximieren auf 1.000 wegen eines KI-Scores. Cash, Positions-/Portfoliorisiko, Liquidität, Gebühren, Slippage und Sellbarkeit bleiben Grenzen.
-- **Keine feste Gewinnkappung:** Der aktuelle AUTO-Exit bei **+15 %** ist **LEGACY/DEMO**, **nicht** die gewünschte Sniper-Strategie. Codex muss den pauschalen TP durch eine getestete dynamische Exit-Engine ersetzen (Trend, Trailing, Liquiditäts-/Risk-Exit, lange Haltedauer). Der aktuelle Quellcode wurde durch diesen Dokumentationscommit **nicht** verändert.
-- **Bot AUS:** Blockiert Neueinstiege, **niemals** die Überwachung oder aktive Exit-Regeln offener Positionen.
-- **Nicht implementiert:** Fünf verbundene Dots, direkte Dot-zu-Windows-Kommunikation, autonome KI-Ausführung, sichere Paper-Einstiege nach neuem Konsens, adaptive Exit-Engine und Echtgeldhandel. Vor allem gilt der derzeitige Scanner nicht als vorhersagefähiges 100×-System.
-
-**Sicherheit:** Aktuell nur PAPER, keine echten Geldflüsse/Orders und kein Eingriff in Hixton.
+The cleanroom bot and local offline test suite exist. The five scheduled GPT Dots are **not activated by this commit**. No real Dot-sourced order or successful Windows user-account `PAPER_FILLED` has been verified. Daily monitoring, adaptive timing, complete market coverage, live GitHub inbox/receipt testing and the 21-candidate look-ahead-free replay still need independent validation. The old bot and old schedules are not reconfigured.
