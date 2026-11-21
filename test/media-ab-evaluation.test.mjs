@@ -35,3 +35,18 @@ test('generic DOGE or Trump story must not boost a different fake contract',()=>
  const out=makePairedMediaMarketRankings({marketRanking:rank(),mediaMemory:memory});
  assert.equal(out.matched_contract_mentions,0);
 });
+
+test('A/B permits later labeled positives and negatives but never asserts predictive success',()=>{
+ const memory=emptyMediaMemory();
+ const paired=makePairedMediaMarketRankings({marketRanking:rank(),mediaMemory:memory});
+ const labels={kind:'R29_FORWARD_ONLY_OUTCOME_LABELS',decision_at_utc:time,labels:[
+  {key:'base:one',label:'OBSERVED_24H_DOUBLE',outcome_return_pct:120},
+  {key:'base:two',label:'OBSERVED_NONPOSITIVE',outcome_return_pct:-5}
+ ]};
+ const r=evaluatePairedAB({paired,labels,topK:2});
+ assert.equal(r.status,'RESEARCH_ONLY_MATCHED_KNOWN_OUTCOMES');
+ assert.equal(r.improvement_proven,false);
+ assert.equal(r.market_only.known_outcomes,2);
+ assert.equal(r.market_plus_media.known_outcomes,2);
+ assert.equal(r.recall_delta_at_k_known,0);
+});

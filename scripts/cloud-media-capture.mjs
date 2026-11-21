@@ -1,6 +1,6 @@
 // Run immediately after each genuine Dot2 cloud capture. Free public sources only.
 // Persist limited article/post metadata and response SHA, not copyrighted full feeds.
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {decodeMediaSource,mergeMediaMemory,emptyMediaMemory,mediaAsOfSignals,
  matchMediaPoolHypotheses} from '../src/media-research.mjs';
@@ -95,12 +95,36 @@ await writeFile(linkPath,JSON.stringify(linked,null,2)+'\n','utf8');
 const frozenMarketRank=JSON.parse(await readFile(latestMarket.ranking_path,'utf8'));
 const paired=makePairedMediaMarketRankings({marketRanking:frozenMarketRank,mediaMemory:memory});
 const evaluation=evaluatePairedAB({paired,labels:null});
+// Only frozen prior research decisions with later 24h matured labels qualify.
+let maturedABPath=null,maturedABStatus='WAIT_FOR_MATURED_FORWARD_LABELS';
+if(latestMarket.matured_label_path){
+ const labels=JSON.parse(await readFile(latestMarket.matured_label_path,'utf8'));
+ const oldFiles=(await readdir('research/media',{recursive:true}))
+  .filter(x=>x.endsWith('/paired-ab-market-media.json')).sort().reverse().slice(0,400);
+ for(const relative of oldFiles){
+  let old;try{old=JSON.parse(await readFile('research/media/'+relative,'utf8'));}catch{continue;}
+  if(old?.paired?.as_of_utc!==labels.decision_at_utc)continue;
+  const result=evaluatePairedAB({paired:old.paired,labels,topK:10});
+  maturedABPath=root+'/matured-ab-evaluation.json';
+  maturedABStatus=result.status;
+  await writeFile(maturedABPath,JSON.stringify({
+   schema:1,kind:'R29_CAUSAL_MATURED_MEDIA_AB_EVALUATION',
+   original_pair_path:'research/media/'+relative,
+   original_market_decision_at_utc:old.paired.as_of_utc,
+   labels_path:latestMarket.matured_label_path,evaluation:result,
+   no_trading_order:true
+  },null,2)+'\n','utf8');
+  break;
+ }
+ if(!maturedABPath)maturedABStatus='PRIOR_PAIR_NOT_FOUND_FOR_MATURED_LABEL';
+}
 const pairedPath=root+'/paired-ab-market-media.json';
 await writeFile(pairedPath,JSON.stringify({paired,evaluation},null,2)+'\n','utf8');
 await writeFile('research/media/latest.json',JSON.stringify({
  schema:1,kind:'R29_LATEST_MEDIA_RESEARCH',captured_at_utc:completed,
  evidence_path:batchPath,signals_path:signalsPath,memory_path:path,
  pool_hypotheses_path:linkPath,paired_ab_path:pairedPath,paired_ab_status:evaluation.status,
+ matured_ab_path:maturedABPath,matured_ab_status:maturedABStatus,
  counts,added_unique_events:merged.added,
  repeated_items:merged.repeated,topic_count:signals.topics.length,
  media_memory_stats:memory.stats,orders_published:0},null,2)+'\n','utf8');
@@ -108,4 +132,4 @@ console.log('R29_V14_MEDIA_CAPTURE',JSON.stringify({run_id:runId,market_capture:
  available:counts.available,attempted:counts.attempted,errors:counts.failed,
  events:counts.accepted_events,topics:signals.topics.length,paired_ab_status:evaluation.status,
  memory_unique:memory.stats.unique_events,source_statuses:statuses.map(s=>[s.source,s.status]),
- no_orders:true}));
+ matured_ab_status:maturedABStatus,no_orders:true}));
