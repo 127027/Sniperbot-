@@ -1,0 +1,28 @@
+name: R29 Cleanroom Paper Tests
+on:
+  push:
+    branches:
+      - codex/r29-cleanroom-paper-20261121
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paper-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout cleanroom branch
+        uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run isolated offline tests
+        run: npm test
+      - name: Verify no legacy files exist in new working tree
+        shell: bash
+        run: |
+          test ! -e runner
+          test ! -e Windows_Starten.bat
+          test ! -e AGENTS.md
+          test -f src/core.mjs
