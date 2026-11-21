@@ -23,9 +23,13 @@ export function auditOracleManifest(manifest){
    historical_discovery_verified:false,buy_authorized:false};
  }).sort((a,b)=>a.id-b.id);
  return {kind:'R29_POST_EVENT_ORACLE_MANIFEST',schema:1,items,
-  counts:{total:items.length,with_pool:items.filter(x=>x.has_pool).length,
+  counts:{total:items.length,
+   supplied_pool_addresses:items.filter(x=>x.pool!==null).length,
+   with_pool:items.filter(x=>x.pool!==null).length,
+   syntactically_valid_pools:items.filter(x=>x.has_pool).length,
+   invalid_supplied_pool_addresses:items.filter(x=>x.pool!==null&&!x.has_pool).length,
    with_contract:items.filter(x=>x.has_contract).length,
-   missing_pool:items.filter(x=>!x.has_pool).length},
+   missing_pool:items.filter(x=>x.pool===null).length},
   only_available_after_historical_decisions:true,no_orders:true};
 }
 export function normalizeOracleTape(raw,{date='2026-10-12',sourceSha256=null}={}){

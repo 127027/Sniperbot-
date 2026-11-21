@@ -62,8 +62,9 @@ if(JSON.stringify(A.events)!==JSON.stringify(M.events))throw Error('ORACLE_LEAKS
 const missing=archive.items.filter(x=>!linkedIds.has(x.id));
 const status_counts={
  matched_frozen_ohlcv_tapes:oracleRows.length,
- archive_pool_without_corresponding_tape:missing.filter(x=>x.has_pool).length,
- archive_rows_without_pool_identity:missing.filter(x=>!x.has_pool).length,
+ archive_pool_without_corresponding_tape:missing.filter(x=>x.pool!==null).length,
+ invalid_supplied_pool_addresses:missing.filter(x=>x.pool!==null&&!x.has_pool).length,
+ archive_rows_without_pool_identity:missing.filter(x=>x.pool===null).length,
  exact_contract_in_archive:archive.counts.with_contract,
  archive_contract_proven_by_second_independent_source:0,
  original_october_dot2_discovery_proven:0,
@@ -109,7 +110,7 @@ const report={schema:1,kind:'R29_V16_ISOLATED_ORACLE_TRAINING_AND_AUDIT',
  timeline:clocks,
  warnings:[
   'The uploaded ZIP includes no executed Oct12 Oracle quotes or raw minute tapes. Six pre-existing frozen 5m tapes provide retrospective reference only.',
-  '16 post-event pool addresses do not establish 16 fully independent, executable historical candidate datasets.',
+  '16 post-event pool strings include one syntactically invalid Solana MarsX pool (manifest row 22), not 16 independently verified token-pool identities.',
   '49 source rows have no historical verified pool ID; 10 more source pools have no corresponding frozen OHLCV.',
   'Never feed 65 names, ORACLE or LABEL_FUTURE into market as-of research inputs.',
   'No claim that 0 PnL delta means learning ineffective. Strategy has not been independently modified or validated.',
