@@ -114,7 +114,7 @@ try{
  const sellSignal=signed('SELL','2',null);
  const sell=await submit(sellSignal,0.1);
  assert.equal(sell.status,200,JSON.stringify(sell.data));
- assert.equal(sell.data.receipt.status,'PAPER_FILLED');
+ assert.equal(sell.data.receipt.status,'PAPER_FILLED',JSON.stringify({receipt:sell.data.receipt,serverError:lastErr}));
  const afterSell=(await request('/api/state')).data.state;
  assert.equal(afterSell.positions.length,0);
  assert(afterSell.closedPnl>0);
