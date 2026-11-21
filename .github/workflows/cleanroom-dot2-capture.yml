@@ -31,7 +31,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add research/feeds/
+          git add research/feeds/ research/state/
           git diff --cached --quiet && exit 0
           git commit -m "data(cleanroom): capture authenticated Dot2 research feed"
           success=0

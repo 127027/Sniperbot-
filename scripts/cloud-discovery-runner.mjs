@@ -6,6 +6,7 @@ import {validateCaptureRequest,chooseNetwork,decodeGeckoNewPools,crossCheckDexPa
  fromDexPairOnly,collectSampleMetrics,sha256} from '../src/discovery-feed.mjs';
 import {canonicalChain,poolValid} from '../src/market-evidence.mjs';
 import {makeResearchHandoff} from '../src/feed-handoff.mjs';
+import {emptyMarketMemory,mergeMemory,planIncrementalScan} from '../src/market-memory.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -47,8 +48,14 @@ try{
  fetches.push({provider:'GECKOTERMINAL',url:mainUrl,error:String(error.message||error).slice(0,100)});}
 const incoming=JSON.parse(await readFile('research/latest/dot-2.json','utf8'));
 const known=Array.isArray(incoming?.candidates)?incoming.candidates:[];
+const memoryPath='research/state/market-memory.json';
+let memory;
+try{memory=JSON.parse(await readFile(memoryPath,'utf8'));}
+catch(error){if(error.code!=='ENOENT')throw error;memory=emptyMarketMemory();}
+const plan=planIncrementalScan(memory,{asOfUtc:now(),maxRechecks:request.max_dex_pairs});
 const targets=[
  ...(decoded?.candidates||[]).filter(c=>c.contract).slice(0,2),
+ ...plan.rechecks.filter(c=>canonicalChain(c.chain)&&poolValid(c.chain,c.pool)),
  ...known.filter(c=>canonicalChain(c.chain)&&poolValid(c.chain,c.pool)).slice(0,request.max_dex_pairs)
 ];
 const unique=new Set();
@@ -87,15 +94,52 @@ const data={schema:1,kind:'DOT2_PUBLIC_CAPTURE_EVIDENCE',mode:'PAPER_RESEARCH_ON
   'Risk, sellability, independent quotes and actual paper-client fills still required.']};
 const filename=root+'/evidence.json';
 await writeFile(filename,JSON.stringify(data,null,2)+'\n','utf8');artifacts.push(filename);
+// The previous Dot2 journal is immutable. Preserve its queued identities even if
+// a public new-pools API page no longer contains them.
+const mergedOld=mergeMemory(memory,{candidates:known,
+ sourcePath:incoming.journal_path||'research/latest/dot-2.json',
+ sourceCapturedAtUtc:incoming.updated_at_utc||data.captured_completed_at_utc,
+ provider:'DOT2_PRIOR_JOURNAL',chain:null,page:1});
+memory=mergedOld.memory;
+const mergedGecko=mergeMemory(memory,{candidates:decoded?.candidates||[],
+ sourcePath:decoded?root+'/gecko-'+chosen.chain+'-page1.raw.json':filename,
+ sourceCapturedAtUtc:data.captured_completed_at_utc,
+ sourceSha256:fetches.find(x=>x.provider==='GECKOTERMINAL')?.response_sha256||null,
+ provider:'GECKOTERMINAL',chain:chosen.chain,page:1,
+ fetchStatus:decoded?'OK':(data.errors[0]?.error||'SOURCE_ERROR')});
+memory=mergedGecko.memory;
+const mergedDex=mergeMemory(memory,{candidates:fallback,
+ sourcePath:filename,sourceCapturedAtUtc:data.captured_completed_at_utc,
+ provider:'DEXSCREENER',chain:null,page:1});
+memory=mergedDex.memory;
+await mkdir('research/state/checkpoints',{recursive:true});
+await writeFile(memoryPath,JSON.stringify(memory,null,2)+'\n','utf8');
+const memoryCheckpointPath='research/state/checkpoints/'+runId+'.json';
+const nextPlan=planIncrementalScan(memory,{asOfUtc:data.captured_completed_at_utc,maxRechecks:request.max_dex_pairs});
+const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
+ run_id:runId,created_at_utc:data.captured_completed_at_utc,request_path:path,
+ immutable_feed_path:filename,
+ imported_existing_dot2:mergedOld.added,
+ new_gecko_pools:mergedGecko.added,
+ new_dex_fallback_pools:mergedDex.added,
+ updated_pool_observations:mergedOld.updated+mergedGecko.updated+mergedDex.updated,
+ coverage:memory.checkpoints,stats:memory.stats,
+ historic_rechecks_next:nextPlan.rechecks,
+ no_history_age_cutoff:true,no_trades_authorized:true,
+ source_errors:data.errors};
+await writeFile(memoryCheckpointPath,JSON.stringify(memoryCheckpoint,null,2)+'\n','utf8');
+await writeFile('research/state/latest.json',JSON.stringify({
+ schema:1,checkpoint_path:memoryCheckpointPath,memory_path:memoryPath,
+ created_at_utc:data.captured_completed_at_utc,stats:memory.stats},null,2)+'\n','utf8');
 const handoff=makeResearchHandoff({evidence:data,atUtc:data.captured_completed_at_utc});
 const handoffPath=root+'/dot2-to-dot3-handoff.json';
 await writeFile(handoffPath,JSON.stringify(handoff,null,2)+'\n','utf8');
 artifacts.push(handoffPath);
 const latest={schema:1,kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',mode:'PAPER_RESEARCH_ONLY',
   request_path:path,evidence_path:filename,handoff_path:handoffPath,captured_at_utc:data.captured_completed_at_utc,
-  source_chain:chosen.chain,metrics,handoff_counts:handoff.counts,source_evidence_paths:artifacts,
+  source_chain:chosen.chain,metrics,handoff_counts:handoff.counts,market_memory_path:memoryPath,memory_checkpoint_path:memoryCheckpointPath,memory_stats:memory.stats,source_evidence_paths:artifacts,
   trading_ready:false,orders_created:0};
 await mkdir('research/feeds',{recursive:true});
 await writeFile('research/feeds/latest.json',JSON.stringify(latest,null,2)+'\n','utf8');
 console.log('DOT2_CAPTURE_DONE',JSON.stringify({evidence_path:filename,request_path:path,
- network:chosen.chain,metrics,errors:data.errors}));
+ network:chosen.chain,metrics,memory_stats:memory.stats,memory_checkpoint:memoryCheckpointPath,errors:data.errors}));
