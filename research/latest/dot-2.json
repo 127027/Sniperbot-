@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "dot": "dot-2",
-  "status": "CAPTURE_PENDING_DATA_GAP",
-  "updated_at_utc": "2026-11-21T18:19:22.460Z",
+  "status": "DATA_GAP_RISK_UNVERIFIED",
+  "updated_at_utc": "2026-11-21T18:19:39.273Z",
   "mode": "PAPER_RESEARCH_ONLY",
-  "journal_path": "research/journal/dot-2/2026-11-21/20261121T181922460Z-v10-checkpoint.json",
-  "journal_blob_sha": "876aabca3bf72cfd5bf69c4796330181a221b4f7",
+  "journal_path": "research/journal/dot-2/2026-11-21/20261121T181939273Z-v10-capture-complete.json",
+  "journal_blob_sha": "285f75a071ba0c667dc30f7369ab7c97f72130b7",
   "snapshot_paths": [
     {
       "path": "research/snapshots/2026-11-21/20261121T172009Z-automation6-44929419567-geckoterminal.json",
@@ -14,17 +14,12 @@
   ],
   "capture_request_path": "research/requests/2026-11-21/v10-20261121T181859401Z-dot2-discovery.json",
   "feed_evidence_path": "research/feeds/2026-11-21/44934852542/evidence.json",
-  "feed_evidence_blob_sha": "06d77d983fbc6007bead349d0512c1d86a307a88",
+  "feed_evidence_blob_sha": "3b4edba0b0a1cb6bed5cd0464848a9b0bc63a9df",
   "feed_handoff_path": "research/feeds/2026-11-21/44934852542/dot2-to-dot3-handoff.json",
-  "feed_handoff_blob_sha": "7de60bf77ce5cd549946db74dce3ffa6dab03e6e",
+  "feed_handoff_blob_sha": "3e7acaad489cfd4489f36cb7331b59d32162f13e",
   "coverage": {
-    "this_wake_new_api_pages": 0,
-    "this_wake_new_pool_details": 0,
-    "this_wake_new_quote_snapshots": 0,
-    "prior_capture_chain": "solana",
-    "prior_capture_page": 1,
-    "prior_capture_observations": 20,
-    "all_six_chains_scanned_this_wake": false,
+    "source_chain": "solana",
+    "source_page": 1,
     "checkpoint_coverage": {
       "unknown:DOT2_PRIOR_JOURNAL": {
         "chain": null,
@@ -52,9 +47,9 @@
         "chain": null,
         "provider": "DEXSCREENER",
         "page": 1,
-        "last_attempt_at_utc": "2026-11-21T17:55:20.153Z",
-        "last_success_at_utc": "2026-11-21T17:55:20.153Z",
-        "last_source_path": "research/feeds/2026-11-21/44932649891/evidence.json",
+        "last_attempt_at_utc": "2026-11-21T18:19:11.817Z",
+        "last_success_at_utc": "2026-11-21T18:19:11.817Z",
+        "last_source_path": "research/feeds/2026-11-21/44934852542/evidence.json",
         "last_status": "OK",
         "next_page_to_consider": 2,
         "backlog_open": true
@@ -69,25 +64,26 @@
         "last_status": "OK",
         "next_page_to_consider": 2,
         "backlog_open": true
+      },
+      "solana:GECKOTERMINAL": {
+        "chain": "solana",
+        "provider": "GECKOTERMINAL",
+        "page": 1,
+        "last_attempt_at_utc": "2026-11-21T18:19:11.817Z",
+        "last_success_at_utc": "2026-11-21T18:19:11.817Z",
+        "last_source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
+        "last_status": "OK",
+        "next_page_to_consider": 2,
+        "backlog_open": true
       }
     },
-    "source_evidence_paths": [
-      "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
-      "research/feeds/2026-11-21/44934852542/dex-solana-99bEZSDCwunG2bXkXL3vBBJx69dstjNxk5wiig6s6gjq.raw.json",
-      "research/feeds/2026-11-21/44934852542/dex-solana-12981wHttv9CcjTKA7PvMc9UfWW5J9uxyo4aTeBzgx1B.raw.json",
-      "research/feeds/2026-11-21/44934852542/dex-bsc-0x02177d8c4b820d5c09fdcce5d54d39f46ab4f8c2.raw.json",
-      "research/feeds/2026-11-21/44934852542/dex-bsc-0x0fb3c8fc322379f6a2003e39635e5663d2f8d478.raw.json",
-      "research/feeds/2026-11-21/44934852542/dex-bsc-0x1ce69221c7a12a0ed9961ad2ef5e7ec7e9a9ffff.raw.json",
-      "research/feeds/2026-11-21/44934852542/dex-bsc-0x1d67f970d458fd0c71ea05603dbc8f0a3b595b90.raw.json",
-      "research/feeds/2026-11-21/44934852542/evidence.json",
-      "research/feeds/2026-11-21/44934852542/dot2-to-dot3-handoff.json"
-    ]
+    "all_six_chains_scanned_this_wake": false
   },
   "counts": {
-    "historical_memory_pools": 69,
-    "prior_handoff_candidates": 20,
-    "prior_full_contracts": 20,
-    "new_contracts_this_wake": 0,
+    "memory_pools": 69,
+    "feed_pools": 20,
+    "full_contracts": 20,
+    "independently_quote_matched": 0,
     "trade_eligible": 0,
     "buy": 0,
     "sell": 0,
@@ -95,14 +91,44 @@
   },
   "priority_shortlist": [
     {
-      "chain": "cronos",
-      "pool": "0x835a8fe7370c5c08b9a4efda273e28ff7bcf161c",
-      "contract": "0x212b20cf61e1cba5e9f2dfb58ff54ce4d4b8f212",
-      "symbol": "CROVIA",
-      "liquidity_usd": 14299.7924,
-      "source_capture_utc": "2026-11-21T17:55:19.464Z",
-      "source_evidence_path": "research/feeds/2026-11-21/44934852542/evidence.json",
-      "status": "RESEARCH_PRIORITY_NOT_BUY_ELIGIBLE"
+      "chain": "solana",
+      "pool": "B684Sbso1fmpGgkwcSnUpbrqR3ra7XA1ntoY4kCxTcT3",
+      "contract": "FqvJCiayzaYaVFgNELWe6v2JDHUh5YAyXBMBWEPzppqs",
+      "symbol": "‮EMTAC",
+      "liquidity_usd": 1257016.11691654,
+      "observed_at_utc": "2026-11-21T18:19:10.520Z",
+      "source_path": "research/feeds/2026-11-21/44934852542/evidence.json",
+      "status": "RESEARCH_ONLY_NOT_BUY_ELIGIBLE"
+    },
+    {
+      "chain": "solana",
+      "pool": "99bEZSDCwunG2bXkXL3vBBJx69dstjNxk5wiig6s6gjq",
+      "contract": "9D2GiTq1qAWi5DmxQQpE8Bg8p6QLQUmthH8331vQ45X2",
+      "symbol": "UNI",
+      "liquidity_usd": 16101.0525089918,
+      "observed_at_utc": "2026-11-21T18:19:10.520Z",
+      "source_path": "research/feeds/2026-11-21/44934852542/evidence.json",
+      "status": "RESEARCH_ONLY_NOT_BUY_ELIGIBLE"
+    },
+    {
+      "chain": "solana",
+      "pool": "6Msc3Cb3muyWw1yaPgx8Hoa3YjiKnoUYXGypJLPFQY2t",
+      "contract": "FSj2Q7AHQxDkomzgkairGJwuaWYgu16Fufe6JtHhBQVB",
+      "symbol": "USHI",
+      "liquidity_usd": 9816.55736430434,
+      "observed_at_utc": "2026-11-21T18:19:10.520Z",
+      "source_path": "research/feeds/2026-11-21/44934852542/evidence.json",
+      "status": "RESEARCH_ONLY_NOT_BUY_ELIGIBLE"
+    },
+    {
+      "chain": "solana",
+      "pool": "bRHH8AZHoPuAQ8YTvApUaQRB2SH1nQKpoBxnHRV4QwF",
+      "contract": "nnx9LhDCSsCh39egrrBE4s5tjQnfD2G7o3Jz6Prpump",
+      "symbol": "SODL",
+      "liquidity_usd": 5081.4830547417,
+      "observed_at_utc": "2026-11-21T18:19:10.520Z",
+      "source_path": "research/feeds/2026-11-21/44934852542/evidence.json",
+      "status": "RESEARCH_ONLY_NOT_BUY_ELIGIBLE"
     }
   ],
   "candidate_count": 69,
@@ -122,7 +148,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -148,7 +174,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -174,7 +200,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -200,7 +226,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -226,7 +252,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -252,7 +278,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -278,7 +304,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -304,7 +330,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -330,7 +356,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -356,7 +382,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -382,7 +408,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -408,7 +434,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -434,7 +460,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -460,7 +486,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -486,7 +512,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -512,7 +538,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -538,7 +564,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -564,7 +590,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:46.180Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -590,7 +616,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:46.281Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -616,7 +642,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:46.302Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -642,7 +668,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:46.390Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -674,7 +700,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -702,7 +728,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -728,7 +754,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -754,7 +780,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -780,7 +806,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -806,7 +832,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -832,7 +858,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -858,7 +884,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -884,7 +910,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -910,7 +936,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -936,7 +962,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -962,7 +988,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -988,7 +1014,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1014,7 +1040,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1040,7 +1066,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1066,7 +1092,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1092,7 +1118,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1118,7 +1144,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1144,7 +1170,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1170,7 +1196,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1196,7 +1222,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1222,7 +1248,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1248,7 +1274,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1274,7 +1300,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1300,7 +1326,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1326,7 +1352,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1352,7 +1378,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1378,7 +1404,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1404,7 +1430,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1430,7 +1456,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1456,7 +1482,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1482,7 +1508,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1508,7 +1534,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1534,7 +1560,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1560,7 +1586,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1586,7 +1612,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1612,7 +1638,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1638,7 +1664,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1664,7 +1690,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1690,7 +1716,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1716,7 +1742,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1742,7 +1768,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1768,7 +1794,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1794,7 +1820,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1820,7 +1846,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1846,7 +1872,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1872,7 +1898,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1898,7 +1924,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -1926,7 +1952,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -1952,7 +1978,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -1978,7 +2004,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2004,7 +2030,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2030,7 +2056,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2056,7 +2082,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2082,7 +2108,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2108,7 +2134,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2134,7 +2160,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2160,7 +2186,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2186,7 +2212,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2212,7 +2238,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2238,7 +2264,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2264,7 +2290,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2290,7 +2316,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2316,7 +2342,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2342,7 +2368,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:45.679Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2368,7 +2394,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:46.180Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2394,7 +2420,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:46.281Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2420,7 +2446,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:46.302Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2446,7 +2472,7 @@
           "provider": "DOT2_PRIOR_JOURNAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:19:46.390Z",
         "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
         "provider": "DOT2_PRIOR_JOURNAL",
@@ -2478,7 +2504,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2506,7 +2532,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2532,7 +2558,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2558,7 +2584,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2584,7 +2610,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2610,7 +2636,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2636,7 +2662,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2662,7 +2688,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2688,7 +2714,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:54:37.247Z",
         "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2714,7 +2740,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2740,7 +2766,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2766,7 +2792,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2792,7 +2818,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2818,7 +2844,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2844,7 +2870,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2870,7 +2896,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2896,7 +2922,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2922,7 +2948,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2948,7 +2974,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -2974,7 +3000,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3000,7 +3026,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3026,7 +3052,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3052,7 +3078,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3078,7 +3104,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3104,7 +3130,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3130,7 +3156,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3156,7 +3182,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3182,7 +3208,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T17:55:19.464Z",
         "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3208,7 +3234,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3234,7 +3260,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3260,7 +3286,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3286,7 +3312,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3312,7 +3338,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3338,7 +3364,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3364,7 +3390,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3390,7 +3416,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3416,7 +3442,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3442,7 +3468,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3468,7 +3494,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3494,7 +3520,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3520,7 +3546,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3546,7 +3572,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3572,7 +3598,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3598,7 +3624,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3624,7 +3650,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3650,7 +3676,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3676,7 +3702,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3702,7 +3728,7 @@
           "provider": "GECKOTERMINAL"
         }
       ],
-      "latest_indicative_snapshot": {
+      "last_snapshot": {
         "observed_at_utc": "2026-11-21T18:19:10.520Z",
         "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
         "provider": "GECKOTERMINAL",
@@ -3716,16 +3742,12 @@
   ],
   "errors": [
     {
-      "code": "CAPTURE_PENDING",
-      "detail": "New request committed, but latest feed still points to previous request. No current API response claimed."
+      "code": "DATA_GAP_RISK_UNVERIFIED",
+      "detail": "Complete contracts are identity evidence only; no verified sellability or executable quotes."
     },
     {
-      "code": "STALE_FEED_NOT_FRESH_QUOTE",
-      "source_capture_utc": "2026-11-21T18:19:11.817Z"
-    },
-    {
-      "code": "PAGINATION_BACKLOG",
-      "detail": "Checkpoint next_page_to_consider remains open; no new page fetched in this wake."
+      "code": "PAGINATION_OPEN",
+      "detail": "Checkpoint retains unvisited pages across chains."
     }
   ],
   "orders_published": 0,
@@ -3734,7 +3756,7 @@
   "market_memory_path": "research/state/market-memory.json",
   "market_memory_blob_sha": "b5ad19138f7d409b1470cd450f65b1bac0439b16",
   "memory_checkpoint_path": "research/state/checkpoints/44934852542.json",
-  "memory_checkpoint_blob_sha": "8aae3a2f49da52329c36f4a6cb22e2e4dec70e9d",
+  "memory_checkpoint_blob_sha": "86a724f02a7601603dbfc1c423e1b11cb437ba83",
   "feed_capture_at_utc": "2026-11-21T18:19:11.817Z",
-  "feed_is_current_request": false
+  "feed_is_current_request": true
 }
