@@ -1,0 +1,61 @@
+name: R29 Archive Frozen October Training Evidence
+on:
+  push:
+    branches:
+      - codex/r29-cleanroom-paper-20261121
+    paths:
+      - 'research/backtests/requests/2026-10-12/**'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  freeze-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout request commit, isolated branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: true
+      - name: Download own validated V1.1 research artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: historical-ohlcv-probe
+          run-id: 44934074915
+          repository: 127027/Sniperbot-
+          github-token: ${{ github.token }}
+          path: /tmp/r29-oct12-artifact
+      - name: Freeze six post-hoc source tapes for byte-stable future comparisons
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/codex/r29-cleanroom-paper-20261121"
+          test -f /tmp/r29-oct12-artifact/oct12-v11-firstscan-24h-report.json
+          mkdir -p research/training/2026-10-12/frozen-v11
+          cp /tmp/r29-oct12-artifact/oct12-candles-*.json research/training/2026-10-12/frozen-v11/
+          cp /tmp/r29-oct12-artifact/oct12-v11-firstscan-24h-report.json research/training/2026-10-12/frozen-v11/
+          cp /tmp/r29-oct12-artifact/oct12-training-summary.json research/training/2026-10-12/frozen-v11/
+          cp /tmp/r29-oct12-artifact/oct12-v11-firstscan-24h-report.csv research/training/2026-10-12/frozen-v11/
+          python3 - <<'PY'
+          import glob,json
+          tapes=glob.glob('research/training/2026-10-12/frozen-v11/oct12-candles-*.json')
+          report=json.load(open('research/training/2026-10-12/frozen-v11/oct12-v11-firstscan-24h-report.json'))
+          assert len(tapes)==6 and report['actual_reconstructed_historical_pools']==6
+          assert len(report['timeline'])==24 and report['actually_published_orders']==0
+          print('Frozen tapes:',len(tapes),'scans:',len(report['timeline']))
+          PY
+      - name: Commit immutable training artifacts only
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/training/2026-10-12/frozen-v11/
+          git diff --cached --quiet && exit 0
+          git commit -m "research(cleanroom): freeze Oct12 V1.1 six post-event tapes"
+          for attempt in 1 2 3 4; do
+            git fetch origin codex/r29-cleanroom-paper-20261121
+            git rebase origin/codex/r29-cleanroom-paper-20261121
+            if git push origin HEAD:refs/heads/codex/r29-cleanroom-paper-20261121; then exit 0; fi
+          done
+          exit 1
