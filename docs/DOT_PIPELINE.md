@@ -53,3 +53,6 @@ Siehe [TRAINING_2026-10-12.md](TRAINING_2026-10-12.md). Die retrospektiven 65 Ge
 
 ## V0.5: Ausdrücklich indikative öffentliche Papierkurse
 Siehe [INDICATIVE_WEB_PAPER.md](INDICATIVE_WEB_PAPER.md). Dot3 darf für den PAPER-Modus `INDICATIVE_PAPER_REVIEWABLE` vergeben, wenn zwei **tatsächlich aktuell gelesene**, im unveränderlichen GitHub-Journal belegte Detailseiten denselben Chain+Pool zeigen und ausreichende Identity-/Liquiditäts-/Preisnachweise vorliegen. Ein vom Provider nicht datierter angezeigter Preis darf als tatsächlich *auf der Seite gesehen* (Seitenabrufzeitpunkt) klassifiziert werden, aber niemals als frisch vom Anbieter garantiert. Dies ist kein FRESH_WEB oder Live-Trade; keine Quoten-/Risikoregeln umgehen.
+
+## V0.9: Aktiver JSON-Erfassungspfad in den Dot-Journalen
+Lies [DOT2_CAPTURE_PROTOCOL_V09.md](DOT2_CAPTURE_PROTOCOL_V09.md). Die bislang isolierte CI-JSON-Forschung verfügt jetzt über eine neue im Cleanroom-Branch testweise erfolgreich gestartete GitHub-Actions-Pipeline: Stündlich vom bestehenden Dot2 per GitHub-Request-Datei ausgelöst, persistierte Original-API-Rohdaten und `research/feeds/latest.json`, separates `dot2-to-dot3-handoff.json` für Dot3. **Keine** automatische Order- oder Sicherheitsfreigabe. Dot4 muss Preisquellen zum tatsächlichen Handelszeitpunkt erneut prüfen; bei :35 ist die :15-Suche zu alt als Quote.
