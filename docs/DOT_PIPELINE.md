@@ -59,3 +59,6 @@ Lies [DOT2_CAPTURE_PROTOCOL_V09.md](DOT2_CAPTURE_PROTOCOL_V09.md). Die bislang i
 
 ## V1.0: All-Time-Marktgedächtnis und inkrementelle Scans
 Lies [MARKET_MEMORY_V10.md](MARKET_MEMORY_V10.md). Alle fünf Dots verwenden den gemeinsamen GitHub-Marktindex und behalten die gesamte tatsächlich gespeicherte historische Datensicht. Ohne Alterslimit auf rückblickende Recherche, aber mit begrenztem API-Budget pro Scan und unveränderten aktuellen BUY-/SELL-Quote-Gates. Rohdaten werden nicht gelöscht. Jeder echte Dot2-Request erzeugt GitHub-Capture + Market-Memory-Checkpoint; Dot1/3/4/5 lesen ihn und berichten ihre eigene tatsächliche Tätigkeit. Historische Replay-Simulationen enthalten keine Zeitreise.
+
+## V1.2 – Dot3/Dot4 Risk- und Wiedereinstiegsverbesserung
+Beachte [DOT3_DOT4_V12.md](DOT3_DOT4_V12.md). Dot3 bearbeitet eine evidence-gated priorisierte Risikoprüfliste. Dot4 testet das neue Guarded-Reentry-Preset ausschließlich im retrospektiven Forschungslabor auf eingefrorenen sechs Pooldaten; echte Paper-Order benötigt nach wie vor originalen aktuellen Dot3-ELIGIBLE-Beleg plus frische unabhängige Quotes und Client-Quittung. Kein Fail-Open wegen DATA_GAP.
