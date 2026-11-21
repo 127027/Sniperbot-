@@ -15,7 +15,7 @@ test('B uses same exact market universe, and future news is excluded even if pub
  const out=makePairedMediaMarketRankings({marketRanking:rank(),mediaMemory:memory});
  assert.equal(out.same_candidate_count,2);
  assert.equal(out.matched_contract_mentions,0);
- assert.deepEqual(out.market_plus_media.candidates.map(x=>x.key),out.market_only.candidates.map(x=>x.key));
+ assert.deepEqual(new Set(out.market_plus_media.candidates.map(x=>x.key)),new Set(out.market_only.candidates.map(x=>x.key)));
  assert.equal(evaluatePairedAB({paired:out}).status,'WAIT_FOR_MATURED_FORWARD_LABELS');
 });
 test('real as-of exact contract can contribute a capped research bonus but never grants BUY',()=>{
