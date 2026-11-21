@@ -5,7 +5,7 @@ import {newState,settlePaper,Reject} from '../src/core.mjs';
 import {GitHubTransport} from '../src/github.mjs';
 const token='0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 const pool='0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
-const coin={chain:'base',contract:token,pool,symbol:'X'};
+const coin={chain:'base',contract:token,pool,symbol:'EX'};
 const gt='https://www.geckoterminal.com/de/base/pools/'+pool;
 const ds='https://dexscreener.com/base/'+pool;
 function make(){const now=Date.now();return {id:'synthetic-buy-0001',mode:'PAPER',action:'BUY',authority:'dot-4-strategy',dots:['dot-2-discovery','dot-3-risk','dot-4-strategy'],reason:'Two matched pool pages in an isolated test',coin,amount_test_usdc:50,quote_quality:'INDICATIVE_WEB_ONLY',created_at:new Date(now).toISOString(),expires_at:new Date(now+60000).toISOString(),quotes:[gt,ds].map((source_url,i)=>({...coin,provider_id:'source-'+i,source_url,observed_at:new Date(now).toISOString(),price_usdc:.001,liquidity_usdc:20000}))};}
