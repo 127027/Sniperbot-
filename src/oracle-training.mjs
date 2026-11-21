@@ -34,18 +34,19 @@ export function normalizeOracleTape(raw,{date='2026-10-12',sourceSha256=null}={}
  const dedupe=new Map(),issues=[];
  for(const [i,c] of raw.tape.candles.entries()){
   const t=ms(c?.known_no_earlier_than_utc);
-  if(t===null||t<=start||t>end)continue;
+  if(t===null||t>end)continue; // Pre-day context retained for as-of features.
   if(!valid(c)){issues.push({row:i,issue:'INVALID_CANDLE'});continue;}
   if(dedupe.has(t))issues.push({row:i,issue:'DUPLICATE_TIME'});
   dedupe.set(t,c);
  }
  const candles=[...dedupe.values()].sort((a,b)=>a.known_no_earlier_than_utc.localeCompare(b.known_no_earlier_than_utc));
- return {kind:'R29_FROZEN_ORACLE_CANDLES',symbol:raw.symbol,chain:canonicalChain(raw.chain),
+ return {kind:'R29_FROZEN_ORACLE_CANDLES',date,symbol:raw.symbol,chain:canonicalChain(raw.chain),
   pool:raw.pool,source_sha256:sourceSha256,
   candles,issues,post_event_reconstructed:true,verified_original_dot2_capture:false};
 }
 export function bestCloseOracle(tape){
- const candles=(tape?.candles||[]).filter(valid).sort((a,b)=>a.known_no_earlier_than_utc.localeCompare(b.known_no_earlier_than_utc));
+ const start=Date.parse((tape?.date||'2026-10-12')+'T00:00:00Z');
+ const candles=(tape?.candles||[]).filter(c=>valid(c)&&ms(c.known_no_earlier_than_utc)>start).sort((a,b)=>a.known_no_earlier_than_utc.localeCompare(b.known_no_earlier_than_utc));
  let low=null,lowWick=null,best=null,wick=null;
  for(const c of candles){
   if(low&&ms(low.known_no_earlier_than_utc)<ms(c.known_no_earlier_than_utc)){
