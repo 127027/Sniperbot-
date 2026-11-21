@@ -1,12 +1,14 @@
 // ONE triggered capture per dot2 request. No orders, no secrets, no paid market APIs.
 // Produces immutable raw public API response + validated evidence for future Dots.
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,readdir} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {validateCaptureRequest,chooseNetwork,decodeGeckoNewPools,crossCheckDexPair,
  fromDexPairOnly,collectSampleMetrics,sha256} from '../src/discovery-feed.mjs';
 import {canonicalChain,poolValid} from '../src/market-evidence.mjs';
 import {makeResearchHandoff} from '../src/feed-handoff.mjs';
 import {emptyMarketMemory,mergeMemory,planIncrementalScan} from '../src/market-memory.mjs';
+import {fairRecheckPlan,recordRecheckAttempt} from '../src/discovery-fair-queue.mjs';
+import {makeCaptureObservationBatch,scoreAsOf,labelAfterHorizon} from '../src/forward-learning.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -59,10 +61,11 @@ const incoming=JSON.parse(await readFile('research/latest/dot-2.json','utf8'));
 const known=Array.isArray(incoming?.candidates)?incoming.candidates:[];
 const memoryPath='research/state/market-memory.json';
 let memory=precedingMemory;
-const plan=planIncrementalScan(memory,{asOfUtc:now(),maxRechecks:request.max_dex_pairs});
+const plan=fairRecheckPlan(memory,{asOfUtc:now(),maxRechecks:request.max_dex_pairs});
+const attempts=[];
 const targets=[
  ...(decoded?.candidates||[]).filter(c=>c.contract).slice(0,2),
- ...plan.rechecks.filter(c=>canonicalChain(c.chain)&&poolValid(c.chain,c.pool)),
+ ...plan.candidates.filter(c=>canonicalChain(c.chain)&&poolValid(c.chain,c.pool)),
  ...known.filter(c=>canonicalChain(c.chain)&&poolValid(c.chain,c.pool)).slice(0,request.max_dex_pairs)
 ];
 const unique=new Set();
@@ -70,6 +73,7 @@ for(const c of targets){
  if(dexChecks.length>=request.max_dex_pairs)break;
  const chain=canonicalChain(c.chain),pool=c.pool;
  const key=chain+':'+pool;
+ const checkedAt=now();
  if(!chain||!pool||unique.has(key))continue;
  unique.add(key);
  const providerChain=chain==='ethereum'?'ethereum':chain==='cronos'?'cronos':chain;
@@ -86,6 +90,9 @@ for(const c of targets){
    if(rec.candidate)fallback.push({...rec.candidate,source_raw_path:data.evidence.body_path});
   }
  }catch(error){dexChecks.push({chain,pool,status:'DEX_ERROR',error:String(error.message||error).slice(0,100)});}
+ const latestCheck=dexChecks.at(-1);
+ attempts.push({chain,pool,checked_at_utc:checkedAt,status:latestCheck?.status||'UNKNOWN',
+  source_path:latestCheck?.source||root+'/evidence.json'});
 }
 const metrics=collectSampleMetrics({geckoDecoded:decoded,dexChecks,fallbackCandidates:fallback,requests:fetches});
 metrics.discovery_page=scanPage;
@@ -121,6 +128,42 @@ const mergedDex=mergeMemory(memory,{candidates:fallback,
  sourcePath:filename,sourceCapturedAtUtc:data.captured_completed_at_utc,
  provider:'DEXSCREENER',chain:null,page:1});
 memory=mergedDex.memory;
+for(const attempt of attempts)memory=recordRecheckAttempt(memory,{
+ chain:attempt.chain,pool:attempt.pool,attemptAtUtc:attempt.checked_at_utc,
+ status:attempt.status,sourcePath:attempt.source_path
+});
+// Unfiltered, forward-only observations, NOT winner names or historical labels.
+const observationPath='research/observations/'+new Date(data.captured_completed_at_utc).toISOString().slice(0,10)+'/'+runId+'.json';
+const batch=makeCaptureObservationBatch({
+ capturedAtUtc:data.captured_completed_at_utc,sourcePath:filename,
+ geckoCandidates:decoded?.candidates||[],dexFallbackCandidates:fallback});
+await mkdir('research/observations/'+new Date(data.captured_completed_at_utc).toISOString().slice(0,10),{recursive:true});
+await writeFile(observationPath,JSON.stringify(batch,null,2)+'\n','utf8');
+const previous=[];
+try{
+ const all=(await readdir('research/observations',{recursive:true}))
+   .filter(x=>/\.json$/.test(x)).sort();
+ // Read the latest 200 batches per wake for bounded CPU, preserve all older
+ // files on GitHub for historical offline analysis without age restriction.
+ for(const rel of all.slice(-200)){
+  try{const x=JSON.parse(await readFile('research/observations/'+rel,'utf8'));
+   if(x.kind==='R29_FORWARD_UNFILTERED_POOL_OBSERVATIONS')previous.push(x);
+  }catch{/* malformed historic capture is not silently promoted to a valid quote */}
+ }
+}catch(error){if(error.code!=='ENOENT')throw error;}
+const prospectiveRanking=scoreAsOf({batches:previous,asOfUtc:data.captured_completed_at_utc});
+const rankingPath='research/observations/'+new Date(data.captured_completed_at_utc).toISOString().slice(0,10)+'/'+runId+'-asof-ranking.json';
+await writeFile(rankingPath,JSON.stringify(prospectiveRanking,null,2)+'\n','utf8');
+// Labels only for a previous scan whose full 24h has elapsed; never label
+// the current observation using future values.
+const maturePrior=previous.filter(x=>x.captured_at_utc&&Date.parse(x.captured_at_utc)+24*3600000<=Date.parse(data.captured_completed_at_utc))
+ .sort((a,b)=>b.captured_at_utc.localeCompare(a.captured_at_utc))[0];
+let matureLabelsPath=null;
+if(maturePrior){
+ const outcome=labelAfterHorizon({batches:previous,decisionAtUtc:maturePrior.captured_at_utc});
+ matureLabelsPath='research/observations/'+new Date(data.captured_completed_at_utc).toISOString().slice(0,10)+'/'+runId+'-mature-24h-labels.json';
+ await writeFile(matureLabelsPath,JSON.stringify(outcome,null,2)+'\n','utf8');
+}
 await mkdir('research/state/checkpoints',{recursive:true});
 await writeFile(memoryPath,JSON.stringify(memory,null,2)+'\n','utf8');
 const memoryCheckpointPath='research/state/checkpoints/'+runId+'.json';
@@ -134,11 +177,18 @@ const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
  updated_pool_observations:mergedOld.updated+mergedGecko.updated+mergedDex.updated,
  coverage:memory.checkpoints,stats:memory.stats,
  historic_rechecks_next:nextPlan.rechecks,
+ fair_recheck_attempts:attempts,
+ fair_recheck_backlog_remaining:plan.backlog_count,
+ observation_path:observationPath,ranking_path:rankingPath,
+ matured_label_path:matureLabelsPath,
+ prospective_ranking_counts:prospectiveRanking.counts,
  no_history_age_cutoff:true,no_trades_authorized:true,
  source_errors:data.errors};
 await writeFile(memoryCheckpointPath,JSON.stringify(memoryCheckpoint,null,2)+'\n','utf8');
 await writeFile('research/state/latest.json',JSON.stringify({
  schema:1,checkpoint_path:memoryCheckpointPath,memory_path:memoryPath,
+ observation_path:observationPath,ranking_path:rankingPath,
+ matured_label_path:matureLabelsPath,
  created_at_utc:data.captured_completed_at_utc,stats:memory.stats},null,2)+'\n','utf8');
 const handoff=makeResearchHandoff({evidence:data,atUtc:data.captured_completed_at_utc});
 const handoffPath=root+'/dot2-to-dot3-handoff.json';
@@ -146,9 +196,12 @@ await writeFile(handoffPath,JSON.stringify(handoff,null,2)+'\n','utf8');
 artifacts.push(handoffPath);
 const latest={schema:1,kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',mode:'PAPER_RESEARCH_ONLY',
   request_path:path,evidence_path:filename,handoff_path:handoffPath,captured_at_utc:data.captured_completed_at_utc,
-  source_chain:chosen.chain,metrics,handoff_counts:handoff.counts,market_memory_path:memoryPath,memory_checkpoint_path:memoryCheckpointPath,memory_stats:memory.stats,source_evidence_paths:artifacts,
+  source_chain:chosen.chain,metrics,handoff_counts:handoff.counts,
+ observation_path:observationPath,ranking_path:rankingPath,
+ matured_label_path:matureLabelsPath,prospective_counts:prospectiveRanking.counts,
+ fair_recheck_backlog_remaining:plan.backlog_count,market_memory_path:memoryPath,memory_checkpoint_path:memoryCheckpointPath,memory_stats:memory.stats,source_evidence_paths:artifacts,
   trading_ready:false,orders_created:0};
 await mkdir('research/feeds',{recursive:true});
 await writeFile('research/feeds/latest.json',JSON.stringify(latest,null,2)+'\n','utf8');
 console.log('DOT2_CAPTURE_DONE',JSON.stringify({evidence_path:filename,request_path:path,
- network:chosen.chain,metrics,memory_stats:memory.stats,memory_checkpoint:memoryCheckpointPath,errors:data.errors}));
+ network:chosen.chain,metrics,memory_stats:memory.stats,memory_checkpoint:memoryCheckpointPath,prospective:prospectiveRanking.counts,fair_backlog:plan.backlog_count,errors:data.errors}));
