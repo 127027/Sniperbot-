@@ -1,66 +1,54 @@
 {
   "schema": 1,
   "dot": "dot-3",
-  "updated_at_utc": "2026-11-21T14:22:33Z",
   "status": "DATA_GAP",
-  "journal_path": "research/journal/dot-3/2026-11-21/UTC-142233-risk-20261121-automation3.json",
-  "journal_blob_sha": "84c3065364c8ef8a565ab0e79a46ffa995ecdc0c",
-  "source_dot2_journal_path": "research/journal/dot-2/2026-11-21/UTC-141203-discovery-20261121-1412-automation3.json",
-  "source_dot2_journal_blob_sha": "ac45bc3afe1e16f7c514aa0c83e18f51f3865d95",
-  "candidate_count": 10,
-  "eligible_count": 0,
-  "watch_count": 4,
-  "rejected_count": 3,
-  "data_gap_count": 3,
-  "summary": "Latest six Dot2 candidates plus four previously WATCH candidates reviewed; six exact direct pool URLs attempted, all inaccessible. No new numeric market observations; no indicative eligibility; no orders/fills.",
+  "updated_at_utc": "2026-11-21T15:22:00Z",
+  "journal_path": "research/journal/dot-3/2026-11-21/UTC-1522-dot3-v06-20261121-1522-web-gap.json",
+  "journal_blob_sha": "a74d81f863a0b96f499ac17f1817bd32ac7b0a25",
+  "dot2_journal_path": "research/journal/dot-2/2026-11-21/dot2-v06-20261121-151735161Z.json",
+  "dot2_journal_blob_sha": "915b8701c7fbc43158dbbfb8661d3953cf72f615",
+  "counts": {
+    "REJECTED": 4,
+    "DATA_GAP": 2,
+    "WATCH": 4
+  },
   "candidates": [
     {
       "chain": "solana",
-      "symbol": "PUMPAPI",
-      "pool": "9N9zGCbh64LZcWqZkdThjYVL5TxbZ3whfj58B4ehkWZR",
-      "pool_kind": "POOL_ADDRESS",
+      "pool": "HSSKhBNun7AHb6PxS8GF2iMoo2u7c2AW89TwtWNu4ZwF",
+      "symbol": "RUS26",
       "contract": null,
       "contract_evidence_url": null,
-      "source_dot2_first_seen_at_utc": "2026-11-21T14:12:03Z",
-      "previous_status": null,
-      "identity": {
-        "pool_url_syntactically_matches": true,
-        "contract_verified": false,
-        "contract_basis": "MISSING_FULL_CONTRACT",
-        "second_independent_pool_detail_verified_this_run": false
-      },
+      "source_dot2_first_seen_at_utc": "2026-11-21T15:17:35.161Z",
+      "prior_status": null,
+      "source_dot2_snapshot_path": "research/snapshots/2026-11-21/dot2-v06-20261121-151735161Z-geckoterminal-1.json",
+      "source_dot2_snapshot_blob_sha": "34ec7a12338ace9f4ea087c564dd3e857559678c",
+      "source_dot2_price_usd_NOT_CURRENT": 0.000002385,
+      "source_dot2_liquidity_usd_NOT_CURRENT": 1870.7,
       "sources": [
         {
           "domain": "geckoterminal.com",
-          "url": "https://www.geckoterminal.com/solana/pools/9N9zGCbh64LZcWqZkdThjYVL5TxbZ3whfj58B4ehkWZR",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "url": "https://www.geckoterminal.com/solana/pools/HSSKhBNun7AHb6PxS8GF2iMoo2u7c2AW89TwtWNu4ZwF",
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         },
         {
           "domain": "dexscreener.com",
-          "url": "https://dexscreener.com/solana/9N9zGCbh64LZcWqZkdThjYVL5TxbZ3whfj58B4ehkWZR",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "url": "https://dexscreener.com/solana/HSSKhBNun7AHb6PxS8GF2iMoo2u7c2AW89TwtWNu4ZwF",
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         }
       ],
-      "historical_dot2_reference": {
-        "price_usd": 0.00001982,
-        "liquidity_usd": 27079.47,
-        "observation_basis": "DOT2_RUN_START_ONLY_NOT_PROVIDER_TIMESTAMP_NOT_NEW_DOT3_QUOTE"
-      },
-      "status": "DATA_GAP",
-      "indicative_paper_reviewable": false,
-      "eligible_for_dot4_buy": false,
+      "dexscreener_json_pair_url": "https://api.dexscreener.com/latest/dex/pairs/solana/HSSKhBNun7AHb6PxS8GF2iMoo2u7c2AW89TwtWNu4ZwF",
+      "dexscreener_json_attempt": "NOT_ATTEMPTED",
       "stages": {
         "identified": true,
         "second_independent_pool_source": false,
@@ -69,63 +57,57 @@
         "safety_verified": false,
         "eligible": false
       },
+      "status": "REJECTED",
+      "quote_quality": "DATA_GAP",
+      "indicative_paper_reviewable": false,
+      "eligible_for_dot4_buy": false,
       "risk_codes": [
-        "NO_CURRENT_DIRECT_POOL_PAGE_ACCESS",
-        "NO_TWO_INDEPENDENT_CURRENT_QUOTES",
-        "NO_VERIFIED_PER_PAGE_CAPTURE_UTC",
-        "PROVIDER_QUOTE_ASOF_UNKNOWN",
-        "CONTRACT_NOT_REVALIDATED",
-        "SELLABILITY_UNVERIFIED"
+        "LOW_LIQUIDITY_DOT2_HISTORICAL_ONLY",
+        "NO_VERIFIED_SECOND_SOURCE",
+        "NO_CURRENT_TWO_PRICES",
+        "NO_CAPTURE_UTC",
+        "NO_PROVIDER_ASOF",
+        "SELLABILITY_UNVERIFIED",
+        "CONTRACT_UNVERIFIED"
       ],
-      "notes": "No current numerical price/liquidity claim. Earlier Dot2 numbers retained only as explicitly historical reference; WATCH is monitoring only, not clearance."
+      "notes": "No current quote or verified independent pool pair; historical Dot2 price/liquidity are not current risk clearance."
     },
     {
       "chain": "base",
-      "symbol": "Wizard",
-      "pool": "0x28bad6c78d79580ae6ebced801984fbe323ac1ae092b37fbc0b8c1e4a091ee68",
-      "pool_kind": "UNISWAP_V4_POOL_ID",
+      "pool": "0x40e313b4afd91aba54982c22f8f4c5c8f0ee8cbcaa50b92caa36493e0391c456",
+      "symbol": "TSI",
       "contract": null,
       "contract_evidence_url": null,
-      "source_dot2_first_seen_at_utc": "2026-11-21T14:12:03Z",
-      "previous_status": null,
-      "identity": {
-        "pool_url_syntactically_matches": true,
-        "contract_verified": false,
-        "contract_basis": "MISSING_FULL_CONTRACT",
-        "second_independent_pool_detail_verified_this_run": false
-      },
+      "source_dot2_first_seen_at_utc": "2026-11-21T15:17:35.161Z",
+      "prior_status": null,
+      "source_dot2_snapshot_path": "research/snapshots/2026-11-21/dot2-v06-20261121-151735161Z-geckoterminal-2.json",
+      "source_dot2_snapshot_blob_sha": "f7066ce08681f65c9178c6231893ec7f152efbbe",
+      "source_dot2_price_usd_NOT_CURRENT": 0.0000776,
+      "source_dot2_liquidity_usd_NOT_CURRENT": 152289.42,
       "sources": [
         {
           "domain": "geckoterminal.com",
-          "url": "https://www.geckoterminal.com/base/pools/0x28bad6c78d79580ae6ebced801984fbe323ac1ae092b37fbc0b8c1e4a091ee68",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "url": "https://www.geckoterminal.com/base/pools/0x40e313b4afd91aba54982c22f8f4c5c8f0ee8cbcaa50b92caa36493e0391c456",
+          "visited_this_run": true,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         },
         {
           "domain": "dexscreener.com",
-          "url": "https://dexscreener.com/base/0x28bad6c78d79580ae6ebced801984fbe323ac1ae092b37fbc0b8c1e4a091ee68",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "url": "https://dexscreener.com/base/0x40e313b4afd91aba54982c22f8f4c5c8f0ee8cbcaa50b92caa36493e0391c456",
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         }
       ],
-      "historical_dot2_reference": {
-        "price_usd": 0.000001321,
-        "liquidity_usd": 0,
-        "observation_basis": "DOT2_RUN_START_ONLY_NOT_PROVIDER_TIMESTAMP_NOT_NEW_DOT3_QUOTE"
-      },
-      "status": "REJECTED",
-      "indicative_paper_reviewable": false,
-      "eligible_for_dot4_buy": false,
+      "dexscreener_json_pair_url": "https://api.dexscreener.com/latest/dex/pairs/base/0x40e313b4afd91aba54982c22f8f4c5c8f0ee8cbcaa50b92caa36493e0391c456",
+      "dexscreener_json_attempt": "WEB_URL_NOT_ACCESSIBLE",
       "stages": {
         "identified": true,
         "second_independent_pool_source": false,
@@ -134,64 +116,56 @@
         "safety_verified": false,
         "eligible": false
       },
+      "status": "DATA_GAP",
+      "quote_quality": "DATA_GAP",
+      "indicative_paper_reviewable": false,
+      "eligible_for_dot4_buy": false,
       "risk_codes": [
-        "LOW_LIQUIDITY_IN_PREVIOUS_DOT2_REFERENCE",
-        "NO_CURRENT_DIRECT_POOL_PAGE_ACCESS",
-        "NO_TWO_INDEPENDENT_CURRENT_QUOTES",
-        "NO_VERIFIED_PER_PAGE_CAPTURE_UTC",
-        "PROVIDER_QUOTE_ASOF_UNKNOWN",
-        "CONTRACT_NOT_REVALIDATED",
-        "SELLABILITY_UNVERIFIED"
+        "NO_VERIFIED_SECOND_SOURCE",
+        "NO_CURRENT_TWO_PRICES",
+        "NO_CAPTURE_UTC",
+        "NO_PROVIDER_ASOF",
+        "SELLABILITY_UNVERIFIED",
+        "CONTRACT_UNVERIFIED"
       ],
-      "notes": "No current numerical price/liquidity claim. Earlier Dot2 numbers retained only as explicitly historical reference; WATCH is monitoring only, not clearance."
+      "notes": "No current quote or verified independent pool pair; historical Dot2 price/liquidity are not current risk clearance."
     },
     {
       "chain": "ethereum",
-      "symbol": "LUCIA",
-      "pool": "0x70b7415027e1b332db20a3b3b42f10b477b277e1cd0a43d98b805fd79d851131",
-      "pool_kind": "UNISWAP_V4_POOL_ID",
+      "pool": "0x51423fe04276b10974231f54946978f87e785faf8ade59ed3805da19fe9d872e",
+      "symbol": "BIGFOOT",
       "contract": null,
       "contract_evidence_url": null,
-      "source_dot2_first_seen_at_utc": "2026-11-21T14:12:03Z",
-      "previous_status": null,
-      "identity": {
-        "pool_url_syntactically_matches": true,
-        "contract_verified": false,
-        "contract_basis": "MISSING_FULL_CONTRACT",
-        "second_independent_pool_detail_verified_this_run": false
-      },
+      "source_dot2_first_seen_at_utc": "2026-11-21T15:17:35.161Z",
+      "prior_status": null,
+      "source_dot2_snapshot_path": "research/snapshots/2026-11-21/dot2-v06-20261121-151735161Z-geckoterminal-3.json",
+      "source_dot2_snapshot_blob_sha": "709fcf00df1684e08e12eaaeb8ae686bd5ee04d8",
+      "source_dot2_price_usd_NOT_CURRENT": 0.000004095,
+      "source_dot2_liquidity_usd_NOT_CURRENT": 4089.04,
       "sources": [
         {
           "domain": "geckoterminal.com",
-          "url": "https://www.geckoterminal.com/eth/pools/0x70b7415027e1b332db20a3b3b42f10b477b277e1cd0a43d98b805fd79d851131",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "url": "https://www.geckoterminal.com/eth/pools/0x51423fe04276b10974231f54946978f87e785faf8ade59ed3805da19fe9d872e",
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         },
         {
           "domain": "dexscreener.com",
-          "url": "https://dexscreener.com/ethereum/0x70b7415027e1b332db20a3b3b42f10b477b277e1cd0a43d98b805fd79d851131",
-          "access_attempted": false,
-          "access_result": "NOT_ATTEMPTED_IN_THIS_RUN",
-          "page_captured_at_utc": null,
+          "url": "https://dexscreener.com/ethereum/0x51423fe04276b10974231f54946978f87e785faf8ade59ed3805da19fe9d872e",
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         }
       ],
-      "historical_dot2_reference": {
-        "price_usd": 0.0001049,
-        "liquidity_usd": 8.6631,
-        "observation_basis": "DOT2_RUN_START_ONLY_NOT_PROVIDER_TIMESTAMP_NOT_NEW_DOT3_QUOTE"
-      },
-      "status": "REJECTED",
-      "indicative_paper_reviewable": false,
-      "eligible_for_dot4_buy": false,
+      "dexscreener_json_pair_url": "https://api.dexscreener.com/latest/dex/pairs/ethereum/0x51423fe04276b10974231f54946978f87e785faf8ade59ed3805da19fe9d872e",
+      "dexscreener_json_attempt": "NOT_ATTEMPTED",
       "stages": {
         "identified": true,
         "second_independent_pool_source": false,
@@ -200,64 +174,57 @@
         "safety_verified": false,
         "eligible": false
       },
+      "status": "REJECTED",
+      "quote_quality": "DATA_GAP",
+      "indicative_paper_reviewable": false,
+      "eligible_for_dot4_buy": false,
       "risk_codes": [
-        "LOW_LIQUIDITY_IN_PREVIOUS_DOT2_REFERENCE",
-        "NO_CURRENT_DIRECT_POOL_PAGE_ACCESS",
-        "NO_TWO_INDEPENDENT_CURRENT_QUOTES",
-        "NO_VERIFIED_PER_PAGE_CAPTURE_UTC",
-        "PROVIDER_QUOTE_ASOF_UNKNOWN",
-        "CONTRACT_NOT_REVALIDATED",
-        "SELLABILITY_UNVERIFIED"
+        "LOW_LIQUIDITY_DOT2_HISTORICAL_ONLY",
+        "NO_VERIFIED_SECOND_SOURCE",
+        "NO_CURRENT_TWO_PRICES",
+        "NO_CAPTURE_UTC",
+        "NO_PROVIDER_ASOF",
+        "SELLABILITY_UNVERIFIED",
+        "CONTRACT_UNVERIFIED"
       ],
-      "notes": "No current numerical price/liquidity claim. Earlier Dot2 numbers retained only as explicitly historical reference; WATCH is monitoring only, not clearance."
+      "notes": "No current quote or verified independent pool pair; historical Dot2 price/liquidity are not current risk clearance."
     },
     {
       "chain": "bsc",
-      "symbol": "ANTB",
-      "pool": "0xdbec09a3e766a73deb821fa9a21d71adbeb85d04f8c001af82124b1557b73baa",
-      "pool_kind": "UNISWAP_V4_POOL_ID",
+      "pool": "0x62caec25e1d6642b4ebed0ae743492738a26de7e",
+      "symbol": "猪小戒",
       "contract": null,
       "contract_evidence_url": null,
-      "source_dot2_first_seen_at_utc": "2026-11-21T14:12:03Z",
-      "previous_status": null,
-      "identity": {
-        "pool_url_syntactically_matches": true,
-        "contract_verified": false,
-        "contract_basis": "MISSING_FULL_CONTRACT",
-        "second_independent_pool_detail_verified_this_run": false
-      },
+      "source_dot2_first_seen_at_utc": "2026-11-21T15:17:35.161Z",
+      "prior_status": null,
+      "source_dot2_snapshot_path": "research/snapshots/2026-11-21/dot2-v06-20261121-151735161Z-geckoterminal-4.json",
+      "source_dot2_snapshot_blob_sha": "354b8586ed2e900f747af328ecaf95822af34162",
+      "source_dot2_price_usd_NOT_CURRENT": 1.914e-9,
+      "source_dot2_liquidity_usd_NOT_CURRENT": 0.02711,
       "sources": [
         {
           "domain": "geckoterminal.com",
-          "url": "https://www.geckoterminal.com/bsc/pools/0xdbec09a3e766a73deb821fa9a21d71adbeb85d04f8c001af82124b1557b73baa",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "url": "https://www.geckoterminal.com/bsc/pools/0x62caec25e1d6642b4ebed0ae743492738a26de7e",
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         },
         {
           "domain": "dexscreener.com",
-          "url": "https://dexscreener.com/bsc/0xdbec09a3e766a73deb821fa9a21d71adbeb85d04f8c001af82124b1557b73baa",
-          "access_attempted": false,
-          "access_result": "NOT_ATTEMPTED_IN_THIS_RUN",
-          "page_captured_at_utc": null,
+          "url": "https://dexscreener.com/bsc/0x62caec25e1d6642b4ebed0ae743492738a26de7e",
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         }
       ],
-      "historical_dot2_reference": {
-        "price_usd": 88.33,
-        "liquidity_usd": 0,
-        "observation_basis": "DOT2_RUN_START_ONLY_NOT_PROVIDER_TIMESTAMP_NOT_NEW_DOT3_QUOTE"
-      },
-      "status": "REJECTED",
-      "indicative_paper_reviewable": false,
-      "eligible_for_dot4_buy": false,
+      "dexscreener_json_pair_url": "https://api.dexscreener.com/latest/dex/pairs/bsc/0x62caec25e1d6642b4ebed0ae743492738a26de7e",
+      "dexscreener_json_attempt": "NOT_ATTEMPTED",
       "stages": {
         "identified": true,
         "second_independent_pool_source": false,
@@ -266,64 +233,57 @@
         "safety_verified": false,
         "eligible": false
       },
+      "status": "REJECTED",
+      "quote_quality": "DATA_GAP",
+      "indicative_paper_reviewable": false,
+      "eligible_for_dot4_buy": false,
       "risk_codes": [
-        "LOW_LIQUIDITY_IN_PREVIOUS_DOT2_REFERENCE",
-        "NO_CURRENT_DIRECT_POOL_PAGE_ACCESS",
-        "NO_TWO_INDEPENDENT_CURRENT_QUOTES",
-        "NO_VERIFIED_PER_PAGE_CAPTURE_UTC",
-        "PROVIDER_QUOTE_ASOF_UNKNOWN",
-        "CONTRACT_NOT_REVALIDATED",
-        "SELLABILITY_UNVERIFIED"
+        "LOW_LIQUIDITY_DOT2_HISTORICAL_ONLY",
+        "NO_VERIFIED_SECOND_SOURCE",
+        "NO_CURRENT_TWO_PRICES",
+        "NO_CAPTURE_UTC",
+        "NO_PROVIDER_ASOF",
+        "SELLABILITY_UNVERIFIED",
+        "CONTRACT_UNVERIFIED"
       ],
-      "notes": "No current numerical price/liquidity claim. Earlier Dot2 numbers retained only as explicitly historical reference; WATCH is monitoring only, not clearance."
+      "notes": "No current quote or verified independent pool pair; historical Dot2 price/liquidity are not current risk clearance."
     },
     {
       "chain": "robinhood",
-      "symbol": "Emily",
-      "pool": "0x355076073d78961d7cd3051f69228806682c25863a7b41ab35ea648ac895f4eb",
-      "pool_kind": "UNISWAP_V4_POOL_ID",
+      "pool": "0x520f1883175237f871b510c443468d021cd19255432ac06b1d0581832d61de6e",
+      "symbol": "win",
       "contract": null,
       "contract_evidence_url": null,
-      "source_dot2_first_seen_at_utc": "2026-11-21T14:12:03Z",
-      "previous_status": null,
-      "identity": {
-        "pool_url_syntactically_matches": true,
-        "contract_verified": false,
-        "contract_basis": "MISSING_FULL_CONTRACT",
-        "second_independent_pool_detail_verified_this_run": false
-      },
+      "source_dot2_first_seen_at_utc": "2026-11-21T15:17:35.161Z",
+      "prior_status": null,
+      "source_dot2_snapshot_path": "research/snapshots/2026-11-21/dot2-v06-20261121-151735161Z-geckoterminal-5.json",
+      "source_dot2_snapshot_blob_sha": "9de4d911d5c90b651840b64cae0f7d59fd6da6e3",
+      "source_dot2_price_usd_NOT_CURRENT": 0.0001212,
+      "source_dot2_liquidity_usd_NOT_CURRENT": 0,
       "sources": [
         {
           "domain": "geckoterminal.com",
-          "url": "https://www.geckoterminal.com/robinhood/pools/0x355076073d78961d7cd3051f69228806682c25863a7b41ab35ea648ac895f4eb",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "url": "https://www.geckoterminal.com/robinhood/pools/0x520f1883175237f871b510c443468d021cd19255432ac06b1d0581832d61de6e",
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         },
         {
           "domain": "dexscreener.com",
-          "url": "https://dexscreener.com/robinhood/0x355076073d78961d7cd3051f69228806682c25863a7b41ab35ea648ac895f4eb",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "url": "https://dexscreener.com/robinhood/0x520f1883175237f871b510c443468d021cd19255432ac06b1d0581832d61de6e",
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         }
       ],
-      "historical_dot2_reference": {
-        "price_usd": null,
-        "liquidity_usd": null,
-        "observation_basis": "DOT2_RUN_START_ONLY_NOT_PROVIDER_TIMESTAMP_NOT_NEW_DOT3_QUOTE"
-      },
-      "status": "DATA_GAP",
-      "indicative_paper_reviewable": false,
-      "eligible_for_dot4_buy": false,
+      "dexscreener_json_pair_url": "https://api.dexscreener.com/latest/dex/pairs/robinhood/0x520f1883175237f871b510c443468d021cd19255432ac06b1d0581832d61de6e",
+      "dexscreener_json_attempt": "NOT_ATTEMPTED",
       "stages": {
         "identified": true,
         "second_independent_pool_source": false,
@@ -332,63 +292,57 @@
         "safety_verified": false,
         "eligible": false
       },
+      "status": "REJECTED",
+      "quote_quality": "DATA_GAP",
+      "indicative_paper_reviewable": false,
+      "eligible_for_dot4_buy": false,
       "risk_codes": [
-        "NO_CURRENT_DIRECT_POOL_PAGE_ACCESS",
-        "NO_TWO_INDEPENDENT_CURRENT_QUOTES",
-        "NO_VERIFIED_PER_PAGE_CAPTURE_UTC",
-        "PROVIDER_QUOTE_ASOF_UNKNOWN",
-        "CONTRACT_NOT_REVALIDATED",
-        "SELLABILITY_UNVERIFIED"
+        "LOW_LIQUIDITY_DOT2_HISTORICAL_ONLY",
+        "NO_VERIFIED_SECOND_SOURCE",
+        "NO_CURRENT_TWO_PRICES",
+        "NO_CAPTURE_UTC",
+        "NO_PROVIDER_ASOF",
+        "SELLABILITY_UNVERIFIED",
+        "CONTRACT_UNVERIFIED"
       ],
-      "notes": "No current numerical price/liquidity claim. Earlier Dot2 numbers retained only as explicitly historical reference; WATCH is monitoring only, not clearance."
+      "notes": "No current quote or verified independent pool pair; historical Dot2 price/liquidity are not current risk clearance."
     },
     {
       "chain": "cronos",
-      "symbol": "GTA6",
-      "pool": "0xab40583e4fbabf6be8db9987bf907d01ce15e34f",
-      "pool_kind": "POOL_ADDRESS",
+      "pool": "0x835a8fe7370c5c08b9a4efda273e28ff7bcf161c",
+      "symbol": "CROVIA",
       "contract": null,
       "contract_evidence_url": null,
-      "source_dot2_first_seen_at_utc": "2026-11-21T14:12:03Z",
-      "previous_status": null,
-      "identity": {
-        "pool_url_syntactically_matches": true,
-        "contract_verified": false,
-        "contract_basis": "MISSING_FULL_CONTRACT",
-        "second_independent_pool_detail_verified_this_run": false
-      },
+      "source_dot2_first_seen_at_utc": "2026-11-21T15:17:35.161Z",
+      "prior_status": null,
+      "source_dot2_snapshot_path": "research/snapshots/2026-11-21/dot2-v06-20261121-151735161Z-geckoterminal-6.json",
+      "source_dot2_snapshot_blob_sha": "3d0011f7e6a155aa3157344fad81c65e1d2b0090",
+      "source_dot2_price_usd_NOT_CURRENT": 0.0002426,
+      "source_dot2_liquidity_usd_NOT_CURRENT": 14210.42,
       "sources": [
         {
           "domain": "geckoterminal.com",
-          "url": "https://www.geckoterminal.com/cro/pools/0xab40583e4fbabf6be8db9987bf907d01ce15e34f",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "url": "https://www.geckoterminal.com/cro/pools/0x835a8fe7370c5c08b9a4efda273e28ff7bcf161c",
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         },
         {
           "domain": "dexscreener.com",
-          "url": "https://dexscreener.com/cronos/0xab40583e4fbabf6be8db9987bf907d01ce15e34f",
-          "access_attempted": false,
-          "access_result": "NOT_ATTEMPTED_IN_THIS_RUN",
-          "page_captured_at_utc": null,
+          "url": "https://dexscreener.com/cronos/0x835a8fe7370c5c08b9a4efda273e28ff7bcf161c",
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         }
       ],
-      "historical_dot2_reference": {
-        "price_usd": null,
-        "liquidity_usd": null,
-        "observation_basis": "DOT2_RUN_START_ONLY_NOT_PROVIDER_TIMESTAMP_NOT_NEW_DOT3_QUOTE"
-      },
-      "status": "DATA_GAP",
-      "indicative_paper_reviewable": false,
-      "eligible_for_dot4_buy": false,
+      "dexscreener_json_pair_url": "https://api.dexscreener.com/latest/dex/pairs/cronos/0x835a8fe7370c5c08b9a4efda273e28ff7bcf161c",
+      "dexscreener_json_attempt": "WEB_URL_NOT_ACCESSIBLE",
       "stages": {
         "identified": true,
         "second_independent_pool_source": false,
@@ -397,63 +351,56 @@
         "safety_verified": false,
         "eligible": false
       },
+      "status": "DATA_GAP",
+      "quote_quality": "DATA_GAP",
+      "indicative_paper_reviewable": false,
+      "eligible_for_dot4_buy": false,
       "risk_codes": [
-        "NO_CURRENT_DIRECT_POOL_PAGE_ACCESS",
-        "NO_TWO_INDEPENDENT_CURRENT_QUOTES",
-        "NO_VERIFIED_PER_PAGE_CAPTURE_UTC",
-        "PROVIDER_QUOTE_ASOF_UNKNOWN",
-        "CONTRACT_NOT_REVALIDATED",
-        "SELLABILITY_UNVERIFIED"
+        "NO_VERIFIED_SECOND_SOURCE",
+        "NO_CURRENT_TWO_PRICES",
+        "NO_CAPTURE_UTC",
+        "NO_PROVIDER_ASOF",
+        "SELLABILITY_UNVERIFIED",
+        "CONTRACT_UNVERIFIED"
       ],
-      "notes": "No current numerical price/liquidity claim. Earlier Dot2 numbers retained only as explicitly historical reference; WATCH is monitoring only, not clearance."
+      "notes": "No current quote or verified independent pool pair; historical Dot2 price/liquidity are not current risk clearance."
     },
     {
       "chain": "robinhood",
-      "symbol": "CASHCAT",
       "pool": "0xd42a491087a15e5afd51feb3606066cc152d2b09",
-      "pool_kind": null,
+      "symbol": "CASHCAT",
       "contract": null,
       "contract_evidence_url": null,
-      "source_dot2_first_seen_at_utc": "2026-11-21T13:19:00Z",
-      "previous_status": "WATCH",
-      "identity": {
-        "pool_url_syntactically_matches": true,
-        "contract_verified": false,
-        "contract_basis": "MISSING_FULL_CONTRACT",
-        "second_independent_pool_detail_verified_this_run": false
-      },
+      "source_dot2_first_seen_at_utc": null,
+      "prior_status": "WATCH",
+      "source_dot2_snapshot_path": null,
+      "source_dot2_snapshot_blob_sha": null,
+      "source_dot2_price_usd_NOT_CURRENT": null,
+      "source_dot2_liquidity_usd_NOT_CURRENT": null,
       "sources": [
         {
           "domain": "geckoterminal.com",
           "url": "https://www.geckoterminal.com/robinhood/pools/0xd42a491087a15e5afd51feb3606066cc152d2b09",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         },
         {
           "domain": "dexscreener.com",
           "url": "https://dexscreener.com/robinhood/0xd42a491087a15e5afd51feb3606066cc152d2b09",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         }
       ],
-      "historical_dot2_reference": {
-        "price_usd": null,
-        "liquidity_usd": null,
-        "observation_basis": "DOT2_RUN_START_ONLY_NOT_PROVIDER_TIMESTAMP_NOT_NEW_DOT3_QUOTE"
-      },
-      "status": "WATCH",
-      "indicative_paper_reviewable": false,
-      "eligible_for_dot4_buy": false,
+      "dexscreener_json_pair_url": "https://api.dexscreener.com/latest/dex/pairs/robinhood/0xd42a491087a15e5afd51feb3606066cc152d2b09",
+      "dexscreener_json_attempt": "NOT_ATTEMPTED",
       "stages": {
         "identified": true,
         "second_independent_pool_source": false,
@@ -462,63 +409,56 @@
         "safety_verified": false,
         "eligible": false
       },
+      "status": "WATCH",
+      "quote_quality": "DATA_GAP",
+      "indicative_paper_reviewable": false,
+      "eligible_for_dot4_buy": false,
       "risk_codes": [
-        "NO_CURRENT_DIRECT_POOL_PAGE_ACCESS",
-        "NO_TWO_INDEPENDENT_CURRENT_QUOTES",
-        "NO_VERIFIED_PER_PAGE_CAPTURE_UTC",
-        "PROVIDER_QUOTE_ASOF_UNKNOWN",
-        "CONTRACT_NOT_REVALIDATED",
-        "SELLABILITY_UNVERIFIED"
+        "NO_VERIFIED_SECOND_SOURCE",
+        "NO_CURRENT_TWO_PRICES",
+        "NO_CAPTURE_UTC",
+        "NO_PROVIDER_ASOF",
+        "SELLABILITY_UNVERIFIED",
+        "CONTRACT_UNVERIFIED"
       ],
-      "notes": "No current numerical price/liquidity claim. Earlier Dot2 numbers retained only as explicitly historical reference; WATCH is monitoring only, not clearance."
+      "notes": "No current quote or verified independent pool pair; historical Dot2 price/liquidity are not current risk clearance."
     },
     {
       "chain": "solana",
-      "symbol": "mihao",
       "pool": "Ho1aSG6WGH1FfXdEHrK2f4Ggt1Hoxo9s5jcLMDqeyeBz",
-      "pool_kind": null,
+      "symbol": "mihao",
       "contract": "4CxjZyMNoF1p6eXHXHv1TWpS2X47CuUmLwtGe18spump",
-      "contract_evidence_url": "https://solscan.io/token/4CxjZyMNoF1p6eXHXHv1TWpS2X47CuUmLwtGe18spump",
-      "source_dot2_first_seen_at_utc": "2026-11-21T13:19:00Z",
-      "previous_status": "WATCH",
-      "identity": {
-        "pool_url_syntactically_matches": true,
-        "contract_verified": false,
-        "contract_basis": "PREVIOUS_JOURNAL_EXPLORER_LINK_NOT_REVALIDATED",
-        "second_independent_pool_detail_verified_this_run": false
-      },
+      "contract_evidence_url": null,
+      "source_dot2_first_seen_at_utc": null,
+      "prior_status": "WATCH",
+      "source_dot2_snapshot_path": null,
+      "source_dot2_snapshot_blob_sha": null,
+      "source_dot2_price_usd_NOT_CURRENT": null,
+      "source_dot2_liquidity_usd_NOT_CURRENT": null,
       "sources": [
         {
           "domain": "geckoterminal.com",
           "url": "https://www.geckoterminal.com/solana/pools/Ho1aSG6WGH1FfXdEHrK2f4Ggt1Hoxo9s5jcLMDqeyeBz",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         },
         {
           "domain": "dexscreener.com",
           "url": "https://dexscreener.com/solana/Ho1aSG6WGH1FfXdEHrK2f4Ggt1Hoxo9s5jcLMDqeyeBz",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         }
       ],
-      "historical_dot2_reference": {
-        "price_usd": null,
-        "liquidity_usd": null,
-        "observation_basis": "DOT2_RUN_START_ONLY_NOT_PROVIDER_TIMESTAMP_NOT_NEW_DOT3_QUOTE"
-      },
-      "status": "WATCH",
-      "indicative_paper_reviewable": false,
-      "eligible_for_dot4_buy": false,
+      "dexscreener_json_pair_url": "https://api.dexscreener.com/latest/dex/pairs/solana/Ho1aSG6WGH1FfXdEHrK2f4Ggt1Hoxo9s5jcLMDqeyeBz",
+      "dexscreener_json_attempt": "NOT_ATTEMPTED",
       "stages": {
         "identified": true,
         "second_independent_pool_source": false,
@@ -527,63 +467,55 @@
         "safety_verified": false,
         "eligible": false
       },
+      "status": "WATCH",
+      "quote_quality": "DATA_GAP",
+      "indicative_paper_reviewable": false,
+      "eligible_for_dot4_buy": false,
       "risk_codes": [
-        "NO_CURRENT_DIRECT_POOL_PAGE_ACCESS",
-        "NO_TWO_INDEPENDENT_CURRENT_QUOTES",
-        "NO_VERIFIED_PER_PAGE_CAPTURE_UTC",
-        "PROVIDER_QUOTE_ASOF_UNKNOWN",
-        "CONTRACT_NOT_REVALIDATED",
+        "NO_VERIFIED_SECOND_SOURCE",
+        "NO_CURRENT_TWO_PRICES",
+        "NO_CAPTURE_UTC",
+        "NO_PROVIDER_ASOF",
         "SELLABILITY_UNVERIFIED"
       ],
-      "notes": "No current numerical price/liquidity claim. Earlier Dot2 numbers retained only as explicitly historical reference; WATCH is monitoring only, not clearance."
+      "notes": "No current quote or verified independent pool pair; historical Dot2 price/liquidity are not current risk clearance."
     },
     {
       "chain": "base",
-      "symbol": "ELSA",
       "pool": "0x83f3aca29bc79b048b99c56013475570acc97ccf",
-      "pool_kind": null,
+      "symbol": "ELSA",
       "contract": null,
       "contract_evidence_url": null,
-      "source_dot2_first_seen_at_utc": "2026-11-21T13:19:00Z",
-      "previous_status": "WATCH",
-      "identity": {
-        "pool_url_syntactically_matches": true,
-        "contract_verified": false,
-        "contract_basis": "MISSING_FULL_CONTRACT",
-        "second_independent_pool_detail_verified_this_run": false
-      },
+      "source_dot2_first_seen_at_utc": null,
+      "prior_status": "WATCH",
+      "source_dot2_snapshot_path": null,
+      "source_dot2_snapshot_blob_sha": null,
+      "source_dot2_price_usd_NOT_CURRENT": null,
+      "source_dot2_liquidity_usd_NOT_CURRENT": null,
       "sources": [
         {
           "domain": "geckoterminal.com",
           "url": "https://www.geckoterminal.com/base/pools/0x83f3aca29bc79b048b99c56013475570acc97ccf",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         },
         {
           "domain": "dexscreener.com",
           "url": "https://dexscreener.com/base/0x83f3aca29bc79b048b99c56013475570acc97ccf",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         }
       ],
-      "historical_dot2_reference": {
-        "price_usd": null,
-        "liquidity_usd": null,
-        "observation_basis": "DOT2_RUN_START_ONLY_NOT_PROVIDER_TIMESTAMP_NOT_NEW_DOT3_QUOTE"
-      },
-      "status": "WATCH",
-      "indicative_paper_reviewable": false,
-      "eligible_for_dot4_buy": false,
+      "dexscreener_json_pair_url": "https://api.dexscreener.com/latest/dex/pairs/base/0x83f3aca29bc79b048b99c56013475570acc97ccf",
+      "dexscreener_json_attempt": "NOT_ATTEMPTED",
       "stages": {
         "identified": true,
         "second_independent_pool_source": false,
@@ -592,63 +524,56 @@
         "safety_verified": false,
         "eligible": false
       },
+      "status": "WATCH",
+      "quote_quality": "DATA_GAP",
+      "indicative_paper_reviewable": false,
+      "eligible_for_dot4_buy": false,
       "risk_codes": [
-        "NO_CURRENT_DIRECT_POOL_PAGE_ACCESS",
-        "NO_TWO_INDEPENDENT_CURRENT_QUOTES",
-        "NO_VERIFIED_PER_PAGE_CAPTURE_UTC",
-        "PROVIDER_QUOTE_ASOF_UNKNOWN",
-        "CONTRACT_NOT_REVALIDATED",
-        "SELLABILITY_UNVERIFIED"
+        "NO_VERIFIED_SECOND_SOURCE",
+        "NO_CURRENT_TWO_PRICES",
+        "NO_CAPTURE_UTC",
+        "NO_PROVIDER_ASOF",
+        "SELLABILITY_UNVERIFIED",
+        "CONTRACT_UNVERIFIED"
       ],
-      "notes": "No current numerical price/liquidity claim. Earlier Dot2 numbers retained only as explicitly historical reference; WATCH is monitoring only, not clearance."
+      "notes": "No current quote or verified independent pool pair; historical Dot2 price/liquidity are not current risk clearance."
     },
     {
       "chain": "base",
-      "symbol": "DRB",
       "pool": "0x5116773e18a9c7bb03ebb961b38678e45e238923",
-      "pool_kind": null,
+      "symbol": "DRB",
       "contract": "0x3ec2156D4c0A9CBdAB4a016633b7BcF6a8d68Ea2",
-      "contract_evidence_url": "https://basescan.org/token/0x3ec2156D4c0A9CBdAB4a016633b7BcF6a8d68Ea2",
-      "source_dot2_first_seen_at_utc": "2026-11-21T12:19:45Z",
-      "previous_status": "WATCH",
-      "identity": {
-        "pool_url_syntactically_matches": true,
-        "contract_verified": false,
-        "contract_basis": "PREVIOUS_JOURNAL_EXPLORER_LINK_NOT_REVALIDATED",
-        "second_independent_pool_detail_verified_this_run": false
-      },
+      "contract_evidence_url": null,
+      "source_dot2_first_seen_at_utc": null,
+      "prior_status": "WATCH",
+      "source_dot2_snapshot_path": null,
+      "source_dot2_snapshot_blob_sha": null,
+      "source_dot2_price_usd_NOT_CURRENT": null,
+      "source_dot2_liquidity_usd_NOT_CURRENT": null,
       "sources": [
         {
           "domain": "geckoterminal.com",
           "url": "https://www.geckoterminal.com/base/pools/0x5116773e18a9c7bb03ebb961b38678e45e238923",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         },
         {
           "domain": "dexscreener.com",
           "url": "https://dexscreener.com/base/0x5116773e18a9c7bb03ebb961b38678e45e238923",
-          "access_attempted": true,
-          "access_result": "WEB_OPEN_INTERNAL_ERROR_NOT_ACCESSIBLE",
-          "page_captured_at_utc": null,
+          "visited_this_run": false,
+          "capture_utc": null,
           "price_usd": null,
           "liquidity_usd": null,
           "provider_quote_asof_utc": null,
-          "source_archive_blob_sha": null
+          "archive_blob_sha": null
         }
       ],
-      "historical_dot2_reference": {
-        "price_usd": null,
-        "liquidity_usd": null,
-        "observation_basis": "DOT2_RUN_START_ONLY_NOT_PROVIDER_TIMESTAMP_NOT_NEW_DOT3_QUOTE"
-      },
-      "status": "WATCH",
-      "indicative_paper_reviewable": false,
-      "eligible_for_dot4_buy": false,
+      "dexscreener_json_pair_url": "https://api.dexscreener.com/latest/dex/pairs/base/0x5116773e18a9c7bb03ebb961b38678e45e238923",
+      "dexscreener_json_attempt": "NOT_ATTEMPTED",
       "stages": {
         "identified": true,
         "second_independent_pool_source": false,
@@ -657,21 +582,23 @@
         "safety_verified": false,
         "eligible": false
       },
+      "status": "WATCH",
+      "quote_quality": "DATA_GAP",
+      "indicative_paper_reviewable": false,
+      "eligible_for_dot4_buy": false,
       "risk_codes": [
-        "NO_CURRENT_DIRECT_POOL_PAGE_ACCESS",
-        "NO_TWO_INDEPENDENT_CURRENT_QUOTES",
-        "NO_VERIFIED_PER_PAGE_CAPTURE_UTC",
-        "PROVIDER_QUOTE_ASOF_UNKNOWN",
-        "CONTRACT_NOT_REVALIDATED",
+        "NO_VERIFIED_SECOND_SOURCE",
+        "NO_CURRENT_TWO_PRICES",
+        "NO_CAPTURE_UTC",
+        "NO_PROVIDER_ASOF",
         "SELLABILITY_UNVERIFIED"
       ],
-      "notes": "No current numerical price/liquidity claim. Earlier Dot2 numbers retained only as explicitly historical reference; WATCH is monitoring only, not clearance."
+      "notes": "No current quote or verified independent pool pair; historical Dot2 price/liquidity are not current risk clearance."
     }
   ],
-  "errors": [
-    "DIRECT_PUBLIC_POOL_DETAIL_WEB_OPEN_FAILED",
-    "NO_CURRENT_INDEPENDENT_POOL_PRICE_PAIRS",
-    "NO_VERIFIABLE_CAPTURE_TIMESTAMPS",
-    "NO_ELIGIBLE_CANDIDATES"
-  ]
+  "dot4_handoff": {
+    "eligible": [],
+    "indicative_paper_reviewable": [],
+    "note": "No BUY authorization. Fresh independent chain+pool+contract, liquidity, <=3% price divergence and security checks missing."
+  }
 }
