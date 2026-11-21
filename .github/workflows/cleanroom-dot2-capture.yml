@@ -1,0 +1,46 @@
+name: R29 Cleanroom Dot2 JSON Capture
+on:
+  push:
+    branches:
+      - codex/r29-cleanroom-paper-20261121
+    paths:
+      - 'research/requests/**'
+permissions:
+  contents: write
+concurrency:
+  group: r29-cleanroom-dot2-capture
+  cancel-in-progress: false
+jobs:
+  capture-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout isolated cleanroom branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/r29-cleanroom-paper-20261121
+          fetch-depth: 2
+          persist-credentials: true
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Capture public research evidence
+        run: node scripts/cloud-discovery-runner.mjs
+      - name: Commit research feed to cleanroom branch only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/feeds/
+          git diff --cached --quiet && exit 0
+          git commit -m "data(cleanroom): capture authenticated Dot2 research feed"
+          success=0
+          for attempt in 1 2 3 4; do
+            git fetch origin codex/r29-cleanroom-paper-20261121
+            git rebase origin/codex/r29-cleanroom-paper-20261121 || exit 1
+            if git push origin HEAD:refs/heads/codex/r29-cleanroom-paper-20261121; then
+              success=1
+              break
+            fi
+          done
+          test "$success" = 1
