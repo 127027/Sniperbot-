@@ -4,7 +4,8 @@ const ms=s=>typeof s==='string'&&Number.isFinite(Date.parse(s))?Date.parse(s):nu
 const at=t=>new Date(t).toISOString();
 export const PAPER_LAB_PRESETS=Object.freeze({
   exploratory:{momentumMinPct:5,momentumMaxPct:100,takeProfitPct:20,stopLossPct:10,minVolumeUsd:0},
-  conservative:{momentumMinPct:10,momentumMaxPct:60,takeProfitPct:25,stopLossPct:12,minVolumeUsd:500}
+  conservative:{momentumMinPct:10,momentumMaxPct:60,takeProfitPct:25,stopLossPct:12,minVolumeUsd:500},
+  volatility_guard:{momentumMinPct:5,momentumMaxPct:100,takeProfitPct:20,stopLossPct:10,minVolumeUsd:100,maxRecentCloseRangeRatio:2.5}
 });
 export function runResearchPaperLab({date,pools=[],preset='exploratory',startBalance=5000,amountPerCoin=50}={}){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(date||'')||!Number.isFinite(Date.parse(date+'T00:00:00Z')))throw Error('INVALID_DAY');
@@ -56,7 +57,16 @@ export function runResearchPaperLab({date,pools=[],preset='exploratory',startBal
         if(!base){action='WATCH_EXPERIMENT';reason='NOT_ENOUGH_PAST_CANDLES';}
         else{
           const rise=(price/base.close_usd-1)*100,volume=last.volume_usd??0;
-          if(rise>=rules.momentumMinPct&&rise<=rules.momentumMaxPct&&volume>=rules.minVolumeUsd&&cash>=amountPerCoin){
+          // Conservative guard against unusually wide recent range using ONLY past closed candles.
+          const earlier=coin.candles.filter(c=>{
+            const t=ms(c.known_no_earlier_than_utc);
+            return t!==null&&t+minute<=tick&&t>=tick-120*minute
+             &&t<=ms(last.known_no_earlier_than_utc)&&typeof c.close_usd==='number'&&c.close_usd>0;
+          }).map(c=>c.close_usd);
+          const range=earlier.length>=3?Math.max(...earlier)/Math.min(...earlier):null;
+          const volatilityTooHigh=rules.maxRecentCloseRangeRatio!==undefined
+           &&range!==null&&range>rules.maxRecentCloseRangeRatio;
+          if(!volatilityTooHigh&&rise>=rules.momentumMinPct&&rise<=rules.momentumMaxPct&&volume>=rules.minVolumeUsd&&cash>=amountPerCoin){
             action='BUY_EXPERIMENT';reason='RECENT_CLOSED_CANDLE_MOMENTUM';
             const spend=amountPerCoin,filledPrice=price*(1+.004+.005),
              units=(spend*(1-.0075))/filledPrice;
@@ -67,7 +77,7 @@ export function runResearchPaperLab({date,pools=[],preset='exploratory',startBal
               evidence_class:'SINGLE_PROVIDER_HINDSIGHT_CANDLE_MODEL_NOT_EXECUTABLE'});
           }else{
             action='WATCH_EXPERIMENT';counts.blockedEntries++;
-            reason=rise>rules.momentumMaxPct?'TOO_EXTREME_MOMENTUM':
+            reason=volatilityTooHigh?'HIGH_RECENT_CLOSE_RANGE':rise>rules.momentumMaxPct?'TOO_EXTREME_MOMENTUM':
              rise<rules.momentumMinPct?'NO_MOMENTUM':
              volume<rules.minVolumeUsd?'VOLUME_TOO_LOW':'NO_CASH';
           }

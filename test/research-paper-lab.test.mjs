@@ -34,3 +34,18 @@ test('unclosed position does not produce imaginary PnL or fake liquidation',()=>
  assert.equal(r.open_positions[0].market_value_test_usdc,null);
  assert.equal(r.verified_real_profit_test_usdc,null);
 });
+
+test('volatility guard rejects a wide known price range while preserving WATCH',()=>{
+ const r=runResearchPaperLab({date,preset:'volatility_guard',pools:[pool([
+ c('00:05',1),c('00:10',3.2),c('00:20',2),c('00:30',2.2)
+ ])]});
+ assert.equal(r.counts.buys,0);
+ assert.equal(r.scans[0].decisions[0].reason,'HIGH_RECENT_CLOSE_RANGE');
+});
+test('volatility guard can still buy and sell when recent candles are stable',()=>{
+ const r=runResearchPaperLab({date,preset:'volatility_guard',pools:[pool([
+ c('00:05',1),c('00:15',1.05),c('00:30',1.2),c('01:30',1.6)
+ ])]});
+ assert.equal(r.counts.buys,1);assert.equal(r.counts.sells,1);
+ assert.equal(r.verified_historical_paper_orders,0);
+});

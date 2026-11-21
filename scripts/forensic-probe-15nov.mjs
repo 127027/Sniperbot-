@@ -61,7 +61,7 @@ for(const token of tokens){
  console.log('FORENSIC_RESEARCH_RESULT',JSON.stringify(out));
 }
 await mkdir('probe-artifacts',{recursive:true});
-for(const preset of ['exploratory','conservative']){
+for(const preset of ['exploratory','conservative','volatility_guard']){
  const experiment=runResearchPaperLab({date,pools:researchPools,preset});
  await writeFile('probe-artifacts/2026-11-15-research-paper-'+preset+'.json',JSON.stringify(experiment,null,2)+'\n');
  console.log('RESEARCH_LAB_SUMMARY',JSON.stringify({preset,pools:researchPools.length,counts:experiment.counts,
