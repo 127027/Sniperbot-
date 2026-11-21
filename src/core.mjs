@@ -40,6 +40,8 @@ export function inspectOrder(order, state, nowMs, policy = DEFAULT_POLICY) {
     fail('INVALID_ORDER_TIME','Invalid timestamp');
   if (createdAt < nowMs-policy.maxOrderAgeMs || expiresAt < nowMs || expiresAt <= createdAt)
     fail('ORDER_EXPIRED','Order is too old or expired');
+  if (expiresAt-createdAt>policy.maxOrderAgeMs)
+    fail('ORDER_TTL_TOO_LONG','Order must expire within maximum lifetime');
   const c=order.coin;
   if (!c || !CHAINS.has(c.chain) || !ident(c.contract) || !ident(c.pool) || !ident(c.symbol))
     fail('INVALID_COIN_ID','Chain, contract, symbol and pool must be explicit');

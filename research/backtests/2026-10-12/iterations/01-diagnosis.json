@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "mode": "PAPER_ONLY",
+  "day": "2026-10-12",
+  "iteration": 1,
+  "purpose": "FIX_NO_LOOKAHEAD_PROCEDURAL_DIAGNOSIS",
+  "historical_backtest": {
+    "status": "DATA_GAP_UNABLE_TO_ESTABLISH_REAL_HISTORICAL_TRADING",
+    "verified_contemporaneous_market_snapshots": 0,
+    "real_trade_signals": 0,
+    "real_buys": 0,
+    "real_sells": 0,
+    "starting_test_usdc": 5000,
+    "ending_test_usdc": 5000,
+    "claim_of_profit": false
+  },
+  "root_causes": [
+    {
+      "code": "BACKTEST_PRE_SUPPLIED_DECISIONS",
+      "description": "Original replayHistoricalDay tests submitted point_in_time_decisions rather than generating strategy BUY/SELL from timestamps and pool quote history.",
+      "fix": "Added isolated evidence-gated shadow strategy for independently collected chronological observations."
+    },
+    {
+      "code": "NO_HISTORICAL_POINT_IN_TIME_SOURCES",
+      "description": "Free retrospective daily winners do not prove live-available two-source quotes at Oct-12 review times.",
+      "fix": "Require observed/published/archived timestamps <= decision time, abstain when unavailable."
+    },
+    {
+      "code": "EXIT_LAG",
+      "description": "4 GPT full reviews per day could postpone SELL evaluation six hours.",
+      "fix": "Shadow engine checks genuine open positions at each hourly Dot-4 wake even when full discovery review is not due; live role protocol still requires adoption."
+    },
+    {
+      "code": "CADENCE_NEGATIVE_CHANGE_REJECTED",
+      "description": "Previously chooseCadence rejected negative volume_change_pct, which is a legitimate decline.",
+      "fix": "Allow -100% through positive volume change; preserve two-quiet-check downshift requirement."
+    },
+    {
+      "code": "ORDER_EXPIRATION_UNBOUNDED",
+      "description": "Previous inspectOrder allowed expires_at much later than created_at despite documented 5min maximum.",
+      "fix": "Enforce expires_at minus created_at <= 5min."
+    }
+  ],
+  "experiment": {
+    "kind": "SYNTHETIC_TEST_ONLY",
+    "description": "Three synthetic minute-stamped Base snapshots at 00:34/06:34/07:34 UTC, first two rise +10%, last rises another 27%; synthetic BUY at 06:35 and SELL at 07:35. Reversal variant tests STOP_LOSS. These are NOT historical coin observations.",
+    "success_check": "Unit tests assert 1 BUY, 1 SELL, profit variant, loss variant, future publication block, late archiving block."
+  },
+  "next_action": "Capture real point-in-time pool pages across all four chains with full original provider time, source SHA, independent matching pool quote, risk decision; replay only immutable archived evidence. No success claim for Oct12 until authentic evidence exists.",
+  "historical_sources": [
+    {
+      "url": "https://pumpdata.fun/stats/2026-10-12",
+      "role": "RETROSPECTIVE_ONLY",
+      "description": "One-day launch and graduation counts, hourly aggregate distribution, not minute-by-minute two-source quotes"
+    },
+    {
+      "url": "https://dextape.com/launches/2026-10-12",
+      "role": "RETROSPECTIVE_ONLY",
+      "description": "Day-end winners table; not available before same-day decisions"
+    },
+    {
+      "url": "https://launchtape.io/wild/2026-10-12",
+      "role": "RETROSPECTIVE_ONLY",
+      "description": "Only complete historical tapes and hindsight-optimal exits; detailed full-day data requires payment."
+    }
+  ]
+}

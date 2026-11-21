@@ -41,3 +41,6 @@ Dot 6 prüft täglich rückblickend die **tatsächlich aus öffentlichen Quellen
 
 ## V0.3: Quellen und Discovery-Reparatur
 Siehe [REPAIR_V03.md](REPAIR_V03.md). Dot 2 sucht vollständige Contracts durch belegte Explorer-/Poollinks und erweitert seine tatsächlich verfügbare Pagination. Dot 3 prüft exakte Chain+Contract+Pool-Beziehungen, getrennte Anbieter- und Abrufzeiten und zweite echte Pooldomains. Fehlende Daten bleiben DATA_GAP.
+
+## V0.4: Positionsverkauf bei jedem Dot-4-Wake
+Siehe [DOT4_EXIT_REVIEW.md](DOT4_EXIT_REVIEW.md). Beim stündlichen Wake prüft Dot 4 bestätigte offene Paper-Positionen zuerst auf echte SELL-Belege, auch wenn der vollständige GPT-Neucoin-Review gemäß 4/8/12/24 noch nicht fällig ist. Der Vollreview-Zähler bleibt unverändert. Datenlücken und fehlende Quittungen verhindern erfundene Positionen/SELLs.
