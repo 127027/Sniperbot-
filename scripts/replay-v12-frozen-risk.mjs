@@ -36,7 +36,13 @@ for(const preset of presets){
 }
 const dot3=JSON.parse(await readFile('research/latest/dot-3.json','utf8'));
 const realNow=process.env.GITHUB_RUN_ID?new Date().toISOString():dot3.updated_at_utc;
-const risk=buildRiskRecheckQueue({report:dot3,asOfUtc:realNow,limit:50});
+const risk=Array.isArray(dot3.candidates)
+ ?buildRiskRecheckQueue({report:dot3,asOfUtc:realNow,limit:50})
+ :{schema:1,kind:'CURRENT_DOT3_PRIORITIZED_RISK_CODES_ONLY',
+   source_status:dot3.status||'UNKNOWN',source_dot3_updated_utc:dot3.updated_at_utc,
+   counts:dot3.counts||{},worklist:Array.isArray(dot3.risk_queue)?dot3.risk_queue:[],
+   actual_eligible_from_worklist:0,actual_orders:0,
+   caveat:'New Dot3 report contains diagnostic risk_queue without original paired provider quotes; no false reconstruction of missing data.'};
 const history=replayFirstScanMemory({date:'2026-10-12',pools,
  modelScans:models.guarded_reentry.scans});
 const oldExploratory=models.exploratory,guard=models.guarded_reentry;
