@@ -8,7 +8,7 @@ const memory=JSON.parse(await readFile('research/state/market-memory.json','utf8
 const now=process.env.GITHUB_RUN_ID?new Date().toISOString():memory.generated_at_utc;
 const known=[];
 try{
- const entries=(await readdir('research/observations',{recursive:true})).filter(x=>/^\d+\.json$/.test(x));
+ const entries=(await readdir('research/observations',{recursive:true})).filter(x=>/(^|\/)\d+\.json$/.test(x));
  for(const file of entries){const j=JSON.parse(await readFile('research/observations/'+file,'utf8'));
   if(j.kind==='R29_FORWARD_UNFILTERED_POOL_OBSERVATIONS')known.push(j);
  }

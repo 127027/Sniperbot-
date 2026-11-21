@@ -6,7 +6,7 @@ import {validateCaptureRequest,chooseNetwork,decodeGeckoNewPools,crossCheckDexPa
  fromDexPairOnly,collectSampleMetrics,sha256} from '../src/discovery-feed.mjs';
 import {canonicalChain,poolValid} from '../src/market-evidence.mjs';
 import {makeResearchHandoff} from '../src/feed-handoff.mjs';
-import {emptyMarketMemory,mergeMemory,planIncrementalScan} from '../src/market-memory.mjs';
+import {emptyMarketMemory,mergeMemory} from '../src/market-memory.mjs';
 import {fairRecheckPlan,recordRecheckAttempt} from '../src/discovery-fair-queue.mjs';
 import {makeCaptureObservationBatch,scoreAsOf,labelAfterHorizon} from '../src/forward-learning.mjs';
 
@@ -167,7 +167,7 @@ if(maturePrior){
 await mkdir('research/state/checkpoints',{recursive:true});
 await writeFile(memoryPath,JSON.stringify(memory,null,2)+'\n','utf8');
 const memoryCheckpointPath='research/state/checkpoints/'+runId+'.json';
-const nextPlan=planIncrementalScan(memory,{asOfUtc:data.captured_completed_at_utc,maxRechecks:request.max_dex_pairs});
+const nextPlan=fairRecheckPlan(memory,{asOfUtc:data.captured_completed_at_utc,maxRechecks:request.max_dex_pairs});
 const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
  run_id:runId,created_at_utc:data.captured_completed_at_utc,request_path:path,
  immutable_feed_path:filename,
@@ -176,7 +176,7 @@ const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
  new_dex_fallback_pools:mergedDex.added,
  updated_pool_observations:mergedOld.updated+mergedGecko.updated+mergedDex.updated,
  coverage:memory.checkpoints,stats:memory.stats,
- historic_rechecks_next:nextPlan.rechecks,
+ historic_rechecks_next:nextPlan.candidates,
  fair_recheck_attempts:attempts,
  fair_recheck_backlog_remaining:plan.backlog_count,
  observation_path:observationPath,ranking_path:rankingPath,
