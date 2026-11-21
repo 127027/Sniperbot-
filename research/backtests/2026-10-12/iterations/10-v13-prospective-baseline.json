@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "kind": "R29_V13_BLIND_DISCOVERY_PROSPECTIVE_BASELINE",
+  "generated_at_utc": "2026-11-21T19:00:16.791Z",
+  "source": {
+    "user_file": "R29_Memecoin_Gewinner_2026-10-12.xlsx",
+    "reported_gainers": 65,
+    "reported_100_percent_or_greater": 65,
+    "linked_pool_ids": 8,
+    "missing_pool_ids": 57,
+    "classification": {
+      "meme_and_meme_adjacent_total": 46,
+      "project_or_utility_unclear": 19
+    },
+    "chains": {
+      "robinhood": 27,
+      "solana": 27,
+      "ethereum": 7,
+      "bsc": 3,
+      "cronos": 1
+    },
+    "exact_utc_low_high_proven": 0,
+    "note": "Original file itself disclaims proof of exact UTC low-high, retained as after-only."
+  },
+  "baseline": {
+    "v12_frozen_post_event_pools": 6,
+    "v12_guarded_reentry_model_realized_pnl_test_usdc": -5.296654415497276,
+    "old_real_paper_orders": 0,
+    "old_real_client_fills": 0,
+    "prior_memory_pools": 69
+  },
+  "v13_real_runs": [
+    {
+      "id": 44938248515,
+      "chain": "base",
+      "captured_pools": 6,
+      "valid_contracts": 6,
+      "rechecks": 6,
+      "memory_pools_after": 75,
+      "prospective_rankable": 0,
+      "source": "research/observations/2026-11-21/44938248515.json"
+    },
+    {
+      "id": 44938541583,
+      "chain": "ethereum",
+      "captured_pools": 3,
+      "valid_contracts": 3,
+      "rechecks": 6,
+      "memory_pools_after": 78,
+      "prospective_rankable": 0,
+      "source": "research/observations/2026-11-21/44938541583.json"
+    }
+  ],
+  "built_components": [
+    "src/discovery-fair-queue.mjs",
+    "src/discovery-page-scheduler.mjs",
+    "src/forward-learning.mjs",
+    "src/temporal-learning.mjs",
+    "scripts/audit-v13-learning.mjs"
+  ],
+  "tested_properties": [
+    "No future observations or labels in as-of ranking",
+    "Unfiltered positive and negative market captures",
+    "Historical labels mature only after the real 24h horizon",
+    "No 65-winner-list training seed",
+    "No winner-only threshold training",
+    "Different temporal validation cohorts",
+    "Fair-pool recheck without starvation",
+    "Per-chain page1/backlog alternation instead of global parity",
+    "Provider observed timestamp does not imply risk authorization"
+  ],
+  "blind_performance": {
+    "target_recall_at_least_pct": 10,
+    "measured_recall_pct": null,
+    "precision_pct": null,
+    "labeled_nonwinner_controls": 0,
+    "usable_prospective_24h_followups": 0,
+    "measured_real_model_improvement": null,
+    "reason": "NO_MATURED_FORWARD_24H_NONWINNER_AND_WINNER_COHORT"
+  },
+  "trading": {
+    "actual_paper_orders_confirmed": 0,
+    "actual_paper_client_fills_confirmed": 0,
+    "risk_status": "NO_DOT3_ELIGIBLE_VERIFIED",
+    "trade_authorization_unmodified": true
+  },
+  "limitations": [
+    "Only one GeckoTerminal network and one page per triggered capture; full world coverage unverified",
+    "Two samples too close or from distinct pools do not prove a trend",
+    "DEX provider quote as-of may remain absent even when HTTP fetch is timestamped",
+    "October list contains 57 entries with no exact pool, cannot compute honest blind detection denominator",
+    "The six historical pool tapes were selected after their observed success",
+    "Real user receives no background result delivery unless existing five Dot tasks run and persist reports"
+  ]
+}
