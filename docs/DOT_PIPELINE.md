@@ -65,3 +65,6 @@ Beachte [DOT3_DOT4_V12.md](DOT3_DOT4_V12.md). Dot3 bearbeitet eine evidence-gate
 
 ## V1.3 – Prospektiv und fair statt Gewinnerlisten
 Lies [V13_FORWARD_BLIND_LEARNING.md](V13_FORWARD_BLIND_LEARNING.md). Pro echtem Dot2-GitHub-Capture sämtliche tatsächlich gesehenen Pools ohne Winner-Selektion speichern, faire Recheck-Rotation führen, zeitliche Preis-/Volumenmerkmale nur aus vorherigen Captures ableiten, nach 24h getrennt labeln, nur mit gemischten positiven/negativen Ergebnissen früherer Zeitfenster lernen. Kein BUY ohne tatsächliche Dot3-ELIGIBLE-Risikofreigabe und frische Orderquotes.
+
+## V1.4 – Kostenlose öffentliche Medien- und Meme-Erkennung
+Pflichtlektüre: [MEDIA_TREND_V14.md](MEDIA_TREND_V14.md). Im selben stündlichen Dot2-Capture nimmt der neue Medien-Sammler zulässige öffentliche RSS-/Bluesky-Feed-Metadaten auf und schreibt `research/media/latest.json`, `research/media/state/memory.json`, `research/media/YYYY-MM-DD/<run-id>/asof-signals.json`. X-/Reddit-Zugriffsgrenzen explizit dokumentieren, niemals behaupten diese Plattformen vollumfänglich zu überwachen. Medien sind Watch-Hinweise, keine Contract-, Risk- oder BUY-Nachweise. A/B-Research mit identischen Marktständen und ausschließlich zur Zeit bereits erfassten Medien.
