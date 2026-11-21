@@ -21,3 +21,6 @@ Unterstützt keine historische Echtzeit-Rekonstruktion der originalen Agenten-GP
 
 ## Forensischer Quellenprobe (nur TRAINING)
 Die GitHub-Actions-Workflow-Ergänzung `scripts/forensic-probe-15nov.mjs` ruft probeweise zwei bereits nachträglich bekannte BSC-Tokens (DOPE und BLG Champion) ab, prüft den echten Pool-Eröffnungszeitpunkt und liest vorhandene historische OHLCV-Kerzen. Die Auswahl ist ergebnisbehaftet und **niemals** ein neutraler Blindtest. Der erste Probelauf zeigte erreichbare Token→Pool-Antworten, aber einen Script-Variablenfehler; dieser wurde korrigiert. Die erzeugten Probe-Dateien sind nur GitHub-Actions-Artefakte, keine Trades oder neue Kandidaten für die Strategie.
+
+## Fehler V0.6.1: Genau am Scan-Ende schließende Candle
+Eine 5-Minuten-Kerze, die um hh:35:00 schließt, ist nicht sicher exakt im selben Moment als validierte API-Antwort verfügbar. Die historische Forschung nutzt daher mindestens **60 Sekunden Finalisierungsabstand** für belegte Schlusskurse. Auch forensische WATCH-/EXIT-Preismuster gelten nur mit dieser Verzögerung. Das ist konservativ, nicht eine Behauptung über den echten Anbieter-Lag.

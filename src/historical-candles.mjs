@@ -29,12 +29,12 @@ export function normalizeHistoricalCandles({apiResponse,day,aggregateMinutes=5,s
   candle_interval_minutes:aggregateMinutes,candle_count:candles.length,candles,issues,
   independent_provider_confirmed:false,historical_liquidity_confirmed:false,trade_eligible:false};
 }
-export function closeAsOf(tape,decisionTimeIso,{maxAgeMinutes=15}={}){
+export function closeAsOf(tape,decisionTimeIso,{maxAgeMinutes=15,minimumFinalizationDelayMs=60000}={}){
  const t=ms(decisionTimeIso);
  if(t===null)throw Error('INVALID_DECISION_TIME');
  const known=(tape?.candles||[]).filter(c=>{
   const close=ms(c?.known_no_earlier_than_utc);
-  return close!==null&&close<=t&&t-close<=maxAgeMinutes*60000;
+  return close!==null&&close+minimumFinalizationDelayMs<=t&&t-close<=maxAgeMinutes*60000;
  });
  return known.length?known.at(-1):null;
 }

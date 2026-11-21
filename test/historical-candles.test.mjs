@@ -9,8 +9,10 @@ test('only closed historical candles are knowable at decision time',()=>{
  ]}}}});
  assert.equal(tape.candle_count,2);
  assert.equal(closeAsOf(tape,'2026-11-15T00:34:00Z'),null);
- assert.equal(closeAsOf(tape,'2026-11-15T00:35:00Z').close_usd,.0012);
- assert.equal(closeAsOf(tape,'2026-11-15T00:40:00Z').close_usd,.0015);
+ assert.equal(closeAsOf(tape,'2026-11-15T00:35:00Z'),null);
+ assert.equal(closeAsOf(tape,'2026-11-15T00:36:00Z').close_usd,.0012);
+ assert.equal(closeAsOf(tape,'2026-11-15T00:40:00Z').close_usd,.0012);
+ assert.equal(closeAsOf(tape,'2026-11-15T00:41:00Z').close_usd,.0015);
  assert.equal(tape.trade_eligible,false);
 });
 test('provider future high is not a usable pre-close signal',()=>{

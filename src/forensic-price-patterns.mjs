@@ -15,7 +15,7 @@ takeProfitPct=20,stopLossPct=10}={}){
   const tick=start+h*3600000+35*minute,dot2=tick-20*minute;
   const now=tape.candles.filter(c=>{
     const closed=ms(c.known_no_earlier_than_utc);
-    return closed!==null&&closed<=tick&&tick-closed<=15*minute;
+    return closed!==null&&closed+minute<=tick&&tick-closed<=15*minute;
   }).at(-1);
   let status='NO_RECENT_CLOSED_CANDLE',reason=null,changePct=null;
   if(poolAt>dot2){status='NOT_IN_PREVIOUS_DOT2_SCAN';}
