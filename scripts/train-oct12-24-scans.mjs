@@ -8,8 +8,23 @@ import {build24TrainingTimeline,auditCurrentDotRoles} from '../src/dot-duty-audi
 const day='2026-10-12',end=Math.floor(Date.parse('2026-10-13T00:00:00Z')/1000);
 const manifest=JSON.parse(await readFile('research/training/2026-10-12/reference-manifest.json','utf8'));
 const statuses=[],pools=[];
+const quotaCooldowns=[];
+let cooldownRemaining=2;
 async function get(url){
- const result=await fetch(url,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(15000)});
+ const fetchOnce=()=>fetch(url,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(15000)});
+ let result=await fetchOnce();
+ // Free GeckoTerminal endpoints may throttle heavily. At most TWO 65-second
+ // cooldowns across the ENTIRE training run; never retry a non-429 error.
+ if(result.status===429&&cooldownRemaining>0){
+   const attempt=3-cooldownRemaining;
+   cooldownRemaining--;
+   const waitMs=65000;
+   const event={attempt,wait_ms:waitMs,source_url:url,reason:'PUBLIC_PROVIDER_429'};
+   quotaCooldowns.push(event);
+   console.log('OCT12_QUOTA_COOLDOWN',JSON.stringify(event));
+   await new Promise(resolve=>setTimeout(resolve,waitMs));
+   result=await fetchOnce();
+ }
  if(!result.ok)throw Error('HTTP_'+result.status);
  return result.json();
 }
@@ -113,6 +128,8 @@ const summary={schema:1,kind:'OCT12_TRAINING_RESTART_24_SCANS_WITH_DOT_AUDIT',
  model_experiments:experiments,
  history_policy:'NO_ARTIFICIAL_TWO_HOUR_OR_CALENDAR_DAY_SOURCE_FILTER',
  market_archive_completeness:'INCOMPLETE_POST_HOC_SAMPLE_NOT_ALL_65',
+ quota_cooldowns:quotaCooldowns,
+ quota_wait_total_seconds:quotaCooldowns.reduce((sum,e)=>sum+e.wait_ms,0)/1000,
  backfill_attempts:statuses.filter(x=>x.historical_backfill_attempted).length,
  prior_day_candles_loaded:statuses.reduce((sum,x)=>sum+(x.pre_day_candle_count||0),0),
  actual_current_dot_audit:roles,
@@ -122,4 +139,5 @@ await mkdir('probe-artifacts',{recursive:true});
 await writeFile('probe-artifacts/oct12-training-summary.json',JSON.stringify(summary,null,2)+'\n');
 console.log('OCT12_TRAINING_FINISH',JSON.stringify({scans:24,post_hoc_references:65,linked:8,
  historical_pool_tapes:pools.length,rate_limit_stop:providerBackoff,
+ quota_cooldowns:quotaCooldowns.length,quota_wait_total_seconds:quotaCooldowns.reduce((sum,e)=>sum+e.wait_ms,0)/1000,
  actual_paper_orders:0,role_audit_complete:roles.all_roles_complete}));

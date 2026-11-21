@@ -16,7 +16,7 @@ permissions:
 jobs:
   paper-only:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout cleanroom branch
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
         run: npm test
       - name: Oct 12 training - 24 hourly research scans and five-dot duty audit
         continue-on-error: false
-        timeout-minutes: 3
+        timeout-minutes: 7
         run: node scripts/train-oct12-24-scans.mjs
       - name: V1.1 first full as-of scan followed by 23 incremental market-memory scans
         run: node scripts/replay-v11-first-scan.mjs
