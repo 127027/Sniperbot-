@@ -26,6 +26,10 @@ jobs:
           node-version: 22
       - name: Run tests
         run: npm test
+      - name: Oct 12 training - 24 hourly research scans and five-dot duty audit
+        continue-on-error: false
+        timeout-minutes: 3
+        run: node scripts/train-oct12-24-scans.mjs
       - name: Non-trading historical GeckoTerminal probe (informational only)
         continue-on-error: true
         timeout-minutes: 2
