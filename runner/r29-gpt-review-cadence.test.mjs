@@ -17,7 +17,8 @@ test('4→24 immediately after >= 60 min; no WATCH scan incorrectly counts as GP
  assert.equal(fast.real_reviews_observed_today,x.reviews.length);
  assert.equal(fast.paper_trade_authorized,false);
  assert.equal(fast.full_coin_universe_observed,false);
- assert.equal(fast.index_next_due_matches_selected_frequency,false);
+ assert.equal(fast.index_next_due_matches_selected_frequency,true,
+  'current index claims an hourly next_due even though target_per_day is 12');
  const slow=planGptReviewCadence(x,{now:when,selectedFrequencyPerDay:4});
  assert.equal(slow.review_due_now,false);
  assert.equal(slow.target_review_interval_minutes,360);
