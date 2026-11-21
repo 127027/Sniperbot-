@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "dot": "dot-5",
+  "version": "V1.6",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "run_at_utc": "2026-11-21T23:44:46.274Z",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "status": "DATA_GAP",
+  "daily_dot6": "ALREADY_PUBLISHED_2026-11-21_NEXT_2026-11-22_NOT_DUE",
+  "checks": {
+    "dot1": {
+      "status": "DATA_GAP",
+      "target_per_24h": 4,
+      "journal_sha_verified": true
+    },
+    "dot2": {
+      "capture_run_id": "44960460589",
+      "capture_utc": "2026-11-21T23:10:29.756Z",
+      "chain": "cronos",
+      "raw_pools": 20,
+      "full_contracts": 20,
+      "exact_dex_pairs": 5,
+      "independent_complete_quotes": 0,
+      "market_memory_pools": 164,
+      "observation_batches": 44,
+      "open_fair_rechecks": 158,
+      "other_chains_not_checked": 5,
+      "journal_sha_verified": true,
+      "raw_evidence_sha_verified": true,
+      "checkpoint_sha": "26e95be0d715f488bdc4609d11fbd3e2fa703c26"
+    },
+    "dot3": {
+      "risk_checked": 20,
+      "eligible": 0,
+      "rejected": 19,
+      "data_gap": 1,
+      "journal_sha_verified": true
+    },
+    "dot4": {
+      "review_type": "HOURLY_EXIT_CHECK_ONLY",
+      "buy": 0,
+      "sell": 0,
+      "orders_published": 0,
+      "next_full_review_due_utc": "2026-11-22T00:40:16.012Z",
+      "journal_sha_verified": true
+    },
+    "signals": {
+      "index_sha": "8f360a172e95adfda2d30105dd3fc7639497367d",
+      "orders": 0,
+      "orders_directory": "404_NOT_FOUND",
+      "pointer_repair": "NOT_APPLICABLE_NO_AUTHORIZED_ORDERS"
+    },
+    "clients": {
+      "receipts_directory": "404_NOT_FOUND",
+      "confirmed_paper_filled": 0,
+      "confirmed_paper_rejected": 0,
+      "status": "OFFLINE_OR_UNCONFIRMED"
+    },
+    "media": {
+      "sources_attempted": 7,
+      "available": 7,
+      "unique_archived_events": 210,
+      "contract_matches": 0,
+      "ab_matured": "UNKNOWN",
+      "x_reddit": "INACCESSIBLE"
+    },
+    "oracle": {
+      "historical_references": 65,
+      "valid_poolstrings": 15,
+      "contractstrings": 7,
+      "retrospective_tapes": 6,
+      "status": "TRAINING_ONLY_NOT_TRADES",
+      "independent_holdout_accuracy": null
+    }
+  },
+  "sha_discrepancies": [
+    {
+      "path": "research/feeds/2026-11-21/44960460589/dot2-to-dot3-handoff.json",
+      "dot2_latest_claim": "95f36cd17247029395b9d78131fe2775a2d1d6d5",
+      "actual_git_blob_sha": "e4f489ebf52997bc0297305a690385a85be1a363",
+      "dot3_reference": "e4f489ebf52997bc0297305a690385a85be1a363",
+      "severity": "POINTER_INTEGRITY_ERROR",
+      "remediation": "Dot2 owner must correct its handoff SHA in next Dot2 latest update using current Git blob SHA; Dot5 must not alter Dot2 pointer"
+    }
+  ],
+  "improvement": {
+    "priority": "P0_DOT2_HANDOFF_SHA_MISMATCH",
+    "before": "1 mismatched Dot2 handoff SHA pointer",
+    "after": "NOT_FIXED",
+    "experiment": "Re-read handoff file Git blob and compare against Dot2 latest on next wake",
+    "rollback": "No code or source changes"
+  },
+  "limitations": [
+    "No complete independent price/liquidity/sellability proofs",
+    "No mature forward 24h cohort or independent Oracle holdout",
+    "No client receipts; no execution confirmation",
+    "No global gainer coverage assertion"
+  ],
+  "no_orders_invented": true,
+  "no_client_fills_invented": true
+}
