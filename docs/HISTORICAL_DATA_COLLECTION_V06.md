@@ -18,3 +18,6 @@ Der Befehl nutzt ausschließlich öffentliche Daten und schreibt nach \`research
 Quelle: https://skmtc.dev/geckoterminal/apis/geckoterminal-api-v2/docs/networks/:network/pools/:pool_address/ohlcv/:timeframe/get
 
 Unterstützt keine historische Echtzeit-Rekonstruktion der originalen Agenten-GPT-Entscheidung: diese muss als Replay der festgelegten Strategie separat erfolgen.
+
+## Forensischer Quellenprobe (nur TRAINING)
+Die GitHub-Actions-Workflow-Ergänzung `scripts/forensic-probe-15nov.mjs` ruft probeweise zwei bereits nachträglich bekannte BSC-Tokens (DOPE und BLG Champion) ab, prüft den echten Pool-Eröffnungszeitpunkt und liest vorhandene historische OHLCV-Kerzen. Die Auswahl ist ergebnisbehaftet und **niemals** ein neutraler Blindtest. Der erste Probelauf zeigte erreichbare Token→Pool-Antworten, aber einen Script-Variablenfehler; dieser wurde korrigiert. Die erzeugten Probe-Dateien sind nur GitHub-Actions-Artefakte, keine Trades oder neue Kandidaten für die Strategie.
