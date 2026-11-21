@@ -1,7 +1,7 @@
 // R29 clean-room virtual exchange: no blockchain transactions, wallet or legacy bot imports.
 import { createHash, randomBytes } from 'node:crypto';
 import { tokenValid, poolValid, exactPoolUrl, parsePoolUrl } from './market-evidence.mjs';
-export const CHAINS = new Set(['solana', 'ethereum', 'base', 'bsc']);
+export const CHAINS = new Set(['solana', 'ethereum', 'base', 'bsc', 'robinhood', 'cronos']);
 export const DEFAULT_POLICY = Object.freeze({
   startingBalance: 5000, entryAmount: 50, maxPositions: 30,
   maxQuoteAgeMs: 90_000, maxOrderAgeMs: 300_000,

@@ -47,3 +47,6 @@ Siehe [DOT4_EXIT_REVIEW.md](DOT4_EXIT_REVIEW.md). Beim stündlichen Wake prüft 
 
 ## V0.4: lückenloses Point-in-time-Quellenarchiv
 Vor jedem automatischen historischen Verbesserungs-Replay [MARKET_OBSERVATION_ARCHIVE.md](MARKET_OBSERVATION_ARCHIVE.md) und [HISTORICAL_REPLAY_ACCEPTANCE.md](HISTORICAL_REPLAY_ACCEPTANCE.md) lesen. Dot 2/3/4 speichern Quellen, tatsächliche Beobachtungszeiten und (wenn vorhanden) unabhängige Provider-Zeitstempel. Dot 5/6 darf historische Tagesgewinnerlisten nur für den NACHträglichen Score verwenden. Tages- und Backtest-Erfolge sind voneinander zu trennen.
+
+## V0.5: Trainieren statt Gewinnerliste auswendig lernen
+Siehe [TRAINING_2026-10-12.md](TRAINING_2026-10-12.md). Die retrospektiven 65 Gewinnerhinweise werden nur für Ursachen-/Coverage-Analyse verwendet. Forschung umfasst zusätzlich die öffentlichen Pool-Listen auf Robinhood und Cronos. Unvollständige und riskante Poolidentitäten verbleiben in einer Beobachtungswarteschlange, siehe `src/candidate-queue.mjs`; ihre Entdeckung ist KEINE Kauf-Freigabe. Der erste GPT-Vollreview darf BUY/WATCH/NO_TRADE, falls tatsächliche Evidenz vorliegt. Keine Übernahme bekannter Coin-Namen in den aktiven Suchstart.

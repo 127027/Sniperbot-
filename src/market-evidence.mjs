@@ -1,7 +1,7 @@
 const evm = /^0x[0-9a-fA-F]{40}$/;
 const v4 = /^0x[0-9a-fA-F]{64}$/;
 const sol = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
-const chains = {eth:'ethereum',ethereum:'ethereum',base:'base',bsc:'bsc',solana:'solana'};
+const chains = {eth:'ethereum',ethereum:'ethereum',base:'base',bsc:'bsc',bnb:'bsc',solana:'solana',robinhood:'robinhood',robinhoodchain:'robinhood',cronos:'cronos',cro:'cronos'};
 export const canonicalChain = s => chains[String(s||'').toLowerCase()] || null;
 export function tokenValid(chain,value){
  const c=canonicalChain(chain);
@@ -35,7 +35,7 @@ export function exactPoolUrl(value,chain,pool){
 export function explorerToken(chain,value){
  let u;try{u=new URL(value)}catch{return null}
  const c=canonicalChain(chain);
- const hosts={solana:'solscan.io',base:'basescan.org',ethereum:'etherscan.io',bsc:'bscscan.com'};
+ const hosts={solana:'solscan.io',base:'basescan.org',ethereum:'etherscan.io',bsc:'bscscan.com',robinhood:'explorer.robinhoodchain.com',cronos:'cronoscan.com'};
  if(u.protocol!=='https:'||u.hostname.toLowerCase().replace(/^www\./,'')!==hosts[c])return null;
  const m=u.pathname.match(/^\/token\/([^/]+)\/?$/i);
  if(!m||!tokenValid(c,m[1]))return null;
