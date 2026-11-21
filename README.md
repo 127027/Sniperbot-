@@ -27,7 +27,7 @@ The `examples/order.sample.json` is deliberately expired and **not listed in the
 2. Clone this branch into a **brand-new folder**, not the old Sniperbot folder:
    `git clone --branch codex/r29-cleanroom-paper-20261121 --single-branch https://github.com/127027/Sniperbot-.git R29-CleanPaper`
 3. `cd R29-CleanPaper`
-4. Run `npm test` (eight tests) or `npm run demo` (fully offline synthetic BUY+SELL; no changes to GitHub or the real paper ledger).
+4. Run `npm test` (ten tests) or `npm run demo` (fully offline synthetic BUY+SELL; no changes to GitHub or the real paper ledger).
 5. Create a **fine-grained GitHub PAT**, repository scope `127027/Sniperbot-`, Contents **read/write**. The token is necessary to publish GitHub receipts and avoid anonymous rate limits. Keep it private.
 6. In PowerShell start `./scripts/Start-CleanPaper.ps1` and enter that token in its hidden prompt. It sets PAPER mode and runs the cleanroom bot; stop the script to stop polling.
 
