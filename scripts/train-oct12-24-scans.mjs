@@ -2,7 +2,7 @@
 // hindsight archive references, never autonomous discovery or a blind holdout.
 // No wallet, API keys or paid APIs. Copies no symbols to the live strategy.
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
-import {normalizeHistoricalCandles} from '../src/historical-candles.mjs';
+import {normalizeHistoricalCandles,mergeHistoricalCandles} from '../src/historical-candles.mjs';
 import {runResearchPaperLab} from '../src/research-paper-lab.mjs';
 import {build24TrainingTimeline,auditCurrentDotRoles} from '../src/dot-duty-audit.mjs';
 const day='2026-10-12',end=Math.floor(Date.parse('2026-10-13T00:00:00Z')/1000);
@@ -35,7 +35,28 @@ for(const reference of manifest.reference_pool_links){
   // Two URL-based sources are NOT considered independent historical trade quotes.
   const candleUrl='https://api.geckoterminal.com/api/v2/networks/'+network+'/pools/'+encodeURIComponent(reference.pool)
      +'/ohlcv/minute?aggregate=5&before_timestamp='+(end+1)+'&limit=1000&currency=usd';
-  const tape=normalizeHistoricalCandles({day,aggregateMinutes:5,source_url:candleUrl,apiResponse:await get(candleUrl)});
+  const dayData=await get(candleUrl);
+  const tapes=[normalizeHistoricalCandles({day,aggregateMinutes:5,historyStartUtc:'1970-01-01T00:00:00Z',
+    source_url:candleUrl,apiResponse:dayData})];
+  row.historical_backfill_attempted=false;
+  row.historical_backfill_error=null;
+  // Previous-day/page history only for pools already alive before the day.
+  // This one-page request budget is a checkpointed coverage gap, NOT a data-age policy.
+  if(Date.parse(row.pool_created_at_utc)<Date.parse(day+'T00:00:00Z')){
+    row.historical_backfill_attempted=true;
+    const cursor=Math.floor(Date.parse(day+'T00:00:00Z')/1000);
+    row.historical_backfill_cursor_before_seconds=cursor;
+    const backUrl='https://api.geckoterminal.com/api/v2/networks/'+network
+     +'/pools/'+encodeURIComponent(reference.pool)
+     +'/ohlcv/minute?aggregate=5&before_timestamp='+cursor+'&limit=1000&currency=usd';
+    try{
+      tapes.push(normalizeHistoricalCandles({day,aggregateMinutes:5,
+        historyStartUtc:'1970-01-01T00:00:00Z',source_url:backUrl,apiResponse:await get(backUrl)}));
+    }catch(e){row.historical_backfill_error=String(e.message||e).slice(0,120);}
+  }
+  const tape=mergeHistoricalCandles({day,tapes});
+  row.history_access_policy='ALL_PROVIDER_RETURNED_PAST_CANDLES_NO_AGE_CUTOFF';
+  row.pre_day_candle_count=tape.earlier_than_day_count;
   row.candle_count=tape.candle_count;
   row.first_candle_closed_at_utc=tape.candles[0]?.known_no_earlier_than_utc??null;
   row.last_candle_closed_at_utc=tape.candles.at(-1)?.known_no_earlier_than_utc??null;
@@ -90,6 +111,10 @@ const summary={schema:1,kind:'OCT12_TRAINING_RESTART_24_SCANS_WITH_DOT_AUDIT',
  source_eligible_pool_tapes:pools.length,
  source_candidates:statuses,
  model_experiments:experiments,
+ history_policy:'NO_ARTIFICIAL_TWO_HOUR_OR_CALENDAR_DAY_SOURCE_FILTER',
+ market_archive_completeness:'INCOMPLETE_POST_HOC_SAMPLE_NOT_ALL_65',
+ backfill_attempts:statuses.filter(x=>x.historical_backfill_attempted).length,
+ prior_day_candles_loaded:statuses.reduce((sum,x)=>sum+(x.pre_day_candle_count||0),0),
  actual_current_dot_audit:roles,
  actually_published_paper_orders:0,actually_verified_fills:0,
  warning:'Archive winners are a post-day reference; no original Dot2 intraday discovery or independent historic risk quotes have been established. Experiment BUY/SELL are not actual Dot orders.'};
