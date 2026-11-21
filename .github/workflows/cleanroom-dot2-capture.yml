@@ -18,7 +18,7 @@ jobs:
       - name: Checkout isolated cleanroom branch
         uses: actions/checkout@v4
         with:
-          ref: codex/r29-cleanroom-paper-20261121
+          ref: ${{ github.sha }}
           fetch-depth: 2
           persist-credentials: true
       - name: Setup Node 22
