@@ -3,6 +3,7 @@
 // This deliberately cannot be counted as an unbiased blind backtest.
 import {mkdir,writeFile} from 'node:fs/promises';
 import {normalizeHistoricalCandles,closeAsOf} from '../src/historical-candles.mjs';
+import {evaluateHourlyPricePatterns} from '../src/forensic-price-patterns.mjs';
 const date='2026-11-15',end=Math.floor(Date.parse('2026-11-16T00:00:00Z')/1000);
 const tokens=[
  {symbol:'DOPE',chain:'bsc',contract:'0xd0a8827e6b5cfc0044fd4cc0b2f4965819f6db19',group:'RETROSPECTIVE_GAINER_BIASED'},
@@ -47,6 +48,10 @@ for(const token of tokens){
      last_completed_candle_close_usd:closeAsOf(tape,date+'T'+s+':00Z')?.close_usd??null
    }));
    out.data_class=tape.reconstruction_type;
+   out.hourly_pattern_diagnostic=evaluateHourlyPricePatterns({date,tape,pool_created_at_utc:out.pool_created_at});
+   out.hourly_price_patterns=out.hourly_pattern_diagnostic.patterns;
+   await mkdir('probe-artifacts',{recursive:true});
+   await writeFile('probe-artifacts/'+date+'-'+token.symbol+'-reconstructed-candles.json',JSON.stringify({...tape,pool,token:token.contract},null,2)+'\n');
    out.trade_eligible=false;
  }catch(error){out.error=String(error?.message||error).slice(0,250);out.trade_eligible=false;}
  result.results.push(out);
