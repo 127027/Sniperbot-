@@ -8,7 +8,7 @@ test('only closed historical candles are knowable at decision time',()=>{
  [t+2100,.0012,.0016,.0011,.0015,24000]
  ]}}}});
  assert.equal(tape.candle_count,2);
- assert.equal(closeAsOf(tape,'2026-11-15T00:34:00Z').close_usd,.0012);
+ assert.equal(closeAsOf(tape,'2026-11-15T00:34:00Z'),null);
  assert.equal(closeAsOf(tape,'2026-11-15T00:35:00Z').close_usd,.0012);
  assert.equal(closeAsOf(tape,'2026-11-15T00:40:00Z').close_usd,.0015);
  assert.equal(tape.trade_eligible,false);
