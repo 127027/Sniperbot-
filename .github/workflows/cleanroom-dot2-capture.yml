@@ -27,11 +27,13 @@ jobs:
           node-version: 22
       - name: Capture public research evidence
         run: node scripts/cloud-discovery-runner.mjs
+      - name: V1.4 capture public meme and news evidence
+        run: node scripts/cloud-media-capture.mjs
       - name: Commit research feed to cleanroom branch only
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add research/feeds/ research/state/ research/observations/
+          git add research/feeds/ research/state/ research/observations/ research/media/
           git diff --cached --quiet && exit 0
           git commit -m "data(cleanroom): capture authenticated Dot2 research feed"
           success=0
