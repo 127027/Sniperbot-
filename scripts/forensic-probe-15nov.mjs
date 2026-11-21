@@ -25,14 +25,20 @@ for(const token of tokens){
    const pools=Array.isArray(p?.data)?p.data:[];
    out.discovered_pool_count=pools.length;
    if(pools.length===0)throw Error('NO_TOKEN_POOL_RESULTS');
-   const best=pools.find(z=>z?.attributes?.address)||pools[0];
+   const timeStart=Date.parse(date+'T00:00:00Z');
+   const timeEnd=Date.parse('2026-11-16T00:00:00Z');
+   const inWindow=pools.filter(z=>{const created=Date.parse(z?.attributes?.pool_created_at);return Number.isFinite(created)&&created>=timeStart&&created<timeEnd&&typeof z?.attributes?.address==='string';});
+   const beforeWindow=pools.filter(z=>{const created=Date.parse(z?.attributes?.pool_created_at);return Number.isFinite(created)&&created<timeStart&&typeof z?.attributes?.address==='string';});
+   out.pools_opened_in_window=inWindow.length;
+   const best=inWindow[0]||beforeWindow[0];
+   if(!best)throw Error('NO_POOL_EXISTED_BY_WINDOW_END');
    const pool=best?.attributes?.address;
    if(typeof pool!=='string')throw Error('MISSING_EXACT_POOL_ADDRESS');
    out.pool=pool;
    out.pool_created_at=best?.attributes?.pool_created_at||null;
    const url='https://api.geckoterminal.com/api/v2/networks/'+token.chain+'/pools/'+encodeURIComponent(pool)
     +'/ohlcv/minute?aggregate=5&before_timestamp='+(end+1)+'&limit=1000&currency=usd';
-   const tape=normalizeHistoricalCandles({apiResponse:await json(url),day,aggregateMinutes:5,source_url:url});
+   const tape=normalizeHistoricalCandles({apiResponse:await json(url),day:date,aggregateMinutes:5,source_url:url});
    out.candle_count=tape.candle_count;
    out.first_closed_candle_utc=tape.candles[0]?.known_no_earlier_than_utc||null;
    out.last_closed_candle_utc=tape.candles.at(-1)?.known_no_earlier_than_utc||null;
