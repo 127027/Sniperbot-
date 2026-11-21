@@ -1,6 +1,6 @@
 # R29 Cleanroom: dauerhaftes Cloud-Signal-System (kein laufender Endgeräte-Bot erforderlich)
 
-Nur Repo `127027/Sniperbot-`, Branch `codex/r29-cleanroom-paper-20261121`. Fünf unabhängige **stündliche** ChatGPT-Automationen arbeiten auf Cloud-Seite auch dann, wenn kein Windows-/Laptop-/Handy-Client läuft. Das ist wiederkehrende Recherche, **kein sekündlich garantierter 24/7-Marktdatenstream**. Alte R29-Automationen und main werden nicht verwendet.
+Nur Repo `127027/Sniperbot-`, Branch `codex/r29-cleanroom-paper-20261121`. Fünf unabhängige **stündliche** ChatGPT-Automationen (plus ein **täglicher** sechster Verbesserungs-Dot) arbeiten auf Cloud-Seite auch dann, wenn kein Windows-/Laptop-/Handy-Client läuft. Das ist wiederkehrende Recherche, **kein sekündlich garantierter 24/7-Marktdatenstream**. Alte R29-Automationen und main werden nicht verwendet.
 
 ## Alle fünf Dots
 1. Dot 1 / Tempo: Marktdynamik anhand tatsächlich beobachteter Pools/Volumina/Datenlücken ermitteln; Zielwert 4/8/12/24 vollständige GPT-Analysen pro 24 Stunden in `research/control/cadence.json` speichern. Sofort 4->24 erlaubt, zurück nur nach zwei ruhigen Bestätigungen; fehlende Daten bedeuten nicht ruhiger Markt.
@@ -31,3 +31,7 @@ Jede Installation erhält eine dauerhafte zufällige `clientId` und ein eigenes,
 
 ## Stand und Grenzen
 GitHub-Actions-Schedules laufen nur auf dem **Default-Branch**, der hier nicht geändert wird. Die stündlichen ChatGPT-Automationen müssen deshalb cloudseitig für den Cleanroom-Branch aktiviert werden; geplante Ausführungen können sich verzögern. Kein neues Anbieter-Abo, keine OpenAI-API im lokalen Client, keine Echtgeld-Transaktion, keine Garantie auf vollständige Marktabdeckung oder Rendite. Nachtsimulation 20.–21.11.2026 mit 21 bekannten Kandidaten ausschließlich als nachträgliche Kontrollgruppe ohne Zukunftswissen.
+
+
+## Dot 6 – Daily Improvement / 24h >100% Gainer Audit
+Dot 6 prüft täglich rückblickend die **tatsächlich aus öffentlichen Quellen nachweisbaren** >100%-24h-Memecoin-Pools, vergleicht chain+contract+pool mit allen Dot-Journalen, GitHub-Orders und pro-Client PAPER-FILLED/-REJECTED Quittungen, diagnostiziert verpasste oder falsche Ein- und Ausstiege sowie Datenlücken und dokumentiert priorisierte kontrollierte Verbesserungen mit täglicher Wirksamkeitsprüfung. Keine weltweite Vollständigkeitsgarantie aus HTML-Ranglisten. Vollständiger verbindlicher Ablauf: [DOT6_DAILY_IMPROVEMENT.md](DOT6_DAILY_IMPROVEMENT.md).
