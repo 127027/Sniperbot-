@@ -28,10 +28,15 @@ const pointer={schema:'sniper_r29_gpt_paper_pointer.v1',
 const owner='127027',SHA='c'.repeat(40),BLOB='a'.repeat(40);
 const accessToken='github_pat_MOCK_TEST_SECRET_123456789012345';
 const localCapability='f'.repeat(64);
-function mockProvider({badOwner=false,badArchive=false}={}){
+function mockProvider({badOwner=false,badArchive=false,tradeDecision=null}={}){
  const calls=[],fileBlob={};
- fileBlob[GPT_PAPER_DECISION_PATH]={text:JSON.stringify(pointer,null,2)+'\n',sha:'1'.repeat(40)};
- fileBlob[ap]={text:badArchive?archive.replace('NO_TRADE','WATCH'):archive,sha:'2'.repeat(40)};
+ const d=tradeDecision||decision,raw=JSON.stringify(d,null,2)+'\n';
+ const route=archivePath(d.decision_id,d.created_at_utc);
+ const ptr=tradeDecision?{...pointer,
+  decision_id:d.decision_id,archive_path:route,
+  published_at_utc:d.created_at_utc,archive_sha256:contentSha256(raw)}:pointer;
+ fileBlob[GPT_PAPER_DECISION_PATH]={text:JSON.stringify(ptr,null,2)+'\n',sha:'1'.repeat(40)};
+ fileBlob[route]={text:badArchive?raw.replace('NO_TRADE','WATCH'):raw,sha:'2'.repeat(40)};
  const fetcher=async(url,o)=>{
   calls.push({url,method:o.method});
   if(o.method==='PUT')return {ok:true,status:200,json:async()=>({commit:{sha:SHA}})};
@@ -150,4 +155,50 @@ test('GPT follow context generated after HTTP request is accepted and published 
  assert.equal(published.positions.length,0);
  assert.equal(published.real_trading_enabled,false);
  assert.equal(published.account_balances_published,false);
+});
+
+test('V6.12 old valid V4 quote gets published REJECTED without any Windows order',async()=>{
+ const at=now-100000,asof=now-130000;
+ const token='619pqYDbUcNpCuobgg2Ed8sxeocfmGzwfHWsTCe2pump';
+ const pool='GEcf96TkXvnYJqzr1Tr6GQQBwixt6hpPTGxLuGGoiNwk';
+ const when=ms=>new Date(ms).toISOString();
+ const sources=[
+  {url:'https://dexscreener.com/solana/'+pool,observed_at_utc:when(asof),
+   price_usd:.00101,liquidity_usd:49900},
+  {url:'https://www.geckoterminal.com/solana/pools/'+pool,
+   observed_at_utc:when(asof),price_usd:.00099,liquidity_usd:50100}
+ ];
+ const v4={
+  schema:'sniper_r29_gpt_paper_decision.v4',mode:'PAPER_ONLY',strategy:'GPT_ONLY',
+  decision_id:'gpt_'+'d'.repeat(32),action:'BUY',chain:'solana',
+  token_address:token,pool_address:pool,amount_test_usdc:null,
+  created_at_utc:when(at),expires_at_utc:when(at+150000),
+  source_review_sha256:'f'.repeat(64),
+  source_observed_at_utc:when(asof),
+  evidence_ids:sources.map(x=>x.url),
+  security_assessment:'UNKNOWN',risk_level:'HIGH',score_0_100:80,
+  reason_de:'Nur indikative virtuelle Webbeobachtung, keine real ausführbare Quote oder bestätigte Sellability.',
+  trade_type:'VIRTUAL_ONLY',real_trading_enabled:false,
+  sizing_mode:'LOCAL_USER_COIN_STAKE',
+  exit_policy:{schema:'sniper_gpt_position_exit_policy.v1',
+   stop_loss_pct:12,take_profit_pct:50,trailing_drawdown_pct:20,
+   max_hold_minutes:1440,min_exit_liquidity_usd:2000,quote_max_age_seconds:90},
+  web_market_evidence:{
+   schema:'sniper_r29_gpt_web_price_evidence.v1',mode:'PAPER_ONLY',
+   chain:'solana',token_address:token,pool_address:pool,
+   observed_at_utc:when(asof),price_usd:.001,liquidity_usd:50000,
+   sources,quote_quality:'INDICATIVE_WEB_ONLY',
+   sellability_verified:false,executable_quote_verified:false
+  }
+ };
+ const {fetcher,calls}=mockProvider({tradeDecision:v4});
+ let localCalls=0;
+ const result=await relayGptPaperDecision({token:accessToken,localCapability,now,
+  fetcher,localFetcher:async()=>{localCalls++;throw Error('SHOULD_NOT_SEND_STALE_BUY')}});
+ assert.equal(localCalls,0);
+ assert.equal(result.status,'REJECTED');
+ assert.equal(result.reason,'GPT_WEB_PRICE_STALE_OR_FUTURE');
+ assert.equal(result.forwarded_to_local,false);
+ assert.equal(result.published_receipt_commit,SHA);
+ assert(calls.some(x=>x.method==='PUT'&&x.url.includes(GPT_PAPER_RECEIPT_PATH)));
 });
