@@ -30,6 +30,8 @@ jobs:
         continue-on-error: false
         timeout-minutes: 3
         run: node scripts/train-oct12-24-scans.mjs
+      - name: V1.1 first full as-of scan followed by 23 incremental market-memory scans
+        run: node scripts/replay-v11-first-scan.mjs
       - name: V0.9 compare repeated 24 hourly training scans and actual Dot reports
         run: node scripts/compare-v09-backtest.mjs
       - name: Non-trading historical GeckoTerminal probe (informational only)
