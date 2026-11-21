@@ -71,3 +71,6 @@ Pflichtlektüre: [MEDIA_TREND_V14.md](MEDIA_TREND_V14.md). Im selben stündliche
 
 ## V1.5 – Historischer A/B-Test mit Medien
 Lies [V15_HISTORICAL_MEDIA_BACKTEST.md](V15_HISTORICAL_MEDIA_BACKTEST.md). Die fünf bestehenden Dot-Rollen müssen beim historischen Forschungsreplay fehlende Oktober-Originalcaptures offenlegen; ältere Nachrichten mit nachträglichem Abruf sind keine echten Zeitpunktsignale. Modell B nur bei PUBLIKATION + ERSTER CAPTURE vor Scan und zwei unabhängig verifizierten Ursprüngen mit genauem Contract/Pool; Modell A ist identische Marktstrategie. 24 Forschungs-Scans sind keine historisch protokollierten tatsächlichen Dot-Sitzungen. Beim laufenden Betrieb weiterhin bei jedem echten Dot2-Wake die echte Medien-Pipeline nutzen.
+
+## V1.6 – Hindsight-Oracle getrennt vom Blindtest
+Siehe [V16_ORACLE_TRAINING.md](V16_ORACLE_TRAINING.md). Die 65 historischen Referenzen aus der hochgeladenen ZIP werden **ausschließlich nachträglich** für Oracle, Fehlerdiagnosen und 1/3/6h-Zukunftslabels genutzt. Keine bekannten Gewinner oder Zukunftslabels als frühere Dot2-/Dot4-Features. Originale Markt-/Medien-UTC, alle fünf Dot-Rollen, Risk-Gates und Paper-Client-Receipts beibehalten.
