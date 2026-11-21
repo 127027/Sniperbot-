@@ -33,3 +33,10 @@ Nur reale Daten markieren diese Schritte als bestanden; keine synthetischen Trad
 - [ ] Erster echter Dot-6-Tagesbericht aus öffentlichen Quellen und GitHub-Eventkette abgelegt
 - [ ] Mindestens eine real belegte Ursache mit erfolgreichem Vorher-Nachher-Test verbessert
 - [ ] Quellenabdeckung und historische Kurszeitfenster fortlaufend gemessen; keine vollständige weltweite Coverage behauptet
+
+## V0.3 Reparaturen
+- [x] Validierung der genauen Pooldetail-URL und Contract-Syntax in den Paper-Executor eingebaut
+- [x] Idempotenter GitHub-Receipt-Recovery eingebaut
+- [ ] CI für neuen Commit grün bestätigt
+- [ ] Neue reale Dot-2-/Dot-3-Ergebnisse bestätigen verbesserte Marktbeobachtung
+- [ ] Reale Dot4-Order und Client-PAPER_FILLED belegt

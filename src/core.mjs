@@ -1,5 +1,6 @@
 // R29 clean-room virtual exchange: no blockchain transactions, wallet or legacy bot imports.
 import { createHash, randomBytes } from 'node:crypto';
+import { tokenValid, poolValid, exactPoolUrl, parsePoolUrl } from './market-evidence.mjs';
 export const CHAINS = new Set(['solana', 'ethereum', 'base', 'bsc']);
 export const DEFAULT_POLICY = Object.freeze({
   startingBalance: 5000, entryAmount: 50, maxPositions: 30,
@@ -47,6 +48,8 @@ export function inspectOrder(order, state, nowMs, policy = DEFAULT_POLICY) {
   const indicative=order.quote_quality==='INDICATIVE_WEB_ONLY';
   if(order.quote_quality!==undefined&&!['FRESH_WEB','INDICATIVE_WEB_ONLY'].includes(order.quote_quality))
     fail('INVALID_QUOTE_QUALITY','Unsupported quote quality');
+  if(indicative && (!tokenValid(c.chain,c.contract) || !poolValid(c.chain,c.pool,c.pool_kind)))
+    fail('INVALID_COIN_ADDRESS','Web paper mode needs full chain-valid contract and pool');
   const ageLimit=indicative?600000:policy.maxQuoteAgeMs;
   const providers=new Set(),domains=new Set(), prices=[], liquidities=[];
   for (const q of order.quotes) {
@@ -60,6 +63,8 @@ export function inspectOrder(order, state, nowMs, policy = DEFAULT_POLICY) {
       try{const u=new URL(q.source_url);if(u.protocol!=='https:')throw Error();host=u.hostname.replace(/^www\./,'');}
       catch{fail('INVALID_SOURCE_URL','Indicative quote needs HTTPS source URL');}
       if(domains.has(host))fail('DUPLICATE_QUOTE_DOMAIN','Two distinct web domains required');
+      if(!parsePoolUrl(q.source_url) || !exactPoolUrl(q.source_url,c.chain,c.pool))
+        fail('SOURCE_POOL_URL_MISMATCH','Source must be a recognized detail URL of the exact pool');
       domains.add(host);
     }
     if (q.chain!==c.chain || q.contract!==c.contract || q.pool!==c.pool)

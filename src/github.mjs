@@ -30,10 +30,16 @@ export class GitHubTransport {
   }
   async publishReceipt(id,receipt){
     if(!/^[a-zA-Z0-9_-]{8,80}$/.test(id))throw Error('INVALID_RECEIPT_ID');
-    const path=`receipts/${this.clientId}/${id}.json`;
-    receipt={...receipt,client_id:this.clientId};
-    const content=Buffer.from(JSON.stringify(receipt,null,2)+'\n','utf8').toString('base64');
-    await this.request(path,{method:'PUT',body:{message:`r29 clean-paper: record ${id} result`,
-      content,branch:BRANCH}});
+    const path='receipts/'+this.clientId+'/'+id+'.json';
+    const record={...receipt,client_id:this.clientId};
+    const content=Buffer.from(JSON.stringify(record,null,2)+'\n','utf8').toString('base64');
+    try {
+      await this.request(path,{method:'PUT',body:{message:'r29 clean-paper: record '+id+' result',content,branch:BRANCH}});
+      return {status:'CREATED'};
+    }catch(error){
+      const found=await this.read(path).catch(()=>null);
+      if(found && JSON.stringify(found.data)===JSON.stringify(record))return {status:'ALREADY_PUBLISHED'};
+      throw error;
+    }
   }
 }

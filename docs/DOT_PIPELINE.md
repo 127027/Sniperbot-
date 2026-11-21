@@ -38,3 +38,6 @@ Dot 6 prüft täglich rückblickend die **tatsächlich aus öffentlichen Quellen
 
 ### Betrieb der sechsten logischen Rolle
 **Es gibt fünf aktive geplante Aufgaben, aber sechs fachliche Rollen.** Die stündliche Dot-5-Automation prüft ab 20:00 Uhr Europe/Berlin einmal pro Berliner Kalendertag, ob der heutige Dot-6-Bericht bereits vorliegt, und führt die separate rückblickende Analyse aus. Dot 5 dokumentiert die stündliche QA weiterhin unverändert in eigenen Dateien. Bei fehlgeschlagenem Dot-6-Bericht wird die Prüfung bei einem späteren stündlichen Lauf erneut versucht; keine Duplikate überschreiben.
+
+## V0.3: Quellen und Discovery-Reparatur
+Siehe [REPAIR_V03.md](REPAIR_V03.md). Dot 2 sucht vollständige Contracts durch belegte Explorer-/Poollinks und erweitert seine tatsächlich verfügbare Pagination. Dot 3 prüft exakte Chain+Contract+Pool-Beziehungen, getrennte Anbieter- und Abrufzeiten und zweite echte Pooldomains. Fehlende Daten bleiben DATA_GAP.
