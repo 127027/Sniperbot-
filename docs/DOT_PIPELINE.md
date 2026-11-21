@@ -50,3 +50,6 @@ Vor jedem automatischen historischen Verbesserungs-Replay [MARKET_OBSERVATION_AR
 
 ## V0.5: Trainieren statt Gewinnerliste auswendig lernen
 Siehe [TRAINING_2026-10-12.md](TRAINING_2026-10-12.md). Die retrospektiven 65 Gewinnerhinweise werden nur für Ursachen-/Coverage-Analyse verwendet. Forschung umfasst zusätzlich die öffentlichen Pool-Listen auf Robinhood und Cronos. Unvollständige und riskante Poolidentitäten verbleiben in einer Beobachtungswarteschlange, siehe `src/candidate-queue.mjs`; ihre Entdeckung ist KEINE Kauf-Freigabe. Der erste GPT-Vollreview darf BUY/WATCH/NO_TRADE, falls tatsächliche Evidenz vorliegt. Keine Übernahme bekannter Coin-Namen in den aktiven Suchstart.
+
+## V0.5: Ausdrücklich indikative öffentliche Papierkurse
+Siehe [INDICATIVE_WEB_PAPER.md](INDICATIVE_WEB_PAPER.md). Dot3 darf für den PAPER-Modus `INDICATIVE_PAPER_REVIEWABLE` vergeben, wenn zwei **tatsächlich aktuell gelesene**, im unveränderlichen GitHub-Journal belegte Detailseiten denselben Chain+Pool zeigen und ausreichende Identity-/Liquiditäts-/Preisnachweise vorliegen. Ein vom Provider nicht datierter angezeigter Preis darf als tatsächlich *auf der Seite gesehen* (Seitenabrufzeitpunkt) klassifiziert werden, aber niemals als frisch vom Anbieter garantiert. Dies ist kein FRESH_WEB oder Live-Trade; keine Quoten-/Risikoregeln umgehen.
