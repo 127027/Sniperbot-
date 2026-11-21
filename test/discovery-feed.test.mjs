@@ -32,3 +32,14 @@ test('metrics never count candidates as trades',()=>{
  assert.equal(r.actionable_orders,0);
 });
 test('public raw sha256 stable',()=>assert.equal(sha256('abc'),'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'));
+
+test('a recovered DEX-only token is not counted as a second independent provider',()=>{
+ const r=collectSampleMetrics({geckoDecoded:{network:'base',candidates:[]},
+ dexChecks:[{matched:true,status:'SINGLE_PROVIDER_IDENTITY_NEEDS_SECOND_CONFIRMATION'},
+ {matched:true,status:'TWO_DOMAIN_INDICATIVE_RESEARCH_ONLY'}],
+ fallbackCandidates:[{contract:'abc'}]});
+ assert.equal(r.dex_exact_matched,2);
+ assert.equal(r.dex_two_domain_identity_matches,1);
+ assert.equal(r.dex_single_provider_identity_only,1);
+ assert.equal(r.dex_indicative_complete,1);
+});

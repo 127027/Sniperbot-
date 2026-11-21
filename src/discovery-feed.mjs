@@ -47,6 +47,9 @@ export function collectSampleMetrics({geckoDecoded,dexChecks=[],fallbackCandidat
  return {schema:1,mode:'PAPER_RESEARCH_ONLY',source_network:geckoDecoded?.network??null,
   gecko_fetched:candidates.length,gecko_complete_contracts:candidates.filter(x=>x.contract).length,
   dex_checks:dexChecks.length,dex_exact_matched:dexChecks.filter(x=>x.matched).length,
+  // Keep overall exact-pair matches distinct from independently cross-confirmed quotes.
+  dex_two_domain_identity_matches:dexChecks.filter(x=>x.matched&&x.status!=='SINGLE_PROVIDER_IDENTITY_NEEDS_SECOND_CONFIRMATION').length,
+  dex_single_provider_identity_only:dexChecks.filter(x=>x.status==='SINGLE_PROVIDER_IDENTITY_NEEDS_SECOND_CONFIRMATION').length,
   dex_indicative_complete:dexChecks.filter(x=>x.status==='TWO_DOMAIN_INDICATIVE_RESEARCH_ONLY').length,
   dex_fallback_full_contracts:fallbackCandidates.filter(x=>x?.contract).length,
   total_observations:candidates.length+fallbackCandidates.length,
