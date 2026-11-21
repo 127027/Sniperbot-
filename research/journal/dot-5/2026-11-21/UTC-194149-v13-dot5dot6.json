@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "run_id": "UTC-194149-v13-dot5dot6",
+  "as_of_utc": "2026-11-21T19:41:49Z",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "window_start_utc": "2026-11-20T19:41:49Z",
+  "window_end_utc": "2026-11-21T19:41:49Z",
+  "window_semantics": "[start,end)",
+  "metrics": {
+    "dot1_target_per_day": 4,
+    "dot1_status": "DATA_GAP",
+    "dot2_latest_capture_chain": "bsc",
+    "dot2_latest_capture_pools": 16,
+    "dot2_latest_full_contracts": 16,
+    "dot2_memory_pools": 94,
+    "dot2_memory_full_contracts": 94,
+    "dot2_exact_dex_matches": 5,
+    "dot2_independent_complete_quotes": 1,
+    "dot2_unresolved_fair_rechecks": 72,
+    "dot3_checked": 16,
+    "dot3_watch": 1,
+    "dot3_rejected": 7,
+    "dot3_data_gap": 8,
+    "dot3_eligible": 0,
+    "dot4_buy": 0,
+    "dot4_sell": 0,
+    "signal_index_orders": 0,
+    "confirmed_paper_filled": 0,
+    "confirmed_paper_rejected": 0
+  },
+  "receipt_status": "OFFLINE_OR_UNCONFIRMED",
+  "receipt_inventory": "DATA_GAP_NOT_EXHAUSTIVELY_LISTED",
+  "source_refs": {
+    "dot1": "research/latest/dot-1.json",
+    "dot2": "research/latest/dot-2.json",
+    "dot3": "research/latest/dot-3.json",
+    "dot4": "research/latest/dot-4.json",
+    "feed": "research/feeds/2026-11-21/44939696689/evidence.json",
+    "memory": "research/state/checkpoints/44939696689.json",
+    "signals": "signals/index.json"
+  },
+  "dot": "dot-5",
+  "status": "DATA_GAP",
+  "sha_checked": {
+    "dot1_latest": "4fadbcc7dd509f87aecb3f1d2a3eb42469d17a31",
+    "dot2_latest": "4889579591170cf9bf3ac8cbc048bf61749bc767",
+    "dot3_latest": "d5ca859c2581992d87f932a1e2ed3d1b1486dd2c",
+    "dot4_latest": "bb940557dd074d80c9c7ff49395c3a5bf1ec853c",
+    "signal_index": "8f360a172e95adfda2d30105dd3fc7639497367d"
+  },
+  "findings": [
+    "V1.3 forward cohort has no matured 24h labels; 10% detection metric UNKNOWN",
+    "Dot2 full contracts 16/16 latest capture, memory 94; only one two-domain complete quote; Dot3 security and sellability 0 verified",
+    "No Dot4 BUY/SELL or indexed orders; no proven client fill",
+    "Receipt directory and all immutable historical journals not exhaustively enumerated; DATA_GAP"
+  ],
+  "next_action": "Prioritize second-source exact pair, provider-asof and sellability evidence; keep 72 recheck backlog rotating."
+}
