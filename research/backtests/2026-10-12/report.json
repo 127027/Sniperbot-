@@ -1,0 +1,399 @@
+{
+  "schema": 1,
+  "kind": "R29_CLEANROOM_RANDOM_HISTORICAL_DAY_SHADOW_REPLAY",
+  "status": "DATA_GAP_UNABLE_TO_CERTIFY_TRADING_PERFORMANCE",
+  "selection": {
+    "selection_method": "cryptographically random secrets.randbelow",
+    "sample_date_range_utc_inclusive": [
+      "2026-10-01",
+      "2026-11-17"
+    ],
+    "index_chosen_zero_based": 11,
+    "possible_days": 48,
+    "date": "2026-10-12",
+    "chosen_before_research": true
+  },
+  "day": {
+    "date": "2026-10-12",
+    "window_start_utc": "2026-10-12T00:00:00Z",
+    "window_end_utc": "2026-10-13T00:00:00Z",
+    "berlin_window": "2026-10-12 02:00 CEST – 2026-10-13 02:00 CEST"
+  },
+  "scope": {
+    "repository": "127027/Sniperbot-",
+    "branch": "codex/r29-cleanroom-paper-20261121",
+    "data_available_before_day": "Allowed",
+    "data_available_during_day": "Only published, timestamped information at or before each tick",
+    "hindsight_read_policy": "Scoring after simulated day only",
+    "paper_only": true
+  },
+  "setup": {
+    "starting_test_usdc": 5000,
+    "stake_per_coin_test_usdc": 50,
+    "default_reviews_per_24h": 4,
+    "dot_wakes_per_24h": 24,
+    "simulated_full_review_slots_utc": [
+      "00:35",
+      "06:35",
+      "12:35",
+      "18:35"
+    ],
+    "date_utc": "2026-10-12"
+  },
+  "evidence": {
+    "intraday_snapshots_eligible": 0,
+    "exact_minute_source_pairs_eligible": 0,
+    "contemporaneous_dot_decisions": 0,
+    "reason": "No preserved point-in-time pool discovery + full token contract + independent price/liquidity as-of timestamp pairs for the chosen historical day. Dextape 'last measured on day' snapshot and other historical reports cannot be treated as visible at earlier hour ticks.",
+    "retrospective_evidence": [
+      {
+        "url": "https://dextape.com/launches/2026-10-12",
+        "description": "Archive claims 80 recorded launches and last-day-measured gains; snapshot lacks exact per-hour publication time; not proof of intraday tradability"
+      },
+      {
+        "url": "https://pumpdata.fun/stats/2026-10-12",
+        "description": "Later daily summary: 49,578 pump.fun launches, 1,180 graduations. Does not supply per-candidate intraday two-source quote history"
+      },
+      {
+        "url": "https://coinufo.com/report/2026-10-12",
+        "description": "Solana report updated 2026-10-14, therefore future knowledge for the chosen day"
+      },
+      {
+        "url": "https://memedesk.co/alpha/dogu-doge-guy-thin-liquidity-rocket",
+        "description": "Date Oct 12 but no exact article-publication clock time; first-hour gain cannot serve as pre-event alert"
+      },
+      {
+        "url": "https://memedesk.co/alpha/bordr-bordrless-clean-volume-reprice",
+        "description": "Date Oct 12 but no exact article-publication clock time; not eligible intraday evidence"
+      }
+    ]
+  },
+  "retrospective_examples_over_100pct": [
+    {
+      "symbol": "BNBCAT",
+      "chain": "bsc",
+      "reported_change_24h_pct": 50327,
+      "pool": "0x7cb3b9f0cb6a6af22e8b9c53e2153e2b2d311d7e",
+      "source": "https://dextape.com/launches/2026-10-12",
+      "corroborating_pool_url": "https://dexscreener.com/bsc/0x7cb3b9f0cb6a6af22e8b9c53e2153e2b2d311d7e",
+      "timestamp_quality": "DAY_END_ARCHIVE_ONLY",
+      "eligible_as_intraday_seed": false
+    },
+    {
+      "symbol": "CRAWLER",
+      "chain": "solana",
+      "reported_change_24h_pct": 822,
+      "pool": "AnrCHVFjUzMtos8DGjPt2XKurvpPyAVlDturasnWxcd4",
+      "source": "https://dextape.com/launches/2026-10-12",
+      "corroborating_pool_url": "https://dexscreener.com/solana/anrchvfjuzmtos8dgjpt2xkurvppyavldturasnwxcd4",
+      "timestamp_quality": "DAY_END_ARCHIVE_ONLY",
+      "eligible_as_intraday_seed": false
+    },
+    {
+      "symbol": "SEAN",
+      "chain": "solana",
+      "reported_change_24h_pct": 1228,
+      "pool": "CnVst3sUyMo1GFygnAngYGPqHwtnZzMB59wYyZQf1nVj",
+      "source": "https://dextape.com/launches/2026-10-12",
+      "corroborating_pool_url": "https://dexscreener.com/solana/cnvst3suymo1gfygnangygpqhwtnzzmb59wyyzqf1nvj",
+      "timestamp_quality": "DAY_END_ARCHIVE_ONLY",
+      "eligible_as_intraday_seed": false
+    },
+    {
+      "symbol": "MARG",
+      "chain": "ethereum",
+      "reported_change_24h_pct": 407,
+      "pool": "0x436763bf49aa9ea6db1d8d4d80ac8c7b3c36ad58fa6281a06ea39c92d69e2f20",
+      "pool_kind": "UNISWAP_V4_POOL_ID",
+      "source": "https://dextape.com/launches/2026-10-12",
+      "corroborating_pool_url": "https://dexscreener.com/ethereum/0x436763bf49aa9ea6db1d8d4d80ac8c7b3c36ad58fa6281a06ea39c92d69e2f20",
+      "timestamp_quality": "DAY_END_ARCHIVE_ONLY",
+      "eligible_as_intraday_seed": false
+    },
+    {
+      "symbol": "BORDR",
+      "chain": "solana",
+      "reported_change_24h_pct": 117,
+      "pool": null,
+      "source": "https://memedesk.co/alpha/bordr-bordrless-clean-volume-reprice",
+      "timestamp_quality": "DATE_ONLY_NO_PUBLICATION_HOUR",
+      "eligible_as_intraday_seed": false
+    }
+  ],
+  "additional_intraday_spikes_not_daychange": [
+    {
+      "symbol": "DOGU",
+      "chain": "solana",
+      "reported_first_hour_gain_pct": 1031,
+      "source": "https://memedesk.co/alpha/dogu-doge-guy-thin-liquidity-rocket",
+      "note": "First-hour +1031%; not a proven UTC day-return, no exact publication hour."
+    }
+  ],
+  "simulation": {
+    "type": "EVIDENCE_ONLY_BLIND_SHADOW",
+    "wakes_per_dot": 24,
+    "simulated_full_reviews": 4,
+    "valid_purchase_decisions": 0,
+    "valid_sell_decisions": 0,
+    "simulated_orders": 0,
+    "simulated_fills": 0,
+    "real_github_orders": 0,
+    "real_client_receipts": 0,
+    "opening_test_usdc": 5000,
+    "closing_test_usdc": 5000,
+    "open_positions": 0,
+    "trade_timestamps_utc": [],
+    "hourly_trace": [
+      {
+        "hour_utc": "00:00",
+        "dot_1_at_utc": "00:05",
+        "dot_2_at_utc": "00:15",
+        "dot_3_at_utc": "00:25",
+        "dot_4_at_utc": "00:35",
+        "dot_4_full_review": true,
+        "dot_4_action": "NO_TRADE_DATA_GAP",
+        "dot_5_at_utc": "00:45"
+      },
+      {
+        "hour_utc": "01:00",
+        "dot_1_at_utc": "01:05",
+        "dot_2_at_utc": "01:15",
+        "dot_3_at_utc": "01:25",
+        "dot_4_at_utc": "01:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "01:45"
+      },
+      {
+        "hour_utc": "02:00",
+        "dot_1_at_utc": "02:05",
+        "dot_2_at_utc": "02:15",
+        "dot_3_at_utc": "02:25",
+        "dot_4_at_utc": "02:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "02:45"
+      },
+      {
+        "hour_utc": "03:00",
+        "dot_1_at_utc": "03:05",
+        "dot_2_at_utc": "03:15",
+        "dot_3_at_utc": "03:25",
+        "dot_4_at_utc": "03:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "03:45"
+      },
+      {
+        "hour_utc": "04:00",
+        "dot_1_at_utc": "04:05",
+        "dot_2_at_utc": "04:15",
+        "dot_3_at_utc": "04:25",
+        "dot_4_at_utc": "04:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "04:45"
+      },
+      {
+        "hour_utc": "05:00",
+        "dot_1_at_utc": "05:05",
+        "dot_2_at_utc": "05:15",
+        "dot_3_at_utc": "05:25",
+        "dot_4_at_utc": "05:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "05:45"
+      },
+      {
+        "hour_utc": "06:00",
+        "dot_1_at_utc": "06:05",
+        "dot_2_at_utc": "06:15",
+        "dot_3_at_utc": "06:25",
+        "dot_4_at_utc": "06:35",
+        "dot_4_full_review": true,
+        "dot_4_action": "NO_TRADE_DATA_GAP",
+        "dot_5_at_utc": "06:45"
+      },
+      {
+        "hour_utc": "07:00",
+        "dot_1_at_utc": "07:05",
+        "dot_2_at_utc": "07:15",
+        "dot_3_at_utc": "07:25",
+        "dot_4_at_utc": "07:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "07:45"
+      },
+      {
+        "hour_utc": "08:00",
+        "dot_1_at_utc": "08:05",
+        "dot_2_at_utc": "08:15",
+        "dot_3_at_utc": "08:25",
+        "dot_4_at_utc": "08:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "08:45"
+      },
+      {
+        "hour_utc": "09:00",
+        "dot_1_at_utc": "09:05",
+        "dot_2_at_utc": "09:15",
+        "dot_3_at_utc": "09:25",
+        "dot_4_at_utc": "09:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "09:45"
+      },
+      {
+        "hour_utc": "10:00",
+        "dot_1_at_utc": "10:05",
+        "dot_2_at_utc": "10:15",
+        "dot_3_at_utc": "10:25",
+        "dot_4_at_utc": "10:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "10:45"
+      },
+      {
+        "hour_utc": "11:00",
+        "dot_1_at_utc": "11:05",
+        "dot_2_at_utc": "11:15",
+        "dot_3_at_utc": "11:25",
+        "dot_4_at_utc": "11:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "11:45"
+      },
+      {
+        "hour_utc": "12:00",
+        "dot_1_at_utc": "12:05",
+        "dot_2_at_utc": "12:15",
+        "dot_3_at_utc": "12:25",
+        "dot_4_at_utc": "12:35",
+        "dot_4_full_review": true,
+        "dot_4_action": "NO_TRADE_DATA_GAP",
+        "dot_5_at_utc": "12:45"
+      },
+      {
+        "hour_utc": "13:00",
+        "dot_1_at_utc": "13:05",
+        "dot_2_at_utc": "13:15",
+        "dot_3_at_utc": "13:25",
+        "dot_4_at_utc": "13:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "13:45"
+      },
+      {
+        "hour_utc": "14:00",
+        "dot_1_at_utc": "14:05",
+        "dot_2_at_utc": "14:15",
+        "dot_3_at_utc": "14:25",
+        "dot_4_at_utc": "14:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "14:45"
+      },
+      {
+        "hour_utc": "15:00",
+        "dot_1_at_utc": "15:05",
+        "dot_2_at_utc": "15:15",
+        "dot_3_at_utc": "15:25",
+        "dot_4_at_utc": "15:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "15:45"
+      },
+      {
+        "hour_utc": "16:00",
+        "dot_1_at_utc": "16:05",
+        "dot_2_at_utc": "16:15",
+        "dot_3_at_utc": "16:25",
+        "dot_4_at_utc": "16:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "16:45"
+      },
+      {
+        "hour_utc": "17:00",
+        "dot_1_at_utc": "17:05",
+        "dot_2_at_utc": "17:15",
+        "dot_3_at_utc": "17:25",
+        "dot_4_at_utc": "17:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "17:45"
+      },
+      {
+        "hour_utc": "18:00",
+        "dot_1_at_utc": "18:05",
+        "dot_2_at_utc": "18:15",
+        "dot_3_at_utc": "18:25",
+        "dot_4_at_utc": "18:35",
+        "dot_4_full_review": true,
+        "dot_4_action": "NO_TRADE_DATA_GAP",
+        "dot_5_at_utc": "18:45"
+      },
+      {
+        "hour_utc": "19:00",
+        "dot_1_at_utc": "19:05",
+        "dot_2_at_utc": "19:15",
+        "dot_3_at_utc": "19:25",
+        "dot_4_at_utc": "19:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "19:45"
+      },
+      {
+        "hour_utc": "20:00",
+        "dot_1_at_utc": "20:05",
+        "dot_2_at_utc": "20:15",
+        "dot_3_at_utc": "20:25",
+        "dot_4_at_utc": "20:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "20:45"
+      },
+      {
+        "hour_utc": "21:00",
+        "dot_1_at_utc": "21:05",
+        "dot_2_at_utc": "21:15",
+        "dot_3_at_utc": "21:25",
+        "dot_4_at_utc": "21:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "21:45"
+      },
+      {
+        "hour_utc": "22:00",
+        "dot_1_at_utc": "22:05",
+        "dot_2_at_utc": "22:15",
+        "dot_3_at_utc": "22:25",
+        "dot_4_at_utc": "22:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "22:45"
+      },
+      {
+        "hour_utc": "23:00",
+        "dot_1_at_utc": "23:05",
+        "dot_2_at_utc": "23:15",
+        "dot_3_at_utc": "23:25",
+        "dot_4_at_utc": "23:35",
+        "dot_4_full_review": false,
+        "dot_4_action": "NO_REVIEW_DUE",
+        "dot_5_at_utc": "23:45"
+      }
+    ]
+  },
+  "repair_assessment": {
+    "source_url_pool_contract_parser": "UNIT_TESTABLE_ONLY",
+    "receipt_idempotency": "UNIT_TESTABLE_ONLY",
+    "historical_discovery": "UNVERIFIED",
+    "historical_price_freshness": "DATA_GAP",
+    "full_end_to_end_real_paper": "UNVERIFIED",
+    "major_blocker": "NO_FREE_TIME_STAMPED_INTRADAY_ARCHIVE_WITH_INDEPENDENT_PRICE_PROOFS",
+    "suggested_fix": "Prospectively archive immutable source snapshots, source publication/observation times, chain+contract+pool, independent pool quotes and Dot state for every run; then blind replay on already recorded data without knowing winners."
+  },
+  "principle": "The absence of verified historical inputs is not evidence that Dot 4 would have rejected these exact winners in real time. Zero recorded backtest trades is a DATA_GAP finding, not profitable performance or guaranteed strategy conservatism."
+}

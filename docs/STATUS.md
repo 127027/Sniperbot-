@@ -40,3 +40,11 @@ Nur reale Daten markieren diese Schritte als bestanden; keine synthetischen Trad
 - [ ] CI für neuen Commit grün bestätigt
 - [ ] Neue reale Dot-2-/Dot-3-Ergebnisse bestätigen verbesserte Marktbeobachtung
 - [ ] Reale Dot4-Order und Client-PAPER_FILLED belegt
+
+## Blind-Replay 12.10.2026
+- [x] Zufälliger Tag unabhängig von Gewinnerlisten gezogen und ausgewiesene 24 UTC-Stunden abgegrenzt
+- [x] Strikte Verfügbarkeits-Zeitprüfung und 24h-Shadow-Zeitplan als Testmodul hinzugefügt
+- [ ] Reale vollständige historische Coin-Snapshots mit zwei zeitlich belegten Pool-Preisquellen für diesen Tag vorhanden
+- [ ] Prospektive BUY-/SELL-Entscheidungen im Backtest ohne Zukunftswissen nachgewiesen
+- [ ] Historische Strategiewirksamkeit / Reparatur V0.3 anhand echter Fills nachgewiesen
+- [ ] GitHub-CI des neuen Replay-Tests erfolgreich
