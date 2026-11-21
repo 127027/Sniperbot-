@@ -56,3 +56,12 @@ Run 44952763048 speicherte \`research/media/2026-11-21/44952763048/paired-ab-mar
 - \`research/media/2026-11-21/44952763048/evidence.json\`
 - \`research/media/2026-11-21/44952763048/asof-signals.json\`
 - \`research/media/2026-11-21/44952763048/paired-ab-market-media.json\`
+
+## Erweiterung – Dritter echter Capture mit originalen Mastodon-Posts (21:45 UTC)
+- Erfolgreiche [GitHub-Action 44953166515](https://github.com/127027/Sniperbot-/actions/runs/44953166515): sieben kostenlose öffentliche Quellen HTTP-OK.
+- Mastodon-Hashtags "memecoin" und "dogecoin": **40 + 38 = 78** tatsächlich öffentlich abrufbare Posts.
+- Insgesamt 201 Einträge im dritten Capture; **203** kumulierte eindeutige Artikel- und Post-URLs, davon **145** mit mindestens einem Thema-Tag. 78 neu; 123 wiederholt.
+- Keine passenden Bluesky-Posts aus dem öffentlichen allgemeinen Hot-Feed; X/Reddit unverbunden. Mastodon bildet nur eine einzelne Instanz ab.
+- Marktgedächtnis **133 Pools** / 133 vollständige Contracts.
+- Der A/B-Test hat **73** aktuelle Markt-Kandidaten, noch **0** zweifelsfreie Contract-Erwähnungen in bis dahin gespeicherten Medienquellen; der 24h-Nachbeobachtungszeitraum ist nicht abgeschlossen. Deshalb keinerlei Beweis eines früheren oder besseren Kaufs.
+- Kein fingierter Attention-Delta bei nur wenigen Minuten Medienhistorie; keine tatsächlichen Paper-Orders.
