@@ -55,3 +55,41 @@ test('synthetic price series cannot be promoted to real historical performance',
  assert.equal(r.archived_synthetic_snapshots_ignored,1);
  assert.equal(r.strategy_buys,0);assert.equal(r.historical_pnl_verified,false);
 });
+
+test('pool discovered after Dot2 at :15 cannot count in same hour :35',()=>{
+ const record={
+ chain:'base',pool,contract:token,symbol:'NEW',provenance:'CONTEMPORANEOUS_RECORD',
+ source_archive_sha:'a'.repeat(40),source_url:'https://www.geckoterminal.com/base/pools/'+pool,
+ source_published_at_utc:'2026-11-15T00:32:00Z',
+ observed_at_utc:'2026-11-15T00:32:00Z',archived_at_utc:'2026-11-15T00:32:00Z'
+ };
+ const x=replay24HourlyScans({date,archivedCandidates:[record]});
+ assert.equal(x.scan_results[0].eligible_cumulative_discoveries,0);
+ assert.equal(x.scan_results[1].newly_verified_discoveries,1);
+ assert.equal(x.scan_results[1].dot2_cutoff_at_utc,'2026-11-15T01:15:00.000Z');
+});
+test('a valid-shaped quote without a Dot2 identity cannot bypass risk pipeline',()=>{
+ const now='2026-11-15T00:34:00Z';
+ const coin={chain:'base',contract:token,pool,symbol:'X'};
+ const snapshot={provenance:'CONTEMPORANEOUS_RECORD',source_archive_sha:'a'.repeat(40),
+ coin,observed_at_utc:now,archived_at_utc:now,
+ discovery:{observed_at_utc:'2026-11-15T00:14:00Z'},
+ risk:{status:'ELIGIBLE',observed_at_utc:'2026-11-15T00:24:00Z'},
+ quotes:['geckoterminal.com','dexscreener.com'].map((host,i)=>({...coin,provider_id:'provider-'+i,
+ source_url:'https://'+host+(i?'/base/':'/base/pools/')+pool,
+ observed_at:now,source_published_at_utc:now,price_usdc:.001,liquidity_usdc:20000}))};
+ const r=replay24HourlyScans({date,archivedSnapshots:[snapshot]});
+ assert.equal(r.archived_contemporaneous_eligible_snapshot_inputs,0);
+ assert.equal(r.rejected_snapshot_reasons.NO_DOT2_IDENTITY_BEFORE_15,1);
+ assert.equal(r.strategy_buys,0);
+});
+test('explicit 24-scan diagnostic does not downshift on quiet activity',()=>{
+ const at='2026-11-15T00:05:00Z';
+ const r=replay24HourlyScans({date,activityObservations:[{
+ provenance:'CONTEMPORANEOUS_RECORD',observed_at_utc:at,archived_at_utc:at,
+ source_archive_sha:'a'.repeat(40),
+ metrics:{dataAvailable:true,newPools:0,eligible:0,volumeChangePct:-20,openPositions:0,consecutiveQuietChecks:2}
+ }]});
+ assert.equal(r.actual_full_reviews,24);
+ assert.ok(r.scan_results.every(s=>s.full_review));
+});

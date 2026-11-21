@@ -96,3 +96,13 @@ test('missing or late activity evidence does not force higher cadence',()=>{
  assert.equal(r.events[0].target_per_24h,4);
  assert.equal(r.summary.fullReviews,4);
 });
+
+test('forced 24-review mode ignores adaptive downshifts only within explicit diagnostics',()=>{
+ const at='2026-10-12T00:05:00.000Z';
+ const r=replaySignalDecisions({date,targetPer24h:24,forceHourlyReview:true,activityObservations:[{
+ provenance:'CONTEMPORANEOUS_RECORD',observed_at_utc:at,archived_at_utc:at,source_archive_sha:'a'.repeat(40),
+ metrics:{dataAvailable:true,newPools:0,eligible:0,volumeChangePct:-15,openPositions:0,consecutiveQuietChecks:2}
+ }]});
+ assert.equal(r.summary.fullReviews,24);
+ assert.ok(r.events.every(x=>x.target_per_24h===24));
+});

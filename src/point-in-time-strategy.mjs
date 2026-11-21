@@ -40,10 +40,11 @@ function policyOrder(snapshot,now,action,idx){
    created_at:iso(now),expires_at:iso(now+120000),coin:snapshot.coin,
    ...(action==='BUY'?{amount_test_usdc:50}:{}),quotes:snapshot.quotes.map(({source_published_at_utc,...q})=>q)};
 }
-export function replaySignalDecisions({date,snapshots=[],activityObservations=[],targetPer24h=4,params={}}){
+export function replaySignalDecisions({date,snapshots=[],activityObservations=[],targetPer24h=4,forceHourlyReview=false,params={}}){
  if(typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date+'T00:00:00Z')))
    throw Error('INVALID_DATE');
  if(![4,8,12,24].includes(targetPer24h))throw Error('INVALID_TARGET');
+ if(typeof forceHourlyReview!=='boolean')throw Error('INVALID_FORCE_HOURLY');
  if(!Array.isArray(snapshots)||!Array.isArray(activityObservations))throw Error('INVALID_SNAPSHOTS');
  const start=ms(date+'T00:00:00Z'),end=start+86400000;
  const p={entryMomentumPct:5,takeProfitPct:20,stopLossPct:10,maxMomentumAgeHours:2,...params};
@@ -73,7 +74,7 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
        &&tick-observed<=3600000&&x.provenance==='CONTEMPORANEOUS_RECORD'
        &&typeof x.source_archive_sha==='string'&&/^[0-9a-f]{40}$/.test(x.source_archive_sha);
    }).sort((a,b)=>ms(b.observed_at_utc)-ms(a.observed_at_utc))[0];
-   const cadence=chooseCadence(activity?activity.metrics:null,currentTarget);
+   const cadence=forceHourlyReview?{target:24,reason:'EXPLICIT_24_HOUR_DIAGNOSTIC'}:chooseCadence(activity?activity.metrics:null,currentTarget);
    currentTarget=cadence.target;
    const due=researchDue(at,lastReview,currentTarget).due;
    if(due){lastReview=at;sums.fullReviews++;}
