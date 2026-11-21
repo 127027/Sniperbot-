@@ -45,18 +45,35 @@ export function runResearchPaperLab({date,pools=[],preset='exploratory',startBal
             evidence_class:'SINGLE_PROVIDER_HINDSIGHT_CANDLE_MODEL_NOT_EXECUTABLE'});
         } else{action='HOLD_EXPERIMENT';reason='IN_POSITION_WITHOUT_EXIT_TRIGGER';}
       }else{
-        // Compare against a past completed candle 10-120 minutes earlier,
-        // not against today's hindsight low or max.
+        // Search ALL already closed historical candles, including earlier days.
+        // The newest candle is still required to be fresh (<=15m), so older
+        // reference context is NOT mistaken for an executable spot quote.
         const base=coin.candles.filter(c=>{
           const t=ms(c.known_no_earlier_than_utc);
           return t!==null&&t+minute<=tick&&t>=coin.pool_at
            &&t<=ms(last.known_no_earlier_than_utc)-10*minute
-           &&t>=ms(last.known_no_earlier_than_utc)-120*minute
+ 
            &&typeof c.close_usd==='number'&&c.close_usd>0;
         }).sort((a,b)=>b.known_no_earlier_than_utc.localeCompare(a.known_no_earlier_than_utc))[0];
         if(!base){action='WATCH_EXPERIMENT';reason='NOT_ENOUGH_PAST_CANDLES';}
         else{
           const rise=(price/base.close_usd-1)*100,volume=last.volume_usd??0;
+          const availableHistory=coin.candles.filter(c=>{
+            const ct=ms(c.known_no_earlier_than_utc);
+            return ct!==null&&ct+minute<=tick&&ct>=coin.pool_at&&typeof c.close_usd==='number'&&c.close_usd>0;
+          });
+          const historyOldest=availableHistory.reduce((acc,c)=>{
+            const ct=ms(c.known_no_earlier_than_utc);
+            return acc===null||ct<acc?ct:acc;
+          },null);
+          scan.history_depth_by_coin??=[];
+          scan.history_depth_by_coin.push({
+            symbol:coin.symbol,available_prior_candles:availableHistory.length,
+            oldest_known_candle_at_utc:historyOldest===null?null:at(historyOldest),
+            elapsed_minutes_from_selected_momentum_base:(ms(last.known_no_earlier_than_utc)-ms(base.known_no_earlier_than_utc))/minute,
+            history_policy:'NO_120_MINUTE_DATA_ACCESS_CUTOFF',
+            close_price_is_fresh:true});
+
           // Conservative guard against unusually wide recent range using ONLY past closed candles.
           const earlier=coin.candles.filter(c=>{
             const t=ms(c.known_no_earlier_than_utc);

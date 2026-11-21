@@ -49,3 +49,15 @@ test('volatility guard can still buy and sell when recent candles are stable',()
  assert.equal(r.counts.buys,1);assert.equal(r.counts.sells,1);
  assert.equal(r.verified_historical_paper_orders,0);
 });
+
+test('unbounded backwards feature access includes a prior-year candle, never a future one',()=>{
+ const old={known_no_earlier_than_utc:'2025-01-01T00:05:00Z',close_usd:1,volume_usd:5000};
+ const day='2026-11-15';
+ const fresh={known_no_earlier_than_utc:day+'T00:30:00Z',close_usd:1.1,volume_usd:5000};
+ const future={known_no_earlier_than_utc:day+'T00:45:00Z',close_usd:1000,volume_usd:5000};
+ const r=runResearchPaperLab({date:day,pools:[pool([old,fresh,future],'2024-01-01T00:00:00Z')]});
+ assert.equal(r.scans[0].history_depth_by_coin[0].available_prior_candles,2);
+ assert.equal(r.scans[0].history_depth_by_coin[0].oldest_known_candle_at_utc,'2025-01-01T00:05:00.000Z');
+ assert.equal(r.scans[0].history_depth_by_coin[0].elapsed_minutes_from_selected_momentum_base>100000,true);
+ assert.equal(r.scans[0].decisions[0].action,'BUY_EXPERIMENT');
+});

@@ -4,10 +4,15 @@
 const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 const ms=s=>typeof s==='string'&&ISO.test(s)&&Number.isFinite(Date.parse(s))?Date.parse(s):null;
 const iso=t=>new Date(t).toISOString();
-export function normalizeHistoricalCandles({apiResponse,day,aggregateMinutes=5,source_url}={}){
+export function normalizeHistoricalCandles({apiResponse,day,aggregateMinutes=5,source_url,historyStartUtc=null}={}){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(day||''))throw Error('INVALID_DAY');
  if(![1,5,15].includes(aggregateMinutes))throw Error('INVALID_AGGREGATE');
- const start=Date.parse(day+'T00:00:00Z'),end=start+86400000;
+ const dayStart=Date.parse(day+'T00:00:00Z'),end=dayStart+86400000;
+ // Unbounded as-of history is supported. This is only a lower bound on
+ // what a particular provider actually returned. Null means legacy day-only.
+ const earliest=historyStartUtc===null?dayStart:ms(historyStartUtc);
+ if(earliest===null||earliest>dayStart)throw Error('INVALID_HISTORY_START');
+ const start=earliest;
  const rows=apiResponse?.data?.attributes?.ohlcv_list;
  if(!Array.isArray(rows))throw Error('NO_PROVIDER_CANDLES');
  const output=new Map(),issues=[];
@@ -24,7 +29,7 @@ export function normalizeHistoricalCandles({apiResponse,day,aggregateMinutes=5,s
    known_no_earlier_than_utc:iso(closed),open_usd:open,high_usd:high,low_usd:low,close_usd:close,volume_usd:volume});
  }
  const candles=[...output.values()].sort((a,b)=>a.candle_start_utc.localeCompare(b.candle_start_utc));
- return {schema:1,day,provider:'GECKOTERMINAL_RECONSTRUCTED',source_url:source_url||null,
+ return {schema:1,day,history_start_utc:iso(start),pre_day_candle_count:candles.filter(x=>ms(x.candle_start_utc)<dayStart).length,provider:'GECKOTERMINAL_RECONSTRUCTED',source_url:source_url||null,
   reconstruction_type:'POST_EVENT_HISTORICAL_CANDLES_NOT_ORIGINAL_INTRADAY_PAGE_CAPTURE',
   candle_interval_minutes:aggregateMinutes,candle_count:candles.length,candles,issues,
   independent_provider_confirmed:false,historical_liquidity_confirmed:false,trade_eligible:false};
@@ -37,4 +42,25 @@ export function closeAsOf(tape,decisionTimeIso,{maxAgeMinutes=15,minimumFinaliza
   return close!==null&&close+minimumFinalizationDelayMs<=t&&t-close<=maxAgeMinutes*60000;
  });
  return known.length?known.at(-1):null;
+}
+
+export function mergeHistoricalCandles({day,tapes=[]}={}){
+ const dayEnd=Date.parse(day+'T00:00:00Z')+86400000;
+ if(!Number.isFinite(dayEnd)||!Array.isArray(tapes))throw Error('INVALID_HISTORY_MERGE');
+ const merged=new Map(),sources=[];
+ for(const tape of tapes){
+  if(tape?.day!==day)throw Error('HISTORY_DAY_MISMATCH');
+  if(tape?.source_url)sources.push(tape.source_url);
+  for(const c of tape.candles||[]){
+   const t=ms(c?.known_no_earlier_than_utc);
+   if(t!==null&&t<=dayEnd&&t>0)merged.set(c.candle_start_utc,c);
+  }
+ }
+ const candles=[...merged.values()].sort((a,b)=>a.known_no_earlier_than_utc.localeCompare(b.known_no_earlier_than_utc));
+ return {schema:1,day,kind:'MERGED_AS_OF_HISTORICAL_RESEARCH',
+  available_as_of_day_end_only:true,no_fixed_history_cutoff:true,
+  candles,candle_count:candles.length,
+  earlier_than_day_count:candles.filter(x=>ms(x.candle_start_utc)<dayEnd-86400000).length,
+  source_urls:[...new Set(sources)],
+  caveat:'Can only see provider-returned candles, not all chain history. Never use later than each simulated scan.'};
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeHistoricalCandles,closeAsOf} from '../src/historical-candles.mjs';
+import {normalizeHistoricalCandles,closeAsOf,mergeHistoricalCandles} from '../src/historical-candles.mjs';
 const date='2026-11-15',t=Date.parse(date+'T00:00:00Z')/1000;
 test('only closed historical candles are knowable at decision time',()=>{
  const tape=normalizeHistoricalCandles({day:date,aggregateMinutes:5,apiResponse:{data:{attributes:{ohlcv_list:[
@@ -29,4 +29,26 @@ test('bad OHLCV and beyond-day data excluded',()=>{
 });
 test('missing provider data never turns into no opportunities',()=>{
  assert.throws(()=>normalizeHistoricalCandles({day:date,apiResponse:{}}),/NO_PROVIDER_CANDLES/);
+});
+
+test('pre-day historical candles can be retained without future access',()=>{
+ const d='2026-11-15',start=Date.parse(d+'T00:00:00Z')/1000;
+ const tape=normalizeHistoricalCandles({day:d,historyStartUtc:'2024-01-01T00:00:00Z',
+  apiResponse:{data:{attributes:{ohlcv_list:[
+   [start-86400,.01,.011,.009,.01,100],
+   [start+1800,.01,.012,.009,.011,100],
+   [start+86400,.01,.02,.009,.015,100]
+  ]}}}});
+ assert.equal(tape.candle_count,2);
+ assert.equal(tape.pre_day_candle_count,1);
+ assert.equal(closeAsOf(tape,'2026-11-15T00:36:00Z').close_usd,.011);
+ const merged=mergeHistoricalCandles({day:d,tapes:[tape]});
+ assert.equal(merged.earlier_than_day_count,1);
+});
+test('historical normalizer defaults to strict day filter for old callers',()=>{
+ const start=Date.parse('2026-11-15T00:00:00Z')/1000;
+ const tape=normalizeHistoricalCandles({day:'2026-11-15',apiResponse:{data:{attributes:{ohlcv_list:[
+ [start-300,.01,.011,.009,.01,5],[start+1800,.01,.011,.009,.01,5]
+ ]}}}});
+ assert.equal(tape.pre_day_candle_count,0);assert.equal(tape.candle_count,1);
 });
