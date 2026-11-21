@@ -61,3 +61,22 @@ test('unbounded backwards feature access includes a prior-year candle, never a f
  assert.equal(r.scans[0].history_depth_by_coin[0].elapsed_minutes_from_selected_momentum_base>100000,true);
  assert.equal(r.scans[0].decisions[0].action,'BUY_EXPERIMENT');
 });
+
+test('guarded-reentry never repeats purchases immediately after a sell',()=>{
+ const r=runResearchPaperLab({date,preset:'guarded_reentry',pools:[pool([
+ c('00:05',1),c('00:10',1.02),c('00:15',1.05),c('00:30',1.12),
+ c('01:20',1.5),c('01:30',1.6),
+ c('02:20',1.8),c('02:30',2.0),
+ c('03:20',2.3),c('03:30',2.6)])]});
+ assert.equal(r.counts.buys,1);
+ assert.equal(r.counts.sells,1);
+ assert.ok(r.counts.reentryGuardBlocks>=1);
+ assert.equal(r.verified_historical_paper_orders,0);
+});
+test('guarded-reentry does not invent a trade when historical context is too thin',()=>{
+ const r=runResearchPaperLab({date,preset:'guarded_reentry',pools:[pool([
+ c('00:05',1),c('00:30',1.4)
+ ])]});
+ assert.equal(r.counts.buys,0);
+ assert.equal(r.scans[0].decisions[0].reason,'INSUFFICIENT_CLOSED_HISTORY');
+});

@@ -5,13 +5,18 @@ const at=t=>new Date(t).toISOString();
 export const PAPER_LAB_PRESETS=Object.freeze({
   exploratory:{momentumMinPct:5,momentumMaxPct:100,takeProfitPct:20,stopLossPct:10,minVolumeUsd:0},
   conservative:{momentumMinPct:10,momentumMaxPct:60,takeProfitPct:25,stopLossPct:12,minVolumeUsd:500},
-  volatility_guard:{momentumMinPct:5,momentumMaxPct:100,takeProfitPct:20,stopLossPct:10,minVolumeUsd:100,maxRecentCloseRangeRatio:2.5}
+  volatility_guard:{momentumMinPct:5,momentumMaxPct:100,takeProfitPct:20,stopLossPct:10,minVolumeUsd:100,maxRecentCloseRangeRatio:2.5},
+  // Predetermined risk-control experiment, NOT tuned against this day's results.
+  // Requires price signals, limits churn and bans immediate re-entry after a loss.
+  guarded_reentry:{momentumMinPct:5,momentumMaxPct:70,takeProfitPct:20,stopLossPct:10,
+    minVolumeUsd:500,maxRecentCloseRangeRatio:3,maxBuysPerCoinPerDay:2,
+    reentryCooldownHours:6,minPriorCandles:3}
 });
 export function runResearchPaperLab({date,pools=[],preset='exploratory',startBalance=5000,amountPerCoin=50}={}){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(date||'')||!Number.isFinite(Date.parse(date+'T00:00:00Z')))throw Error('INVALID_DAY');
  if(!Array.isArray(pools)||!PAPER_LAB_PRESETS[preset])throw Error('INVALID_EXPERIMENT');
  const rules=PAPER_LAB_PRESETS[preset],start=Date.parse(date+'T00:00:00Z'),minute=60000;
- let cash=startBalance;const open=new Map(),events=[],scans=[],counts={buys:0,sells:0,watches:0,dataGaps:0,blockedEntries:0};
+ let cash=startBalance;const open=new Map(),entryHistory=new Map(),events=[],scans=[],counts={buys:0,sells:0,watches:0,dataGaps:0,blockedEntries:0,reentryGuardBlocks:0};
  let realized=0;
  const inputs=pools.map((p,i)=>({id:p.id||String(i),symbol:p.symbol||null,chain:p.chain||null,pool_created_at_utc:p.pool_created_at_utc,
    pool_at:ms(p.pool_created_at_utc),candles:Array.isArray(p.candles)?p.candles:[]}));
@@ -81,20 +86,30 @@ export function runResearchPaperLab({date,pools=[],preset='exploratory',startBal
              &&t<=ms(last.known_no_earlier_than_utc)&&typeof c.close_usd==='number'&&c.close_usd>0;
           }).map(c=>c.close_usd);
           const range=earlier.length>=3?Math.max(...earlier)/Math.min(...earlier):null;
+          const previousEntries=entryHistory.get(coin.id)||[];
+          const atCap=rules.maxBuysPerCoinPerDay!==undefined&&previousEntries.length>=rules.maxBuysPerCoinPerDay;
+          const inCooldown=rules.reentryCooldownHours!==undefined&&previousEntries.length>0
+            &&tick-previousEntries.at(-1)<rules.reentryCooldownHours*3600000;
+          const weakHistory=rules.minPriorCandles!==undefined&&availableHistory.length<rules.minPriorCandles;
+          const guarded=atCap||inCooldown||weakHistory;
           const volatilityTooHigh=rules.maxRecentCloseRangeRatio!==undefined
            &&range!==null&&range>rules.maxRecentCloseRangeRatio;
-          if(!volatilityTooHigh&&rise>=rules.momentumMinPct&&rise<=rules.momentumMaxPct&&volume>=rules.minVolumeUsd&&cash>=amountPerCoin){
+          if(!guarded&&!volatilityTooHigh&&rise>=rules.momentumMinPct&&rise<=rules.momentumMaxPct&&volume>=rules.minVolumeUsd&&cash>=amountPerCoin){
             action='BUY_EXPERIMENT';reason='RECENT_CLOSED_CANDLE_MOMENTUM';
             const spend=amountPerCoin,filledPrice=price*(1+.004+.005),
              units=(spend*(1-.0075))/filledPrice;
             open.set(coin.id,{spent:spend,units,entry_price_usd:price,at_utc:at(tick)});
+            entryHistory.set(coin.id,[...previousEntries,tick]);
             cash-=spend;counts.buys++;
             events.push({at_utc:at(tick),symbol:coin.symbol,chain:coin.chain,action,reason,
               price_usd:price,observed_momentum_pct:rise,modelled_spend_test_usdc:spend,
               evidence_class:'SINGLE_PROVIDER_HINDSIGHT_CANDLE_MODEL_NOT_EXECUTABLE'});
           }else{
             action='WATCH_EXPERIMENT';counts.blockedEntries++;
-            reason=volatilityTooHigh?'HIGH_RECENT_CLOSE_RANGE':rise>rules.momentumMaxPct?'TOO_EXTREME_MOMENTUM':
+            if(guarded)counts.reentryGuardBlocks++;
+            reason=atCap?'MAX_DAILY_BUYS_PER_POOL':inCooldown?'WAIT_6_HOUR_REENTRY_COOLDOWN':
+             weakHistory?'INSUFFICIENT_CLOSED_HISTORY':volatilityTooHigh?'HIGH_RECENT_CLOSE_RANGE':
+             rise>rules.momentumMaxPct?'TOO_EXTREME_MOMENTUM':
              rise<rules.momentumMinPct?'NO_MOMENTUM':
              volume<rules.minVolumeUsd?'VOLUME_TOO_LOW':'NO_CASH';
           }
