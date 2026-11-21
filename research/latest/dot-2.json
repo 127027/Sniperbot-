@@ -1,55 +1,409 @@
 {
   "schema": 1,
   "dot": "dot-2",
-  "status": "CAPTURE_PENDING_DATA_GAP",
-  "updated_at_utc": "2026-11-21T19:12:49.641Z",
+  "status": "DATA_GAP_RISK_UNVERIFIED",
+  "updated_at_utc": "2026-11-21T19:13:09.119Z",
   "mode": "PAPER_RESEARCH_ONLY",
-  "journal_path": "research/journal/dot-2/2026-11-21/20261121T191249641Z-v13-run8.json",
-  "journal_blob_sha": "ccb02b35b1b4dcf9b808e39f8f209ad7da7bcb89",
+  "journal_path": "research/journal/dot-2/2026-11-21/20261121T191309119Z-v13-capture-confirmed.json",
+  "journal_blob_sha": "eb28dccd546c313fd7fba6d824acf156e28413a2",
   "capture_request_path": "research/requests/2026-11-21/20261121T191230157Z-run8-dot2.json",
-  "capture_request_commit": "1ecce4201382d873d1e5eaf70beed303ada73f8f",
-  "feed_is_current_request": false,
-  "previous_feed_request_path": "research/requests/2026-11-21/20261121T191230157Z-run8-dot2.json",
-  "previous_feed_evidence_path": "research/feeds/2026-11-21/44939696689/evidence.json",
-  "previous_feed_handoff_path": "research/feeds/2026-11-21/44939696689/dot2-to-dot3-handoff.json",
-  "previous_feed_capture_utc": "2026-11-21T19:12:40.734Z",
-  "market_memory_path": "research/state/market-memory.json",
-  "market_memory_blob_sha": "d0e01496dfecdf0ce0439af1f8e30c26d6d4c7fd",
-  "checkpoint_path": "research/state/checkpoints/44939696689.json",
+  "capture_run_id": "44939696689",
+  "feed_is_current_request": true,
+  "feed_capture_utc": "2026-11-21T19:12:40.734Z",
+  "feed_evidence_path": "research/feeds/2026-11-21/44939696689/evidence.json",
+  "feed_evidence_blob_sha": "f3d162c17ab0608d43b22cffedcbd9a2bc2ef2c9",
+  "feed_handoff_path": "research/feeds/2026-11-21/44939696689/dot2-to-dot3-handoff.json",
+  "feed_handoff_blob_sha": "83f3c2f0a7c356fcc27b128bea2f6da55e02f727",
   "observation_path": "research/observations/2026-11-21/44939696689.json",
   "ranking_path": "research/observations/2026-11-21/44939696689-asof-ranking.json",
+  "checkpoint_path": "research/state/checkpoints/44939696689.json",
+  "market_memory_path": "research/state/market-memory.json",
+  "market_memory_blob_sha": "d0e01496dfecdf0ce0439af1f8e30c26d6d4c7fd",
   "counts": {
     "memory_pools": 94,
     "memory_full_contracts": 94,
-    "new_capture_pools": 0,
-    "new_capture_contracts": 0,
-    "previous_capture_pools": 16,
-    "previous_capture_contracts": 16,
+    "new_capture_pools": 16,
+    "new_capture_contracts": 16,
+    "independently_quote_matched": 1,
     "prospective_rankable": 0,
-    "unresolved_risk": 16,
+    "fair_recheck_backlog_remaining": 72,
     "trade_eligible": 0,
     "buy": 0,
     "sell": 0,
     "fill": 0
   },
   "coverage": {
-    "new_request_capture_pending": true,
-    "new_api_listing_pages_confirmed": 0,
-    "previous_capture_source_chain": "bsc",
-    "previous_capture_page": 1,
-    "all_six_chains_this_run": false,
-    "uncovered_this_run": [
+    "source_chain": "bsc",
+    "source_page": 1,
+    "other_chains_not_scanned_this_capture": [
       "solana",
       "base",
       "ethereum",
-      "bsc",
       "robinhood",
       "cronos"
     ],
-    "open_pagination": true,
-    "fair_recheck_backlog_remaining": 72
+    "all_chains_historical_coverage": {
+      "unknown:DOT2_PRIOR_JOURNAL": {
+        "chain": null,
+        "provider": "DOT2_PRIOR_JOURNAL",
+        "page": 1,
+        "last_attempt_at_utc": "2026-11-21T18:19:39.273Z",
+        "last_success_at_utc": "2026-11-21T18:19:39.273Z",
+        "last_source_path": "research/journal/dot-2/2026-11-21/20261121T181939273Z-v10-capture-complete.json",
+        "last_status": "OK",
+        "next_page_to_consider": 2,
+        "backlog_open": true
+      },
+      "robinhood:GECKOTERMINAL": {
+        "chain": "robinhood",
+        "provider": "GECKOTERMINAL",
+        "page": 1,
+        "last_attempt_at_utc": "2026-11-21T17:54:37.724Z",
+        "last_success_at_utc": "2026-11-21T17:54:37.724Z",
+        "last_source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
+        "last_status": "OK",
+        "next_page_to_consider": 2,
+        "backlog_open": true
+      },
+      "unknown:DEXSCREENER": {
+        "chain": null,
+        "provider": "DEXSCREENER",
+        "page": 1,
+        "last_attempt_at_utc": "2026-11-21T19:12:40.734Z",
+        "last_success_at_utc": "2026-11-21T19:12:40.734Z",
+        "last_source_path": "research/feeds/2026-11-21/44939696689/evidence.json",
+        "last_status": "OK",
+        "next_page_to_consider": 2,
+        "backlog_open": true
+      },
+      "cronos:GECKOTERMINAL": {
+        "chain": "cronos",
+        "provider": "GECKOTERMINAL",
+        "page": 1,
+        "last_attempt_at_utc": "2026-11-21T17:55:20.153Z",
+        "last_success_at_utc": "2026-11-21T17:55:20.153Z",
+        "last_source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
+        "last_status": "OK",
+        "next_page_to_consider": 2,
+        "backlog_open": true
+      },
+      "solana:GECKOTERMINAL": {
+        "chain": "solana",
+        "provider": "GECKOTERMINAL",
+        "page": 1,
+        "last_attempt_at_utc": "2026-11-21T18:19:11.817Z",
+        "last_success_at_utc": "2026-11-21T18:19:11.817Z",
+        "last_source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
+        "last_status": "OK",
+        "next_page_to_consider": 2,
+        "backlog_open": true
+      },
+      "base:GECKOTERMINAL": {
+        "chain": "base",
+        "provider": "GECKOTERMINAL",
+        "page": 1,
+        "last_attempt_at_utc": "2026-11-21T18:56:49.547Z",
+        "last_success_at_utc": "2026-11-21T18:56:49.547Z",
+        "last_source_path": "research/feeds/2026-11-21/44938248515/gecko-base-page1.raw.json",
+        "last_status": "OK",
+        "next_page_to_consider": 2,
+        "backlog_open": true
+      },
+      "ethereum:GECKOTERMINAL": {
+        "chain": "ethereum",
+        "provider": "GECKOTERMINAL",
+        "page": 1,
+        "last_attempt_at_utc": "2026-11-21T19:00:16.776Z",
+        "last_success_at_utc": "2026-11-21T19:00:16.776Z",
+        "last_source_path": "research/feeds/2026-11-21/44938541583/gecko-ethereum-page1.raw.json",
+        "last_status": "OK",
+        "next_page_to_consider": 2,
+        "backlog_open": true
+      },
+      "unknown:DEXSCREENER_RECHECK": {
+        "chain": null,
+        "provider": "DEXSCREENER_RECHECK",
+        "page": 1,
+        "last_attempt_at_utc": "2026-11-21T19:12:40.734Z",
+        "last_success_at_utc": "2026-11-21T19:12:40.734Z",
+        "last_source_path": "research/feeds/2026-11-21/44939696689/dex-recheck-observations.json",
+        "last_status": "OK",
+        "next_page_to_consider": 2,
+        "backlog_open": true
+      },
+      "bsc:GECKOTERMINAL": {
+        "chain": "bsc",
+        "provider": "GECKOTERMINAL",
+        "page": 1,
+        "last_attempt_at_utc": "2026-11-21T19:12:40.734Z",
+        "last_success_at_utc": "2026-11-21T19:12:40.734Z",
+        "last_source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
+        "last_status": "OK",
+        "next_page_to_consider": 2,
+        "backlog_open": true
+      }
+    },
+    "fair_recheck_backlog_remaining": 72,
+    "open_pagination": true
   },
-  "priority_shortlist": [],
+  "priority_shortlist": [
+    {
+      "chain": "bsc",
+      "pool": "0x805febc198450fed3a613a9b8aee5d5945d9ffff",
+      "contract": "0x805febc198450fed3a613a9b8aee5d5945d9ffff",
+      "symbol": "XRAY",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.00000321403725531512,
+      "primary_liquidity_usd": 2571.237,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0x7ddaf280197c046c1b84cfd0ec915100a2602287",
+      "contract": "0x773876ea1b2687930dd589f109a834d7877e194e",
+      "symbol": "蛹",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.00000427488187533943,
+      "primary_liquidity_usd": 64285.5164,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "TWO_DOMAIN_PRICE_LIQUIDITY_PROVISIONAL",
+      "second_source_price_usd": 0.000004306,
+      "independent_price_liquidity_ready": true,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0xc5c698fcf4cd5d562eeea2e3aa2a8e4cbc1eb453",
+      "contract": "0xae67b5146558a737ffb17d87fc946e0e3af56737",
+      "symbol": "TOM",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.000632046298831698,
+      "primary_liquidity_usd": 12012.3694,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0x6fe3796c5ce9ece18334fa02e4293f9519ef2720",
+      "contract": "0x673714ba152e7497306ebed9adfb2bb977ed7777",
+      "symbol": "蚂蚁",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.0000753103340449858,
+      "primary_liquidity_usd": 24467.9268,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0x5d190fe91496a2d5751932f570d6cb40c8f4703e",
+      "contract": "0x41b341929eac7df848337bfccdde5ee64d150e8b",
+      "symbol": "FT",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 3.40707643107769e-10,
+      "primary_liquidity_usd": 0.6581,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0xa8fee6799199b49e8388e00b7cc840fc708465ca",
+      "contract": "0xe4d779a4e7884f297ae5a5eaf323c5643ec99d8f",
+      "symbol": "蛹",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.00000489717514816406,
+      "primary_liquidity_usd": 0.3839,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0xc062963d17145425506a61ab66462955efccffff",
+      "contract": "0xc062963d17145425506a61ab66462955efccffff",
+      "symbol": "CLAUDTROLL",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.00000321579573791031,
+      "primary_liquidity_usd": 2572.2217,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0x910bcc77398dabcfe9d1d4baf1506ca9bf7a76fe",
+      "contract": "0xf1383efacc7782a35a0013e1b2c0cc0241fb6e00",
+      "symbol": "AMGN",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 8.4535028965265e-11,
+      "primary_liquidity_usd": 16697.8758,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0xd72164d2d0d10ed616f660607176c654f6d37174",
+      "contract": "0xa16ae64771f31e71a75f382726ed938289b95ec3",
+      "symbol": "PI MOON",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.00000481199857483898,
+      "primary_liquidity_usd": 6.4712,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0x2b9a532d46cf8c5baec3ad15b8e622a403387218",
+      "contract": "0x094d907cb00bbe5ad6c217d199275fa872c275f7",
+      "symbol": "AICoin",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.0000161297032249721,
+      "primary_liquidity_usd": 138335.2104,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0x896c11de1bf99dd31f842c80324a8e352e3d0125",
+      "contract": "0xf43eb3ee11e887f5400b68f76115d99c32da6530",
+      "symbol": "SP400",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.00000863142770916852,
+      "primary_liquidity_usd": 16781.3027,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0xf829e01933eff60d4b5b68328d52df3e47ddffff",
+      "contract": "0xf829e01933eff60d4b5b68328d52df3e47ddffff",
+      "symbol": "Anusha",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.00000315919546321266,
+      "primary_liquidity_usd": 2526.8779,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0x2060710784ad5cf842673fcf1fe548af0a9ee08c",
+      "contract": "0x2291a51e9cf50e9ffa344d89b92430b912622815",
+      "symbol": "DREADWING",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.000542961914939009,
+      "primary_liquidity_usd": 9679.5441,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0xc2a68bd31807801018bd6de85dffa9bdf18efa31",
+      "contract": "0xbff3ef53a28ce23c884c72bc5b26f5aea0e57777",
+      "symbol": "Singularit",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.0000574365884658142,
+      "primary_liquidity_usd": 12692.0158,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0x0adfa4a6f03cc498552534e8c42bd4971c41ffff",
+      "contract": "0x0adfa4a6f03cc498552534e8c42bd4971c41ffff",
+      "symbol": "LABEL",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.00000320688609276134,
+      "primary_liquidity_usd": 2572.3624,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    },
+    {
+      "chain": "bsc",
+      "pool": "0xdc7a7d11098ef3ce82d80e44c24c726d37109923",
+      "contract": "0x32ad898d618bff0118fc8967114a9f29660f7777",
+      "symbol": "蚂蚁",
+      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
+      "primary_quote_usd": 0.000049062804884135,
+      "primary_liquidity_usd": 11551.3003,
+      "captured_at_utc": "2026-11-21T19:12:39.767Z",
+      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
+      "second_source_price_usd": null,
+      "independent_price_liquidity_ready": false,
+      "security_verified": false,
+      "sellability_verified": false,
+      "BUY_AUTHORIZED": false
+    }
+  ],
   "candidate_count": 94,
   "candidates": [
     {
@@ -60,6 +414,7 @@
       "symbol": "EXP",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -81,9 +436,8 @@
         "price_usd": 0.585405752165081,
         "liquidity_usd": 1.752096
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x5ae31b2d78d643e31ddbab061d0beadb18a5ffff",
@@ -93,6 +447,7 @@
       "symbol": "AO",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -114,9 +469,8 @@
         "price_usd": 0.00000320958248757702,
         "liquidity_usd": 2567.6659806978
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0xfec191fe42fecd805c97d510e00e3cb033c0f8dd",
@@ -126,6 +480,7 @@
       "symbol": "黎曼猜",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -147,9 +502,8 @@
         "price_usd": 0.0000236839490404423,
         "liquidity_usd": 7993.3357
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0xa148795016e18d71cdfe85b63b54efbd777cffff",
@@ -159,6 +513,7 @@
       "symbol": "蘭",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -180,9 +535,8 @@
         "price_usd": 0.00000320958243274063,
         "liquidity_usd": 2567.6659374118
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x0fb3c8fc322379f6a2003e39635e5663d2f8d478",
@@ -192,6 +546,7 @@
       "symbol": "Club",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -213,9 +568,8 @@
         "price_usd": 0.0000284343816372089,
         "liquidity_usd": 8619.306
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x26e9472cf91f347a17979b7468a9d069ce968e5e",
@@ -225,6 +579,7 @@
       "symbol": "FOMO",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T19:12:40.380Z",
+      "observation_count": 3,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -254,9 +609,8 @@
         "previous_price_usd": 0.0000516397512163338,
         "previous_liquidity_usd": 3474.4064
       },
-      "observation_count": 3,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x1ce69221c7a12a0ed9961ad2ef5e7ec7e9a9ffff",
@@ -266,6 +620,7 @@
       "symbol": "好运来",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -287,9 +642,8 @@
         "price_usd": 0.00000320864475747603,
         "liquidity_usd": 2566.3601
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0xa67d883e7886b4b82599bc96af45dc78c220ffff",
@@ -299,6 +653,7 @@
       "symbol": "好运来",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -320,9 +675,8 @@
         "price_usd": 0.00000320864498868361,
         "liquidity_usd": 2566.3601
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0xbf7dc617e4561975c35b28565235aab8c00f7d81",
@@ -332,6 +686,7 @@
       "symbol": "DESPAIR",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -353,9 +708,8 @@
         "price_usd": 8.38107983002567e-10,
         "liquidity_usd": 0.02680196753
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x52c5b5b0f2e65ff58a263cb8072f34a07283c412",
@@ -365,6 +719,7 @@
       "symbol": "DORAL2",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T19:12:40.732Z",
+      "observation_count": 3,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -394,9 +749,8 @@
         "previous_price_usd": 6.6136883601325e-7,
         "previous_liquidity_usd": 12031.6508
       },
-      "observation_count": 3,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x411a91cbe414c91116059827f6d3c2ee50697f51",
@@ -406,6 +760,7 @@
       "symbol": "NOVA48TEST",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T19:12:40.490Z",
+      "observation_count": 3,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -435,9 +790,8 @@
         "previous_price_usd": 0.297821913285954,
         "previous_liquidity_usd": 0.199111222702634
       },
-      "observation_count": 3,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x1d67f970d458fd0c71ea05603dbc8f0a3b595b90",
@@ -447,6 +801,7 @@
       "symbol": "MIN",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T19:12:40.272Z",
+      "observation_count": 3,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -476,9 +831,8 @@
         "previous_price_usd": 0.000136723284622369,
         "previous_liquidity_usd": 30183.781
       },
-      "observation_count": 3,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x892b6cd75780333e24d7fef7423132325dfbffff",
@@ -488,6 +842,7 @@
       "symbol": "FBI",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -509,9 +864,8 @@
         "price_usd": 0.00000320940658448112,
         "liquidity_usd": 2566.9228
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x02177d8c4b820d5c09fdcce5d54d39f46ab4f8c2",
@@ -521,6 +875,7 @@
       "symbol": "黎曼猜",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -542,9 +897,8 @@
         "price_usd": 0.000102762875851076,
         "liquidity_usd": 28280.4034
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x74fec66800cd76b94891190604b5541d4629ffff",
@@ -554,6 +908,7 @@
       "symbol": "alex",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -575,9 +930,8 @@
         "price_usd": 0.00000321010997751919,
         "liquidity_usd": 2568.0951
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x7991194e2d7a17baa6cd591406defcb17f1dfdae",
@@ -587,6 +941,7 @@
       "symbol": "WOODVIPER",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -608,9 +963,8 @@
         "price_usd": 0.00000606614044439626,
         "liquidity_usd": 10125.7461
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0xb4ea974180ed86d3deeaf86a533320f4ca4e534d",
@@ -620,6 +974,7 @@
       "symbol": "VQ",
       "first_seen_at_utc": "2026-11-21T17:19:45.679Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -641,9 +996,8 @@
         "price_usd": 0.000232180413370593,
         "liquidity_usd": 69117.7539
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:8aHDiWNJ4SEoHEXJYtYYw4SUcDVXUak3MDwqQvBJYcHy",
@@ -653,6 +1007,7 @@
       "symbol": "GME",
       "first_seen_at_utc": "2026-11-21T17:19:46.180Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -674,9 +1029,8 @@
         "price_usd": 0.000001959,
         "liquidity_usd": null
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "base:0x7940131a8f7d4a2150b92ec050772e8fc308767f",
@@ -686,6 +1040,7 @@
       "symbol": "CHUBBY",
       "first_seen_at_utc": "2026-11-21T17:19:46.281Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -707,9 +1062,8 @@
         "price_usd": 5.427e-11,
         "liquidity_usd": 0
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "ethereum:0x6096749ab65af288e9fe79f0d44b077aa9de6167",
@@ -719,6 +1073,7 @@
       "symbol": "BANGER",
       "first_seen_at_utc": "2026-11-21T17:19:46.302Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -740,9 +1095,8 @@
         "price_usd": 0.000002521,
         "liquidity_usd": 48034.66
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x98f1623e45b01f2c4449c5d835108c2a98132b8c",
@@ -752,6 +1106,7 @@
       "symbol": "Maxxmas",
       "first_seen_at_utc": "2026-11-21T17:19:46.390Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -773,9 +1128,8 @@
         "price_usd": 7.036e-10,
         "liquidity_usd": 0.05
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0x63772302c44a5a581b5f627f8b4b65ccd2d24f58",
@@ -785,6 +1139,7 @@
       "symbol": "Bull",
       "first_seen_at_utc": "2026-11-21T17:20:09.463Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 3,
       "source_refs": [
         {
           "source_path": "research/journal/dot-2/2026-11-21/20261121T172009Z-automation6-44929419567.json",
@@ -814,9 +1169,8 @@
         "previous_price_usd": null,
         "previous_liquidity_usd": null
       },
-      "observation_count": 3,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "robinhood:0xa8e745b2d0d36f58dd98de6af1577d004cd27fdf",
@@ -826,6 +1180,7 @@
       "symbol": "Jimbert",
       "first_seen_at_utc": "2026-11-21T17:54:37.247Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
@@ -847,9 +1202,8 @@
         "price_usd": 0.00000302207143375142,
         "liquidity_usd": 3018.5743
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "robinhood:0xec75c7802cd8ad642f9a35a01481b95b6207c159",
@@ -859,6 +1213,7 @@
       "symbol": "STAMPY",
       "first_seen_at_utc": "2026-11-21T17:54:37.247Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
@@ -880,9 +1235,8 @@
         "price_usd": 0.00000278818647821924,
         "liquidity_usd": 2788.3894
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "robinhood:0xeb7a50bca08fcf583360147b35ca79be80ee3647",
@@ -892,6 +1246,7 @@
       "symbol": "RobinhoodAGENTX",
       "first_seen_at_utc": "2026-11-21T17:54:37.247Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
@@ -913,9 +1268,8 @@
         "price_usd": 0.00000273588504822667,
         "liquidity_usd": 2734.7439
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "robinhood:0x4c02fc4ff1d0c0bb9fc717c6998566b87516adc7",
@@ -925,6 +1279,7 @@
       "symbol": "WETH",
       "first_seen_at_utc": "2026-11-21T17:54:37.247Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
@@ -946,9 +1301,8 @@
         "price_usd": 1676.64,
         "liquidity_usd": 939.0861
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "robinhood:0xb7956add0355ac86b0531700ce38748f946bc8b0",
@@ -958,6 +1312,7 @@
       "symbol": "JASPERS",
       "first_seen_at_utc": "2026-11-21T17:54:37.247Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
@@ -979,9 +1334,8 @@
         "price_usd": 0.00000349374930566145,
         "liquidity_usd": 3457.5338
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "robinhood:0x52c28bc6133441509e532b3e9bd253eb20cb1eb3",
@@ -991,6 +1345,7 @@
       "symbol": "ANTR",
       "first_seen_at_utc": "2026-11-21T17:54:37.247Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
@@ -1012,9 +1367,8 @@
         "price_usd": 0.00000294029526856376,
         "liquidity_usd": 2939.6025
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "robinhood:0xb7721519ae6236ac811b59bb1acc3fcb5d330cad",
@@ -1024,6 +1378,7 @@
       "symbol": "FTAX",
       "first_seen_at_utc": "2026-11-21T17:54:37.247Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
@@ -1045,9 +1400,8 @@
         "price_usd": 0.00000629325264814849,
         "liquidity_usd": 5604.9417
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "robinhood:0x87c0694bc0929176663652d7d741e9d79772c0a7",
@@ -1057,6 +1411,7 @@
       "symbol": "FOAM",
       "first_seen_at_utc": "2026-11-21T17:54:37.247Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932577787/gecko-robinhood-page1.raw.json",
@@ -1078,9 +1433,8 @@
         "price_usd": 0.00000276727218703194,
         "liquidity_usd": 2809.5123
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0xe30a2e0ce25f83e4c4e7603297f17379b00b82d7",
@@ -1090,6 +1444,7 @@
       "symbol": "ULTO",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1111,9 +1466,8 @@
         "price_usd": 0.00000692661223778644,
         "liquidity_usd": 0.5904
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0x1cdc0cf7879e187b12d2710819077573227acebd",
@@ -1123,6 +1477,7 @@
       "symbol": "Jko ¥",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1144,9 +1499,8 @@
         "price_usd": 0.00000225481179991179,
         "liquidity_usd": 2300.2803
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0xe8b9b2c7876447e882d633f99f1a5b3f42d04000",
@@ -1156,6 +1510,7 @@
       "symbol": "RUG",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1177,9 +1532,8 @@
         "price_usd": 0.00000847558636951028,
         "liquidity_usd": 1828.874
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0x4d081315299178407f6b9154b1637756dec787c6",
@@ -1189,6 +1543,7 @@
       "symbol": "CROVIA",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1210,9 +1565,8 @@
         "price_usd": 0.000242588155385934,
         "liquidity_usd": 3416.9232
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0x835a8fe7370c5c08b9a4efda273e28ff7bcf161c",
@@ -1222,6 +1576,7 @@
       "symbol": "CROVIA",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1243,9 +1598,8 @@
         "price_usd": 0.000253781176022258,
         "liquidity_usd": 14299.7924
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0xc5bca21098ec9f895c7393d7a8880ed7fb52794b",
@@ -1255,6 +1609,7 @@
       "symbol": "INO",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1276,9 +1631,8 @@
         "price_usd": 0.000101886780594775,
         "liquidity_usd": 906.806
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0xb1f25bc1d9d6fe7c2c0beffb24eeaaf26bf4ef4b",
@@ -1288,6 +1642,7 @@
       "symbol": "100AI",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1309,9 +1664,8 @@
         "price_usd": 0.00000234029196779835,
         "liquidity_usd": 2385.1934
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0xa948ca8e7cc5011c4a56baf5e3ad4321b50171e6",
@@ -1321,6 +1675,7 @@
       "symbol": "$POONtang",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1342,9 +1697,8 @@
         "price_usd": 0.00000421461219440787,
         "liquidity_usd": 3995.97
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0xc9eb8d7916dd6cfffb262eb274d780f06c728d55",
@@ -1354,6 +1708,7 @@
       "symbol": "Cool",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1375,9 +1730,8 @@
         "price_usd": 0.00000229180855319542,
         "liquidity_usd": 2337.2908
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0x594747068bc8cd1ede1c39c4d1eba7c16096ff8b",
@@ -1387,6 +1741,7 @@
       "symbol": "Oro",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1408,9 +1763,8 @@
         "price_usd": 0.00000234755735095905,
         "liquidity_usd": 2387.9263
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0x9c95d9071b60dd92a3d6477ca0a7de96b78645f3",
@@ -1420,6 +1774,7 @@
       "symbol": "Cos",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1441,9 +1796,8 @@
         "price_usd": 0.00000252981457897377,
         "liquidity_usd": 2471.5584
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0x4ba7e921e70cd4e096d72ec2321a096befa8008d",
@@ -1453,6 +1807,7 @@
       "symbol": "LEX",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1474,9 +1829,8 @@
         "price_usd": 0.00000731709169268342,
         "liquidity_usd": 0.6441
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0xfe9cd0b44334da7ef0e7b8028f7d070253a97c5b",
@@ -1486,6 +1840,7 @@
       "symbol": "FELT",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1507,9 +1862,8 @@
         "price_usd": 0.00000229816992466361,
         "liquidity_usd": 2391.3987
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0xf9f286e0ea072500491928d6d6d1fc5cf3fc4149",
@@ -1519,6 +1873,7 @@
       "symbol": "WASTED",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1540,9 +1895,8 @@
         "price_usd": 0.00000220647341839269,
         "liquidity_usd": 2592.485
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0x1620e73ff3494ee3d67522a0ec3be0e2e5152243",
@@ -1552,6 +1906,7 @@
       "symbol": "EHUNT",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1573,9 +1928,8 @@
         "price_usd": 0.00000347721710728518,
         "liquidity_usd": 0.0005
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0x7f2c2ca79bfa89fbc5b9c771cc34f16c41e980f5",
@@ -1585,6 +1939,7 @@
       "symbol": "ERIC",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1606,9 +1961,8 @@
         "price_usd": 0.00000658370280917322,
         "liquidity_usd": 31.2742
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0xc9434521fc24a119b6b5663b6ecfd4dc3d838f26",
@@ -1618,6 +1972,7 @@
       "symbol": "JMC",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1639,9 +1994,8 @@
         "price_usd": 9.14756698718063e-7,
         "liquidity_usd": 3.2687
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0x4a51f552892111a2888af6187e53c402631e57e3",
@@ -1651,6 +2005,7 @@
       "symbol": "$WCM",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1672,9 +2027,8 @@
         "price_usd": 0.0000193670536272996,
         "liquidity_usd": 702.5663
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "cronos:0x127bd0e474e04c70363c307c363da96c14baaf81",
@@ -1684,6 +2038,7 @@
       "symbol": "OBS",
       "first_seen_at_utc": "2026-11-21T17:55:19.464Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44932649891/gecko-cronos-page1.raw.json",
@@ -1705,9 +2060,8 @@
         "price_usd": 0.0000723551117515597,
         "liquidity_usd": 175.166
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:99bEZSDCwunG2bXkXL3vBBJx69dstjNxk5wiig6s6gjq",
@@ -1717,6 +2071,7 @@
       "symbol": "UNI",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -1738,9 +2093,8 @@
         "price_usd": 0.00009816789215006578,
         "liquidity_usd": 16101.0525089918
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:12981wHttv9CcjTKA7PvMc9UfWW5J9uxyo4aTeBzgx1B",
@@ -1750,6 +2104,7 @@
       "symbol": "moodeng2",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -1771,9 +2126,8 @@
         "price_usd": 0.000004766756997642434,
         "liquidity_usd": 3280.14124872983
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:FrkegjnYGDo9vUCXiP3BbZLnx2JNt47BPuAfYeK3m3U4",
@@ -1783,6 +2137,7 @@
       "symbol": "callcoin",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -1804,9 +2159,8 @@
         "price_usd": 0.0000011445294853504712,
         "liquidity_usd": null
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:4YbZkQjxxkjWSTWQHN2g9xkXVmHUEAXzGeW1qfCEi6bw",
@@ -1816,6 +2170,7 @@
       "symbol": "CLAUDE",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -1837,9 +2192,8 @@
         "price_usd": 0.0000010702365726776791,
         "liquidity_usd": 1029.12659132356
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:Atv8Sc9iBKZd8tnZixKcAhJBai2ZPG7EvgTLe4D9kKZX",
@@ -1849,6 +2203,7 @@
       "symbol": "AMWINNER",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -1870,9 +2225,8 @@
         "price_usd": 7.405015546918272e-8,
         "liquidity_usd": 18.0928280237188
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:HnhCNjT95Wk5XangxyBeazjzeHHS7sriKbUaz52KMspG",
@@ -1882,6 +2236,7 @@
       "symbol": "ՍЅᎠТ",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -1903,9 +2258,8 @@
         "price_usd": 0.000002833165021595048,
         "liquidity_usd": 2822.2488
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:6Msc3Cb3muyWw1yaPgx8Hoa3YjiKnoUYXGypJLPFQY2t",
@@ -1915,6 +2269,7 @@
       "symbol": "USHI",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -1936,9 +2291,8 @@
         "price_usd": 0.000011569178322694188,
         "liquidity_usd": 9816.55736430434
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:E2ptcSTXXLZvVKB1nw9hFSq65uLTDs719weoV9yeGd46",
@@ -1948,6 +2302,7 @@
       "symbol": "maxi",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -1969,9 +2324,8 @@
         "price_usd": 0.0000035023123141513456,
         "liquidity_usd": 3001.49388340468
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:624uFKSa8BWDz8ymRHHktrfwYcg4iYDEWYS2uXMsgRMA",
@@ -1981,6 +2335,7 @@
       "symbol": "HCD",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -2002,9 +2357,8 @@
         "price_usd": 0.000001740160077906108,
         "liquidity_usd": 682.904213564739
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:mtUBkd53Ywd9tTis2X9fYeZNhhXptvdBiSw8Ppcy7T3",
@@ -2014,6 +2368,7 @@
       "symbol": "XU",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -2035,9 +2390,8 @@
         "price_usd": 3.013854396777672e-7,
         "liquidity_usd": 404.9591079168
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:8KB23QCCxFPpiAbA1YrLCnF6cnCyCdgCEojaBFFCcwJd",
@@ -2047,6 +2401,7 @@
       "symbol": "UNI",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -2068,9 +2423,8 @@
         "price_usd": 0.00007834492853233054,
         "liquidity_usd": 2.14716381128659
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:51Yeu3bDEtxbLcBJdXJdqvdvzjzSyAqdWPBC3WtHgPcu",
@@ -2080,6 +2434,7 @@
       "symbol": "UNI",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -2101,9 +2456,8 @@
         "price_usd": 1.7661972425444045e-10,
         "liquidity_usd": null
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:4pXSxjE2WJPbQcuzhsR8mhfSTAVCjRc6s1tozC68ZVeB",
@@ -2113,6 +2467,7 @@
       "symbol": "mmrich",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -2134,9 +2489,8 @@
         "price_usd": 0.0000010499180631981078,
         "liquidity_usd": 800.366647025992
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:Ar8Dwbr8Sqgtuibid3PNTKogLHtBmVF9yjW7yahjUH6L",
@@ -2146,6 +2500,7 @@
       "symbol": "USEF",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -2167,9 +2522,8 @@
         "price_usd": 5.178068153722835e-7,
         "liquidity_usd": 503.333903007528
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:bRHH8AZHoPuAQ8YTvApUaQRB2SH1nQKpoBxnHRV4QwF",
@@ -2179,6 +2533,7 @@
       "symbol": "SODL",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -2200,9 +2555,8 @@
         "price_usd": 0.000013839952788964632,
         "liquidity_usd": 5081.4830547417
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:HRyMrkNF5JDmYsrB6iruiAoKSU3FwXi39nWkZdnWhEcb",
@@ -2212,6 +2566,7 @@
       "symbol": "SXSN",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -2233,9 +2588,8 @@
         "price_usd": 3.8893946507729346e-7,
         "liquidity_usd": 363.516737740333
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:GrhVnGCpERFDVCJ8ww9q7hShMHiBdsuUBbVk2T5x26wh",
@@ -2245,6 +2599,7 @@
       "symbol": "MSBO364",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -2266,9 +2621,8 @@
         "price_usd": 4.439660164523924e-7,
         "liquidity_usd": 346.635653704096
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:B684Sbso1fmpGgkwcSnUpbrqR3ra7XA1ntoY4kCxTcT3",
@@ -2278,6 +2632,7 @@
       "symbol": "‮EMTAC",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -2299,9 +2654,8 @@
         "price_usd": 0.0012861554186403563,
         "liquidity_usd": 1257016.11691654
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:8ZUVYFNZuy8DfmzpMhYdDkaQB4WV7eAPG5y21P9QgPQf",
@@ -2311,6 +2665,7 @@
       "symbol": "MAX",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -2332,9 +2687,8 @@
         "price_usd": 0.000001980649567902779,
         "liquidity_usd": 1694.82625802021
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "solana:77EJ1B2s5RaNSkt67Hu2roXsYVKR778s4kFz7jkwAvoC",
@@ -2344,6 +2698,7 @@
       "symbol": "USHI",
       "first_seen_at_utc": "2026-11-21T18:19:10.520Z",
       "last_seen_at_utc": "2026-11-21T18:19:39.273Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44934852542/gecko-solana-page1.raw.json",
@@ -2365,9 +2720,8 @@
         "price_usd": 0.000004870783069276305,
         "liquidity_usd": 3570.8316
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "base:0xd58037d78ee43ad0ac87082343369c726aa3754e",
@@ -2377,6 +2731,7 @@
       "symbol": "SPACEX",
       "first_seen_at_utc": "2026-11-21T18:56:48.621Z",
       "last_seen_at_utc": "2026-11-21T18:56:48.621Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44938248515/gecko-base-page1.raw.json",
@@ -2392,9 +2747,8 @@
         "price_usd": 0.00000105306490751189,
         "liquidity_usd": 11758.9443864
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "base:0xa3778a93d1259b0ed8f2d076951504c56c68f981",
@@ -2404,6 +2758,7 @@
       "symbol": "TRUMP2028",
       "first_seen_at_utc": "2026-11-21T18:56:48.621Z",
       "last_seen_at_utc": "2026-11-21T18:56:48.621Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44938248515/gecko-base-page1.raw.json",
@@ -2419,9 +2774,8 @@
         "price_usd": 0.0000103601817254081,
         "liquidity_usd": 136660.3859
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "base:0x9d5daa2dda7541e743313e750d42f7a612e80004",
@@ -2431,6 +2785,7 @@
       "symbol": "Singularity",
       "first_seen_at_utc": "2026-11-21T18:56:48.621Z",
       "last_seen_at_utc": "2026-11-21T19:00:16.775Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44938248515/gecko-base-page1.raw.json",
@@ -2454,9 +2809,8 @@
         "previous_price_usd": 4.49267774663709e-7,
         "previous_liquidity_usd": 301.3723
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "base:0x90a771dedaeb8dcc8280e43e641175c1a0875da3",
@@ -2466,6 +2820,7 @@
       "symbol": "Singularity",
       "first_seen_at_utc": "2026-11-21T18:56:48.621Z",
       "last_seen_at_utc": "2026-11-21T19:00:16.743Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44938248515/gecko-base-page1.raw.json",
@@ -2489,9 +2844,8 @@
         "previous_price_usd": 9.89071591927211e-7,
         "previous_liquidity_usd": 0.1681
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "base:0x6f4ce296c88746a419251bd0eaa4ca5d24a88a5c",
@@ -2501,6 +2855,7 @@
       "symbol": "XCHAT",
       "first_seen_at_utc": "2026-11-21T18:56:48.621Z",
       "last_seen_at_utc": "2026-11-21T19:00:16.674Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44938248515/gecko-base-page1.raw.json",
@@ -2524,9 +2879,8 @@
         "previous_price_usd": 3.43049175993233e-13,
         "previous_liquidity_usd": 0.003373828619
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "base:0x85e8a90715f456edb5fe6a9df9650174c2c7931c",
@@ -2536,6 +2890,7 @@
       "symbol": "CHUBBY",
       "first_seen_at_utc": "2026-11-21T18:56:48.621Z",
       "last_seen_at_utc": "2026-11-21T19:00:16.707Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44938248515/gecko-base-page1.raw.json",
@@ -2559,9 +2914,8 @@
         "previous_price_usd": 1.10166702176866e-10,
         "previous_liquidity_usd": 0.006742117138
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "ethereum:0x36b7adcfebf85c6804ac5fa8abdeb370875df12c",
@@ -2571,6 +2925,7 @@
       "symbol": "CCEE",
       "first_seen_at_utc": "2026-11-21T19:00:16.340Z",
       "last_seen_at_utc": "2026-11-21T19:00:16.521Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44938541583/gecko-ethereum-page1.raw.json",
@@ -2594,9 +2949,8 @@
         "previous_price_usd": 0.00571083228460278,
         "previous_liquidity_usd": 0.6721
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "ethereum:0x12157317aa3803fc9f4ba1d16a59e6b319b1419a",
@@ -2606,6 +2960,7 @@
       "symbol": "SAP",
       "first_seen_at_utc": "2026-11-21T19:00:16.340Z",
       "last_seen_at_utc": "2026-11-21T19:00:16.589Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44938541583/gecko-ethereum-page1.raw.json",
@@ -2629,9 +2984,8 @@
         "previous_price_usd": 0.00000971339561088061,
         "previous_liquidity_usd": 8824.1262
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "ethereum:0x28bfb9a0b3bb06877ea33329a7f7cef7eb655ba8",
@@ -2641,6 +2995,7 @@
       "symbol": "BON",
       "first_seen_at_utc": "2026-11-21T19:00:16.340Z",
       "last_seen_at_utc": "2026-11-21T19:00:16.340Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44938541583/gecko-ethereum-page1.raw.json",
@@ -2656,9 +3011,8 @@
         "price_usd": 0.00000221667960807602,
         "liquidity_usd": 47288.6283
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x805febc198450fed3a613a9b8aee5d5945d9ffff",
@@ -2668,6 +3022,7 @@
       "symbol": "XRAY",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -2683,9 +3038,8 @@
         "price_usd": 0.00000321403725531512,
         "liquidity_usd": 2571.237
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x7ddaf280197c046c1b84cfd0ec915100a2602287",
@@ -2695,6 +3049,7 @@
       "symbol": "蛹",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:40.067Z",
+      "observation_count": 2,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -2718,9 +3073,8 @@
         "previous_price_usd": 0.00000427488187533943,
         "previous_liquidity_usd": 64285.5164
       },
-      "observation_count": 2,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0xc5c698fcf4cd5d562eeea2e3aa2a8e4cbc1eb453",
@@ -2730,6 +3084,7 @@
       "symbol": "TOM",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -2745,9 +3100,8 @@
         "price_usd": 0.000632046298831698,
         "liquidity_usd": 12012.3694
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x6fe3796c5ce9ece18334fa02e4293f9519ef2720",
@@ -2757,6 +3111,7 @@
       "symbol": "蚂蚁",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -2772,9 +3127,8 @@
         "price_usd": 0.0000753103340449858,
         "liquidity_usd": 24467.9268
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x5d190fe91496a2d5751932f570d6cb40c8f4703e",
@@ -2784,6 +3138,7 @@
       "symbol": "FT",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -2799,9 +3154,8 @@
         "price_usd": 3.40707643107769e-10,
         "liquidity_usd": 0.6581
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0xa8fee6799199b49e8388e00b7cc840fc708465ca",
@@ -2811,6 +3165,7 @@
       "symbol": "蛹",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -2826,9 +3181,8 @@
         "price_usd": 0.00000489717514816406,
         "liquidity_usd": 0.3839
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0xc062963d17145425506a61ab66462955efccffff",
@@ -2838,6 +3192,7 @@
       "symbol": "CLAUDTROLL",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -2853,9 +3208,8 @@
         "price_usd": 0.00000321579573791031,
         "liquidity_usd": 2572.2217
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x910bcc77398dabcfe9d1d4baf1506ca9bf7a76fe",
@@ -2865,6 +3219,7 @@
       "symbol": "AMGN",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -2880,9 +3235,8 @@
         "price_usd": 8.4535028965265e-11,
         "liquidity_usd": 16697.8758
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0xd72164d2d0d10ed616f660607176c654f6d37174",
@@ -2892,6 +3246,7 @@
       "symbol": "PI MOON",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -2907,9 +3262,8 @@
         "price_usd": 0.00000481199857483898,
         "liquidity_usd": 6.4712
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x2b9a532d46cf8c5baec3ad15b8e622a403387218",
@@ -2919,6 +3273,7 @@
       "symbol": "AICoin",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -2934,9 +3289,8 @@
         "price_usd": 0.0000161297032249721,
         "liquidity_usd": 138335.2104
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x896c11de1bf99dd31f842c80324a8e352e3d0125",
@@ -2946,6 +3300,7 @@
       "symbol": "SP400",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -2961,9 +3316,8 @@
         "price_usd": 0.00000863142770916852,
         "liquidity_usd": 16781.3027
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0xf829e01933eff60d4b5b68328d52df3e47ddffff",
@@ -2973,6 +3327,7 @@
       "symbol": "Anusha",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -2988,9 +3343,8 @@
         "price_usd": 0.00000315919546321266,
         "liquidity_usd": 2526.8779
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x2060710784ad5cf842673fcf1fe548af0a9ee08c",
@@ -3000,6 +3354,7 @@
       "symbol": "DREADWING",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -3015,9 +3370,8 @@
         "price_usd": 0.000542961914939009,
         "liquidity_usd": 9679.5441
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0xc2a68bd31807801018bd6de85dffa9bdf18efa31",
@@ -3027,6 +3381,7 @@
       "symbol": "Singularit",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -3042,9 +3397,8 @@
         "price_usd": 0.0000574365884658142,
         "liquidity_usd": 12692.0158
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0x0adfa4a6f03cc498552534e8c42bd4971c41ffff",
@@ -3054,6 +3408,7 @@
       "symbol": "LABEL",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -3069,9 +3424,8 @@
         "price_usd": 0.00000320688609276134,
         "liquidity_usd": 2572.3624
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     },
     {
       "key": "bsc:0xdc7a7d11098ef3ce82d80e44c24c726d37109923",
@@ -3081,6 +3435,7 @@
       "symbol": "蚂蚁",
       "first_seen_at_utc": "2026-11-21T19:12:39.767Z",
       "last_seen_at_utc": "2026-11-21T19:12:39.767Z",
+      "observation_count": 1,
       "source_refs": [
         {
           "source_path": "research/feeds/2026-11-21/44939696689/gecko-bsc-page1.raw.json",
@@ -3096,15 +3451,15 @@
         "price_usd": 0.000049062804884135,
         "liquidity_usd": 11551.3003
       },
-      "observation_count": 1,
       "contract_conflicts": [],
-      "status": "PENDING_RESEARCH_NOT_BUY_ELIGIBLE"
+      "status": "PENDING_RISK_NOT_BUY_ELIGIBLE"
     }
   ],
-  "errors": [
-    {
-      "code": "CAPTURE_PENDING",
-      "detail": "New request committed, but research/feeds/latest.json still points to an earlier request. No current capture observations or quotes can be claimed."
-    }
+  "errors": [],
+  "data_gaps": [
+    "Single-chain one-page sample; not global market coverage",
+    "No risk/sellability verification",
+    "No as-of rankable temporal signals",
+    "Unverified independent current executable quotes"
   ]
 }
