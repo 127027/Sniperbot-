@@ -55,3 +55,20 @@ test('inaccessible X/Reddit sources are visibility gaps, never zero posts',()=>{
  assert.equal(m.memory.source_status.X.status,'NO_AUTHORIZED_FREE_ACCESS');
  assert.equal(m.memory.stats.working_sources,0);
 });
+
+test('Mastodon public hashtag: only dated public social posts, not follower-only or private',()=>{
+ const payload=JSON.stringify([
+  {url:'https://mastodon.social/@example/1',content:'<p>#memecoin DOGE</p>',
+   visibility:'public',created_at:'2026-11-21T20:45:00Z',favourites_count:3,reblogs_count:1},
+  {url:'https://mastodon.social/@example/2',content:'<p>PEPE</p>',
+   visibility:'private',created_at:'2026-11-21T20:45:00Z'},
+  {url:'https://mastodon.social/@example/3',content:'<p>FLOKI</p>',
+   visibility:'public',created_at:'2026-11-22T00:00:00Z'}
+ ]);
+ const result=decodeMediaSource({source:'MASTODON_TAG',sourceClass:'PUBLIC_SOCIAL_HASHTAG',
+  kind:'MASTODON_TAG',body:payload,capturedAtUtc:t});
+ assert.equal(result.accepted,1);
+ assert.equal(result.future_dated,1);
+ assert.equal(result.events[0].engagement_snapshot.likes,3);
+ assert.equal(result.events[0].buy_authorized,false);
+});

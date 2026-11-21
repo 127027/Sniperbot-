@@ -30,7 +30,7 @@ const event=({source,sourceClass,url,headline,published,seen,engagement=null})=>
 };
 export function decodeMediaSource({source,sourceClass,kind,body,capturedAtUtc,limit=50}={}){
  const when=iso(capturedAtUtc);
- if(!when||!source||typeof body!=='string'||!['RSS','BLUESKY_FEED'].includes(kind)||!Number.isInteger(limit)||limit<1||limit>200)
+ if(!when||!source||typeof body!=='string'||!['RSS','BLUESKY_FEED','MASTODON_TAG'].includes(kind)||!Number.isInteger(limit)||limit<1||limit>200)
   throw Error('BAD_MEDIA_INPUT');
  let rows=[],inputItems=0;
  if(kind==='RSS'){
@@ -38,7 +38,7 @@ export function decodeMediaSource({source,sourceClass,kind,body,capturedAtUtc,li
   inputItems=items.length;
   rows=items.slice(0,limit).map(i=>event({source,sourceClass,seen:when,url:tag(i,'link')||tag(i,'guid'),
    headline:tag(i,'title'),published:tag(i,'pubDate')||tag(i,'published')})).filter(Boolean);
- }else{
+ }else if(kind==='BLUESKY_FEED'){
   let obj;try{obj=JSON.parse(body);}catch{throw Error('BAD_MEDIA_JSON');}
   if(!Array.isArray(obj?.feed))throw Error('BAD_BLUESKY_FEED');
   inputItems=obj.feed.length;
@@ -49,6 +49,16 @@ export function decodeMediaSource({source,sourceClass,kind,body,capturedAtUtc,li
     headline:p?.record?.text?.slice(0,260)||'',published:p?.record?.createdAt||p?.indexedAt,
     engagement:{likes:Number.isInteger(p?.likeCount)?p.likeCount:null,reposts:Number.isInteger(p?.repostCount)?p.repostCount:null}});
   }).filter(x=>x&&x.topics.length);
+ }else{
+  let statuses;try{statuses=JSON.parse(body);}catch{throw Error('BAD_MASTODON_JSON');}
+  if(!Array.isArray(statuses))throw Error('BAD_MASTODON_TIMELINE');
+  inputItems=statuses.length;
+  rows=statuses.slice(0,limit).filter(p=>p?.visibility==='public').map(p=>
+   event({source,sourceClass,seen:when,url:p.url||p.uri,
+    headline:decode(p.content||'').slice(0,260),published:p.created_at,
+    engagement:{likes:Number.isInteger(p.favourites_count)?p.favourites_count:null,
+     reposts:Number.isInteger(p.reblogs_count)?p.reblogs_count:null}})
+  ).filter(x=>x&&x.topics.length);
  }
  const valid=rows.filter(x=>x.published_at_utc&&x.published_at_utc<=when);
  return {source,source_class:sourceClass,kind,source_item_count:inputItems,

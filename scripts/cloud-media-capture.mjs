@@ -24,7 +24,11 @@ const rssQueries=[
  {source:'GOOGLE_NEWS_CELEBRITY_RSS',kind:'RSS',sourceClass:'AGGREGATED_NEWS',
  url:'https://news.google.com/rss/search?q='+encodeURIComponent('(Trump OR "Elon Musk") (crypto OR meme) when:1d')+'&hl=en-US&gl=US&ceid=US:en'},
  {source:'BLUESKY_WHATS_HOT',kind:'BLUESKY_FEED',sourceClass:'PUBLIC_SOCIAL_FEED',
- url:'https://public.api.bsky.app/xrpc/app.bsky.feed.getFeed?feed='+encodeURIComponent('at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.generator/whats-hot')+'&limit=50'}
+ url:'https://public.api.bsky.app/xrpc/app.bsky.feed.getFeed?feed='+encodeURIComponent('at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.generator/whats-hot')+'&limit=50'},
+ {source:'MASTODON_MEMECOIN_TAG',kind:'MASTODON_TAG',sourceClass:'PUBLIC_SOCIAL_HASHTAG',
+ url:'https://mastodon.social/api/v1/timelines/tag/memecoin?limit=40'},
+ {source:'MASTODON_DOGECOIN_TAG',kind:'MASTODON_TAG',sourceClass:'PUBLIC_SOCIAL_HASHTAG',
+ url:'https://mastodon.social/api/v1/timelines/tag/dogecoin?limit=40'}
 ];
 const statuses=[];
 for(const src of rssQueries){
