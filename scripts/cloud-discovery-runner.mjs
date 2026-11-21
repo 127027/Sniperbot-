@@ -5,6 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {validateCaptureRequest,chooseNetwork,decodeGeckoNewPools,crossCheckDexPair,
  fromDexPairOnly,collectSampleMetrics,sha256} from '../src/discovery-feed.mjs';
 import {canonicalChain,poolValid} from '../src/market-evidence.mjs';
+import {makeResearchHandoff} from '../src/feed-handoff.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -86,9 +87,13 @@ const data={schema:1,kind:'DOT2_PUBLIC_CAPTURE_EVIDENCE',mode:'PAPER_RESEARCH_ON
   'Risk, sellability, independent quotes and actual paper-client fills still required.']};
 const filename=root+'/evidence.json';
 await writeFile(filename,JSON.stringify(data,null,2)+'\n','utf8');artifacts.push(filename);
+const handoff=makeResearchHandoff({evidence:data,atUtc:data.captured_completed_at_utc});
+const handoffPath=root+'/dot2-to-dot3-handoff.json';
+await writeFile(handoffPath,JSON.stringify(handoff,null,2)+'\n','utf8');
+artifacts.push(handoffPath);
 const latest={schema:1,kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',mode:'PAPER_RESEARCH_ONLY',
-  request_path:path,evidence_path:filename,captured_at_utc:data.captured_completed_at_utc,
-  source_chain:chosen.chain,metrics,source_evidence_paths:artifacts,
+  request_path:path,evidence_path:filename,handoff_path:handoffPath,captured_at_utc:data.captured_completed_at_utc,
+  source_chain:chosen.chain,metrics,handoff_counts:handoff.counts,source_evidence_paths:artifacts,
   trading_ready:false,orders_created:0};
 await mkdir('research/feeds',{recursive:true});
 await writeFile('research/feeds/latest.json',JSON.stringify(latest,null,2)+'\n','utf8');
