@@ -28,6 +28,8 @@ jobs:
         run: npm test
       - name: V1.3 prospective temporal learning audit (no labels before horizon)
         run: node scripts/audit-v13-learning.mjs
+      - name: V1.5 frozen Oct 12 paired news-vs-no-news 24 scans
+        run: node scripts/replay-v15-historical-media.mjs
       - name: V1.2 frozen six-pool Dot3 risk queue and Dot4 guarded-reentry replay
         run: node scripts/replay-v12-frozen-risk.mjs
       - name: Oct 12 training - 24 hourly research scans and five-dot duty audit
@@ -51,7 +53,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: historical-ohlcv-probe
-          path: probe-artifacts/*.json
+          path: |
+            probe-artifacts/*.json
+            probe-artifacts/*.csv
           if-no-files-found: ignore
           retention-days: 7
       - name: Isolated tree assertion
