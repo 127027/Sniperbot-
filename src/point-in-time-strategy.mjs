@@ -3,7 +3,7 @@
 // This is NOT the cloud GPT strategy; it tests that the same PAPER execution gates
 // can create both BUY and SELL from pre-existing market observations.
 import {newState,settlePaper,inspectOrder,Reject,marketKey,DEFAULT_POLICY} from './core.mjs';
-import {researchDue} from './cadence.mjs';
+import {researchDue,chooseCadence} from './cadence.mjs';
 
 const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 const ms=value=>typeof value==='string'&&ISO.test(value)&&Number.isFinite(Date.parse(value))?Date.parse(value):null;
@@ -40,22 +40,42 @@ function policyOrder(snapshot,now,action,idx){
    created_at:iso(now),expires_at:iso(now+120000),coin:snapshot.coin,
    ...(action==='BUY'?{amount_test_usdc:50}:{}),quotes:snapshot.quotes.map(({source_published_at_utc,...q})=>q)};
 }
-export function replaySignalDecisions({date,snapshots=[],targetPer24h=4,params={}}){
+export function replaySignalDecisions({date,snapshots=[],activityObservations=[],targetPer24h=4,params={}}){
  if(typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date+'T00:00:00Z')))
    throw Error('INVALID_DATE');
  if(![4,8,12,24].includes(targetPer24h))throw Error('INVALID_TARGET');
- if(!Array.isArray(snapshots))throw Error('INVALID_SNAPSHOTS');
+ if(!Array.isArray(snapshots)||!Array.isArray(activityObservations))throw Error('INVALID_SNAPSHOTS');
  const start=ms(date+'T00:00:00Z'),end=start+86400000;
  const p={entryMomentumPct:5,takeProfitPct:20,stopLossPct:10,maxMomentumAgeHours:2,...params};
  if(![p.entryMomentumPct,p.takeProfitPct,p.stopLossPct,p.maxMomentumAgeHours].every(x=>typeof x==='number'&&Number.isFinite(x)&&x>0))throw Error('INVALID_PARAMS');
  const state=newState(),initial=state.cash,events=[],sums={dataGap:0,available:0,fullReviews:0,buys:0,sells:0};
- let ledger=state,lastReview=null,sequence=0;
+ let ledger=state,lastReview=null,sequence=0,currentTarget=targetPer24h;
  const history=new Map();
+ // Training from BEFORE the day: no future snapshots; requires complete original
+ // timestamps, matching quotes, and prior observations available before day start.
+ for(const s of [...snapshots].sort((a,b)=>(ms(a?.observed_at_utc)??0)-(ms(b?.observed_at_utc)??0))){
+   const at=ms(s?.observed_at_utc),captured=ms(s?.archived_at_utc);
+   if(at===null||captured===null||at>=start||captured>start||start-at>p.maxMomentumAgeHours*3600000)continue;
+   if(gate(s,Math.max(at,captured))!==null)continue;
+   const price=s.quotes.reduce((sum,q)=>sum+q.price_usdc,0)/s.quotes.length;
+   history.set(marketKey(s.coin),{price,at_utc:s.observed_at_utc});
+ }
+
  // Input MUST be independently collected and available at its own timestamp.
  // We evaluate every hour :35 and never preselect winners or sort by future performance.
  for(let hour=0;hour<24;hour++){
    const tick=start+hour*3600000+35*60000,at=iso(tick);
-   const due=researchDue(at,lastReview,targetPer24h).due;
+   // Dot 1 determines cadence from measured *as-of* activity on the first scan,
+   // and on later hourly wakes. No evidence -> hold last setting.
+   const activity=activityObservations.filter(x=>{
+     const observed=ms(x?.observed_at_utc),captured=ms(x?.archived_at_utc);
+     return observed!==null&&captured!==null&&observed<=tick&&captured<=tick
+       &&tick-observed<=3600000&&x.provenance==='CONTEMPORANEOUS_RECORD'
+       &&typeof x.source_archive_sha==='string'&&/^[0-9a-f]{40}$/.test(x.source_archive_sha);
+   }).sort((a,b)=>ms(b.observed_at_utc)-ms(a.observed_at_utc))[0];
+   const cadence=chooseCadence(activity?activity.metrics:null,currentTarget);
+   currentTarget=cadence.target;
+   const due=researchDue(at,lastReview,currentTarget).due;
    if(due){lastReview=at;sums.fullReviews++;}
    const valid=[],blocked=[];
    for(const s of snapshots){
@@ -68,7 +88,7 @@ export function replaySignalDecisions({date,snapshots=[],targetPer24h=4,params={
    valid.sort((a,b)=>String(a.coin.chain).localeCompare(String(b.coin.chain))||String(a.coin.contract).localeCompare(String(b.coin.contract))||String(a.coin.pool).localeCompare(String(b.coin.pool))||ms(a.observed_at_utc)-ms(b.observed_at_utc));
    const fresh=new Map();
    for(const s of valid)fresh.set(marketKey(s.coin),s);
-   const step={at_utc:at,full_review:due,eligible_snapshots:fresh.size,blocked_sources:blocked,status:'NO_TRADE',actions:[]};
+   const step={at_utc:at,full_review:due,target_per_24h:currentTarget,cadence_reason:cadence.reason,eligible_snapshots:fresh.size,blocked_sources:blocked,status:'NO_TRADE',actions:[]};
    if(!fresh.size){sums.dataGap++;step.status='DATA_GAP_NO_FRESH_QUOTES';events.push(step);continue;}
    sums.available++;
    // Open positions are examined hourly; no 6h delay until next full discovery review.

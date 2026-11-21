@@ -1,6 +1,6 @@
 // Deterministic discovery funnel: no winners list or future returns as input.
 // All candidates survive, including rejected, undated and missing-contract pools.
-import {canonicalChain,poolValid,tokenValid} from './market-evidence.mjs';
+import {canonicalChain,poolValid,tokenValid,exactPoolUrl} from './market-evidence.mjs';
 const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 const timestamp=x=>typeof x==='string'&&ISO.test(x)&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
 const nonnegative=x=>typeof x==='number'&&Number.isFinite(x)&&x>=0?x:null;
@@ -16,6 +16,7 @@ export function prioritizeDiscoveredPools(candidates,{asOfUtc,detailedLimit=24}=
   if(!chain)errors.push('UNKNOWN_CHAIN');
   if(!poolValid(chain,pool,x?.pool_kind))errors.push('POOL_UNVERIFIED');
   if(!tokenValid(chain,contract))errors.push('CONTRACT_UNVERIFIED');
+  if(!exactPoolUrl(x?.source_url,chain,pool))errors.push('DETAIL_URL_UNVERIFIED');
   if(seen===null||seen>now)errors.push('INVALID_OR_FUTURE_OBSERVATION');
   const ageMinutes=seen===null||seen>now?null:(now-seen)/60000;
   if(ageMinutes!==null&&ageMinutes>60)errors.push('STALE_DISCOVERY');

@@ -53,3 +53,12 @@ Nur reale Daten markieren diese Schritte als bestanden; keine synthetischen Trad
 - [x] Momentumvergleich auf maximal 2 Stunden begrenzt und frühere Quotes ebenfalls durch sämtliche Quellengates geprüft
 - [ ] Neuer CI-Lauf bestanden
 - [ ] Historische Quote-Coverage am 12.10. reicht für echte Blindhandelsbewertung
+
+## V0.5 Training und Holdout
+- [x] Der Trainingsfall 12.10. wird nie wieder als unabhängiger Testtag gewertet
+- [x] Robinhood Chain und Cronos in Paper-Syntax- und Entdeckungslogik erkannt
+- [x] Vollständige Discovery-Warteschlange bewahrt alle Kandidaten inklusive DATA_GAP auf
+- [x] Erster Review darf mit belegten Vor-Tagesbeobachtungen BUY ableiten; kein Zukunftswissen
+- [x] Dot 1 kann bei erster belegter Aktivität sofort 4→24 Vollreviews pro Tag schalten
+- [ ] Unabhängig gestempeltes historisches Pool-/Kursuniversum am neuen Holdout-Tag nachgewiesen
+- [ ] Tatsächlich profitabler prospektiver Paper-Zyklus nachgewiesen

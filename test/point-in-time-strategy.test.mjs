@@ -61,3 +61,38 @@ test('divergent prices cannot enter historical momentum observations',()=>{
  assert.equal(r.summary.buys,0);
  assert.equal(r.events[5].blocked_sources[0].reason,'QUOTE_GATE_PRICE_DISAGREEMENT');
 });
+
+test('first review may BUY using strictly pre-window observations, not requiring a warm-up after midnight',()=>{
+ const previous=synth(0,.001), first=synth(0,.0012);
+ const prior='2026-10-11T23:34:00.000Z';
+ previous.observed_at_utc=prior;previous.archived_at_utc=prior;
+ previous.discovery.observed_at_utc=prior;previous.risk.observed_at_utc=prior;
+ for(const q of previous.quotes){q.observed_at=prior;q.source_published_at_utc=prior;}
+ const r=replaySignalDecisions({date,snapshots:[previous,first]});
+ assert.equal(r.summary.buys,1);
+ assert.equal(r.events[0].actions[0].action,'BUY');
+ assert.equal(r.events[0].at_utc,'2026-10-12T00:35:00.000Z');
+});
+test('prior price published after day start is forbidden as reference',()=>{
+ const previous=synth(0,.001),first=synth(0,.0013);
+ const prior='2026-10-11T23:34:00.000Z',late='2026-10-12T02:00:00.000Z';
+ previous.observed_at_utc=prior;previous.archived_at_utc=late;
+ previous.discovery.observed_at_utc=prior;previous.risk.observed_at_utc=prior;
+ for(const q of previous.quotes){q.observed_at=prior;q.source_published_at_utc=prior;}
+ const r=replaySignalDecisions({date,snapshots:[previous,first]});
+ assert.equal(r.summary.buys,0);
+});
+test('Dot 1 may jump from 4 to 24 full reviews on first authenticated activity observation',()=>{
+ const at='2026-10-12T00:34:00.000Z';
+ const metrics={dataAvailable:true,newPools:85,eligible:0,volumeChangePct:0,openPositions:0};
+ const r=replaySignalDecisions({date,activityObservations:[{provenance:'CONTEMPORANEOUS_RECORD',observed_at_utc:at,archived_at_utc:at,source_archive_sha:'a'.repeat(40),metrics}]});
+ assert.equal(r.events[0].target_per_24h,24);
+ assert.equal(r.events[0].full_review,true);
+ assert.equal(r.events[1].full_review,true);
+});
+test('missing or late activity evidence does not force higher cadence',()=>{
+ const at='2026-10-12T00:34:00.000Z';
+ const r=replaySignalDecisions({date,activityObservations:[{provenance:'CONTEMPORANEOUS_RECORD',observed_at_utc:at,archived_at_utc:'2026-10-13T00:00:00.000Z',source_archive_sha:'a'.repeat(40),metrics:{dataAvailable:true,newPools:85}}]});
+ assert.equal(r.events[0].target_per_24h,4);
+ assert.equal(r.summary.fullReviews,4);
+});
