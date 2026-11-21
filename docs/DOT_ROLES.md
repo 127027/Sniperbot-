@@ -1,6 +1,6 @@
 # Sechs eigenständige Cleanroom-Cloud-Dots
 
-Die fünf stündlichen Kernrollen laufen unabhängig von Endgeräten. Zusätzlich führt **Dot 6 täglich** die retrospektive >100%-Gewinner-/Missed-Opportunity- und Systemverbesserungsprüfung durch. Detaillierte Vorgaben: [DOT_PIPELINE.md](DOT_PIPELINE.md) und [DOT6_DAILY_IMPROVEMENT.md](DOT6_DAILY_IMPROVEMENT.md).
+Die fünf stündlichen Kernrollen laufen unabhängig von Endgeräten. Zusätzlich führt **Dot 6 täglich** die retrospektive >100%-Gewinner-/Missed-Opportunity- und Systemverbesserungsprüfung durch. **Technischer Scheduler:** Dot 6 wird als eigener täglicher Arbeitsschritt aus der stündlichen Dot-5-Automation ausgeführt (fünf aktive Aufgaben insgesamt). Detaillierte Vorgaben: [DOT_PIPELINE.md](DOT_PIPELINE.md) und [DOT6_DAILY_IMPROVEMENT.md](DOT6_DAILY_IMPROVEMENT.md).
 
 1. **Tempo:** Marktaktivität messen, 4/8/12/24 vollständige GPT-Reviews adaptiv steuern.
 2. **Discovery:** Neue, bestehende und reaktivierte Pools auf mehreren Chains dokumentieren.

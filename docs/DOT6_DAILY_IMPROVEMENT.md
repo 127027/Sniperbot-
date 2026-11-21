@@ -1,7 +1,7 @@
 # R29 Cleanroom – Dot 6: tägliche 24-Stunden-Gewinner- und Verbesserungsprüfung
 
 ## Ziel und Zuständigkeit
-Dot 6 ist **unabhängig von allen Endgeräten** der tägliche retrospektive Auditor. Dot 1–5 laufen wie bisher; Dot 6 trifft keine BUY/SELL-Entscheidungen, ändert keine Paper-Konten und erzeugt niemals Fills. Er gibt alle 24 Stunden einen prüfbaren Bericht ab und etabliert einen **messen → Ursache → gezielte Verbesserung → erneuter Test**-Kreislauf. Arbeite ausschließlich in `127027/Sniperbot-`, Branch `codex/r29-cleanroom-paper-20261121`. Kein main/alter Bot/Wallet/Echtgeld/zusätzliche Anbietergebühren.
+Dot 6 ist **unabhängig von allen Endgeräten** der tägliche retrospektive Auditor. Wegen des Kontolimits von fünf aktiven Automationen wird Dot 6 **als separat protokollierte Tagesphase der bestehenden stündlichen Dot-5-Automation** ausgeführt; er ist keine zusätzliche sechste geplante Aufgabe. Der erste Lauf ab 20:00 Uhr Europe/Berlin ohne vorhandenen heutigen Dot-6-Bericht beginnt den Tagesaudit. Dot 1–5 laufen wie bisher; Dot 6 trifft keine BUY/SELL-Entscheidungen, ändert keine Paper-Konten und erzeugt niemals Fills. Er gibt alle 24 Stunden einen prüfbaren Bericht ab und etabliert einen **messen → Ursache → gezielte Verbesserung → erneuter Test**-Kreislauf. Arbeite ausschließlich in `127027/Sniperbot-`, Branch `codex/r29-cleanroom-paper-20261121`. Kein main/alter Bot/Wallet/Echtgeld/zusätzliche Anbietergebühren.
 
 ## 1. Zeitfenster und Vergleichsmenge
 - Bestimme zum Zeitpunkt des realen Durchlaufs `as_of_utc`; Fenster **[as_of_utc - 24 Stunden, as_of_utc)**, UTC. Keine stillen Überschneidungen oder erfundenen Uhrzeiten.

@@ -25,3 +25,11 @@
 - [ ] 21 historische Nacht-Kandidaten im Blind-Replay ohne Zukunftswissen geprüft
 
 Nur reale Daten markieren diese Schritte als bestanden; keine synthetischen Trades, kein ausgedachtes Markt-Radar. Fünf stündliche Dots sind best effort, kein lückenloser Marktdatenstream.
+
+## Täglicher Retrospektiv-Audit / Dot 6 (logische Rolle in Dot 5)
+- [x] Konkreter Ablauf für 24h-+100%-Gewinner-Recherche, Chain/Contract/Pool-Abgleich, Fehlerklassifikation und täglich messbare Verbesserungsversuche dokumentiert
+- [x] Deterministisches Offline-Hilfsmodul und Testfälle hinzugefügt
+- [x] Bestehende aktive Dot-5-Automation um täglichen separaten Dot-6-Prüflauf ab 20:00 Europe/Berlin erweitert (Kontolimit: fünf Tasks)
+- [ ] Erster echter Dot-6-Tagesbericht aus öffentlichen Quellen und GitHub-Eventkette abgelegt
+- [ ] Mindestens eine real belegte Ursache mit erfolgreichem Vorher-Nachher-Test verbessert
+- [ ] Quellenabdeckung und historische Kurszeitfenster fortlaufend gemessen; keine vollständige weltweite Coverage behauptet
