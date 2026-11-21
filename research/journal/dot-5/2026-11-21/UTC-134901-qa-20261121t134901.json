@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "dot": "dot-5",
+  "run_id": "UTC-134901-qa-20261121t134901",
+  "run_started_at_utc": "2026-11-21T13:49:01Z",
+  "time_basis": "AUTOMATION_RUNTIME_TIMESTAMP",
+  "mode": "PAPER_ONLY",
+  "status": "DATA_GAP",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "source_repository": "127027/Sniperbot-",
+  "berlin_local_at_start": "2026-11-21T14:49:01+01:00",
+  "daily_dot6_due": false,
+  "reason_dot6_not_due": "Before 20:00 Europe/Berlin",
+  "sources": {
+    "dot1": "research/latest/dot-1.json",
+    "dot2": "research/latest/dot-2.json",
+    "dot3": "research/latest/dot-3.json",
+    "dot4": "research/latest/dot-4.json",
+    "dot2_journal": {
+      "path": "research/journal/dot-2/2026-11-21/UTC-131900-discovery-20261121b.json",
+      "blob_sha": "da8c83a24f3acbf1b23e27c724c0dc3d0f223c91"
+    },
+    "dot3_journal": {
+      "path": "research/journal/dot-3/2026-11-21/UTC-132735-risk-20261121-v05.json",
+      "blob_sha": "b85ad6d488fe2504b4bafd7573fddff2dc2ccdae"
+    },
+    "dot4_journal": {
+      "path": "research/journal/dot-4/2026-11-21/strategy-exit-20261121-133942761Z.json",
+      "blob_sha": "1db7331c2ab069588b2bbaa64601d84f487ba8dc"
+    },
+    "signal_index": {
+      "path": "signals/index.json",
+      "blob_sha": "8f360a172e95adfda2d30105dd3fc7639497367d"
+    },
+    "snapshot_sample": {
+      "path": "research/snapshots/2026-11-21/131900-discovery-20261121b-geckoterminal-1.json",
+      "blob_sha": "d0a216d9598ffaddd0e1bc5c6d1e74e2f411e640"
+    }
+  },
+  "counts": {
+    "dot2_candidates": 9,
+    "dot2_verified_full_identity": 0,
+    "dot2_listing_pages": 10,
+    "dot2_detail_pages": 9,
+    "dot2_snapshots": 7,
+    "dot3_candidates_including_prior_watch": 10,
+    "dot3_eligible": 0,
+    "dot3_watch": 4,
+    "dot3_rejected": 5,
+    "dot3_data_gap": 1,
+    "dot4_buy": 0,
+    "dot4_sell": 0,
+    "signal_orders": 0,
+    "pointers_checked": 0,
+    "pointers_repaired": 0,
+    "client_receipts": 0,
+    "paper_filled": 0,
+    "paper_rejected": 0,
+    "sha_verified_sample_snapshots": 1,
+    "fully_verified_dual_domain_contract_snapshots": 0
+  },
+  "client_status": "OFFLINE_OR_UNCONFIRMED",
+  "clients": [],
+  "client_scope_note": "No receipt paths in repository tree; no per-client device registry or online state confirmed. Empty client list is not proof that there are no clients.",
+  "order_validation": "No orders in signals/index.json and no signals/orders paths in recursive tree. No authorized Dot4 BUY/SELL to publish or repair.",
+  "snapshot_qa": "Seven original snapshot objects are referenced by Dot2 and present in tree; one SHA checked directly; sample has truncated/missing contract, no independent second-domain quote and no actual HTTP/provider price timestamp. Seven are NOT counted as fully verified market quotes.",
+  "historical_training": "2026-10-12 is TRAINING; 2026-11-15 already examined holdout; neither counts as fresh blind success.",
+  "errors": [
+    "NO_FULL_TOKEN_CONTRACT_FOR_NINE_DOT2_CANDIDATES",
+    "NO_INDEPENDENT_TIMESTAMPED_DUAL_DOMAIN_QUOTE",
+    "NO_DOT3_ELIGIBLE",
+    "NO_DOT4_BUY_SELL",
+    "NO_ORDER_OR_CLIENT_RECEIPTS",
+    "NO_VERIFIABLE_CLIENT_ONLINE_STATE"
+  ],
+  "summary": "Latest Dot2 lists 9 pools, 0 complete token identities; Dot3 10 incl prior WATCH, 0 eligible. Dot4 issued no orders; no pointers/receipts to repair. Cloud research remains active. Dot6 not due before 20:00 Berlin."
+}
