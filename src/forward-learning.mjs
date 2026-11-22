@@ -18,7 +18,7 @@ export function makeCaptureObservationBatch({capturedAtUtc,sourcePath,geckoCandi
   }
   const id=key(chain,pool),price=number(c.observed_price_usd??c.price_usd),
    liquidity=number(c.liquidity_usd),volume=number(c.volume_24h_usd);
-  const row={key:id,chain,pool,contract:tokenValid(chain,c.contract)?c.contract:null,
+  const row={key:id,chain,pool,pool_kind:c.pool_kind||null,contract:tokenValid(chain,c.contract)?c.contract:null,
    symbol:c.symbol||null,observed_at_utc:new Date(stamp).toISOString(),
    captured_at_utc:new Date(time).toISOString(),source_path:sourcePath,
    source_provider:c.provider,price_usd:price!==null&&price>0?price:null,
@@ -74,7 +74,7 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100}={}){
       +Math.max(-100,Math.min(100,deltaVol??0))*0.2
       +Math.max(-100,Math.min(100,deltaLiquidity??0))*0.1
       +Math.log10(Math.max(1,newest.liquidity_usd))*2:null;
-   candidates.push({key:id,chain:newest.chain,pool:newest.pool,contract:newest.contract,
+   candidates.push({key:id,chain:newest.chain,pool:newest.pool,pool_kind:newest.pool_kind||null,contract:newest.contract,
      symbol:newest.symbol,last_capture_at_utc:newest.captured_at_utc,
      evidence_batches:unique.length,
      observed_price_change_pct:move,observed_volume_24h_change_pct:deltaVol,
