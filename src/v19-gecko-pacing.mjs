@@ -1,9 +1,11 @@
 // R29 V1.9 SYS-11 partial: polite free-provider burst pacing.
 // A gap is a lower bound on the distance between API request STARTS.
 // This cannot override an HTTP-429 Retry-After/cooldown, license or policy.
-// Public docs specify ~10/min (despite another official 30/min claim).
-// 6100ms between starts stays within a conservative 10-per-rolling-minute pace.
-export const MIN_GECKO_REQUEST_GAP_MS=6100;
+// Actual public runner #45057658912 received HTTP429 on its sixth Gecko
+// request in about 31 seconds, despite 6100ms pacing. Reduce the automatic
+// pace to about 4/min and use the persistent rolling-window budget as well.
+// Shared GitHub-runner IPs can still be throttled; Retry-After always wins.
+export const MIN_GECKO_REQUEST_GAP_MS=15100;
 const tracked=new Set(['GECKOTERMINAL','GECKOTERMINAL_OHLCV']);
 export function planGeckoRequestPacing({
  provider,nowEpochMs,lastGeckoStartedEpochMs=null,
