@@ -2,13 +2,13 @@
   "schema": 1,
   "dot": "dot-2",
   "mode": "PAPER_RESEARCH_ONLY",
-  "status": "DATA_GAP_RISK_UNVERIFIED",
-  "updated_at_utc": "2026-11-22T02:16:21.277Z",
-  "journal_path": "research/journal/dot-2/2026-11-22/20261122T021621277Z-v16-44975257951.json",
-  "journal_blob_sha": "9a7edd65db7d46c206af23bc7490b86f3887f34b",
-  "capture_request_path": "research/requests/2026-11-22/dot2-20261122T021540381Z.json",
-  "capture_run_id": "44975257951",
-  "feed_is_current_request": true,
+  "status": "CAPTURE_PENDING_DATA_GAP",
+  "updated_at_utc": "2026-11-22T03:18:40.357Z",
+  "journal_path": "research/journal/dot-2/2026-11-22/20261122T031832983Z-automation11.json",
+  "journal_blob_sha": "7cf004754090a6791326d8dd0453db800e675513",
+  "capture_request_path": "research/requests/2026-11-22/20261122T031823205Z-dot2-automation11.json",
+  "capture_run_id": null,
+  "feed_is_current_request": false,
   "feed_capture_utc": "2026-11-22T02:15:49.766Z",
   "feed_evidence_path": "research/feeds/2026-11-22/44975257951/evidence.json",
   "feed_evidence_blob_sha": "9a9070c8692553fabb8b731b16f842d77ff67559",
@@ -55,58 +55,9 @@
     "trending_revival_not_fully_covered": true,
     "paging_open": true
   },
-  "priority_shortlist": [
-    {
-      "chain": "ethereum",
-      "pool": "0x99e4e8b120f39eb5597cdba6ea3c7ce6c85e6a1b",
-      "contract": "0x08f4c64c1ba99561431b0588ebe9c77c921e7283",
-      "symbol": "Mfer",
-      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
-      "primary_quote_usd": 0.00000222338534094972,
-      "primary_liquidity_usd": 45500.3437,
-      "captured_at_utc": "2026-11-22T02:15:49.303Z",
-      "pool_key": "ethereum:0x99e4e8b120f39eb5597cdba6ea3c7ce6c85e6a1b",
-      "evidence_path": "research/requests/2026-11-22/dot2-20261122T021540381Z.json",
-      "research_level": "TWO_DOMAIN_PRICE_LIQUIDITY_PROVISIONAL",
-      "second_source_price_usd": 0.000002271,
-      "second_source_liquidity_usd": 45595.08,
-      "second_source_checked_at_utc": "2026-11-22T02:15:49.416Z",
-      "price_disagreement_pct": 2.118850763260028,
-      "independent_price_liquidity_ready": true,
-      "qualified_for_risk_review": true,
-      "security_verified": false,
-      "sellability_verified": false,
-      "BUY_AUTHORIZED": false,
-      "source_url": "https://www.geckoterminal.com/eth/pools/0x99e4e8b120f39eb5597cdba6ea3c7ce6c85e6a1b",
-      "trade_authorized": false
-    },
-    {
-      "chain": "ethereum",
-      "pool": "0x890e2d77e75b2d84edbc2ae2237c30e7ffa20474",
-      "contract": "0x430ef9263e76dae63c84292c3409d61c598e9682",
-      "symbol": "PYR",
-      "source_class": "GECKOTERMINAL_POOL_WITH_BASE_CONTRACT",
-      "primary_quote_usd": 0.0106987199253451,
-      "primary_liquidity_usd": 0,
-      "captured_at_utc": "2026-11-22T02:15:49.303Z",
-      "pool_key": "ethereum:0x890e2d77e75b2d84edbc2ae2237c30e7ffa20474",
-      "evidence_path": "research/requests/2026-11-22/dot2-20261122T021540381Z.json",
-      "research_level": "POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK",
-      "second_source_price_usd": null,
-      "second_source_liquidity_usd": null,
-      "second_source_checked_at_utc": "2026-11-22T02:15:49.478Z",
-      "price_disagreement_pct": null,
-      "independent_price_liquidity_ready": false,
-      "qualified_for_risk_review": true,
-      "security_verified": false,
-      "sellability_verified": false,
-      "BUY_AUTHORIZED": false,
-      "source_url": "https://www.geckoterminal.com/eth/pools/0x890e2d77e75b2d84edbc2ae2237c30e7ffa20474",
-      "trade_authorized": false
-    }
-  ],
+  "priority_shortlist": [],
   "candidate_count": 188,
-  "candidates_scope": "2 parser-accepted + 18 raw rejected Ethereum rows retained in immutable journal; 188 persistent pools",
+  "candidates_scope": "188 prior persistent pools only; new capture pending; no new candidates asserted",
   "pending_queue_source": "research/state/market-memory.json",
   "media": {
     "capture_utc": "2026-11-22T02:15:52.256Z",
@@ -231,7 +182,16 @@
     ],
     "verified_contract_pool_links": 0
   },
-  "errors": [],
+  "errors": [
+    {
+      "code": "CAPTURE_PENDING",
+      "detail": "New request created; latest feed still references previous request."
+    },
+    {
+      "code": "DATA_GAP",
+      "detail": "No new quotes or candidates confirmed for this wake."
+    }
+  ],
   "data_gaps": [
     "18 bytes32-format Ethereum pool IDs rejected by 20-byte pool parser; retain all original IDs, do not substitute token contract",
     "Other five chains not fetched in this request",
@@ -240,5 +200,10 @@
     "No prospective two-capture rankable signal",
     "No independent quote for PYR"
   ],
-  "orders_created": 0
+  "orders_created": 0,
+  "capture_request_commit_sha": "b4b3d4b50a8243faf3ca27f9418ce7908472f392",
+  "new_capture_confirmed": false,
+  "latest_verified_previous_run_id": "44975257951",
+  "latest_verified_previous_pool_count": 188,
+  "trading_ready": false
 }
