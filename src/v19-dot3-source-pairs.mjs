@@ -6,7 +6,8 @@ import {classifyDot3QuoteTime} from './v19-dot3-quote-time.mjs';
 
 const CHAINS=Object.freeze(['solana','ethereum','base','bsc','robinhood','cronos']);
 const providers=Object.freeze(['GECKOTERMINAL','DEXSCREENER']);
-const ts=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
+import {asOfMillis} from './v19-asof-evidence.mjs';
+const ts=asOfMillis;
 const norm=(chain,x)=>chain==='solana'?x:String(x).toLowerCase();
 const validNumber=n=>typeof n==='number'&&Number.isFinite(n)&&n>0;
 const pageChain=c=>c==='ethereum'?'eth':c==='cronos'?'cro':c;
