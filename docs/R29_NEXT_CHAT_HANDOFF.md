@@ -1,4 +1,20 @@
 # R29 – Verbindliche GitHub-Übergabe für neue Chats
+## KORRIGIERTER ORIGINAL-ABNAHMESTATUS (22.11.2026)
+
+**NEUE VERBINDLICHE STATUSZAHL: 9/61 = 14,8 % PASS nach dem ursprünglichen Abnahmekriterium; 22/61 = 36,1 % PARTIAL (gezielt getesteter, aber nicht vollständig original-abgenommener Code); 30/61 = 49,2 % OPEN.**
+
+Die älteren Angaben 31/61 = 50,8 % beziehen sich nur auf den ursprünglichen *technischen Teilimplementierungszähler* PASS + PARTIAL und sind **kein** Nachweis, dass 31 Anforderungen wie ursprünglich gewollt erledigt sind.
+
+**Autorisierte ausführliche Einzelquellen:** docs/V19_REAUDIT_31_TASKS_ORIGINAL_ACCEPTANCE_20261122.md, docs/V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md und docs/V19_IMPLEMENTATION_PROGRESS.md. Alle 31 bisherigen Statuszeilen in der Fortschrittsdatei wurden auf PASS/PARTIAL korrigiert.
+
+Die neun streng akzeptierten IDs: SYS-01, SYS-02, SYS-03, SYS-04, D2-06, D3-01, D4-07, QA-02, QA-06. Bei synthetisch zu prüfenden Aufgaben sind das spezifisch begrenzte **Software-Abnahmen**, kein tatsächlicher GPT- oder Clienthandel.
+
+Haupt-Nicht-Abnahmen trotz vorliegendem Code: real 5/6 Gecko-HTTP200 statt sechs (Ethereum HTTP429 im Archiv #45044300013); aus 526 gelisteten Branch-Actions-Runs kein manueller 29h-Workflow-Test; Empfehlungen 4/8/12/24 statt autonomer tatsächlicher GPT-Reviews; GPT-Messwerte und Client-Paper-Ledger noch hart 0/null; Dot4 mode nur auf Enum geprüft, nicht zwei echte End-to-End-Pipelines nachgewiesen; Risikoproviderzeit/Sellability nicht unabhängig authentifiziert; keine echte Windows-Paper-UI, 0 veröffentlichte Orders/Client-Fills. SYS-09 schützt Testzustände in Temp-Dateien, nicht nachgewiesen das Nutzer-Windows-Konto.
+
+**Bestehende bestätigte technische Nachweise:** Node22 CI #45046056700: 465/465 PASS, 0 FAIL, TAP-Artifact #14763279485, digest SHA256 658a59aa843049fda2f058ac9c2fc66daed6c6f5ed07fc3cf47a360d02980b2b. signals/index.json PAPER/0 Orders. Das 5.000 TEST-USDC / 50-pro-Coin-Policyfile unverändert. Fünf vorhandene Automationen tatsächlich alle is_enabled:false. Keine neuen GitHub-API-Captures, main-/Legacy-/Windows-Wallet-/Order-Änderungen durch diese Zweitabnahme.
+
+**Für spätere Chats:** Vor Hochstufen eines PARTIAL zu PASS genau das ursprüngliche Akzeptanzkriterium nachweislich erfüllen; ein neuer Unit-Test alleine reicht bei Real-Daten-, Window-/Provider-/GPT-/Client-Anforderungen nicht. 50,8 % nicht erneut als erledigt präsentieren.
+
 
 > **Versionsstand:** R29 V1.9, 22. November 2026, Cleanroom-Branch. **Dieses Dokument zusammen mit `AGENTS.md` und `docs/V19_IMPLEMENTATION_PROGRESS.md` vor jedem Auftrag LIVE aus GitHub lesen.** Es ist kein Garant für automatische Synchronisierung mit ChatGPT; der neue Chat muss GitHub lesen können. Bei Widersprüchen gelten live verifizierter Code, GitHub-Commits und tatsächliche Test-/Evidenzdateien über ältere Chat-Aussagen.
 
