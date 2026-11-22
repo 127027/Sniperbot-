@@ -47,3 +47,29 @@ test('runner defers primary/trending/OHLCV Gecko work while a provider 429 is ac
  assert.match(code,/runGeckoRetryAtUtc=delay\.next_retry_at_utc/);
  assert.match(code,/metrics\.v19_gecko_provider_429_cooldown=/);
 });
+
+test('trending-only HTTP 429 persists across capture jobs and blocks new pools',()=>{
+ const x=gate({checkpoints:{},olderCheckpoints:{
+  solana:{status:'HTTP_429',retry_after_utc:'2026-11-22T16:45:00Z'}
+ },atUtc});
+ assert.equal(x.active,true);
+ assert.equal(x.source,'PERSISTED_TRENDING_solana');
+ assert.equal(x.retry_not_before_utc,'2026-11-22T16:45:00.000Z');
+});
+test('OHLCV-only HTTP 429 persists across capture jobs',()=>{
+ const x=gate({ohlcvMarkets:{
+  'base:0x123':{last_status:'HTTP_429',retry_after_utc:'2026-11-22T18:00:00Z'}
+ },atUtc});
+ assert.equal(x.active,true);
+ assert.equal(x.source,'PERSISTED_OHLCV_base:0x123');
+ assert.equal(x.http_requests_authorized,false);
+});
+test('older/OHLCV checkpoint read occurs before any page scheduling',async()=>{
+ const code=await readFile('scripts/cloud-discovery-runner.mjs','utf8');
+ const ix=code.indexOf('const capturePlan=planMultiChainCapture');
+ assert.ok(ix>0);
+ assert.ok(code.indexOf('const olderStatePath=')<ix);
+ assert.ok(code.indexOf('const ohlcvStatePath=')<ix);
+ assert.match(code,/olderCheckpoints:olderState\?\.checkpoints\|\|\{\}/);
+ assert.match(code,/ohlcvMarkets:ohlcvState\?\.markets\|\|\{\}/);
+});
