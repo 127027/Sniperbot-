@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
-import {auditLiveFiveDotJournalInventory,LIVE_DOT_IDS}
+import {auditLiveFiveDotJournalInventory,LIVE_DOT_IDS,validRoleJournalPath}
  from '../src/v19-dot-journal-inventory.mjs';
 
 const at='2026-11-22T22:00:00.000Z';
@@ -117,4 +117,52 @@ test('read-only live inventory CLI generates an honest five-role diagnostic on t
  assert.equal(summary.real_client_fills_verified,0);
  assert.equal(summary.backtest_executed,false);
  assert.equal(summary.orders_written,0);
+});
+
+test('Dot5 can use its actual immutable forensic journal as canonical latest path',()=>{
+ const p=build();
+ const trace='research/audits/dot-traces/2026-11-22/dot5-20261122T214110789Z-wake11/dot-5-control.json';
+ const old=p.latestByRole['dot-5'].journal_path;
+ const raw=JSON.stringify({schema:1,kind:'R29_V19_DOT5_FORENSIC_CONTROL_RESEARCH_ONLY',
+  role:'dot-5-control',executed_at_utc:'2026-11-22T21:41:10.789Z'});
+ p.latestByRole['dot-5']={...p.latestByRole['dot-5'],
+  updated_at_utc:'2026-11-22T21:41:10.789Z',
+  journal_path:trace,journal_blob_sha:h(raw),forensic_trace_path:trace};
+ delete p.rawJournalsByPath[old];
+ p.rawJournalsByPath[trace]=raw;
+ assert.equal(validRoleJournalPath('dot-5',trace),true);
+ assert.equal(validRoleJournalPath('dot-1',trace),false);
+ const report=auditLiveFiveDotJournalInventory(p);
+ assert.equal(report.issue_count,0);
+ assert.equal(report.roles[4].immutable_bytes_match,true);
+ assert.equal(report.roles[4].genuine_gpt_review_independently_authenticated,false);
+});
+test('current read-only inventory exposes merged Dot2 data without silently declaring a GPT review',()=>{
+ const p=build();
+ const d=p.latestByRole['dot-2'];
+ d.captured_at_utc='2026-11-22T20:24:40.627Z';
+ d.evidence_path='research/feeds/2026-11-22/45066246697/evidence.json';
+ d.capture_request_path='research/requests/2026-11-22/request-001.json';
+ const feedPointer={schema:1,kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',
+  mode:'PAPER_RESEARCH_ONLY',
+  captured_at_utc:'2026-11-22T21:11:22.118Z',
+  evidence_path:'research/feeds/2026-11-22/45070668194/evidence.json',
+  request_path:d.capture_request_path};
+ const out=auditLiveFiveDotJournalInventory({...p,feedPointer});
+ const row=out.roles.find(x=>x.role==='dot-2');
+ assert.equal(row.reconciled_current_capture.effective_research_evidence_path,
+  feedPointer.evidence_path);
+ assert.equal(row.reconciled_current_capture.last_gpt_review_source_at_utc,
+  d.captured_at_utc);
+ assert.equal(row.reconciled_current_capture.new_capture_requires_separate_gpt_review,true);
+ assert.equal(row.reconciled_current_capture.latest_gpt_review_authenticated_independently,false);
+ assert.equal(out.verified_live_gpt_runs,0);
+});
+test('the checked-in Dot1 and Dot5 repaired current journal pointers have actual matching bytes',async()=>{
+ for(const role of ['dot-1','dot-5']){
+  const pointer=JSON.parse(await readFile('research/latest/'+role+'.json','utf8'));
+  assert.equal(validRoleJournalPath(role,pointer.journal_path),true);
+  const raw=await readFile(pointer.journal_path,'utf8');
+  assert.equal(h(raw),pointer.journal_blob_sha);
+ }
 });
