@@ -81,14 +81,16 @@ export function updatePageCoverage(existing,{successes=[],failures=[],deferred=[
    runDetails.push({chain:c,page,status:'DEFERRED_NOT_FETCHED'});
  }
  const chains=Object.entries(state.chains).map(([chain,s])=>{
-   s.pending_pages=[...new Set(s.pending_pages)].filter(p=>!s.pages[p])
+   s.pending_pages=[...new Set(s.pending_pages)]
      .sort((a,b)=>a-b);
    const capturedPages=Object.keys(s.pages).map(Number).sort((a,b)=>a-b);
    const page1=asOfMillis(s.last_page1_capture_at_utc);
-   const newest=page1===null?null:Math.max(...capturedPages
-     .map(p=>asOfMillis(s.pages[p].last_success_at_utc)).filter(n=>n!==null),page1);
-   const spread=page1===null||newest===null?null:(newest-page1)/1000;
-   const captureCoherent=spread!==null&&spread<=90;
+   const stamps=capturedPages.map(p=>asOfMillis(s.pages[p].last_success_at_utc))
+     .filter(n=>n!==null);
+   const spread=page1===null||!stamps.length?null:
+     (Math.max(...stamps)-Math.min(...stamps))/1000;
+   const captureCoherent=spread!==null&&capturedPages.length>=2
+     &&s.pending_pages.length===0&&spread<=90;
    return {chain,ever_captured_pages:capturedPages.length,
      max_observed_page:s.max_observed_page,missing_page_indices:[...s.pending_pages],
      offset_shift_may_hide_pools:true,latest_page_span_seconds:spread,
