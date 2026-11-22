@@ -7,6 +7,7 @@ import {resolve,dirname,sep,join} from 'node:path';
 import {homedir} from 'node:os';
 import {fingerprintProtectedFiles,assertProtectedFilesUnchanged,makeResearchOnlyReplayReceipt} from '../src/v19-replay-isolation.mjs';
 import {backtestOnRequest} from '../src/v18-requested-backtest.mjs';
+import {auditOfflineReplayLedger} from '../src/v19-offline-replay-ledger-audit.mjs';
 import {resolveSharedPaperPolicy} from '../src/v19-paper-budget-policy.mjs';
 import {auditFrozenOctoberTraining} from '../src/v18-frozen-reference.mjs';
 const argv=process.argv.slice(2);
@@ -33,6 +34,9 @@ const resolvedPaperBudget=resolveSharedPaperPolicy(budgetSettings);
 const report=backtestOnRequest({date:args['--date'],manifest,
  paperBudgetSettings:resolvedPaperBudget.settings,
  forceHourlyDiagnostic:args['--diagnostic-24']===true});
+// Fail closed before generating any artifact if the detached model ledger
+// cannot reconcile 5,000 TEST-USDC, buys, sells, fees, and open lots.
+const isolatedLedgerAudit=auditOfflineReplayLedger({report});
 const training=args['--training-reference']?await auditFrozenOctoberTraining({date:args['--date']}):null;
 const base=resolve('probe-artifacts');
 const runTimestamp=new Date().toISOString().replace(/[-:.]/g,'');
@@ -44,7 +48,8 @@ await mkdir(dirname(target),{recursive:true});
 const paperAfter=await fingerprintProtectedFiles(protectedFiles);
 const protectedFilesProof=assertProtectedFilesUnchanged(paperBefore,paperAfter);
 await writeFile(target,JSON.stringify({requested_backtest:report,
- research_only_receipt:researchReceipt,protected_files_unchanged:protectedFilesProof,
+ research_only_receipt:researchReceipt,isolated_model_ledger_audit:isolatedLedgerAudit,
+ protected_files_unchanged:protectedFilesProof,
  retrospective_training_reference:training},null,2)+'\n',{encoding:'utf8',flag:'wx'});
 // Verify one more time after writing the ONLY allowed output artifact.
 assertProtectedFilesUnchanged(paperBefore,await fingerprintProtectedFiles(protectedFiles));
@@ -52,5 +57,7 @@ console.log('R29_V18_BACKTEST_ON_DEMAND',JSON.stringify({
  date:report.date,status:report.status,mode:report.mode,
  snapshots:report.accepted_input_count,model_buys:report.model_replay_summary.buys,
  model_sells:report.model_replay_summary.sells,full_reviews:report.model_replay_summary.fullReviews,
+ model_receipts_reconciled:isolatedLedgerAudit.model_receipt_count,
+ model_cash_end_test_usdc:isolatedLedgerAudit.modeled_cash_end_test_usdc,
  actual_paper_orders:report.confirmed_paper_orders,actual_paper_fills:report.confirmed_paper_fills,
  retrospective_training_attached:training!==null,report_path:target}));
