@@ -1,5 +1,21 @@
 # R29 – Verbindliche GitHub-Übergabe für neue Chats
 
+## NEUE VERBINDLICHE ÜBERGABE – R29 OFFLINE 29H ACTUAL DONE, SYS-06 STRIKT PASS (22.11.2026)
+
+**Stand 61 Originalaufgaben: 13 PASS (21,3 %), 30 PARTIAL, 18 OPEN; technisch bearbeitet weiterhin 43/61 = 70,5 %.** Der neue vollständige Original-PASS ist ausschließlich `SYS-06` (expliziter, tatsächlich in GitHub ausgeführter und als unveränderliches Artefakt archivierter 29h-Backtestauftrag). `QA-04` und `SYS-09` bleiben PARTIAL, keine behaupteten echten GPT-/Client-Fills.
+
+**UNBEDINGT ZUERST LESEN:** [`docs/V19_SYS06_REAL_OFFLINE_29H_REQUEST_AND_QA04_REPLAY_20261122.md`](V19_SYS06_REAL_OFFLINE_29H_REQUEST_AND_QA04_REPLAY_20261122.md). Vollständige Belege:
+- [GitHub expliziter Einzeljob #45061091065](https://github.com/127027/Sniperbot-/actions/runs/45061091065), SHA `0459cee492c18b4e796cf395b5d2b2a77bc223a6`: 29h 11.10.19:00–13.10.00:00 UTC, kein Oktober-Originalmanifest, **24/24 DATA_GAP**, 0 Modellorders, 0 reale Orders, 0 API, **13/13 gezielte Tests PASS**, getrenntes Downloadartefakt mit SHA/Requestpfad.
+- [GitHub expliziter Einzeljob #45061181476](https://github.com/127027/Sniperbot-/actions/runs/45061181476), SHA `f56da95a57b77bbe8e77b7ed0291d6222be966f7`: derselbe 29h-Zeitraum mit ausschließlich `SYNTHETIC_TEST`-Fixture und **4 künstlichen Kursbeobachtungen**; 1 modellierter BUY, 1 modellierter SELL und 2 nur modellierte Quittungen, hypothetischer +12,01063839 TEST-USDC Modell-PnL. **Kein historischer Tradinggewinn!** 0 Clientfills, 0 externe API, 0 GPT, 0 Signalwrites; **13/13 gezielte Tests**; echtes getrenntes Artefakt.
+- [GitHub Node22 #45061061092](https://github.com/127027/Sniperbot-/actions/runs/45061061092), auf `a06e2e22fe93099f48f9fda44aabbd3a5996a25d`: **583/583 PASS, 0 FAIL, TEST_ONLY_NO_SIGNAL_WRITE 0**. [Source-CI #45060909954](https://github.com/127027/Sniperbot-/actions/runs/45060909954) startete dieselbe CLI zweimal tatsächlich, 579/579 PASS plus beide SHA-gepinnte Artefakte.
+- Die neue `.github/workflows/cleanroom-v19-explicit-offline-request.yml` startet **nur** bei explizitem Request-Commit unter `research/offline-backtest-requests/**`, **nicht** per Cron, nicht bei anderer Codeänderung; `contents:read`, `persist-credentials:false`. `scripts/v19-explicit-offline-backtest-request.mjs` validiert unveränderlichen GitHub-SHA, einen einzigen Request, Branch, neutrales Manifest und Research-only. Das ist der jetzt nachgewiesene ausdrückliche Auftragseingang; `workflow_dispatch` im älteren manuellen Workflow wurde nicht selbst ausgeführt.
+- `src/v19-offline-replay-ledger-audit.mjs` verweigert gefälschte clientbasierte Quittungen, falsche Cashbeträge und fremde Lot-IDs; `src/point-in-time-strategy.mjs` liefert modellierte Research-Receipts als `MODELED_FILL_NOT_CLIENT`, nicht als echte `PAPER_FILLED`. Kein tatsächlicher Client-BUY/SELL. Ein GitHub-Runner kann das bestehende lokale Windows-Paper-Wallet NICHT auslesen oder unverändert beweisen.
+- Keine neuen GeckoTerminal-/DEX-Live-Aufrufe, der API-Cooldown und der 24/7-Betrieb bleiben unabhängig. Originale Oktober-Quellen fehlen weiterhin; 65 Gewinnerreferenzen bleiben ausschließlich `POST_EVENT_ORACLE` zur späteren Evaluation.
+
+**Nächster Offline-P0-Schwerpunkt:** neutrale as-of Oktober-Quellenlücken nachprüfbar vorbereiten, QA-04 gegen Original-/Retro-Daten-Gates härten, D4-08 Konvergenz als reine synthetische Client-Simulation separat vom tatsächlichen Windows-Paper prüfen; niemals künstliche historische Rendite beanspruchen. Fünf Dots pausiert, Echtgeld verboten, keine Main-/Legacy-/Windows-Änderungen.
+
+
+
 ## AKTUELLE FORTSETZUNG – 22.11.2026: OFFLINE-RESTART UND 15 ECHTE ORIGINALSEITEN
 
 **Unveränderte Originalabnahme:** 12 PASS / 31 PARTIAL / 18 OPEN = **43/61 technisch bearbeitet (70,5 %)**; erst **12/61 vollständig abgenommen (19,7 %)**. SYS-11 und QA-03 bleiben PARTIAL, bis ein echter neuer Nach-Cooldown-Providerlauf und unabhängige Fortsetzung bewiesen sind.
