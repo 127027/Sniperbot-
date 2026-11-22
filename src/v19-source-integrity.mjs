@@ -8,7 +8,8 @@ const within=x=>typeof x==='string'&&/^research\/feeds\/(?:[A-Za-z0-9_-]+\/)+[A-
  &&!x.includes('..')&&!x.startsWith('/');
 const vendor={GECKOTERMINAL:'api.geckoterminal.com',
  GECKOTERMINAL_OHLCV:'api.geckoterminal.com',
- DEXSCREENER:'api.dexscreener.com'};
+ DEXSCREENER:'api.dexscreener.com',
+ HONEYPOT_IS:'api.honeypot.is'};
 export function verifyArchivedHttpBytes({rawText,evidence,sourcePath,asOfUtc,expectedGitBlobSha1=null}={}){
  const decision=(status,reason,detail={})=>({
   schema:1,kind:'R29_V19_ARCHIVED_HTTP_BYTE_PROOF',status,reason,
