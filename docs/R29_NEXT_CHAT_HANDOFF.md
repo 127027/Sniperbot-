@@ -65,7 +65,7 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - **D3-07 teilimplementiert, weiterhin OFFEN**: `src/v19-dot3-recheck-scheduler.mjs` und `test/v19-dot3-recheck-scheduler.test.mjs` erzeugen aus einem bestehenden Dot2-Handoff konkrete `DATA_GAP`-Nachprüfungsaufträge. Im bestehenden `scripts/cloud-discovery-runner.mjs` wird das nur als `research/feeds/.../dot3-next-evidence-rechecks.json` archiviert. Die Warteschlange führt KEINE API-Aufrufe und KEINE Paper-Käufe aus.
 - Konkrete Archivkontrolle: `research/feeds/2026-11-22/45002280249/dot2-to-dot3-handoff.json` zeigt Bigfoot und Mfer, beide Ethereum, Kursdivergenz deutlich über 100 %, extrem geringe Liquidität, unbestätigte Sellability/Security. Neuer Plan: beide `DATA_GAP` mit konkretem Quellen-Recheck, nicht nachweislich endgültig `REJECTED`, nicht `PAPER_ELIGIBLE`.
 - 429-Wiedervorlage gezielt geprüft. Seit D3-01 kommt die gemeinsame Klassifikation **2 × WATCH** (statt alter pauschaler DATA_GAP-Notiz). Echte Provider-Nachprüfung, Time-to-Risk-Statistik und positive authentische Dot3-Freigabe bleiben offen.
-- Gesamtfortschritt: **17/61 = 27,9 %**, 44 offen; vollständiger Node-/Actions-Testlauf weiterhin nicht nachgewiesen.
+- Historischer Zwischenstand **nach SYS-08**: 17/61 = 27,9 %, 44 offen; **nicht aktueller Zähler**. Vollständiger Node-/Actions-Testlauf weiterhin nicht nachgewiesen.
 ### Nachtrag vom 22.11.2026: OHLCV/Source-SHA
 
 - `D2-04` bleibt **TEILWEISE**, nicht abgeschlossen: `src/v19-gecko-ohlcv.mjs` dekodiert echte OHLCV-Arrayform `[unix_seconds,open,high,low,close,volume]`; `src/v19-ohlcv-backfill-queue.mjs` verwaltet per Pool rückwärtige `before_timestamp`-Cursor, Cache-/Restart-Status und 429. `src/discovery-feed.mjs` akzeptiert optional `max_ohlcv_requests=0..2`, solange mindestens ein Gecko-Slot für Discovery bleibt; `scripts/cloud-discovery-runner.mjs` archiviert OHLCV mit tatsächlicher HTTP-Erfassungszeit. `test/v19-gecko-ohlcv.test.mjs` und `test/v19-ohlcv-backfill-queue.test.mjs` sind eingecheckt. Acht isolierte Integrations-/Budget-/Cursorprüfungen plus Syntaxprüfung bestanden. **Noch kein echter OHLCV-Provider-Capture/Actions-Run.**
@@ -135,7 +135,7 @@ Die GitHub-Dateien und gespeicherten Dot-Automationsprompts sind **getrennte Spe
 - `scripts/cloud-discovery-runner.mjs` enthielt nach Multi-Chain-Umbau einen Laufzeitfehler `oldCheckpoint` (nicht mehr definiert). Er wurde durch per-Chain-Checkpoint-Metriken ersetzt. Prüfe in einem echten Node-/Actions-Lauf, dass der Capture-Runner tatsächlich beendet und archiviert.
 - `test/v19-cleanroom-handoff-and-runner.test.mjs` validiert Node-`--check` und Dokumentationslinks. **Noch nicht** als vollständig ausgeführter CI-Test ausgegeben.
 - Alle Dot2-Vertragsänderungen in den weiterhin deaktivierten gespeicherten Dot2-Anweisungen synchronisiert.
-- **Zähler aktuell 16/61 = 26,2 %**; die D2-04-Zwischenarbeit zählt nicht als Aufgabe 14.
+- Historischer Zwischenstand **bei D2-04-Teilprüfung**: 16/61 = 26,2 %; **nicht aktueller Zähler**. D2-04 ist weiterhin offen.
 
 ## 6. Sicherer Prompt für jeden neuen Chat
 
