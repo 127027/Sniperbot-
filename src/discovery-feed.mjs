@@ -10,7 +10,7 @@ export function validateCaptureRequest(value){
  if(value?.schema!==1||value.kind!=='DOT2_DISCOVERY_CAPTURE_REQUEST'||value.mode!=='PAPER_RESEARCH_ONLY'||value.requested_by!=='dot-2-discovery')throw Error('INVALID_CAPTURE_REQUEST');
  if(value.do_not_publish_orders!==true)throw Error('REAL_ORDER_DISABLED');
  if(!Array.isArray(value.networks)||!value.networks.length||value.networks.some(c=>!chains.includes(c)))throw Error('INVALID_NETWORKS');
- if(!Number.isInteger(value.max_gecko_requests)||value.max_gecko_requests<1||value.max_gecko_requests>2)throw Error('GECKO_BUDGET_EXCEEDED');
+ if(!Number.isInteger(value.max_gecko_requests)||value.max_gecko_requests<1||value.max_gecko_requests>12)throw Error('GECKO_BUDGET_EXCEEDED');
  if(!Number.isInteger(value.max_dex_pairs)||value.max_dex_pairs<0||value.max_dex_pairs>10)throw Error('DEX_BUDGET_EXCEEDED');
  const t=Date.parse(value.created_at_utc);
  if(!Number.isFinite(t))throw Error('INVALID_REQUEST_TIME');
