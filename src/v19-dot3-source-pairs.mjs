@@ -2,6 +2,7 @@
 // Distinct domains can corroborate research but are NOT proof of independent
 // upstream pricing or of a tradable token. This module never emits orders.
 import {canonicalChain,tokenValid,poolValid,parsePoolUrl,exactPoolUrl} from './market-evidence.mjs';
+import {classifyDot3QuoteTime} from './v19-dot3-quote-time.mjs';
 
 const CHAINS=Object.freeze(['solana','ethereum','base','bsc','robinhood','cronos']);
 const providers=Object.freeze(['GECKOTERMINAL','DEXSCREENER']);
@@ -48,23 +49,26 @@ export function auditDot3QuoteSourcePair({coin,observations=[],asOfUtc,
    ||norm(chain,q.pool)!==norm(chain,coin.pool)){
    rejected.push({index,reason:'EXACT_CHAIN_CONTRACT_POOL_OR_SOURCE_MISMATCH'});continue;
   }
-  const captured=ts(q.captured_at_utc),provided=ts(q.provider_quote_asof_utc);
-  const validCaptured=captured!==null&&captured<=at;
-  if(!validCaptured){rejected.push({index,reason:'FUTURE_OR_MISSING_HTTP_CAPTURE'});continue;}
+  let timing;
+  try{timing=classifyDot3QuoteTime({
+    asOfUtc,capturedAtUtc:q.captured_at_utc,
+    providerQuoteAsOfUtc:q.provider_quote_asof_utc??null,
+    availableAtUtc:q.available_at_utc??q.captured_at_utc,
+    maxQuoteAgeSeconds:maxAgeSeconds});
+  }catch{rejected.push({index,reason:'INVALID_CAPTURE_TIME_SCHEMA'});continue;}
+  if(['FUTURE_NOT_AVAILABLE','INVALID_TIME_SEQUENCE','INVALID_PROVIDER_TIME'].includes(timing.status)){
+    rejected.push({index,reason:'FUTURE_OR_INVALID_QUOTE_TIME'});continue;
+  }
   if(!validNumber(q.price_usdc)||!validNumber(q.liquidity_usdc)){
    rejected.push({index,reason:'INVALID_PRICE_OR_LIQUIDITY'});continue;
   }
-  // A provider-time field is never inferred from the HTTP response time.
-  const providerTimeVerified=q.provider_time_independently_verified===true
-    &&provided!==null&&provided<=captured&&at-provided<=maxAgeSeconds*1000;
-  // Self-declared provider-time verification is insufficient without a
-  // separately referenced verified source proof. This audit stays advisory.
-  const captureFresh=at-captured<=maxAgeSeconds*1000;
+  const captureFresh=at-ts(q.captured_at_utc)<=maxAgeSeconds*1000;
   accepted.push({provider:parsed.provider,domain:parsed.host,
    chain,pool:coin.pool,contract:coin.contract,
    captured_at_utc:q.captured_at_utc,
    provider_quote_asof_utc:q.provider_quote_asof_utc??null,
-   provider_quote_freshness_asserted:providerTimeVerified,
+   provider_quote_freshness_asserted:timing.structurally_fresh_quote,
+   quote_time_class:timing.status,
    provider_quote_time_independently_attested:false,
    http_capture_fresh:captureFresh,
    source_archive_blob_sha:q.source_archive_blob_sha??null,
@@ -117,6 +121,7 @@ export function auditDot3QuoteSourcePair({coin,observations=[],asOfUtc,
    quoted_price_disagreement_pct:divergence,
    minimum_observed_liquidity_usd:liquidity,
    matched_sources:pair,
+   quote_time_classes:pair.map(x=>({provider:x.provider,status:x.quote_time_class})),
    provider_chain_support_proven:false,
    endpoint_support_verification_required:true,
    research_only:true,trade_authorized:false,
