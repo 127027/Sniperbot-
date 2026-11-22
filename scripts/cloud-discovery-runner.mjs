@@ -13,6 +13,7 @@ import {makeAsOfForecastSnapshot,settleMatureForecastSnapshot} from '../src/forw
 import {chooseNextDiscoveryPage} from '../src/discovery-page-scheduler.mjs';
 import {recoverArchivedV4} from '../src/v18-archived-v4-recovery.mjs';
 import {planMultiChainCapture} from '../src/v19-discovery-budget-plan.mjs';
+import {planHotFairRechecks} from '../src/v19-hot-fair-recheck.mjs';
 import {providerRetryDelay} from '../src/v19-provider-backoff.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
@@ -148,12 +149,14 @@ if(!memory.ingested_sources?.includes(recoveredPath)){
  }
 }
 const plan=fairRecheckPlan(memory,{asOfUtc:now(),maxRechecks:request.max_dex_pairs});
+// Every fresh candidate is ranked before a bounded DEX crosscheck; unselected
+// ones still enter persistent memory and must not be silently lost.
+const recheckPlan=planHotFairRechecks({
+ freshCandidates:decoded?.candidates||[],fairCandidates:plan.candidates,
+ legacyCandidates:known,asOfUtc:now(),maxChecks:request.max_dex_pairs,
+ round:Number(process.env.GITHUB_RUN_NUMBER)||0});
 const attempts=[];
-const targets=[
- ...(decoded?.candidates||[]).filter(c=>c.contract).slice(0,2),
- ...plan.candidates.filter(c=>canonicalChain(c.chain)&&poolValid(c.chain,c.pool,c.pool_kind)),
- ...known.filter(c=>canonicalChain(c.chain)&&poolValid(c.chain,c.pool,c.pool_kind)).slice(0,request.max_dex_pairs)
-];
+const targets=recheckPlan.selected;
 const unique=new Set();
 for(const c of targets){
  if(dexChecks.length>=request.max_dex_pairs)break;
@@ -197,6 +200,10 @@ metrics.discovery_page=scanPage;
 metrics.discovery_page_reason=pageDecision.reason;
 metrics.previous_chain_page_checkpoint=oldCheckpoint?.next_page_to_consider??null;
 metrics.verified_recheck_price_observations=rechecked.length;
+metrics.v19_hot_fair_recheck_plan={selected:recheckPlan.selected.map(x=>({chain:x.chain,pool:x.pool,queue:x.queue,research_score:x.research_score??null})),
+  all_new_pool_count:recheckPlan.all_new_pool_count,deferred_new_pool_count:recheckPlan.deferred_new_pool_count,
+  deferred_new_pool_keys:recheckPlan.deferred_new_pool_keys,hot_selected:recheckPlan.hot_selected,
+  fair_selected:recheckPlan.fair_selected,trade_authorized:false};
 metrics.v19_chain_page_plan=capturePlan;
 metrics.v19_gecko_received_pages=receivedPages.map(x=>({chain:x.chain,page:x.page,found:x.decoded.found_count}));
 metrics.v19_gecko_failed_pages=failedPages.map(x=>({chain:x.chain,page:x.page,
