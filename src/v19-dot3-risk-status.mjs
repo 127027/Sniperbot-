@@ -83,9 +83,14 @@ export function assessDot3RiskStatus({
  const comparison=finite(candidate.price_disagreement_pct);
  const prices=[candidate.primary_quote_usd,candidate.second_source_price_usd].map(finite);
  const liquidities=[candidate.primary_liquidity_usd,candidate.second_source_liquidity_usd].map(finite);
+ // A reported disagreement percentage must never override the two actual
+ // quote values, including when the reported figure is understated.
+ const derivedDisagreementPct=prices.every(p=>p!==null&&p>0)
+   ?100*Math.abs(prices[0]-prices[1])/((prices[0]+prices[1])/2):null;
+ const effectiveDisagreementPct=Math.max(comparison??0,derivedDisagreementPct??0);
  const lowLiquidity=liquidities.some(x=>x!==null&&x<5000)
    ||sourcePair?.status==='INDICATIVE_LOW_LIQUIDITY';
- const conflicting=(comparison!==null&&comparison>3)
+ const conflicting=effectiveDisagreementPct>3
    ||sourcePair?.status==='INDICATIVE_PRICE_DISAGREEMENT';
  const quoteMissing=!candidate.independent_price_liquidity_ready
    ||prices.some(x=>x===null||x<=0)||liquidities.some(x=>x===null||x<=0)
@@ -117,7 +122,9 @@ export function assessDot3RiskStatus({
    return result((conflicting||lowLiquidity)?'WATCH':'DATA_GAP',
      conflicting?'INDICATIVE_PRICE_DISAGREEMENT':
        lowLiquidity?'INDICATIVE_LOW_LIQUIDITY':'MISSING_RISK_ATTESTATION',reasons,{
-     observed_price_disagreement_pct:comparison,
+     observed_price_disagreement_pct:effectiveDisagreementPct,
+     computed_from_two_quote_prices_pct:derivedDisagreementPct,
+     reported_price_disagreement_pct:comparison,
      indicative_liquidity_too_low:lowLiquidity});
  }
  // Candidate observation constraints must also hold when a synthetic
@@ -128,7 +135,9 @@ export function assessDot3RiskStatus({
      'INDICATIVE_LOW_LIQUIDITY',[
      conflicting?'RECHECK_CONFLICTING_CANDIDATE_QUOTES':'RECHECK_CANDIDATE_LIQUIDITY',
      'ATTESTATION_CANNOT_OVERRIDE_OBSERVED_RISK'],{
-     observed_price_disagreement_pct:comparison,
+     observed_price_disagreement_pct:effectiveDisagreementPct,
+     computed_from_two_quote_prices_pct:derivedDisagreementPct,
+     reported_price_disagreement_pct:comparison,
      indicative_liquidity_too_low:lowLiquidity});
  if(quoteMissing)
    return result('DATA_GAP','CANDIDATE_QUOTE_EVIDENCE_INCOMPLETE',[
