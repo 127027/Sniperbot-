@@ -70,3 +70,16 @@ test('existing read-only position observer labels uncited prices HTTP_CAPTURE_ON
  assert.equal(shadow.provider_quote_times_verified,false);
  assert.equal(shadow.trade_authorized,false);
 });
+
+test('ambiguous local time strings are rejected by quote age and source-pair as-of checks',()=>{
+ for(const value of ['2026-11-22T08:00:00','2026-11-22','2026-11-22T08:00:00+01:00']){
+  assert.throws(()=>classifyDot3QuoteTime({asOfUtc:value,capturedAtUtc:capture}),
+   /INVALID_DOT3_QUOTE_TIME_INPUT/);
+  assert.throws(()=>auditDot3QuoteSourcePair({
+   coin:{chain:'base',pool,contract},asOfUtc:value,observations:[]}),
+   /INVALID_DOT3_SOURCE_PAIR_INPUT/);
+ }
+ assert.throws(()=>classifyDot3QuoteTime({asOfUtc:at,
+  capturedAtUtc:'2026-11-22T07:59:45'}),
+  /INVALID_DOT3_QUOTE_TIME_INPUT/);
+});
