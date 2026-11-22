@@ -8,13 +8,16 @@ const asOf='2026-11-22T08:20:50.724Z';
 const realHandoff='research/feeds/2026-11-22/45002280249/dot2-to-dot3-handoff.json';
 const load=()=>readFile(realHandoff,'utf8').then(JSON.parse);
 
-test('real source handoff preserves both rejected-risk candidates as DATA_GAP and creates concrete work',async()=>{
+test('real source handoff preserves both underverified candidates as WATCH and creates concrete work',async()=>{
  const handoff=await load();
  const result=planDot3EvidenceRechecks({handoff,asOfUtc:asOf,maxRequests:4});
  assert.equal(result.candidate_count,2);
  assert.equal(result.confirmed_proven_risk_rejects,0);
  assert.equal(result.selected_count,2);
- assert.equal(result.selected.every(x=>x.status==='DATA_GAP'),true);
+ assert.equal(result.selected.every(x=>x.status==='WATCH'),true);
+ assert.equal(result.watch_candidates,2);
+ assert.equal(result.missing_evidence_count,0);
+ assert.equal(result.selected.every(x=>x.risk_status_source==='R29_V19_DOT3_RISK_STATE'),true);
  assert.equal(result.selected.every(x=>x.trade_authorized===false),true);
  assert.equal(result.selected.every(x=>x.missing_fields.includes('SELLABILITY_ATTESTATION')),true);
  assert.equal(result.selected.every(x=>x.next_action==='RECHECK_CONFLICTING_PROVIDER_QUOTES'),true);
