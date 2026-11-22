@@ -19,9 +19,11 @@
 
 ## 1. Verifizierter Übergabestand
 
-**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach D4-07-Abnahme: **21/61 = 34,4 %**, 40 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
+**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach D4-09-Abnahme: **22/61 = 36,1 %**, 39 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
 
 Bisher als `COMPLETE (targeted)` dokumentiert:
+
+- `D4-09` neue lokale read-only PAPER-UI-Fortschrittsdarstellung in `src/v19-paper-monitor.mjs`, `src/dashboard.mjs`, Policy-Übergabe aus `src/runner.mjs`: Cash, Einsatz/Coin, Kostenbasis, echte offene Positionen, Opening-BUY-ID, gemeldete HTTP-Zeit/Alter, Quittungs-Delay/-Blocker; fehlende unabhängige Preis-/Dot3-/Sellability-Daten ausdrücklich UNKNOWN, niemals Phantom-PnL. 11/11 gezielte direkte Checks bestanden, sieben Node-Tests eingecheckt, volle Node/Actions noch offen. Detail `docs/V19_PAPER_UI_MONITORING.md`.
 
 - `D4-07` gemeinsames versioniertes Paper-Budget (`research/config/paper-budget-v19.json`, `src/v19-paper-budget-policy.mjs`) für Windows-Runner, Dot4 Live-Forschung, On-Demand-Replay; Standard **5.000/50 TEST-USDC, 30 offene Positionen**. Kein Reset des tatsächlichen Paper-Kontos bei Konfigurationsänderung. `src/core.mjs` verhindert mehrfachen Token-BUY über andere Pools und führt chronologische Trade-Historie; prospektive SELLs binden sich an `exit_position_source_order_id`. 9+8+11 isolierte/integrative Funktionskontrollen bestanden; 15 Node-Fälle eingecheckt, volle Node/Actions-Abnahme weiter offen. Details: `docs/V19_DOT4_BUDGET_AND_EXIT.md`.
 
@@ -111,6 +113,12 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - EIN gemeinsames Versionierungs-/Risikopolizymodul `src/v19-paper-budget-policy.mjs` und `research/config/paper-budget-v19.json`; DEFAULT 5.000/50/30, bei geändertem Einsatz werden bestehende Cash-, Positionen- und Quittungswerte NICHT resettet. GitHub-Konfigurationsänderungen gelangen nur nach Synchronisierung des lokalen Checkouts und Neustart in den Windows-Runner.
 - D4-08 **teilimplementiert, nicht zählen**: `src/v19-paper-exit-convergence.mjs` bündelt STOP und DOT4_SELL einer ursprünglichen BUY-ID zur stabilen Forschungs-Exit-ID. `src/core.mjs` blockiert doppelte SELL-Gutschriften und abweichende Lot-IDs, prospektive SELLs verlangen identische Opening-BUY-ID im Publisher/Runner. 7/7 isolierte Exit-Checks bestanden, 5 Node-Tests eingecheckt. **Die Vertrauenssperre D3-04 blockiert weiterhin sowohl BUY als auch SELL**, bis echte Provider-/Sellability-/Issuer-Provenienz und sichere Exit-Abnahme vorhanden sind.
 - Vollständige technische Doku: `docs/V19_DOT4_BUDGET_AND_EXIT.md`; nächste Prioritäten D3-04, D3-05, D4-08, QA-06. Keine Phantom-Fills / Echtgeld / Dot-Aktivierung.
+
+### Nachtrag 22.11.2026 – D4-09 gezielt abgeschlossen
+
+- **22/61 = 36,1 %, 39 offen.** Die lokale Oberfläche ist ein reiner **Kontostands-Monitor**, keine echte Marktdaten-/Sicherheitsbewertung und keine Trading-Steuerung. `src/v19-paper-monitor.mjs` liefert nur aus gespeichertem `PAPER_ONLY`-State bekannte Werte; unbekannter Marktpreis/PnL/Riskstatus bleibt ausdrücklich unbekannt.
+- `src/dashboard.mjs` zeigt offene Kostenbasis, Coin/Pool, Opening-BUY-Lot, HTTP-Capture-Zeit/Alter, ausstehende lokale Quittungen und konkrete PAPER_REJECTED-Gründe wie `DOT3_AUTH_NOT_VERIFIED`. Einsatz/Positionslimit kommen über `src/runner.mjs` aus der gemeinsamen `executionPolicy`; 11/11 gezielte Modul-/UI-Kontrollen erfolgreich, sieben Node-Tests im Branch; vollständige Node-/CI-Abnahme noch nicht belegt.
+- D3-04/D3-05, D4-08, QA-06 weiterhin OFFEN. Keine eigentlichen BUY-/SELL-Aufträge, keine fünf Dots aktiviert, kein Zugriff auf Nutzer-Windows-Konto, kein main. Neuer Chat liest `docs/V19_PAPER_UI_MONITORING.md` sowie `docs/V19_IMPLEMENTATION_PROGRESS.md`.
 
 ## 2. Arbeitsreihenfolge – aktuelle nächsten Schritte
 
