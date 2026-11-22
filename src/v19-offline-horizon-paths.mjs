@@ -7,11 +7,12 @@ const rnd=x=>Math.round(x*1e6)/1e6;
 const ORACLE=x=>x&&('reported_gain_pct' in x||'future_winner_label' in x
  ||'post_event_rank' in x||x.source_class==='POST_EVENT_ORACLE');
 export function analyzeAsOfForecastPath({
- startAtUtc,entryPriceUsd,observations=[],asOfUtc,
+ startAtUtc,entryPriceUsd,poolKey,observations=[],asOfUtc,
  horizonHours=[1,3,6],maximumSamplingGapMinutes=30
 }={}){
  const start=ms(startAtUtc),now=ms(asOfUtc);
  if(start===null||now===null||start>now||!pos(entryPriceUsd)
+  ||typeof poolKey!=='string'||!/^[a-z0-9]+:.{3,}$/.test(poolKey)
   ||!Array.isArray(observations)||observations.length>20000
   ||JSON.stringify(horizonHours)!==JSON.stringify([1,3,6])
   ||!Number.isInteger(maximumSamplingGapMinutes)
@@ -20,7 +21,8 @@ export function analyzeAsOfForecastPath({
  const valid=[],excluded=[];
  for(const [index,o] of observations.entries()){
   const at=ms(o?.observed_at_utc),available=ms(o?.available_at_utc);
-  if(ORACLE(o)||!['ORIGINAL_CAPTURE','SYNTHETIC_TEST'].includes(o?.source_class)
+  if(ORACLE(o)||o?.pool_key!==poolKey
+   ||!['ORIGINAL_CAPTURE','SYNTHETIC_TEST'].includes(o?.source_class)
    ||at===null||available===null||at<start||at>now||available<at||available>now
    ||!pos(o.price_usd)||typeof o.source_path!=='string'
    ||!o.source_path.startsWith('research/')){
@@ -64,7 +66,7 @@ export function analyzeAsOfForecastPath({
    assumed_executable_peak_price:false};
  }
  return {schema:1,kind:'R29_V19_ASOF_FORECAST_END_VS_PEAK_DRAWDOWN',
-  start_at_utc:startAtUtc,as_of_utc:asOfUtc,
+  start_at_utc:startAtUtc,as_of_utc:asOfUtc,pool_key:poolKey,
   accepted_captured_samples:valid.length,excluded,
   horizon_metrics:outcomes,
   source_authenticity_not_independently_verified:true,
