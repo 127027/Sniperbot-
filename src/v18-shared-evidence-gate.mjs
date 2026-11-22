@@ -7,17 +7,17 @@ const ms=value=>typeof value==='string'
   &&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(value)
   &&Number.isFinite(Date.parse(value))?Date.parse(value):null;
 const iso=ms=>new Date(ms).toISOString();
-export function makeReplayCheckOrder(snapshot,now,action='BUY',sequence=0){
+export function makeReplayCheckOrder(snapshot,now,action='BUY',sequence=0,paperPolicy=DEFAULT_POLICY){
  return {id:'shadow-'+action.toLowerCase()+'-'+now.toString(36)+'-'+String(sequence).padStart(2,'0'),
   mode:'PAPER',authority:'dot-4-strategy',action,
   dots:['dot-2-discovery','dot-3-risk','dot-4-strategy'],
   reason:'Shared V1.8 time-gated shadow evaluation from recorded market evidence',
   quote_quality:'INDICATIVE_WEB_ONLY',
   created_at:iso(now),expires_at:iso(now+120000),coin:snapshot.coin,
-  ...(action==='BUY'?{amount_test_usdc:DEFAULT_POLICY.entryAmount}:{}),
+  ...(action==='BUY'?{amount_test_usdc:paperPolicy.entryAmount}:{}),
   quotes:snapshot.quotes.map(({source_published_at_utc,...quote})=>quote)};
 }
-export function checkUnifiedEvidence(snapshot,now){
+export function checkUnifiedEvidence(snapshot,now,paperPolicy=DEFAULT_POLICY){
  if(!snapshot||!['SYNTHETIC_TEST','CONTEMPORANEOUS_RECORD'].includes(snapshot.provenance)
    &&snapshot.source_class!=='ORIGINAL_CAPTURE')return 'UNKNOWN_PROVENANCE';
  const historical=classifyAsOfEvidence(snapshot,{asOfUtc:new Date(now).toISOString()});
@@ -49,7 +49,7 @@ export function checkUnifiedEvidence(snapshot,now){
      return 'QUOTE_FUTURE_OR_UNDATED';
  }
  try{
-   inspectOrder(makeReplayCheckOrder(snapshot,now),newState(),now,DEFAULT_POLICY);
+   inspectOrder(makeReplayCheckOrder(snapshot,now,'BUY',0,paperPolicy),newState(paperPolicy),now,paperPolicy);
  }catch(error){
    return error instanceof Reject?'QUOTE_GATE_'+error.code:'QUOTE_GATE_UNEXPECTED_ERROR';
  }
