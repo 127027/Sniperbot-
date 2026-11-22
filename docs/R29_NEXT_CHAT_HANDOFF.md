@@ -120,6 +120,12 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - `src/dashboard.mjs` zeigt offene Kostenbasis, Coin/Pool, Opening-BUY-Lot, HTTP-Capture-Zeit/Alter, ausstehende lokale Quittungen und konkrete PAPER_REJECTED-Gründe wie `DOT3_AUTH_NOT_VERIFIED`. Einsatz/Positionslimit kommen über `src/runner.mjs` aus der gemeinsamen `executionPolicy`; 11/11 gezielte Modul-/UI-Kontrollen erfolgreich, sieben Node-Tests im Branch; vollständige Node-/CI-Abnahme noch nicht belegt.
 - D3-04/D3-05, D4-08, QA-06 weiterhin OFFEN. Keine eigentlichen BUY-/SELL-Aufträge, keine fünf Dots aktiviert, kein Zugriff auf Nutzer-Windows-Konto, kein main. Neuer Chat liest `docs/V19_PAPER_UI_MONITORING.md` sowie `docs/V19_IMPLEMENTATION_PROGRESS.md`.
 
+### Nachtrag 22.11.2026 – QA-06 Code-Testworkflow bereit, CI-PASS weiterhin offen
+
+- `.github/workflows/cleanroom-v19-ci.yml` liegt im Cleanroom-Branch. Es läuft **nur** auf Branch-Push für Code/Test/Config-Änderungen (oder manuell): read-only Checkout, Node 22 Syntaxcheck, `npm test`, Prüfung auf keine neuen Signal-/Receipt-Dateien. **Keine** Dot-Automation, kein `src/runner.mjs`-Start, kein Publisher, kein Order-Auftrag, keine Secrets.
+- Die GitHub-Statusabfrage für den Workflow-Commit lieferte `statuses:[]`; der Connector kann bei `fetch_commit_workflow_runs` nur PR-ausgelöste Runs auflisten (dort 0), nicht die vollständige Push-CI-Aktivität. Darum wurde **kein** erfolgreicher oder fehlgeschlagener voller Testlauf bewiesen. QA-06 und D4-08 bleiben offen. Details `docs/V19_QA06_TEST_WORKFLOW.md`.
+- Stand weiterhin **22/61 = 36,1 %**, 39 offen. D4-09 mit 11/11 gezielten Modul-/UI-Checks abgeschlossen, kein lokales Windows-Konto berührt.
+
 ## 2. Arbeitsreihenfolge – aktuelle nächsten Schritte
 
 1. **Sofort regressionssichere Laufzeitfehler beheben:** Beim V1.9 Multi-Chain-Runner war `oldCheckpoint` nach Umbau nicht mehr definiert. Mit zusätzlichem per-Chain-Checkpoint-Metrikfeld in `scripts/cloud-discovery-runner.mjs` korrigiert; Runner-Integrationstest und echtes Actions-Run noch offen.
