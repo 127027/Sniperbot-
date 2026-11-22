@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "kind": "R29_V19_DOT5_FORENSIC_CONTROL_RESEARCH_ONLY",
+  "run_id": "dot5-20261122T214110789Z-wake11",
+  "role": "dot-5-control",
+  "executed_at_utc": "2026-11-22T21:41:10.789Z",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "independent_automation_receipt": "UNVERIFIED",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "status": "DATA_GAP_NO_TRADE",
+  "input_refs": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "c7f26fc8de16365e2a05cad5480a51256455ff4d"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "634d5d1724ddc945a91a92b92c11ad1e1c9ff855"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "d9b6d5808ecee52d707175eba5361f121bc05883"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "research/latest/dot-3.json",
+      "blob_sha": "07b659d4db2f49f7eaab508994bd75ae02e678aa"
+    },
+    {
+      "path": "research/latest/dot-4.json",
+      "blob_sha": "88d26c0239f05b6632aa1b9c611f79e9d093d15d"
+    },
+    {
+      "path": "signals/index.json",
+      "blob_sha": "8f360a172e95adfda2d30105dd3fc7639497367d"
+    },
+    {
+      "path": "research/feeds/2026-11-22/45070668194/evidence.json",
+      "blob_sha": "2a848c6fad4629dbc838a0be7e984660b6eb4a91"
+    },
+    {
+      "path": "research/feeds/2026-11-22/45070668194/dot5-neutral-event-ledger.json",
+      "blob_sha": "64f7cedca0986bbad42aa9092fecb58722de488f"
+    },
+    {
+      "path": "research/audits/2026-11-22/r29-original-48-not-accepted-worklist.json",
+      "blob_sha": "5a2c5de0cced5ec6b798d6b4efab5144986fb7b6"
+    }
+  ],
+  "scope": {
+    "chains": [
+      "solana",
+      "base",
+      "ethereum",
+      "bsc",
+      "robinhood",
+      "cronos"
+    ],
+    "latest_capture_chain": "solana",
+    "latest_capture_page": 3,
+    "latest_capture_run_id": "45070668194",
+    "latest_capture_at_utc": "2026-11-22T21:11:22.118Z",
+    "market_memory_pools": 626,
+    "first_dot2_detected": 217,
+    "latest_capture_pools": 20,
+    "latest_dex_exact_pair_matches": 6,
+    "independent_current_quote_pairs": 0
+  },
+  "what_was_done": "Read branch-specific forensic protocol, handoff, AGENTS, 61-task partial matrix and 48 outstanding worklist, current source/state/provider budget, Dot1-4 latest pointers, Dot3/4 immutable journals, current feed, raw Solana page, checkpoint, Dot5 ledger and signals index. Compared selected blob SHAs to Dot4 pins and verified Dot3/4 journal SHA against pointers.",
+  "why_this_action": "Earliest unverified quote provenance, independent risk issuer and sellability prevent a safe paper order; audit evidence without trading or retrospective winner selection.",
+  "alternatives_considered": [
+    "Treat 6 exact DEX identity matches as independent current price verification: rejected, quote-asof and two independent prices absent",
+    "Promote PARTIAL tasks to PASS from green CI: rejected, external original acceptance evidence absent",
+    "Run historical backtest: prohibited"
+  ],
+  "findings": {
+    "original_tasks": {
+      "total": 61,
+      "pass": 13,
+      "partial": 46,
+      "open": 2,
+      "non_backtest_pass": 13,
+      "non_backtest_required": 60,
+      "backtest_task": "QA-04",
+      "all_48_unaccepted_rows_present_in_worklist": true
+    },
+    "dot1_latest_at_utc": "2026-11-22T21:07:15.727Z",
+    "dot2_latest_pointer_stale": "Dot2 latest claims CAPTURE_PENDING from prior 45066246697 despite newer verified feed 45070668194",
+    "dot3": {
+      "reviewed": 6,
+      "watch": 5,
+      "data_gap": 1,
+      "eligible": 0,
+      "issuer_verified": false,
+      "sellability_verified": false,
+      "journal_sha_verified": true
+    },
+    "dot4": {
+      "watch": 2,
+      "data_gap": 2,
+      "orders_published": 0,
+      "client_fills_claimed": 0,
+      "journal_sha_verified": true
+    },
+    "signals_index_orders": 0,
+    "client_receipt_inventory": "NOT_ENUMERATED",
+    "client_execution": "OFFLINE_OR_UNCONFIRMED",
+    "provider": {
+      "gecko_last_http": 200,
+      "gecko_consecutive_429": 0,
+      "gecko_cooldown_until": null,
+      "gecko_recent_starts": 1,
+      "provider_start_limit_per_minute": 4,
+      "new_pools_limit_per_minute": 3
+    },
+    "prospective_holdout_end_utc": "2026-11-25T06:54:05.033Z",
+    "holdout_labels_matured": false,
+    "precision": null,
+    "recall": null,
+    "missed_profit": null,
+    "october_original_asof_market": "DATA_GAP",
+    "historical_backtest_executed": false
+  },
+  "events": [
+    {
+      "event_id": "dot5-wake11-stale-dot2-pointer",
+      "error_code": "STALE_DOT2_LATEST_POINTER",
+      "earliest_pipeline_stage": "DOT2_LATEST_PUBLICATION",
+      "affected_file": "research/latest/dot-2.json",
+      "source_link": "research/feeds/latest.json",
+      "impact": "Dot2 self-report lags successful current feed; do not count current capture as Dot2 GPT review",
+      "fix": "After capture success, reconcile latest pointer to immutable feed with real blob SHA CAS",
+      "regression_test": "Assert latest Dot2 journal references successful capture run and SHA, not pending predecessor"
+    },
+    {
+      "event_id": "dot5-wake11-unverified-quote",
+      "error_code": "INDEPENDENT_QUOTE_ASOF_MISSING",
+      "earliest_pipeline_stage": "DOT2_PRICE_EVIDENCE",
+      "affected_file": "research/feeds/2026-11-22/45070668194/evidence.json",
+      "source_link": "research/feeds/2026-11-22/45070668194/gecko-solana-page3.raw.json",
+      "impact": "No independent trade-eligible quote; 6 exact pair identity matches do not suffice",
+      "fix": "Capture separately timestamped upstream quote and independent provider price with byte SHA and exact pool identity",
+      "regression_test": "Reject cached identical source bytes and missing provider quote-asof"
+    },
+    {
+      "event_id": "dot5-wake11-risk",
+      "error_code": "D3_04_D3_05_UNVERIFIED",
+      "earliest_pipeline_stage": "DOT3_RISK",
+      "affected_file": "research/latest/dot-3.json",
+      "impact": "No PAPER_ELIGIBLE and no authorized order",
+      "fix": "Independent issuer and chain-specific empirical sellability proof",
+      "regression_test": "HTTP200 without attestation remains DATA_GAP"
+    }
+  ],
+  "missing_evidence": [
+    "Independently authenticated automation execution receipt",
+    "All Dot1-4 immutable journals exhaustive inventory not enumerated",
+    "Client receipt directory and local Windows paper ledger not independently accessible",
+    "Complete neutral market denominator and mature positive/negative labels",
+    "External issuer and empirical sellability proofs",
+    "Independent provider quote timestamps"
+  ],
+  "next_action": "Continue hourly read-only QA; reconcile Dot2 stale latest pointer after new successful feed; preserve 13/61 strict PASS; do not run backtest or create signals",
+  "orders_created": 0,
+  "signals_written": false,
+  "client_fills_claimed": 0
+}
