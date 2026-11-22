@@ -35,17 +35,21 @@ export function planMultiChainCapture({networks,checkpoints={},pageCoverage=null
    const secondary=primary===1?(nextMissing??Math.max(2,
      Number.isInteger(cp?.next_page_to_consider)?cp.next_page_to_consider:2)):1;
    chains.push({chain,original_order:order,last_attempt_ms:last??-Infinity,
-     primary,secondary,reason:failed?'RETRY_FAILED_PAGE':
+     primary,secondary,failed_page_retry_due:failed!==null,
+     reason:failed?'RETRY_FAILED_PAGE':
        pending?'RESUME_UNOBSERVED_PAGE':d.reason});
  }
- // A repeatedly fetched chain becomes newer in its persistent checkpoint,
- // so other chains win next time. Within this request use each once first.
- chains.sort((a,b)=>a.last_attempt_ms-b.last_attempt_ms
-   ||a.original_order-b.original_order);
+ // A provider-429 page that has FINISHED its cooldown must not always be
+ // attempted sixth again. Recover documented failed gaps first, then rotate
+ // the rest fairly by the persisted last-attempt timestamp.
+ // A still-active cooldown was excluded above and cannot bypass this order.
+ chains.sort((a,b)=>Number(b.failed_page_retry_due)-Number(a.failed_page_retry_due)
+   ||a.last_attempt_ms-b.last_attempt_ms||a.original_order-b.original_order);
  const tasks=[],covered=new Set();
  for(const c of chains){
    if(tasks.length>=budget)break;
-   tasks.push({chain:c.chain,page:c.primary,priority:'FAIR_CHAIN_BASELINE',reason:c.reason});
+   tasks.push({chain:c.chain,page:c.primary,
+     priority:c.failed_page_retry_due?'EXPIRED_FAILED_PAGE_RETRY':'FAIR_CHAIN_BASELINE',reason:c.reason});
    covered.add(c.chain);
  }
  // Only spend surplus on a second page for chains already covered.
