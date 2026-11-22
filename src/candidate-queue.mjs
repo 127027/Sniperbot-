@@ -31,7 +31,7 @@ export function prioritizeDiscoveredPools(candidates,{asOfUtc,detailedLimit=24}=
     +(volume===null?0:Math.min(10,Math.log10(Math.max(1,volume))*2))
     +(errors.includes('CONTRACT_UNVERIFIED')?-8:8);
   const key=chain&&poolValid(chain,pool,x?.pool_kind)?chain+':'+canonicalPool(chain,pool):'unresolved:'+i;
-  return {input_index:i,key,chain:chain||null,pool:pool||null,contract,
+  return {input_index:i,key,chain:chain||null,pool:pool||null,pool_kind:x?.pool_kind||null,contract,
    symbol:x?.symbol||null,category:x?.category||null,observed_at_utc:x?.observed_at_utc||null,
    liquidity_usd:liq,volume_24h_usd:volume,priority:Math.round(priority*100)/100,
    errors,status:errors.length?'WATCH_OR_VERIFY':'READY_FOR_RISK_REVIEW',source_url:x?.source_url||null};
