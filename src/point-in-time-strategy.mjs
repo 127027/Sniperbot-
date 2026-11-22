@@ -6,6 +6,7 @@ import {newState,settlePaper,Reject,marketKey,DEFAULT_POLICY} from './core.mjs';
 import {researchDue,chooseCadence} from './cadence.mjs';
 import {decideUnifiedMarket,UNIFIED_V18_RULES} from './unified-decision-v18.mjs';
 import {buildAsOfLookback} from './v19-asof-lookback.mjs';
+import {planDataGapRecovery} from './v19-coverage-recovery.mjs';
 
 const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 const ms=value=>typeof value==='string'&&ISO.test(value)&&Number.isFinite(Date.parse(value))?Date.parse(value):null;
@@ -58,7 +59,9 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    const fresh=new Map();
    for(const s of valid)fresh.set(marketKey(s.coin),s);
    const featureHistory=buildAsOfLookback({snapshots,asOfUtc:at});
+   const gapRecovery=planDataGapRecovery({asOfUtc:at,activityObservations});
    const step={at_utc:at,full_review:due,target_per_24h:currentTarget,cadence_reason:cadence.reason,eligible_snapshots:fresh.size,blocked_sources:blocked,
+     data_gap_capture_recommendations:gapRecovery,
      past_only_feature_history:{market_count:featureHistory.market_count,
        observation_count:featureHistory.observation_count,
        oldest_observation_at_utc:featureHistory.oldest_observation_at_utc,
