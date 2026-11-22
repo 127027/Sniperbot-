@@ -100,7 +100,8 @@ export function inspectReadOnlyLocalPaperSnapshot({
      ||origin.coin.pool!==r.coin?.pool
      ||Math.abs(origin.quantity-r.quantity)>1e-8)
      safe('SELL_WRONG_POOL_OR_QUANTITY');
-    if(!n(r.realized_pnl_test_usdc)
+    // Realized profit/loss may be NEGATIVE. It must be finite, not >= 0.
+    if(!Number.isFinite(r.realized_pnl_test_usdc)
      ||Math.abs(r.realized_pnl_test_usdc-round(r.proceeds_test_usdc-origin.amount))>1e-5)
      safe('SELL_PNL_NOT_RECONCILED');
    }
