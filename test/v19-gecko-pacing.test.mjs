@@ -4,23 +4,23 @@ import {readFile} from 'node:fs/promises';
 import {planGeckoRequestPacing,MIN_GECKO_REQUEST_GAP_MS}
  from '../src/v19-gecko-pacing.mjs';
 const now=Date.parse('2026-11-22T15:11:15.718Z');
-test('six rapid Gecko requests use 6.1s conservative ten-per-minute start pacing',()=>{
+test('Gecko start pacing uses at least 15.1s after observed sixth-request HTTP429',()=>{
  const first=planGeckoRequestPacing({provider:'GECKOTERMINAL',
    nowEpochMs:now});
  assert.equal(first.wait_ms,0);
- assert.equal(MIN_GECKO_REQUEST_GAP_MS,6100);
+ assert.equal(MIN_GECKO_REQUEST_GAP_MS,15100);
  const second=planGeckoRequestPacing({provider:'GECKOTERMINAL',
    nowEpochMs:now+30,lastGeckoStartedEpochMs:now});
  assert.equal(second.wait_ms,MIN_GECKO_REQUEST_GAP_MS-30);
  assert.equal(second.subject_to_gecko_pacing,true);
  assert.equal(second.rate_limit_override_authorized,false);
  const next=planGeckoRequestPacing({provider:'GECKOTERMINAL',
-   nowEpochMs:now+6300,lastGeckoStartedEpochMs:now});
+   nowEpochMs:now+15300,lastGeckoStartedEpochMs:now});
  assert.equal(next.wait_ms,0);
 });
 test('OHLCV and trending share the same provider spacing while DEX has separate domain',()=>{
  assert.equal(planGeckoRequestPacing({provider:'GECKOTERMINAL_OHLCV',
-   nowEpochMs:now+1,lastGeckoStartedEpochMs:now}).wait_ms,6099);
+   nowEpochMs:now+1,lastGeckoStartedEpochMs:now}).wait_ms,15099);
  const dex=planGeckoRequestPacing({provider:'DEXSCREENER',
    nowEpochMs:now+1,lastGeckoStartedEpochMs:now});
  assert.equal(dex.wait_ms,0);
