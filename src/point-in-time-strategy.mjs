@@ -112,7 +112,9 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    events.push(step);
  }
  return {schema:1,kind:'EVIDENCE_GATED_SHADOW_STRATEGY',date,mode:'ISOLATED_SHADOW_PAPER',
-   source_count:snapshots.length,starting_cash_test_usdc:initial,ending_cash_test_usdc:ledger.cash,
+   source_count:snapshots.length,decision_engine:'UNIFIED_V18_SIGNAL_V1',
+    evidence_gate:'V18_SHARED_PAPER_EVIDENCE',exit_checks_independent_of_full_reviews:true,
+    starting_cash_test_usdc:initial,ending_cash_test_usdc:ledger.cash,
    positions_end:Object.keys(ledger.positions).length,summary:sums,events,
    reality_status:snapshots.length===0?'DATA_GAP_NO_HISTORICAL_INPUT':'NOT_A_CLOUD_DOT_ORDER_OR_CLIENT_FILL',
    caution:'Only timestamps in supplied evidence are checked, not their external authenticity. Synthetic observations are not actual historical prices.'};
