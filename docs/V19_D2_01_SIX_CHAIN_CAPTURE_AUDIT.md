@@ -42,6 +42,16 @@ In `src/v19-discovery-budget-plan.mjs` sind nun folgende Größen ausdrücklich 
 
 `scripts/cloud-discovery-runner.mjs` protokolliert dazu `metrics.v19_actual_chain_capture`: gewünschte, versuchte und tatsächlich erfolgreich empfangene Chains. Fehlende Chains werden als `DATA_GAP` behandelt, nicht als `MARKET_CALM`. Zusätzliche OHLCV- und Trending-Requests sind bereits im gemeinsamen 12-Request-Gecko-Budget zu berücksichtigen. **Weder dieser Plan noch der Report startet automatisch zusätzliche Dots oder API-Läufe.**
 
+## Reproduzierbarer lokaler Audit-Befehl
+
+Nach dem synchronisierten Checkout des **separaten** Cleanroom-Branches kann der reine Lese-Audit ohne Anbieter-API, GPT und Paper-Runner ausgeführt werden:
+
+```bash
+npm run audit:dot2-chains
+```
+
+`scripts/v19-audit-six-chain-captures.mjs` liest ausschließlich die sechs fest im Forschungsmanifest hinterlegten Rohdateien, ihre HTTP-Belege und deren Git-Blob-IDs. Es gibt das geprüfte 24h- und 5h-Fenster, fehlende Chains und historische Bytezahl-Metadatenfehler als JSON aus. Wenn ein Hash oder eine ursprüngliche Dateireferenz nicht mehr stimmt, bricht es ab. Der Befehl erzeugt keine Datei, keinen API-Aufruf, keinen Order-Upload und keine Wallet-Änderung. **Die tatsächliche Ausführung dieses Node-CLI auf GitHub Actions oder Windows ist noch offen**; die getrennten isolierten Funktionskontrollen ersetzen sie nicht.
+
 ## 4. GitHub-Code, Tests und offene Abnahme
 
 - `src/v19-six-chain-capture-audit.mjs`: getrennte Prüfung von originalen HTTP-Bytes, tatsächlichen Git-Blob-SHA1-Referenzen, HTTP-Anbieter-URL, Chain, Seite, Zeitfenster, abgefragten Zeilen und tatsächlichem Decoderergebnis. **Kein** Handel, kein GPT, kein Netzwerkabruf.
