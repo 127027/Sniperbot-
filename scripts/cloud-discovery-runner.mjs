@@ -29,6 +29,7 @@ import {auditCaptureEvidenceBundle} from '../src/v19-source-integrity.mjs';
 import {emptyOlderPoolState,planOlderPoolCaptures,decodeOlderPoolPage,recordOlderPoolCapture} from '../src/v19-older-pool-discovery.mjs';
 import {planGeckoRequestPacing} from '../src/v19-gecko-pacing.mjs';
 import {activeGeckoProviderCooldown} from '../src/v19-gecko-provider-cooldown.mjs';
+import {summarizeR29OperatingMeasurements} from '../src/v19-operating-measurements.mjs';
 import {selectObservationArchivePaths,parseResearchJsonWithLegacyTrailer}
  from '../src/v19-observation-archive-reader.mjs';
 
@@ -758,6 +759,15 @@ const dot5EventLedger=buildDot5DiscoveryLedger({
 const dot5LedgerPath=root+'/dot5-neutral-event-ledger.json';
 await writeFile(dot5LedgerPath,JSON.stringify(dot5EventLedger,null,2)+'\n','utf8');
 artifacts.push(dot5LedgerPath);
+// Provider HTTP / simulated role work are never GPT review execution.
+const operations=summarizeR29OperatingMeasurements({
+ capture:data,asOfUtc:data.captured_completed_at_utc,
+ cadenceAdvice:dot1Advice,riskPreview:dot3StatusPreview,
+ dot5Ledger:dot5EventLedger,ranking:prospectiveRanking
+});
+const operatingMetricsPath=root+'/v19-operating-measurements.json';
+await writeFile(operatingMetricsPath,JSON.stringify(operations,null,2)+'\n','utf8');
+artifacts.push(operatingMetricsPath);
 const dot3RecoveryPath='research/state/dot3-recheck-state.json';
 let dot3Recovery;
 try{dot3Recovery=JSON.parse(await readFile(dot3RecoveryPath,'utf8'));}
@@ -776,6 +786,7 @@ const latest={schema:1,kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',mode:'PAPER_RES
    dot3_recheck_plan_path:dot3RecheckPlanPath,
    dot3_status_preview_path:dot3StatusPreviewPath,
    dot5_event_ledger_path:dot5LedgerPath,
+   operating_metrics_path:operatingMetricsPath,
    captured_at_utc:data.captured_completed_at_utc,
   source_chain:data.source_chain,metrics,handoff_counts:handoff.counts,
  observation_path:observationPath,ranking_path:rankingPath,
