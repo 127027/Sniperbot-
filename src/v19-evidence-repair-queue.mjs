@@ -47,7 +47,21 @@ export function planEvidenceRepairRechecks({ranking,memory,asOfUtc,
    skipped.recent_attempt++;continue;
   }
   const contract=tokenValid(chain,item.contract)?item.contract:null;
-  // Fixing a prior >4h gap is urgent; other single-sample WATCHs follow.
+  // Liquidity/volume must come from the last already captured as-of
+  // observation, never from later prices or a retrospective winner oracle.
+  // A pool with $0.0005 liquidity should not consume the only fresh price
+  // repair slot ahead of a plausible >$5,000 research candidate.
+  // Low-liquidity pools are DEFERRED, not erased or labelled losers.
+  const liq=typeof item.latest_observed_liquidity_usd==='number'
+    &&Number.isFinite(item.latest_observed_liquidity_usd)
+    &&item.latest_observed_liquidity_usd>=0
+    ?item.latest_observed_liquidity_usd:null;
+  const vol=typeof item.research_effective_volume_24h_usd==='number'
+    &&Number.isFinite(item.research_effective_volume_24h_usd)
+    &&item.research_effective_volume_24h_usd>=0
+    ?item.research_effective_volume_24h_usd:null;
+  const liquidityTier=liq===null?1:liq>=5000?(vol>0?3:2):0;
+  // Fixing a prior >4h gap is urgent only within equally eligible tiers.
   const urgency=item.status==='WATCH_PRICE_OBSERVATION_GAP'?2:1;
   candidates.push({key,chain,pool:item.pool,pool_kind:item.pool_kind||null,
    contract,symbol:item.symbol||null,
@@ -56,6 +70,10 @@ export function planEvidenceRepairRechecks({ranking,memory,asOfUtc,
    last_capture_age_minutes:Math.round(age*100)/100,
    first_seen_at_utc:record.first_seen_at_utc,
    last_recheck_utc:prior===null?null:new Date(prior).toISOString(),
+   last_observed_liquidity_usd:liq,
+   last_observed_volume_24h_usd:vol,
+   liquidity_repair_priority_tier:liquidityTier,
+   observed_liquidity_is_eligible_research_threshold:liq!==null&&liq>=5000,
    urgency,observed_at_utc:item.last_capture_at_utc,
    source_as_of_utc:ranking.as_of_utc,
    risk_eligible:false,trade_authorized:false});
@@ -64,15 +82,22 @@ export function planEvidenceRepairRechecks({ranking,memory,asOfUtc,
  // This prevents a single repeatedly failing pool from crowding out all
  // other recent WATCH candidates. Urgency only breaks fair-cursor ties.
  candidates.sort((a,b)=>
-   (stamp(a.last_recheck_utc)??-Infinity)-(stamp(b.last_recheck_utc)??-Infinity)
+   b.liquidity_repair_priority_tier-a.liquidity_repair_priority_tier
+   ||(stamp(a.last_recheck_utc)??-Infinity)-(stamp(b.last_recheck_utc)??-Infinity)
    ||b.urgency-a.urgency
    ||b.last_capture_age_minutes-a.last_capture_age_minutes
    ||a.key.localeCompare(b.key));
  return {schema:1,kind:'R29_V19_ASOF_PRICE_EVIDENCE_REPAIR_QUEUE',
   as_of_utc:asOfUtc,
   all_due_candidates:candidates.length,
+  high_liquidity_research_repair_candidates:candidates.filter(x=>
+    x.observed_liquidity_is_eligible_research_threshold).length,
+  low_liquidity_watch_repair_candidates:candidates.filter(x=>
+    x.liquidity_repair_priority_tier===0).length,
   selected:candidates.slice(0,maxCandidates),
   deferred_count:Math.max(0,candidates.length-maxCandidates),
+  deferred_low_liquidity_watch_count:candidates.slice(maxCandidates)
+    .filter(x=>x.liquidity_repair_priority_tier===0).length,
   skipped,
   source_policy:'FORWARD_OBSERVATIONS_ONLY_WITH_EXISTING_MEMORY_IDENTITY',
   no_oracle_winners:true,requires_new_http_capture:true,
