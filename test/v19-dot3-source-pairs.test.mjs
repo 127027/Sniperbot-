@@ -69,3 +69,37 @@ test('all chains can enter research diagnostics without permanent chain-only den
  assert.equal(meta.chains.length,6);
  assert.equal(meta.chains.every(c=>c.fallback_if_missing.includes('DATA_GAP')),true);
 });
+
+test('fresh HTTP snapshots with explicitly stale provider prices do not pass two-domain quote status',()=>{
+ const x=auditDot3QuoteSourcePair({coin,asOfUtc:at,observations:[
+  one('GECKOTERMINAL',{provider_quote_asof_utc:'2026-11-22T09:50:00.000Z'}),
+  one('DEXSCREENER',{provider_quote_asof_utc:'2026-11-22T09:59:30.000Z'})
+ ]});
+ assert.equal(x.status,'PROVIDER_QUOTE_STALE');
+ assert.equal(x.http_capture_pair_age_valid,true);
+ assert.equal(x.full_quote_pair_age_valid,false);
+ assert.equal(x.explicitly_stale_provider_quote_detected,true);
+ assert.equal(x.next_action,'REFRESH_STALE_PROVIDER_QUOTE_AND_CHECK_ORIGIN');
+ assert.equal(x.trade_authorized,false);
+});
+test('unknown provider quote as-of remains indicative and never claims full age proof',()=>{
+ const x=auditDot3QuoteSourcePair({coin,asOfUtc:at,observations:[
+  one('GECKOTERMINAL'),one('DEXSCREENER')
+ ]});
+ assert.equal(x.status,'TWO_DOMAIN_INDICATIVE_ONLY');
+ assert.equal(x.http_capture_pair_age_valid,true);
+ assert.equal(x.full_quote_pair_age_valid,false);
+ assert.equal(x.provider_time_missing_count,2);
+ assert.equal(x.provider_quote_times_independently_verified,false);
+ assert.equal(x.trade_authorized,false);
+});
+test('two fresh claimed provider timestamps remain untrusted until independent origin evidence',()=>{
+ const x=auditDot3QuoteSourcePair({coin,asOfUtc:at,observations:[
+  one('GECKOTERMINAL',{provider_quote_asof_utc:'2026-11-22T09:59:40.000Z'}),
+  one('DEXSCREENER',{provider_quote_asof_utc:'2026-11-22T09:59:30.000Z'})
+ ]});
+ assert.equal(x.status,'TWO_DOMAIN_INDICATIVE_ONLY');
+ assert.equal(x.full_quote_pair_age_valid,true);
+ assert.equal(x.real_upstream_independence_proven,false);
+ assert.equal(x.provider_quote_times_independently_verified,false);
+});
