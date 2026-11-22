@@ -64,6 +64,9 @@ test('D2-03: 65 post-event winner references are never converted to October disc
  custom.entries[0].pool='0x'+'e'.repeat(40);
  const alt=resolveHistoricalWinnerIdentity({winnerRegister:custom,memory,asOfUtc:asOf});
  assert.equal(alt.rows[0].match_status,'LINKED_POOL_NOT_IN_ARCHIVED_MEMORY');
+ assert.throws(()=>resolveHistoricalWinnerIdentity({
+  winnerRegister:winner,memory,asOfUtc:'2026-10-12T12:00:00.000Z'
+ }),/INVALID_POSTEVENT_IDENTITY_AUDIT/);
 });
 test('D3-07: every missing risk field yields a due or future-cooldown deadline without false approvals',()=>{
  const r={kind:'R29_V19_DOT3_EVIDENCE_RECHECK_PLAN',watchlist:[
