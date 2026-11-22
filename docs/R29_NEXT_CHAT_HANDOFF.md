@@ -19,9 +19,11 @@
 
 ## 1. Verifizierter Übergabestand
 
-**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach D3-03-Abnahme: **19/61 = 31,1 %**, 42 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
+**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach SYS-09-Abnahme: **20/61 = 32,8 %**, 41 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
 
 Bisher als `COMPLETE (targeted)` dokumentiert:
+
+- `SYS-09` isolierte Research-Wallet/Dateibeweise: `src/v19-replay-isolation.mjs`, `scripts/v18-backtest-on-demand.mjs`, `test/v19-replay-isolation.test.mjs`; echter Node-22-Funktionstest 7/7 PASS, Modul-SHA passt GitHub-Blob `9ab05f7e863aff01823770fcf596784d1e8d7aa1`. Forschungs-Quittung `research-...`, `probe-artifacts` exklusiv, kein Zugriff auf vorhandenes Windows-Konto außerhalb lokaler Ausführung; `docs/V19_REPLAY_ISOLATION.md`.
 
 - `D3-03` gemeinsamer Quotezeit-Prüfer für drei Datenklassen und denselben Live-/Replay-Entscheidungsprozess (`src/v19-dot3-quote-time.mjs`, `src/risk-authorization-v18.mjs`, `src/v19-dot3-source-pairs.mjs`, `src/market-observer-v18.mjs`). HTTP-Erfassungszeit nicht mit Provider-Quotezeit verwechseln; fehlende Providerzeit INDICATIVE, aber keine SELL-/BUY-Autorisierung. 12/12 Zeit-/Observer-Prüfungen und 5/5 Gegenkontrollen zum Preflight. `docs/V19_DOT3_QUOTE_TIME.md`; vollständiger Node/CI-Lauf weiterhin offen.
 - `D3-02` zwei-Domänen-Quellenbeobachtungen mit eigener Upstream-/Quotezeit-Diagnostik ohne falsche echte Authentizität (`src/v19-dot3-source-pairs.mjs`, `src/feed-handoff.mjs`, `src/v19-dot3-risk-status.mjs`, `src/v19-dot3-recheck-scheduler.mjs`). 21/21 gezielte isolierte Prüfungen, weitere echte Provider-/Node-CI-Abnahme offen; `docs/V19_DOT3_SOURCE_CAPABILITY.md`.
@@ -93,6 +95,13 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - **19/61 = 31,1 %, 42 offen.** Seit D3-03 klassifiziert `src/v19-dot3-quote-time.mjs` einheitlich `HTTP_CAPTURE_ONLY_INDICATIVE`, `PROVIDER_TIMESTAMP_CLAIMED_FRESH/STALE`, Zukunfts- und ungültige Zeitfälle. `src/risk-authorization-v18.mjs` nutzt dieselbe Zeitprüfung und bleibt SHADOW / `trade_authorized:false`.
 - **NICHT als echte Belege darstellen:** Eigenes JSON `provider_quote_asof_utc`, selbst behauptete SHA-/Issuer-Zeichenfolgen, heutiges OHLCV als ursprüngliches Oktober-Archiv oder zwei Domains als bewiesen unabhängigen Upstream.
 - Priorität anschließend: D3-04 Quellen-/Issuer-Authentifizierung, D3-05 echte Sellability-/Chain-Safety-Beobachtung und D3-07 tatsächlich erledigte Rechecks. Volle Node-/GitHub-Actions-Abnahme ausstehend.
+
+### Nachtrag 22.11.2026: SYS-09 abgeschlossen, D3-04 und D3-05 noch offen
+
+- **Aktueller Zähler 20/61 = 32,8 %, 41 offen.** SYS-09 ist gezielt geprüft (7/7 echte Node-22-Kontrollen und exakt übereinstimmender SHA des GitHub-Moduls). Voller `npm test`-/GitHub-Actions-Lauf weiterhin NICHT nachgewiesen.
+- **D3-04 – nur TEILIMPLEMENTIERT:** `src/v19-dot3-authenticated-gate.mjs` prüft Ed25519-Bindung an Order/Pool/Blob/TTL mit **extern gepinntem** Public-Key; `src/publisher.mjs` und `src/runner.mjs` prüfen VOR jeder neuen PAPER-Order. **Beide sind absichtlich fail-closed**: selbst ein gültiger signierter Strukturbeleg kann ohne unabhängige Quell-/Sellability-/Issuer-Ausführung keine PAPER-Order autorisieren. Auch neue SELL-Orders bleiben aktuell blockiert; D4-08 muss sicheren Exit-Pfad gestalten. 7 neue Node-Tests auf GitHub, isolierte Struktur-/Mock-Verifikationen 8/8, **echte Ed25519-Integration im Node-Test noch nicht nachgewiesen**.
+- **D3-05 – nur TEILIMPLEMENTIERT:** `src/v19-dot3-sellability.mjs` unterscheidet EVM-Sellroute/Tax/Owner/Blacklist und Solana-Mint/Freeze/Token-2022/DryRun; gleiche `src/v19-dot3-risk-status.mjs`-Logik Live/As-of; Warnsignale bleiben WATCH, unbekannte Chain-/Routingbeweise DATA_GAP. 9/9 isolierte Prüfungen, **keine echten RPC-/On-Chain-Sellability-Simulationen**. `docs/V19_DOT3_AUTH_SELLABILITY_PENDING.md`.
+- Nächste Schritte: echten extern vertrauenswürdigen Dot3-Issuer und SHA-/Workflow-Quellpfad etablieren, sichere SELL-Ausnahme für offene Papierpositionen ohne Schutzumgehung klären, Chain-spezifische echte provider-verifizierte Sellability prüfen. D3-04 und D3-05 **nicht** zum Zähler hinzufügen bis abgenommen.
 
 ## 2. Arbeitsreihenfolge – aktuelle nächsten Schritte
 
