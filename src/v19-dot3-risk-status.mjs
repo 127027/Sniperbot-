@@ -31,7 +31,8 @@ export function assessDot3RiskStatus({
  const result=(status,reason,missing=[],additional={})=>({
    schema:1,kind:'R29_V19_DOT3_RISK_STATE',mode,
    as_of_utc:asOfUtc,pool_key:key,chain:chain??null,
-   pool:validPool?pool:null,contract:validContract?contract:null,
+   pool:validPool?pool:null,pool_kind:validPool?(candidate.pool_kind??null):null,
+   contract:validContract?contract:null,
    previous_status:previousStatus,status,reason,
    missing_fields:missing,
    candidate_preserved_for_recheck:status!=='REJECTED',
