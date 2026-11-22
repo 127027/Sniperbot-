@@ -2,45 +2,14 @@
 // There is no network access, GitHub write, wallet, OpenAI call, or hindsight winner input.
 // This is NOT the cloud GPT strategy; it tests that the same PAPER execution gates
 // can create both BUY and SELL from pre-existing market observations.
-import {newState,settlePaper,inspectOrder,Reject,marketKey,DEFAULT_POLICY} from './core.mjs';
+import {newState,settlePaper,Reject,marketKey,DEFAULT_POLICY} from './core.mjs';
 import {researchDue,chooseCadence} from './cadence.mjs';
 import {decideUnifiedMarket,UNIFIED_V18_RULES} from './unified-decision-v18.mjs';
 
 const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 const ms=value=>typeof value==='string'&&ISO.test(value)&&Number.isFinite(Date.parse(value))?Date.parse(value):null;
 const iso=value=>new Date(value).toISOString();
-const decisionId=(at,kind,idx)=>'shadow-'+kind.toLowerCase()+'-'+at.toString(36)+'-'+String(idx).padStart(2,'0');
-function gate(snapshot,now){
- if(!snapshot||!['SYNTHETIC_TEST','CONTEMPORANEOUS_RECORD'].includes(snapshot.provenance))return 'UNKNOWN_PROVENANCE';
- const observed=ms(snapshot.observed_at_utc),captured=ms(snapshot.archived_at_utc);
- if(observed===null||captured===null||observed>now||captured>now)return 'FUTURE_OR_UNVERIFIED_ARCHIVE';
- if(now-observed>600000)return 'SNAPSHOT_TOO_OLD';
- if(snapshot.provenance==='CONTEMPORANEOUS_RECORD'&&(!snapshot.source_archive_sha||snapshot.source_archive_sha.length!==40))return 'ARCHIVE_SHA_MISSING';
- if(!snapshot.discovery||!snapshot.risk)return 'DOT_CHAIN_MISSING';
- if(snapshot.risk.status!=='ELIGIBLE')return 'RISK_NOT_ELIGIBLE';
- for(const stamp of [snapshot.discovery.observed_at_utc,snapshot.risk.observed_at_utc]){
-   const t=ms(stamp);if(t===null||t>now||t>observed)return 'DOT_CHAIN_FUTURE';
- }
- if(!Array.isArray(snapshot.quotes)||snapshot.quotes.length<2)return 'MISSING_QUOTES';
- for(const q of snapshot.quotes){
-   const t=ms(q.observed_at);
-   const published=ms(q.source_published_at_utc);
-   if(t===null||published===null||t>observed||published>observed||t>now||published>now)return 'QUOTE_FUTURE_OR_UNDATED';
- }
- // A previous momentum reference has to pass the exact same PAPER quote,
- // liquidity and pool identity gates; otherwise later momentum is contaminated.
- try{inspectOrder(policyOrder(snapshot,now,'BUY',0),newState(),now,DEFAULT_POLICY);}
- catch(error){return error instanceof Reject?'QUOTE_GATE_'+error.code:'QUOTE_GATE_UNEXPECTED_ERROR';}
- return null;
-}
-function policyOrder(snapshot,now,action,idx){
- return {id:decisionId(now,action,idx),mode:'PAPER',authority:'dot-4-strategy',action,
-   dots:['dot-2-discovery','dot-3-risk','dot-4-strategy'],
-   reason:'Independent historical shadow strategy with timestamped point-in-time observations',
-   quote_quality:'INDICATIVE_WEB_ONLY',
-   created_at:iso(now),expires_at:iso(now+120000),coin:snapshot.coin,
-   ...(action==='BUY'?{amount_test_usdc:50}:{}),quotes:snapshot.quotes.map(({source_published_at_utc,...q})=>q)};
-}
+import {checkUnifiedEvidence as gate,makeReplayCheckOrder as policyOrder} from './v18-shared-evidence-gate.mjs';
 export function replaySignalDecisions({date,snapshots=[],activityObservations=[],targetPer24h=4,forceHourlyReview=false,params={}}){
  if(typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date+'T00:00:00Z')))
    throw Error('INVALID_DATE');
