@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "kind": "R29_V19_DOT5_FORENSIC_CONTROL_RESEARCH_ONLY",
+  "run_id": "dot5-20261122T234143011Z-qa12",
+  "executed_at_utc": "2026-11-22T23:41:43.011Z",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "independent_automation_receipt": "UNVERIFIED",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "status": "DATA_GAP_NO_TRADE",
+  "input_refs": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "10f92e04a3130ad24cbb3feb5e1ad415ce27a696"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "410012af7bf93ebd11c337374ce0415130e6f5ac"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "64f9dabc685ef4dad3f6ee2756374f4ed27ee074"
+    },
+    {
+      "path": "research/latest/dot-1.json",
+      "blob_sha": "d5856914b0c4645d745989bb9529d788a8f4b819"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "blob_sha": "6dd54bc0d65c164ec6d0cd09b97a9ee4865eb8f4"
+    },
+    {
+      "path": "research/latest/dot-3.json",
+      "blob_sha": "07b659d4db2f49f7eaab508994bd75ae02e678aa"
+    },
+    {
+      "path": "research/latest/dot-4.json",
+      "blob_sha": "88d26c0239f05b6632aa1b9c611f79e9d093d15d"
+    },
+    {
+      "path": "signals/index.json",
+      "blob_sha": "8f360a172e95adfda2d30105dd3fc7639497367d"
+    },
+    {
+      "path": "research/feeds/2026-11-22/45081908321/evidence.json",
+      "blob_sha": "7376b823973dec81bcaab25fd032c5273567043b"
+    },
+    {
+      "path": "research/feeds/2026-11-22/45081908321/dot2-to-dot3-handoff.json",
+      "blob_sha": "a30ff3e982db088b0758f4f5b9d06c24cbc827de"
+    }
+  ],
+  "scope": {
+    "latest_capture_run": "45081908321",
+    "chain": "ethereum",
+    "page": 2,
+    "source_captured_at_utc": "2026-11-22T23:11:52.338Z",
+    "raw_candidate_count": 20,
+    "full_contract_count": 20,
+    "independent_quote_matches": 1,
+    "first_dot2_detected_total": 255,
+    "persisted_pools": 664,
+    "observation_batches": 132,
+    "all_six_chains_not_covered_this_capture": true
+  },
+  "provider": {
+    "gecko_last_http": 200,
+    "consecutive_429": 0,
+    "gecko_starts_total": 17,
+    "rolling_limit": 4,
+    "new_pool_limit": 3,
+    "pacing_seconds": 15.1
+  },
+  "acceptance": {
+    "pass": 13,
+    "partial": 46,
+    "open": 2,
+    "original_non_backtest_gate": "BLOCKED",
+    "holdout_end_utc": "2026-11-25T06:54:05.033Z"
+  },
+  "findings": [
+    {
+      "event_id": "D5-QA12-001",
+      "error_code": "DOT3_DOT4_LAG_NEWER_DOT2_CAPTURE",
+      "earliest_step": "Dot3",
+      "source_path": "research/feeds/2026-11-22/45081908321/dot2-to-dot3-handoff.json",
+      "affected_paths": [
+        "research/latest/dot-3.json",
+        "research/latest/dot-4.json"
+      ],
+      "impact": "Dot3/Dot4 source run 45070668194 is older than Dot2 45081908321; cannot infer newest capture was risk-reviewed",
+      "fix": "Next genuine Dot3 research wake should review exact current handoff under unchanged risk gates; then Dot4 source-pin the reviewed evidence",
+      "regression_test": "Assert latest Dot3 source_run_id equals reviewed Dot2 source_run_id before claiming current pipeline completion"
+    },
+    {
+      "event_id": "D5-QA12-002",
+      "error_code": "D3_04_D3_05_UNVERIFIED",
+      "earliest_step": "Dot3",
+      "impact": "No independent issuer, sellability or provider quote-as-of proof; 0 trade eligible",
+      "fix": "Obtain independently authenticated issuer and chain-specific executable sellability evidence",
+      "regression_test": "Fail closed on HTTP200 without verified quote time or chain sellability"
+    },
+    {
+      "event_id": "D5-QA12-003",
+      "error_code": "INDEPENDENT_GPT_AND_CLIENT_RECEIPTS_UNVERIFIED",
+      "earliest_step": "GPT execution/Client",
+      "impact": "Dot4 self-reported review is not independently authenticated; index has zero orders; client receipt inventory not enumerated",
+      "fix": "Pin actual automation receipts and enumerate immutable per-client receipts",
+      "regression_test": "Reject self-reported GPT counts and synthetic fills"
+    }
+  ],
+  "latest_pointer_reconciliation": {
+    "dot2_latest_run": "45081908321",
+    "feed_latest_run": "45081908321",
+    "state_checkpoint": "research/state/checkpoints/45081908321.json",
+    "state_total_discovered": 664,
+    "dot2_total_discovered": 664,
+    "state_first_dot2": 255,
+    "dot2_first_dot2": 255,
+    "feed_handoff_full_contracts": 20,
+    "dot2_handoff_full_contracts": 20,
+    "stale_detected": false
+  },
+  "trading": {
+    "published_orders_in_index": 0,
+    "verified_paper_fills": 0,
+    "client_receipt_inventory": "NOT_ENUMERATED",
+    "status": "OFFLINE_OR_UNCONFIRMED"
+  },
+  "historical": {
+    "october_29h": "DATA_GAP_NO_ORIGINAL_NEUTRAL_ASOF",
+    "oracle_65": "POST_EVENT_ONLY",
+    "backtest_triggered": false,
+    "precision": null,
+    "recall": null,
+    "missed_profit": null
+  },
+  "limitations": [
+    "Full immutable Dot1-Dot4 journal inventory not enumerated in this wake",
+    "Eight-hour source capture auditor not executed; number of verified hourly buckets unknown",
+    "No independent CI run status verified this wake",
+    "No external issuer or onchain sellability proof"
+  ],
+  "next_action": "Continue hourly read-only QA; do not trigger backtest or publish orders"
+}
