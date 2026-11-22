@@ -51,6 +51,13 @@ jobs:
           set -euo pipefail
           mkdir -p probe-artifacts
           npm test 2>&1 | tee probe-artifacts/v19-node-tests.tap
+      - name: Run two real offline 29h CLIs – October data gap vs synthetic model BUY/SELL
+        shell: bash
+        run: |
+          set -euo pipefail
+          # No live API calls, no Dot activation, no read/write access to
+          # a remote Windows-paper account. These are isolated Research CLIs.
+          node scripts/v19-offline-backtest-acceptance.mjs
       - name: Confirm test job did not publish signals or alter tracked index
         shell: bash
         run: |
@@ -93,5 +100,6 @@ jobs:
           path: |
             probe-artifacts/v19-node-tests.tap
             probe-artifacts/v19-node-ci-receipt.json
+            probe-artifacts/v19-qa04-*.json
           if-no-files-found: error
           retention-days: 30
