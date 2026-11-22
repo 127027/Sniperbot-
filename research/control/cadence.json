@@ -1,73 +1,47 @@
 {
   "schema": 1,
   "target_per_24h": 4,
-  "observed_at_utc": "2026-11-22T02:03:44.733Z",
+  "observed_at_utc": "2026-11-22T03:06:44.789Z",
   "data_available": false,
-  "reason": "DATA_GAP: latest Base capture 01:18:56 UTC: 20 raw rows, only 2 accepted full contracts, 18 pool-address parser rejects (potential v4 bytes32); no verified same-chain successive capture delta or comparable hourly volume; 186 cumulative pools are not hourly births. Five chains unscanned in latest capture. Media +3 new events, no qualified attention delta; X/Reddit unavailable. No verified client positions. HTML rolling 24h aggregates lack provider as-of.",
+  "reason": "DATA_GAP: Ethereum 02:15:49Z capture accepted 2 of 20 raw rows; 18 bytes32-format pool IDs rejected by parser. No comparable consecutive same-chain hourly pool/volume deltas; latest capture omits five chains. Media +4 unique events without comparable attention windows. Rolling 24h HTML is not a provider-timestamped hourly delta. No verified client positions or matured 1/3/6h labels. Preserve target.",
   "consecutive_quiet_checks": 0,
-  "latest_journal_path": "research/journal/dot-1/2026-11-22/UTC-020344-dot1-v16-20261122T020344733Z.json",
+  "latest_journal_path": "research/journal/dot-1/2026-11-22/UTC-030644-dot1-v16-20261122T030644789Z.json",
   "metrics": {
-    "latest_feed_chain": "base",
-    "latest_feed_captured_at_utc": "2026-11-22T01:18:56.027Z",
-    "latest_feed_raw_rows": 20,
-    "latest_feed_pools": 2,
-    "latest_feed_complete_contracts": 2,
-    "latest_feed_rejected_pool_address": 18,
-    "latest_feed_fetch_errors": [],
-    "latest_feed_dex_checks": 6,
-    "latest_feed_dex_exact_matched": 5,
-    "latest_feed_independent_complete_quotes": 0,
-    "latest_feed_rechecked_price_observations": 5,
-    "market_memory_total_discovered": 186,
-    "market_memory_observation_batches": 52,
+    "latest_chain": "ethereum",
+    "capture_utc": "2026-11-22T02:15:49.766Z",
+    "gecko_accepted": 2,
+    "complete_contracts": 2,
+    "raw_rows": 20,
+    "parser_rejected_bytes32": 18,
+    "dex_checks": 6,
+    "dex_exact_matched": 3,
+    "rechecked_prices": 3,
+    "market_memory_pools": 188,
+    "observation_batches": 56,
     "prospective_rankable": 0,
-    "prospective_insufficient_repeated_data": 146,
     "latest_dot3_counts": {
       "ELIGIBLE": 0,
       "WATCH": 0,
-      "REJECTED": 5,
-      "DATA_GAP": 0
+      "REJECTED": 3,
+      "DATA_GAP": 1
     },
-    "media_capture_utc": "2026-11-22T01:18:58.671Z",
-    "media_new_unique_events": 3,
-    "media_repeated_items": 187,
+    "media_new_unique": 4,
+    "media_capture_utc": "2026-11-22T02:15:52.256Z",
     "media_sources_available": 7,
-    "media_inaccessible": [
-      "X_SEARCH",
-      "REDDIT_SEARCH"
+    "media_verified_attention_delta": null,
+    "source_coverage": [
+      "ethereum"
     ],
-    "media_verified_trend_delta": null,
-    "same_chain_successive_capture_delta_verified": false,
-    "new_pools_in_current_hour": null,
-    "volume_change_pct_current_hour": null,
-    "orders_count": null,
-    "open_positions": null,
-    "unscanned_in_latest_capture": [
+    "missing_chains": [
       "solana",
-      "ethereum",
+      "base",
       "bsc",
       "robinhood",
       "cronos"
     ],
-    "forecast_matured_label_path": null,
-    "forecast_accuracy_1h": null,
-    "forecast_accuracy_3h": null,
-    "forecast_accuracy_6h": null,
-    "html_observations": [
-      {
-        "chain": "base",
-        "url": "https://www.geckoterminal.com/base/pools",
-        "reported_24h_volume_usd_approx": 1290000000,
-        "reported_24h_transactions": 2410467,
-        "provider_asof_verified": false
-      },
-      {
-        "chain": "solana",
-        "url": "https://www.geckoterminal.com/solana/pools",
-        "reported_24h_volume_usd_approx": 2570000000,
-        "reported_24h_transactions": 30564517,
-        "provider_asof_verified": false
-      }
-    ]
+    "same_chain_hourly_pool_delta": null,
+    "same_chain_hourly_volume_delta": null,
+    "verified_client_positions": null,
+    "verified_orders": null
   }
 }
