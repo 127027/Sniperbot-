@@ -103,3 +103,16 @@ test('SYS-11: preflight source only inspects existing state and does not write r
  assert.match(core,/planMultiChainCapture\(/);
  assert.doesNotMatch(core,/fetch\(|writeFile\(|execFile\(/);
 });
+
+test('SYS-11: actual GitHub runner persists exactly the matching offline plan before any provider calls',async()=>{
+ const code=await readFile('scripts/cloud-discovery-runner.mjs','utf8');
+ const preflight=code.indexOf('const restartPreflight=planResearchRestart(');
+ const persisted=code.indexOf('await writeFile(restartPreflightPath,JSON.stringify(restartPreflight');
+ const staged=code.indexOf('const stagedCapture=stagePendingCapture(');
+ const network=code.indexOf('const got=await fetchRaw(');
+ assert.ok(preflight>0&&persisted>preflight&&staged>persisted&&network>staged);
+ assert.match(code,/PREFLIGHT_CAPTURE_PLAN_DIVERGENCE/);
+ assert.match(code,/metrics\.v19_offline_restart_preflight=/);
+ assert.match(code,/preflight_http_starts:0,preflight_order_authorizations:0/);
+ assert.doesNotMatch(code,/writeFile\('signals\//);
+});
