@@ -45,12 +45,17 @@ export function decodeOlderPoolPage({network,response,capturedAtUtc,page=1,
  if(!['1h','24h'].includes(duration))throw Error('INVALID_TRENDING_DURATION');
  const decoded=decodeGeckoNewPools({network,response,capturedAtUtc,page});
  const captured=time(capturedAtUtc);
- const candidates=decoded.candidates.map((r,i)=>{
+ const futureCreated=[];
+ const candidates=decoded.candidates.filter(r=>{
+   const at=time(r.pool_created_at_utc);
+   if(at!==null&&at>captured){futureCreated.push(r.pool);return false;}
+   return true;
+ }).map(r=>{
    const created=time(r.pool_created_at_utc);
    const age=created!==null&&created<=captured
      ?(captured-created)/3600000:null;
    const raw=response.data[r.source_row],a=raw?.attributes||{};
-   const momentum=Number(a.price_change_percentage?.h1);
+   const momentum=a.price_change_percentage?.h1==null?null:Number(a.price_change_percentage.h1);
    return {...r,category:age!==null&&age>=24?'OLDER_POOL_WATCH':'TRENDING_AGE_UNKNOWN_OR_NEW',
      source_api:'GECKOTERMINAL_TRENDING_POOLS_JSON',source_duration:duration,
      observed_older_pool_age_hours:age,
