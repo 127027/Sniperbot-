@@ -6,6 +6,11 @@ import {asOfMillis} from './v19-asof-evidence.mjs';
 
 export const LIVE_DOT_IDS=Object.freeze(['dot-1','dot-2','dot-3','dot-4','dot-5']);
 const pat=/^research\/journal\/(dot-[1-5])\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]+\.json$/;
+const forensic=/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-5-control\.json$/;
+export const validRoleJournalPath=(role,path)=>
+  typeof path==='string'&&(
+    path.match(pat)?.[1]===role
+    ||(role==='dot-5'&&forensic.test(path)));
 const iso=x=>asOfMillis(x);
 const sha=/^[a-f0-9]{40}$/;
 const hash=raw=>{
@@ -13,7 +18,6 @@ const hash=raw=>{
  return createHash('sha1').update('blob '+data.length+'\0')
    .update(data).digest('hex');
 };
-const roleSuffix=(id)=>id.replace('-','');
 const status=(issues)=>issues.length?'INCOMPLETE':'SNAPSHOT_CONSISTENT_UNAUTHENTICATED';
 
 export function auditLiveFiveDotJournalInventory({
@@ -32,14 +36,14 @@ export function auditLiveFiveDotJournalInventory({
   const issue=(code,detail)=>issues.push({code,detail});
   if(pointer?.dot!==id||pointer?.schema!==1
     ||typeof pointer?.journal_path!=='string'
-    ||pointer?.journal_path.match(pat)?.[1]!==id)
+    ||!validRoleJournalPath(id,pointer?.journal_path))
    issue('MISSING_OR_UNTRUSTED_LATEST_POINTER',id+' requires a valid role-specific latest journal');
   const updated=iso(pointer?.updated_at_utc);
   if(updated===null||updated>at)
    issue('INVALID_OR_FUTURE_POINTER_TIME','Latest pointer must be at or before this audit UTC');
   const path=pointer?.journal_path;
   let raw=null,journal=null,rawSha=null;
-  if(path?.match(pat)?.[1]===id){
+  if(validRoleJournalPath(id,path)){
    raw=rawJournalsByPath[path];
    if(typeof raw!=='string')issue('POINTER_JOURNAL_BYTES_NOT_IN_INVENTORY','Raw file missing: '+path);
    else{
