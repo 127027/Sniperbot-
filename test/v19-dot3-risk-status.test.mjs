@@ -153,3 +153,14 @@ test('an omitted self-reported percentage cannot hide a large discrepancy betwee
  assert.ok(x.observed_price_disagreement_pct>3);
  assert.equal(x.trade_authorized,false);
 });
+
+test('Dot3 risk as-of cannot be ambiguous local time or an offset-dependent hour',()=>{
+ for(const value of ['2026-11-22T08:20:50','2026-11-22T08:20:50+01:00']){
+  assert.throws(()=>assessDot3RiskStatus({candidate,asOfUtc:value}),
+   /INVALID_DOT3_RISK_STATUS_INPUT/);
+ }
+ const x=assessDot3RiskStatus({candidate:{...candidate,
+  captured_at_utc:'2026-11-22T08:20:40'},asOfUtc:at});
+ assert.equal(x.status,'DATA_GAP');
+ assert.equal(x.reason,'POOL_CAPTURE_MISSING_STALE_OR_FUTURE');
+});
