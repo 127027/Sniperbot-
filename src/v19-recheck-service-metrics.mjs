@@ -50,7 +50,7 @@ export function summarizeRecheckService({plan,attempts=[],asOfUtc,hotSlaMinutes=
    hot_sla_met_pct:pct(hot.filter(x=>x<=hotSlaMinutes).length,hot.length),
    deferred_new_candidates:plan.deferred_new_pool_count,
    actual_api_calls_claimed_from_attempts:attempts.length,
-   pool_lost_from_discovery_due_to_budget:false,
+   selection_does_not_delete_deferred_candidates:true,
    trade_authorized:false,actual_paper_fills:0,
    note:'Queue latency statistics are null until a matched observed/check timestamp pair exists.'};
 }
