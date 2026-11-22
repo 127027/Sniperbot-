@@ -4,6 +4,11 @@
 
 **Stand: 25/61 = 41,0 % technisch abgeschlossen (gezielt geprüft). 36 offen.**
 
+
+**Neuster SYS-11-Teilfortschritt (22.11.2026, neuer Code-Commit `9af740d51ecc3d37738ffeb24d01f693dfc24c6b`):** Die aus dem echten Ethereum-HTTP-429 abgeleitete **anbieterweite GeckoTerminal-Sperre** gilt jetzt nicht nur für `new_pools`, sondern auch für Trending- und OHLCV-Requests im selben und in folgenden Runs. Die schon vorhandenen persistenten Main-/Trending-/OHLCV-429-Checkpoints werden vor dem ersten Request gelesen; vor Ablauf wird die Abfrage ohne Netzwerkanfrage als `DEFERRED` im Journal/Seiten-Backlog dokumentiert. Das vorherige 1,7-s-Pacing wurde aus Vorsicht wegen widersprüchlicher offizieller Grenzwerte (GeckoTerminal-Doku ca. **10/min**, CoinGecko-Hilfe **30/min**) auf **6,1 s zwischen Gecko-Requeststarts** erhöht. `src/v19-gecko-provider-cooldown.mjs`, `src/v19-gecko-pacing.mjs`, `scripts/cloud-discovery-runner.mjs`, `test/v19-gecko-provider-cooldown.test.mjs`, `test/v19-gecko-pacing.test.mjs`; vollständiger Node-22-CI-Testworkflow **[45038974988](https://github.com/127027/Sniperbot-/actions/runs/45038974988) erfolgreich** auf Source-Commit `9af740d51e...` (grüner Testworkflow, **keine** tatsächliche API-/E2E-Abnahme). Detaillierter Beleg: `docs/V19_SYS11_PROVIDER_429_GLOBAL_GUARD.md`. **SYS-11 und D2-01 weiterhin OFFEN**, kein neuer Sechs-Chain-Retry-Capture nach Cooldown, **nicht** zusätzlich gezählt. Die frühere Beschreibung „1,7 Sekunden“ weiter unten ist historisch und seit diesem Commit ersetzt.
+
+
+
 | Task | Status | Verifizierbare Änderungen | Prüfung / offene Einschränkung |
 |---|---|---|---|
 | SYS-03 | COMPLETE (targeted) | `src/v19-asof-evidence.mjs`; `src/v18-shared-evidence-gate.mjs`; `test/v19-asof-evidence.test.mjs` | 7/7 isolierte Funktionsprüfungen; Original/Retro/Oracle/Synthetic strikt unterschieden, echte Blobprovenienz weiter offen |
