@@ -384,13 +384,17 @@ for(const job of olderPlan.tasks){
  }
 }
 await writeFile(olderStatePath,JSON.stringify(olderState,null,2)+'\n','utf8');
-const olderCandidates=olderPages.flatMap(p=>p.decoded.candidates);
+const olderCandidates=olderPages.flatMap(p=>p.decoded.candidates.map(c=>({
+ ...c,source_raw_path:p.sourcePath,source_raw_sha256:p.sourceSha256
+})));
 const decoded=receivedPages.length?{
  schema:1,network:'MULTI_CHAIN',page:null,
  found_count:receivedPages.reduce((n,x)=>n+x.decoded.found_count,0),
  rejected_count:receivedPages.reduce((n,x)=>n+x.decoded.rejected_count,0),
  requested_pool_count:receivedPages.reduce((n,x)=>n+(x.decoded.requested_pool_count||0),0),
- candidates:receivedPages.flatMap(x=>x.decoded.candidates),
+ candidates:receivedPages.flatMap(x=>x.decoded.candidates.map(c=>({
+  ...c,source_raw_path:x.sourcePath,source_raw_sha256:x.sourceSha256
+ }))),
  // Preserve all parser rejects across chain/page, even unsupported V4 pools.
  rejected:receivedPages.flatMap(x=>(x.decoded.rejected||[]).map(r=>({
    ...r,chain:x.chain,source_page:x.page,source_raw_path:x.sourcePath,
@@ -544,6 +548,7 @@ for(const c of targets){
        observed_at_utc:data.evidence.received_at_utc,
        source_api:'DEXSCREENER_VERIFIED_RECHECK',
        source_raw_path:data.evidence.body_path,
+       source_raw_sha256:data.evidence.response_sha256,
        observed_price_usd:check.dexscreener_price_usd,
        liquidity_usd:check.dexscreener_liquidity_usd,
        volume_24h_usd:null,category:'RECHECK',
@@ -553,7 +558,8 @@ for(const c of targets){
    const rec=fromDexPairOnly({chain,pool,pool_kind:poolKind,response:data.json,capturedAtUtc:data.evidence.received_at_utc});
    dexChecks.push({chain,pool,source:data.evidence.body_path,status:rec.status,
     matched:!!rec.candidate});
-   if(rec.candidate)fallback.push({...rec.candidate,source_raw_path:data.evidence.body_path});
+   if(rec.candidate)fallback.push({...rec.candidate,source_raw_path:data.evidence.body_path,
+    source_raw_sha256:data.evidence.response_sha256});
   }
  }catch(error){
    // A DEX provider-budget veto did NOT query this pool. Leave its fair
