@@ -105,8 +105,17 @@ export function recordProviderResponse({state,provider,lane,requestId,
   const until=ms(retry.next_retry_at_utc)+jitter;
   record.cooldown_until_utc=iso(Math.max(until,ms(record.cooldown_until_utc)??0));
   record.consecutive_429=(record.consecutive_429||0)+1;
- }else if(httpStatus!==null&&httpStatus>=200&&httpStatus<300){
+  record.consecutive_temporary=0;
+ }else if(httpStatus===null||httpStatus===408||httpStatus>=500){
+  const retry=providerRetryDelay({httpStatus,
+   previousFailures:record.consecutive_temporary||0,retryAfter,atUtc:iso(at)});
+  const jitter=[...requestId].reduce((n,c)=>(n*31+c.charCodeAt(0))%1501,0);
+  record.cooldown_until_utc=iso(Math.max(
+   ms(record.cooldown_until_utc)??0,ms(retry.next_retry_at_utc)+jitter));
+  record.consecutive_temporary=(record.consecutive_temporary||0)+1;
+ }else if(httpStatus>=200&&httpStatus<300){
   record.consecutive_429=0;
+  record.consecutive_temporary=0;
   if(ms(record.cooldown_until_utc)!==null
     &&ms(record.cooldown_until_utc)<=at)record.cooldown_until_utc=null;
  }
