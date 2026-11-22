@@ -1,5 +1,24 @@
 # R29 – Verbindliche GitHub-Übergabe für neue Chats
 
+## VERBINDLICH NEUSTER R29-STAND (22.11.2026) – 70,5 % technische Arbeit, kein fertiger Trading-Bot
+
+**61 Originalaufgaben: 12 PASS (19,7 %), 31 PARTIAL (50,8 %), 18 OPEN (29,5 %).** **43/61 = 70,5 % haben nachweisbare technische Teil- oder vollständige Arbeiten**. Historische 50,8/59/60,7/62,3-%-Technikzähler und alte 9/10/12 PASS sind vorangegangene Momentaufnahmen; **KEINE** ursprüngliche abgeschlossene Codestufe wurde zurückgesetzt. Niemals 70,5 % als vollständige Original-Abnahme, tatsächlichen Trading-Erfolg oder Marktabdeckung angeben.
+
+**Dieser Auftrag hat fünf ORIGINAL-ID-Aufgaben substantiell von OPEN auf PARTIAL gehoben:** `D1-05`, `D3-06`, `D4-03`, `D5-04`, `QA-05`. Detaillierte genaue Dateien, Regressionstests, Grenzen und ursprüngliche Restabnahme: **`docs/V19_70PCT_TECHNICAL_MILESTONE_20261122.md`**. Vor neuen Arbeiten dieses Dokument und `docs/V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md` sowie `docs/V19_IMPLEMENTATION_PROGRESS.md` LESEN.
+
+**Aktueller bestätigter Source-CI:** GitHub [#45055292351](https://github.com/127027/Sniperbot-/actions/runs/45055292351) auf Commit **`5dfa7634e31e809ca25cb0dbe8fa4441e0b3d2fb`**: **553/553 PASS, 0 FAIL, TEST_ONLY_NO_SIGNAL_WRITE 0**. Spätere Commits aktualisieren nur Dokumentation.
+
+**Code-Orientierung:**
+- `src/v19-chain-service-sla.mjs` + `src/v19-discovery-budget-plan.mjs` + bestehender `scripts/cloud-discovery-runner.mjs`: FAIR-Chains, Demand nur als Tie-Break hinter letztem Servicetermin, P95-Elapsed korrekt von echter Queue-Age getrennt; keine erfundenen 6/6 HTTP200.
+- `src/v19-paper-liquidity-sensitivity.mjs`: Research-only Gebühren/Impact-Kurven am festen 50-TEST-USDC-Coin-Einsatz; Sicherheitsgates MIN 5000 USD/1% bleiben unverändert; im Runner wird nach tatsächlichen Research-HTTP-Captures Report geschrieben.
+- `src/v19-exit-counterfactual.mjs`: eigenständige, bisher nicht für Orders eingesetzte Test-Bibliothek für Baseline/Trailing/Partial/Time-Stop ohne Zukunfts-Hochpunkt-Oracle; fehlende Exit-Beobachtung = `modeled_realized_pnl_test_usdc:null` und **KEIN** Paper-Fill.
+- `src/v19-missed-opportunity-root-causes.mjs`: im Runner je as-of Pool dokumentierte neun Prozess-Gap-Ursachen, nur mit echten individuellen Process-Receipts darf NO_CASH/NO_FILL/NO_GPT_BUDGET/EARLY_SELL behauptet werden, keine 409 verpassten Gewinner erfinden.
+- `src/v19-prospective-holdout-freeze.mjs`: im Runner beim nächsten echten Research-HTTP-Job vor dem Abruf eine einzige SHA-gefrorene 6h-Purge-/24h-Validation-/6h-Purge-/24h-Holdout-Konfiguration erzeugen. **Bis jetzt NICHT auf GitHub unter `research/state/prospective-holdout-freeze.json` aktiviert**. Keine rückwirkende Strategieoptimierung und kein GPT-Review simuliert.
+
+**Unabgeschlossene Kernblöcke unverändert:** `SYS-11` und `QA-03` haben keinen kontrollierten neuen echten mehrstufigen API-/429-/Seitenresume-Lauf nach Code-Update. `D1-04` hat keine nachgewiesene unabhängige stündliche Markt-/Positionsbeobachtung im Windows-Client. `D3-03/04/05` keine vollständig verifizierte Provider-Quote-Zeit/Sellability/Risikopublisher. `D4-03` nur Gegenrechnungen. `QA-05` echte zukünftige Holdout-Resultate offen. Alle fünf GPT-Dots MUSSEN pausiert bleiben, Echtgeld aus, keinerlei Änderung am realen Windows-Paper-Wallet oder vorhandenen 5.000-TEST-USDC-Simulationsbuchungen, keine echten BUY/SELL-Orderbelege erfunden.
+
+
+
 ## VERBINDLICH NEUESTER R29-SNAPSHOT: 22.11.2026 – GitHub HTTP-Replay und neutraler Evaluationsnenner
 
 **AKTUELL: 12/61 = 19,7 % Original-PASS, 26/61 = 42,6 % PARTIAL, 23/61 = 37,7 % OPEN; 38/61 = 62,3 % PASS+PARTIAL TECHNISCH BEARBEITET.** Das ist keine 62,3-%-End-to-End-Abnahme oder tatsächliche Trading-Reife. Alle älteren 31/61=50,8 %, 36/61=59 %, 37/61=60,7 % und früheren „aktuell“-Absätze unten sind historische Arbeitssnapshots; kein Codeverlust.
