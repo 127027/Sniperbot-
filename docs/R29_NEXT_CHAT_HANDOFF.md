@@ -19,7 +19,7 @@
 
 ## 1. Verifizierter Übergabestand
 
-**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Stand nach D2-09-Abnahme: **15/61 = 24,6 %**, 46 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
+**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach SYS-08-Abnahme: **16/61 = 26,2 %**, 45 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
 
 Bisher als `COMPLETE (targeted)` dokumentiert:
 
@@ -30,6 +30,7 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - `SYS-05` budgetierte Sechs-Chain-/Multi-Page-Dot2-Erfassung (ohne Live-Capture-Beweis)
 - `SYS-06` manueller 29h-Backtest-Workflow (ohne Actions-Run-Beweis)
 - `SYS-07` archivierte Original-HTTP-Dateien mit SHA-256 und optionaler GitHub-Blob-ID gegenprüfen; zeitgerechte Verfügbarkeit getrennt behandeln
+- `SYS-08` Herkunftsaudit in `src/v19-dot-execution-audit.mjs`, `src/v18-requested-backtest.mjs` und `test/v19-dot-execution-audit.test.mjs`: Alle fünf Rollen im Replay `SIMULATED`, keine echte GPT-Ausführung ohne unabhängig überprüfte Artefakte; selbst ein `verified:true`-Feld zählt nicht als Nachweis. 24 Takte/120 Modell-Rollenbeiträge/4 Modell-Vollreviews/0 bestätigte GPT-Ausführungen und 0 echte Paper-Fills. 8 direkte +10 integrierte gezielte Prüfungen, vollständige CI weiterhin ausstehend.
 - `D1-01` vergleichbare Chain/Page-Aktivitätsmessung
 - `D1-02` gezielte API-Wiederholungsaufträge bei DATA_GAP
 - `D1-03` adaptive Review-Frequenz mit sofortigem 4→24 und geregeltem 24→12→8→4
@@ -39,7 +40,7 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - `D2-05` erstmals **ältere** trending Pools je Chain/1h-/24h-Fenster erkennen, as-of vorwärts testen und in denselben Hot/Fair/Dot3-Handoff geben (`src/v19-older-pool-discovery.mjs`, `test/v19-older-pool-discovery.test.mjs`; 13/13 isolierte Prüfungen, echter Anbieter-Capture noch ausstehend).
 - `D2-09` nur ein Fair-Recheck-Planer: `src/market-memory.mjs::planIncrementalScan` delegiert an `src/discovery-fair-queue.mjs::fairRecheckPlan`; Dot2-Anweisungen bleiben pausiert, zielgerichtete Regression `test/v19-unified-recheck-planner.test.mjs`
 
-**Nicht als erledigt zählen:** `D2-01` echte Sechs-Chain-Abdeckung, `D2-03` Contract-Resolver, `D2-04` wiederholte Preis-/OHLCV-Beobachtungen, `D2-05` ältere/re-aktivierte Pools, `SYS-08` echte GPT-vs-Simulations-Trennung, `SYS-09` isolierte Wallet-Abnahme, `SYS-11` echte per-Endpoint API-Budgets und Caches, `D3-01..07` Dot3-positiver Risk/Freigabepfad, `QA-06` echtes abgeschlossenes npm-test-/Actions-Resultat. Vollständige Liste: [V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md](V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md).
+**Nicht als erledigt zählen:** `D2-01` echte Sechs-Chain-Abdeckung, `D2-03` Contract-Resolver, `D2-04` wiederholte Preis-/OHLCV-Beobachtungen, `D2-05` ältere/re-aktivierte Pools, `SYS-09` isolierte Wallet-Abnahme, `SYS-11` echte per-Endpoint API-Budgets und Caches, `D3-01..07` Dot3-positiver Risk/Freigabepfad, `QA-06` echtes abgeschlossenes npm-test-/Actions-Resultat. Vollständige Liste: [V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md](V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md).
 
 ### Bisher tatsächlich überprüfte Datenlage
 
@@ -55,6 +56,13 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - **Grenze:** Trending ist nur eine Stichprobe und belegt weder vollständige ältere Poolabdeckung noch tatsächliche Wiederbelebung, Sellability oder Erfolg. Ein angebliches `pool_created_at` nach Capture wird ausgeschlossen. **13/13 isolierte Prüfungen plus Runner-Syntax erfolgreich; kein echter Anbieter-/GitHub-Actions-Trending-Capture ausgeführt.** Keine Orders, keine Dot-Reaktivierung.
 - Nächster Schwerpunkt: D2-04 abschließen durch tatsächliche wiederholte Preis-/OHLCV-Captures und saubere As-of-Artefakte; dann Dot3 positive Risk-Freigabekette und End-to-End.
 
+### Nachtrag vom 22.11.2026: SYS-08 und offene Dot3-Nachprüfung
+
+- **SYS-08 gezielt abgeschlossen**: Per-Rollen-Nachweis für fünf simulierte Dot-Rollen implementiert. Keines der 120 virtuellen Rollenereignisse ist automatisch eine tatsächliche GPT-Ausführung. Alle fünf weiterhin pausierten Dot-Prompts sind synchronisiert.
+- **D3-07 teilimplementiert, weiterhin OFFEN**: `src/v19-dot3-recheck-scheduler.mjs` und `test/v19-dot3-recheck-scheduler.test.mjs` erzeugen aus einem bestehenden Dot2-Handoff konkrete `DATA_GAP`-Nachprüfungsaufträge. Im bestehenden `scripts/cloud-discovery-runner.mjs` wird das nur als `research/feeds/.../dot3-next-evidence-rechecks.json` archiviert. Die Warteschlange führt KEINE API-Aufrufe und KEINE Paper-Käufe aus.
+- Konkrete Archivkontrolle: `research/feeds/2026-11-22/45002280249/dot2-to-dot3-handoff.json` zeigt Bigfoot und Mfer, beide Ethereum, Kursdivergenz deutlich über 100 %, extrem geringe Liquidität, unbestätigte Sellability/Security. Neuer Plan: beide `DATA_GAP` mit konkretem Quellen-Recheck, nicht nachweislich endgültig `REJECTED`, nicht `PAPER_ELIGIBLE`.
+- 429-Wiedervorlage gezielt geprüft. Echte Provider-Nachprüfung, Time-to-Risk-Statistik und positive authentische Dot3-Freigabe bleiben offen.
+- Gesamtfortschritt: **16/61 = 26,2 %**, 45 offen; vollständiger Node-/Actions-Testlauf weiterhin nicht nachgewiesen.
 ### Nachtrag vom 22.11.2026: OHLCV/Source-SHA
 
 - `D2-04` bleibt **TEILWEISE**, nicht abgeschlossen: `src/v19-gecko-ohlcv.mjs` dekodiert echte OHLCV-Arrayform `[unix_seconds,open,high,low,close,volume]`; `src/v19-ohlcv-backfill-queue.mjs` verwaltet per Pool rückwärtige `before_timestamp`-Cursor, Cache-/Restart-Status und 429. `src/discovery-feed.mjs` akzeptiert optional `max_ohlcv_requests=0..2`, solange mindestens ein Gecko-Slot für Discovery bleibt; `scripts/cloud-discovery-runner.mjs` archiviert OHLCV mit tatsächlicher HTTP-Erfassungszeit. `test/v19-gecko-ohlcv.test.mjs` und `test/v19-ohlcv-backfill-queue.test.mjs` sind eingecheckt. Acht isolierte Integrations-/Budget-/Cursorprüfungen plus Syntaxprüfung bestanden. **Noch kein echter OHLCV-Provider-Capture/Actions-Run.**
@@ -103,7 +111,7 @@ Die GitHub-Dateien und gespeicherten Dot-Automationsprompts sind **getrennte Spe
 - `scripts/cloud-discovery-runner.mjs` enthielt nach Multi-Chain-Umbau einen Laufzeitfehler `oldCheckpoint` (nicht mehr definiert). Er wurde durch per-Chain-Checkpoint-Metriken ersetzt. Prüfe in einem echten Node-/Actions-Lauf, dass der Capture-Runner tatsächlich beendet und archiviert.
 - `test/v19-cleanroom-handoff-and-runner.test.mjs` validiert Node-`--check` und Dokumentationslinks. **Noch nicht** als vollständig ausgeführter CI-Test ausgegeben.
 - Alle Dot2-Vertragsänderungen in den weiterhin deaktivierten gespeicherten Dot2-Anweisungen synchronisiert.
-- **Zähler bleibt 15/61 = 24,6 %**; die D2-04-Zwischenarbeit zählt nicht als Aufgabe 14.
+- **Zähler aktuell 16/61 = 26,2 %**; die D2-04-Zwischenarbeit zählt nicht als Aufgabe 14.
 
 ## 6. Sicherer Prompt für jeden neuen Chat
 
