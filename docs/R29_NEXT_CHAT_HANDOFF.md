@@ -524,3 +524,11 @@ Die GitHub-Dateien und gespeicherten Dot-Automationsprompts sind **getrennte Spe
 - **Detaillierter neuer Übergabebericht:** [V19_CONTINUATION_20261122_LOCAL_PAPER_RECEIPT_HARDENING.md](V19_CONTINUATION_20261122_LOCAL_PAPER_RECEIPT_HARDENING.md). Für die nächste Chat-Fortsetzung diesen zusammen mit der Original-48er-Restliste und dem 61er-Register lesen. Keine Änderungen an Main, altem Windows-Bot, Dots, Kontostand, Orders oder QA-04.
 
 - **Letzter Nachtrag:** Die nachfolgenden Commits `8a47ece` / `015604a` verschärfen die Client-Provenienz beim SELl-Receipt und verhindern JSON-Schlüsselreihenfolge-Fehlalarme für dieselbe Chain/Contract/Pool-Identität. Aktueller Code-SHA `015604a7ea3fa08b7e9aa0b3293c51e1c0236f59` hat zwei echte erfolgreiche Node-22-CI-Runs: `#45071334292` und `#45071334277`, **657/657 PASS, 0 FAIL**. Der ausführliche Bericht enthält den Nachtrag; die strenge Originalabnahme bleibt 13 PASS / 46 PARTIAL / 2 OPEN.
+
+
+## Fortsetzung 22.11.2026 – Scanner/Publisher-Absicherung (667/667)
+
+- Neue Code-/Test-Commits `43f6187`, `4ed9491`, `4f8bac2`, `5e19f42`, `ce39d52`, `98ef5eb`, `c9b3be6` beheben zwei konkrete Klassen falscher Scan-Abschlussmeldungen und das **stille Abschneiden alter noch nicht abgearbeiteter Paper-Order-Zeiger** bei vollem GitHub-Signalindex.
+- GitHub Node22 CI auf Code-SHA `c9b3be6c4283db563d1582e760640890b0edef52`: beide [#45071920360](https://github.com/127027/Sniperbot-/actions/runs/45071920360) und [#45071920311](https://github.com/127027/Sniperbot-/actions/runs/45071920311) **SUCCESS, 667/667 Tests PASS, 0 FAIL**. Keine historischen Backtest-/Ordersignale. Die fünf R29-Dot-Automationen sind im schreibgeschützten Automationsstatus aktiviert, aber die authentifizierte Fünf-Dot-GitHub→Windows-E2E-Quittung fehlt nach wie vor.
+- Ausführlicher Bericht: [V19_CONTINUATION_20261122_SOURCE_AND_INDEX_PREBACKTEST_AUDIT.md](V19_CONTINUATION_20261122_SOURCE_AND_INDEX_PREBACKTEST_AUDIT.md).
+- **Nie den Status kosmetisch erhöhen:** Weiterhin **13 PASS / 46 PARTIAL / 2 OPEN** von 61; vor dem abschließenden QA-04 13/60 abgenommen. Unabhängige D3-04/D3-05-Quellen, vollständige Originalmarkt-/Holdout-Labels und echte Windows-Client-/GPT-Receipts fehlen. Backtest nicht ausgelöst.
