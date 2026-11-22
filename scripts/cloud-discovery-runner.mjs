@@ -38,6 +38,7 @@ import {planIndependentObservations} from '../src/v19-independent-observation-sc
 import {summarizeCumulativeScanProgress} from '../src/v19-cumulative-scan-progress.mjs';
 import {enrichPersistentMarketIdentity} from '../src/v19-canonical-market-identity.mjs';
 import {makeNeutralEvaluationPopulation} from '../src/v19-neutral-evaluation-population.mjs';
+import {diagnoseMissedOpportunities} from '../src/v19-missed-opportunity-root-causes.mjs';
 import {restoreCommittedInflightCapture}
  from '../src/v19-inflight-http-recovery.mjs';
 import {stagePendingCapture,appendPartialHttpReceipt,closePartialCapture}
@@ -930,6 +931,13 @@ const neutralPopulation=makeNeutralEvaluationPopulation({
 const neutralPopulationPath=root+'/neutral-evaluation-population.json';
 await writeFile(neutralPopulationPath,JSON.stringify(neutralPopulation,null,2)+'\n','utf8');
 artifacts.push(neutralPopulationPath);
+// D5-04: neutral process-gap triage; none of these gaps proves a missed winner.
+const opportunityTriage=diagnoseMissedOpportunities({
+ population:neutralPopulation,verifiedEvents:[],asOfUtc:now()
+});
+const opportunityTriagePath=root+'/missed-opportunity-process-gaps.json';
+await writeFile(opportunityTriagePath,JSON.stringify(opportunityTriage,null,2)+'\n','utf8');
+artifacts.push(opportunityTriagePath);
 await mkdir('research/state/checkpoints',{recursive:true});
 await writeFile(memoryPath,JSON.stringify(memory,null,2)+'\n','utf8');
 await writeFile(providerBudgetPath,JSON.stringify(providerBudget,null,2)+'\n','utf8');
@@ -960,7 +968,8 @@ const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
  no_history_age_cutoff:true,no_trades_authorized:true,
  source_errors:data.errors,
  neutral_population_path:neutralPopulationPath,
- neutral_population_pool_count:neutralPopulation.population_size};
+ neutral_population_pool_count:neutralPopulation.population_size,
+ missed_opportunity_process_gaps_path:opportunityTriagePath};
 await writeFile(memoryCheckpointPath,JSON.stringify(memoryCheckpoint,null,2)+'\n','utf8');
 await writeFile('research/state/latest.json',JSON.stringify({
  schema:1,checkpoint_path:memoryCheckpointPath,memory_path:memoryPath,
