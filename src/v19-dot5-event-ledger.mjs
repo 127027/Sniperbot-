@@ -20,6 +20,9 @@ export function buildDot5DiscoveryLedger({
  capture,handoff,dot3RiskPreview=null,asOfUtc,
  sourceEvidencePath=null,sourceEvidenceBlobSha=null
 }={}){
+ const gecko=capture?.gecko??{candidates:[],rejected:[],page:null,network:null};
+ const failed=capture?.page_capture_failures??[];
+ const deferred=capture?.page_capture_deferred??[];
  const at=when(asOfUtc),captured=when(capture?.captured_completed_at_utc),
   handed=when(handoff?.as_of_utc);
  if(at===null||captured===null||captured>at
@@ -28,19 +31,21 @@ export function buildDot5DiscoveryLedger({
   ||capture?.mode!=='PAPER_RESEARCH_ONLY'
   ||handoff?.kind!=='DOT2_TO_DOT3_EVIDENCE_HANDOFF'
   ||!Array.isArray(handoff.candidates)
-  ||!Array.isArray(capture.gecko?.candidates)
-  ||!Array.isArray(capture.gecko?.rejected)
+  ||!Array.isArray(gecko.candidates)
+  ||!Array.isArray(gecko.rejected)
+  ||!Array.isArray(failed)||!Array.isArray(deferred)
   ||(dot3RiskPreview!==null&&(
     dot3RiskPreview.kind!=='R29_V19_DOT3_RISK_STATUS_PREVIEW'
+    ||when(dot3RiskPreview.as_of_utc)===null
     ||when(dot3RiskPreview.as_of_utc)>at
     ||!Array.isArray(dot3RiskPreview.candidates)))
   ||(sourceEvidenceBlobSha!==null&&!SHA.test(sourceEvidenceBlobSha)))
   throw Error('INVALID_DOT5_SOURCE_TIMELINE');
- if([...handoff.candidates,...capture.gecko.candidates,
-   ...capture.gecko.rejected].some(forbidden))
+ if([...handoff.candidates,...gecko.candidates,
+   ...gecko.rejected].some(forbidden))
   throw Error('DOT5_POST_EVENT_ORACLE_IN_RESEARCH_INPUT');
  const sourcePath=sourceEvidencePath||null;
- const chain=canonicalChain(capture.source_chain??capture.gecko.network);
+ const chain=canonicalChain(capture.source_chain??gecko.network);
  const accepted=new Map();
  for(const [i,c] of handoff.candidates.entries()){
   const ch=canonicalChain(c?.chain),pool=c?.pool;
@@ -57,7 +62,7 @@ export function buildDot5DiscoveryLedger({
   if(r.pool_key)previews.set(r.pool_key,r);
  }
  const poolRows=new Map();
- for(const r of capture.gecko.candidates){
+ for(const r of gecko.candidates){
   const ch=canonicalChain(r.chain),key=ch+':'+clean(ch,r.pool);
   if(!poolRows.has(key))poolRows.set(key,r);
  }
@@ -99,18 +104,26 @@ export function buildDot5DiscoveryLedger({
   };
   entries.push(item);
  }
- for(const r of capture.gecko.rejected){
+ for(const r of gecko.rejected){
   if(!Number.isInteger(r?.row)||r.row<0
    ||typeof r.reason!=='string'||r.reason.length===0)
    throw Error('DOT5_INVALID_REJECTED_SOURCE_ROW');
   const srcId=r.source_pool_id??null;
-  const sourceKey=['REJECTED',chain,capture.gecko.page,r.row,srcId];
+  const rowChain=canonicalChain(r.chain??chain);
+  const rowPage=Number.isInteger(r.source_page)?r.source_page:gecko.page;
+  if(!rowChain)throw Error('DOT5_REJECTED_CHAIN_MISSING');
+  const rowTime=r.source_http_captured_at_utc??gecko.captured_at_utc??null;
+  if(rowTime!==null&&(when(rowTime)===null||when(rowTime)>at))
+    throw Error('DOT5_REJECTED_FUTURE_CAPTURE');
+  const sourceKey=['REJECTED',rowChain,rowPage,r.row,srcId,
+    srcId===null?capture.captured_completed_at_utc:null];
   entries.push({
    event_id:id(sourceKey),pool_key:null,source_record_kind:'UPSTREAM_PARSER_REJECTED',
-   source_chain:chain,source_page:Number.isInteger(capture.gecko.page)?capture.gecko.page:null,
+   source_chain:rowChain,source_page:Number.isInteger(rowPage)?rowPage:null,
    source_row:r.row,source_pool_id:srcId,
+   source_raw_path:r.source_raw_path??null,
    pool:null,pool_kind:null,contract:null,symbol:null,
-   first_seen_in_this_capture_at_utc:capture.gecko.captured_at_utc??null,
+   first_seen_in_this_capture_at_utc:rowTime,
    pool_created_at_reported_utc:null,
    source_available_at_utc:capture.captured_completed_at_utc,
    current_stage:'DISCOVERY_REJECTED',
@@ -119,17 +132,50 @@ export function buildDot5DiscoveryLedger({
    reported_dex_id:r.dex_id??null,
    forecast:null,order:null,client_receipt:null,outcome:null,
    lifecycle:[event('DOT5_RESEARCH_EVENT','DISCOVERY_REJECTED',
-     capture.gecko.captured_at_utc??asOfUtc,{
+     rowTime??asOfUtc,{
       reason:r.reason,reported_dex_id:r.dex_id??null,
       source_evidence_path:sourcePath,actual_gpt_review:false})],
    raw_capture_verified_independently:false,
    authenticated_issuer_or_client_receipt_count:0
   });
  }
+ // A failed/deferred page is a coverage gap, NOT a pool observation.
+ for(const [stage,rows] of [['PAGE_CAPTURE_FAILED',failed],
+   ['PAGE_CAPTURE_DEFERRED',deferred]]){
+  for(const r of rows){
+   const rowChain=canonicalChain(r?.chain),page=r?.page;
+   if(!rowChain||!Number.isInteger(page)||page<1||typeof r.status!=='string'
+      ||(stage==='PAGE_CAPTURE_FAILED'&&(
+        when(r.attempt_at_utc)===null||when(r.attempt_at_utc)>at)))
+     throw Error('DOT5_INVALID_PAGE_GAP');
+   const observed=stage==='PAGE_CAPTURE_FAILED'?r.attempt_at_utc:null;
+   entries.push({
+    event_id:id(['PAGE_GAP',stage,rowChain,page,observed??capture.captured_completed_at_utc]),
+    pool_key:null,source_record_kind:stage,source_chain:rowChain,
+    source_page:page,source_row:null,source_pool_id:null,
+    source_raw_path:r.source_path??null,
+    pool:null,pool_kind:null,contract:null,symbol:null,
+    first_seen_in_this_capture_at_utc:null,
+    pool_created_at_reported_utc:null,
+    source_available_at_utc:capture.captured_completed_at_utc,
+    current_stage:stage,risk_status:null,risk_reason:null,
+    missing_evidence_fields:['UNCAPTURED_PAGE_DATA'],
+    page_failure_status:r.status,retry_after_utc:r.retry_after_utc??null,
+    forecast:null,order:null,client_receipt:null,outcome:null,
+    lifecycle:[event('DOT5_RESEARCH_EVENT',stage,observed??asOfUtc,{
+      status:r.status,source_evidence_path:r.source_path??null,
+      page_was_observed:false,actual_gpt_review:false})],
+    raw_capture_verified_independently:false,
+    authenticated_issuer_or_client_receipt_count:0
+   });
+  }
+ }
  entries.sort((a,b)=>a.event_id.localeCompare(b.event_id));
  const summary={
   handoff_accepted_pools:accepted.size,
-  upstream_parser_rejections:capture.gecko.rejected.length,
+  upstream_parser_rejections:gecko.rejected.length,
+  page_capture_failures:failed.length,
+  page_capture_deferred:deferred.length,
   recorded_lifecycle_entities:entries.length,
   rejected_uniswap_v4_reported:entries.filter(x=>
     x.current_stage==='DISCOVERY_REJECTED'&&
@@ -144,7 +190,7 @@ export function buildDot5DiscoveryLedger({
   source_evidence_path:sourcePath,source_evidence_blob_sha_hint:sourceEvidenceBlobSha,
   source_blob_verified_independently:false,
   includes_only_this_capture_not_global_universe:true,
-  original_api_row_count:capture.gecko.requested_pool_count??null,
+  original_api_row_count:gecko.requested_pool_count??null,
   summary,events:entries,
   no_trading_or_gpt_executed:true,
   statement:'These are as-of research events; missing forecasts, orders, outcomes and client receipts stay null, never zero or hypothetical proof.'};
