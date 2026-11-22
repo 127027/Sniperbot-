@@ -43,10 +43,15 @@ export function compareOct12SourceGapBaselineAfterRun({
   const chain=canonicalChain(e.reported_chain);
   if(!chain)throw Error('WINNER_CHAIN_UNKNOWN');
   const parsed=e.pool_url?parsePoolUrl(e.pool_url):null;
-  if(e.pool_url&&(parsed?.chain!==chain||key(chain,parsed.pool)!==key(chain,e.pool)))
-   throw Error('WINNER_POOL_LINK_IDENTITY_INVALID');
   if(e.pool_url&&!e.pool)throw Error('WINNER_POOL_LINK_MISSING_POOL');
-  const identity=e.pool_url?'POOL_LINK_BUT_CONTRACT_UNKNOWN':'NAME_ONLY_NOT_UNIQUE';
+  // A malformed retrospective source ID is a row-level DATA_GAP, not a
+  // reason to erase all 65 comparisons or silently guess the real address.
+  const invalidPoolLink=Boolean(e.pool_url&&!parsed);
+  if(e.pool_url&&parsed
+    &&(parsed.chain!==chain||key(chain,parsed.pool)!==key(chain,e.pool)))
+   throw Error('WINNER_POOL_LINK_IDENTITY_INVALID');
+  const identity=!e.pool_url?'NAME_ONLY_NOT_UNIQUE':
+    invalidPoolLink?'POOL_LINK_SYNTAX_INVALID':'POOL_LINK_BUT_CONTRACT_UNKNOWN';
   if(e.pool_url){
    if(seen.has(key(chain,e.pool)))throw Error('DUPLICATE_REFERENCE_POOL_ID');
    seen.add(key(chain,e.pool));
@@ -60,16 +65,20 @@ export function compareOct12SourceGapBaselineAfterRun({
    verified_bot_buy:false,verified_bot_sell:false,
    proved_executable_opportunity:false,
    comparison_outcome:'UNKNOWN_NOT_A_VERIFIED_FALSE_NEGATIVE',
-   first_unproven_step:e.pool_url?
+   first_unproven_step:invalidPoolLink?
+     'ORIGINAL_REFERENCE_POOL_ID_SYNTAX':e.pool_url?
      'OCT12_TIMELY_DISCOVERY_AND_EXACT_CONTRACT_AND_QUOTE_PROOF':
      'EXACT_CHAIN_CONTRACT_POOL_IDENTITY',
    indicative_perfect_full_reported_movement_from_50_test_usdc:perfect,
    indicative_value_is_not_tradable_pnl:true};
  });
  const withPool=entries.filter(e=>e.pool!==null).length;
+ const validPoolLinks=entries.filter(e=>e.identity==='POOL_LINK_BUT_CONTRACT_UNKNOWN').length;
+ const invalidPoolLinks=entries.filter(e=>e.identity==='POOL_LINK_SYNTAX_INVALID').length;
  const byChain=Object.fromEntries(['solana','ethereum','base','bsc','robinhood','cronos']
    .map(chain=>[chain,entries.filter(x=>x.chain===chain).length]));
- if(withPool!==8||entries.length-withPool!==57)throw Error('WINNER_REGISTER_COUNTS_CHANGED');
+ if(withPool!==8||validPoolLinks!==7||invalidPoolLinks!==1
+   ||entries.length-withPool!==57)throw Error('WINNER_REGISTER_COUNTS_CHANGED');
  return {schema:1,kind:'R29_V19_OCT12_POSTRUN_ORACLE_VS_ARCHIVED_SOURCE_GAP_BASELINE',
   date:'2026-10-12',
   baseline_provenance:'PRIOR_ARCHIVED_EVIDENCE_ONLY_REPLAY_NOT_NEW_BACKTEST',
@@ -81,6 +90,8 @@ export function compareOct12SourceGapBaselineAfterRun({
   comparison_performed_only_after_archived_baseline:true,
   reference_never_used_as_discovery_input:true,
   total_reference_rows:entries.length,reference_pool_links:withPool,
+  syntactically_valid_reference_pool_links:validPoolLinks,
+  invalid_reference_pool_links:invalidPoolLinks,
   reference_name_only:entries.length-withPool,
   rows_by_chain:byChain,
   baseline_asof_eligible_market_snapshots:0,
