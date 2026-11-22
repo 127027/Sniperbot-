@@ -14,7 +14,7 @@ const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 const ms=value=>typeof value==='string'&&ISO.test(value)&&Number.isFinite(Date.parse(value))?Date.parse(value):null;
 const iso=value=>new Date(value).toISOString();
 import {checkUnifiedEvidence as gate,makeReplayCheckOrder as policyOrder} from './v18-shared-evidence-gate.mjs';
-export function replaySignalDecisions({date,snapshots=[],activityObservations=[],activityPageCaptures=[],targetPer24h=4,forceHourlyReview=false,params={}}){
+export function replaySignalDecisions({date,snapshots=[],activityObservations=[],activityPageCaptures=[],targetPer24h=4,forceHourlyReview=false,params={},paperPolicy=DEFAULT_POLICY}){
  if(typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date+'T00:00:00Z')))
    throw Error('INVALID_DATE');
  if(![4,8,12,24].includes(targetPer24h))throw Error('INVALID_TARGET');
@@ -23,7 +23,11 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
  const start=ms(date+'T00:00:00Z'),end=start+86400000;
  const p={...UNIFIED_V18_RULES,...params};
  if(![p.entryMomentumPct,p.takeProfitPct,p.stopLossPct,p.maxMomentumAgeHours].every(x=>typeof x==='number'&&Number.isFinite(x)&&x>0))throw Error('INVALID_PARAMS');
- const state=newState(),initial=state.cash,events=[],sums={dataGap:0,available:0,fullReviews:0,buys:0,sells:0};
+ if(!paperPolicy||!Number.isFinite(paperPolicy.entryAmount)||paperPolicy.entryAmount<=0
+  ||!Number.isFinite(paperPolicy.startingBalance)||paperPolicy.startingBalance<paperPolicy.entryAmount
+  ||!Number.isInteger(paperPolicy.maxPositions)||paperPolicy.maxPositions<1)
+  throw Error('INVALID_SHARED_REPLAY_PAPER_POLICY');
+ const state=newState(paperPolicy),initial=state.cash,events=[],sums={dataGap:0,available:0,fullReviews:0,buys:0,sells:0};
  let ledger=state,lastReview=null,sequence=0,currentTarget=targetPer24h,cadenceState=null;
  const history=new Map(),lastRealizedLoss=new Map();
  // Research features may use ALL older, genuinely available market history.
@@ -60,7 +64,7 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    for(const s of snapshots){
      const observed=ms(s?.observed_at_utc);
      if(observed===null||observed>tick||tick-observed>600000)continue;
-     const reason=gate(s,tick);
+     const reason=gate(s,tick,paperPolicy);
      if(reason){blocked.push({coin:s?.coin?.symbol||null,reason});continue;}
      valid.push(s);
    }
@@ -89,9 +93,9 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
      const decision=decideUnifiedMarket({asOfUtc:at,observedAtUtc:candidate.observed_at_utc,
        observedPriceUsd:avg,position,fullReviewDue:due,params:p});
      if(decision.action!=='SELL')continue;
-     const order=policyOrder(candidate,tick,'SELL',sequence++);
+     const order=policyOrder(candidate,tick,'SELL',sequence++,paperPolicy);
      try{
-       const settled=settlePaper(order,ledger,tick,DEFAULT_POLICY);ledger=settled.state;
+       const settled=settlePaper(order,ledger,tick,paperPolicy);ledger=settled.state;
        if(settled.receipt.realized_pnl_test_usdc<0)lastRealizedLoss.set(key,at);
        sums.sells++;step.status='SELL';step.actions.push({action:'SELL',reason:decision.reason,coin:candidate.coin,at_utc:at,
          simulated_price_usdc:settled.receipt.execution_price_usdc,realized_pnl_test_usdc:settled.receipt.realized_pnl_test_usdc,
@@ -113,9 +117,9 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
            coin:candidate.coin,at_utc:at,unified_decision_kind:decision.kind});
          continue;
        }
-       const order=policyOrder(candidate,tick,'BUY',sequence++);
+       const order=policyOrder(candidate,tick,'BUY',sequence++,paperPolicy);
        try{
-         const settled=settlePaper(order,ledger,tick,DEFAULT_POLICY);ledger=settled.state;
+         const settled=settlePaper(order,ledger,tick,paperPolicy);ledger=settled.state;
          sums.buys++;step.status='BUY';step.actions.push({action:'BUY',reason:decision.reason,
            observed_momentum_pct:decision.observed_momentum_pct,coin:candidate.coin,at_utc:at,
            simulated_price_usdc:settled.receipt.execution_price_usdc,
