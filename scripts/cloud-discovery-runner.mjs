@@ -8,6 +8,7 @@ import {canonicalChain,poolValid} from '../src/market-evidence.mjs';
 import {makeResearchHandoff} from '../src/feed-handoff.mjs';
 import {emptyDot3RecheckState,planDot3EvidenceRechecks} from '../src/v19-dot3-recheck-scheduler.mjs';
 import {summarizeDot3RiskStatuses} from '../src/v19-dot3-risk-status.mjs';
+import {buildDot5DiscoveryLedger} from '../src/v19-dot5-event-ledger.mjs';
 import {emptyMarketMemory,mergeMemory} from '../src/market-memory.mjs';
 import {fairRecheckPlan,recordRecheckAttempt} from '../src/discovery-fair-queue.mjs';
 import {makeCaptureObservationBatch,scoreAsOf,labelAfterHorizon} from '../src/forward-learning.mjs';
@@ -600,6 +601,14 @@ const dot3StatusPreview=summarizeDot3RiskStatuses({
 const dot3StatusPreviewPath=root+'/dot3-research-risk-status-preview.json';
 await writeFile(dot3StatusPreviewPath,JSON.stringify(dot3StatusPreview,null,2)+'\n','utf8');
 artifacts.push(dot3StatusPreviewPath);
+const dot5EventLedger=buildDot5DiscoveryLedger({
+ capture:data,handoff,dot3RiskPreview:dot3StatusPreview,
+ asOfUtc:data.captured_completed_at_utc,
+ sourceEvidencePath:filename
+});
+const dot5LedgerPath=root+'/dot5-neutral-event-ledger.json';
+await writeFile(dot5LedgerPath,JSON.stringify(dot5EventLedger,null,2)+'\n','utf8');
+artifacts.push(dot5LedgerPath);
 const dot3RecoveryPath='research/state/dot3-recheck-state.json';
 let dot3Recovery;
 try{dot3Recovery=JSON.parse(await readFile(dot3RecoveryPath,'utf8'));}
@@ -617,6 +626,7 @@ const latest={schema:1,kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',mode:'PAPER_RES
   request_path:path,evidence_path:filename,handoff_path:handoffPath,
    dot3_recheck_plan_path:dot3RecheckPlanPath,
    dot3_status_preview_path:dot3StatusPreviewPath,
+   dot5_event_ledger_path:dot5LedgerPath,
    captured_at_utc:data.captured_completed_at_utc,
   source_chain:data.source_chain,metrics,handoff_counts:handoff.counts,
  observation_path:observationPath,ranking_path:rankingPath,
