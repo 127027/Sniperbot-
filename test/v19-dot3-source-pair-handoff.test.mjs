@@ -30,6 +30,7 @@ test('Dot3 recheck preserves upstream gap, even when prices from two domains agr
  const h=makeResearchHandoff({evidence:source,atUtc:at});
  const recheck=planDot3EvidenceRechecks({handoff:h,asOfUtc:at,maxRequests:1});
  assert.equal(recheck.selected_count,1);
+ assert.equal(recheck.selected[0].next_action,'VERIFY_UPSTREAM_PROVIDER_TIMES_SELLABILITY');
  assert.ok(recheck.selected[0].missing_fields.includes('PROVIDER_UPSTREAM_INDEPENDENCE_NOT_VERIFIED'));
  assert.ok(recheck.selected[0].missing_fields.includes('INDEPENDENT_PROVIDER_QUOTE_TIME_NOT_VERIFIED'));
  assert.equal(recheck.actual_paper_orders,0);
