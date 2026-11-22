@@ -55,8 +55,25 @@ export function planMultiChainCapture({networks,checkpoints={},pageCoverage=null
    tasks.push({chain:c.chain,page:c.secondary,priority:'BACKLOG_OR_FRESH_COMPLEMENT',
      reason:c.secondary===1?'REFRESH_NEW_POOLS':'RESUME_UNSEEN_PAGE'});
  }
+ const skippedForBudget=chains.filter(x=>!covered.has(x.chain)).map(x=>x.chain);
+ const blockedByCooldown=gaps.map(x=>x.chain);
  return {schema:1,kind:'R29_V19_BOUND_MULTI_CHAIN_PLAN',
    at_utc:new Date(now).toISOString(),requested_budget:budget,
+   requested_chain_count:networks.length,
+   minimum_gecko_page_requests_for_one_attempt_per_chain:networks.length,
+   scheduled_chain_count:covered.size,
+   scheduled_all_requested_chains_at_least_once:
+      covered.size===networks.length,
+   unscheduled_chains_due_to_budget:skippedForBudget,
+   unscheduled_chains_due_to_cooldown:blockedByCooldown,
+   incomplete_chain_attempts_are_a_data_gap:
+      covered.size<networks.length,
+   recommendation_when_underbudget:
+      budget<networks.length?
+        'NEXT_CAPTURE_REQUEST_RESERVE_AT_LEAST_ONE_GECKO_PAGE_PER_CHAIN_IF_FREE_RATE_LIMIT_ALLOWS':
+        null,
+   one_pass_is_not_proof_of_full_pages_or_historical_market:true,
+   actual_http_success_per_chain_is_not_proven_by_plan:true,
    scheduled_requests:tasks.length,task_cap_per_chain:2,
    tasks,not_scheduled:[...gaps,...chains.filter(x=>!covered.has(x.chain))
      .map(x=>({chain:x.chain,reason:'WAIT_NEXT_BUDGET_WINDOW'}))],
