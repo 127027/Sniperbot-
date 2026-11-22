@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "kind": "DOT1_TEMPO_V16",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "run_id": "dot1-v16-20261122T000123Z",
+  "observed_at_utc": "2026-11-22T00:01:23.982Z",
+  "status": "DATA_GAP",
+  "target_per_24h": 4,
+  "consecutive_quiet_checks": 0,
+  "source_links": [
+    "https://www.geckoterminal.com/cro/pools",
+    "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/feeds/2026-11-21/44960460589/evidence.json"
+  ],
+  "source_observations": [
+    {
+      "chain": "cronos",
+      "source": "https://www.geckoterminal.com/cro/pools",
+      "fetched_during_this_wake": true,
+      "provider_asof_verified": false,
+      "reported_24h_volume_usd": 3920000,
+      "reported_24h_transactions": 54689,
+      "reported_day_over_day_volume_change_pct": 33.38,
+      "interpretation": "Undated HTML rolling 24h aggregate, not hourly delta"
+    },
+    {
+      "chain": "cronos",
+      "source": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/feeds/2026-11-21/44960460589/evidence.json",
+      "captured_at_utc": "2026-11-21T23:10:29.756Z",
+      "page": 1,
+      "observed_pools": 20,
+      "contract_complete": 20,
+      "rejected": 0,
+      "independent_quote_matches": 0,
+      "created_within_last_hour_verified": null
+    }
+  ],
+  "candidates": [
+    {
+      "chain": "cronos",
+      "pool": "0x835a8fe7370c5c08b9a4efda273e28ff7bcf161c",
+      "contract": "0x212b20cf61e1cba5e9f2dfb58ff54ce4d4b8f212",
+      "symbol": "CROVIA",
+      "source_url": "https://www.geckoterminal.com/cro/pools/0x835a8fe7370c5c08b9a4efda273e28ff7bcf161c",
+      "status": "WATCH_NOT_TRADE_ELIGIBLE"
+    }
+  ],
+  "metrics": {
+    "market_memory_total_discovered": 164,
+    "market_memory_batches": 44,
+    "prospective_observed_unique_pools": 124,
+    "prospective_rankable": 0,
+    "prospective_insufficient_repeated_data": 124,
+    "dot3": {
+      "ELIGIBLE": 0,
+      "WATCH": 0,
+      "REJECTED": 19,
+      "DATA_GAP": 1
+    },
+    "media_capture_utc": "2026-11-21T23:10:32.365Z",
+    "media_new_unique_events": 2,
+    "media_sources_available": 7,
+    "media_sources_attempted": 7,
+    "media_verified_trend_delta": null,
+    "forecast_accuracy_1h": null,
+    "forecast_accuracy_3h": null,
+    "forecast_accuracy_6h": null,
+    "orders_count": null,
+    "open_positions": null,
+    "same_chain_successive_capture_delta_verified": false,
+    "new_pools_per_hour": null,
+    "volume_change_per_hour": null
+  },
+  "coverage": {
+    "latest_capture_chains": [
+      "cronos"
+    ],
+    "not_captured_in_latest_run": [
+      "solana",
+      "base",
+      "ethereum",
+      "bsc",
+      "robinhood"
+    ],
+    "media_inaccessible": [
+      "X_SEARCH",
+      "REDDIT_SEARCH"
+    ]
+  },
+  "errors": [
+    "No same-chain comparable hourly capture delta confirmed",
+    "HTML provider timestamp not verified",
+    "Five chains absent from latest capture",
+    "No mature 1h/3h/6h future-label denominator",
+    "Client orders and positions not independently verified"
+  ],
+  "reason": "DATA_GAP: 20 Cronos pool identities from a single timestamped page, 164 cumulative pools across 44 batches, and undated HTML rolling 24h volume do not prove an hourly market peak or quiet market. Media 2 new URLs not viral growth; Dot3 no eligible candidates.",
+  "next_checkpoint": "Next scheduled hourly Dot1 wake: compare new same-chain captures, independent timestamps and media deltas; retain 4 until measured evidence supports change.",
+  "orders_created": 0
+}
