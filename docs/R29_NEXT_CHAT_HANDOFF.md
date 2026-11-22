@@ -2,6 +2,15 @@
 
 > **Versionsstand:** R29 V1.9, 22. November 2026, Cleanroom-Branch. **Dieses Dokument zusammen mit `AGENTS.md` und `docs/V19_IMPLEMENTATION_PROGRESS.md` vor jedem Auftrag LIVE aus GitHub lesen.** Es ist kein Garant für automatische Synchronisierung mit ChatGPT; der neue Chat muss GitHub lesen können. Bei Widersprüchen gelten live verifizierter Code, GitHub-Commits und tatsächliche Test-/Evidenzdateien über ältere Chat-Aussagen.
 
+## Wichtigste neue Erkenntnisse (22.11.2026, Stand 15:17 UTC)
+
+**Bei Widersprüchen zu chronologisch älteren Absätzen weiter unten gilt diese jüngste verifizierte Schicht.**
+- **25/61 = 41,0 %, 36 offen.** **QA-06 erledigt:** Echter grüner GitHub-Actions-Node-22-Run [#45037393426](https://github.com/127027/Sniperbot-/actions/runs/45037393426), Commit `e4c381f6687b2db24957c9d1d444a59ce981afe1`, **400 PASS / 0 FAIL**; Artefakt `r29-v19-node-tests-45037393426` ID **14759204311** mit Test-TAP und Commit-gepinnter JSON-Quittung, Digest `bad75b5068d646c35f0df564bda0f83a72d7c195c11198f3a29610ec19dfad67`. `TEST_ONLY_NO_SIGNAL_WRITE 0`. Code/Test-Status ist **kein** Beweis für autonome GPT-Dots oder echte Paper-Fills. Detail `docs/V19_QA06_TEST_WORKFLOW.md`.
+- **D2-01 weiterhin offen:** ECHTER eigener öffentlicher Multi-Chain-Actions-Capture [#45036887325](https://github.com/127027/Sniperbot-/actions/runs/45036887325) durch EXPLIZITE EINMALIGE request-Datei `research/requests/2026-11-22/20261122T151054735Z-v19-six-chain-capture.json`. 6 Chains budgetiert/versucht, **5 HTTP200** (BSC/Robinhood/Cronos/Solana/Base) und **Ethereum Page1 HTTP429**. Alle 6 Seiten samt 429 Originalantwort in `research/feeds/2026-11-22/45036887325/evidence.json`. **99** angenommene Pools, **1** parser-rejected, 77 Dot3 WATCH/22 DATA_GAP, Dot5 101 Evidenzereignisse, 0 Paper-Orders, 0 tatsächliche GPT-Ausführungen. `research/feeds/latest.json` zeigt das neue Archiv. `research/state/page-coverage.json` hat ETH Seite1 als offenes Gap; **Retry frühestens 22.11.2026 16:11:15.734 UTC / 17:11:15.734 MEZ**. Nicht automatisch neu anfragen oder als 6/6 verkaufen.
+- **SYS-11 nur teilweise:** Quelllog zeigt sechs Gecko-Anfragen innerhalb etwa 1,4 Sekunden vor dem ETH-429. Danach `src/v19-gecko-pacing.mjs` plus `scripts/cloud-discovery-runner.mjs` geändert: **1,7 s Mindestabstand zwischen Gecko-Requeststarts**, auch Trending/OHLCV, ohne HTTP-429-Cooldown zu umgehen. Fünf neue Node-Tests, **400/400 CI**. **Kein** Beweis, dass nächster Capture garantiert 6/6 schafft. Endpoint-Ratenlimit/Cache/History-Reservierung bleibt offen.
+- Sicherheitsfreigabe D3-04/D3-05 und tatsächliche sichere D4-08-SELL-/Quittungskette **OFFEN**; alle fünf bestehenden Dots bleiben PAUSIERT, keine Echtgeldtransaktion und keine Änderung an main/Legacy/Windows-Paper-Konto.
+- Alte frühere Handoff-Abschnitte über „kein CI-PASS“ oder „noch kein neuer Multi-Chain-Capture“ sind nur **historischer Stand vor diesen tatsächlichen erfolgreichen Läufen**; nicht als aktuellen Faktenstand verwenden. Vollständige Originalbelege: `docs/V19_IMPLEMENTATION_PROGRESS.md`, `docs/V19_D2_01_SIX_CHAIN_CAPTURE_AUDIT.md`, `docs/V19_QA06_TEST_WORKFLOW.md`.
+
 ## 0. Projekt – 30 Sekunden
 
 | Schlüssel | Verbindliche Vorgabe |
@@ -19,7 +28,7 @@
 
 ## 1. Verifizierter Übergabestand
 
-**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach D2-06-Abnahme und D2-01-Teilprüfung: **24/61 = 39,3 %**, 37 offen. **D2-01 ist NICHT abgeschlossen. D2-02 ist bereits COMPLETE (targeted).** Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
+**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach belegtem QA-06-CI und echtem D2-01-Sechs-Chain-Teilcapture: **25/61 = 41,0 %**, 36 offen. **QA-06 ist COMPLETE (targeted, 400/400 auf Commit e4c381f6), D2-01 weiter OFFEN (5/6 bei HTTP 429), D2-02 bereits COMPLETE (targeted)**. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
 
 Bisher als `COMPLETE (targeted)` dokumentiert:
 
