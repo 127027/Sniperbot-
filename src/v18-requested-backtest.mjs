@@ -5,12 +5,14 @@ import {replaySignalDecisions} from './point-in-time-strategy.mjs';
 import {build29HourAsOfTimeline} from './v19-backtest-window.mjs';
 import {auditFiveDotExecution} from './v19-dot-execution-audit.mjs';
 import {summarizeDot3RiskStatuses} from './v19-dot3-risk-status.mjs';
+import {resolveSharedPaperPolicy,DEFAULT_BUDGET_SETTINGS} from './v19-paper-budget-policy.mjs';
 const dayMs=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)
   &&Number.isFinite(Date.parse(d+'T00:00:00Z'))?Date.parse(d+'T00:00:00Z'):null;
 const stamp=v=>typeof v==='string'&&Number.isFinite(Date.parse(v))?Date.parse(v):null;
 const sha=v=>typeof v==='string'&&/^[0-9a-f]{40}$/.test(v);
 const VALID_INPUT_KINDS=['CONTEMPORANEOUS_RECORD','SYNTHETIC_TEST'];
-export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=false}={}){
+export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=false,
+ paperBudgetSettings=DEFAULT_BUDGET_SETTINGS}={}){
  const start=dayMs(date);
  if(start===null||typeof forceHourlyDiagnostic!=='boolean')throw Error('INVALID_BACKTEST_DAY_OR_MODE');
  const source=manifest??{schema:1,kind:'R29_V18_ASOF_REPLAY_INPUT',date,
@@ -22,6 +24,7 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
     ||(source.claimed_gpt_journals!==undefined&&!Array.isArray(source.claimed_gpt_journals))
     ||(source.dot3_risk_handoffs!==undefined&&!Array.isArray(source.dot3_risk_handoffs)))
    throw Error('UNTRUSTED_OR_HINDSIGHT_UNIVERSE');
+ const paperBudget=resolveSharedPaperPolicy(paperBudgetSettings);
  const sources=source.snapshots;
  const accepted=[],rejected=[],first=start,end=start+86400000;
  for(let i=0;i<sources.length;i++){
@@ -43,7 +46,8 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
  const result=replaySignalDecisions({date,snapshots:accepted,
   activityObservations:source.activity_observations,
   activityPageCaptures:source.activity_page_captures||[],
-  forceHourlyReview:forceHourlyDiagnostic,targetPer24h:forceHourlyDiagnostic?24:4});
+  forceHourlyReview:forceHourlyDiagnostic,targetPer24h:forceHourlyDiagnostic?24:4,
+  paperPolicy:paperBudget.policy});
  const executionProvenance=auditFiveDotExecution({
    events:result.events,asOfUtc:new Date(end).toISOString(),
    mode:'HISTORICAL_ASOF',
@@ -102,7 +106,10 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
   on_demand_29h_timeline:timeLine,
   status:missing?'DATA_GAP_NO_CONTEMPORANEOUS_HISTORICAL_UNIVERSE':'PROVISIONAL_ASOF_SOURCE_AUTHENTICITY_NOT_VERIFIED',
   mode:forceHourlyDiagnostic?'EXPLICIT_FIXED_24_HOURLY_DIAGNOSTIC':'ADAPTIVE_4_8_12_24',
-  start_capital_test_usdc:5000,amount_per_coin_test_usdc:50,
+  start_capital_test_usdc:paperBudget.policy.startingBalance,
+  amount_per_coin_test_usdc:paperBudget.policy.entryAmount,
+  max_open_positions:paperBudget.policy.maxPositions,
+  shared_paper_budget_policy_id:paperBudget.policy_id,
   source_input_kind:source.kind,common_signal_engine:'UNIFIED_V18_SIGNAL_V1',
    same_signal_engine_for_live_and_backtest:true,
    source_input_count:sources.length,
