@@ -2,6 +2,7 @@
 // External GitHub blob fetch, signature/actor policy, and security proof verification
 // remain mandatory before any active PAPER authorization.
 import {canonicalChain,tokenValid,poolValid,parsePoolUrl,exactPoolUrl} from './market-evidence.mjs';
+import {classifyDot3QuoteTime} from './v19-dot3-quote-time.mjs';
 const tm=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
 const sha=x=>typeof x==='string'&&/^[0-9a-f]{40}$/.test(x);
 const num=x=>typeof x==='number'&&Number.isFinite(x)&&x>0;
@@ -27,9 +28,17 @@ export function inspectDot3Attestation({attestation,order,nowUtc,expectedBlobSha
    if(!p||!exactPoolUrl(q.source_url,ch,c.pool)||origins.has(p.host)
       ||q.chain!==ch||canon(ch,q.contract)!==canon(ch,c.contract)
       ||canon(ch,q.pool)!==canon(ch,c.pool))return deny('QUOTE_IDENTITY_OR_ORIGIN_MISMATCH');
-   const observed=tm(q.captured_at_utc),provider=tm(q.provider_quote_asof_utc);
-   if(observed===null||provider===null||provider>observed||observed>at
-      ||at-observed>90000||at-provider>90000)return deny('QUOTE_TIME_UNKNOWN_OR_STALE');
+   let timeEvidence;
+   try{
+     timeEvidence=classifyDot3QuoteTime({
+       asOfUtc:nowUtc,capturedAtUtc:q.captured_at_utc,
+       providerQuoteAsOfUtc:q.provider_quote_asof_utc,
+       availableAtUtc:q.available_at_utc??q.captured_at_utc});
+   }catch{return deny('QUOTE_TIME_UNKNOWN_OR_STALE');}
+   if(timeEvidence.status!=='PROVIDER_TIMESTAMP_CLAIMED_FRESH')
+     return deny('QUOTE_TIME_UNKNOWN_OR_STALE');
+   // Structural pass NEVER upgrades a claimed timestamp into independent
+   // provider-time authentication or an executable paper order.
    if(!num(q.price_usdc)||!num(q.liquidity_usdc)||!sha(q.snapshot_blob_sha))return deny('INCOMPLETE_QUOTE_EVIDENCE');
    origins.add(p.host);evidence.add(q.snapshot_blob_sha);prices.push(q.price_usdc);liquidity.push(q.liquidity_usdc);
  }
@@ -47,5 +56,7 @@ export function inspectDot3Attestation({attestation,order,nowUtc,expectedBlobSha
     status:'STRUCTURAL_PASS_EXTERNAL_VERIFICATION_REQUIRED',
     quote_price_disagreement_pct:divergence,minimum_liquidity_usd:Math.min(...liquidity),
     expected_blob_sha:expectedBlobSha,
-    source_blobs_actually_verified:false,issuer_actually_verified:false,trade_authorized:false};
+    source_blobs_actually_verified:false,issuer_actually_verified:false,
+    provider_quote_times_independently_verified:false,
+    trade_authorized:false};
 }
