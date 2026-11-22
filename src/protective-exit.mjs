@@ -2,6 +2,7 @@
 // NEVER changes portfolio, emits GitHub orders or creates PAPER_FILLED receipts.
 // A later explicitly authorized integration must require immutable verified quotes.
 import {canonicalChain,tokenValid,poolValid,parsePoolUrl,exactPoolUrl} from './market-evidence.mjs';
+import {decideUnifiedMarket} from './unified-decision-v18.mjs';
 
 const time=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
 const pos=x=>typeof x==='number'&&Number.isFinite(x)&&x>0;
@@ -35,8 +36,16 @@ export function inspectProtectiveExit({position,observations=[],asOfUtc,policy={
  }
  const mid=(prices[0]+prices[1])/2,drift=100*Math.abs(prices[0]-prices[1])/mid;
  if(drift>p.maxPriceDivergencePct)return fail('PROVIDER_PRICE_CONFLICT');
- const worst=Math.min(...prices),movePct=100*(worst/position.entryPrice-1);
- const trigger=movePct<=-p.stopLossPct?'STOP_LOSS':movePct>=p.takeProfitPct?'TAKE_PROFIT':null;
+ const worst=Math.min(...prices);
+ // Identical signal kernel and reference price as Dot4/replay; conservative
+ // worse observed price is used only for an estimated (never filled) exit.
+ const reference=(prices[0]+prices[1])/2;
+ const decision=decideUnifiedMarket({asOfUtc,observedAtUtc:observations.reduce((latest,q)=>
+    q.captured_at_utc>latest?q.captured_at_utc:latest,observations[0].captured_at_utc),
+    observedPriceUsd:reference,position,fullReviewDue:false,
+    params:{stopLossPct:p.stopLossPct,takeProfitPct:p.takeProfitPct,maxObservationAgeMs:p.maxQuoteAgeMs}});
+ const movePct=decision.observed_move_pct;
+ const trigger=decision.action==='SELL'?decision.reason:null;
  const context={schema:1,kind:'R29_V18_SHADOW_PROTECTIVE_EXIT',mode:'SHADOW_ONLY',
    as_of_utc:asOfUtc,source_order_id:position.sourceOrderId||null,
    observed_worst_provider_price_usdc:worst,observed_move_pct:movePct,
