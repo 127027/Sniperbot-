@@ -1,0 +1,46 @@
+# R29 Cleanroom – verbindliche Arbeitsanweisungen für neue Chats und Coding-Agenten
+
+> **Einstieg:** Vor jeder Änderung **[docs/R29_NEXT_CHAT_HANDOFF.md](docs/R29_NEXT_CHAT_HANDOFF.md)** und **[docs/V19_IMPLEMENTATION_PROGRESS.md](docs/V19_IMPLEMENTATION_PROGRESS.md)** vollständig lesen. Maßgebliche Aufgabendefinitionen stehen in **[docs/V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md](docs/V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md)**. Die Dokumentation ist eine Anleitung, kein Beweis für einen durchgeführten Test.
+
+## Unverhandelbare Projektgrenzen
+
+1. Ausschließlich Repository `127027/Sniperbot-` und Branch `codex/r29-cleanroom-paper-20261121` bearbeiten. Branch **immer explizit** an GitHub-Operationen übergeben. **Nie `main` oder den Legacy-Bot ändern.**
+2. Alle **fünf bestehenden** ChatGPT-Dots bleiben pausiert, auch nach Tests. Keine neuen Bots oder zusätzliche parallel laufende Dot-Architektur.
+3. **Nur Paper-Trading / Research.** Keine echten Wallet-/DEX-Transaktionen, keine echten Orders und niemals vorhandenes Windows-Paper-Konto, Journale oder Receipts überschreiben. Standard-Research-Modell: 5.000 TEST-USDC, Einsatz 50 TEST-USDC/Coin; bestehende tatsächliche Konten sind davon unabhängig.
+4. **Ein Handelssystem mit einem gemeinsamen Entscheidungskern** `src/unified-decision-v18.mjs` für Live-Paper und historische As-of-Simulation. Datenquelle und Uhr sind austauschbar, Logik und Risk-Gates bleiben gleich. Keine zweite Backtest-Strategie.
+5. **Kein Zukunftswissen.** 65 Excel-Gewinnerreferenzen liegen ausschließlich in `research/evaluation/2026-10-12/v19-winner-reference-identity-status.json` als `POST_EVENT_ORACLE`. Diese dürfen nie in Discovery-/Ranking-/Kaufinputs einfließen. `ORIGINAL_CAPTURE` ist ohne unabhängige Hash-/Herkunftsprüfung nur ein behauptetes Original; `RETRO_ASOF_RECONSTRUCTION` ist keine damalige Dot-Entdeckung; synthetische Daten sind ausschließlich Tests.
+6. Keine Geschäfte bei fehlenden aktuellen, identifizierten, ausreichend verlässlichen Quellen behaupten. Fehlende Informationen als `DATA_GAP` mit erneutem Prüfauftrag dokumentieren – nicht als bestätigten Betrug oder ruhigen Markt. Zusätzliche Sicherheits-Blocker nicht ohne begründeten Abnahmetest hinzufügen.
+7. Nach **jedem** geprüften Arbeitspaket den Fortschritt gegen die **61 V1.9-Aufgaben** ausweisen: `erledigt/61` und `(erledigt / 61) × 100 %`. Keine Doppelzählung, keine Aufgabe ohne gezielte Regression und Commit als `COMPLETE (targeted)`. End-to-End-/Actions-CI bleibt separat offen, bis tatsächlich ausgeführt.
+8. Neue Chats können GitHub nicht automatisch lesen: Den Nutzer ggf. auffordern, diese Datei zu verlinken oder GitHub zu verbinden. Immer im neuen Chat **zuerst live GitHub lesen**, damit der Stand nicht aus alten Chat-Nachrichten geschätzt wird.
+
+## fünf Rollen (keine neuen Dots)
+
+- **Dot 1:** 4/8/12/24-Vollanalysen, Aktivität pro Chain/Seite und Zeitfenster, Wechsel 4→24 sofort bei ausreichend Belegen, Reduktion nur nach bestätigter Ruhe. API-Datenerfassung und Positions-/Exit-Beobachtung laufen unabhängig vom GPT-Budget.
+- **Dot 2:** alle unterstützten Chains, paginierte neue/ältere Pools, V4, persistentes Marktgedächtnis, Hot-/Fair-Queue, Endpoint-Budget, 429/Retry und historische Beobachtungen. Keine Kandidaten wegwerfen, nur weil Risk-Daten fehlen.
+- **Dot 3:** Contract-/Pool-/Chain-Identität, Liquidität, frische unabhängige Quotes, Sellability, effiziente `DATA_GAP/WATCH/REJECTED/PAPER_ELIGIBLE`-Rechecks; fehlende Daten nicht als ständige negative Kaufentscheidung maskieren.
+- **Dot 4:** einheitliche zeitgerechte BUY/WATCH/HOLD/SELL-Entscheidungen, Chancen-/Risiko-Prognosen, verfügbare 50 TEST-USDC/Coin, unabhängige Markt-/Exit-Prüfungen auch zwischen Vollreviews. Kein Fake-Fill.
+- **Dot 5:** vollständiger Audit für Erkennung, Review-Auslastung, Prognosen, PnL und Fehlergründe, echte GPT-Ausführung vs deterministischer Rollen-Replay trennen. Excel-Oracles erst nach simuliertem Zeitpunkt für Evaluation.
+
+## Fester historischer Test
+
+- **Warmup:** 11.10.2026 19:00 UTC – 12.10.2026 00:00 UTC. Rückblick in ältere verfügbare Vergangenheit grundsätzlich unbegrenzt; nie alte Preise als frische ausführbare Quotes verwenden.
+- **24h-Trading:** 12.10.2026 00:00 UTC – 13.10.2026 00:00 UTC. Jeden as-of-Takt unabhängig von späteren Gewinnen auswerten; 1-/3-/6-h-Labels werden erst nach Fälligkeit zugänglich.
+- Das Oktober-Archiv belegt **keinen** vollständigen ursprünglichen Markt oder tatsächliche damalige Dot-GPT-Trades; sechs post-hoc Kursreihen sind Trainingsreferenzen, keine unabhängige Prognoseperformance.
+
+## Ablauf jeder Änderung
+
+1. Aktuellen Branch, Fortschrittsbericht, relevante Module, Tests und ursprüngliche Evidenzen direkt aus GitHub lesen.
+2. Eine offene Maßnahmen-ID wählen, die konkrete Ursache/Abnahmekriterien prüfen, **nur bestehenden Cleanroom-Branch** ändern.
+3. Regressionstests ergänzen und **tatsächlich** so gut wie möglich ausführen. Isolierte Funktionsprüfungen niemals mit `npm test`/Actions-CI verwechseln. Auftretende Fehler zuerst beheben.
+4. `docs/V19_IMPLEMENTATION_PROGRESS.md` mit präziser Aufgaben-ID, Beleg, Teststatus und offenem Risiko aktualisieren. `docs/R29_NEXT_CHAT_HANDOFF.md` bei Änderungen der Architektur, Priorität oder Übergabe ebenfalls aktualisieren.
+5. Bei geänderter Rolle die **gespeicherten Anweisungen des jeweiligen pausierten Dots** synchronisieren, ohne ihn zu aktivieren. GitHub-Dokumentation ersetzt diese Synchronisierung nicht.
+6. Nutzer berichten: Aufgabe erledigt/offen, genaue Tests, GitHub-Links, `x/61` / Prozent, die nächsten Hindernisse.
+
+## Zentrale Dateien
+
+- Überblick und Chat-Übergabe: `docs/R29_NEXT_CHAT_HANDOFF.md`
+- Fortschritt: `docs/V19_IMPLEMENTATION_PROGRESS.md`
+- Vollständige 61-Punkte-Liste: `docs/V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md`
+- Ein-System-Vertrag: `docs/V18_ONE_SYSTEM_CONTRACT.md`; Rollen: `docs/DOT_PIPELINE.md`
+- Manueller research-only Replay: `docs/V19_MANUAL_BACKTEST_USAGE.md`, `.github/workflows/cleanroom-v19-manual-backtest.yml`
+- Anwendbare Tests: `test/v19-*.test.mjs` und `npm test`; Status der Node-/CI-Abnahme unbedingt verifizieren.
