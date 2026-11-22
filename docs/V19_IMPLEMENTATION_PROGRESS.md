@@ -1,5 +1,18 @@
 # R29 V1.9 – Fortlaufender Umsetzungsstand (22.11.2026)
 
+## JETZT AKTUELL (22.11.2026): 12/61 original PASS – Identität & zeitgerechte Quelle
+
+**Strenger Status: 12/61 = 19,7 % PASS, 24/61 = 39,3 % PARTIAL, 25/61 = 41,0 % OPEN.** **Technisch bearbeitet sind 36/61 = 59,0 % (`PASS+PARTIAL`)**; kein Code und keine bereits erreichte Funktion wurde wegen der ehrlicheren Abnahmeregel zurückgenommen. Historische Angaben „31/61 = 50,8 % COMPLETE“ waren lediglich der frühere Teilimplementierungszähler und sind **nicht** dieselbe strenge Fortschrittsmetrik.
+
+**Zwei NEUE vollständige Original-Software-Abnahmen:** `SYS-13 OPEN→PASS` (typisierte Chain-/Pool-/Token-Identität: alle 409 echten alten Pooldatensätze, darunter 61 V4, ohne Änderung alter Schlüssel/Quellrefs/Queues; Solana, Robinhood, BNB, Token-Duplikate und Contract-Konflikte) und `D2-11 OPEN→PASS` (Original-Pool-Erstellungsdatum, tatsächlicher HTTP-Erfassungszeitpunkt, erste echte Dot2-Entdeckung und nachträgliche Archive-Rekonstruktion strikt getrennt; Live und Original-V4-Archiv getestet; vollständige Seiten und Zeilen behalten Quellreferenzen). **Alle fünf GPT-Dots weiter pausiert.**
+
+**Letzter vollständig grüner Source-Test:** GitHub [Node22 CI #45050581906](https://github.com/127027/Sniperbot-/actions/runs/45050581906), Quellcommit `b2b29f8431205f5691bc05f43e7c52f7c92598ad`, **498/498 PASS / 0 FAIL**. Im Test wurden keine Orders geschrieben. Vollbericht [V19_20261122_SYS13_D211_IDENTITY_PROVENANCE_REVIEW.md](V19_20261122_SYS13_D211_IDENTITY_PROVENANCE_REVIEW.md).
+
+**Unverändert PARTIAL:** `SYS-11` (kein echter Mehrlauf nach API-Limiter), `D1-04` (keine echte autonome häufige Provider-/Exit-Überwachung), `QA-03` (Dauerlauf bislang simuliert), `D2-02` (keine echte vollständige Seitenkohorte). Echtgeld/Windows/main/Legacy und Signalindex unverändert. Die originale 429-Sperrfrist bis 2026-11-22T18:31:56.465Z bleibt zu respektieren. Die additive Identitäts-/Provenienz-Migration wird erst beim **nächsten autorisierten echten Research-Capture** in die neue persistierte Marktdaten-Datei geschrieben; alte Originalbelege selbst wurden nicht umgeschrieben.
+
+**Für spätere Chats haben diese Zeilen Vorrang vor allen historischen Prozenten und alten „NEUSTER STAND“-Formulierungen weiter unten.**
+
+
 ## AKTUELL: Prioritätsumbau API/GitHub-Scanner nach erneuter Abnahme (22.11.2026)
 
 **VERBINDLICHER NEUER STATUS der ORIGINALEN 61 Aufgaben:** **10/61 = 16,4 % PASS**, **24/61 = 39,3 % PARTIAL**, **27/61 = 44,3 % OPEN**. Vorherige Angaben **9/61** waren der Ausgangspunkt dieses Umbaus. Historische **31/61 = 50,8 %** umfassen auch technisch begonnene, aber nicht nach Originalanforderung abgenommene Aufgaben; diese Zahl **nicht** als tatsächlichen PASS-Wert ausgeben.
