@@ -389,6 +389,19 @@ metrics.v19_ohlcv_backfill={budget:request.max_ohlcv_requests??0,
  deferred_due_to_provider_429:ohlcvResults.filter(x=>x.status==='DEFERRED_PROVIDER_429').length,
  results:ohlcvResults,research_only:true};
 metrics.v19_hot_fair_service=summarizeRecheckService({plan:recheckPlan,attempts,asOfUtc:now()});
+// Selected != actually HTTP-attempted != exact-pair-matched != new price.
+// The real EHUNT REPAIR response had zero DEX pairs, not a usable quote.
+const repairKeys=new Set(recheckPlan.selected
+ .filter(c=>c.queue==='EVIDENCE_REPAIR').map(c=>c.key));
+const keyFor=(chain,pool)=>chain+':'+(chain==='solana'?pool:String(pool).toLowerCase());
+const repairActualAttempts=attempts.filter(a=>repairKeys.has(keyFor(a.chain,a.pool)));
+const repairActualDexResponses=dexChecks.filter(d=>repairKeys.has(keyFor(d.chain,d.pool)));
+const repairTruePriceObservations=rechecked.filter(c=>repairKeys.has(keyFor(c.chain,c.pool)));
+const repairStatusCounts={};
+for(const result of repairActualDexResponses){
+ const status=result.status||'UNKNOWN';
+ repairStatusCounts[status]=(repairStatusCounts[status]||0)+1;
+}
 metrics.v19_evidence_repair_rechecks={
  source_observation_batches:repairHistory.length,
  as_of_utc:repairAsOfUtc,
@@ -397,6 +410,11 @@ metrics.v19_evidence_repair_rechecks={
  offered_for_selection:repairProposal.selected.length,
  deferred_before_selection:repairProposal.deferred_count,
  selected_for_actual_dex_attempt:recheckPlan.repair_selected,
+  actually_attempted_dex_checks:repairActualAttempts.length,
+  actual_dex_response_count:repairActualDexResponses.length,
+  exact_pair_responses:repairActualDexResponses.filter(x=>x.matched===true).length,
+  new_observed_repair_prices:repairTruePriceObservations.length,
+  attempt_status_counts:repairStatusCounts,
  skipped:repairProposal.skipped,
  no_provider_calls_claimed_from_proposal:true,
  no_oracle_winners:true,orders_authorized:0};
