@@ -47,7 +47,7 @@ test('D5-02: actual in-process model BUY and SELL reconcile cash, lots and recei
  assert.equal(check(one.state).open_positions_count,1);
  const two=settlePaper(order('proof-sell-lot02','SELL',120),one.state,t+121000);
  const result=check(two.state);
- assert.equal(result.status,'LOCAL_PAPER_STATE_ACCOUNTING_CONSISTENT');
+ assert.equal(result.status,'LOCAL_PAPER_STATE_ACCOUNTING_CONSISTENT',JSON.stringify(result.blockers));
  assert.equal(result.modeled_filled_receipts,2);
  assert.equal(result.trade_history_events,2);
  assert.equal(result.open_positions_count,0);
