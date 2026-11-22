@@ -41,6 +41,12 @@ export function auditDot3QuoteSourcePair({coin,observations=[],asOfUtc,
   throw Error('INVALID_DOT3_SOURCE_PAIR_INPUT');
  const accepted=[],rejected=[];
  for(const [index,q] of observations.entries()){
+  // An explicitly post-event or retrospectively reconstructed observation
+  // must not be mistaken for an actually captured historical provider quote.
+  if(['POST_EVENT_ORACLE','RETRO_ASOF_RECONSTRUCTION'].includes(q?.source_class)
+    ||q?.future_winner_label!==undefined||q?.reported_gain_pct!==undefined){
+   rejected.push({index,reason:'RETRO_OR_ORACLE_QUOTE_NOT_CONTEMPORANEOUS'});continue;
+  }
   const parsed=parsePoolUrl(q?.source_url);
   if(!parsed||!providers.includes(parsed.provider)
    ||!exactPoolUrl(q.source_url,chain,coin.pool)
