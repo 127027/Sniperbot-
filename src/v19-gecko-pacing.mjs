@@ -1,7 +1,9 @@
 // R29 V1.9 SYS-11 partial: polite free-provider burst pacing.
 // A gap is a lower bound on the distance between API request STARTS.
 // This cannot override an HTTP-429 Retry-After/cooldown, license or policy.
-export const MIN_GECKO_REQUEST_GAP_MS=1700;
+// Public docs specify ~10/min (despite another official 30/min claim).
+// 6100ms between starts stays within a conservative 10-per-rolling-minute pace.
+export const MIN_GECKO_REQUEST_GAP_MS=6100;
 const tracked=new Set(['GECKOTERMINAL','GECKOTERMINAL_OHLCV']);
 export function planGeckoRequestPacing({
  provider,nowEpochMs,lastGeckoStartedEpochMs=null,
@@ -12,7 +14,7 @@ export function planGeckoRequestPacing({
   ||(lastGeckoStartedEpochMs!==null
     &&(!Number.isFinite(lastGeckoStartedEpochMs)
     ||lastGeckoStartedEpochMs<0||lastGeckoStartedEpochMs>nowEpochMs))
-  ||!Number.isInteger(minGapMs)||minGapMs<1000||minGapMs>5000)
+  ||!Number.isInteger(minGapMs)||minGapMs<1000||minGapMs>30000)
   throw Error('INVALID_GECKO_PACING_INPUT');
  const isGecko=tracked.has(provider);
  const wait=isGecko&&lastGeckoStartedEpochMs!==null
