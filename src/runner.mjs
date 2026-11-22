@@ -6,19 +6,22 @@ import { GitHubTransport } from './github.mjs';
 import { startDashboard } from './dashboard.mjs';
 import { newState,settlePaper,rejectPaper,DEFAULT_POLICY,Reject } from './core.mjs';
 import {validateDot3OrderBeforePublish} from './v19-dot3-authenticated-gate.mjs';
+import {resolveSharedPaperPolicy,DEFAULT_BUDGET_SETTINGS,
+ verifyExistingPaperBalancePreserved} from './v19-paper-budget-policy.mjs';
 const dir=process.env.R29_STATE_DIR||join(homedir(),'.r29-cleanpaper');
 const stateFile=join(dir,'state.json');
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let state;
+let executionPolicy=DEFAULT_POLICY;
 async function save(){
  await mkdir(dir,{recursive:true});
  const target=stateFile+'.'+process.pid+'.tmp';
  await writeFile(target,JSON.stringify(state,null,2),'utf8');
  await rename(target,stateFile);
 }
-async function load(){
+async function load(policy=DEFAULT_POLICY){
  try{state=JSON.parse(await readFile(stateFile,'utf8'));}
- catch(e){if(e.code!=='ENOENT')throw e;state=newState();await save();}
+ catch(e){if(e.code!=='ENOENT')throw e;state=newState(policy);await save();}
  if(state.schema!==1||state.mode!=='PAPER_ONLY')throw Error('Unexpected state schema/mode');
  if(!state.clientId){const {randomBytes}=await import('node:crypto');state.clientId=`client-${randomBytes(8).toString('hex')}`;await save();}
 }
@@ -65,7 +68,7 @@ export async function pollOnce(transport){
        trustedKeyId:process.env.R29_DOT3_TRUSTED_KEY_ID||null});
      if(!dot3.trade_authorized)
        throw new Reject('DOT3_AUTH_NOT_VERIFIED',dot3.code);
-     const result=settlePaper(order,state,Date.now(),DEFAULT_POLICY);
+     const result=settlePaper(order,state,Date.now(),executionPolicy);
      state=result.state;state.receipts[id].data.client_id=state.clientId;await save();out('PAPER_FILLED',id,result.receipt.action,result.receipt.cash_after_test_usdc);
    }catch(e){
      if(e instanceof Reject){
@@ -79,7 +82,20 @@ export async function pollOnce(transport){
 async function main(){
  if(process.env.R29_MODE&&process.env.R29_MODE!=='PAPER')throw Error('LIVE_DISABLED');
  if(process.env.R29_ENABLE_LIVE)throw Error('LIVE_DISABLED');
- await load();
+ // Load the same versioned TEST-USDC budget file as the on-demand replay.
+ // Missing older-checkout config falls back to the unchanged 5000/50 policy.
+ // Existing cash, position lots and receipts are NEVER reset on policy load.
+ let budgetSettings;
+ try{budgetSettings=JSON.parse(await readFile(
+   new URL('../research/config/paper-budget-v19.json',import.meta.url),'utf8'));}
+ catch(e){if(e.code!=='ENOENT')throw e;budgetSettings=DEFAULT_BUDGET_SETTINGS;}
+ const configured=resolveSharedPaperPolicy(budgetSettings);
+ executionPolicy=configured.policy;
+ await load(executionPolicy);
+ const preserved=verifyExistingPaperBalancePreserved({
+   state,configuredPolicy:configured});
+ out('PAPER_BUDGET_POLICY',configured.policy_id,
+   'stake='+executionPolicy.entryAmount,'cash_preserved='+preserved.existing_paper_cash_test_usdc);
  const transport=new GitHubTransport(process.env.GITHUB_TOKEN,state.clientId);
  startDashboard(()=>state,Number(process.env.R29_DASHBOARD_PORT||8765));
  out('R29 CLEANROOM PAPER ONLY', 'client='+state.clientId,'balance='+state.cash,'state='+stateFile,'dashboard=http://127.0.0.1:8765');
