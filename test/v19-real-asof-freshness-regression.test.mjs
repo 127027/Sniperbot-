@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 import {scoreAsOf} from '../src/forward-learning.mjs';
 
-test('real 22-Nov 15:11 UTC as-of snapshot demotes two 997-minute-old leaders',async()=>{
+test('real 22-Nov as-of archive flags 2 stale leaders plus 1 eight-hour price gap',async()=>{
  const archived=JSON.parse(await readFile(
   'research/observations/2026-11-22/45036887325-asof-ranking.json','utf8'));
  assert.equal(archived.as_of_utc,'2026-11-22T15:11:16.013Z');
@@ -36,9 +36,12 @@ test('real 22-Nov 15:11 UTC as-of snapshot demotes two 997-minute-old leaders',a
   assert.equal(next.get(key)?.latest_capture_is_recent,false);
  }
  const cronos='cronos:0x835a8fe7370c5c08b9a4efda273e28ff7bcf161c';
- assert.ok(next.get(cronos)?.score!==null);
- assert.equal(next.get(cronos).latest_capture_is_recent,true);
- assert.equal(replay.counts.research_rankable,1);
+ assert.equal(next.get(cronos)?.score,null);
+ assert.equal(next.get(cronos)?.status,'WATCH_PRICE_OBSERVATION_GAP');
+ assert.equal(next.get(cronos)?.latest_capture_is_recent,true);
+ assert.ok(next.get(cronos)?.prior_price_observation_gap_minutes>240);
+ assert.equal(replay.counts.research_rankable,0);
+ assert.equal(replay.counts.long_price_observation_gaps,1);
  assert.ok(replay.counts.stale_last_captures>=2);
  assert.equal(replay.orders,0);
  assert.ok(replay.candidates.every(x=>x.trade_authorized===false));
