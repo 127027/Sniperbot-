@@ -36,7 +36,7 @@ test('D4-03: losing path stops consistently, without unrealistic 1-hour return p
  assert.ok(r.variants.every(x=>x.closed_in_shadow));
 });
 test('D4-03: missing horizon or missing liquidity cannot yield a fake PAPER_FILLED or estimated complete PnL',()=>{
- const partial=compareFrozenExitScenarios(input([['00:15',1.21],['00:30',1.05]]));
+ const partial=compareFrozenExitScenarios(input([['00:15',1.21],['00:30',1.15]]));
  const trail=variant(partial,'TRAIL_TP20_DD12_SL10');
  assert.equal(trail.modeled_realized_pnl_test_usdc,null);
  assert.equal(trail.unclosed_quantity>0,true);
