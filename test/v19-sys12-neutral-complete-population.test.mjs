@@ -17,11 +17,13 @@ function fixture(count=4){
  }
  return mem;
 }
-test('SYS-12: real 409-pool memory is included without a winner-only denominator',async()=>{
+test('SYS-12: growing real pool memory is included without a winner-only denominator',async()=>{
  const real=JSON.parse(await readFile('research/state/market-memory.json','utf8'));
  const pop=makeNeutralEvaluationPopulation({memory:real,asOfUtc:at});
- assert.equal(pop.population_size,409);
- assert.equal(pop.outcomes_not_evaluated,409);
+ const sourcePoolCount=Object.keys(real.pools).length;
+ assert.ok(sourcePoolCount>=409,'historical baseline lost');
+ assert.equal(pop.population_size,sourcePoolCount);
+ assert.equal(pop.outcomes_not_evaluated,sourcePoolCount);
  assert.equal(pop.evaluable_outcomes_with_independent_labels,0);
  assert.equal(pop.false_positive_rate,null);
  assert.equal(pop.recall,null);
@@ -29,7 +31,7 @@ test('SYS-12: real 409-pool memory is included without a winner-only denominator
  assert.equal(pop.coverage_proven_complete,undefined);
  assert.equal(pop.discovered_pool_universe_complete,false);
  assert.equal(pop.winners_list_used_for_discovery,false);
- assert.equal(Object.values(pop.by_chain).reduce((a,b)=>a+b,0),409);
+ assert.equal(Object.values(pop.by_chain).reduce((a,b)=>a+b,0),sourcePoolCount);
  const source=await readFile('research/state/market-memory.json','utf8');
  assert.equal(JSON.stringify(real),JSON.stringify(JSON.parse(source)));
  assert.ok(pop.entries.some(x=>x.pool_kind==='UNISWAP_V4_POOL_ID'));
