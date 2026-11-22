@@ -17,7 +17,7 @@
 
 - **Dot 1:** 4/8/12/24-Vollanalysen, Aktivität pro Chain/Seite und Zeitfenster, Wechsel 4→24 sofort bei ausreichend Belegen, Reduktion nur nach bestätigter Ruhe. API-Datenerfassung und Positions-/Exit-Beobachtung laufen unabhängig vom GPT-Budget.
 - **Dot 2:** alle unterstützten Chains, paginierte neue/ältere Pools, V4, persistentes Marktgedächtnis, Hot-/Fair-Queue, Endpoint-Budget, 429/Retry und historische Beobachtungen. Keine Kandidaten wegwerfen, nur weil Risk-Daten fehlen.
-- **Dot 3:** Contract-/Pool-/Chain-Identität, Liquidität, frische unabhängige Quotes, Sellability, effiziente `DATA_GAP/WATCH/REJECTED/PAPER_ELIGIBLE`-Rechecks; fehlende Daten nicht als ständige negative Kaufentscheidung maskieren.
+- **Dot 3:** Verbindliche gemeinsame Statusmaschine `src/v19-dot3-risk-status.mjs` mit `DISCOVERED`, `DATA_GAP`, `WATCH`, `REJECTED`, `PAPER_ELIGIBLE` für Live-/Historien-Research und Rechecks. **Der positive `PAPER_ELIGIBLE`-Test ist bislang ausschließlich `SYNTHETIC_REGRESSION_ONLY`, immer `trade_authorized:false`; echte Quellen-/Issuer-Prüfung fehlt (D3-04).** Details: `docs/V19_DOT3_RISK_STATE_MACHINE.md`. Fehlende Daten nicht als dauerhafte Ablehnung maskieren.
 - **Dot 4:** einheitliche zeitgerechte BUY/WATCH/HOLD/SELL-Entscheidungen, Chancen-/Risiko-Prognosen, verfügbare 50 TEST-USDC/Coin, unabhängige Markt-/Exit-Prüfungen auch zwischen Vollreviews. Kein Fake-Fill.
 - **Dot 5:** vollständiger Audit für Erkennung, Review-Auslastung, Prognosen, PnL und Fehlergründe, echte GPT-Ausführung vs deterministischer Rollen-Replay trennen. Excel-Oracles erst nach simuliertem Zeitpunkt für Evaluation.
 
