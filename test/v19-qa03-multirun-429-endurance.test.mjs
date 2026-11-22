@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {emptyMarketMemory,mergeMemory} from '../src/market-memory.mjs';
 import {emptyPageCoverage,updatePageCoverage} from '../src/v19-page-coverage.mjs';
@@ -108,4 +109,30 @@ test('QA-03: archive replay cannot convert unattempted tasks to successful pages
  assert.equal(resumed.scheduled_requests,6);
  assert.ok(resumed.tasks.some(v=>v.chain==='ethereum'&&v.page===1));
  assert.equal(resumed.actual_http_success_per_chain_is_not_proven_by_plan,true);
+});
+
+test('QA-03: mid-run provider 503 defers all unattempted six-chain pages',async()=>{
+ const at='2026-11-22T08:00:00.000Z';
+ let budget=reserveProviderRequest({state:emptyProviderBudgetState(),provider:'GECKOTERMINAL',
+  lane:'NEW_POOLS',asOfUtc:at,requestId:'qa03-provider-503'}).state;
+ budget=recordProviderResponse({state:budget,provider:'GECKOTERMINAL',lane:'NEW_POOLS',
+  requestId:'qa03-provider-503',asOfUtc:'2026-11-22T08:00:01Z',httpStatus:503});
+ const gate=inspectProviderBudget({state:budget,provider:'GECKOTERMINAL',
+  lane:'NEW_POOLS',asOfUtc:'2026-11-22T08:00:02Z',requestId:'qa03-skipped'});
+ assert.equal(gate.reason,'PROVIDER_COOLDOWN');
+ const p=planMultiChainCapture({networks:chains,budget:6,asOfUtc:at});
+ const first=p.tasks[0];
+ const failed=[{chain:first.chain,page:first.page,attempt_at_utc:'2026-11-22T08:00:01Z',
+  reason:'HTTP_503',http_status:503}];
+ const skipped=p.tasks.slice(1).map(x=>({chain:x.chain,page:x.page}));
+ const coverage=updatePageCoverage(emptyPageCoverage(),{asOfUtc:'2026-11-22T08:01:00Z',
+  failures:failed,deferred:skipped});
+ assert.equal(coverage.run.succeeded,0);
+ assert.equal(coverage.run.failed,1);
+ assert.equal(coverage.run.deferred,5);
+ assert.equal(coverage.total_unresolved_page_indices,6);
+ assert.equal(coverage.run.attempted,1);
+ const code=await readFile('scripts/cloud-discovery-runner.mjs','utf8');
+ assert.match(code,/if\(beforeRequestBlock\.active\)/);
+ assert.match(code,/deferredPages\.push\(\.\.\.capturePlan\.tasks\.slice\(i\)/);
 });
