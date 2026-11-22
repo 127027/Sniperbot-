@@ -16,6 +16,7 @@ import {planMultiChainCapture} from '../src/v19-discovery-budget-plan.mjs';
 import {planHotFairRechecks} from '../src/v19-hot-fair-recheck.mjs';
 import {summarizeRecheckService} from '../src/v19-recheck-service-metrics.mjs';
 import {providerRetryDelay} from '../src/v19-provider-backoff.mjs';
+import {measureDot1Activity} from '../src/v19-market-activity.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -212,6 +213,46 @@ metrics.v19_gecko_failed_pages=failedPages.map(x=>({chain:x.chain,page:x.page,
   status:x.status,retry_after_utc:x.retryAfterUtc}));
 metrics.v19_gecko_deferred_pages=deferredPages;
 metrics.v19_gecko_actual_attempts=receivedPages.length+failedPages.length;
+// Exact original per-page samples, persisted independently of the flattened
+// candidate report. Dot1 and historical replay use the SAME activity extractor.
+const activityDay=dataDate=>dataDate.slice(0,10);
+const currentActivityPages=receivedPages.map(p=>({
+ kind:'R29_V19_GECKO_PAGE_ACTIVITY_CAPTURE',source_class:'ORIGINAL_CAPTURE',
+ chain:p.chain,page:p.page,captured_at_utc:p.capturedAtUtc,
+ available_at_utc:p.capturedAtUtc,source_raw_path:p.sourcePath,
+ raw_response_sha256:p.sourceSha256,
+ candidates:p.decoded.candidates
+}));
+const previousActivityPages=[];
+try{
+ const paths=(await readdir('research/observations',{recursive:true}))
+   .filter(path=>/-activity-pages\\.json$/.test(path)).sort().slice(-80);
+ for(const relative of paths){
+   try{
+     const saved=JSON.parse(await readFile('research/observations/'+relative,'utf8'));
+     if(saved.kind==='R29_V19_PAGE_CAPTURE_ACTIVITY_JOURNAL'&&Array.isArray(saved.pages))
+       previousActivityPages.push(...saved.pages);
+   }catch{/* Invalid old research file is not proof of market activity. */}
+ }
+}catch(error){if(error.code!=='ENOENT')throw error;}
+const activityResult=measureDot1Activity({
+ pageCaptures:[...previousActivityPages,...currentActivityPages],asOfUtc:now()});
+const activityPath='research/observations/'+activityDay(now())+'/'+runId+'-activity-pages.json';
+await mkdir('research/observations/'+activityDay(now()),{recursive:true});
+await writeFile(activityPath,JSON.stringify({
+ schema:1,kind:'R29_V19_PAGE_CAPTURE_ACTIVITY_JOURNAL',
+ source_request_path:path,captured_at_utc:now(),pages:currentActivityPages,
+ derived_asof_metrics:activityResult,
+ warning:'Sampled Chain/Page activity; not a complete global market measurement and not trading authority.'
+},null,2)+'\\n','utf8');
+metrics.v19_dot1_measured_activity={
+ observed_newly_created_pools:activityResult.observed_newly_created_pools,
+ volume_change_pct:activityResult.metrics.volumeChangePct,
+ comparable_page_pairs:activityResult.comparable_page_pairs,
+ active_chains:activityResult.active_chains,
+ complete_comparable_panel:activityResult.comparable_panel_complete,
+ no_market_calm_claim:true};
+metrics.v19_dot1_activity_journal_path=activityPath;
 metrics.v18_archived_v4_recovered_pool_count=recoveredV4Count;
 metrics.v18_archived_v4_recovery_error=recoveryError;
 const data={schema:1,kind:'DOT2_PUBLIC_CAPTURE_EVIDENCE',mode:'PAPER_RESEARCH_ONLY',
@@ -363,6 +404,7 @@ const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
  fair_recheck_attempts:attempts,
  fair_recheck_backlog_remaining:plan.backlog_count,
  observation_path:observationPath,ranking_path:rankingPath,
+ activity_capture_path:activityPath,
  forecast_path:forecastPath,matured_forecast_path:matureForecastPath,
  matured_label_path:matureLabelsPath,
  prospective_ranking_counts:prospectiveRanking.counts,
@@ -372,6 +414,7 @@ await writeFile(memoryCheckpointPath,JSON.stringify(memoryCheckpoint,null,2)+'\n
 await writeFile('research/state/latest.json',JSON.stringify({
  schema:1,checkpoint_path:memoryCheckpointPath,memory_path:memoryPath,
  observation_path:observationPath,ranking_path:rankingPath,
+ activity_capture_path:activityPath,
  forecast_path:forecastPath,matured_forecast_path:matureForecastPath,
  matured_label_path:matureLabelsPath,
  created_at_utc:data.captured_completed_at_utc,stats:memory.stats},null,2)+'\n','utf8');
