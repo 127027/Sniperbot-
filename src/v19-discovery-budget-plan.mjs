@@ -35,7 +35,7 @@ export function planMultiChainCapture({networks,checkpoints={},pageCoverage=null
    const secondary=primary===1?(nextMissing??Math.max(2,
      Number.isInteger(cp?.next_page_to_consider)?cp.next_page_to_consider:2)):1;
    chains.push({chain,original_order:order,last_attempt_ms:last??-Infinity,
-     primary,secondary,failed_page_retry_due:failed!==null,
+     primary,secondary,failed_page_retry_due:failed!==null&&retryAfter!==null&&retryAfter<=now,
      reason:failed?'RETRY_FAILED_PAGE':
        pending?'RESUME_UNOBSERVED_PAGE':d.reason});
  }
