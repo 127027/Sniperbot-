@@ -18,7 +18,7 @@ const runs=['45036887325','45044300013','45057658912'];
 const all=[],rawFiles={};
 for(const id of runs){
  const evidence=await read('research/feeds/2026-11-22/'+id+'/evidence.json');
- if(evidence.kind!=='DOT2_DISCOVERY_CAPTURE_EVIDENCE'&&evidence.kind!=='R29_DOT2_DISCOVERY_CAPTURE_EVIDENCE')
+ if(evidence.kind!=='DOT2_PUBLIC_CAPTURE_EVIDENCE')
   throw Error('UNEXPECTED_ORIGINAL_EVIDENCE_KIND_'+id+':'+evidence.kind);
  for(const receipt of evidence.api_evidence){
   if(rawFiles[receipt.body_path]!==undefined)
