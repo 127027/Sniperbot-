@@ -29,6 +29,8 @@ export function planHotFairRechecks({freshCandidates=[],fairCandidates=[],legacy
  for(const [index,c] of freshCandidates.entries()){
    if(forbidden(c)){excluded.push({index,reason:'FUTURE_WINNER_FIELDS_FORBIDDEN'});continue;}
    if(!valid(c)){excluded.push({index,reason:'INVALID_CHAIN_OR_POOL'});continue;}
+   const observed=time(c.observed_at_utc);
+   if(observed===null||observed>now){excluded.push({index,reason:'FUTURE_OR_UNDATED_FRESH_CAPTURE'});continue;}
    const chain=canonicalChain(c.chain),key=id(chain,c.pool);
    if(seenFresh.has(key))continue;
    seenFresh.add(key);
