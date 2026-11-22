@@ -17,6 +17,10 @@ import {
 const read=async p=>JSON.parse(await readFile(p,'utf8'));
 const sha=b=>createHash('sha256').update(b).digest('hex');
 const asOfUtc='2026-11-22T19:44:00.000Z';
+const taskRegister=await read('research/audits/2026-11-22/r29-v19-offline-61-task-reconciliation.json');
+if(taskRegister.status_counts.PASS!==13||taskRegister.status_counts.PARTIAL!==46
+ ||taskRegister.status_counts.OPEN!==2||taskRegister.tasks.length!==61)
+ throw Error('UNRECONCILED_ORIGINAL_61_TASK_REGISTER');
 const runs=['45036887325','45044300013','45057658912'];
 const all=[],rawFiles={};
 for(const id of runs){
@@ -137,6 +141,9 @@ if(operations.measured_http_attempts!==archive.archive_file_count
 const summary={schema:1,kind:'R29_V19_FINAL_OFFLINE_READINESS_AUDIT',
  as_of_utc:asOfUtc,
  source_commit:process.env.GITHUB_SHA||null,
+ original_61_task_ledger_status:taskRegister.status_counts,
+ technically_touched_pct:taskRegister.technically_touched_pct,
+ fully_accepted_pct:taskRegister.fully_accepted_pct,
  workflow_run_id:process.env.GITHUB_RUN_ID||null,
  archived_prior_real_provider_runs:runs,
  original_http_receipt_count:archive.archive_file_count,
@@ -171,7 +178,9 @@ await mkdir('probe-artifacts',{recursive:true});
 const out='probe-artifacts/v19-six-offline-final-readiness.json';
 await writeFile(out,JSON.stringify(summary,null,2)+'\n',{flag:'wx'});
 console.log('R29_V19_FINAL_OFFLINE_READINESS',JSON.stringify({
- status:'PASS',archived_raw_receipts:summary.original_http_receipt_count,
+ status:'PASS',task_counts:summary.original_61_task_ledger_status,
+ technically_touched_pct:summary.technically_touched_pct,
+ archived_raw_receipts:summary.original_http_receipt_count,
  compressed_copy_count:receipts.length,archive_original_bytes:archive.raw_total_bytes,
  archive_gzip_bytes:archive.compressed_total_bytes,
  archive_integrity_sha256:archive.sha256_manifest,
