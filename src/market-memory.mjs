@@ -10,7 +10,7 @@ export function emptyMarketMemory(){
   stats:{total_discovered:0,total_observation_batches:0}};
 }
 export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtUtc,sourceSha256=null,
- chain=null,page=1,provider='GECKOTERMINAL',fetchStatus='OK'}={}){
+ chain=null,page=1,provider='GECKOTERMINAL',fetchStatus='OK',retryAfterUtc=null}={}){
  const t=iso(sourceCapturedAtUtc);
  if(!t||!sourcePath?.startsWith('research/')||!Array.isArray(candidates))throw Error('INVALID_MEMORY_EVIDENCE');
  if(existing&&existing.kind!=='R29_PERSISTENT_MARKET_MEMORY')throw Error('MEMORY_SCHEMA_MISMATCH');
@@ -69,10 +69,15 @@ export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtU
  memory.ingested_sources.push(sourcePath);
  const checkpointKey=(chain||'unknown')+':'+provider;
  const prev=memory.checkpoints[checkpointKey]||{};
+ const failed=fetchStatus!=='OK',retry=retryAfterUtc===null?null:iso(retryAfterUtc);
+ if(retryAfterUtc!==null&&!retry)throw Error('INVALID_RETRY_AFTER_UTC');
  memory.checkpoints[checkpointKey]={chain:chain||null,provider,page,
   last_attempt_at_utc:t,last_success_at_utc:fetchStatus==='OK'?t:(prev.last_success_at_utc||null),
   last_source_path:sourcePath,last_status:fetchStatus,
-  next_page_to_consider:fetchStatus==='OK'?Math.max(page+1,prev.next_page_to_consider||1):page,
+  next_page_to_consider:fetchStatus==='OK'?Math.max(page+1,prev.next_page_to_consider||1):Math.max(page,prev.next_page_to_consider||1),
+  failed_page_to_retry:failed?page:null,
+  consecutive_failures:failed?(prev.consecutive_failures||0)+1:0,
+  retry_after_utc:failed?retry:null,
   // Cursor means last observed paging position, not proof that later pages were captured.
   backlog_open:true};
  memory.generated_at_utc=t;memory.last_ingested_source_path=sourcePath;
