@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "dot": "dot-4",
+  "version": "V1.6",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "observed_at_utc": "2026-11-22T03:40:20.322Z",
+  "review_type": "HOURLY_EXIT_CHECK_NOT_FULL_REVIEW",
+  "status": "NO_TRADE_DATA_GAP",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "inputs": {
+    "cadence_path": "research/control/cadence.json",
+    "cadence_sha": "2fd04941aa79c2783d36f134535804dd905e63da",
+    "strategy_path": "research/control/strategy.json",
+    "strategy_sha": "b103e74fdfea63c84f5de8ae7d6fb4c29e45922d",
+    "dot1_latest_sha": "45a70e5c3287f484a066630ba1d9af539f69e140",
+    "dot2_latest_sha": "0fdb48bee9d57ecf9f6889bcac0dc286fd56eb6a",
+    "dot3_journal_path": "research/journal/dot-3/2026-11-22/20261122T032631994Z-risk-v16-automation11.json",
+    "dot3_journal_sha": "3f35551fd570a6cc0854e4750f46dd3a8f1303cb",
+    "signals_index_sha": "8f360a172e95adfda2d30105dd3fc7639497367d",
+    "feed_latest_sha": "0be9bc1992e1f27bb69511c8a4812fc22396ec36",
+    "media_latest_sha": "cfd3ae1253d0542714fdd64f5a2e64a3a8a3e130",
+    "media_asof_sha": "aef8bdaf9a3724051283b00b322b5aea976368aa"
+  },
+  "cadence_target_per_24h": 4,
+  "last_completed_full_review_utc": "2026-11-22T02:39:20.211Z",
+  "next_full_review_due_at_utc": "2026-11-22T08:39:20.211Z",
+  "full_review_due": false,
+  "client_receipts": {
+    "status": "OFFLINE_OR_UNCONFIRMED",
+    "directory": "receipts",
+    "github_result": "HTTP_404",
+    "verified_fills": 0,
+    "verified_open_positions": 0,
+    "absence_not_proof_of_zero_executions": true
+  },
+  "signal_index": {
+    "published_orders": 0
+  },
+  "market": {
+    "stored_pools": 206,
+    "latest_capture_utc": "2026-11-22T03:18:33.582Z",
+    "dot3_counts": {
+      "ELIGIBLE": 0,
+      "WATCH": 0,
+      "REJECTED": 13,
+      "DATA_GAP": 7
+    },
+    "dot3_security_verified": 0,
+    "dot3_independent_complete_quotes": 0,
+    "prospective_rankable": 0,
+    "media_contract_pool_links_verified": 0
+  },
+  "decisions": [
+    {
+      "action": "NO_TRADE",
+      "reason": "No confirmed PAPER_FILLED position; no SELL/HOLD can be established."
+    },
+    {
+      "action": "NO_TRADE",
+      "reason": "Dot3 has zero ELIGIBLE; archived quotes stale, independent price/sellability/honeypot/tax evidence missing. No BUY authorized."
+    }
+  ],
+  "oracle_forecast": {
+    "horizons_hours": [
+      1,
+      3,
+      6
+    ],
+    "thresholds_pct": [
+      20,
+      50,
+      100
+    ],
+    "probabilities": null,
+    "status": "INSUFFICIENT_DATA"
+  },
+  "orders_published": 0,
+  "client_fills_claimed": 0,
+  "checkpoint": {
+    "next_action": "Recheck receipts and Dot3 eligible at next wake; full review only when due",
+    "market_memory_path": "research/state/market-memory.json"
+  },
+  "errors": [
+    "NO_CONFIRMED_PAPER_FILLED",
+    "NO_DOT3_ELIGIBLE",
+    "NO_FRESH_INDEPENDENT_QUOTE",
+    "NO_SELLABILITY_PROOF"
+  ]
+}
