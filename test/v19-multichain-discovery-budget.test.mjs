@@ -70,3 +70,36 @@ test('persisted HTTP 429 is an attempted page, not successful coverage',()=>{
   checkpoints:failed.checkpoints,asOfUtc:at});
  assert.equal(plan.tasks[0].chain,'base');
 });
+
+test('one Gecko page for six requested chains is explicitly a coverage DATA_GAP, not 6/6',()=>{
+ const plan=planMultiChainCapture({networks,budget:1,asOfUtc:at});
+ assert.equal(plan.requested_chain_count,6);
+ assert.equal(plan.minimum_gecko_page_requests_for_one_attempt_per_chain,6);
+ assert.equal(plan.scheduled_chain_count,1);
+ assert.equal(plan.scheduled_all_requested_chains_at_least_once,false);
+ assert.equal(plan.incomplete_chain_attempts_are_a_data_gap,true);
+ assert.equal(plan.unscheduled_chains_due_to_budget.length,5);
+ assert.equal(plan.recommendation_when_underbudget,
+  'NEXT_CAPTURE_REQUEST_RESERVE_AT_LEAST_ONE_GECKO_PAGE_PER_CHAIN_IF_FREE_RATE_LIMIT_ALLOWS');
+ assert.equal(plan.actual_http_success_per_chain_is_not_proven_by_plan,true);
+});
+test('six-request baseline can schedule every chain once without claiming full market or HTTP success',()=>{
+ const plan=planMultiChainCapture({networks,budget:6,asOfUtc:at});
+ assert.equal(plan.scheduled_chain_count,6);
+ assert.equal(plan.scheduled_all_requested_chains_at_least_once,true);
+ assert.deepEqual(plan.unscheduled_chains_due_to_budget,[]);
+ assert.deepEqual(plan.unscheduled_chains_due_to_cooldown,[]);
+ assert.equal(plan.one_pass_is_not_proof_of_full_pages_or_historical_market,true);
+ assert.equal(plan.actual_http_success_per_chain_is_not_proven_by_plan,true);
+});
+test('a chain cooldown is a coverage gap even with sufficient budget',()=>{
+ const cp={'robinhood:GECKOTERMINAL':{page:1,next_page_to_consider:2,
+  last_attempt_at_utc:'2026-11-22T08:59:00.000Z',
+  retry_after_utc:'2026-11-22T10:00:00.000Z'}};
+ const plan=planMultiChainCapture({networks,budget:6,checkpoints:cp,asOfUtc:at});
+ assert.equal(plan.scheduled_chain_count,5);
+ assert.equal(plan.scheduled_all_requested_chains_at_least_once,false);
+ assert.deepEqual(plan.unscheduled_chains_due_to_cooldown,['robinhood']);
+ assert.equal(plan.incomplete_chain_attempts_are_a_data_gap,true);
+ assert.equal(plan.orders_authorized,0);
+});
