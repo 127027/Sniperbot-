@@ -7,17 +7,18 @@ import {researchDue,chooseCadence} from './cadence.mjs';
 import {decideUnifiedMarket,UNIFIED_V18_RULES} from './unified-decision-v18.mjs';
 import {buildAsOfLookback} from './v19-asof-lookback.mjs';
 import {planDataGapRecovery} from './v19-coverage-recovery.mjs';
+import {measureDot1Activity} from './v19-market-activity.mjs';
 
 const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 const ms=value=>typeof value==='string'&&ISO.test(value)&&Number.isFinite(Date.parse(value))?Date.parse(value):null;
 const iso=value=>new Date(value).toISOString();
 import {checkUnifiedEvidence as gate,makeReplayCheckOrder as policyOrder} from './v18-shared-evidence-gate.mjs';
-export function replaySignalDecisions({date,snapshots=[],activityObservations=[],targetPer24h=4,forceHourlyReview=false,params={}}){
+export function replaySignalDecisions({date,snapshots=[],activityObservations=[],activityPageCaptures=[],targetPer24h=4,forceHourlyReview=false,params={}}){
  if(typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date+'T00:00:00Z')))
    throw Error('INVALID_DATE');
  if(![4,8,12,24].includes(targetPer24h))throw Error('INVALID_TARGET');
  if(typeof forceHourlyReview!=='boolean')throw Error('INVALID_FORCE_HOURLY');
- if(!Array.isArray(snapshots)||!Array.isArray(activityObservations))throw Error('INVALID_SNAPSHOTS');
+ if(!Array.isArray(snapshots)||!Array.isArray(activityObservations)||!Array.isArray(activityPageCaptures))throw Error('INVALID_SNAPSHOTS');
  const start=ms(date+'T00:00:00Z'),end=start+86400000;
  const p={...UNIFIED_V18_RULES,...params};
  if(![p.entryMomentumPct,p.takeProfitPct,p.stopLossPct,p.maxMomentumAgeHours].every(x=>typeof x==='number'&&Number.isFinite(x)&&x>0))throw Error('INVALID_PARAMS');
@@ -43,7 +44,11 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
        &&tick-observed<=3600000&&x.provenance==='CONTEMPORANEOUS_RECORD'
        &&typeof x.source_archive_sha==='string'&&/^[0-9a-f]{40}$/.test(x.source_archive_sha);
    }).sort((a,b)=>ms(b.observed_at_utc)-ms(a.observed_at_utc))[0];
-   const cadence=forceHourlyReview?{target:24,reason:'EXPLICIT_24_HOUR_DIAGNOSTIC'}:chooseCadence(activity?activity.metrics:null,currentTarget);
+   const measured=activityPageCaptures.length
+     ?measureDot1Activity({pageCaptures:activityPageCaptures,asOfUtc:at}):null;
+   const cadenceMetrics=measured?.metrics?.dataAvailable?measured.metrics:activity?.metrics??null;
+   const cadence=forceHourlyReview?{target:24,reason:'EXPLICIT_24_HOUR_DIAGNOSTIC'}
+     :chooseCadence(cadenceMetrics,currentTarget);
    currentTarget=cadence.target;
    const due=researchDue(at,lastReview,currentTarget).due;
    if(due){lastReview=at;sums.fullReviews++;}
@@ -60,7 +65,8 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    for(const s of valid)fresh.set(marketKey(s.coin),s);
    const featureHistory=buildAsOfLookback({snapshots,asOfUtc:at});
    const gapRecovery=planDataGapRecovery({asOfUtc:at,activityObservations});
-   const step={at_utc:at,full_review:due,target_per_24h:currentTarget,cadence_reason:cadence.reason,eligible_snapshots:fresh.size,blocked_sources:blocked,
+   const step={at_utc:at,full_review:due,target_per_24h:currentTarget,cadence_reason:cadence.reason,
+     measured_page_activity:measured,eligible_snapshots:fresh.size,blocked_sources:blocked,
      data_gap_capture_recommendations:gapRecovery,
      past_only_feature_history:{market_count:featureHistory.market_count,
        observation_count:featureHistory.observation_count,
