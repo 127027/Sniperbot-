@@ -37,7 +37,7 @@ export function summarizeR29OperatingMeasurements({capture,asOfUtc,
    status:http,success:http!==null&&http>=200&&http<300,
    is_429:http===429});
  }
- const byProvider={},byChain={},byMinute={};
+ const byProvider={},byChain={},byMinute={},byChainHour={};
  const push=(group,key,r)=>{const s=group[key]??={attempts:0,http_200:0,http_429:0,
    other_http_errors:0,not_confirmed_http:0,latencies_ms:[]};
   s.attempts++;if(r.status===200)s.http_200++;
@@ -50,6 +50,7 @@ export function summarizeR29OperatingMeasurements({capture,asOfUtc,
   push(byProvider,r.provider,r);
   push(byChain,r.chain||'UNKNOWN',r);
   push(byMinute,r.provider+'|'+r.minute,r);
+  push(byChainHour,(r.chain||'UNKNOWN')+'|'+r.minute.slice(0,13)+':00Z',r);
  }
  const finish=group=>Object.fromEntries(Object.entries(group).map(([key,x])=>
   [key,{attempts:x.attempts,http_200:x.http_200,http_429:x.http_429,
@@ -67,12 +68,12 @@ export function summarizeR29OperatingMeasurements({capture,asOfUtc,
   {role:'dot-1-tempo',input_pool_activity_count:measuredActivity?.observed_newly_created_pools??null,
    recommended_full_reviews_per_day:cadenceAdvice?.target??null,
    verified_gpt_reviews_this_capture:0,scheduler_executed_full_reviews:null,
-   skipped_gpt_reviews:null,provider_http_requests_directly_made_by_dot:0,
+   skipped_gpt_reviews:null,capture_runner_http_requests_for_this_stage:0,
    queue_count:null,p50_wait_minutes:null,p95_wait_minutes:null},
   {role:'dot-2-discovery',input_pool_activity_count:capture.gecko?.found_count??null,
    recommended_full_reviews_per_day:null,verified_gpt_reviews_this_capture:0,
    scheduler_executed_full_reviews:null,skipped_gpt_reviews:null,
-   provider_http_requests_directly_made_by_dot:records.length,
+   capture_runner_http_requests_for_this_stage:records.length,
    queue_count:plan?.deferred_new_pool_count??null,
    pending_repair_queue_count:rq?.eligible_repair_pool_count??null,
    p50_wait_minutes:svc?.hot_p50_wait_minutes??null,
@@ -81,23 +82,25 @@ export function summarizeR29OperatingMeasurements({capture,asOfUtc,
     .filter(Number.isInteger).reduce((a,b)=>a+b,0):null,
    recommended_full_reviews_per_day:null,verified_gpt_reviews_this_capture:0,
    scheduler_executed_full_reviews:null,skipped_gpt_reviews:null,
-   provider_http_requests_directly_made_by_dot:0,queue_count:null,
+   capture_runner_http_requests_for_this_stage:0,queue_count:null,
    p50_wait_minutes:null,p95_wait_minutes:null,preview_only:true},
   {role:'dot-4-strategy',input_pool_activity_count:ranking?.counts?.research_rankable??null,
    recommended_full_reviews_per_day:null,verified_gpt_reviews_this_capture:0,
    scheduler_executed_full_reviews:null,skipped_gpt_reviews:null,
-   provider_http_requests_directly_made_by_dot:0,queue_count:null,
+   capture_runner_http_requests_for_this_stage:0,queue_count:null,
    p50_wait_minutes:null,p95_wait_minutes:null,
    actual_client_paper_orders:0,actual_client_paper_fills:0},
   {role:'dot-5-control',input_pool_activity_count:dot5Ledger?.events?.length??null,
    recommended_full_reviews_per_day:null,verified_gpt_reviews_this_capture:0,
    scheduler_executed_full_reviews:null,skipped_gpt_reviews:null,
-   provider_http_requests_directly_made_by_dot:0,queue_count:null,
+   capture_runner_http_requests_for_this_stage:0,queue_count:null,
    p50_wait_minutes:null,p95_wait_minutes:null,
    provider_source_integrity_records:integrity?.checked??null}
  ].map(x=>({...x,gpt_input_tokens:null,gpt_output_tokens:null,
    gpt_cost_usd:null,role_wall_clock_runtime_ms:null,
-   task_failure_count:null}));
+   task_failure_count:x.role==='dot-2-discovery'
+      ?records.filter(r=>r.status!==null&&r.status>=400).length:null,
+    actual_dot_automation_invoked:false}));
  return {schema:1,kind:'R29_V19_SOURCE_MEASURED_OPERATING_REPORT',
   as_of_utc:asOfUtc,source_capture_utc:capture.captured_completed_at_utc,
   capture_request_path:capture.request_path,
@@ -109,6 +112,7 @@ export function summarizeR29OperatingMeasurements({capture,asOfUtc,
   measured_source_requests_per_provider: httpByProvider,
   measured_source_requests_per_chain: httpByChain,
   provider_start_minute_histogram:finish(byMinute),
+  chain_utc_hour_histogram:finish(byChainHour),
   measured_provider_latency_p50_ms:q(records.map(x=>x.latency_ms),.5),
   measured_provider_latency_p95_ms:q(records.map(x=>x.latency_ms),.95),
   per_dot:perDot,
@@ -117,6 +121,7 @@ export function summarizeR29OperatingMeasurements({capture,asOfUtc,
   github_actions_cost_usd:null,provider_cost_usd:null,
   actual_client_confirmed_paper_fills:0,
   intended_full_review_rates:[4,8,12,24],
+  actual_dot_automations_activated_in_this_capture:0,
   no_gpt_run_inferred_from_http_capture:true,
   no_unmeasured_cost_or_latency_imputed:true,
   no_market_coverage_claim:true,trade_authorized:false};
