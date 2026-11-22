@@ -21,6 +21,7 @@ import {emptyPageCoverage,updatePageCoverage} from '../src/v19-page-coverage.mjs
 import {advanceAdaptiveCadence} from '../src/v19-adaptive-cadence.mjs';
 import {makeGeckoOhlcvRequest,decodeGeckoOhlcv} from '../src/v19-gecko-ohlcv.mjs';
 import {emptyOhlcvBackfillState,planOhlcvBackfill,recordOhlcvBackfill} from '../src/v19-ohlcv-backfill-queue.mjs';
+import {auditCaptureEvidenceBundle} from '../src/v19-source-integrity.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -357,12 +358,26 @@ metrics.v19_dot1_cadence_recommendation={target:dot1Advice.target,
   actual_gpt_reviews:0};
 metrics.v18_archived_v4_recovered_pool_count=recoveredV4Count;
 metrics.v18_archived_v4_recovery_error=recoveryError;
+// Re-read all actual on-disk raw responses before publishing the evidence
+// journal. If any self-reported SHA mismatches its source file, abort the run.
+const sourceRows=fetches.filter(x=>x?.body_path&&x?.response_sha256);
+const sourceBodies=Object.fromEntries(await Promise.all(sourceRows.map(async x=>
+  [x.body_path,await readFile(x.body_path,'utf8')])));
+const sourceIntegrity=auditCaptureEvidenceBundle({
+ rawFiles:sourceBodies,apiEvidence:sourceRows,asOfUtc:now()});
+if(sourceIntegrity.proofs.some(x=>x.status==='REJECTED'))
+ throw Error('SOURCE_INTEGRITY_AUDIT_REJECTED');
+metrics.v19_source_integrity={checked:sourceIntegrity.checked,
+ bytes_verified:sourceIntegrity.bytes_verified,
+ late_capture:sourceIntegrity.late_capture,
+ errors_or_rejected:sourceIntegrity.errors_or_rejected,
+ capture_time_independently_attested:false};
 const data={schema:1,kind:'DOT2_PUBLIC_CAPTURE_EVIDENCE',mode:'PAPER_RESEARCH_ONLY',
   request_path:path,requested_at_utc:request.created_at_utc,captured_completed_at_utc:now(),
   source_chain:receivedPages.length===1?chosen.chain:'MULTI_CHAIN',network_rotation:chosen.rotation,selected_page:scanPage,
   coverage_is_global:false,coverage_is_all_chains:false,gecko:decoded,
   dex_checks:dexChecks,dex_fallback_candidates:fallback,
-  api_evidence:fetches,metrics,
+  api_evidence:fetches,metrics,source_integrity:sourceIntegrity,
   errors:fetches.filter(x=>x.error||x.http_ok===false).map(x=>({provider:x.provider,status:x.http_status||null,error:x.error||'HTTP_NOT_OK'})),
   published_paper_orders:0,verified_client_fills:0,
   limitations:['Multi-chain sampled pages do not constitute full market or full chain coverage.','HTTP timestamps are own capture, not provider quote update time.',
