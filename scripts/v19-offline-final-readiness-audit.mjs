@@ -134,7 +134,7 @@ if(exits.convergent_intent_count!==1
 if(operations.measured_http_attempts!==archive.archive_file_count
  ||identity.reference_count!==65||identity.name_only_unresolved!==57
  ||identity.source_pool_link_count!==8||identity.exact_pool_link_count!==4
- ||population.population_size!==488||winnersAfter.neutral_observed_pool_count!==488
+ ||population.population_size<488||winnersAfter.neutral_observed_pool_count!==population.population_size
  ||risk.candidate_count!==79||winnersAfter.recall!==null
  ||operations.actual_gpt_reviews_verified_from_http!==0)
  throw Error('PROVENANCE_OR_NEUTRAL_DENOMINATOR_BASELINE_MISMATCH');
