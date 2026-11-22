@@ -58,6 +58,11 @@ jobs:
           # No live API calls, no Dot activation, no read/write access to
           # a remote Windows-paper account. These are isolated Research CLIs.
           node scripts/v19-offline-backtest-acceptance.mjs
+      - name: Audit three original GitHub captures and six offline readiness workstreams
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/v19-offline-final-readiness-audit.mjs
       - name: Confirm test job did not publish signals or alter tracked index
         shell: bash
         run: |
@@ -101,5 +106,7 @@ jobs:
             probe-artifacts/v19-node-tests.tap
             probe-artifacts/v19-node-ci-receipt.json
             probe-artifacts/v19-qa04-*.json
+            probe-artifacts/v19-six-offline-final-readiness.json
+            probe-artifacts/v19-offline-raw-archive/**
           if-no-files-found: error
           retention-days: 30
