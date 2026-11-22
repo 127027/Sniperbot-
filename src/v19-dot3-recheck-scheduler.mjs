@@ -2,6 +2,7 @@
 // No hidden extra Dot, no provider calls, no promotion to PAPER_ELIGIBLE.
 // Evidence gaps stay DATA_GAP and retain a next action, not permanent REJECTED.
 import {canonicalChain,poolValid,tokenValid} from './market-evidence.mjs';
+import {assessDot3RiskStatus} from './v19-dot3-risk-status.mjs';
 const stamp=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
 const iso=x=>new Date(x).toISOString();
 const asKey=(c,p)=>c+':'+(c==='solana'?p:String(p).toLowerCase());
@@ -60,6 +61,7 @@ export function planDot3EvidenceRechecks({handoff,asOfUtc,
    c.sellability_verified!==true?'VERIFY_SELLABILITY_AND_TAX':
    c.security_verified!==true?'VERIFY_CONTRACT_SECURITY':
    'VERIFY_PROVIDER_QUOTE_TIME';
+  const classification=assessDot3RiskStatus({candidate:c,asOfUtc,mode:'LIVE_PAPER'});
   const previous=state.by_pool[key]||{};
   const cooldown=stamp(previous.retry_after_utc);
   const scheduled=cooldown===null||cooldown<=t;
@@ -68,8 +70,10 @@ export function planDot3EvidenceRechecks({handoff,asOfUtc,
    key,chain:ch,pool:p,pool_kind:c.pool_kind||null,contract:contractOk?c.contract:null,
    symbol:c.symbol||null,source_capture_at_utc:c.captured_at_utc||null,
    source_evidence_path:c.evidence_path||null,
-   status:'DATA_GAP',reason:'MISSING_OR_UNVERIFIED_DOT3_EVIDENCE',
-   missing_fields:fields,next_action:action,next_recheck_at_utc:nextDue,
+   status:classification.status,reason:classification.reason,
+   risk_status_source:'R29_V19_DOT3_RISK_STATE',
+   missing_fields:[...new Set([...fields,...classification.missing_fields])],
+   next_action:action,next_recheck_at_utc:nextDue,
    retriable:scheduled,source_age_minutes:age,
    verification_basis:'DOT2_HANDOFF_ONLY_NOT_EXTERNAL_RISK_PROOF',
    previous_recheck_count:previous.attempt_count||0,
@@ -90,7 +94,8 @@ export function planDot3EvidenceRechecks({handoff,asOfUtc,
  const ready=all.filter(x=>x.retriable),selected=ready.slice(0,maxRequests);
  return {schema:1,kind:'R29_V19_DOT3_EVIDENCE_RECHECK_PLAN',
   as_of_utc:asOfUtc,source_kind:handoff.kind,
-  candidate_count:all.length,missing_evidence_count:all.length,
+  candidate_count:all.length,missing_evidence_count:all.filter(x=>x.status==='DATA_GAP').length,
+  watch_candidates:all.filter(x=>x.status==='WATCH').length,
   confirmed_proven_risk_rejects:0,ready_count:ready.length,
   selected_count:selected.length,backlog_count:all.length-selected.length,
   selected,watchlist:all,
