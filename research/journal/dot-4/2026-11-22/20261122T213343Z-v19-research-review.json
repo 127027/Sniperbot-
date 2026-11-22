@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "kind": "R29_V19_DOT4_GPT_RESEARCH_REVIEW",
+  "role": "dot-4-strategy",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "executed_at_utc": "2026-11-22T21:33:43Z",
+  "baseline": "UNIFIED_V18_SIGNAL_V1",
+  "historical_asof_same_baseline": true,
+  "source_pins": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "c7f26fc8de16365e2a05cad5480a51256455ff4d"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "634d5d1724ddc945a91a92b92c11ad1e1c9ff855"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "d9b6d5808ecee52d707175eba5361f121bc05883"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "research/latest/dot-3.json",
+      "blob_sha": "07b659d4db2f49f7eaab508994bd75ae02e678aa"
+    },
+    {
+      "path": "research/latest/dot-1.json",
+      "blob_sha": "a98bc27199173aa57d10acbfe5e1747b0ac602c2"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "blob_sha": "c4cc98005da636fabc9a7cabb6df0421373edfe4"
+    },
+    {
+      "path": "research/feeds/2026-11-22/45070668194/dot3-research-risk-status-preview.json",
+      "blob_sha": "739e3b43bdccc6516e666b418b3c47cab7720ec0"
+    },
+    {
+      "path": "research/observations/2026-11-22/45070668194-asof-ranking.json",
+      "blob_sha": "864f45709a4c66c74978bc604fee934e8a632f84"
+    },
+    {
+      "path": "signals/index.json",
+      "blob_sha": "8f360a172e95adfda2d30105dd3fc7639497367d"
+    }
+  ],
+  "current_capture": {
+    "run_id": "45070668194",
+    "asof_utc": "2026-11-22T21:11:22.118Z",
+    "persisted_pools": 626,
+    "first_dot2_detected": 217,
+    "captured_candidates": 20,
+    "exact_dex_pair_matches": 6,
+    "independent_upstream_quote_verified": 0,
+    "indicative_complete": 0
+  },
+  "dot3": {
+    "asof_utc": "2026-11-22T21:21:22.453Z",
+    "reviewed": 6,
+    "watch": 5,
+    "data_gap": 1,
+    "paper_eligible": 0,
+    "issuer_verified": false,
+    "sellability_verified": false,
+    "provider_quote_asof_verified": false
+  },
+  "research_decisions": [
+    {
+      "status": "WATCH",
+      "identity": "base:0x01784ef301d79e4b2df3a21ad9a536d4cf09a5ce:0xacfe6019ed1a7dc6f7b508c02d1b04ec88cc21bf",
+      "symbol": "VVV",
+      "asof_utc": "2026-11-22T21:11:22.118Z",
+      "observed_liquidity_usd": 7227434.23,
+      "reason": "Two captured time points, but no independently authenticated upstream quote time or independent risk/sellability issuer; price movement not trade evidence"
+    },
+    {
+      "status": "WATCH",
+      "identity": "solana:HLHBamJd1rdDEtgw9LeD4UbhUk4qvc1To8cYDTzhhTEy:2kp13B4ErkGSoaNekxZ3SqigtsMBrKioXqLVL1ZQpump",
+      "symbol": "awd",
+      "asof_utc": "2026-11-22T21:11:22.118Z",
+      "reason": "Indicative quote divergence 0.00264%, but low liquidity and missing independent upstream, quote-time and sellability attestations"
+    },
+    {
+      "status": "DATA_GAP",
+      "identity": "solana:5JN9ZxvRpB7wPGoUZDvTKdrgMZ3rA353vwpfikvtoUsW:ZNyvNvPs2sNcvFHmrcw9Sfq7E8JSSzb5b8L4SGnpump",
+      "symbol": "$Lambru",
+      "asof_utc": "2026-11-22T21:11:22.118Z",
+      "reason": "Dot3 data gap despite indicative price agreement; issuer, quote-asof and chain sellability absent"
+    },
+    {
+      "status": "DATA_GAP",
+      "scope": "all other candidates",
+      "reason": "No PAPER_ELIGIBLE; missing independent provider quote-asof, issuer and empirical sellability"
+    }
+  ],
+  "positions": {
+    "status": "OFFLINE_OR_UNCONFIRMED",
+    "client_receipts_directory": "HTTP_404",
+    "verified_paper_fills": null,
+    "verified_open_positions": null,
+    "hold_sell_claimed": false
+  },
+  "risk": {
+    "D3_04": "OPEN",
+    "D3_05": "OPEN",
+    "orders_authorized": false
+  },
+  "forecast": {
+    "horizons_hours": [
+      1,
+      3,
+      6
+    ],
+    "probabilities": null,
+    "status": "INSUFFICIENT_DATA"
+  },
+  "cadence": {
+    "target_full_gpt_reviews_per_day": 4,
+    "verified_http_job_gpt_reviews": 0,
+    "this_gpt_research_review_executed": 1,
+    "aggregate_automation_review_count": "UNVERIFIED"
+  },
+  "holdout": {
+    "end_utc": "2026-11-25T06:54:05.033Z",
+    "matured": false
+  },
+  "paper": {
+    "reference_balance_test_usdc": 5000,
+    "reference_amount_per_coin_test_usdc": 50,
+    "local_balance_verified": false,
+    "mutated": false
+  },
+  "result": "NO_TRADE_DATA_GAP",
+  "provider_calls_this_review": 0,
+  "orders_written": 0,
+  "client_fills_claimed": 0,
+  "backtest_executed": false
+}
