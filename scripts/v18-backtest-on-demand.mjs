@@ -3,7 +3,7 @@
 //   node scripts/v18-backtest-on-demand.mjs --date 2026-10-12 --input research/.../asof-input.json
 // No historical winner list is ever a scan seed; model only, no GitHub order.
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
-import {resolve} from 'node:path';
+import {resolve,dirname} from 'node:path';
 import {backtestOnRequest} from '../src/v18-requested-backtest.mjs';
 const argv=process.argv.slice(2);
 const args={};
@@ -26,7 +26,7 @@ if(target.includes('/signals/')||target.includes('\\signals\\')
   ||target.includes('/research/state/')||target.includes('\\research\\state\\')
   ||target.includes('/receipts/')||target.includes('\\receipts\\'))
  throw Error('PROTECTED_OUTPUT_PATH');
-await mkdir(new URL('.', 'file://'+target),{recursive:true});
+await mkdir(dirname(target),{recursive:true});
 await writeFile(target,JSON.stringify(report,null,2)+'\n','utf8');
 console.log('R29_V18_BACKTEST_ON_DEMAND',JSON.stringify({
  date:report.date,status:report.status,mode:report.mode,
