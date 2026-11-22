@@ -6,6 +6,7 @@ import {auditOfflineProtectiveExits} from './v19-offline-protective-shadow-audit
 import {studyLossReentryRecovery} from './v19-offline-loss-reentry.mjs';
 import {analyzeAsOfForecastPath} from './v19-offline-horizon-paths.mjs';
 import {scoreFrozenTemporalOutcomes} from './v19-offline-holdout-scorecard.mjs';
+import {freezeProspectiveHoldout} from './v19-prospective-holdout-freeze.mjs';
 import {compareOfflineCadenceBudgets} from './v19-offline-cadence-shadow-utility.mjs';
 const ms=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
 const asArray=(m,key)=>m?.[key]??[];
@@ -36,11 +37,17 @@ export function buildOfflineResearchExperimentSuite({report,manifest=null}={}){
  }));
  const protective=auditOfflineProtectiveExits({
   modeledReceipts:report.isolated_model_receipts,
-  samples:asArray(source,'shadow_protective_checks'),
+  samples:asArray(source,'shadow_protective_checks').map(row=>({
+   ...row,model_buy_order_id:row.model_buy_order_id==='FIRST_ISOLATED_MODEL_BUY'
+    ?report.isolated_model_receipts.find(r=>r.action==='BUY')?.id
+    :row.model_buy_order_id
+  })),
   asOfUtc:asOf
  });
  const reentries=map('shadow_loss_reentries',r=>{
-  const sale=report.isolated_model_receipts.find(x=>x.id===r.model_loss_receipt_id);
+  const sale=r.model_loss_receipt_id==='FIRST_ISOLATED_MODEL_LOSS_SELL'
+   ?report.isolated_model_receipts.find(x=>x.action==='SELL'&&x.realized_pnl_test_usdc<0)
+   :report.isolated_model_receipts.find(x=>x.id===r.model_loss_receipt_id);
   if(!sale)throw Error('REENTRY_RECEIPT_NOT_IN_MODEL');
   return studyLossReentryRecovery({
    lossReceipt:sale,observations:r.observations,
@@ -51,13 +58,19 @@ export function buildOfflineResearchExperimentSuite({report,manifest=null}={}){
   startAtUtc:r.start_at_utc,entryPriceUsd:r.entry_price_usd,
   observations:r.observations,asOfUtc:r.as_of_utc
  }));
- const holdouts=map('shadow_holdout_scorecards',r=>scoreFrozenTemporalOutcomes({
-  freeze:r.freeze,samples:r.samples,asOfUtc:r.as_of_utc,
-  // Do not accept caller-claimed neutral coverage of REAL market, even when
-  // a manifest says so. Synthetic fixtures are evaluated separately.
-  neutralDenominatorProven:r.synthetic_cohort_complete===true
-   &&Array.isArray(r.samples)&&r.samples.every(x=>x.source_class==='SYNTHETIC_TEST')
- }));
+ const holdouts=map('shadow_holdout_scorecards',r=>{
+  // This optionally recreates a purely SYNTHETIC exercise freeze; it never
+  // changes the immutable prospective Nov-2026 production holdout file.
+  const synthetic=Array.isArray(r.samples)&&r.samples.length>0
+   &&r.samples.every(x=>x.source_class==='SYNTHETIC_TEST');
+  const freeze=r.synthetic_freeze_at_utc&&synthetic
+   ?freezeProspectiveHoldout({frozenAtUtc:r.synthetic_freeze_at_utc})
+   :r.freeze;
+  return scoreFrozenTemporalOutcomes({
+   freeze,samples:r.samples,asOfUtc:r.as_of_utc,
+   neutralDenominatorProven:r.synthetic_cohort_complete===true&&synthetic
+  });
+ });
  const cadence=compareOfflineCadenceBudgets({
   replayEvents:report.role_audit.dot4_strategy.timeline,
   policyFrozenAtUtc:report.historical_warmup_start_utc,
