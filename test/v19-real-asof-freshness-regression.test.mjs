@@ -43,7 +43,7 @@ test('real 22-Nov as-of archive flags 2 stale leaders plus 1 eight-hour price ga
  assert.equal(next.get(cronos)?.latest_capture_is_recent,true);
  assert.ok(next.get(cronos)?.prior_price_observation_gap_minutes>240);
  assert.equal(replay.counts.research_rankable,0);
- assert.equal(replay.counts.long_price_observation_gaps,1);
+ assert.equal(replay.counts.long_price_observation_gaps,18); // archive-wide, not only CROVIA
  assert.ok(replay.counts.stale_last_captures>=2);
  assert.equal(replay.orders,0);
  assert.ok(replay.candidates.every(x=>x.trade_authorized===false));
