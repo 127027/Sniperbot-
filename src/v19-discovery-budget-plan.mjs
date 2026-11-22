@@ -3,12 +3,13 @@
 import {chooseNextDiscoveryPage} from './discovery-page-scheduler.mjs';
 const NETWORKS=new Set(['solana','base','ethereum','bsc','robinhood','cronos']);
 const time=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
-export function planMultiChainCapture({networks,checkpoints={},budget=1,asOfUtc}={}){
+export function planMultiChainCapture({networks,checkpoints={},pageCoverage=null,budget=1,asOfUtc}={}){
  const now=time(asOfUtc);
  if(!Array.isArray(networks)||!networks.length||networks.some(x=>!NETWORKS.has(x))
    ||new Set(networks).size!==networks.length||networks.length>6
    ||!Number.isInteger(budget)||budget<1||budget>12||now===null
-   ||!checkpoints||typeof checkpoints!=='object')
+   ||!checkpoints||typeof checkpoints!=='object'
+   ||(pageCoverage!==null&&pageCoverage?.kind!=='R29_V19_OFFSET_PAGE_COVERAGE'))
    throw Error('INVALID_V19_DISCOVERY_CAPTURE_PLAN');
  const gaps=[],chains=[];
  for(const [order,chain] of networks.entries()){
@@ -22,13 +23,20 @@ export function planMultiChainCapture({networks,checkpoints={},budget=1,asOfUtc}
    const d=chooseNextDiscoveryPage(cp);
    // Failed backlog pages are retried after the cooldown; a page-1 refresh
    // must not erase an already documented gap.
-   const pending=Number.isInteger(cp?.failed_page_to_retry)&&cp.failed_page_to_retry>=1
+   const failed=Number.isInteger(cp?.failed_page_to_retry)&&cp.failed_page_to_retry>=1
      &&cp.failed_page_to_retry<=1000?cp.failed_page_to_retry:null;
-   const primary=pending||d.page,secondary=primary===1
-     ? Math.max(2,Number.isInteger(cp?.next_page_to_consider)?cp.next_page_to_consider:2)
-     : 1;
+   const coverageGaps=(pageCoverage?.chains?.[chain]?.pending_pages||[])
+     .filter(p=>Number.isInteger(p)&&p>=1&&p<=1000).sort((a,b)=>a-b);
+   const pending=failed??coverageGaps[0]??null;
+   const primary=pending||d.page;
+   // When page1 was missing, the next available slot should repair page2,
+   // not skip directly to page4. Otherwise refresh page1 alongside backlog.
+   const nextMissing=coverageGaps.find(p=>p!==primary);
+   const secondary=primary===1?(nextMissing??Math.max(2,
+     Number.isInteger(cp?.next_page_to_consider)?cp.next_page_to_consider:2)):1;
    chains.push({chain,original_order:order,last_attempt_ms:last??-Infinity,
-     primary,secondary,reason:pending?'RETRY_FAILED_PAGE':d.reason});
+     primary,secondary,reason:failed?'RETRY_FAILED_PAGE':
+       pending?'RESUME_UNOBSERVED_PAGE':d.reason});
  }
  // A repeatedly fetched chain becomes newer in its persistent checkpoint,
  // so other chains win next time. Within this request use each once first.
