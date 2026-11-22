@@ -72,8 +72,9 @@ export function inspectFiveDotTraceEntry(entry,{startUtc,endUtc,warmupHours=5}={
    &&canonicalChain(entry.chain)===entry.chain
    &&Number.isInteger(entry.page)&&entry.page>=1&&entry.page<=1000);
  }else check('TRACE_GLOBAL_MUST_NOT_FABRICATE_POOL',coin===null);
- const requiresPool=entry.role==='dot-4-strategy'
-   &&['BUY','SELL','HOLD'].includes(entry.action);
+ const requiresPool=(entry.role==='dot-4-strategy'
+   &&['BUY','SELL','HOLD'].includes(entry.action))
+   ||(entry.role==='dot-3-risk'&&entry.action==='ELIGIBLE');
  check('TRACE_STRATEGY_POOL_REQUIRED',!requiresPool||
    ['POOL','POSITION'].includes(entry.scope));
  check('TRACE_NO_FUTURE_ORACLE_KEYS',!containsOracle(entry)
@@ -96,7 +97,9 @@ export function inspectFiveDotTraceEntry(entry,{startUtc,endUtc,warmupHours=5}={
    &&typeof source.provider==='string'&&source.provider.length>0
    &&iso(source.event_at_utc)!==null&&iso(source.available_at_utc)!==null
    &&iso(source.captured_at_utc)!==null
-   &&iso(source.event_at_utc)<=at);
+   &&iso(source.event_at_utc)<=at
+   &&iso(source.event_at_utc)<=iso(source.captured_at_utc)
+   &&iso(source.captured_at_utc)<=iso(source.available_at_utc));
   check('TRACE_SOURCE_NOT_YET_KNOWABLE',
     source.source_class==='RETRO_ASOF_RECONSTRUCTION'
     ||(iso(source.available_at_utc)<=at&&iso(source.captured_at_utc)<=at));
@@ -104,8 +107,11 @@ export function inspectFiveDotTraceEntry(entry,{startUtc,endUtc,warmupHours=5}={
   check('TRACE_REPEATED_SOURCE_POINTER',!seen.has(source.path));
   seen.add(source.path);
  }
- if(retro>0&&(['BUY','SELL','ELIGIBLE'].includes(entry.action)))
+ if(retro>0&&(['BUY','SELL','ELIGIBLE','DISCOVERED','PASS'].includes(entry.action)))
   throw Error('TRACE_RETRO_RESEARCH_NOT_EXECUTION_PROOF');
+ if(['BUY','SELL','ELIGIBLE'].includes(entry.action)
+   &&(!entry.input_refs.length||entry.missing_evidence.length))
+  throw Error('TRACE_POSITIVE_ACTION_REQUIRES_COMPLETE_INPUTS');
  if(!entry.input_refs.length&&!entry.missing_evidence.length)
   throw Error('TRACE_NO_SOURCE_AND_NO_DATA_GAP_EXPLANATION');
  if(['DATA_GAP','NO_TRADE_DATA_GAP','DEFERRED'].includes(entry.action)
