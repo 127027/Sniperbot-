@@ -3,11 +3,12 @@
 // A SYNTHETIC_REGRESSION_ONLY complete positive packet exercises a modeled
 // PAPER_ELIGIBLE state but NEVER grants an executable paper order.
 import {canonicalChain,poolValid,tokenValid} from './market-evidence.mjs';
+import {asOfMillis} from './v19-asof-evidence.mjs';
 import {inspectDot3Attestation} from './risk-authorization-v18.mjs';
 import {assessChainSellability} from './v19-dot3-sellability.mjs';
 import {auditDot3QuoteSourcePair} from './v19-dot3-source-pairs.mjs';
 
-const time=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
+const time=asOfMillis;
 const canon=(chain,id)=>chain==='solana'?id:String(id).toLowerCase();
 const RESEARCH_MODES=Object.freeze(['LIVE_PAPER','HISTORICAL_ASOF','SYNTHETIC_REGRESSION_ONLY']);
 export const DOT3_RISK_STATES=Object.freeze(['DISCOVERED','DATA_GAP','WATCH','REJECTED','PAPER_ELIGIBLE']);
