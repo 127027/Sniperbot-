@@ -1,4 +1,26 @@
 # R29 – Verbindliche GitHub-Übergabe für neue Chats
+
+## AKTUELLSTER ABNAHME-/CODE-STAND: API-Limit und fortlaufender GitHub-Scanner (22.11.2026)
+
+**Streng nach dem ursprünglichen 61-Aufgaben-Katalog: 10/61 PASS = 16,4 %, 24/61 PARTIAL, 27/61 OPEN.** Ältere `9/61`, `31/61` und `50,8 %` weiter unten sind historische Werte und dürfen nicht als aktueller PASS-Stand ausgegeben werden.
+
+**Neu tatsächlich abgeschlossen:** `D2-09` (persistente Fairqueue, idempotente Quittung, frischer Node-Prozess zeigt nach Restart identische aktive/Legacy-Auswahl). 
+**Teilimplementiert, noch KEINE volle Originalabnahme:** `SYS-11` (persistenter gemeinsamer Gecko-/DEX-HTTP-Rolling-Window-Limiter, 429/503/408/Netzwerkbackoff, Raw-HTTP-Status nach Request, kein echter Mehrlauf nach Code); `D1-04` (5/15/30/60-Minuten-Observation-Advisory unabhängig von 4/8/12/24 GPT-Ziel, aber **kein** tatsächlicher autonomer Capture-Trigger oder Windows-Schutzmonitor); `QA-03` (12 synthetische sechs-Chain-Mehrläufe mit 429/503 und Restart, aber kein echter Provider-Dauertest). `D2-02` weiter PARTIAL; 10/20-%-Fortschrittszähler bezieht sich ausschließlich auf **60 geplante Chain/Page-Samples**, nicht weltweiten Markt.
+
+**Letzter erfolgreicher kompletter Quellcode-Test:** GitHub [Node22 CI #45049551379](https://github.com/127027/Sniperbot-/actions/runs/45049551379) auf `33adcf81e3870f449d30182eac58db4eac750c51`: **486/486 PASS, 0 FAIL, TEST_ONLY_NO_SIGNAL_WRITE 0**. Alle nachfolgenden Commits sind ausschließlich Dokumentation.
+
+WICHTIGE NEUE DATEIEN:
+- `src/v19-provider-budget.mjs`: persistente Provider- und Endpoint-Budgets, 429/503-Backoff, Retry-After/Jitter und Quittungen;
+- `src/v19-independent-observation-schedule.mjs`: getrennte Marktdaten-/GPT-Review-Takte;
+- `src/v19-cumulative-scan-progress.mjs`: begrenzter Seitenplan-Zähler ohne globale Marktabdeckungsbehauptung;
+- `test/v19-d209-persistent-restart.test.mjs`, `test/v19-sys11-persistent-provider-budget.test.mjs`, `test/v19-d104-dual-cadence.test.mjs`, `test/v19-qa03-multirun-429-endurance.test.mjs`, `test/v19-cumulative-scan-progress.test.mjs`;
+- der **bestehende** `scripts/cloud-discovery-runner.mjs` nutzt die Module direkt und speichert beim nächsten echten Request `research/state/provider-budget.json` sowie Betriebsmetrik und begrenzten Samplefortschritt;
+- Dokument: `docs/V19_API_GITHUB_INCREMENTAL_SCANNER_PHASES_20261122.md`.
+
+**Nicht erledigt:** Kein echter neuer API-Capture nach Codeänderung; kein autonomer 24/7-Schedule, kein echtes Client-Wallet-/Position-Monitoring, keine authentifizierten GPT-Reviews, keine BUY/SELL-Receipts. Letztes bekanntes Gecko-429-Retry erst **nach 2026-11-22T18:31:56.465Z**. Keine Dots aktiviert, keine Orders, main/Legacy/Windows unangetastet.
+
+**Nächste Pflicht:** Erst die Originalabnahmekriterien im Re-Audit lesen. Danach in kontrollierten, ausdrücklich genehmigten Provider-Captures die 429/503-Persistenz, 6-Chain-Page-Fairness und echte Preisnachprüfung verifizieren, bevor SYS-11 / QA-03 / D1-04 als PASS gelten können. Kein automatisches Echtgeld oder GPT-Dot-Aktivieren.
+
 ## KORRIGIERTER ORIGINAL-ABNAHMESTATUS (22.11.2026)
 
 **NEUE VERBINDLICHE STATUSZAHL: 9/61 = 14,8 % PASS nach dem ursprünglichen Abnahmekriterium; 22/61 = 36,1 % PARTIAL (gezielt getesteter, aber nicht vollständig original-abgenommener Code); 30/61 = 49,2 % OPEN.**
