@@ -14,11 +14,13 @@ const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 const ms=value=>typeof value==='string'&&ISO.test(value)&&Number.isFinite(Date.parse(value))?Date.parse(value):null;
 const iso=value=>new Date(value).toISOString();
 import {checkUnifiedEvidence as gate,makeReplayCheckOrder as policyOrder} from './v18-shared-evidence-gate.mjs';
-export function replaySignalDecisions({date,snapshots=[],activityObservations=[],activityPageCaptures=[],targetPer24h=4,forceHourlyReview=false,params={},paperPolicy=DEFAULT_POLICY}){
+export function replaySignalDecisions({date,snapshots=[],activityObservations=[],activityPageCaptures=[],targetPer24h=4,forceHourlyReview=false,params={},paperPolicy=DEFAULT_POLICY,
+ firstScanAtStart=false}){
  if(typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date+'T00:00:00Z')))
    throw Error('INVALID_DATE');
  if(![4,8,12,24].includes(targetPer24h))throw Error('INVALID_TARGET');
- if(typeof forceHourlyReview!=='boolean')throw Error('INVALID_FORCE_HOURLY');
+ if(typeof forceHourlyReview!=='boolean'||typeof firstScanAtStart!=='boolean')
+  throw Error('INVALID_FORCE_HOURLY_OR_INITIAL_SCAN');
  if(!Array.isArray(snapshots)||!Array.isArray(activityObservations)||!Array.isArray(activityPageCaptures))throw Error('INVALID_SNAPSHOTS');
  const start=ms(date+'T00:00:00Z'),end=start+86400000;
  const p={...UNIFIED_V18_RULES,...params};
@@ -33,19 +35,21 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
  // Research features may use ALL older, genuinely available market history.
  // The common BUY kernel still limits its MOMENTUM BASELINE to two hours, and
  // the actual purchase/exit requires an entirely separate fresh Dot3 quote.
- const initialHistory=buildAsOfLookback({snapshots,asOfUtc:iso(start-1)});
- // The first decision is at EXACT midnight. Its baseline must exclude the
- // current tick; a candidate quote published at 00:00 may be used as current
- // evidence, never as its own prior momentum baseline.
+ const initialHistory=buildAsOfLookback({
+  snapshots,asOfUtc:iso(firstScanAtStart?start-1:start)
+ });
+ // Opt-in midnight scan: its momentum baseline must strictly predate 00:00.
+ // Legacy :35 diagnostic replays stay available for unchanged comparisons.
  for(const h of initialHistory.markets)
    history.set(h.key,{price:h.latest_price_usdc,at_utc:h.latest_observed_at_utc});
 
  // Input MUST be independently collected and available at its own timestamp.
- // 00:00 is a real first opportunity; later hourly check-ins remain at :35.
- // Never wait 35 minutes to make the first as-of decision.
- // No winner list, oracle or future source is used for candidate discovery.
+ // Opt-in firstScanAtStart provides 00:00 decision; default remains the
+ // established :35 model for reproducible preexisting experiments.
+ // Both modes block all sources unavailable as of their exact virtual tick.
  for(let hour=0;hour<24;hour++){
-   const tick=start+hour*3600000+(hour===0?0:35*60000),at=iso(tick);
+   const tick=start+hour*3600000+
+     (firstScanAtStart&&hour===0?0:35*60000),at=iso(tick);
    // Dot 1 determines cadence from measured *as-of* activity on the first scan,
    // and on later hourly wakes. No evidence -> hold last setting.
    const activity=activityObservations.filter(x=>{
