@@ -12,9 +12,12 @@ export function validateCaptureRequest(value){
  if(!Array.isArray(value.networks)||!value.networks.length||value.networks.some(c=>!chains.includes(c)))throw Error('INVALID_NETWORKS');
  if(!Number.isInteger(value.max_gecko_requests)||value.max_gecko_requests<1||value.max_gecko_requests>12)throw Error('GECKO_BUDGET_EXCEEDED');
  if(!Number.isInteger(value.max_dex_pairs)||value.max_dex_pairs<0||value.max_dex_pairs>10)throw Error('DEX_BUDGET_EXCEEDED');
- const ohlcv=value.max_ohlcv_requests??0;
+ const ohlcv=value.max_ohlcv_requests??0,older=value.max_older_pool_requests??0;
+ if(!Number.isInteger(older)||older<0||older>2)
+  throw Error('OLDER_POOL_RESERVATION_INVALID');
  if(!Number.isInteger(ohlcv)||ohlcv<0||ohlcv>2||
-    value.max_gecko_requests-ohlcv<1)throw Error('OHLCV_RESERVATION_INVALID');
+    value.max_gecko_requests-ohlcv-older<1)
+  throw Error('OHLCV_OR_OLDER_POOL_RESERVATION_INVALID');
  const t=Date.parse(value.created_at_utc);
  if(!Number.isFinite(t))throw Error('INVALID_REQUEST_TIME');
  return value;
