@@ -75,7 +75,12 @@ test('incorrect public key, spoofed issuer, tampered signed payload rejected',()
 test('swapped Git blob SHA or mismatched risk pointer fails before issuer acceptance',()=>{
  assert.equal(check({fetchedRiskSha:'c'.repeat(40)}).code,'GITHUB_BLOB_IDENTITY_MISMATCH');
  const o=order();o.dot3_auth.risk_sha='c'.repeat(40);
- assert.equal(check({order:o}).code,'BINDING_ORDER_OR_COIN_MISMATCH');
+ // A tampered order pointer cannot match the fetched immutable blob.
+ assert.equal(check({order:o}).code,'GITHUB_BLOB_IDENTITY_MISMATCH');
+ // Even when an attacker also swaps the presented blob reference, the
+ // pinned Ed25519 binding still refers to the original risk SHA.
+ assert.equal(check({order:o,fetchedRiskSha:'c'.repeat(40)}).code,
+  'BINDING_ORDER_OR_COIN_MISMATCH');
 });
 test('expired/future binding and invalid risk attestation fail closed',()=>{
  const p=payload();p.expires_at_utc='2026-11-22T09:58:00.000Z';
