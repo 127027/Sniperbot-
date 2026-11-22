@@ -40,11 +40,14 @@ export function makeCaptureObservationBatch({capturedAtUtc,sourcePath,geckoCandi
    missing_price:observations.filter(x=>x.price_usd===null).length},
   errors,orders_published:0};
 }
-export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100,maxLatestCaptureAgeMinutes=120}={}){
+export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100,maxLatestCaptureAgeMinutes=120,
+ maxPriceObservationGapMinutes=240}={}){
  const t=ms(asOfUtc);
  if(t===null||!Array.isArray(batches)||!Number.isInteger(maxCandidates)||maxCandidates<1
    ||!Number.isInteger(maxLatestCaptureAgeMinutes)||maxLatestCaptureAgeMinutes<5
-   ||maxLatestCaptureAgeMinutes>1440)throw Error('INVALID_ASOF_SCORE');
+   ||maxLatestCaptureAgeMinutes>1440||!Number.isInteger(maxPriceObservationGapMinutes)
+   ||maxPriceObservationGapMinutes<5||maxPriceObservationGapMinutes>1440)
+   throw Error('INVALID_ASOF_SCORE');
  const rows=new Map();
  for(const batch of batches){
    const bTime=ms(batch?.captured_at_utc);
@@ -77,6 +80,11 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100,maxLatestCapture
    // observation. Carry forward the last *previously observed*, same-pool
    // volume for RESEARCH ranking only, and expire it after four hours.
    // An old same-time volume is not proof of a volume change.
+   // A many-hours-old reference can be a historical feature, but does not
+   // prove a current acceleration. Keep the old delta for diagnosis only.
+   const priorGapMinutes=prior?(newestAt-ms(prior.captured_at_utc))/60000:null;
+   const priorGapCurrent=priorGapMinutes!==null
+     &&priorGapMinutes>=5&&priorGapMinutes<=maxPriceObservationGapMinutes;
    const volumeSource=[...unique].reverse().find(x=>
      x.volume_24h_usd!==null&&ms(x.captured_at_utc)<=newestAt
      &&newestAt-ms(x.captured_at_utc)<=4*3600000);
@@ -86,7 +94,7 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100,maxLatestCapture
      ?rel(effectiveVolume,prior.volume_24h_usd):null;
    const deltaLiquidity=prior?rel(newest.liquidity_usd,prior.liquidity_usd):null;
    const full=!!newest.contract&&tokenValid(newest.chain,newest.contract);
-   const baseReady=captureFresh&&full&&prior&&move!==null
+   const baseReady=captureFresh&&priorGapCurrent&&full&&prior&&move!==null
       &&newest.liquidity_usd!==null&&newest.liquidity_usd>=5000
       &&effectiveVolume!==null;
    const score=baseReady?
@@ -100,6 +108,10 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100,maxLatestCapture
      latest_capture_age_minutes:Math.round(lastCaptureAgeMinutes*100)/100,
      latest_capture_is_recent: captureFresh,
      research_max_capture_age_minutes:maxLatestCaptureAgeMinutes,
+     prior_price_capture_at_utc:prior?.captured_at_utc??null,
+     prior_price_observation_gap_minutes:priorGapMinutes===null?null:Math.round(priorGapMinutes*100)/100,
+     prior_price_gap_within_current_window:priorGapCurrent,
+     research_max_observation_gap_minutes:maxPriceObservationGapMinutes,
      observed_price_change_pct:move,observed_volume_24h_change_pct:deltaVol,
      observed_liquidity_change_pct:deltaLiquidity,
      research_effective_volume_24h_usd:effectiveVolume,
@@ -108,6 +120,7 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100,maxLatestCapture
      provider_volume_and_price_are_not_independent_execution_quotes:true,
      score,
      status:!captureFresh?'WATCH_STALE_LAST_CAPTURE':
+       prior&&!priorGapCurrent?'WATCH_PRICE_OBSERVATION_GAP':
        baseReady?'RESEARCH_PRIORITY_ONLY_NOT_RISK_APPROVED':'WATCH_INSUFFICIENT_REPEATED_EVIDENCE',
      risk_eligible:false,trade_authorized:false,
      oldest_signal_at_utc:prior?.captured_at_utc??null});
@@ -117,7 +130,10 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100,maxLatestCapture
   as_of_utc:new Date(t).toISOString(),candidates:candidates.slice(0,maxCandidates),
   counts:{observed_unique_pools:candidates.length,research_rankable:candidates.filter(x=>x.score!==null).length,
    stale_last_captures:candidates.filter(x=>!x.latest_capture_is_recent).length,
-   insufficient_repeated_data:candidates.filter(x=>x.score===null&&x.latest_capture_is_recent).length},
+   long_price_observation_gaps:candidates.filter(x=>x.latest_capture_is_recent
+     &&x.status==='WATCH_PRICE_OBSERVATION_GAP').length,
+   insufficient_repeated_data:candidates.filter(x=>x.score===null&&x.latest_capture_is_recent
+     &&x.status!=='WATCH_PRICE_OBSERVATION_GAP').length},
   contamination_protection:'NO_WINNER_LIST_NO_FUTURE_CAPTURES_NO_RISK_APPROVAL',orders:0};
 }
 export function labelAfterHorizon({batches=[],decisionAtUtc,horizonHours=24,toleranceMinutes=60,
