@@ -12,6 +12,7 @@ import {makeCaptureObservationBatch,scoreAsOf,labelAfterHorizon} from '../src/fo
 import {makeAsOfForecastSnapshot,settleMatureForecastSnapshot} from '../src/forward-oracle-journal.mjs';
 import {chooseNextDiscoveryPage} from '../src/discovery-page-scheduler.mjs';
 import {recoverArchivedV4} from '../src/v18-archived-v4-recovery.mjs';
+import {planMultiChainCapture} from '../src/v19-discovery-budget-plan.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -26,7 +27,6 @@ const runId=process.env.GITHUB_RUN_ID;
 if(!/^\d+$/.test(runId||''))throw Error('MISSING_RUN_ID');
 const root='research/feeds/'+new Date(request.created_at_utc).toISOString().slice(0,10)+'/'+runId;
 await mkdir(root,{recursive:true});
-const chosen=chooseNetwork(request,Number(process.env.GITHUB_RUN_NUMBER)||0);
 const now=()=>new Date().toISOString();
 const fetches=[],dexChecks=[],fallback=[],rechecked=[],artifacts=[];
 async function fetchRaw(url,provider,fileName){
@@ -43,24 +43,58 @@ async function fetchRaw(url,provider,fileName){
  try{return {json:JSON.parse(text),evidence};}
  catch{throw Error('INVALID_JSON_RESPONSE');}
 }
-let decoded=null;
-// On a chain's first visit capture page 1; on later visits alternate fresh
-// page 1 and the next unvisited page. A checkpoint is not global coverage.
+// Existing Dot2 runner, but all six chains can now share a bounded request.
+// A capture *plan* is not evidence that each planned page was received.
 const memoryFile='research/state/market-memory.json';
 let precedingMemory;
 try{precedingMemory=JSON.parse(await readFile(memoryFile,'utf8'));}
 catch(err){if(err.code!=='ENOENT')throw err;precedingMemory=emptyMarketMemory();}
-const oldCheckpoint=precedingMemory.checkpoints[chosen.chain+':GECKOTERMINAL'];
-const unvisited=Math.max(1,oldCheckpoint?.next_page_to_consider||1);
-const pageDecision=chooseNextDiscoveryPage(oldCheckpoint);
-const scanPage=pageDecision.page;
-const mainUrl='https://api.geckoterminal.com/api/v2/networks/'+chosen.network
- +'/new_pools?include=base_token,quote_token&page='+scanPage;
-try{
- const got=await fetchRaw(mainUrl,'GECKOTERMINAL','gecko-'+chosen.chain+'-page'+scanPage+'.raw.json');
- decoded=decodeGeckoNewPools({network:chosen.chain,response:got.json,capturedAtUtc:got.evidence.received_at_utc,page:scanPage});
-}catch(error){fetches.at(-1)?.http_ok===false ? (fetches.at(-1).error=String(error.message||error)) :
- fetches.push({provider:'GECKOTERMINAL',url:mainUrl,error:String(error.message||error).slice(0,100)});}
+const capturePlan=planMultiChainCapture({
+ networks:request.networks,checkpoints:precedingMemory.checkpoints,
+ budget:request.max_gecko_requests,asOfUtc:now()});
+const receivedPages=[],failedPages=[],deferredPages=[];
+for(let i=0;i<capturePlan.tasks.length;i++){
+ const task=capturePlan.tasks[i],chain=task.chain,page=task.page;
+ const network=chain==='ethereum'?'eth':chain==='cronos'?'cro':chain;
+ const url='https://api.geckoterminal.com/api/v2/networks/'+network
+   +'/new_pools?include=base_token,quote_token&page='+page;
+ const fileName='gecko-'+chain+'-page'+page+'.raw.json';
+ const fullPath=root+'/'+fileName;
+ try{
+   const got=await fetchRaw(url,'GECKOTERMINAL',fileName);
+   const pageData=decodeGeckoNewPools({network:chain,response:got.json,
+     capturedAtUtc:got.evidence.received_at_utc,page});
+   receivedPages.push({chain,page,reason:task.reason,decoded:pageData,
+     sourcePath:got.evidence.body_path,sourceSha256:got.evidence.response_sha256,
+     capturedAtUtc:got.evidence.received_at_utc});
+ }catch(error){
+   const prior=fetches.findLast(x=>x.body_path===fullPath);
+   const status=prior?.http_status===429?'HTTP_429':
+     prior?.http_status?'HTTP_'+prior.http_status:'SOURCE_ERROR';
+   failedPages.push({chain,page,status,sourcePath:prior?.body_path||root+'/evidence.json',
+     capturedAtUtc:prior?.received_at_utc||now()});
+   if(prior)prior.error=String(error?.message||error).slice(0,100);
+   else fetches.push({provider:'GECKOTERMINAL',url,error:String(error?.message||error).slice(0,100)});
+   if(status==='HTTP_429'){
+     // Back off for the remaining work; persistent checkpoint retains
+     // failed attempt so other chains can be serviced next time.
+     deferredPages.push(...capturePlan.tasks.slice(i+1));
+     break;
+   }
+ }
+}
+const decoded=receivedPages.length?{
+ schema:1,network:'MULTI_CHAIN',page:null,
+ found_count:receivedPages.reduce((n,x)=>n+x.decoded.found_count,0),
+ rejected_count:receivedPages.reduce((n,x)=>n+x.decoded.rejected_count,0),
+ candidates:receivedPages.flatMap(x=>x.decoded.candidates),
+ captured_at_utc:now()
+}:null;
+const chosen={chain:receivedPages[0]?.chain||capturePlan.tasks[0]?.chain||'UNKNOWN',
+ rotation:null};
+const scanPage=receivedPages[0]?.page||capturePlan.tasks[0]?.page||null;
+const pageDecision={page:scanPage,reason:'V19_BOUNDED_MULTI_CHAIN_CAPTURE',
+ gap_known:capturePlan.not_scheduled.length>0||deferredPages.length>0};
 const incoming=JSON.parse(await readFile('research/latest/dot-2.json','utf8'));
 const known=Array.isArray(incoming?.candidates)?incoming.candidates:[];
 const memoryPath='research/state/market-memory.json';
@@ -145,17 +179,22 @@ metrics.discovery_page=scanPage;
 metrics.discovery_page_reason=pageDecision.reason;
 metrics.previous_chain_page_checkpoint=oldCheckpoint?.next_page_to_consider??null;
 metrics.verified_recheck_price_observations=rechecked.length;
+metrics.v19_chain_page_plan=capturePlan;
+metrics.v19_gecko_received_pages=receivedPages.map(x=>({chain:x.chain,page:x.page,found:x.decoded.found_count}));
+metrics.v19_gecko_failed_pages=failedPages.map(x=>({chain:x.chain,page:x.page,status:x.status}));
+metrics.v19_gecko_deferred_pages=deferredPages;
+metrics.v19_gecko_actual_attempts=receivedPages.length+failedPages.length;
 metrics.v18_archived_v4_recovered_pool_count=recoveredV4Count;
 metrics.v18_archived_v4_recovery_error=recoveryError;
 const data={schema:1,kind:'DOT2_PUBLIC_CAPTURE_EVIDENCE',mode:'PAPER_RESEARCH_ONLY',
   request_path:path,requested_at_utc:request.created_at_utc,captured_completed_at_utc:now(),
-  source_chain:chosen.chain,network_rotation:chosen.rotation,selected_page:scanPage,
+  source_chain:receivedPages.length===1?chosen.chain:'MULTI_CHAIN',network_rotation:chosen.rotation,selected_page:scanPage,
   coverage_is_global:false,coverage_is_all_chains:false,gecko:decoded,
   dex_checks:dexChecks,dex_fallback_candidates:fallback,
   api_evidence:fetches,metrics,
   errors:fetches.filter(x=>x.error||x.http_ok===false).map(x=>({provider:x.provider,status:x.http_status||null,error:x.error||'HTTP_NOT_OK'})),
   published_paper_orders:0,verified_client_fills:0,
-  limitations:['No full scan beyond the fetched page or chosen chain.','HTTP timestamps are own capture, not provider quote update time.',
+  limitations:['Multi-chain sampled pages do not constitute full market or full chain coverage.','HTTP timestamps are own capture, not provider quote update time.',
   'One DEX source can recover a full contract but not independently establish price safety.',
   'Risk, sellability, independent quotes and actual paper-client fills still required.']};
 const filename=root+'/evidence.json';
@@ -167,13 +206,23 @@ const mergedOld=mergeMemory(memory,{candidates:known,
  sourceCapturedAtUtc:incoming.updated_at_utc||data.captured_completed_at_utc,
  provider:'DOT2_PRIOR_JOURNAL',chain:null,page:1});
 memory=mergedOld.memory;
-const mergedGecko=mergeMemory(memory,{candidates:decoded?.candidates||[],
- sourcePath:decoded?root+'/gecko-'+chosen.chain+'-page'+scanPage+'.raw.json':filename,
- sourceCapturedAtUtc:data.captured_completed_at_utc,
- sourceSha256:fetches.find(x=>x.provider==='GECKOTERMINAL')?.response_sha256||null,
- provider:'GECKOTERMINAL',chain:chosen.chain,page:scanPage,
- fetchStatus:decoded?'OK':(data.errors[0]?.error||'SOURCE_ERROR')});
-memory=mergedGecko.memory;
+let geckoAdded=0,geckoUpdated=0;
+for(const pageResult of receivedPages){
+ const merged=mergeMemory(memory,{candidates:pageResult.decoded.candidates,
+   sourcePath:pageResult.sourcePath,
+   sourceCapturedAtUtc:pageResult.capturedAtUtc,
+   sourceSha256:pageResult.sourceSha256,provider:'GECKOTERMINAL',
+   chain:pageResult.chain,page:pageResult.page,fetchStatus:'OK'});
+ memory=merged.memory;geckoAdded+=merged.added;geckoUpdated+=merged.updated;
+}
+// Persist failed page attempts too: a failure is NOT successful coverage.
+for(const failure of failedPages){
+ const merged=mergeMemory(memory,{candidates:[],
+   sourcePath:failure.sourcePath,
+   sourceCapturedAtUtc:failure.capturedAtUtc,provider:'GECKOTERMINAL',
+   chain:failure.chain,page:failure.page,fetchStatus:failure.status});
+ memory=merged.memory;
+}
 const mergedDex=mergeMemory(memory,{candidates:fallback,
  sourcePath:filename,sourceCapturedAtUtc:data.captured_completed_at_utc,
  provider:'DEXSCREENER',chain:null,page:1});
@@ -274,12 +323,12 @@ const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
  run_id:runId,created_at_utc:data.captured_completed_at_utc,request_path:path,
  immutable_feed_path:filename,
  imported_existing_dot2:mergedOld.added,
- new_gecko_pools:mergedGecko.added,
+ new_gecko_pools:geckoAdded,
  new_dex_fallback_pools:mergedDex.added,
  actual_rechecked_prices:rechecked.length,
  dex_recheck_observation_path:recheckObservationPath,
  scan_page_decision:pageDecision,
- updated_pool_observations:mergedOld.updated+mergedGecko.updated+mergedDex.updated,
+ updated_pool_observations:mergedOld.updated+geckoUpdated+mergedDex.updated,
  coverage:memory.checkpoints,stats:memory.stats,
  historic_rechecks_next:nextPlan.candidates,
  fair_recheck_attempts:attempts,
@@ -303,7 +352,7 @@ await writeFile(handoffPath,JSON.stringify(handoff,null,2)+'\n','utf8');
 artifacts.push(handoffPath);
 const latest={schema:1,kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',mode:'PAPER_RESEARCH_ONLY',
   request_path:path,evidence_path:filename,handoff_path:handoffPath,captured_at_utc:data.captured_completed_at_utc,
-  source_chain:chosen.chain,metrics,handoff_counts:handoff.counts,
+  source_chain:data.source_chain,metrics,handoff_counts:handoff.counts,
  observation_path:observationPath,ranking_path:rankingPath,
  forecast_path:forecastPath,matured_forecast_path:matureForecastPath,
  matured_label_path:matureLabelsPath,prospective_counts:prospectiveRanking.counts,
