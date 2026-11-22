@@ -40,3 +40,13 @@ Die 29h-Zeitleiste, unmittelbar erlaubte Startentscheidung um 12.10.2026 00:00 U
 - Prospektiver eigener Holdout erst ab tatsächlicher Reife nach 25.11.2026 06:54 UTC mit überprüften Labels.
 
 **Strenge Original-Abnahme (unverändert): 13 PASS / 46 PARTIAL / 2 OPEN = 21,31% voll verifiziert.** Unit-Test-Zähler sind separate Softwarequalität, keine systemweite 100%-Freigabe. `QA-04` und Echtgeld bleiben nicht ausgeführt.
+
+
+## Bestätigte GitHub-CI-Abnahme der technischen Korrekturen
+
+**GitHub-Code-SHA:** `df06abaa8efea7a998085dd66a1d2cee28c7431c`. Beide echten GitHub Actions Jobs erfolgreich mit `node --test` auf Node 22, **717 Tests / 717 PASS / 0 FAIL**:
+
+- [R29 Cleanroom Paper Tests #45075311441](https://github.com/127027/Sniperbot-/actions/runs/45075311441)
+- [R29 V1.9 Cleanroom Tests Only #45075311435](https://github.com/127027/Sniperbot-/actions/runs/45075311435)
+
+Diese erfolgreichen Softwaretests belegen **nur** die neue Entscheidungs-/Forensik-Logik an echten bzw. synthetischen Test-Fixtures. Kein historisches GPT-Research vom Oktober wurde dadurch ausgeführt; es existiert weiterhin **keine** externe Signatur- und Sellability-Originalabnahme.
