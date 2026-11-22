@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "kind": "R29_V19_DOT2_GPT_RESEARCH_AUDIT",
+  "role": "dot-2-discovery",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "actual_review_at_utc": "2026-11-22T22:18:03.063Z",
+  "gpt_run_identity": "UNVERIFIED",
+  "independently_authenticated_gpt_receipt": false,
+  "status": "CAPTURE_PENDING_DATA_GAP",
+  "action": "REQUEST_ONE_BOUNDED_CAPTURE_AND_REVIEW_LAST_CONFIRMED_FEED",
+  "request_path": "research/requests/2026-11-22/20261122T221749376Z-dot2-research-window.json",
+  "request_commit_sha": "ff4e3d45bde1ba60d073e6f598154b2c2e445078",
+  "input_refs": [
+    {
+      "path": "research/feeds/latest.json",
+      "git_blob_sha": "634d5d1724ddc945a91a92b92c11ad1e1c9ff855",
+      "captured_at_utc": "2026-11-22T21:11:22.118Z",
+      "source_run_id": "45070668194"
+    },
+    {
+      "path": "research/feeds/2026-11-22/45070668194/evidence.json",
+      "git_blob_sha": "2a848c6fad4629dbc838a0be7e984660b6eb4a91"
+    },
+    {
+      "path": "research/state/latest.json",
+      "git_blob_sha": "c7f26fc8de16365e2a05cad5480a51256455ff4d"
+    },
+    {
+      "path": "research/state/checkpoints/45070668194.json",
+      "git_blob_sha": "6438721598148e52c832ee46016c5a71ff9ac78d"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "git_blob_sha": "d9b6d5808ecee52d707175eba5361f121bc05883"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "git_blob_sha": "c4cc98005da636fabc9a7cabb6df0421373edfe4"
+    }
+  ],
+  "reviewed_prior_capture": {
+    "run_id": "45070668194",
+    "chain": "solana",
+    "page": 3,
+    "gecko_http200_rows": 20,
+    "full_contracts_reported": 20,
+    "dex_checks": 6,
+    "independent_complete_quotes": 0,
+    "source_raw_path": "research/feeds/2026-11-22/45070668194/gecko-solana-page3.raw.json",
+    "source_raw_sha256": "42261dda55f429c67d76a21dce4c1f821c3ea28e27c8bb31c28c3e776a28eccc",
+    "provider_quote_asof_utc": null
+  },
+  "memory": {
+    "pools": 626,
+    "first_dot2_detected": 217,
+    "observation_batches": 124,
+    "global_coverage": false
+  },
+  "provider_budget": {
+    "gecko_last_http_status": 200,
+    "gecko_cooldown_until_utc": null,
+    "as_of_utc": "2026-11-22T21:11:22.104Z",
+    "limits": "4 shared starts/min; 3 NEW_POOLS/min; 15.1 seconds pacing in provider workflow"
+  },
+  "what_was_done": "Read current protocol, handoff, source feed, checkpoint, provider budget and previous GPT pointer; reconciled delayed prior HTTP capture as separate from prior pending GPT journal; submitted exactly one bounded six-chain research request.",
+  "why_this_action": "Authorized 22:15-05:15 UTC eight-wake window; last observed provider cooldown clear and no matching newer feed at request time; source coverage remains bounded and deferred HOT/FAIR/REPAIR queues require continued observation.",
+  "alternatives_considered": [
+    "No request: would miss the authorized bounded wake despite clear persisted budget",
+    "Direct unpaced provider API requests: rejected to preserve shared budget",
+    "Trade or historical replay: prohibited"
+  ],
+  "not_examined": [
+    "No new request HTTP response or completion yet",
+    "No global six-chain coverage",
+    "No original 2026-10-12 as-of market capture",
+    "No independent issuer or onchain sellability proof",
+    "No verified provider quote as-of"
+  ],
+  "missing_evidence": [
+    "NEW_CAPTURE_PENDING",
+    "D3_04_INDEPENDENT_ISSUER",
+    "D3_05_CHAIN_SELLABILITY",
+    "NO_AUTHENTICATED_GPT_EXECUTION_RECEIPT"
+  ],
+  "next_action": "On next genuine wake compare new feed request_path and evidence SHA; inspect raw response statuses, page coverage, 429/retry-after, deferred queue, and completed HTTP run count within eight-wake window.",
+  "window": {
+    "start_utc": "2026-11-22T22:15:00Z",
+    "end_utc": "2026-11-23T05:15:00Z",
+    "planned_wakes": 8,
+    "verified_completed_http_captures_in_window_at_review": 0,
+    "submitted_requests_this_wake": 1
+  },
+  "orders_created": 0,
+  "paper_fills": 0,
+  "backtest_executed": false
+}
