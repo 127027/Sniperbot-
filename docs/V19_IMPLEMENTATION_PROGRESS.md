@@ -1,5 +1,17 @@
 # R29 V1.9 – Fortlaufender Umsetzungsstand (22.11.2026)
 
+## NEUER ABGENOMMENER TECHNISCHER 80,3-%-STAND (22.11.2026)
+
+**VERBINDLICHE originale 61 Aufgaben:** **13 PASS (21,3 % streng vollständig)**, **36 PARTIAL**, **12 OPEN**, also **49/61 = 80,3 % technisch bearbeitet (PASS + PARTIAL)**. Gegenüber dem vorherigen strengen Stand **13 PASS / 30 PARTIAL / 18 OPEN (43/61 = 70,5 %)** sind GENAU SECHS echte Originalaufgaben **OPEN→PARTIAL**, KEINE künstlichen PASS.
+
+**Sechs durch echte Softwarekomponenten und echten Drei-Szenario-29h-CLI-Lauf belegte Offline-PARTIAL-Aufgaben:** `D1-07` (4/8/12/24 as-of Review-Kosten/Nutzen-Schattenvergleich ohne echte GPT), `D4-02` (zeitgerechte Marktregime/Preis-/Liquiditätsmerkmale, keine neue Kaufregel), `D4-04` (getrennte read-only Schutzverkaufsprüfung zwischen Vollreviews auf MODELED-Lots), `D4-05` (nach verifiziert MODELLIERTEM Verlust nur Reentry-WATCH/Follow-up, keine Order), `D4-06` (1/3/6h Endpunkt vs nur bei dichtem Zeitpanel tatsächlich beobachtete Peaks/Drawdown, **jede Quelle muss zum selben Pool gehören**), `D5-05` (purged Holdout-Research-Scorecard; echte Kohorten bleiben ohne neutralen Nenner `null`). **Kein echtes GPT, kein Echtgeld, keine lokalen Client-Fills, keine Provider-API-Abfrage.**
+
+**Echte grüne GitHub-Abnahme:** [Node22 Source-only #45062258765](https://github.com/127027/Sniperbot-/actions/runs/45062258765), Quellcommit `66b5c60942983558e73126b2a964c8fd6cb9a385`: **590/590 Tests PASS, 0 FAIL, `TEST_ONLY_NO_SIGNAL_WRITE 0`**; zusätzlich **DREI tatsächlich auf GitHub gestartete vollständige 29h-Offlinereplays** mit SHA-256-Forschungsartefakten: (1) Oktober mit **24/24 DATA_GAP**, 0 BUY; (2) nur synthetischer Gewinnerfall **1 BUY, 1 SELL, +12,01063839 TEST-USDC MODELL**; (3) nur synthetischer Verlustfall **1 BUY, 1 SELL, −18,97019389 TEST-USDC MODELL** plus alle sechs verbundenen Shadow-Reports. 0 tatsächliche GPT-Dot-Ausführungen, 0 echte Paper-Fills, 0 GitHub-Orderwrites. **Keine der beiden künstlichen PnL-Zahlen ist historische Oktober-Performance.**
+
+**Vollständige Nachweise und verbliebene Einzel-Abnahmehindernisse:** [`docs/V19_80_PERCENT_OFFLINE_MILESTONE_20261122.md`](V19_80_PERCENT_OFFLINE_MILESTONE_20261122.md). `SYS-06` ist bereits vorher durch zwei gesonderte explizite 29h-GitHub-Forschungsaufträge PASS geworden; `QA-04` und `SYS-09` bleiben weiter PARTIAL. Alle fünf Dots bleiben deaktiviert. `main`, Legacy, Windows-Paper-Guthaben und API-24/7-Betrieb bleiben unangetastet. Die historisch fehlenden neutralen Oktober-Quellen sind weiterhin **DATA_GAP**, niemals durch synthetische Quotes rückdatiert als Originale ausgegeben.
+
+
+
 ## NEUER ORIGINAL-61-ABNAHMESTAND: SYS-06 jetzt PASS durch zwei echte Offline-GitHub-Aufträge (22.11.2026)
 
 **Neues streng belegtes Ergebnis:** **13/61 PASS (21,3 %), 30/61 PARTIAL (49,2 %), 18/61 OPEN (29,5 %). Technisch bearbeitet weiter 43/61 = 70,5 %.** Vorher 12 PASS / 31 PARTIAL / 18 OPEN; nur `SYS-06` von PARTIAL→PASS; nicht unbelegte andere Aufgaben doppelt zählen.
