@@ -18,6 +18,7 @@ import {summarizeRecheckService} from '../src/v19-recheck-service-metrics.mjs';
 import {providerRetryDelay} from '../src/v19-provider-backoff.mjs';
 import {measureDot1Activity} from '../src/v19-market-activity.mjs';
 import {emptyPageCoverage,updatePageCoverage} from '../src/v19-page-coverage.mjs';
+import {advanceAdaptiveCadence} from '../src/v19-adaptive-cadence.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -266,6 +267,17 @@ try{
 }catch(error){if(error.code!=='ENOENT')throw error;}
 const activityResult=measureDot1Activity({
  pageCaptures:[...previousActivityPages,...currentActivityPages],asOfUtc:now()});
+// A triggered Dot2 research capture can give Dot1 a cadence RECOMMENDATION
+// without running any of the five paused GPT automations.
+const dot1AdvicePath='research/state/dot1-cadence-advice.json';
+let dot1Prior=null;
+try{
+ const saved=JSON.parse(await readFile(dot1AdvicePath,'utf8'));
+ if(saved.kind==='R29_V19_DOT1_CADENCE_RECOMMENDATION')dot1Prior=saved.state;
+}catch(error){if(error.code!=='ENOENT')throw error;}
+const dot1Advice=advanceAdaptiveCadence({
+ previous:dot1Prior,metrics:activityResult.metrics,asOfUtc:now()});
+await writeFile(dot1AdvicePath,JSON.stringify(dot1Advice,null,2)+'\\n','utf8');
 const activityPath='research/observations/'+activityDay(now())+'/'+runId+'-activity-pages.json';
 await mkdir('research/observations/'+activityDay(now()),{recursive:true});
 await writeFile(activityPath,JSON.stringify({
@@ -282,6 +294,9 @@ metrics.v19_dot1_measured_activity={
  complete_comparable_panel:activityResult.comparable_panel_complete,
  no_market_calm_claim:true};
 metrics.v19_dot1_activity_journal_path=activityPath;
+metrics.v19_dot1_cadence_recommendation={target:dot1Advice.target,
+  reason:dot1Advice.reason,quiet_confirmations:dot1Advice.quiet_confirmations,
+  actual_gpt_reviews:0};
 metrics.v18_archived_v4_recovered_pool_count=recoveredV4Count;
 metrics.v18_archived_v4_recovery_error=recoveryError;
 const data={schema:1,kind:'DOT2_PUBLIC_CAPTURE_EVIDENCE',mode:'PAPER_RESEARCH_ONLY',
@@ -435,6 +450,7 @@ const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
  observation_path:observationPath,ranking_path:rankingPath,
  activity_capture_path:activityPath,
  page_coverage_report_path:coverageReportPath,
+ dot1_cadence_advice_path:dot1AdvicePath,
  forecast_path:forecastPath,matured_forecast_path:matureForecastPath,
  matured_label_path:matureLabelsPath,
  prospective_ranking_counts:prospectiveRanking.counts,
