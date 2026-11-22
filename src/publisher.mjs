@@ -7,6 +7,12 @@ const json=v=>JSON.stringify(v,null,2)+'\n';
 const b64=s=>Buffer.from(s,'utf8').toString('base64');
 export async function publishPaperOrder(transport,order,{maxIndexSize=400,maxRetries=5}={}){
   if(!/^[A-Za-z0-9_-]{8,80}$/.test(order?.id||'')||order.mode!=='PAPER'||!['BUY','SELL'].includes(order.action)||order.authority!=='dot-4-strategy')throw Error('INVALID_PUBLISH_REQUEST');
+  // Every prospective SELL must specify the original BUY's sourceOrderId.
+  // The client separately matches it to its own persisted open position.
+  if(order.action==='SELL'&&
+     (typeof order.exit_position_source_order_id!=='string'
+      ||!/^[A-Za-z0-9_-]{8,80}$/.test(order.exit_position_source_order_id)))
+    throw Error('SELL_OPENING_LOT_ID_REQUIRED');
   // Reject unsigned/unproven claims BEFORE writing signals/orders or index.
   // Trusted public key is external configuration, never an order field.
   const auth=await validateDot3OrderBeforePublish({order,
