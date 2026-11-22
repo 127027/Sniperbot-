@@ -90,3 +90,52 @@ test('identical archived capture is not silently a global market population',asy
  assert.equal(ledger.source_blob_verified_independently,false);
  assert.ok(ledger.events.some(x=>x.source_page===3));
 });
+
+
+test('real multi-chain aggregation retains parser rejects per original chain/page',async()=>{
+ const a=await make();
+ const capture={...a.capture,source_chain:'MULTI_CHAIN',
+  gecko:{...a.capture.gecko,network:'MULTI_CHAIN',page:null,
+   rejected:a.capture.gecko.rejected.map(r=>({...r,chain:'ethereum',
+     source_page:3,source_http_captured_at_utc:a.capture.gecko.captured_at_utc}))},
+  page_capture_failures:[{chain:'base',page:2,status:'HTTP_429',
+   attempt_at_utc:'2026-11-22T08:19:45.500Z',
+   retry_after_utc:'2026-11-22T08:20:45.500Z'}],
+  page_capture_deferred:[{chain:'solana',page:1,status:'NOT_CAPTURED_DEFERRED'}]};
+ const ledger=buildDot5DiscoveryLedger({...a,capture});
+ assert.equal(ledger.summary.recorded_lifecycle_entities,22);
+ assert.equal(ledger.summary.page_capture_failures,1);
+ assert.equal(ledger.summary.page_capture_deferred,1);
+ assert.equal(ledger.summary.rejected_uniswap_v4_reported,18);
+ assert.equal(ledger.events.filter(x=>x.current_stage==='DISCOVERY_REJECTED')
+  .every(x=>x.source_chain==='ethereum'&&x.source_page===3),true);
+ assert.equal(ledger.events.find(x=>x.current_stage==='PAGE_CAPTURE_FAILED')
+  .page_failure_status,'HTTP_429');
+ assert.equal(ledger.events.find(x=>x.current_stage==='PAGE_CAPTURE_DEFERRED')
+  .lifecycle[0].page_was_observed,false);
+});
+test('zero successful Gecko pages after 429 still yield a truthful gap journal',async()=>{
+ const a=await make();
+ const empty={...a.capture,gecko:null,source_chain:'MULTI_CHAIN',
+  page_capture_failures:[{chain:'base',page:3,status:'HTTP_429',
+   attempt_at_utc:'2026-11-22T08:19:45.500Z',
+   retry_after_utc:'2026-11-22T08:20:45.500Z'}],
+  page_capture_deferred:[]};
+ const handoff={...a.handoff,candidates:[],counts:{unique_pools:0}};
+ const ledger=buildDot5DiscoveryLedger({...a,capture:empty,handoff});
+ assert.equal(ledger.summary.handoff_accepted_pools,0);
+ assert.equal(ledger.summary.upstream_parser_rejections,0);
+ assert.equal(ledger.summary.page_capture_failures,1);
+ assert.equal(ledger.summary.recorded_lifecycle_entities,1);
+ assert.equal(ledger.events[0].pool,null);
+ assert.equal(ledger.events[0].outcome,null);
+ assert.equal(ledger.summary.verified_orders,0);
+});
+test('future page-failure timestamp cannot enter a historical event ledger',async()=>{
+ const a=await make();
+ const capture={...a.capture,page_capture_failures:[{
+  chain:'base',page:3,status:'HTTP_429',
+  attempt_at_utc:'2026-11-23T12:00:00.000Z'}]};
+ assert.throws(()=>buildDot5DiscoveryLedger({...a,capture}),
+  /DOT5_INVALID_PAGE_GAP/);
+});
