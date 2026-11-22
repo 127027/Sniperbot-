@@ -4,6 +4,7 @@
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {replayArchivedSixChainEvidence} from '../src/v19-offline-multichain-replay.mjs';
+import {auditArchivedDexRecheckFreshness} from '../src/v19-dex-cached-quote-audit.mjs';
 const ids=Object.freeze([
  '45036887325','45044300013','45057658912',
  '45064131641','45064898786','45065920534','45066246697'
@@ -50,6 +51,9 @@ if(original.archive_failures.length||original.chains.length!==6
  ||original.total_original_http429_pages!==3
  ||original.actual_network_requests!==0||original.orders_authorized!==0)
  throw Error('UNEXPECTED_SEVEN_RUN_SIX_CHAIN_ORIGINAL_REPLAY');
+const dex=auditArchivedDexRecheckFreshness({apiEvidence:receipts,rawFiles,asOfUtc});
+if(dex.source_integrity_failures.length||dex.total_orders_authorized!==0)
+ throw Error('DEX_RECHECK_RAW_ORIGIN_OR_AUTHORIZATION_FAILURE');
 const report={schema:1,kind:'R29_V19_7REAL_GITHUB_CAPTURE_PROSPECTIVE_SOURCE_AUDIT',
  as_of_utc:asOfUtc,source_commit:process.env.GITHUB_SHA??null,
  original_capture_run_ids:ids,original_capture_count:captures.length,
@@ -58,6 +62,7 @@ const report={schema:1,kind:'R29_V19_7REAL_GITHUB_CAPTURE_PROSPECTIVE_SOURCE_AUD
  recorded_captures:captures,
  origin_sha256_manifest:sha(JSON.stringify(archived)),
  chain_and_original_source_timing:original,
+ dex_same_pool_rechecks_with_independent_quote_time_missing:dex,
  asof_window_all_sources_november_only:true,
  source_provider_quote_time_independently_verified:false,
  actual_paper_client_fills:0,actual_gpt_decisions_claimed:0,
@@ -75,6 +80,9 @@ console.log('R29_7REAL_CAPTURE_SOURCE_AUDIT',JSON.stringify({
  six_chains_with_http200:original.chains_with_at_least_one_prior_real_http200,
  unique_pool_keys:original.unique_pool_keys_from_these_replayed_pages,
  observed_same_pool_price_pairs_5_to_240min:original.observed_price_pairs_5_to_240min_total,
+ raw_dex_repeat_pair_captures:dex.repeated_http_capture_pairs_5_to_240min_count,
+ byte_identical_dex_repeat_responses:dex.identical_original_response_repeats,
+ independently_proven_new_dex_quote_samples:dex.genuine_new_independent_live_quote_approved_count,
  provider_quote_time_verifications:0,orders:0,provider_requests:0,
  output:'probe-artifacts/v19-seven-real-source-momentum-readiness.json'
 }));
