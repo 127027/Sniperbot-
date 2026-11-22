@@ -78,6 +78,10 @@ export function auditLiveFiveDotJournalInventory({
   if(!pointer?.forensic_trace_path)
    issue('FORENSIC_TRACE_NOT_LINKED',
     'Latest role pointer has no dedicated forensic trace path');
+  if(id==='dot-5'&&forensic.test(path??'')
+    &&pointer.forensic_trace_path!==path)
+   issue('DOT5_FORENSIC_JOURNAL_POINTER_DIVERGENCE',
+    'Dot5 latest journal and forensic trace claim different current files');
   if(id==='dot-2'&&feedPointer?.kind==='LATEST_DOT2_PUBLIC_CAPTURE_POINTER'){
    const pointerAt=iso(pointer?.captured_at_utc),
      feedAt=iso(feedPointer.captured_at_utc);
