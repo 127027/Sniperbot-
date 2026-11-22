@@ -33,6 +33,7 @@ import {summarizeR29OperatingMeasurements} from '../src/v19-operating-measuremen
 import {emptyProviderBudgetState,reserveProviderRequest,recordProviderResponse,
  summarizeProviderBudget} from '../src/v19-provider-budget.mjs';
 import {planIndependentObservations} from '../src/v19-independent-observation-schedule.mjs';
+import {summarizeCumulativeScanProgress} from '../src/v19-cumulative-scan-progress.mjs';
 import {selectObservationArchivePaths,parseResearchJsonWithLegacyTrailer}
  from '../src/v19-observation-archive-reader.mjs';
 
@@ -553,6 +554,10 @@ metrics.v19_page_coverage={unresolved_page_indices:coverageReport.total_unresolv
  page_overlap_records:coverageReport.run.duplicate_pool_ids_across_pages,
  chain_coverage:coverageReport.chain_coverage,coverage_is_complete:false};
 metrics.v19_page_coverage_path=coverageReportPath;
+metrics.v19_fixed_sample_progress=summarizeCumulativeScanProgress({
+ coverage:coverageReport.updated_memory,networks:request.networks,
+ targetPagesPerChain:10,asOfUtc:now()
+});
 
 // Exact original per-page samples, persisted independently of the flattened
 // candidate report. Dot1 and historical replay use the SAME activity extractor.
