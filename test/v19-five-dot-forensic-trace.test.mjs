@@ -135,3 +135,42 @@ test('diagnostic window is end-exclusive and duplicate event IDs cannot inflate 
  assert.throws(()=>buildFiveDotForensicReport({entries:[allRoles[0],allRoles[0]],
   startUtc:start,endUtc:end,runId}),/TRACE_DUPLICATE_EVENT_ID/);
 });
+
+test('a positive BUY/SELL/ELIGIBLE claim needs at least one on-time source and no unresolved safety gap',()=>{
+ for(const [role,action] of [['dot-4-strategy','BUY'],['dot-4-strategy','SELL'],
+  ['dot-3-risk','ELIGIBLE']]){
+  const noSource=mk(role,action,21,{input_refs:[],
+    missing_evidence:['NO_VERIFIED_PRICE']});
+  assert.throws(()=>inspectFiveDotTraceEntry(noSource,
+    {startUtc:start,endUtc:end}),/TRACE_POSITIVE_ACTION_REQUIRES_COMPLETE_INPUTS/);
+  const unresolved=mk(role,action,22,{missing_evidence:['SELLABILITY_NOT_VERIFIED']});
+  assert.throws(()=>inspectFiveDotTraceEntry(unresolved,
+    {startUtc:start,endUtc:end}),/TRACE_POSITIVE_ACTION_REQUIRES_COMPLETE_INPUTS/);
+  const valid=mk(role,action,23);
+  assert.equal(inspectFiveDotTraceEntry(valid,{startUtc:start,endUtc:end}).action,action);
+ }
+ const badRisk=mk('dot-3-risk','ELIGIBLE',24,{scope:'GLOBAL',market:null});
+ assert.throws(()=>inspectFiveDotTraceEntry(badRisk,
+   {startUtc:start,endUtc:end}),/TRACE_STRATEGY_POOL_REQUIRED/);
+});
+test('retroactively sourced discovery cannot be described as actually discovered during blind hour',()=>{
+ const after={...source,source_class:'RETRO_ASOF_RECONSTRUCTION',
+  captured_at_utc:'2026-11-22T12:00:00.000Z',
+  available_at_utc:'2026-11-22T12:00:00.000Z'};
+ assert.throws(()=>inspectFiveDotTraceEntry(
+  mk('dot-2-discovery','DISCOVERED',25,{input_refs:[after]}),
+  {startUtc:start,endUtc:end}),/TRACE_RETRO_RESEARCH_NOT_EXECUTION_PROOF/);
+ assert.equal(inspectFiveDotTraceEntry(
+  mk('dot-2-discovery','WATCH',26,{input_refs:[after]}),
+  {startUtc:start,endUtc:end}).retrospective_research_only_count,1);
+});
+test('source event/capture/availability order must be chronologically possible',()=>{
+ const a=mk('dot-2-discovery','WATCH',27,{input_refs:[{
+  ...source,captured_at_utc:'2026-11-22T12:00:00.000Z'}]});
+ assert.throws(()=>inspectFiveDotTraceEntry(a,{startUtc:start,endUtc:end}),
+  /TRACE_SOURCE_PROVENANCE_INVALID/);
+ const b=mk('dot-2-discovery','WATCH',28,{input_refs:[{
+  ...source,event_at_utc:'2026-11-11T23:59:30.000Z'}]});
+ assert.throws(()=>inspectFiveDotTraceEntry(b,{startUtc:start,endUtc:end}),
+  /TRACE_SOURCE_PROVENANCE_INVALID/);
+});
