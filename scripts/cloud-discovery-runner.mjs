@@ -34,6 +34,7 @@ import {emptyProviderBudgetState,reserveProviderRequest,recordProviderResponse,
  summarizeProviderBudget} from '../src/v19-provider-budget.mjs';
 import {planIndependentObservations} from '../src/v19-independent-observation-schedule.mjs';
 import {summarizeCumulativeScanProgress} from '../src/v19-cumulative-scan-progress.mjs';
+import {enrichPersistentMarketIdentity} from '../src/v19-canonical-market-identity.mjs';
 import {selectObservationArchivePaths,parseResearchJsonWithLegacyTrailer}
  from '../src/v19-observation-archive-reader.mjs';
 
@@ -801,6 +802,9 @@ if(maturePrior){
  matureLabelsPath='research/observations/'+new Date(data.captured_completed_at_utc).toISOString().slice(0,10)+'/'+runId+'-mature-24h-labels.json';
  await writeFile(matureLabelsPath,JSON.stringify(outcome,null,2)+'\n','utf8');
 }
+// SYS-13: add typed/normalized identities while preserving all 409+ legacy
+// keys, source refs, as-of observations and existing fair-queue cursors.
+memory=enrichPersistentMarketIdentity(memory);
 await mkdir('research/state/checkpoints',{recursive:true});
 await writeFile(memoryPath,JSON.stringify(memory,null,2)+'\n','utf8');
 await writeFile(providerBudgetPath,JSON.stringify(providerBudget,null,2)+'\n','utf8');
