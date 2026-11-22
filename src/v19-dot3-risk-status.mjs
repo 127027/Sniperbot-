@@ -4,6 +4,7 @@
 // PAPER_ELIGIBLE state but NEVER grants an executable paper order.
 import {canonicalChain,poolValid,tokenValid} from './market-evidence.mjs';
 import {inspectDot3Attestation} from './risk-authorization-v18.mjs';
+import {assessChainSellability} from './v19-dot3-sellability.mjs';
 import {auditDot3QuoteSourcePair} from './v19-dot3-source-pairs.mjs';
 
 const time=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
@@ -26,7 +27,7 @@ export function assessDot3RiskStatus({
  const validPool=poolValid(chain,pool,candidate.pool_kind);
  const validContract=tokenValid(chain,contract);
  const key=validPool?chain+':'+canon(chain,pool):null;
- let sourcePair=null;
+ let sourcePair=null,sellabilityResearch=null;
  const result=(status,reason,missing=[],additional={})=>({
    schema:1,kind:'R29_V19_DOT3_RISK_STATE',mode,
    as_of_utc:asOfUtc,pool_key:key,chain:chain??null,
@@ -38,6 +39,7 @@ export function assessDot3RiskStatus({
    original_risk_evidence_verified:false,
    issuer_authentication_verified:false,
    source_pair_audit:sourcePair,
+   sellability_research:sellabilityResearch,
    trade_authorized:false,paper_filled:false,
    next_action:status==='PAPER_ELIGIBLE'?'WAIT_FOR_INDEPENDENT_ORDER_AUTHORITY':
      status==='REJECTED'?'ARCHIVE_PROVEN_HARD_BLOCK':
@@ -65,6 +67,17 @@ export function assessDot3RiskStatus({
    sourcePair=auditDot3QuoteSourcePair({coin:{chain,pool,contract,
      pool_kind:candidate.pool_kind},observations:candidate.source_observations,
      asOfUtc});
+ }
+ // Chain-specific sell-route research belongs to the same Dot3 decision
+ // path in LIVE_PAPER and HISTORICAL_ASOF. A fixture never authorizes a trade.
+ if(candidate.sellability_research_evidence!==undefined){
+   sellabilityResearch=assessChainSellability({
+     coin:{chain,pool,contract,pool_kind:candidate.pool_kind},
+     evidence:candidate.sellability_research_evidence,
+     asOfUtc,mode});
+   if(sellabilityResearch.warnings.length)
+     return result('WATCH','INDICATIVE_CHAIN_SELLABILITY_WARNING',[
+       ...sellabilityResearch.missing_fields,...sellabilityResearch.warnings]);
  }
  const comparison=finite(candidate.price_disagreement_pct);
  const prices=[candidate.primary_quote_usd,candidate.second_source_price_usd].map(finite);
@@ -95,6 +108,8 @@ export function assessDot3RiskStatus({
    if(quoteMissing)reasons.push('INDEPENDENT_CURRENT_QUOTES');
    if(conflicting)reasons.push('PRICE_CONFLICT_RECHECK');
    if(lowLiquidity)reasons.push('LIQUIDITY_DEPTH_RECHECK');
+   if(sellabilityResearch&&sellabilityResearch.status!=='SYNTHETIC_POSSIBLE_SELLABILITY')
+     reasons.push(...sellabilityResearch.missing_fields);
    if(sourcePair)reasons.push('INDEPENDENT_UPSTREAM_CORROBORATION',
      'INDEPENDENT_SOURCE_ARCHIVE');
    reasons.push('SECURITY_AND_SELLABILITY_ATTESTATIONS','VERIFIED_PROVIDER_QUOTE_TIMES');
