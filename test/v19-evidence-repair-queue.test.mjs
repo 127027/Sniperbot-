@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {planEvidenceRepairRechecks} from '../src/v19-evidence-repair-queue.mjs';
 import {scoreAsOf} from '../src/forward-learning.mjs';
+import {scoreAsOf} from '../src/forward-learning.mjs';
 const t='2026-11-22T15:20:00.000Z',pool=n=>'0x'+n.toString(16).padStart(40,'0');
 const key=n=>'base:'+pool(n);
 const mem=()=>({kind:'R29_PERSISTENT_MARKET_MEMORY',pools:Object.fromEntries([1,2,3,4].map(n=>
@@ -86,4 +87,40 @@ test('persistent last-attempt cursor prevents a repeatedly failing repair from s
  const second=planEvidenceRepairRechecks({ranking,memory:m,asOfUtc:t,maxCandidates:1});
  assert.equal(second.selected[0].key,key(3));
  assert.equal(second.paper_orders_authorized,0);
+});
+
+
+test('real archived EHUNT 0.0005 USD liquidity is deferred behind higher-quality price repairs',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const original=JSON.parse(await readFile('research/observations/2026-11-22/45036887325.json','utf8'));
+ const memory=JSON.parse(await readFile('research/state/market-memory.json','utf8'));
+ const asOfUtc='2026-11-22T16:10:00.000Z';
+ const ranking=scoreAsOf({batches:[original],asOfUtc,maxCandidates:100000});
+ const full=planEvidenceRepairRechecks({ranking,memory,asOfUtc,maxCandidates:1000});
+ const ehunt=full.selected.find(x=>x.symbol==='EHUNT');
+ const urps=full.selected.find(x=>x.symbol==='URPS');
+ assert.ok(ehunt&&urps);
+ assert.equal(ehunt.last_observed_liquidity_usd,0.0005);
+ assert.equal(ehunt.liquidity_repair_priority_tier,0);
+ assert.ok(urps.last_observed_liquidity_usd>5000);
+ assert.equal(urps.liquidity_repair_priority_tier,3);
+ assert.ok(full.selected.indexOf(urps)<full.selected.indexOf(ehunt));
+ assert.ok(full.low_liquidity_watch_repair_candidates>0);
+ assert.equal(full.all_due_candidates,full.selected.length);
+ const bounded=planEvidenceRepairRechecks({ranking,memory,asOfUtc,maxCandidates:1});
+ assert.notEqual(bounded.selected[0].symbol,'EHUNT');
+ assert.ok(bounded.deferred_count>0);
+ assert.equal(bounded.paper_orders_authorized,0);
+});
+test('never-check fairness still applies inside the same liquidity tier',()=>{
+ const m=mem();
+ m.rechecks[key(1)]={attempt_at_utc:'2026-11-22T15:00:00Z',status:'DEX_ERROR'};
+ const ranking=rank([
+  {...item(1,'WATCH_PRICE_OBSERVATION_GAP'),latest_observed_liquidity_usd:7500,research_effective_volume_24h_usd:100},
+  {...item(2,'WATCH_PRICE_OBSERVATION_GAP'),latest_observed_liquidity_usd:7500,research_effective_volume_24h_usd:100}
+ ]);
+ const q=planEvidenceRepairRechecks({ranking,memory:m,asOfUtc:t,maxCandidates:1});
+ assert.equal(q.selected[0].key,key(2));
+ assert.equal(q.selected[0].liquidity_repair_priority_tier,3);
+ assert.equal(q.paper_orders_authorized,0);
 });
