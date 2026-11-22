@@ -24,6 +24,8 @@ test('65 real reference entries compare strictly AFTER a prior archived source-g
  assert.equal(x.kind,'R29_V19_OCT12_POSTRUN_ORACLE_VS_ARCHIVED_SOURCE_GAP_BASELINE');
  assert.equal(x.total_reference_rows,65);
  assert.equal(x.reference_pool_links,8);
+ assert.equal(x.syntactically_valid_reference_pool_links,7);
+ assert.equal(x.invalid_reference_pool_links,1);
  assert.equal(x.reference_name_only,57);
  assert.equal(x.baseline_model_fills,0);
  assert.equal(x.baseline_verified_windows_client_receipts,0);
@@ -74,4 +76,15 @@ test('committed 65-row comparison exactly matches both immutable source blobs',a
  assert.deepEqual(stored,expected);
  assert.ok(stored.results.every(x=>x.comparison_outcome==='UNKNOWN_NOT_A_VERIFIED_FALSE_NEGATIVE'));
  assert.equal(stored.baseline_provenance,'PRIOR_ARCHIVED_EVIDENCE_ONLY_REPLAY_NOT_NEW_BACKTEST');
+});
+
+test('invalid CRAWLER Solana Base58 address is diagnosed without guessing a contract',async()=>{
+ const x=compareOct12SourceGapBaselineAfterRun(await build());
+ const crawler=x.results.find(r=>r.name==='Crawlerpad (CRAWLER)');
+ assert.equal(crawler.rank,31);
+ assert.equal(crawler.identity,'POOL_LINK_SYNTAX_INVALID');
+ assert.equal(crawler.first_unproven_step,'ORIGINAL_REFERENCE_POOL_ID_SYNTAX');
+ assert.equal(crawler.contract,null);
+ assert.equal(crawler.proved_executable_opportunity,false);
+ assert.equal(x.invalid_reference_pool_links,1);
 });
