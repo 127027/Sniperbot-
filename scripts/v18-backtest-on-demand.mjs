@@ -3,7 +3,7 @@
 //   node scripts/v18-backtest-on-demand.mjs --date 2026-10-12 --input research/.../asof-input.json
 // No historical winner list is ever a scan seed; model only, no GitHub order.
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
-import {resolve,dirname} from 'node:path';
+import {resolve,dirname,sep} from 'node:path';
 import {backtestOnRequest} from '../src/v18-requested-backtest.mjs';
 import {auditFrozenOctoberTraining} from '../src/v18-frozen-reference.mjs';
 const argv=process.argv.slice(2);
@@ -23,13 +23,12 @@ const manifest=inputPath?JSON.parse(await readFile(resolve(inputPath),'utf8')):n
 const report=backtestOnRequest({date:args['--date'],manifest,
  forceHourlyDiagnostic:args['--diagnostic-24']===true});
 const training=args['--training-reference']?await auditFrozenOctoberTraining({date:args['--date']}):null;
-const target=resolve(args['--output']||'probe-artifacts/v18-backtest-'+args['--date']+'.json');
-if(target.includes('/signals/')||target.includes('\\signals\\')
-  ||target.includes('/research/state/')||target.includes('\\research\\state\\')
-  ||target.includes('/receipts/')||target.includes('\\receipts\\'))
- throw Error('PROTECTED_OUTPUT_PATH');
+const base=resolve('probe-artifacts');
+const runTimestamp=new Date().toISOString().replace(/[-:.]/g,'');
+const target=resolve(args['--output']||'probe-artifacts/v18-backtest-'+args['--date']+'-'+runTimestamp+'.json');
+if(!target.startsWith(base+sep)||!target.endsWith('.json'))throw Error('OUTSIDE_PROBE_ARTIFACTS_DIRECTORY');
 await mkdir(dirname(target),{recursive:true});
-await writeFile(target,JSON.stringify({requested_backtest:report,retrospective_training_reference:training},null,2)+'\n','utf8');
+await writeFile(target,JSON.stringify({requested_backtest:report,retrospective_training_reference:training},null,2)+'\n',{encoding:'utf8',flag:'wx'});
 console.log('R29_V18_BACKTEST_ON_DEMAND',JSON.stringify({
  date:report.date,status:report.status,mode:report.mode,
  snapshots:report.accepted_input_count,model_buys:report.model_replay_summary.buys,
