@@ -134,3 +134,22 @@ test('Dot3 candidate source pair with stale provider quote cannot yield PAPER_EL
  assert.equal(x.source_pair_audit.status,'PROVIDER_QUOTE_STALE');
  assert.equal(x.trade_authorized,false);
 });
+
+test('Dot3 recalculates the spread when a supplied disagreement percentage understates observed prices',()=>{
+ const forged={...candidate,primary_quote_usd:1,second_source_price_usd:2,
+  price_disagreement_pct:0.2};
+ const x=calc({candidate:forged,mode:'SYNTHETIC_REGRESSION_ONLY'});
+ assert.equal(x.status,'WATCH');
+ assert.equal(x.reason,'INDICATIVE_PRICE_DISAGREEMENT');
+ assert.ok(x.computed_from_two_quote_prices_pct>60);
+ assert.equal(x.reported_price_disagreement_pct,0.2);
+ assert.equal(x.trade_authorized,false);
+});
+test('an omitted self-reported percentage cannot hide a large discrepancy between two prices',()=>{
+ const x=calc({candidate:{...candidate,
+  primary_quote_usd:0.01,second_source_price_usd:0.025,
+  price_disagreement_pct:undefined},mode:'SYNTHETIC_REGRESSION_ONLY'});
+ assert.equal(x.status,'WATCH');
+ assert.ok(x.observed_price_disagreement_pct>3);
+ assert.equal(x.trade_authorized,false);
+});
