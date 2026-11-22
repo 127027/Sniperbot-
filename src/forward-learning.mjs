@@ -5,6 +5,19 @@ const ms=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):nu
 const key=(chain,pool)=>chain+':'+(chain==='solana'?pool:String(pool).toLowerCase());
 const number=x=>typeof x==='number'&&Number.isFinite(x)?x:null;
 const rel=(now,before)=>number(now)!==null&&number(before)!==null&&before>0?(now/before-1)*100:null;
+// Strict separation of forward observations and retrospective winner sources.
+// Explicit source classes and future winner tags are forbidden even when
+// injected by a caller with plausible but false early timestamps.
+const oracleOrRetro=x=>!!x&&typeof x==='object'&&(
+ x.source_class==='POST_EVENT_ORACLE'||x.source_class==='RETRO_ASOF_RECONSTRUCTION'
+ ||x.source_provider==='POST_EVENT_ORACLE'||x.provenance==='POST_EVENT_ORACLE'
+ ||x.provenance==='RETRO_ASOF_RECONSTRUCTION'
+ ||x.selected_from_future_winner_list===true
+ ||Object.hasOwn(x,'future_winner_label')
+ ||Object.hasOwn(x,'reported_gain_pct')
+ ||Object.hasOwn(x,'post_event_rank')
+ ||(typeof x.outcome_status==='string'
+   &&!['NOT_YET_MEASURED','PENDING'].includes(x.outcome_status)));
 export function makeCaptureObservationBatch({capturedAtUtc,sourcePath,geckoCandidates=[],dexFallbackCandidates=[]}={}){
  const time=ms(capturedAtUtc);
  if(time===null||!sourcePath?.startsWith('research/feeds/')||!Array.isArray(geckoCandidates)||!Array.isArray(dexFallbackCandidates))
@@ -12,6 +25,7 @@ export function makeCaptureObservationBatch({capturedAtUtc,sourcePath,geckoCandi
  const merged=new Map(),errors=[];
  for(const c of [...geckoCandidates.map(c=>({...c,provider:'GECKOTERMINAL'})),
   ...dexFallbackCandidates.map(c=>({...c,provider:'DEXSCREENER'}))]){
+  if(oracleOrRetro(c)){errors.push('POST_EVENT_OR_RETRO_INPUT_QUARANTINED');continue;}
   const chain=canonicalChain(c.chain),pool=c.pool,stamp=ms(c.observed_at_utc||capturedAtUtc);
   if(!chain||!poolValid(chain,pool,c.pool_kind)||stamp===null||stamp>time){
     errors.push('INVALID_CHAIN_POOL_OR_TIME');continue;
@@ -51,10 +65,13 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100,maxLatestCapture
  const rows=new Map();
  for(const batch of batches){
    const bTime=ms(batch?.captured_at_utc);
-   if(batch?.kind!=='R29_FORWARD_UNFILTERED_POOL_OBSERVATIONS'||bTime===null||bTime>t)continue;
+   if(batch?.kind!=='R29_FORWARD_UNFILTERED_POOL_OBSERVATIONS'||bTime===null||bTime>t
+     ||oracleOrRetro(batch))continue;
    for(const o of batch.observations||[]){
-     const at=ms(o.observed_at_utc),capture=ms(o.captured_at_utc);
-     if(at===null||capture===null||at>t||capture>t||at>capture||!o.key)continue;
+     const at=ms(o.observed_at_utc),capture=ms(o.captured_at_utc),
+      available=o.available_at_utc==null?capture:ms(o.available_at_utc);
+     if(oracleOrRetro(o)||at===null||capture===null||available===null
+      ||at>t||capture>t||available>t||at>capture||available<capture||!o.key)continue;
      if(!rows.has(o.key))rows.set(o.key,[]);
      rows.get(o.key).push(o);
    }
