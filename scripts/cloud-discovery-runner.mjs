@@ -6,6 +6,7 @@ import {validateCaptureRequest,decodeGeckoNewPools,crossCheckDexPair,
  fromDexPairOnly,collectSampleMetrics,sha256} from '../src/discovery-feed.mjs';
 import {canonicalChain,poolValid} from '../src/market-evidence.mjs';
 import {makeResearchHandoff} from '../src/feed-handoff.mjs';
+import {emptyDot3RecheckState,planDot3EvidenceRechecks} from '../src/v19-dot3-recheck-scheduler.mjs';
 import {emptyMarketMemory,mergeMemory} from '../src/market-memory.mjs';
 import {fairRecheckPlan,recordRecheckAttempt} from '../src/discovery-fair-queue.mjs';
 import {makeCaptureObservationBatch,scoreAsOf,labelAfterHorizon} from '../src/forward-learning.mjs';
@@ -593,8 +594,23 @@ const handoff=makeResearchHandoff({evidence:data,atUtc:data.captured_completed_a
 const handoffPath=root+'/dot2-to-dot3-handoff.json';
 await writeFile(handoffPath,JSON.stringify(handoff,null,2)+'\n','utf8');
 artifacts.push(handoffPath);
+const dot3RecoveryPath='research/state/dot3-recheck-state.json';
+let dot3Recovery;
+try{dot3Recovery=JSON.parse(await readFile(dot3RecoveryPath,'utf8'));}
+catch(err){if(err.code!=='ENOENT')throw err;dot3Recovery=emptyDot3RecheckState();}
+const dot3RecheckPlan=planDot3EvidenceRechecks({
+ handoff,asOfUtc:data.captured_completed_at_utc,
+ state:dot3Recovery,maxRequests:Math.min(6,request.max_dex_pairs)});
+const dot3RecheckPlanPath=root+'/dot3-next-evidence-rechecks.json';
+await writeFile(dot3RecheckPlanPath,JSON.stringify(dot3RecheckPlan,null,2)+'\n','utf8');
+artifacts.push(dot3RecheckPlanPath);
+// The existing Dot2 capture only PLANS Dot3 rechecks; it doesn't execute
+// fake provider requests, issue Dot3 attestations or create any Paper order.
+
 const latest={schema:1,kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',mode:'PAPER_RESEARCH_ONLY',
-  request_path:path,evidence_path:filename,handoff_path:handoffPath,captured_at_utc:data.captured_completed_at_utc,
+  request_path:path,evidence_path:filename,handoff_path:handoffPath,
+   dot3_recheck_plan_path:dot3RecheckPlanPath,
+   captured_at_utc:data.captured_completed_at_utc,
   source_chain:data.source_chain,metrics,handoff_counts:handoff.counts,
  observation_path:observationPath,ranking_path:rankingPath,
  forecast_path:forecastPath,matured_forecast_path:matureForecastPath,
