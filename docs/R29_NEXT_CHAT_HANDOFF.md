@@ -1,5 +1,19 @@
 # R29 – Verbindliche GitHub-Übergabe für neue Chats
 
+## NEUSTER Verbindlicher Stand: HTTP-Crash-Resume und D2-10, 22.11.2026
+
+**12/61 = 19,7 % PASS; 25/61 = 41,0 % PARTIAL; 24/61 = 39,3 % OPEN. 37/61 = 60,7 % PASS+PARTIAL technisch bearbeitet**. Das ist keine 60,7-%-Abnahme. Alle älteren 31/61, 9/61, 10/61 und 36/61 weiter unten sind historische Snapshots. Kein Code-Rückbau.
+
+**Quelle vor ALLER Folgearbeit lesen:** `docs/V19_20261122_API_CRASH_RECOVERY_PROVIDER_IDENTITY.md`. **Neuer geprüfter Code-Snapshot:** GitHub Node22 [#45053198019](https://github.com/127027/Sniperbot-/actions/runs/45053198019), Commit `4ffea8d2979e28c9123f6d216c019e96c2329525`, **516/516 PASS, 0 FAIL, TEST_ONLY_NO_SIGNAL_WRITE 0**.
+
+**Was wirklich verbessert wurde:**
+- `SYS-11 PARTIAL` + `QA-03 PARTIAL`: Der vorhandene `scripts/cloud-discovery-runner.mjs` schreibt geplante Seiten vor dem ersten HTTP als pending, persistiert Provider-Reservierungen vor dem Start und HTTP-Quittungen/Roh-JSON während des Runs (`src/v19-partial-capture-durability.mjs`, `research/feeds/<date>/<runid>/inflight-capture.json`, `research/state/provider-budget.json`). Der bestehende `.github/workflows/cleanroom-dot2-capture.yml` commitet auch bei Capture-Fehler Raw/Partial-Cursor, meldet den Job am Ende ausdrücklich fehlgeschlagen. Unbeobachtete Seiten können nach Neustart fortgesetzt werden; HTTP200 aus *altem* Run zählt nicht als neue Erfassung.
+- `D2-10 OPEN→PARTIAL`: `src/live-pool-discovery.mjs` und `src/discovery-feed.mjs` nutzen typisierte Chain/Pool/Base-Token-Identität, Quelllink und Beobachtungsreihenfolge. Positiv/Negativ-Regressionsfälle für Robinhood, Solana, BSC, Ethereum V4 und Cronos **synthetisch**; zusätzlich echte Base-V4-Original-DEX-/Gecko-Rohbytes (positiv) und echter Cronos-DEX-Body (kein Treffer) auf 22.11.2026. Andere Chains haben noch keine bestätigten positiven echten Anbieterfälle. `provider_quote_asof_utc:null` und keine Orderberechtigung für alle diese Forschungsbelege.
+
+**Unbelegt:** Ein realer mehrfacher API-Capture nach diesen neuen Codes, ein wirklicher fataler Github-Run mit anschließend erfolgreich committed Research-Recovery, tatsächliche 24/7-Verfügbarkeit, echte Quote-Freshness aller 6 Chains, offene Windows-Paper-Positionen und ausgeführte Paper-Fills. Frühere Ethereum-429-Sperre war bis 2026-11-22T18:31:56.465Z gültig; nicht vorher neu versuchen. Die fünf GPT-Automationen bleiben DEAKTIVIERT; keine Echtgeld- oder Paper-Kontoänderung.
+
+
+
 ## AKTUELL 22.11.2026 – Nach abgeschlossenem SYS-13-/D2-11-Code- und Original-Abnahmetest
 
 **VERBINDLICHE ZÄHLUNG: 12/61 PASS = 19,7 %, 24/61 PARTIAL = 39,3 %, 25/61 OPEN = 41,0 %.** Insgesamt `PASS+PARTIAL = 36/61 = 59,0 %` Aufgaben technisch bearbeitet oder gezielt getestet. Die historischen 31/61=50,8 %, 9/61 und 10/61 weiter unten sind alte Snapshots, **kein Rückbau von Software**.
