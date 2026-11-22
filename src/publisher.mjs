@@ -1,11 +1,20 @@
 import { pathToFileURL } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import { gitBlobSha } from './core.mjs';
+import {validateDot3OrderBeforePublish} from './v19-dot3-authenticated-gate.mjs';
 import { GitHubTransport,BRANCH } from './github.mjs';
 const json=v=>JSON.stringify(v,null,2)+'\n';
 const b64=s=>Buffer.from(s,'utf8').toString('base64');
 export async function publishPaperOrder(transport,order,{maxIndexSize=400,maxRetries=5}={}){
   if(!/^[A-Za-z0-9_-]{8,80}$/.test(order?.id||'')||order.mode!=='PAPER'||!['BUY','SELL'].includes(order.action)||order.authority!=='dot-4-strategy')throw Error('INVALID_PUBLISH_REQUEST');
+  // Reject unsigned/unproven claims BEFORE writing signals/orders or index.
+  // Trusted public key is external configuration, never an order field.
+  const auth=await validateDot3OrderBeforePublish({order,
+    read:(path,sha)=>transport.read(path,sha),
+    nowUtc:new Date().toISOString(),
+    trustedPublicKeyPem:process.env.R29_DOT3_TRUSTED_PUBLIC_KEY_PEM||null,
+    trustedKeyId:process.env.R29_DOT3_TRUSTED_KEY_ID||null});
+  if(!auth.trade_authorized)throw Error('DOT3_AUTH_NOT_VERIFIED: '+auth.code);
   const path=`signals/orders/${order.id}.json`,raw=json(order),sha=gitBlobSha(raw);
   try{await transport.request(path,{method:'PUT',body:{message:`Dot 4 ${order.action} ${order.id}`,content:b64(raw),branch:BRANCH}});}
   catch(e){const existing=await transport.read(path).catch(()=>null);if(!existing||existing.sha!==sha)throw e;}
