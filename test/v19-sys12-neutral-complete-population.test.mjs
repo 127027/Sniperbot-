@@ -19,7 +19,7 @@ function fixture(count=4){
 }
 test('SYS-12: growing real pool memory is included without a winner-only denominator',async()=>{
  const real=JSON.parse(await readFile('research/state/market-memory.json','utf8'));
- const pop=makeNeutralEvaluationPopulation({memory:real,asOfUtc:at});
+ const pop=makeNeutralEvaluationPopulation({memory:real,asOfUtc:new Date().toISOString()});
  const sourcePoolCount=Object.keys(real.pools).length;
  assert.ok(sourcePoolCount>=409,'historical baseline lost');
  assert.equal(pop.population_size,sourcePoolCount);
