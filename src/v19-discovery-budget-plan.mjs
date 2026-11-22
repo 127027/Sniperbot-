@@ -3,13 +3,14 @@
 import {chooseNextDiscoveryPage} from './discovery-page-scheduler.mjs';
 const NETWORKS=new Set(['solana','base','ethereum','bsc','robinhood','cronos']);
 const time=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
-export function planMultiChainCapture({networks,checkpoints={},pageCoverage=null,budget=1,asOfUtc}={}){
+export function planMultiChainCapture({networks,checkpoints={},pageCoverage=null,budget=1,asOfUtc,chainService=null}={}){
  const now=time(asOfUtc);
  if(!Array.isArray(networks)||!networks.length||networks.some(x=>!NETWORKS.has(x))
    ||new Set(networks).size!==networks.length||networks.length>6
    ||!Number.isInteger(budget)||budget<1||budget>12||now===null
    ||!checkpoints||typeof checkpoints!=='object'
-   ||(pageCoverage!==null&&pageCoverage?.kind!=='R29_V19_OFFSET_PAGE_COVERAGE'))
+   ||(pageCoverage!==null&&pageCoverage?.kind!=='R29_V19_OFFSET_PAGE_COVERAGE')
+   ||(chainService!==null&&chainService?.kind!=='R29_V19_CHAIN_SERVICE_SIGNALS'))
    throw Error('INVALID_V19_DISCOVERY_CAPTURE_PLAN');
  const gaps=[],chains=[];
  for(const [order,chain] of networks.entries()){
@@ -36,6 +37,7 @@ export function planMultiChainCapture({networks,checkpoints={},pageCoverage=null
      Number.isInteger(cp?.next_page_to_consider)?cp.next_page_to_consider:2)):1;
    chains.push({chain,original_order:order,last_attempt_ms:last??-Infinity,
      primary,secondary,failed_page_retry_due:failed!==null&&retryAfter!==null&&retryAfter<=now,
+     demand_weight:Math.min(100,Math.max(0,chainService?.demand?.[chain]?.demand_weight||0)),
      reason:failed?'RETRY_FAILED_PAGE':
        pending?'RESUME_UNOBSERVED_PAGE':d.reason});
  }
@@ -44,7 +46,10 @@ export function planMultiChainCapture({networks,checkpoints={},pageCoverage=null
  // the rest fairly by the persisted last-attempt timestamp.
  // A still-active cooldown was excluded above and cannot bypass this order.
  chains.sort((a,b)=>Number(b.failed_page_retry_due)-Number(a.failed_page_retry_due)
-   ||a.last_attempt_ms-b.last_attempt_ms||a.original_order-b.original_order);
+   // Never let a high-demand chain starve an older chain. Demand is only
+   // an as-of tie breaker when persisted last-attempt times are identical.
+   ||a.last_attempt_ms-b.last_attempt_ms
+   ||b.demand_weight-a.demand_weight||a.original_order-b.original_order);
  const tasks=[],covered=new Set();
  for(const c of chains){
    if(tasks.length>=budget)break;
