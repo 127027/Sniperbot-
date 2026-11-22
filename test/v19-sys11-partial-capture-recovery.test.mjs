@@ -25,6 +25,7 @@ test('QA-03: abrupt crash after one of six Chain/page HTTP attempts retains all 
   const first=tasks[0];
   const rawPath='research/feeds/2026-11-22/450777001/gecko-solana-page1.raw.json';
   const evidence={provider:'GECKOTERMINAL',http_status:200,body_path:rawPath,
+   url:'https://api.geckoterminal.com/api/v2/networks/solana/new_pools?include=base_token,quote_token&page=1',
    response_sha256:'a'.repeat(64),started_at_utc:now,received_at_utc:now};
   const journal=appendPartialHttpReceipt(staged.journal,{evidence,atUtc:now});
   await writeFile(journalFile,JSON.stringify(journal),'utf8');
@@ -74,6 +75,7 @@ test('QA-03: journal is append-only per response and a 429 never counts as succe
  const p=stagePendingCapture({pageCoverage:emptyPageCoverage(),
   tasks:[{chain:'ethereum',page:2}],runId:'450777003',atUtc:now});
  const one={provider:'GECKOTERMINAL',http_status:429,
+  url:'https://api.geckoterminal.com/api/v2/networks/eth/new_pools?include=base_token,quote_token&page=2',
   body_path:'research/feeds/2026-11-22/450777003/eth-page2.json',
   response_sha256:'b'.repeat(64),started_at_utc:now,received_at_utc:now};
  const journal=appendPartialHttpReceipt(p.journal,{evidence:one,atUtc:now});
