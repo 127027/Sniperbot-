@@ -174,3 +174,16 @@ test('source event/capture/availability order must be chronologically possible',
  assert.throws(()=>inspectFiveDotTraceEntry(b,{startUtc:start,endUtc:end}),
   /TRACE_SOURCE_PROVENANCE_INVALID/);
 });
+
+test('known post-event training and backtest report paths cannot launder oracle into input trace',()=>{
+ const paths=['research/backtests/2026-10-12/report.json',
+  'research/training/2026-10-12/frozen-v11/oct12-candles-0.json',
+  'research/evaluation/2026-10-12/outcome.json',
+  'research/backtest-inputs/2026-10-12/trick.json'];
+ for(const path of paths){
+  const entry=mk('dot-2-discovery','WATCH',30,{
+   input_refs:[{...source,path}]});
+  assert.throws(()=>inspectFiveDotTraceEntry(entry,
+   {startUtc:start,endUtc:end}),/TRACE_SOURCE_PROVENANCE_INVALID/,path);
+ }
+});
