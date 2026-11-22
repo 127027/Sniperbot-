@@ -15,14 +15,14 @@ export function makeResearchHandoff({evidence,atUtc,maxAgeMinutes=10}={}){
  for(const item of evidence.gecko?.candidates??[]){
    const c=canonicalChain(item?.chain),pool=item?.pool,contract=item?.contract;
    if(!c||!poolValid(c,pool,item?.pool_kind))continue;
-   raw.push({chain:c,pool,contract:tokenValid(c,contract)?contract:null,
+   raw.push({chain:c,pool,pool_kind:item.pool_kind||null,contract:tokenValid(c,contract)?contract:null,
     symbol:item.symbol||null,source_class:'GECKOTERMINAL_POOL_WITH_BASE_CONTRACT',
     primary_quote_usd:item.observed_price_usd,primary_liquidity_usd:item.liquidity_usd,
     captured_at_utc:item.observed_at_utc});
  }
  for(const item of evidence.dex_fallback_candidates??[]){
    const c=canonicalChain(item?.chain),pool=item?.pool,contract=item?.contract;
-   if(!c||!poolValid(c,pool))continue;
+   if(!c||!poolValid(c,pool,item?.pool_kind))continue;
    raw.push({chain:c,pool,contract:tokenValid(c,contract)?contract:null,
     symbol:item.symbol||null,source_class:'DEX_SINGLE_SOURCE_RECOVERY',
     primary_quote_usd:null,primary_liquidity_usd:null,captured_at_utc:item.observed_at_utc});
