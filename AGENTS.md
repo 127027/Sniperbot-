@@ -1,4 +1,7 @@
 # R29 Cleanroom – verbindliche Arbeitsanweisungen für neue Chats und Coding-Agenten
+
+> **NEUER STAND 22.11.2026 – fortlaufender API/GitHub-Umbau:** **10/61 PASS (16,4 %), 24/61 PARTIAL, 27/61 OPEN** nach ORIGINALEN Abnahmesätzen; frühere 9/61 und 31/61 historische Snapshots. D2-09 durch frischen Node-Prozess-Restart akzeptiert. SYS-11 (Rolling-Window + 429/503-Retry), D1-04 (leichter Capture- vs GPT-Review-Takt), QA-03 (12 simulierte sechs-Chain-Runs) **weiter PARTIAL bis Realnachweis**. Für alle Details `docs/V19_API_GITHUB_INCREMENTAL_SCANNER_PHASES_20261122.md` lesen. Letzter vollständiger Node22-Code-CI #45049551379 auf `33adcf81...`: **486/486 PASS, TEST_ONLY_NO_SIGNAL_WRITE 0**. Keine Dots aktivieren, keinen GitHub-Research-Workflow automatisch scharfstellen, keine Orders/Echtgeld/Windows-Paper-Änderungen. Nach dem Original-Gecko-429 frühester Retry 2026-11-22T18:31:56.465Z; neue Provider-Persistenz noch nicht live geprüft.
+
 > **VERBINDLICHE KORREKTUR DER 50-%-AUSSAGE (22.11.2026):** 31/61 = 50,8 % bezeichnete nur gezielt getestete *Teilimplementierungs-Arbeitspakete*, nicht 31 erfüllte ursprüngliche Abnahmekriterien. Unabhängige strenge Zweitabnahme: **9/61 = 14,8 % PASS**, **22/61 PARTIAL**, **30/61 OPEN**. Vor weiteren Änderungen immer docs/V19_REAUDIT_31_TASKS_ORIGINAL_ACCEPTANCE_20261122.md lesen; docs/V19_IMPLEMENTATION_PROGRESS.md und docs/R29_NEXT_CHAT_HANDOFF.md wurden korrigiert. Ein grüner Unit-CI-Lauf ist kein echter Provider-/GPT-/Windows-/Paper-Fill-Nachweis.
 
 
