@@ -90,6 +90,27 @@ export function auditLiveFiveDotJournalInventory({
      &&pointer?.evidence_path!==feedPath)
     issue('DOT2_LATEST_BEHIND_FEED',
       'Newer source feed exists; latest Dot2 journal still points to older capture (not necessarily a failed capture)');
+   // A newer source can be correctly linked by run/path but still show
+   // the PREVIOUS run's pool totals/checkpoint/full-contract count. These
+   // source facts must be atomically copied from that exact completed feed.
+   if(feedAt!==null&&feedAt<=at&&pointer?.evidence_path===feedPath
+      &&pointer?.capture_request_path===feedPointer.request_path){
+    const stats=feedPointer.memory_stats;
+    const current=pointer?.market_memory_stats;
+    if(stats&&current&&
+      (stats.total_discovered!==current.total_discovered
+       ||stats.first_dot2_detected_count!==current.first_dot2_detected_count))
+     issue('DOT2_LATEST_SOURCE_STATS_STALE',
+       'Same-run latest pointer kept pool totals from preceding capture');
+    if(typeof feedPointer.memory_checkpoint_path==='string'
+       &&pointer?.checkpoint_path!==feedPointer.memory_checkpoint_path)
+     issue('DOT2_LATEST_SOURCE_CHECKPOINT_STALE',
+       'Same-run latest pointer kept prior-run checkpoint');
+    if(typeof feedPointer.handoff_counts?.full_contracts==='number'
+       &&pointer?.full_contract_candidates!==feedPointer.handoff_counts.full_contracts)
+     issue('DOT2_LATEST_HANDOFF_COUNT_STALE',
+       'Same-run latest pointer kept previous or partial handoff count');
+   }
   }
   details.push({role:id,status:status(issues),
    ...(id==='dot-2'?{reconciled_current_capture:resolveDot2CaptureView({
