@@ -46,6 +46,15 @@ export async function pollOnce(transport){
    try{
      const order=(await transport.read(entry.path,entry.sha)).data;
      if(order.id!==id)throw new Reject('ORDER_ID_MISMATCH','Order ID differs from file name');
+     // Binding a SELL to a particular BUY lot prevents a late stop-loss
+     // command from closing a newly reopened position on the same pool.
+     if(order.action==='SELL'){
+       const key=`${order.coin?.chain}:${order.coin?.contract}:${order.coin?.pool}`;
+       const lot=state.positions[key];
+       if(!lot||!order.exit_position_source_order_id
+         ||order.exit_position_source_order_id!==lot.sourceOrderId)
+         throw new Reject('SELL_LOT_NOT_MATCHED','Missing or stale opening BUY lot');
+     }
      // An order's claimed Dot names alone are not authorization.
      // Until independently authenticated source+sellability proofs exist,
      // the trust gate prevents ANY local PAPER order fill (BUY or SELL).
