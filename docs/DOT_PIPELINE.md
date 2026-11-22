@@ -1,5 +1,9 @@
 # R29 Cleanroom: dauerhaftes Cloud-Signal-System (kein laufender Endgeräte-Bot erforderlich)
 
+## V1.8 EIN-SYSTEM-VETRAG (verbindlich, neuer als ältere historische Presets)
+
+**[V18_ONE_SYSTEM_CONTRACT.md](V18_ONE_SYSTEM_CONTRACT.md)** ist der maßgebliche Vertrag: **ein** Fünf-Dot-System, dieselben `src/unified-decision-v18.mjs`-BUY/HOLD/SELL/WATCH-Regeln, dieselbe `src/v18-shared-evidence-gate.mjs`-Quellenprüfung für Live-Paper und historischen As-of-Replay. Historische `research-paper-lab.mjs`-Varianten sind reine Alt-Diagnostik, nicht eine zweite aktive Handelsstrategie. Die fünf ChatGPT-Automationen sind während Entwicklung pausiert, ihre gespeicherten Prompts müssen ebenfalls synchronisiert sein. Keine unerfüllbaren Zusatzblocker für Discovery; WATCH/DATA_GAP darf nicht zum Löschen eines Coins führen. Shadow-Module dürfen niemals reale oder Paper-Receipts behaupten. Automatischer Handel mit den V1.8-Shadow-Modulen bleibt inaktiv.
+
 ## V1.8 Phase B – Forschungs-/Shadow-Grenze (22.11.2026)
 
 V1.8-Code wird **stufenweise** eingeführt. Ungeprüfte Änderungen sind KEINE Freigabe für BUY/SELL. Die unveränderten GitHub-Paper-Konten, Orders und Receipts bleiben erhalten. Bis ein unabhängiger vollständiger Sicherheits- und Client-Receipt-Test samt späterer Aktivierungsfreigabe belegt ist, dürfen V1.8-Shadow-Befunde **niemals** in `signals/orders/` als PAPER-Orders veröffentlicht werden.
