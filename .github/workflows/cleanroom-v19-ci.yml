@@ -66,6 +66,11 @@ jobs:
           set -euo pipefail
           # Read only the latest existing source evidence; NO provider HTTP.
           node scripts/v19-audit-all-partials-and-backtest-readiness.mjs
+      - name: Original 61-task release gate audit – no Backtest until independent 100-percent evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/v19-verify-100pct-before-backtest.mjs
       - name: Confirm test job did not publish signals or alter tracked index
         shell: bash
         run: |
@@ -111,6 +116,7 @@ jobs:
             probe-artifacts/v19-qa04-*.json
             probe-artifacts/v19-six-offline-final-readiness.json
             probe-artifacts/v19-all-46-partial-acceptance-and-backtest-readiness.json
+            probe-artifacts/v19-61-original-tasks-prebacktest-gate.json
             probe-artifacts/v19-offline-raw-archive/**
           if-no-files-found: error
           retention-days: 30
