@@ -126,16 +126,16 @@ test('D4-08: parallel STOP/Dot4 converge to one in-memory exit and one receipt, 
   exit_position_source_order_id:'synthetic-buy-0001'}),sold.state,t+3000),Reject);
  assert.equal(sold.state.trade_history.filter(x=>x.action==='SELL').length,1);
 });
-test('D5-01: 65 postevent labels compared only against 488 neutral archived pools, no fake historical recall',async()=>{
+test('D5-01: winner labels never become neutral outcomes when actual archived population grows',async()=>{
  const [winner,memory]=await Promise.all([
   read('research/evaluation/2026-10-12/v19-winner-reference-identity-status.json'),
   read('research/state/market-memory.json')]);
  const pop=makeNeutralEvaluationPopulation({memory,asOfUtc:asOf});
  const out=auditPostEventWinnerCoverage({winnerRegister:winner,population:pop,
   asOfUtc:asOf,decisionWindowEndUtc:evalEnd});
- assert.equal(pop.population_size,488);
+ assert.ok(pop.population_size>=488,'append-only original 488-pool baseline must survive');
  assert.equal(out.postevent_winner_reference_count,65);
- assert.equal(out.neutral_observed_pool_count,488);
+ assert.equal(out.neutral_observed_pool_count,pop.population_size);
  assert.equal(out.source_pool_link_count,8);
  assert.equal(out.exact_pool_reference_count,4);
  assert.equal(out.actual_original_october_early_detection_confirmed,0);
