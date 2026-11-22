@@ -105,7 +105,7 @@ export function auditDot3QuoteSourcePair({coin,observations=[],asOfUtc,
    status==='INDICATIVE_LOW_LIQUIDITY'?'RECHECK_LIQUIDITY_AND_EXIT_DEPTH':
    'VERIFY_PROVIDER_TIMES_UPSTREAM_AND_SELLABILITY';
  return {schema:1,kind:'R29_V19_DOT3_TWO_DOMAIN_SOURCE_AUDIT',as_of_utc:asOfUtc,
-   chain,pool:coin.pool,contract:coin.contract,status,next_action,
+   chain,pool:coin.pool,contract:coin.contract,status,next_action:nextAction,
    observations_received:observations.length,observations_structurally_matched:accepted.length,
    distinct_valid_domains:byHost.size,rejected,
    distinct_web_domains_observed:distinctDomains,
