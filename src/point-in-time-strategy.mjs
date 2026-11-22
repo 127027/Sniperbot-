@@ -5,6 +5,7 @@
 import {newState,settlePaper,Reject,marketKey,DEFAULT_POLICY} from './core.mjs';
 import {researchDue,chooseCadence} from './cadence.mjs';
 import {decideUnifiedMarket,UNIFIED_V18_RULES} from './unified-decision-v18.mjs';
+import {buildAsOfLookback} from './v19-asof-lookback.mjs';
 
 const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 const ms=value=>typeof value==='string'&&ISO.test(value)&&Number.isFinite(Date.parse(value))?Date.parse(value):null;
@@ -22,15 +23,12 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
  const state=newState(),initial=state.cash,events=[],sums={dataGap:0,available:0,fullReviews:0,buys:0,sells:0};
  let ledger=state,lastReview=null,sequence=0,currentTarget=targetPer24h;
  const history=new Map(),lastRealizedLoss=new Map();
- // Training from BEFORE the day: no future snapshots; requires complete original
- // timestamps, matching quotes, and prior observations available before day start.
- for(const s of [...snapshots].sort((a,b)=>(ms(a?.observed_at_utc)??0)-(ms(b?.observed_at_utc)??0))){
-   const at=ms(s?.observed_at_utc),captured=ms(s?.archived_at_utc);
-   if(at===null||captured===null||at>=start||captured>start||start-at>p.maxMomentumAgeHours*3600000)continue;
-   if(gate(s,Math.max(at,captured))!==null)continue;
-   const price=s.quotes.reduce((sum,q)=>sum+q.price_usdc,0)/s.quotes.length;
-   history.set(marketKey(s.coin),{price,at_utc:s.observed_at_utc});
- }
+ // Research features may use ALL older, genuinely available market history.
+ // The common BUY kernel still limits its MOMENTUM BASELINE to two hours, and
+ // the actual purchase/exit requires an entirely separate fresh Dot3 quote.
+ const initialHistory=buildAsOfLookback({snapshots,asOfUtc:iso(start)});
+ for(const h of initialHistory.markets)
+   history.set(h.key,{price:h.latest_price_usdc,at_utc:h.latest_observed_at_utc});
 
  // Input MUST be independently collected and available at its own timestamp.
  // We evaluate every hour :35 and never preselect winners or sort by future performance.
@@ -59,7 +57,13 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    valid.sort((a,b)=>String(a.coin.chain).localeCompare(String(b.coin.chain))||String(a.coin.contract).localeCompare(String(b.coin.contract))||String(a.coin.pool).localeCompare(String(b.coin.pool))||ms(a.observed_at_utc)-ms(b.observed_at_utc));
    const fresh=new Map();
    for(const s of valid)fresh.set(marketKey(s.coin),s);
-   const step={at_utc:at,full_review:due,target_per_24h:currentTarget,cadence_reason:cadence.reason,eligible_snapshots:fresh.size,blocked_sources:blocked,status:'NO_TRADE',actions:[]};
+   const featureHistory=buildAsOfLookback({snapshots,asOfUtc:at});
+   const step={at_utc:at,full_review:due,target_per_24h:currentTarget,cadence_reason:cadence.reason,eligible_snapshots:fresh.size,blocked_sources:blocked,
+     past_only_feature_history:{market_count:featureHistory.market_count,
+       observation_count:featureHistory.observation_count,
+       oldest_observation_at_utc:featureHistory.oldest_observation_at_utc,
+       executable_quotes_from_history:0},
+     status:'NO_TRADE',actions:[]};
    if(!fresh.size){sums.dataGap++;step.status='DATA_GAP_NO_FRESH_QUOTES';events.push(step);continue;}
    sums.available++;
    // Open positions are examined hourly; no 6h delay until next full discovery review.
