@@ -124,3 +124,17 @@ test('D4-08 receipt audit refuses mismatched sell money, duplicate history and f
  const wrongSequence=structuredClone(b);wrongSequence.nextSequence+=2;
  assert.ok(inspect(wrongSequence).local_proof_blockers.includes('EXIT_SEQUENCE_NOT_RECONCILED'));
 });
+
+test('D4-08 retains original client identity but ignores harmless coin object key order',()=>{
+ const a=bought();
+ const b=settlePaper(order('sell-lot-0002','SELL',t+2000,
+  {exit_position_source_order_id:'buy-lot-0001'}),a.state,t+3000).state;
+ const reorderedCoin={symbol:'TEST',pool,contract:coin.contract,chain:'base'};
+ const inspect=after=>auditSingleExitReceipt({stateBefore:a.state,stateAfter:after,
+  openingBuyOrderId:'buy-lot-0001',sellOrderId:'sell-lot-0002',coin:reorderedCoin});
+ assert.equal(inspect(b).model_receipt_consistent,true);
+ const changedClient=structuredClone(b);changedClient.clientId='client-another-client';
+ assert.ok(inspect(changedClient).local_proof_blockers.includes('PAPER_CLIENT_ORIGIN_CHANGED'));
+ const changedStarted=structuredClone(b);changedStarted.startedAt='2000-01-01T00:00:00Z';
+ assert.ok(inspect(changedStarted).local_proof_blockers.includes('PAPER_CLIENT_ORIGIN_CHANGED'));
+});
