@@ -62,6 +62,10 @@ export function planDot3EvidenceRechecks({handoff,asOfUtc,
    c.security_verified!==true?'VERIFY_CONTRACT_SECURITY':
    'VERIFY_PROVIDER_QUOTE_TIME';
   const classification=assessDot3RiskStatus({candidate:c,asOfUtc,mode:'LIVE_PAPER'});
+  if(classification.source_pair_audit){
+    fields.push('PROVIDER_UPSTREAM_INDEPENDENCE_NOT_VERIFIED');
+    fields.push('INDEPENDENT_PROVIDER_QUOTE_TIME_NOT_VERIFIED');
+  }
   const previous=state.by_pool[key]||{};
   const cooldown=stamp(previous.retry_after_utc);
   const scheduled=cooldown===null||cooldown<=t;
@@ -73,7 +77,9 @@ export function planDot3EvidenceRechecks({handoff,asOfUtc,
    status:classification.status,reason:classification.reason,
    risk_status_source:'R29_V19_DOT3_RISK_STATE',
    missing_fields:[...new Set([...fields,...classification.missing_fields])],
-   next_action:action,next_recheck_at_utc:nextDue,
+   next_action:classification.source_pair_audit?.status==='SAME_REPORTED_UPSTREAM'
+     ?'FIND_PROVABLY_INDEPENDENT_PRICE_UPSTREAM':action,
+   next_recheck_at_utc:nextDue,
    retriable:scheduled,source_age_minutes:age,
    verification_basis:'DOT2_HANDOFF_ONLY_NOT_EXTERNAL_RISK_PROOF',
    previous_recheck_count:previous.attempt_count||0,
