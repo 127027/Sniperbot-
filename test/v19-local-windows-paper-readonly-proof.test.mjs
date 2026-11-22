@@ -94,3 +94,41 @@ test('CLI source is strictly readFile-only, does not initialize or mutate the pa
  assert.doesNotMatch(code,/\bfetch\s*\(|\bpublishPaperOrder\s*\(/);
  assert.doesNotMatch(code,/process\.env\.GITHUB_TOKEN/);
 });
+
+test('read-only verifier detects altered processed time and trade event market identity',()=>{
+ const s=settlePaper(order('proof-buy-lot01','BUY',0),newState(),t+1000).state;
+ const a=structuredClone(s);
+ a.processed['proof-buy-lot01'].time=at(2);
+ assert.ok(check(a).blockers.includes('INCONSISTENT_PROCESSED_RECEIPT'));
+ const b=structuredClone(s);
+ b.trade_history[0].market_key='base:other-contract:other-pool';
+ assert.ok(check(b).blockers.includes('TRADE_EVENT_MARKET_KEY_MISMATCH'));
+ const c=structuredClone(s);
+ c.positions[marketKey(coin)].entryPrice=99999;
+ assert.ok(check(c).blockers.includes('OPEN_POSITION_LOT_DOES_NOT_MATCH_FILLED_BUY'));
+});
+test('BUY receipts must reconcile fee, quantity and execution price',()=>{
+ const s=settlePaper(order('proof-buy-lot01','BUY',0),newState(),t+1000).state;
+ const a=structuredClone(s);
+ a.receipts['proof-buy-lot01'].data.fee_test_usdc=-0.01;
+ assert.ok(check(a).blockers.includes('INVALID_BUY_FINANCIALS'));
+ const b=structuredClone(s);
+ b.receipts['proof-buy-lot01'].data.fee_test_usdc=5;
+ assert.ok(check(b).blockers.includes('INVALID_BUY_FINANCIALS'));
+});
+test('SELL receipt, trade history PnL and chronological sequence must agree',()=>{
+ const bought=settlePaper(order('proof-buy-lot01','BUY',0),newState(),t+1000).state;
+ const s=settlePaper(order('proof-sell-lot02','SELL',120),bought,t+121000).state;
+ assert.equal(check(s).status,'LOCAL_PAPER_STATE_ACCOUNTING_CONSISTENT');
+ const a=structuredClone(s);
+ a.trade_history[1].realized_pnl_test_usdc=999;
+ assert.ok(check(a).blockers.includes('TRADE_EVENT_PNL_MISMATCH'));
+ const b=structuredClone(s);
+ b.receipts['proof-sell-lot02'].data.fee_test_usdc=-0.01;
+ assert.ok(check(b).blockers.includes('INVALID_SELL_FINANCIALS'));
+ const c=structuredClone(s);
+ c.receipts['proof-sell-lot02'].data.timestamp=at(0);
+ c.trade_history[1].filled_at_utc=at(0);
+ c.processed['proof-sell-lot02'].time=at(0);
+ assert.ok(check(c).blockers.includes('FILL_SEQUENCE_TIMESTAMP_REVERSED'));
+});
