@@ -22,9 +22,12 @@ node scripts/v18-backtest-on-demand.mjs --date 2026-11-22 \
 
 # Explizit erzwungene 24 diagnostische Stunden-Takte statt adaptiver Kadenz:
 node scripts/v18-backtest-on-demand.mjs --date 2026-10-12 --diagnostic-24
+
+# Strenger Replay + separater retrospektiver Vier-Strategie-Trainingsvergleich:
+node scripts/v18-backtest-on-demand.mjs --date 2026-10-12 --training-reference
 ```
 
-Optional `--output probe-artifacts/<name>.json`. Ohne `--input` sind keine vorgetäuschten historischen Quotes verfügbar: Der Bericht zeigt `DATA_GAP_NO_CONTEMPORANEOUS_HISTORICAL_UNIVERSE`, 0 belegte Trades und 0 Paper-Receipts. Der bloße Tagesname ist keine Datenquelle!
+Optional `--output probe-artifacts/<name>.json`. Alle Ausgabedateien müssen innerhalb `probe-artifacts/` liegen, erhalten einen eindeutigen Laufzeitnamen und überschreiben keine bestehenden Dateien. Ohne `--input` sind keine vorgetäuschten historischen Quotes verfügbar: Der Bericht zeigt `DATA_GAP_NO_CONTEMPORANEOUS_HISTORICAL_UNIVERSE`, 0 belegte Trades und 0 Paper-Receipts. Der bloße Tagesname ist keine Datenquelle!
 
 ### Eingabeschema (keine Oracle-Gewinnerliste)
 
@@ -42,6 +45,13 @@ Optional `--output probe-artifacts/<name>.json`. Ohne `--input` sind keine vorge
 `snapshots` müssen die in `src/point-in-time-strategy.mjs` beschriebenen Chain+Contract+Pool-, Dot2-/Dot3-, Quote-, Quellzeit- und Archivfelder tragen. Retrospektiv ausgewählte Gewinnerlisten, künftig erstellte Dateizeitstempel und fehlende Provider-Zeitstempel sind keine historischen Kaufbelege. `SYNTHETIC_TEST` ist ausschließlich für Regressionen zulässig und kann keine damalige Handelsperformance beweisen.
 
 **Wichtig:** Das derzeitige `src/v18-requested-backtest.mjs` überprüft bislang technische Zeitstempel, SHA-Formate und die vorhandenen Ausführungsgates; es kann **nicht unabhängig** beweisen, dass der angegebenen SHA tatsächlich zu einem damals auf GitHub verfügbaren Originalbeleg gehörte oder eine Originalanbieterquote enthielt. Bei Daten mit behaupteter Originalprovenienz ist das Ergebnis daher `PROVISIONAL_ASOF_SOURCE_AUTHENTICITY_NOT_VERIFIED`, bis eine separate externe Prüfung durchgeführt wurde.
+
+
+### Separater historischer Trainingsvergleich
+
+Der Schalter `--training-reference` liest die **sechs rückblickend ausgewählten** archivierten Oktober-12-Kerzenreihen mit den zugehörigen ursprünglichen Forschungs-Metadaten und berechnet getrennt `exploratory`, `conservative`, `volatility_guard`, `guarded_reentry`. Er schreibt das Resultat unter `retrospective_training_reference`, **niemals** unter `requested_backtest.role_audit`. Quelle: `src/v18-frozen-reference.mjs`.
+
+Im aktuellen Test anhand exakt dieses bestandsbekannten Satzes: Exploratory -109,0793, Conservative -84,5782, Volatility Guard -15,3077 und Guarded Reentry -5,2967 TEST-USDC **realisierter Modell-PnL**. Diese Zahlen sind keine bestätigten historischen GPT- oder Paper-Trades. Der Trainings-Tag darf nicht als unabhängiger Holdout gelten. Für andere Tage ist dieser Schalter ausdrücklich verboten, bis ein eigenes datiertes Quellenarchiv geprüft ist.
 
 ## Bewertung der fünf Rollen im Replay
 
