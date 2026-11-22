@@ -99,7 +99,7 @@ test('SYS-11: existing runner uses this budget for real HTTP starts and persists
  assert.match(runner,/providerBudgetPath='research\/state\/provider-budget\.json'/);
  assert.match(runner,/await writeFile\(providerBudgetPath/);
  assert.match(runner,/metrics\.v19_persistent_provider_budget=/);
- assert.match(runner,/if\(geckoBlock\(\)\.active\)break/);
+ assert.match(runner,/if\(beforeRequestBlock\.active\)/);
  assert.match(runner,/if\(pacing\.wait_ms>0\)/);
  assert.doesNotMatch(runner,/signals\/orders\/|writeFile\('signals\//);
 });
