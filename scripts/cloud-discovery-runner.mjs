@@ -14,6 +14,7 @@ import {chooseNextDiscoveryPage} from '../src/discovery-page-scheduler.mjs';
 import {recoverArchivedV4} from '../src/v18-archived-v4-recovery.mjs';
 import {planMultiChainCapture} from '../src/v19-discovery-budget-plan.mjs';
 import {planHotFairRechecks} from '../src/v19-hot-fair-recheck.mjs';
+import {summarizeRecheckService} from '../src/v19-recheck-service-metrics.mjs';
 import {providerRetryDelay} from '../src/v19-provider-backoff.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
@@ -200,6 +201,7 @@ metrics.discovery_page=scanPage;
 metrics.discovery_page_reason=pageDecision.reason;
 metrics.previous_chain_page_checkpoint=oldCheckpoint?.next_page_to_consider??null;
 metrics.verified_recheck_price_observations=rechecked.length;
+metrics.v19_hot_fair_service=summarizeRecheckService({plan:recheckPlan,attempts,asOfUtc:now()});
 metrics.v19_hot_fair_recheck_plan={selected:recheckPlan.selected.map(x=>({chain:x.chain,pool:x.pool,queue:x.queue,research_score:x.research_score??null})),
   all_new_pool_count:recheckPlan.all_new_pool_count,deferred_new_pool_count:recheckPlan.deferred_new_pool_count,
   deferred_new_pool_keys:recheckPlan.deferred_new_pool_keys,hot_selected:recheckPlan.hot_selected,
