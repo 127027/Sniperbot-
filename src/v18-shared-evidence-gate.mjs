@@ -27,15 +27,22 @@ export function checkUnifiedEvidence(snapshot,now){
    &&(!snapshot.source_archive_sha||!/^[0-9a-f]{40}$/.test(snapshot.source_archive_sha)))
    return 'ARCHIVE_SHA_MISSING';
  if(!snapshot.discovery||!snapshot.risk)return 'DOT_CHAIN_MISSING';
- if(snapshot.risk.status!=='ELIGIBLE')return 'RISK_NOT_ELIGIBLE';
+ if(!['ELIGIBLE','PAPER_ELIGIBLE'].includes(snapshot.risk.status))return 'RISK_NOT_ELIGIBLE';
  for(const stamp of [snapshot.discovery.observed_at_utc,snapshot.risk.observed_at_utc]){
    const t=ms(stamp);if(t===null||t>now||t>observed)return 'DOT_CHAIN_FUTURE';
  }
  if(!Array.isArray(snapshot.quotes)||snapshot.quotes.length<2)return 'MISSING_QUOTES';
  for(const q of snapshot.quotes){
    const t=ms(q.observed_at),published=ms(q.source_published_at_utc);
-   if(t===null||published===null||t>observed||published>observed
-     ||t>now||published>now)return 'QUOTE_FUTURE_OR_UNDATED';
+   // In indicative PAPER research, public pages may lack provider quote-asof.
+   // Only an explicit uncertainty label can use the real observed page time;
+   // that is NEVER represented as provider-verified or real executable price.
+   const indicativeUnknown=snapshot.quote_quality==='INDICATIVE_WEB_ONLY'
+     &&snapshot.provider_time_unknown_acknowledged===true
+     &&(q.source_published_at_utc===null||q.source_published_at_utc===undefined);
+   if(t===null||t>observed||t>now||
+     (!indicativeUnknown&&(published===null||published>observed||published>now)))
+     return 'QUOTE_FUTURE_OR_UNDATED';
  }
  try{
    inspectOrder(makeReplayCheckOrder(snapshot,now),newState(),now,DEFAULT_POLICY);
