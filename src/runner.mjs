@@ -5,6 +5,7 @@ import { mkdir,readFile,rename,writeFile } from 'node:fs/promises';
 import { GitHubTransport } from './github.mjs';
 import { startDashboard } from './dashboard.mjs';
 import { newState,settlePaper,rejectPaper,DEFAULT_POLICY,Reject } from './core.mjs';
+import {validateDot3OrderBeforePublish} from './v19-dot3-authenticated-gate.mjs';
 const dir=process.env.R29_STATE_DIR||join(homedir(),'.r29-cleanpaper');
 const stateFile=join(dir,'state.json');
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -45,6 +46,16 @@ export async function pollOnce(transport){
    try{
      const order=(await transport.read(entry.path,entry.sha)).data;
      if(order.id!==id)throw new Reject('ORDER_ID_MISMATCH','Order ID differs from file name');
+     // An order's claimed Dot names alone are not authorization.
+     // Until independently authenticated source+sellability proofs exist,
+     // the trust gate prevents ANY local PAPER order fill (BUY or SELL).
+     const dot3=await validateDot3OrderBeforePublish({order,
+       read:(path,sha)=>transport.read(path,sha),
+       nowUtc:new Date().toISOString(),
+       trustedPublicKeyPem:process.env.R29_DOT3_TRUSTED_PUBLIC_KEY_PEM||null,
+       trustedKeyId:process.env.R29_DOT3_TRUSTED_KEY_ID||null});
+     if(!dot3.trade_authorized)
+       throw new Reject('DOT3_AUTH_NOT_VERIFIED',dot3.code);
      const result=settlePaper(order,state,Date.now(),DEFAULT_POLICY);
      state=result.state;state.receipts[id].data.client_id=state.clientId;await save();out('PAPER_FILLED',id,result.receipt.action,result.receipt.cash_after_test_usdc);
    }catch(e){
