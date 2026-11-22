@@ -4,6 +4,7 @@
 import {replaySignalDecisions} from './point-in-time-strategy.mjs';
 import {build29HourAsOfTimeline} from './v19-backtest-window.mjs';
 import {auditFiveDotExecution} from './v19-dot-execution-audit.mjs';
+import {summarizeDot3RiskStatuses} from './v19-dot3-risk-status.mjs';
 const dayMs=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)
   &&Number.isFinite(Date.parse(d+'T00:00:00Z'))?Date.parse(d+'T00:00:00Z'):null;
 const stamp=v=>typeof v==='string'&&Number.isFinite(Date.parse(v))?Date.parse(v):null;
@@ -18,7 +19,8 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
     ||source.selected_from_future_winner_list!==false
     ||!Array.isArray(source.snapshots)||!Array.isArray(source.activity_observations)
     ||(source.activity_page_captures!==undefined&&!Array.isArray(source.activity_page_captures))
-    ||(source.claimed_gpt_journals!==undefined&&!Array.isArray(source.claimed_gpt_journals)))
+    ||(source.claimed_gpt_journals!==undefined&&!Array.isArray(source.claimed_gpt_journals))
+    ||(source.dot3_risk_handoffs!==undefined&&!Array.isArray(source.dot3_risk_handoffs)))
    throw Error('UNTRUSTED_OR_HINDSIGHT_UNIVERSE');
  const sources=source.snapshots;
  const accepted=[],rejected=[],first=start,end=start+86400000;
@@ -49,6 +51,18 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
  });
  const original=accepted.filter(s=>s.provenance==='CONTEMPORANEOUS_RECORD');
  const simulated=accepted.filter(s=>s.provenance==='SYNTHETIC_TEST');
+ // Replay and current Dot2 capture use the same Dot3 status engine.
+ // These optional imported handoffs remain unverified research only: they
+ // never make an actual GPT run, Dot3 signature or an executable Paper order.
+ const dot3RiskPreviews=(source.dot3_risk_handoffs||[]).map(({as_of_utc,handoff})=>{
+   const at=stamp(as_of_utc),captured=stamp(handoff?.source_capture_utc);
+   if(at===null||at<start-5*3600000||at>=end
+     ||captured===null||captured>at)
+     throw Error('FUTURE_OR_UNVERIFIED_DOT3_REPLAY_HANDOFF');
+   return summarizeDot3RiskStatuses({
+     handoff,asOfUtc:as_of_utc,mode:'HISTORICAL_ASOF'
+   });
+ });
  const perRole={
   dot1_tempo:{full_reviews:result.summary.fullReviews,
    selected_levels:result.events.map(e=>({at_utc:e.at_utc,target:e.target_per_24h,due:e.full_review,
@@ -66,7 +80,10 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
    known_original_full_market_universe:false},
   dot3_risk:{snapshots_claiming_eligible:accepted.filter(s=>s.risk?.status==='ELIGIBLE').length,
    approved_independent_dot3_evidence_proven:false,
-   actual_dot3_paper_approvals:0},
+   actual_dot3_paper_approvals:0,
+   common_risk_status_engine:'R29_V19_DOT3_RISK_STATE',
+   risk_status_previews:dot3RiskPreviews,
+   risk_status_previews_are_not_issuer_authenticated:true},
   dot4_strategy:{decision_source:'DETERMINISTIC_SHARED_DOT4_SIGNAL_KERNEL_NOT_GPT',
     decision_engine:'UNIFIED_V18_SIGNAL_V1',same_signal_and_evidence_gates_as_live_paper:true,
    model_buys:result.summary.buys,model_sells:result.summary.sells,
