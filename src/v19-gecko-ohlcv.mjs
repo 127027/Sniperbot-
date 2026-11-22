@@ -67,7 +67,11 @@ export function decodeGeckoOhlcv({request,response,capturedAtUtc,
   candles.push({start_at_utc:new Date(candleStart).toISOString(),
    known_no_earlier_than_utc:new Date(candleEnd).toISOString(),
    open_usd:open,high_usd:high,low_usd:low,close_usd:close,volume_usd:volume,
-   source_class:historical?'RETRO_ASOF_RECONSTRUCTION':'ORIGINAL_CAPTURE',
+   source_class:'ORIGINAL_CAPTURE',
+   // The raw HTTP response genuinely arrived now, not when this candle closed.
+   // For older virtual test times the as-of gate still excludes it because
+   // available_at_utc remains the actual HTTP capture time.
+   historical_candle_in_current_http_response:historical,
    available_at_utc:capturedAtUtc,
    original_capture_at_candle_time_proven:false,
    source_raw_path:sourceRawPath,source_raw_sha256:sourceSha256,
@@ -92,7 +96,7 @@ export function decodeGeckoOhlcv({request,response,capturedAtUtc,
   earliest_candle_start_utc:candles[0]?.start_at_utc??null,
   most_recent_candle_start_utc:candles.at(-1)?.start_at_utc??null,
   visible_at_requested_asof_candles:lastVisible.length,
-  retro_candle_count:candles.filter(x=>x.source_class==='RETRO_ASOF_RECONSTRUCTION').length,
+  retrospective_candle_count:candles.filter(x=>x.historical_candle_in_current_http_response).length,
   candles,source_age_proof:'HTTP_CAPTURE_TIME_ONLY_NOT_HISTORICAL_DOT_DISCOVERY',
   original_archive_independently_verified:false,orders_authorized:0};
 }
