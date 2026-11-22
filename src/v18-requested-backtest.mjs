@@ -43,7 +43,12 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
  const perRole={
   dot1_tempo:{full_reviews:result.summary.fullReviews,
    selected_levels:result.events.map(e=>({at_utc:e.at_utc,target:e.target_per_24h,due:e.full_review,
-    reason:e.cadence_reason})),simulation_not_autonomous_gpt:true},
+    reason:e.cadence_reason})),
+   coverage_recovery_plans:result.events.map(e=>({at_utc:e.at_utc,
+    missing_or_stale_chains:e.data_gap_capture_recommendations?.missing_or_stale_chains??null,
+    recommended_capture_requests:e.data_gap_capture_recommendations?.recommended_capture_requests??[]})),
+   coverage_recovery_is_planning_not_api_execution:true,
+   simulation_not_autonomous_gpt:true},
   dot2_discovery:{accepted_input_snapshots:accepted.length,original_capture_claims:original.length,
    synthetic_test_snapshots:simulated.length,rejected_input_snapshots:rejected.length,
    all_discovery_original_sources_independently_verified:false,
