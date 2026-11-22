@@ -17,7 +17,7 @@ export function buildRiskRecheckQueue({report,asOfUtc,limit=50,maxCaptureAgeMinu
  const all=report.candidates.map((raw,i)=>{
   const c=one(raw),chain=canonicalChain(c.chain);
   const issues=[];
-  if(!chain||!poolValid(chain,c.pool)||!tokenValid(chain,c.contract))issues.push('IDENTITY_UNVERIFIED');
+  if(!chain||!poolValid(chain,c.pool,c.pool_kind)||!tokenValid(chain,c.contract))issues.push('IDENTITY_UNVERIFIED');
   const a=one(c.gecko),b=one(c.dex);
   const quoteTimes=[ts(a.captured_at_utc),ts(b.captured_at_utc)];
   const fresh=quoteTimes.every(v=>v!==null&&v<=at&&(at-v)<=maxCaptureAgeMinutes*60000);
@@ -36,11 +36,11 @@ export function buildRiskRecheckQueue({report,asOfUtc,limit=50,maxCaptureAgeMinu
   if(issues.length===0)issues.push('READY_FOR_DOT3_SECURITY_REVIEW');
   const riskCodes=Array.isArray(c.risk_codes)?c.risk_codes.filter(s=>typeof s==='string'):[];
   // Stable grouping: high information value (two matched sources) before missing data.
-  const score= (chain&&poolValid(chain,c.pool)&&tokenValid(chain,c.contract)?10:0)
+  const score= (chain&&poolValid(chain,c.pool,c.pool_kind)&&tokenValid(chain,c.contract)?10:0)
    +(quoted?15:0)+(drift!==null&&drift<=3?15:0)
    +(liq.every(v=>v!==null&&v>=5000)?10:0)
    +(fresh?5:0)-(drift!==null&&drift>3?10:0);
-  return {index:i,symbol:c.symbol||null,chain:chain||null,pool:c.pool||null,
+  return {index:i,symbol:c.symbol||null,chain:chain||null,pool:c.pool||null,pool_kind:c.pool_kind||null,
    contract:c.contract||null,score,previous_status:c.status||'UNKNOWN',
    source_dot3_updated_utc:report.updated_at_utc||null,
    verified_pair_identity:b.identity_verified===true,
