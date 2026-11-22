@@ -93,7 +93,10 @@ test('real archived EHUNT 0.0005 USD liquidity is deferred behind higher-quality
  const {readFile}=await import('node:fs/promises');
  const original=JSON.parse(await readFile('research/observations/2026-11-22/45036887325.json','utf8'));
  const memory=JSON.parse(await readFile('research/state/market-memory.json','utf8'));
- const asOfUtc='2026-11-22T16:10:00.000Z';
+ // The persisted memory already contains a real recheck at 16:31 UTC;
+ // compare the old 15:11 observations at a later as-of time, not by
+ // accessing this future cursor from a synthetic 16:10 state.
+ const asOfUtc='2026-11-22T16:40:00.000Z';
  const ranking=scoreAsOf({batches:[original],asOfUtc,maxCandidates:100000});
  const full=planEvidenceRepairRechecks({ranking,memory,asOfUtc,maxCandidates:1000});
  const ehunt=full.selected.find(x=>x.symbol==='EHUNT');
