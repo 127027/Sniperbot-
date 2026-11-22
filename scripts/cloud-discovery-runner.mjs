@@ -38,6 +38,7 @@ import {planIndependentObservations} from '../src/v19-independent-observation-sc
 import {summarizeCumulativeScanProgress} from '../src/v19-cumulative-scan-progress.mjs';
 import {enrichPersistentMarketIdentity} from '../src/v19-canonical-market-identity.mjs';
 import {makeNeutralEvaluationPopulation} from '../src/v19-neutral-evaluation-population.mjs';
+import {freezeProspectiveHoldout,validateFrozenHoldout,assignProspectiveHoldout} from '../src/v19-prospective-holdout-freeze.mjs';
 import {diagnoseMissedOpportunities} from '../src/v19-missed-opportunity-root-causes.mjs';
 import {restoreCommittedInflightCapture}
  from '../src/v19-inflight-http-recovery.mjs';
@@ -229,6 +230,18 @@ if(recoveredInflight.length){
  await writeFile(coverageStatePath,JSON.stringify(pageCoverage,null,2)+'\n','utf8');
 }
 const chainService=chainServiceSignals({memory:precedingMemory,coverage:pageCoverage,asOfUtc:now()});
+// QA-05: freeze the upcoming forward validation/holdout rule ONCE before
+// reading any future outcomes. Subsequent captures must reuse its SHA.
+const holdoutFreezePath='research/state/prospective-holdout-freeze.json';
+let holdoutFreeze;
+try{
+ holdoutFreeze=JSON.parse(await readFile(holdoutFreezePath,'utf8'));
+ validateFrozenHoldout(holdoutFreeze);
+}catch(error){
+ if(error.code!=='ENOENT')throw error;
+ holdoutFreeze=freezeProspectiveHoldout({frozenAtUtc:now()});
+ await writeFile(holdoutFreezePath,JSON.stringify(holdoutFreeze,null,2)+'\n','utf8');
+}
 const capturePlan=planMultiChainCapture({
  networks:request.networks,checkpoints:precedingMemory.checkpoints,
  pageCoverage,budget:request.max_gecko_requests-(request.max_ohlcv_requests??0)
@@ -938,6 +951,14 @@ const opportunityTriage=diagnoseMissedOpportunities({
 const opportunityTriagePath=root+'/missed-opportunity-process-gaps.json';
 await writeFile(opportunityTriagePath,JSON.stringify(opportunityTriage,null,2)+'\n','utf8');
 artifacts.push(opportunityTriagePath);
+// No GPT decisions/verified outcome labels exist in this capture-only runner.
+// Publish the frozen cohort and keep empty trial assignment explicit.
+const holdoutAssignment=assignProspectiveHoldout({
+ freeze:holdoutFreeze,observations:[],asOfUtc:now()
+});
+const holdoutAssignmentPath=root+'/prospective-holdout-assignment.json';
+await writeFile(holdoutAssignmentPath,JSON.stringify(holdoutAssignment,null,2)+'\n','utf8');
+artifacts.push(holdoutAssignmentPath);
 await mkdir('research/state/checkpoints',{recursive:true});
 await writeFile(memoryPath,JSON.stringify(memory,null,2)+'\n','utf8');
 await writeFile(providerBudgetPath,JSON.stringify(providerBudget,null,2)+'\n','utf8');
@@ -969,7 +990,9 @@ const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
  source_errors:data.errors,
  neutral_population_path:neutralPopulationPath,
  neutral_population_pool_count:neutralPopulation.population_size,
- missed_opportunity_process_gaps_path:opportunityTriagePath};
+ missed_opportunity_process_gaps_path:opportunityTriagePath,
+ frozen_prospective_holdout_state_path:holdoutFreezePath,
+ holdout_assignment_path:holdoutAssignmentPath};
 await writeFile(memoryCheckpointPath,JSON.stringify(memoryCheckpoint,null,2)+'\n','utf8');
 await writeFile('research/state/latest.json',JSON.stringify({
  schema:1,checkpoint_path:memoryCheckpointPath,memory_path:memoryPath,
