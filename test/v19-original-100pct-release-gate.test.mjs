@@ -11,7 +11,7 @@ const load=async()=>({
  currentMarketMemory:await read('research/state/market-memory.json'),
  asOfUtc:'2026-11-22T22:30:00.000Z'
 });
-test('Original 61-task backtest release gate is BLOCKED until 61 real PASS, not 96.72% touched',async()=>{
+test('Original 60 non-backtest tasks must all PASS before QA-04, not 96.72 percent touched',async()=>{
  const r=inspectR29OriginalAcceptanceReleaseGate(await load());
  assert.equal(r.original_task_count,61);
  assert.deepEqual(r.original_status_counts,{PASS:13,PARTIAL:46,OPEN:2});
@@ -24,15 +24,15 @@ test('Original 61-task backtest release gate is BLOCKED until 61 real PASS, not 
  assert.equal(r.live_trade_authorized,false);
  assert.equal(r.orders_published,0);
  assert.ok(r.blockers.find(x=>x.gate==='DOT3_CHAIN_SELLABILITY'));
- assert.equal(r.blockers.find(x=>x.gate==='ORIGINAL_TASK_ACCEPTANCE')
-   .outstanding_task_ids.length,48);
+ assert.equal(r.blockers.find(x=>x.gate==='NON_BACKTEST_ORIGINAL_TASK_ACCEPTANCE')
+   .outstanding_task_ids.length,47);
 });
 test('Even a forged JSON registry with 61 PASS cannot independently attest onchain or Windows proof',async()=>{
  const x=await load();
  for(const t of x.taskRegister.tasks)t.status='PASS';
  x.taskRegister.status_counts={PASS:61,PARTIAL:0,OPEN:0};
  const r=inspectR29OriginalAcceptanceReleaseGate(x);
- assert.equal(r.all_original_acceptance_items_passed,true);
+ assert.equal(r.all_nonbacktest_original_acceptance_items_passed,true);
  assert.equal(r.strict_fully_accepted_pct,100);
  assert.equal(r.release_authorized,false);
  assert.equal(r.independently_authenticated_historical_market,false);
@@ -77,4 +77,19 @@ test('Gate CLI has no Backtest, API request, client writer, GitHub publisher or 
  assert.doesNotMatch(code,/v18-backtest-on-demand|replay-v16|backtestOnRequest|child_process/);
  assert.doesNotMatch(code,/\bfetch\s*\(|https?\.request|publishPaperOrder|settlePaper/);
  assert.doesNotMatch(code,/signals\/orders|R29_ENABLE_LIVE/);
+});
+
+test('QA-04 final backtest is NOT a circular prerequisite: 60 non-backtest PASS can pass count gate, but proof still missing',async()=>{
+ const x=await load();
+ for(const t of x.taskRegister.tasks)if(t.id!=='QA-04')t.status='PASS';
+ x.taskRegister.status_counts={PASS:60,PARTIAL:1,OPEN:0};
+ const r=inspectR29OriginalAcceptanceReleaseGate(x);
+ assert.equal(r.non_backtest_original_task_count,60);
+ assert.equal(r.actual_non_backtest_pass_count,60);
+ assert.equal(r.strict_non_backtest_fully_accepted_pct,100);
+ assert.equal(r.final_qa04_backtest_status,'PARTIAL');
+ assert.equal(r.all_nonbacktest_original_acceptance_items_passed,true);
+ assert.ok(!r.blockers.some(x=>x.gate==='NON_BACKTEST_ORIGINAL_TASK_ACCEPTANCE'));
+ assert.equal(r.release_authorized,false);
+ assert.ok(r.blockers.some(x=>x.gate==='DOT3_CHAIN_SELLABILITY'));
 });
