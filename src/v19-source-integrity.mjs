@@ -9,7 +9,7 @@ const within=x=>typeof x==='string'&&/^research\/feeds\/(?:[A-Za-z0-9_-]+\/)+[A-
 const vendor={GECKOTERMINAL:'api.geckoterminal.com',
  GECKOTERMINAL_OHLCV:'api.geckoterminal.com',
  DEXSCREENER:'api.dexscreener.com'};
-export function verifyArchivedHttpBytes({rawText,evidence,sourcePath,asOfUtc}={}){
+export function verifyArchivedHttpBytes({rawText,evidence,sourcePath,asOfUtc,expectedGitBlobSha1=null}={}){
  const decision=(status,reason,detail={})=>({
   schema:1,kind:'R29_V19_ARCHIVED_HTTP_BYTE_PROOF',status,reason,
   source_path:sourcePath??null,
@@ -32,6 +32,17 @@ export function verifyArchivedHttpBytes({rawText,evidence,sourcePath,asOfUtc}={}
  if(!/^[a-f0-9]{64}$/.test(evidence.response_sha256||''))
   return decision('REJECTED','MISSING_OR_MALFORMED_SHA256');
  const actual=digest(rawText);
+ // Git's content-addressed blob is SHA1("blob <UTF8 byte count>\\0"+bytes).
+ // This can be compared against a GitHub-fetched blob SHA after archival;
+ // a calculated blob hash alone does not attest historical capture time.
+ const rawBytes=Buffer.from(rawText,'utf8');
+ const prefix=Buffer.from('blob '+rawBytes.length+'\0','utf8');
+ const gitBlobSha1=createHash('sha1').update(Buffer.concat([prefix,rawBytes])).digest('hex');
+ if(expectedGitBlobSha1!==null
+   &&(!/^[a-f0-9]{40}$/.test(expectedGitBlobSha1)
+     ||gitBlobSha1!==expectedGitBlobSha1))
+  return decision('REJECTED','GIT_BLOB_ID_MISMATCH',{
+    calculated_git_blob_sha1:gitBlobSha1,claimed_git_blob_sha1:expectedGitBlobSha1});
  if(actual!==evidence.response_sha256)
   return decision('REJECTED','ORIGINAL_RAW_SHA256_MISMATCH',{
    expected_sha256:evidence.response_sha256,actual_sha256:actual});
@@ -39,6 +50,8 @@ export function verifyArchivedHttpBytes({rawText,evidence,sourcePath,asOfUtc}={}
    ||evidence.http_status>599)
   return decision('REJECTED','INVALID_HTTP_STATUS');
  const source={actual_sha256:actual,reported_sha256:evidence.response_sha256,
+   calculated_git_blob_sha1:gitBlobSha1,
+   git_blob_sha_matched_independent_reference:expectedGitBlobSha1!==null,
    received_at_utc:new Date(recorded).toISOString(),
    provider:evidence.provider,source_url:evidence.url,http_status:evidence.http_status,
    raw_bytes_utf8:Buffer.byteLength(rawText,'utf8')};
