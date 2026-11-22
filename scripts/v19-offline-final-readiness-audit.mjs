@@ -7,6 +7,7 @@ import {join} from 'node:path';
 import {newState,settlePaper} from '../src/core.mjs';
 import {replayArchivedSixChainEvidence} from '../src/v19-offline-multichain-replay.mjs';
 import {auditOfflineDot4OrderBoundary} from '../src/v19-offline-dot4-order-boundary.mjs';
+import {auditOfflineDot3TrustAndSellability} from '../src/v19-offline-risk-verification-gaps.mjs';
 import {makeNeutralEvaluationPopulation} from '../src/v19-neutral-evaluation-population.mjs';
 import {
  auditOfflineRawArchive,summarizeOfflineOperationalReceipts,
@@ -53,10 +54,12 @@ for(const record of archive.entries){
   original_sha256:record.original_sha256,compressed_sha256:record.compressed_sha256,
   bytes:record.compressed_bytes,http_status:record.http_status});
 }
-const [memory,winners,recheck]=await Promise.all([
+const [memory,winners,recheck,handoff,riskPreview]=await Promise.all([
  read('research/state/market-memory.json'),
  read('research/evaluation/2026-10-12/v19-winner-reference-identity-status.json'),
- read('research/feeds/2026-11-22/45057658912/dot3-next-evidence-rechecks.json')
+ read('research/feeds/2026-11-22/45057658912/dot3-next-evidence-rechecks.json'),
+ read('research/feeds/2026-11-22/45057658912/dot2-to-dot3-handoff.json'),
+ read('research/feeds/2026-11-22/45057658912/dot3-research-risk-status-preview.json')
 ]);
 const multichain=replayArchivedSixChainEvidence({apiEvidence:all,rawFiles,asOfUtc});
 if(multichain.archive_failures.length||multichain.total_original_http200_pages!==15
@@ -79,6 +82,10 @@ const population=makeNeutralEvaluationPopulation({memory,asOfUtc});
 const operations=summarizeOfflineOperationalReceipts({apiEvidence:all,asOfUtc});
 const identity=resolveHistoricalWinnerIdentity({winnerRegister:winners,memory,asOfUtc});
 const risk=auditDot3EvidenceDeadlines({recheckPlan:recheck,asOfUtc});
+const riskTrust=auditOfflineDot3TrustAndSellability({handoff,riskPreview,asOfUtc});
+if(riskTrust.paired_with_risk_model_count!==79
+ ||riskTrust.independent_dot3_issuer_verifications_completed!==0
+ ||riskTrust.orders_authorized!==0)throw Error('DOT3_UNVERIFIED_RISK_NOT_BLOCKED');
 const winnersAfter=auditPostEventWinnerCoverage({
  winnerRegister:winners,population,asOfUtc,decisionWindowEndUtc:'2026-10-13T00:00:00.000Z'
 });
@@ -146,6 +153,7 @@ const summary={schema:1,kind:'R29_V19_FINAL_OFFLINE_READINESS_AUDIT',
  shared_dot4_order_boundary:dot4Boundary,
  neutral_pool_count:population.population_size,
  risk_field_deadlines:risk,
+ independent_dot3_and_chain_sellability_gap_audit:riskTrust,
  postevent_winner_coverage:winnersAfter,
  synthetic_model_stop_and_dot4_convergence:exits,
  nine_original_items_implemented_for_offline_review:[
@@ -176,6 +184,8 @@ console.log('R29_V19_FINAL_OFFLINE_READINESS',JSON.stringify({
  replayed_six_chains:multichain.chains_with_at_least_one_prior_real_http200,
  real_november_price_pairs:multichain.observed_price_pairs_5_to_240min_total,
  dot4_shared_buy_still_blocked:dot4Boundary.paper_order_authorized===false,
+ independently_authenticated_risk_pools:riskTrust.independent_dot3_issuer_verifications_completed,
+ sellability_checks_still_unverified:riskTrust.unverified_sellability_count,
  model_convergent_exit:exits.convergent_intent_count,
  actual_gpt_runs:0,real_fills:0,output:out
 }));
