@@ -23,20 +23,22 @@ test('real 22-Nov as-of archive flags 2 stale leaders plus 1 eight-hour price ga
   }catch{/* malformed earlier artifacts never become trading evidence */}
  }
  assert.ok(batches.length>0);
- const replay=scoreAsOf({batches,asOfUtc:archived.as_of_utc});
+ const replay=scoreAsOf({batches,asOfUtc:archived.as_of_utc,maxCandidates:100000});
  const old=new Map(archived.candidates.map(x=>[x.key,x]));
  const next=new Map(replay.candidates.map(x=>[x.key,x]));
  for(const key of [
   'bsc:0x03aa0e5114c12d3974da2ab1843cd197e24e4274',
   'bsc:0x364f490a973f8fecddb5845ebc66562ec94ad54a'
  ]){
-  assert.ok(old.get(key)?.score!==null);
-  assert.equal(next.get(key)?.score,null);
+  assert.ok(old.has(key)&&Number.isFinite(old.get(key).score));
+  assert.ok(next.has(key));
+  assert.equal(next.get(key).score,null);
   assert.equal(next.get(key)?.status,'WATCH_STALE_LAST_CAPTURE');
   assert.equal(next.get(key)?.latest_capture_is_recent,false);
  }
  const cronos='cronos:0x835a8fe7370c5c08b9a4efda273e28ff7bcf161c';
- assert.equal(next.get(cronos)?.score,null);
+ assert.ok(next.has(cronos));
+ assert.equal(next.get(cronos).score,null);
  assert.equal(next.get(cronos)?.status,'WATCH_PRICE_OBSERVATION_GAP');
  assert.equal(next.get(cronos)?.latest_capture_is_recent,true);
  assert.ok(next.get(cronos)?.prior_price_observation_gap_minutes>240);
