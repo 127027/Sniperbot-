@@ -50,6 +50,7 @@ export function inspectProtectiveExit({position,observations=[],asOfUtc,policy={
    as_of_utc:asOfUtc,source_order_id:position.sourceOrderId||null,
    observed_worst_provider_price_usdc:worst,observed_move_pct:movePct,
    price_disagreement_pct:drift,trigger_reason:trigger,
+   decision_engine:'UNIFIED_V18_SIGNAL_V1',
    trade_authorized:false,paper_filled:false};
  if(!trigger)return {...context,status:'SHADOW_HOLD',code:'NO_EXIT_TRIGGER'};
  const liquidity=Math.min(...liquidities);
