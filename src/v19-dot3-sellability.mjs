@@ -4,7 +4,8 @@
 // The goal is to preserve potentially good pools under DATA_GAP rather than
 // execute fake sales or discard all uncertain memecoins.
 import {canonicalChain,poolValid,tokenValid} from './market-evidence.mjs';
-const at=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
+import {asOfMillis} from './v19-asof-evidence.mjs';
+const at=asOfMillis;
 const same=(c,a,b)=>c==='solana'?a===b:String(a).toLowerCase()===String(b).toLowerCase();
 const evm=new Set(['ethereum','base','bsc','robinhood','cronos']);
 const hasBool=x=>x===true||x===false;
