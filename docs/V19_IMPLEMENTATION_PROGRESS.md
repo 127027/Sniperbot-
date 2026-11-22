@@ -48,7 +48,7 @@
 
 ## In Bearbeitung, NICHT abgeschlossen
 
-- **QA-06 weiterhin OFFEN:** Für D4-09 gibt es sieben zusätzliche auf dem Branch eingecheckte Node-Regressionen und eine gezielte ausführbare isolierte Kontrollrechnung 11/11. Das ist NICHT dasselbe wie ein gesamter `npm test`-/Actions-Erfolg. Im gesperrten API-/CI-Umfeld wird keine Echtdot-Ausführung behauptet.
+- **QA-06 weiterhin OFFEN:** Die neue reine Code-Test-Automation `.github/workflows/cleanroom-v19-ci.yml` liegt auf dem isolierten Branch, startet nur `node --check`, `npm test` und prüft, dass der Signalindex und Orders nicht verändert wurden. Kein Dot, keine Publisher-/Runner-Ausführung, keine Secrets, nur `contents: read`. **Ein abgeschlossener erfolgreicher GitHub-Actions-Lauf ist noch NICHT nachgewiesen** (`statuses:[]`, über verfügbaren Connector nur PR-gefilterte Run-Query). Quelle: `docs/V19_QA06_TEST_WORKFLOW.md`. Für D4-09 sind 7 Node-Regressionen eingecheckt und 11/11 gezielte Modul-/UI-Kontrollen bestanden; das ersetzt keinen CI-Gesamterfolg.
 
 
 - **D4-08 – in Arbeit, NICHT abgeschlossen:** `src/v19-paper-exit-convergence.mjs` bündelt STOP + DOT4_SELL zur **einen** Shadow-Exit-ID je geöffnetem BUY-Lot. Im Core und am prospektiven Publisher/Runner verhindert `exit_position_source_order_id` spätere SELLs alter Lots; 7/7 gezielte Idempotenz-/Warnsignal-Kontrollen bestanden, `test/v19-paper-exit-convergence.test.mjs` (5 Node-Fälle) eingecheckt. **KEIN** echter externer Quote-/Issuer-/Sellability-Nachweis, kein freigegebener SELL und kein echter Receipt; die bisherige Fail-Closed-Sperre von D3-04 besteht weiterhin für BUY UND SELL. Echte End-to-End-Abnahme, inklusive konservativer Route/Liquidität, offen. Details: `docs/V19_DOT4_BUDGET_AND_EXIT.md`.
