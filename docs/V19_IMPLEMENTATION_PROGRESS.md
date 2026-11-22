@@ -2,7 +2,7 @@
 
 **Maßstab:** 61 konkrete Aufgaben aus `docs/V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md`. Eine Aufgabe gilt hier als technisch abgeschlossen, wenn die konkrete Codeänderung auf dem Cleanroom-Branch eingecheckt und mittels gezielter Regression/Funktionsprüfung geprüft wurde. **Noch keine vollständige Node-/GitHub-Actions-End-to-End-Abnahme**; diese zählt separat als QA-06 und bleibt offen. Zahl ist **Aufgabenzählung**, keine Berechnung von Gesamtarbeitsstunden.
 
-**Stand: 6/61 = 9,8 % technisch abgeschlossen. 55 offen.**
+**Stand: 7/61 = 11,5 % technisch abgeschlossen. 54 offen.**
 
 | Task | Status | Verifizierbare Änderungen | Prüfung / offene Einschränkung |
 |---|---|---|---|
@@ -11,13 +11,14 @@
 | SYS-01 | COMPLETE (targeted) | `src/v19-backtest-window.mjs`; `src/v18-requested-backtest.mjs`; `test/v19-backtest-window.test.mjs` | 14/14 isolierte Checks; 5h Vorlauf +24h Entscheidungssimulation, noch keine originalen Oktober-Quellen |
 | SYS-02 | COMPLETE (targeted) | `src/v19-neutral-pool-registry.mjs`; `research/evaluation/2026-10-12/v19-winner-reference-identity-status.json`; `test/v19-neutral-pool-registry.test.mjs` | 14/14 isolierte Checks, 65/65 Excel-Referenzen kategorisiert, nur 8 Pool-URLs, 57 NAME_ONLY; es wird **keine** eindeutige Contract-Zuordnung behauptet |
 | SYS-05 | COMPLETE (targeted) | `src/v19-discovery-budget-plan.mjs`, `src/discovery-feed.mjs`, `scripts/cloud-discovery-runner.mjs`, `test/v19-multichain-discovery-budget.test.mjs`, Dot2-Workflow-Timeout angepasst | 15/15 isolierte Plan-/Checkpoint-Prüfungen und Runner-Syntaxprüfung; bis zu 12 budgetierte Anfragen/Run; **kein aktueller tatsächlicher Mehrchain-Capture ausgeführt** |
+| SYS-06 | COMPLETE (targeted) | `src/v19-manual-backtest-request.mjs`, `.github/workflows/cleanroom-v19-manual-backtest.yml`, `test/v19-manual-backtest-request.test.mjs`, `docs/V19_MANUAL_BACKTEST_USAGE.md` | 17/17 isolierte Validierungs-/Workflow-Checks; nur manual `workflow_dispatch`, Branch-only, `npm test` als vorgeschaltetes Gate, research-only Ergebnis als Artifact; tatsächlicher Workflow-Lauf ausstehend |
 | D1-02 | COMPLETE (targeted) | `src/v19-coverage-recovery.mjs`; `src/point-in-time-strategy.mjs`; `src/v18-requested-backtest.mjs`; `test/v19-data-gap-coverage.test.mjs`; gespeicherte pausierte Dot1-Anweisung aktualisiert | 16/16 isolierte Checks; Datenlücken erzeugen konkrete **empfohlene**, noch nicht ausgeführte Capture-Aufträge, keine fingierten GPT-Scans |
 
 ## In Bearbeitung, NICHT abgeschlossen
 
 - **SYS-11:** Bereits implementiert: `src/v19-provider-backoff.mjs`, `src/market-memory.mjs`, `src/v19-discovery-budget-plan.mjs`, `scripts/cloud-discovery-runner.mjs`, `test/v19-provider-backoff.test.mjs`; 18/18 gezielte Retry-/Checkpointprüfungen. **Noch offen:** echte Budget-/Rate-Limit-Kontrolle je Endpoint, garantierte Reserven für History/Rechecks, getesteter Cache-Hit-Pfad, realer 429-Integrationstest und ggf. Jitter. Daher noch NICHT in den 6 Abschlüssen enthalten.
 - **D2-01/D2-02/D2-07/D2-08:** Teilunterstützung durch neuen Scheduler, aber Seitendeckung/Hot-Queue und Integration über echte Läufe noch nicht unabhängig bestätigt.
-- **QA-06:** Ein vollständiger `npm test`- und erfolgreicher CI-Lauf ist weiterhin nicht nachgewiesen.
+- **QA-06:** Der manuelle on-demand GitHub-Workflow kann `npm test` vor einem Replay aufrufen; ein tatsächlich abgeschlossener, erfolgreicher CI-Lauf ist weiterhin nicht nachgewiesen.
 
 ## Invariante Grenzen
 
