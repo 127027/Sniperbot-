@@ -15,7 +15,8 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
   selected_from_future_winner_list:false,snapshots:[],activity_observations:[]};
  if(source.schema!==1||source.kind!=='R29_V18_ASOF_REPLAY_INPUT'||source.date!==date
     ||source.selected_from_future_winner_list!==false
-    ||!Array.isArray(source.snapshots)||!Array.isArray(source.activity_observations))
+    ||!Array.isArray(source.snapshots)||!Array.isArray(source.activity_observations)
+    ||(source.activity_page_captures!==undefined&&!Array.isArray(source.activity_page_captures)))
    throw Error('UNTRUSTED_OR_HINDSIGHT_UNIVERSE');
  const sources=source.snapshots;
  const accepted=[],rejected=[],first=start,end=start+86400000;
@@ -37,17 +38,20 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
  const timeLine=build29HourAsOfTimeline({date,snapshots:accepted,warmupHours:5});
  const result=replaySignalDecisions({date,snapshots:accepted,
   activityObservations:source.activity_observations,
+  activityPageCaptures:source.activity_page_captures||[],
   forceHourlyReview:forceHourlyDiagnostic,targetPer24h:forceHourlyDiagnostic?24:4});
  const original=accepted.filter(s=>s.provenance==='CONTEMPORANEOUS_RECORD');
  const simulated=accepted.filter(s=>s.provenance==='SYNTHETIC_TEST');
  const perRole={
   dot1_tempo:{full_reviews:result.summary.fullReviews,
    selected_levels:result.events.map(e=>({at_utc:e.at_utc,target:e.target_per_24h,due:e.full_review,
-    reason:e.cadence_reason})),
+    reason:e.cadence_reason,measured_activity:e.measured_page_activity?.metrics??null})),
    coverage_recovery_plans:result.events.map(e=>({at_utc:e.at_utc,
     missing_or_stale_chains:e.data_gap_capture_recommendations?.missing_or_stale_chains??null,
     recommended_capture_requests:e.data_gap_capture_recommendations?.recommended_capture_requests??[]})),
    coverage_recovery_is_planning_not_api_execution:true,
+   observed_source_pages:source.activity_page_captures?.length||0,
+   observed_page_activity_is_not_all_market_coverage:true,
    simulation_not_autonomous_gpt:true},
   dot2_discovery:{accepted_input_snapshots:accepted.length,original_capture_claims:original.length,
    synthetic_test_snapshots:simulated.length,rejected_input_snapshots:rejected.length,
