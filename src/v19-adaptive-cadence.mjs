@@ -19,7 +19,10 @@ export function advanceAdaptiveCadence({
    at_utc:asOfUtc,target:prior.target,reason:'IDEMPOTENT_ALREADY_EVALUATED',
    quiet_confirmations:prior.quiet_confirmations,state:structuredClone(prior),
    actual_gpt_reviews:0,orders_authorized:0};
- const candidate=chooseCadence(metrics,prior.target);
+ // The state machine below enforces the 2-check hysteresis itself; ask
+ // the stateless kernel for the raw target instead of double-counting it.
+ const candidate=chooseCadence(metrics?.dataAvailable===true
+   ?{...metrics,consecutiveQuietChecks:2}:metrics,prior.target);
  const comparable=metrics?.dataAvailable===true
    &&metrics.allowDownshift===true&&metrics.comparableWindowComplete===true
    &&metrics.observed_volume_pairs>0;
