@@ -58,9 +58,25 @@ export function closePartialCapture(journal,{atUtc,finalCoverage}={}){
   ||finalCoverage?.kind!=='R29_V19_OFFSET_PAGE_COVERAGE')
   throw Error('INVALID_PARTIAL_CAPTURE_FINALIZATION');
  const next=structuredClone(journal);
+ // Runner completion is NOT equivalent to full page coverage. A 429 can end
+ // the research run normally with five chain pages still unobserved.
+ const thisRunPath='/'+journal.run_id+'/';
+ const success=journal.planned_pages.filter(x=>{
+   const p=finalCoverage.chains?.[x.chain]?.pages?.[x.page];
+   return p&&typeof p.last_source_path==='string'
+    &&p.last_source_path.includes(thisRunPath)
+    &&typeof p.last_sha256==='string'
+    &&/^[a-f0-9]{64}$/.test(p.last_sha256);
+ });
+ const proven=new Set(success.map(x=>x.chain+':'+x.page));
+ const unresolved=journal.planned_pages.filter(x=>!proven.has(x.chain+':'+x.page));
  next.state='FINALIZED_BY_RUNNER';
  next.finalized_at_utc=time;
- next.status_is_not_successful_capture=false;
+ next.proven_successful_pages_this_run=success.length;
+ next.unresolved_planned_pages_this_run=unresolved;
+ next.has_unresolved_page_gaps=unresolved.length>0;
+ next.status_is_not_successful_capture=unresolved.length>0;
  next.final_page_coverage_path='research/state/page-coverage.json';
+ next.no_global_market_completeness_claim=true;
  return next;
 }
