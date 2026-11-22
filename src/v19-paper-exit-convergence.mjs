@@ -94,6 +94,8 @@ export function auditSingleExitReceipt({stateBefore,stateAfter,
  openingBuyOrderId,sellOrderId,coin}={}){
  const issues=[],mark=code=>{if(!issues.includes(code))issues.push(code);};
  const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+ const sameMarket=(a,b)=>a&&b&&a.chain===b.chain
+   &&a.contract===b.contract&&a.pool===b.pool;
  const finite=x=>typeof x==='number'&&Number.isFinite(x);
  const sameMoney=(a,b)=>finite(a)&&finite(b)&&Math.abs(a-b)<=1e-5;
  const round=x=>Math.round(x*1e8)/1e8;
@@ -105,16 +107,21 @@ export function auditSingleExitReceipt({stateBefore,stateAfter,
  const prevHistory=stateBefore?.trade_history, nextHistory=stateAfter?.trade_history;
  const event=Array.isArray(nextHistory)?nextHistory.at(-1):null;
  if(!before||before.sourceOrderId!==openingBuyOrderId||after!==undefined
-  ||stateBefore?.mode!=='PAPER_ONLY'||stateAfter?.mode!=='PAPER_ONLY')
+  ||stateBefore?.mode!=='PAPER_ONLY'||stateAfter?.mode!=='PAPER_ONLY'
+  ||stateBefore?.schema!==1||stateAfter?.schema!==1)
   mark('LOT_NOT_CLOSED_EXACTLY_ONCE');
+ if(typeof stateBefore?.clientId!=='string'||!stateBefore.clientId
+  ||stateBefore.clientId!==stateAfter?.clientId
+  ||stateBefore?.startedAt!==stateAfter?.startedAt)
+  mark('PAPER_CLIENT_ORIGIN_CHANGED');
  if(!processed||processed.status!=='PAPER_FILLED'
   ||!receipt||receipt.status!=='PAPER_FILLED'||receipt.action!=='SELL'
   ||receipt.id!==sellOrderId||receipt.mode!=='PAPER'
   ||receipt.simulated!==true||when(receipt.timestamp)===null
   ||processed.time!==receipt.timestamp)
   mark('EXIT_RECEIPT_NOT_RECONCILED');
- if(!before||!receipt||!eq(receipt.coin,coin)
-  ||!eq(before.coin,coin)||!finite(before.quantity)
+ if(!before||!receipt||!sameMarket(receipt.coin,coin)
+  ||!sameMarket(before.coin,coin)||!finite(before.quantity)
   ||receipt.quantity!==before.quantity
   ||!finite(receipt.execution_price_usdc)||receipt.execution_price_usdc<=0
   ||!finite(receipt.fee_test_usdc)||receipt.fee_test_usdc<0
