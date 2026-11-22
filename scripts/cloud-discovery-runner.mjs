@@ -16,6 +16,7 @@ import {makeAsOfForecastSnapshot,settleMatureForecastSnapshot} from '../src/forw
 import {chooseNextDiscoveryPage} from '../src/discovery-page-scheduler.mjs';
 import {recoverArchivedV4} from '../src/v18-archived-v4-recovery.mjs';
 import {planMultiChainCapture} from '../src/v19-discovery-budget-plan.mjs';
+import {chainServiceSignals,summarizeChainServiceSla} from '../src/v19-chain-service-sla.mjs';
 import {planHotFairRechecks} from '../src/v19-hot-fair-recheck.mjs';
 import {planEvidenceRepairRechecks} from '../src/v19-evidence-repair-queue.mjs';
 import {summarizeRecheckService} from '../src/v19-recheck-service-metrics.mjs';
@@ -225,10 +226,11 @@ if(recoveredInflight.length){
  await writeFile(memoryFile,JSON.stringify(precedingMemory,null,2)+'\n','utf8');
  await writeFile(coverageStatePath,JSON.stringify(pageCoverage,null,2)+'\n','utf8');
 }
+const chainService=chainServiceSignals({memory:precedingMemory,coverage:pageCoverage,asOfUtc:now()});
 const capturePlan=planMultiChainCapture({
  networks:request.networks,checkpoints:precedingMemory.checkpoints,
  pageCoverage,budget:request.max_gecko_requests-(request.max_ohlcv_requests??0)
-   -(request.max_older_pool_requests??0),asOfUtc:now()});
+   -(request.max_older_pool_requests??0),asOfUtc:now(),chainService});
 // Pre-stage every intended page in durable pending coverage so a GitHub job
 // crash does not silently forget an unattempted page.
 const stagedCapture=stagePendingCapture({
@@ -590,6 +592,14 @@ metrics.v19_hot_fair_recheck_plan={selected:recheckPlan.selected.map(x=>({chain:
   repair_selected:recheckPlan.repair_selected,hot_selected:recheckPlan.hot_selected,
   fair_selected:recheckPlan.fair_selected,trade_authorized:false};
 metrics.v19_chain_page_plan=capturePlan;
+metrics.v19_chain_service_sla=summarizeChainServiceSla({
+ signals:chainService,plan:capturePlan,asOfUtc:now(),
+ actualHttpReceipts:[
+  ...receivedPages.map(x=>({chain:x.chain,provider:'GECKOTERMINAL',http_status:200})),
+  ...failedPages.map(x=>({chain:x.chain,provider:'GECKOTERMINAL',
+   http_status:/^HTTP_\d{3}$/.test(x.status)?Number(x.status.slice(5)):null}))
+ ]
+});
 metrics.v19_prior_inflight_recovery={
  checked_journals:priorInflightPaths.length,
  recovered_original_raw_pages:recoveredInflight.length,
