@@ -2,6 +2,7 @@
 // All history remains in immutable research/feeds/... and Git commit history.
 // This compact index preserves every distinct pool without imposing an age cutoff.
 import {canonicalChain,poolValid,tokenValid} from './market-evidence.mjs';
+import {fairRecheckPlan} from './discovery-fair-queue.mjs';
 const iso=s=>typeof s==='string'&&Number.isFinite(Date.parse(s))?new Date(s).toISOString():null;
 const ident=(chain,pool)=>chain+':'+(chain==='solana'?pool:String(pool).toLowerCase());
 export function emptyMarketMemory(){
@@ -87,25 +88,48 @@ export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtU
   unresolved_identity_conflicts:Object.values(memory.pools).filter(x=>x.contract_conflicts.length>0).length};
  return {memory,added,updated,duplicates,invalid,contractConflicts,already_ingested:false};
 }
-export function planIncrementalScan(memory,{asOfUtc,chains=['solana','base','ethereum','bsc','robinhood','cronos'],maxRechecks=6}={}){
+// Backwards-compatible read-only facade. There is ONE authoritative selection
+// algorithm in discovery-fair-queue.mjs, used by the real Dot2 runner.
+// Do not maintain a second last-seen-based planner that contradicts its cursor.
+export function planIncrementalScan(memory,{asOfUtc,
+ chains=['solana','base','ethereum','bsc','robinhood','cronos'],maxRechecks=6}={}){
  const now=iso(asOfUtc);
- if(!now||!Number.isInteger(maxRechecks)||maxRechecks<0)throw Error('INVALID_SCAN_PLAN');
+ if(!now||!Array.isArray(chains)||!chains.length||
+   chains.some(c=>!canonicalChain(c))||new Set(chains).size!==chains.length||
+   !Number.isInteger(maxRechecks)||maxRechecks<0||maxRechecks>100)
+   throw Error('INVALID_SCAN_PLAN');
  const m=memory||emptyMarketMemory();
- const all=Object.values(m.pools||{}).filter(x=>iso(x.last_seen_at_utc)&&Date.parse(x.last_seen_at_utc)<=Date.parse(now));
- // Every past pool remains available. This is only a bounded REQUEST budget.
- all.sort((a,b)=>Date.parse(a.last_seen_at_utc)-Date.parse(b.last_seen_at_utc)
-  ||ident(a.chain,a.pool).localeCompare(ident(b.chain,b.pool)));
- const selected=all.slice(0,maxRechecks);
- return {schema:1,as_of_utc:now,history_access_policy:'ALL_PERSISTED_OBSERVATIONS_NO_AGE_CUTOFF',
-  market_coverage_status:'INCOMPLETE_PUBLIC_SAMPLES',
-  historical_pool_count:all.length,previously_discovered_count:all.length,
-  recheck_pool_keys:selected.map(x=>ident(x.chain,x.pool)),
-  rechecks:selected.map(x=>({chain:x.chain,pool:x.pool,pool_kind:x.pool_kind||null,contract:x.contract,first_seen_at_utc:x.first_seen_at_utc,
-   last_seen_at_utc:x.last_seen_at_utc,status:x.status})),
-  chains_requested:chains,chains_without_successful_capture:chains.filter(c=>!m.checkpoints[c+':GECKOTERMINAL']?.last_success_at_utc),
-  not_all_pools_rechecked:selected.length<all.length,
-  warnings:['A full memory is not a full market.','Live quotes must be re-fetched before any PAPER order.']};
+ if(m.kind!=='R29_PERSISTENT_MARKET_MEMORY')throw Error('MEMORY_SCHEMA_MISMATCH');
+ // A restricted chain view does not erase the global durable market memory.
+ // It merely restricts which pool candidates this request is permitted to inspect.
+ const included=Object.fromEntries(Object.entries(m.pools||{})
+   .filter(([,pool])=>chains.includes(pool.chain)));
+ const scoped={...m,pools:included};
+ const selection=fairRecheckPlan(scoped,{asOfUtc:now,maxRechecks});
+ return {schema:1,as_of_utc:now,
+   history_access_policy:'ALL_PERSISTED_OBSERVATIONS_NO_AGE_CUTOFF',
+   market_coverage_status:'INCOMPLETE_PUBLIC_SAMPLES',
+   scheduler_source:'SINGLE_FAIR_RECHECK_PLAN',
+   scheduler_due_policy:selection.due_policy,
+   historical_pool_count:selection.valid_recheck_pools,
+   previously_discovered_count:selection.valid_recheck_pools,
+   recheck_pool_keys:selection.candidates.map(x=>x.key),
+   rechecks:selection.candidates.map(x=>({
+     chain:x.chain,pool:x.pool,pool_kind:x.pool_kind,
+     contract:x.contract,first_seen_at_utc:x.first_seen_at_utc,
+     last_seen_at_utc:x.last_seen_at_utc,
+     last_recheck_utc:x.last_recheck_utc,
+     status:included[x.key]?.status??'UNKNOWN'
+   })),
+   chains_requested:chains,
+   chains_without_successful_capture:chains.filter(c=>!m.checkpoints[c+':GECKOTERMINAL']?.last_success_at_utc),
+   not_all_pools_rechecked:selection.backlog_count>0,
+   fairness_backlog_remaining:selection.backlog_count,
+   warnings:['One canonical fair recheck cursor; do not infer whole-market coverage.',
+      'Historical source ages do not expire research memories; fresh quotes still required for PAPER orders.'],
+   trade_authorized:false};
 }
+
 export function compactMemoryWithoutEvidenceLoss(memory){
  // Explicit no-op: there is no user-authorized pruning of immutable evidence,
  // trade receipts, snapshots or historical research references.
