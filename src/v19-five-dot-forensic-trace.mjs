@@ -30,7 +30,8 @@ function containsOracle(value,depth=0){
  return Object.entries(value).some(([k,v])=>
   oracleFields.has(k.toLowerCase())||containsOracle(v,depth+1));
 }
-const forbidPath=p=>/(?:^|\/)(?:oracle|evaluation|winners?|reference-manifest|future-labels?)(?:\/|\.|$)/i.test(p);
+const forbidPath=p=>/^research\/(?:backtests?(?:\/|-)|training\/|evaluation\/)/i.test(p)
+ ||/(?:^|\/)(?:oracle|evaluation|winners?|reference-manifest|future-labels?)(?:\/|\.|$)/i.test(p);
 const closeTo=(a,b)=>a===b;
 const check=(code,condition)=>{if(!condition)throw Error(code);};
 
