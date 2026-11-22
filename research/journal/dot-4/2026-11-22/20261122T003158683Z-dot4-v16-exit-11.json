@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "dot": "dot-4",
+  "mode": "PAPER",
+  "run_at_utc": "2026-11-22T00:31:58.683Z",
+  "review_type": "HOURLY_EXIT_CHECK_ONLY",
+  "decision": "NO_TRADE_DATA_GAP",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "inputs": {
+    "cadence_sha": "bd9b9b935a0258166949c957a832d5336c3bde81",
+    "strategy_sha": "89bc2e7baa5b3a5da0d49056c95a2624c5937772",
+    "dot3_journal_sha": "0eb889954518dff7e8942c6b186b64f14814c9b5",
+    "signal_index_sha": "8f360a172e95adfda2d30105dd3fc7639497367d",
+    "media_sha": "32dd675c19960d73450c10f6a72664e6f19e8d0e"
+  },
+  "full_review": {
+    "last_completed_full_review_utc": "2026-11-21T18:40:16.012Z",
+    "next_due_at_utc": "2026-11-22T00:40:16.012Z",
+    "target_per_24h": 4,
+    "completed": false
+  },
+  "position_check": {
+    "indexed_orders": 0,
+    "receipts_status": "OFFLINE_OR_UNCONFIRMED",
+    "receipts_path_http_status": 404,
+    "confirmed_fills": 0,
+    "confirmed_open_positions": 0,
+    "sell_decision": "NO_TRADE_NO_CONFIRMED_POSITION"
+  },
+  "market": {
+    "memory_total_pools": 184,
+    "observation_batches": 48,
+    "dot3": {
+      "ELIGIBLE": 0,
+      "WATCH": 0,
+      "REJECTED": 13,
+      "DATA_GAP": 7
+    },
+    "dot3_independent_complete_quotes": 0,
+    "feed_captured_at_utc": "2026-11-22T00:15:03.697Z",
+    "feed_not_valid_for_fresh_order_quote": true
+  },
+  "candidate_decisions": [
+    {
+      "symbol": "GTA",
+      "decision": "NO_TRADE",
+      "reason": [
+        "QUOTE_CONFLICT_OVER_3_PERCENT",
+        "SELLABILITY_UNVERIFIED",
+        "LIQUIDITY_UNKNOWN_ONE_OR_BOTH_SOURCES"
+      ]
+    },
+    {
+      "symbol": "XU",
+      "decision": "NO_TRADE",
+      "reason": [
+        "QUOTE_CONFLICT_OVER_3_PERCENT",
+        "SELLABILITY_UNVERIFIED"
+      ]
+    }
+  ],
+  "other_candidates": "Dot3 20 checked, 0 ELIGIBLE; 13 REJECTED, 7 DATA_GAP. No full new-coin review due.",
+  "media": "WATCH_ONLY_UNVERIFIED_CONTRACT_POOL_MATCH",
+  "oracle_probabilities": {
+    "horizons_hours": [
+      1,
+      3,
+      6
+    ],
+    "targets_pct": [
+      20,
+      50,
+      100
+    ],
+    "probabilities": null,
+    "reason": "INSUFFICIENT_DATA"
+  },
+  "orders_published": [],
+  "client_receipts_verified": [],
+  "checkpoint": {
+    "next_action": "Recheck confirmed receipts first; full review at due time; fresh GeckoTerminal and DEX Screener exact-pool evidence and independent sellability before any order."
+  }
+}
