@@ -1,5 +1,19 @@
 # R29 – Verbindliche GitHub-Übergabe für neue Chats
 
+## AKTUELLE FORTSETZUNG – 22.11.2026: OFFLINE-RESTART UND 15 ECHTE ORIGINALSEITEN
+
+**Unveränderte Originalabnahme:** 12 PASS / 31 PARTIAL / 18 OPEN = **43/61 technisch bearbeitet (70,5 %)**; erst **12/61 vollständig abgenommen (19,7 %)**. SYS-11 und QA-03 bleiben PARTIAL, bis ein echter neuer Nach-Cooldown-Providerlauf und unabhängige Fortsetzung bewiesen sind.
+
+**Wichtig:** [vollständiger neuer Bericht](V19_SYS11_OFFLINE_RESTART_AND_THREE_CAPTURE_SHA_AUDIT_20261122.md) vor jeder neuen Aktion lesen.
+
+- **Read-only Preflight umgesetzt**: `src/v19-scan-restart-preflight.mjs` und `scripts/plan-r29-research-restart.mjs` prüfen GitHub-Memory, Page-Coverage, Provider-Budget, alte Checkpoints inkl. TRENDING/OHLCV und gehen **niemals** selbst ins Netz oder publizieren Orders. Status vor dem echten Provider-429 bis `2026-11-22T19:54:35.719Z`: `WAIT_PERSISTED_PROVIDER_COOLDOWN`, keine HTTP-Anfrage. Rein synthetische Planung **nach** der Sperre priorisiert Base Seite 2, nicht ein echter abgeschlossener Retry.
+- **Runner integriert:** `scripts/cloud-discovery-runner.mjs` erstellt beim **nächsten echten Capture** ein `research/feeds/<date>/<run-id>/restart-preflight.json` mit exakt derselben Chain-/Seitenplanung wie der direkte HTTP-Capture; prüft vor dem ersten Netzwerkstart die Übereinstimmung. Normales Testen/Dokumentieren triggert keinen Live-Provider-Request.
+- **Echter persistierter Multi-Run-Nachweis**: `test/v19-qa03-real-multirun-source-continuity.test.mjs` validiert 15/15 rohe Originaldateien aus **drei** früheren echten Capture-Runs `45036887325`, `45044300013`, `45057658912` gegen SHA und deren originale HTTP200-Belege. Das ist **15/60 = 25 % eines beispielhaften festen Offsetseitenplans**, NICHT 25 % aller Memecoins; Base Seite 2 mit originalem HTTP429 bleibt pending. Kein neuer Liveprovider-Call bei diesen Prüfungen.
+- Bestätigter **GitHub-Node22-CI [#45059990547](https://github.com/127027/Sniperbot-/actions/runs/45059990547)** am Code-Commit `de26f82748a8e06a550669429789f62ac47877e9`: **574/574 PASS, 0 FAIL, TEST_ONLY_NO_SIGNAL_WRITE 0**. Original 409 Poolidentitäten und 488er Memory bleiben erhalten.
+- **Nächster sinnvoller tatsächlicher Schritt:** Erst NACH `2026-11-22T19:54:35.719Z` einen neuen **Ein-Seiten-Research-Request** mit allen sechs Chains als Kandidaten, `max_gecko_requests=1`, `max_dex_pairs=0`, `do_not_publish_orders=true` auf diesem Cleanroom-Branch auslösen; vorher Preflight lesen. GitHub Actions muss dann echte Originalbelege und Status vollständig archivieren. Danach zweiten unabhängigen Lauf kontrollieren. Bei neuem HTTP429 keine Wiederholung vor neuem Retry. Keine Dots, Echtgeld, Paper-Wallet-Updates oder main-/Legacy-Eingriffe.
+
+
+
 ## NEUER GITHUB-HANDOFF: Capture-Status ehrlich, 5/6-429 abgefangen, absichtliche Teilscans erlaubt (22.11.2026)
 
 **Vollständig abgenommen weiterhin 12/61 (19,7 %); 31 PARTIAL und 18 OPEN. Technisch bearbeitet 43/61 = 70,5 % (NICHT Trading-Fertigstellungsgrad).**
