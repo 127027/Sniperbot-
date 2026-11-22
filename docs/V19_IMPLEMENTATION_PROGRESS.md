@@ -1,5 +1,20 @@
 # R29 V1.9 – Fortlaufender Umsetzungsstand (22.11.2026)
 
+## JETZT AKTUELL: Neutraler Evaluationsnenner und kommittierte API-Rohdaten nach Fehlstart (22.11.2026)
+
+**Strenger Originalabnahme-Stand: 12/61 = 19,7 % PASS, 26/61 = 42,6 % PARTIAL, 23/61 = 37,7 % OPEN.** **38/61 = 62,3 % wurden technisch bearbeitet (PASS+PARTIAL)**, aber es wurde durch strengere Abnahmeregeln **kein Code zurückgebaut**. Ältere Werte 50,8 %, 59 %, 60,7 % und 9/10/12 PASSES weiter unten sind historische Snapshots.
+
+**Neue echte Implementierungen, KEIN künstlicher PASS:**
+- `SYS-11` erweitert: `src/v19-inflight-http-recovery.mjs` lädt vor frischen API-Requests bereits **kommittete, SHA-256-, URL-, Zeit-, Run-ID- und Chain/Page-geprüfte** Original-HTTP200-Rohseiten aus abgebrochenen GitHub-Captures. Doppelte Downloads und veraltete Cursor sind in dieser Situation vermeidbar. HTTP429, manipulierte Rohbytes, Zukunftsquellen und falsche Providerlinks bleiben ausgeschlossen. Nachträgliches Indexieren ist **keine** historisch erfolgreiche Dot2-Erkennung. Ein vollständig abgebrochener Job OHNE GitHub-Commit bleibt weiterhin nicht rekonstruierbar.
+- `SYS-12 OPEN→PARTIAL`: `src/v19-neutral-evaluation-population.mjs` veröffentlicht beim nächsten echten Capture einen nicht nach Gewinnen vorselektierten, as-of-gesteuerten Pool-Nenner. **409 echte archivierte Pool-IDs** testbar, **65 nachträgliche Referenzen** ausdrücklich nicht als Entdeckungsinput. `recall`, `FPR` und `precision` bleiben ohne unabhängig nachgewiesene vollständige Outcomes **null**, nicht 0 %. Keine tatsächliche vollständige Outcome-/Review-Trefferquote bisher möglich.
+
+**Letzter verifizierter vollständiger Code-Regressionstest:** GitHub [Node22 #45054150056](https://github.com/127027/Sniperbot-/actions/runs/45054150056), Commit `581f16c09c1914693722d09c951c22a8f9f38684`, **528/528 PASS, 0 FAIL, TEST_ONLY_NO_SIGNAL_WRITE 0**. Ausführlich: [V19_SYS11_INFLIGHT_REPLAY_SYS12_NEUTRAL_DENOMINATOR_20261122.md](V19_SYS11_INFLIGHT_REPLAY_SYS12_NEUTRAL_DENOMINATOR_20261122.md).
+
+**Ausstehend:** keine neue tatsächliche HTTP-Capture-Folge nach neuer Quotenlogik; 429-Cooldown nach altem Ethereum-Fehler gilt bis `2026-11-22T18:31:56.465Z`. Fünf GPT-Dots deaktiviert, keinerlei Order/Windows-Paper-/Echtgeld-/main-Veränderung. Echte mehrstufige API-Runs und authentifizierte Paper-Fills weiterhin offen.
+
+**Für neue Chats: Dieser Abschnitt hat Vorrang vor sämtlichen „Aktuell“-Angaben aus älteren Entwicklungsabschnitten weiter unten.**
+
+
 ## JETZT AKTUELL 22.11.2026 – Absturzsicheres API-Zwischenspeichern und Chain-Contract-Prüfungen
 
 **Strenge Originalabnahme bleibt bei 12/61 = 19,7 % PASS; 25/61 = 41,0 % PARTIAL; 24/61 = 39,3 % OPEN.** **37/61 = 60,7 % sind technisch implementiert oder teilweise abgenommen**; diese Zahl darf nicht mit echtem GPT-Handel, kompletter Coin-Erfassung oder ursprünglicher PASS-Abnahme verwechselt werden.
