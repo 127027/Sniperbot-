@@ -145,7 +145,37 @@ export function buildFiveDotForensicReport({entries=[],startUtc,endUtc,
  records.sort((a,b)=>iso(a.event.at_utc)-iso(b.event.at_utc)
    ||a.event.event_id.localeCompare(b.event.event_id));
  const problems=[];
+ const linkedTo=(event,role,actions)=>{
+  const key=event.market&&[
+   event.market.chain,event.market.contract,event.market.pool].join(':');
+  return event.linked_event_ids.some(id=>{
+   const upstream=byId.get(id)?.event;
+   return upstream?.role===role&&actions.includes(upstream.action)
+    &&iso(upstream.at_utc)<=iso(event.at_utc)
+    &&!!upstream.market&&key===[
+      upstream.market.chain,upstream.market.contract,upstream.market.pool].join(':');
+  });
+ };
  for(const {event} of records){
+  // Formal parent IDs alone do not prove that the expected upstream role
+  // actually evaluated the SAME exact pool before a positive action.
+  // These are diagnostic gaps, never invented orders or rejected real fills.
+  if(event.role==='dot-4-strategy'&&event.action==='BUY'
+    &&!linkedTo(event,'dot-3-risk',['ELIGIBLE']))
+   problems.push({event_id:event.event_id,
+    code:'BUY_WITHOUT_PRIOR_ELIGIBLE_DOT3_LINK',linked_event_id:null});
+  if(event.role==='dot-4-strategy'&&event.action==='SELL'
+    &&!linkedTo(event,'dot-4-strategy',['BUY']))
+   problems.push({event_id:event.event_id,
+    code:'SELL_WITHOUT_RECORDED_POSITION_OR_BUY_LINK',linked_event_id:null});
+  if(event.role==='dot-3-risk'&&event.action==='ELIGIBLE'
+    &&!linkedTo(event,'dot-2-discovery',['DISCOVERED','WATCH']))
+   problems.push({event_id:event.event_id,
+    code:'ELIGIBLE_WITHOUT_DOT2_DISCOVERY_LINEAGE',linked_event_id:null});
+  if(event.role==='dot-5-control'&&event.action==='PASS'
+    &&event.linked_event_ids.length===0)
+   problems.push({event_id:event.event_id,
+    code:'DOT5_PASS_WITHOUT_ANY_CAUSAL_LINK',linked_event_id:null});
   for(const id of event.linked_event_ids){
    const parent=byId.get(id)?.event;
    if(!parent){problems.push({event_id:event.event_id,
