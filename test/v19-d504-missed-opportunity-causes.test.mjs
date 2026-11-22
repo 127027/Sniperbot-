@@ -61,8 +61,9 @@ test('D5-04: verified process failure classes retain evidence and timestamps but
 });
 test('D5-04: growing real pool population keeps unknown missed-outcome rates unknown',async()=>{
  const original=JSON.parse(await readFile('research/state/market-memory.json','utf8'));
- const p=makeNeutralEvaluationPopulation({memory:original,asOfUtc:now});
- const r=diagnoseMissedOpportunities({population:p,asOfUtc:now});
+ const runtimeAsOfUtc=new Date().toISOString();
+ const p=makeNeutralEvaluationPopulation({memory:original,asOfUtc:runtimeAsOfUtc});
+ const r=diagnoseMissedOpportunities({population:p,asOfUtc:runtimeAsOfUtc});
  const sourcePoolCount=Object.keys(original.pools).length;
  assert.ok(sourcePoolCount>=409,'historical baseline lost');
  assert.equal(r.neutral_observed_pool_population,sourcePoolCount);
