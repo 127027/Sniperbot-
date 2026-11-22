@@ -1,5 +1,19 @@
 # R29 – Verbindliche GitHub-Übergabe für neue Chats
 
+## AKTUELL 22.11.2026 – Nach abgeschlossenem SYS-13-/D2-11-Code- und Original-Abnahmetest
+
+**VERBINDLICHE ZÄHLUNG: 12/61 PASS = 19,7 %, 24/61 PARTIAL = 39,3 %, 25/61 OPEN = 41,0 %.** Insgesamt `PASS+PARTIAL = 36/61 = 59,0 %` Aufgaben technisch bearbeitet oder gezielt getestet. Die historischen 31/61=50,8 %, 9/61 und 10/61 weiter unten sind alte Snapshots, **kein Rückbau von Software**.
+
+**Neue PASS IDs:** `SYS-13`, `D2-11`, nach vollständigem ursprünglichem Software-Abnahmeumfang: echte 409 GitHub-Pools einschließlich 61 32-Byte V4-ID ohne Legacy-Umbenennung, aliasierte Chains BNB/Robinhood/Solana und Contract-Konflikte; für D2-11 echte Original-V4-Rohquellen mit **Erstellungszeit vs Original-HTTP-Beobachtungszeit vs tatsächlichem Dot2-Discoveryzeitpunkt vs späterem V4-Rekonstruktionsdatum**, ohne nachträgliche falsche Dot2-Vorabkenntnis.
+
+**Zu lesen:** `docs/V19_20261122_SYS13_D211_IDENTITY_PROVENANCE_REVIEW.md`, `docs/V19_IMPLEMENTATION_PROGRESS.md`, `docs/V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md`. **Letzter Code-CI:** [GitHub Node22 #45050581906](https://github.com/127027/Sniperbot-/actions/runs/45050581906) auf `b2b29f8431205f5691bc05f43e7c52f7c92598ad`: **498/498 PASS, 0 FAIL**.
+
+**Wichtige Codeänderungen:** `src/v19-canonical-market-identity.mjs` (getrennte pool_key/token_key, kanonische typisierte V4/Solana/EVM-Pools mit Konflikt-Quarantäne), `src/market-memory.mjs` (persistente unveränderliche Full-Page-/Row-Refs und explizite Herkunftsstempel), bestehender `scripts/cloud-discovery-runner.mjs` migriert additive Identitätsfelder **erst beim nächsten realen Capture** und setzt ein echtes `reconstructedAtUtc` bei V4-Archiv-Rettung. Bestehende 409 Original-Pool-Daten und sämtliche Legacy- und Clientzustände unangetastet.
+
+**Noch NICHT PASS:** SYS-11, D1-04, QA-03 (kein echt wiederholter neuer API-Capture unter dem neuen Limiter, keine aktiven autonomen Dots/24h-Markt-/Positionschecks); D2-02 Page-Fairness. Letzter realer Gecko-429 war bis 2026-11-22T18:31:56.465Z gesperrt; vor Ablauf nicht gegen Gecko zugreifen. Null reale BUY/SELL-Orders, keine Windows-Paper-Client-Fills, Echtgeld deaktiviert. Fünf bestehende Automation-Dots müssen deaktiviert bleiben.
+
+
+
 ## AKTUELLSTER ABNAHME-/CODE-STAND: API-Limit und fortlaufender GitHub-Scanner (22.11.2026)
 
 **Streng nach dem ursprünglichen 61-Aufgaben-Katalog: 10/61 PASS = 16,4 %, 24/61 PARTIAL, 27/61 OPEN.** Ältere `9/61`, `31/61` und `50,8 %` weiter unten sind historische Werte und dürfen nicht als aktueller PASS-Stand ausgegeben werden.
