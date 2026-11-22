@@ -50,7 +50,11 @@ for(const x of cases){
    response:{pairs:[{...p,pairAddress:x.chain==='solana'?'So'+'3'.repeat(38):e(79)}]},
    checkedAtUtc:at});
   assert.equal(wrongPool.matched,false);
-  assert.equal(wrongPool.mismatch_counts.wrong_pool,1);
+  // A 20-byte EVM address is structurally invalid as a 32-byte V4 PoolId.
+  // All other supported chains have a valid but DIFFERENT pool address.
+  if(x.pool_kind==='UNISWAP_V4_POOL_ID')
+   assert.equal(wrongPool.mismatch_counts.malformed_provider_pair,1);
+  else assert.equal(wrongPool.mismatch_counts.wrong_pool,1);
   const wrongToken=crossCheckDexPair({candidate:c,
    response:{pairs:[{...p,baseToken:{address:x.chain==='solana'?'So'+'4'.repeat(38):e(90)}}]},
    checkedAtUtc:at});
