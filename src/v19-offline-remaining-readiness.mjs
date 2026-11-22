@@ -94,9 +94,11 @@ export function summarizeOfflineOperationalReceipts({apiEvidence=[],asOfUtc}={})
 
 // D2-03: retrospective resolution STRICTLY by chain+exact pool identity.
 // Labels, names and winner ranks may NEVER seed discovery or buy decisions.
-export function resolveHistoricalWinnerIdentity({winnerRegister,memory,asOfUtc}={}){
- const now=ms(asOfUtc);
- if(now===null||winnerRegister?.kind!=='R29_V19_POST_EVENT_WINNER_REFERENCE_REGISTER'
+export function resolveHistoricalWinnerIdentity({winnerRegister,memory,asOfUtc,
+ decisionWindowEndUtc='2026-10-13T00:00:00.000Z'}={}){
+ const now=ms(asOfUtc),windowEnd=ms(decisionWindowEndUtc);
+ if(now===null||windowEnd===null||now<=windowEnd
+  ||winnerRegister?.kind!=='R29_V19_POST_EVENT_WINNER_REFERENCE_REGISTER'
   ||winnerRegister.purpose!=='EVALUATION_ONLY_AFTER_DECISIONS'
   ||winnerRegister.source_class!=='POST_EVENT_ORACLE'
   ||!Array.isArray(winnerRegister.entries)
