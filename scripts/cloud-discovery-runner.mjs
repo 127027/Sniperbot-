@@ -29,6 +29,8 @@ import {auditCaptureEvidenceBundle} from '../src/v19-source-integrity.mjs';
 import {emptyOlderPoolState,planOlderPoolCaptures,decodeOlderPoolPage,recordOlderPoolCapture} from '../src/v19-older-pool-discovery.mjs';
 import {planGeckoRequestPacing} from '../src/v19-gecko-pacing.mjs';
 import {activeGeckoProviderCooldown} from '../src/v19-gecko-provider-cooldown.mjs';
+import {selectObservationArchivePaths,parseResearchJsonWithLegacyTrailer}
+ from '../src/v19-observation-archive-reader.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -254,8 +256,8 @@ const plan=fairRecheckPlan(memory,{asOfUtc:now(),maxRechecks:request.max_dex_pai
 // already on disk before this capture are eligible; no Excel/oracle inputs.
 const repairHistory=[];
 try{
- const paths=(await readdir('research/observations',{recursive:true}))
-  .filter(x=>/\\.json$/.test(x)).sort().slice(-200);
+ const paths=selectObservationArchivePaths({
+  paths:await readdir('research/observations',{recursive:true}),kind:'FORWARD',limit:200});
  for(const rel of paths){
   try{
    const b=JSON.parse(await readFile('research/observations/'+rel,'utf8'));
@@ -464,14 +466,20 @@ const currentActivityPages=receivedPages.map(p=>({
  candidates:p.decoded.candidates
 }));
 const previousActivityPages=[];
+const legacyActivityFilesRecovered=[];
 try{
- const paths=(await readdir('research/observations',{recursive:true}))
-   .filter(path=>/-activity-pages\\.json$/.test(path)).sort().slice(-80);
+  const paths=selectObservationArchivePaths({
+   paths:await readdir('research/observations',{recursive:true}),kind:'ACTIVITY',limit:80});
  for(const relative of paths){
    try{
-     const saved=JSON.parse(await readFile('research/observations/'+relative,'utf8'));
-     if(saved.kind==='R29_V19_PAGE_CAPTURE_ACTIVITY_JOURNAL'&&Array.isArray(saved.pages))
-       previousActivityPages.push(...saved.pages);
+      const parsed=parseResearchJsonWithLegacyTrailer(
+       await readFile('research/observations/'+relative,'utf8'),
+       {sourcePath:'research/observations/'+relative});
+      const saved=parsed.value;
+      if(saved.kind==='R29_V19_PAGE_CAPTURE_ACTIVITY_JOURNAL'&&Array.isArray(saved.pages)){
+        previousActivityPages.push(...saved.pages);
+        if(parsed.legacy_trailer_recovered)legacyActivityFilesRecovered.push(parsed.source_path);
+      }
    }catch{/* Invalid old research file is not proof of market activity. */}
  }
 }catch(error){if(error.code!=='ENOENT')throw error;}
@@ -480,14 +488,24 @@ const activityResult=measureDot1Activity({
 // A triggered Dot2 research capture can give Dot1 a cadence RECOMMENDATION
 // without running any of the five paused GPT automations.
 const dot1AdvicePath='research/state/dot1-cadence-advice.json';
-let dot1Prior=null;
+let dot1Prior=null,dot1PriorLegacyTrailer=false;
 try{
- const saved=JSON.parse(await readFile(dot1AdvicePath,'utf8'));
- if(saved.kind==='R29_V19_DOT1_CADENCE_RECOMMENDATION')dot1Prior=saved.state;
+ const parsed=parseResearchJsonWithLegacyTrailer(
+  await readFile(dot1AdvicePath,'utf8'),{sourcePath:dot1AdvicePath});
+ const saved=parsed.value;
+ if(saved.kind==='R29_V19_DOT1_CADENCE_RECOMMENDATION'){
+  dot1Prior=saved.state;dot1PriorLegacyTrailer=parsed.legacy_trailer_recovered;
+ }
 }catch(error){if(error.code!=='ENOENT')throw error;}
+metrics.v19_legacy_json_suffix_recovery={
+ prior_dot1_state_legacy_suffix:dot1PriorLegacyTrailer,
+ recovered_activity_files:legacyActivityFilesRecovered,
+ recovered_activity_file_count:legacyActivityFilesRecovered.length,
+ original_archive_files_rewritten:0,raw_source_validity_claim:false,
+ recovery_rule:'ONLY_EXACT_FINAL_HEX_5C6E_WITH_VALID_JSON_PREFIX'};
 const dot1Advice=advanceAdaptiveCadence({
  previous:dot1Prior,metrics:activityResult.metrics,asOfUtc:now()});
-await writeFile(dot1AdvicePath,JSON.stringify(dot1Advice,null,2)+'\\n','utf8');
+await writeFile(dot1AdvicePath,JSON.stringify(dot1Advice,null,2)+'\n','utf8');
 const activityPath='research/observations/'+activityDay(now())+'/'+runId+'-activity-pages.json';
 await mkdir('research/observations/'+activityDay(now()),{recursive:true});
 await writeFile(activityPath,JSON.stringify({
@@ -495,7 +513,7 @@ await writeFile(activityPath,JSON.stringify({
  source_request_path:path,captured_at_utc:now(),pages:currentActivityPages,
  derived_asof_metrics:activityResult,
  warning:'Sampled Chain/Page activity; not a complete global market measurement and not trading authority.'
-},null,2)+'\\n','utf8');
+},null,2)+'\n','utf8');
 metrics.v19_dot1_measured_activity={
  observed_newly_created_pools:activityResult.observed_newly_created_pools,
  volume_change_pct:activityResult.metrics.volumeChangePct,
