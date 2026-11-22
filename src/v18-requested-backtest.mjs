@@ -14,9 +14,10 @@ const stamp=v=>typeof v==='string'&&Number.isFinite(Date.parse(v))?Date.parse(v)
 const sha=v=>typeof v==='string'&&/^[0-9a-f]{40}$/.test(v);
 const VALID_INPUT_KINDS=['CONTEMPORANEOUS_RECORD','SYNTHETIC_TEST'];
 export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=false,
- paperBudgetSettings=DEFAULT_BUDGET_SETTINGS}={}){
+ paperBudgetSettings=DEFAULT_BUDGET_SETTINGS,firstScanAtStart=false}={}){
  const start=dayMs(date);
- if(start===null||typeof forceHourlyDiagnostic!=='boolean')throw Error('INVALID_BACKTEST_DAY_OR_MODE');
+ if(start===null||typeof forceHourlyDiagnostic!=='boolean'
+   ||typeof firstScanAtStart!=='boolean')throw Error('INVALID_BACKTEST_DAY_OR_MODE');
  const source=manifest??{schema:1,kind:'R29_V18_ASOF_REPLAY_INPUT',date,
   selected_from_future_winner_list:false,snapshots:[],activity_observations:[]};
  if(source.schema!==1||source.kind!=='R29_V18_ASOF_REPLAY_INPUT'||source.date!==date
@@ -44,12 +45,13 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
  }
  // Synthetic inputs are for software regression only. They can never prove
  // a real historical market, even if the model produces simulated fills.
- const timeLine=build29HourAsOfTimeline({date,snapshots:accepted,warmupHours:5});
+ const timeLine=build29HourAsOfTimeline({date,snapshots:accepted,
+  warmupHours:5,firstScanAtStart});
  const result=replaySignalDecisions({date,snapshots:accepted,
   activityObservations:source.activity_observations,
   activityPageCaptures:source.activity_page_captures||[],
   forceHourlyReview:forceHourlyDiagnostic,targetPer24h:forceHourlyDiagnostic?24:4,
-  paperPolicy:paperBudget.policy});
+  paperPolicy:paperBudget.policy,firstScanAtStart});
  const executionProvenance=auditFiveDotExecution({
    events:result.events,asOfUtc:new Date(end).toISOString(),
    mode:'HISTORICAL_ASOF',
@@ -105,6 +107,8 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
   date,start_utc:new Date(first).toISOString(),end_utc:new Date(end).toISOString(),
   historical_warmup_start_utc:timeLine.begin_utc,
   historical_warmup_hours:timeLine.warmup_hours,
+  first_scan_at_start_enabled:firstScanAtStart,
+  first_scan_virtual_utc:timeLine.first_decision_opportunity_utc,
   on_demand_29h_timeline:timeLine,
   status:missing?'DATA_GAP_NO_CONTEMPORANEOUS_HISTORICAL_UNIVERSE':'PROVISIONAL_ASOF_SOURCE_AUTHENTICITY_NOT_VERIFIED',
   mode:forceHourlyDiagnostic?'EXPLICIT_FIXED_24_HOURLY_DIAGNOSTIC':'ADAPTIVE_4_8_12_24',
