@@ -67,3 +67,23 @@ test('claimed contemporary capture requires an archive digest and never proves a
  assert.equal(withSha.independent_risk_and_source_authenticity_verified,false);
  assert.equal(withSha.status,'PROVISIONAL_ASOF_SOURCE_AUTHENTICITY_NOT_VERIFIED');
 });
+
+test('R29 29h direct-start mode chooses 00:00 without changing older :35 diagnostic mode',()=>{
+ const direct=backtestOnRequest({date,firstScanAtStart:true});
+ assert.equal(direct.first_scan_at_start_enabled,true);
+ assert.equal(direct.first_scan_virtual_utc,'2026-10-12T00:00:00.000Z');
+ assert.equal(direct.model_replay_summary.fullReviews,4);
+ assert.equal(direct.role_audit.dot4_strategy.timeline[0].at_utc,
+  '2026-10-12T00:00:00.000Z');
+ assert.equal(direct.on_demand_29h_timeline.ticks[5].at_utc,
+  '2026-10-12T00:00:00.000Z');
+ assert.equal(direct.confirmed_paper_fills,0);
+ const old=backtestOnRequest({date});
+ assert.equal(old.first_scan_at_start_enabled,false);
+ assert.equal(old.first_scan_virtual_utc,'2026-10-12T00:35:00.000Z');
+ assert.equal(old.role_audit.dot4_strategy.timeline[0].at_utc,
+  '2026-10-12T00:35:00.000Z');
+ assert.equal(old.historical_gpt_dot_runs,0);
+ assert.throws(()=>backtestOnRequest({date,firstScanAtStart:'yes'}),
+  /INVALID_BACKTEST_DAY_OR_MODE/);
+});
