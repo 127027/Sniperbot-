@@ -120,6 +120,20 @@ export function assessDot3RiskStatus({
      observed_price_disagreement_pct:comparison,
      indicative_liquidity_too_low:lowLiquidity});
  }
+ // Candidate observation constraints must also hold when a synthetic
+ // attestation looks structurally positive. Otherwise the test-only model
+ // can mark a contradictory or under-liquid pool as PAPER_ELIGIBLE.
+ if(conflicting||lowLiquidity)
+   return result('WATCH',conflicting?'INDICATIVE_PRICE_DISAGREEMENT':
+     'INDICATIVE_LOW_LIQUIDITY',[
+     conflicting?'RECHECK_CONFLICTING_CANDIDATE_QUOTES':'RECHECK_CANDIDATE_LIQUIDITY',
+     'ATTESTATION_CANNOT_OVERRIDE_OBSERVED_RISK'],{
+     observed_price_disagreement_pct:comparison,
+     indicative_liquidity_too_low:lowLiquidity});
+ if(quoteMissing)
+   return result('DATA_GAP','CANDIDATE_QUOTE_EVIDENCE_INCOMPLETE',[
+     'CANDIDATE_CURRENT_INDEPENDENT_QUOTES',
+     'ATTESTATION_CANNOT_REPAIR_MISSING_CANDIDATE_EVIDENCE']);
  if(!sha(expectedBlobSha))
    return result('DATA_GAP','DOT3_ATTESTATION_BLOB_UNKNOWN',['ATTESTATION_BLOB_SHA']);
  const structural=inspectDot3Attestation({
