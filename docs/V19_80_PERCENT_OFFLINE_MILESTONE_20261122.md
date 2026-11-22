@@ -1,6 +1,6 @@
 # R29 V1.9 – 80,3-%-Meilenstein: sechs unabhängige Offline-Aufgaben tatsächlich technisch begonnen
 
-**Stand:** 22.11.2026 (GitHub CI #45062082248) · **Repository:** `127027/Sniperbot-` · **Branch:** `codex/r29-cleanroom-paper-20261121` · **Quelle:** Commit `66b5c60942983558e73126b2a964c8fd6cb9a385`.
+**Stand:** 22.11.2026 (GitHub CI #45062258765, Cross-Pool-Regressionsstand) · **Repository:** `127027/Sniperbot-` · **Branch:** `codex/r29-cleanroom-paper-20261121` · **Quelle:** Commit `66b5c60942983558e73126b2a964c8fd6cb9a385`.
 
 ## 1. Die Prozentzahl ist technisch, keine Behauptung fertig handelnder KI
 
