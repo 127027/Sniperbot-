@@ -16,6 +16,7 @@ export function chooseCadence(m,previous=4){
     typeof volumeChangePct!=='number'||!Number.isFinite(volumeChangePct)||volumeChangePct < -100)
     throw Error('INVALID_METRICS');
   const target=eligible>=10||newPools>=80||volumeChangePct>=100?24:eligible>=5||newPools>=35||openPositions>=10?12:eligible>=2||newPools>=12||openPositions>=3?8:4;
+  if(target<previous&&m.allowDownshift===false)return {target:previous,reason:'INCOMPLETE_COMPARABLE_PANEL_NO_DOWNSHIFT'};
   if(target<previous&&(m.consecutiveQuietChecks??0)<2)return {target:previous,reason:'DOWNSHIFT_NEEDS_CONFIRMATION'};
   return {target,reason:'OBSERVED_MARKET_METRICS'};
 }
