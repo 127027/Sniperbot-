@@ -58,4 +58,15 @@ Nach dieser Offline-Gesamtprüfung soll **ein weiterer unabhängiger expliziter 
 
 Die nachträglich fehlende originale Oktober-Datenpopulation darf nicht als vollständiger, echter 29h-Trading-Backtest dargestellt werden. Dafür wäre ein bislang nicht vorhandener, authentisch erhaltener, neutraler Originaldaten-Nenner nötig.
 
-<!-- REPEAT_29H_EVIDENCE_TO_APPEND_AFTER_ACTUAL_WORKFLOW_COMPLETES -->
+## 7. Abschließender, NACH der Offline-Abnahme wirklich erneut gestarteter Backtest: BESTANDEN
+
+**[GitHub Actions Run #45063645092](https://github.com/127027/Sniperbot-/actions/runs/45063645092)** – **Workflow `R29 V1.9 Explicit Offline 29h Backtest Request` conclusion `success`**, tatsächlich am **22.11.2026, 19:57 UTC** ausgeführt, eigener einzelner vom Nutzer freigegebener Request auf Code-Commit **`3449a701e9973ad90e52d35d5786fa6ceeeacbd1`**:
+
+- Request: `research/offline-backtest-requests/2026-11-22/20261122T195716585Z-r29-after-full-offline-audit-original-oct12.json`; unveränderte Quell-Datei SHA256 **`417446a9a9e6e0e042652c73a84a4aed04e8bf4efbb1c75b33aa344584e5abea`**.
+- Exakt **11.10.2026, 19:00 UTC bis 13.10.2026, 00:00 UTC** (5h Warmup + 24h). `requested_input_path=null` – kein nachträglich ausgewähltes historisches Gewinner-Tape.
+- Original-Historienstatus **`DATA_GAP_NO_CONTEMPORANEOUS_HISTORICAL_UNIVERSE`**. **0 zeitgerecht authentifizierte Originalmarkt-Snapshots**, **0 modellierte BUY**, **0 modellierte SELL**, **0 modellierte Quittungen**, **0 echte GPT-Reviews**, **0 echte Paper-/Echtgeld-Orders**, **0 tatsächliche Client-Fills**, **0 Provider-HTTP-Aufrufe**.
+- Der dedizierte GitHub-Job führte zusätzlich **13/13 gezielte Safety-/Isolations-Tests PASS** aus und bestätigte **`OFFLINE_BACKTEST_NO_CLIENT_ORDERS 0`**.
+- JSON-Ergebnis: `probe-artifacts/v19-explicit-offline-29h-45063645092.json`; **SHA256 `7aea7a29c860b8455bea766fa636ad64340c71b8257f8239b1b5223e6c237748`**. Zusammen mit Request-/Prüfbeleg im tatsächlichen GitHub Actions-Artefakt **`r29-v19-offline-backtest-45063645092` (GitHub artifact ID `14770452770`, ZIP-Digest SHA256 `8db90570cbb26128740b4de4bf9d3efd65d66795ffd1bf2131e241d8b41781f6`)**, Aufbewahrungsfrist ca. 30 Tage.
+
+**Schlussurteil:** Der vom Nutzer beauftragte **erneute 29h-Offline-Backtest ist technisch erfolgreich und reproduzierbar**. Das historische Anlageergebnis ist **nicht messbar**, weil das neutral erfasste originale Oktober-Marktuniversum samt tatsächlich damals verfügbaren Quotes fehlt. Eine synthetische profitable Simulation oder eine Nov-2026-HTTP-Seite darf diese Quelle **nicht ersetzen**. **Verbindlicher Stand bleibt 13 PASS / 46 PARTIAL / 2 OPEN = 59/61 (96,72 % nur technisch bearbeitet); 13/61 (21,31 %) streng vollständig.** Keine fünf Dots aktiviert, keine Änderung am lokalen Windows-Paper-Guthaben, keine Markt-/Risk-Gates gelockert.
+
