@@ -67,6 +67,10 @@ test('divergent prices cannot enter historical momentum observations',()=>{
 
 test('first review may BUY using strictly pre-window observations, not requiring a warm-up after midnight',()=>{
  const previous=synth(0,.001), first=synth(0,.0012);
+ const current='2026-10-12T00:00:00.000Z';
+ first.observed_at_utc=current;first.archived_at_utc=current;
+ first.discovery.observed_at_utc=current;first.risk.observed_at_utc=current;
+ for(const q of first.quotes){q.observed_at=current;q.source_published_at_utc=current;}
  const prior='2026-10-11T23:34:00.000Z';
  previous.observed_at_utc=prior;previous.archived_at_utc=prior;
  previous.discovery.observed_at_utc=prior;previous.risk.observed_at_utc=prior;
@@ -74,7 +78,7 @@ test('first review may BUY using strictly pre-window observations, not requiring
  const r=replaySignalDecisions({date,snapshots:[previous,first]});
  assert.equal(r.summary.buys,1);
  assert.equal(r.events[0].actions[0].action,'BUY');
- assert.equal(r.events[0].at_utc,'2026-10-12T00:35:00.000Z');
+ assert.equal(r.events[0].at_utc,'2026-10-12T00:00:00.000Z');
 });
 test('prior price published after day start is forbidden as reference',()=>{
  const previous=synth(0,.001),first=synth(0,.0013);
@@ -86,7 +90,7 @@ test('prior price published after day start is forbidden as reference',()=>{
  assert.equal(r.summary.buys,0);
 });
 test('Dot 1 may jump from 4 to 24 full reviews on first authenticated activity observation',()=>{
- const at='2026-10-12T00:34:00.000Z';
+ const at='2026-10-11T23:59:00.000Z';
  const metrics={dataAvailable:true,newPools:85,eligible:0,volumeChangePct:0,openPositions:0};
  const r=replaySignalDecisions({date,activityObservations:[{provenance:'CONTEMPORANEOUS_RECORD',observed_at_utc:at,archived_at_utc:at,source_archive_sha:'a'.repeat(40),metrics}]});
  assert.equal(r.events[0].target_per_24h,24);
@@ -108,4 +112,21 @@ test('forced 24-review mode ignores adaptive downshifts only within explicit dia
  }]});
  assert.equal(r.summary.fullReviews,24);
  assert.ok(r.events.every(x=>x.target_per_24h===24));
+});
+
+test('00:34 observation cannot be used for a midnight BUY or cadence decision',()=>{
+ const future=synth(0,.0013);
+ const r=replaySignalDecisions({date,snapshots:[future],activityObservations:[{
+  provenance:'CONTEMPORANEOUS_RECORD',
+  observed_at_utc:'2026-10-12T00:34:00.000Z',
+  archived_at_utc:'2026-10-12T00:34:00.000Z',
+  source_archive_sha:'a'.repeat(40),
+  metrics:{dataAvailable:true,newPools:100}
+ }]});
+ assert.equal(r.events[0].at_utc,'2026-10-12T00:00:00.000Z');
+ assert.equal(r.events[0].eligible_snapshots,0);
+ assert.equal(r.events[0].target_per_24h,4);
+ assert.equal(r.events[0].actions.length,0);
+ assert.equal(r.modelled_fills,undefined);
+ assert.equal(r.summary.buys,0);
 });
