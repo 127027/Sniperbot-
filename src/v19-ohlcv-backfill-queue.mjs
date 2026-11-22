@@ -24,6 +24,10 @@ export function planOhlcvBackfill({state=emptyOhlcvBackfillState(),
   }
   const key=marketId(chain,pool),prior=state.markets[key];
   if(prior?.completed)continue;
+  const cooldown=ms(prior?.retry_after_utc);
+  if(cooldown!==null&&cooldown>now){
+    rejected.push({index:i,reason:'PROVIDER_RETRY_COOLDOWN'});continue;
+  }
   const cursor=prior?.next_before_timestamp??Math.floor(now/1000)+1;
   if(!Number.isInteger(cursor)||cursor<1||cursor>Math.floor(now/1000)+1){
     rejected.push({index:i,reason:'INVALID_CURSOR_OR_FUTURE_TIMESTAMP'});continue;
