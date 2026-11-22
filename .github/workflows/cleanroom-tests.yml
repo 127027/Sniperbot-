@@ -11,6 +11,12 @@ on:
       - 'docs/**'
       - 'README.md'
   workflow_dispatch:
+    inputs:
+      run_provider_probes:
+        description: "Explicit opt-in: live public provider probes (may consume rate limits)"
+        type: boolean
+        required: false
+        default: false
 permissions:
   contents: read
 jobs:
@@ -43,10 +49,14 @@ jobs:
       - name: V0.9 compare repeated 24 hourly training scans and actual Dot reports
         run: node scripts/compare-v09-backtest.mjs
       - name: Non-trading historical GeckoTerminal probe (informational only)
+        # Ordinary push CI must NEVER consume real Gecko/DEX rate limits.
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_provider_probes == true && github.ref == 'refs/heads/codex/r29-cleanroom-paper-20261121' }}
         continue-on-error: true
         timeout-minutes: 2
         run: node scripts/forensic-probe-15nov.mjs
       - name: Live public JSON discovery probe (research only)
+        # Ordinary push CI must NEVER consume real Gecko/DEX rate limits.
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_provider_probes == true && github.ref == 'refs/heads/codex/r29-cleanroom-paper-20261121' }}
         continue-on-error: true
         timeout-minutes: 2
         run: node scripts/probe-live-discovery.mjs
