@@ -1,5 +1,5 @@
-// R29 QA-04/SYS-06: execute TWO actual 29h research CLI runs on this runner.
-// One no-input October gap replay and one explicitly synthetic BUY/SELL test.
+// R29 QA-04/SYS-06: execute THREE actual 29h research CLI runs on this runner.
+// No-source October gap, synthetic profit, and a synthetic loss + 6 shadows.
 // Neither mode imports the 65 winner references, calls provider APIs, starts
 // GPT Dots, publishes GitHub orders, or modifies Windows-client Paper state.
 import {spawnSync} from 'node:child_process';
@@ -51,6 +51,11 @@ async function runScenario(name,inputPath=null){
   ||record.requested_backtest?.on_demand_29h_timeline?.hourly_ticks!==29)
   throw Error('QA04_REPLAY_RESULT_DID_NOT_PASS_GATES_'+name);
  const report=record.requested_backtest,audit=record.isolated_model_ledger_audit;
+ const research=record.offline_research_experiments;
+ if(research?.kind!=='R29_V19_SIX_OFFLINE_BACKLOG_SHADOW_EXPERIMENTS'
+   ||research.actual_gpt_dots_executed!==0||research.paper_orders_authorized!==0
+   ||research.d1_07_cadence_utility?.budgets?.length!==4)
+   throw Error('OFFLINE_SIX_SHADOWS_MISSING_FROM_REAL_CLI_'+name);
  return {name,source_scope:inputPath?'SYNTHETIC_QA_ONLY':'OCTOBER_NO_INDEPENDENT_ORIGINAL_INPUT',
   artifact:filename,sha256:createHash('sha256').update(bytes).digest('hex'),
   source_evidence_claim:report.status,
@@ -63,6 +68,13 @@ async function runScenario(name,inputPath=null){
   initial_cash_test_usdc:audit.starting_cash_test_usdc,
   final_cash_test_usdc:audit.modeled_cash_end_test_usdc,
   modeled_realized_pnl_test_usdc:audit.modeled_realized_pnl_test_usdc,
+  shadow_cadence_budgets:research.d1_07_cadence_utility.budgets.map(x=>x.target_model_reviews_per_24h),
+  shadow_regimes:research.d4_02_regime.map(x=>x.regime),
+  shadow_protective_statuses:research.d4_04_protective.checks.map(x=>x.status),
+  shadow_reentry_watch:research.d4_05_loss_reentries.map(x=>x.experimental_reentry_watch),
+  shadow_horizon_dense:research.d4_06_forecast_paths.map(x=>x.horizon_metrics[6]?.dense_sampling_within_horizon),
+  shadow_validation_statuses:research.d5_05_temporal_holdout.map(x=>x.cohorts.VALIDATION.metric_status),
+  genuine_holdout_evaluations:research.d5_05_temporal_holdout.filter(x=>x.genuine_market_holdout_performance_verified).length,
   no_actual_paper_fills:true,verified_remote_windows_files:false};
 }
 const empty=await runScenario('no-contemporaneous-source');
@@ -78,6 +90,20 @@ if(synthetic.source_evidence_claim!=='DATA_GAP_NO_CONTEMPORANEOUS_HISTORICAL_UNI
  ||synthetic.initial_cash_test_usdc!==5000
  ||synthetic.modeled_realized_pnl_test_usdc<=0)
  throw Error('QA04_SYNTHETIC_MODEL_CHAIN_NOT_VERIFIED');
+const shadowLoss=await runScenario('synthetic-loss-six-shadows',
+ 'research/backtest-inputs/2026-10-12/qa80-six-offline-shadows-synthetic.json');
+if(shadowLoss.source_evidence_claim!=='DATA_GAP_NO_CONTEMPORANEOUS_HISTORICAL_UNIVERSE'
+ ||shadowLoss.model_buys!==1||shadowLoss.model_sells!==1
+ ||shadowLoss.synthetic_model_receipts!==2
+ ||shadowLoss.modeled_realized_pnl_test_usdc>=0
+ ||JSON.stringify(shadowLoss.shadow_cadence_budgets)!=='[4,8,12,24]'
+ ||JSON.stringify(shadowLoss.shadow_regimes)!=='["ACCELERATING_SHADOW"]'
+ ||JSON.stringify(shadowLoss.shadow_protective_statuses)!=='["SHADOW_SELL_CANDIDATE"]'
+ ||JSON.stringify(shadowLoss.shadow_reentry_watch)!=='["RECOVERY_WATCH_ONLY"]'
+ ||JSON.stringify(shadowLoss.shadow_horizon_dense)!=='[true]'
+ ||JSON.stringify(shadowLoss.shadow_validation_statuses)!=='["SYNTHETIC_COHORT_SCORE_ONLY"]'
+ ||shadowLoss.genuine_holdout_evaluations!==0)
+ throw Error('QA80_SIX_BACKLOG_SHADOW_ACTUAL_CLI_NOT_VERIFIED');
 const summary={schema:1,kind:'R29_V19_29H_REAL_OFFLINE_CLI_ACCEPTANCE',
  executed_at_utc:new Date().toISOString(),
  source_commit_sha:process.env.GITHUB_SHA||null,
@@ -85,7 +111,7 @@ const summary={schema:1,kind:'R29_V19_29H_REAL_OFFLINE_CLI_ACCEPTANCE',
  requested_date:date,historical_window_utc:{
   from:'2026-10-11T19:00:00.000Z',through:'2026-10-13T00:00:00.000Z'
  },
- scenarios:[empty,synthetic],
+ scenarios:[empty,synthetic,shadowLoss],
  oracle_winner_references_used_as_discovery_inputs:false,
  exchange_receipts_proven:'SYNTHETIC_MODEL_ONLY',
  actual_gpt_dots_executed:0,real_provider_http_requests:0,
