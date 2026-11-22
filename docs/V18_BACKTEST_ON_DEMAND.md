@@ -1,5 +1,9 @@
 # R29 V1.8 – Trainingsmodus: 5 Dots pausiert, historische Backtests nur auf Anfrage
 
+## V1.8 EIN-SYSTEM-VETRAG (verbindlich, neuer als ältere historische Presets)
+
+**[V18_ONE_SYSTEM_CONTRACT.md](V18_ONE_SYSTEM_CONTRACT.md)** ist der maßgebliche Vertrag: **ein** Fünf-Dot-System, dieselben `src/unified-decision-v18.mjs`-BUY/HOLD/SELL/WATCH-Regeln, dieselbe `src/v18-shared-evidence-gate.mjs`-Quellenprüfung für Live-Paper und historischen As-of-Replay. Historische `research-paper-lab.mjs`-Varianten sind reine Alt-Diagnostik, nicht eine zweite aktive Handelsstrategie. Die fünf ChatGPT-Automationen sind während Entwicklung pausiert, ihre gespeicherten Prompts müssen ebenfalls synchronisiert sein. Keine unerfüllbaren Zusatzblocker für Discovery; WATCH/DATA_GAP darf nicht zum Löschen eines Coins führen. Shadow-Module dürfen niemals reale oder Paper-Receipts behaupten. Automatischer Handel mit den V1.8-Shadow-Modulen bleibt inaktiv.
+
 Stand: 22. November 2026. Ausschließlich Repo `127027/Sniperbot-`, Branch `codex/r29-cleanroom-paper-20261121`. **Keine Änderungen an main, altem Bot, Echtgeld oder bestehenden Paper-Konten.**
 
 ## Betriebsentscheidung
