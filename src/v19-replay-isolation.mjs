@@ -9,7 +9,7 @@ import {resolve} from 'node:path';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 export async function fingerprintProtectedFiles(paths=[]){
  if(!Array.isArray(paths)||paths.some(x=>typeof x!=='string'||!x.trim())
-   ||new Set(paths.map(resolve)).size!==paths.length)
+   ||new Set(paths.map(p=>resolve(p))).size!==paths.length)
   throw Error('INVALID_PROTECTED_PAPER_FILE_PATHS');
  const files=[];
  for(const path of paths){
