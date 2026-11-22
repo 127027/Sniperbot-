@@ -78,7 +78,9 @@ export function planDot3EvidenceRechecks({handoff,asOfUtc,
    risk_status_source:'R29_V19_DOT3_RISK_STATE',
    missing_fields:[...new Set([...fields,...classification.missing_fields])],
    next_action:classification.source_pair_audit?.status==='SAME_REPORTED_UPSTREAM'
-     ?'FIND_PROVABLY_INDEPENDENT_PRICE_UPSTREAM':action,
+     ?'FIND_PROVABLY_INDEPENDENT_PRICE_UPSTREAM':
+     classification.source_pair_audit?.status==='TWO_DOMAIN_INDICATIVE_ONLY'
+       ?'VERIFY_UPSTREAM_PROVIDER_TIMES_SELLABILITY':action,
    next_recheck_at_utc:nextDue,
    retriable:scheduled,source_age_minutes:age,
    verification_basis:'DOT2_HANDOFF_ONLY_NOT_EXTERNAL_RISK_PROOF',
