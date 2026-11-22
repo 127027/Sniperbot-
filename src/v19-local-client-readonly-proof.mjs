@@ -36,6 +36,7 @@ export function inspectReadOnlyLocalPaperSnapshot({
  for(const [id,w] of receipts){
   const r=w?.data,processed=state.processed[id];
   if(!r||r.id!==id||!processed||r.status!==processed.status
+   ||r.timestamp!==processed.time
    ||ms(r.timestamp)===null||ms(r.timestamp)>at
    ||!['PAPER_REJECTED','PAPER_FILLED'].includes(r.status)){
    safe('INCONSISTENT_PROCESSED_RECEIPT');continue;
@@ -69,14 +70,27 @@ export function inspectReadOnlyLocalPaperSnapshot({
  if(events.size!==filled.length)safe('FILLED_RECEIPT_HISTORY_MISMATCH');
  let expectedCash=originalStartingTestUsdc;
  const buyLots=new Map(),soldLots=new Set();
+ let lastFilledMs=null;
  for(const r of [...filled].sort((a,b)=>a.sequence-b.sequence)){
   const e=events.get(r.id);
+  const filledMs=ms(r.timestamp);
+  if(lastFilledMs!==null&&filledMs!==null&&filledMs<lastFilledMs)
+   safe('FILL_SEQUENCE_TIMESTAMP_REVERSED');
+  if(filledMs!==null)lastFilledMs=filledMs;
   if(!e||e.action!==r.action||e.receipt_sequence!==r.sequence
    ||e.filled_at_utc!==r.timestamp)
    safe('TRADE_EVENT_DOES_NOT_MATCH_RECEIPT');
+  if(e&&(!r.coin||e.market_key!==marketKey(r.coin)))
+   safe('TRADE_EVENT_MARKET_KEY_MISMATCH');
+  if(e&&e.realized_pnl_test_usdc!==
+     (r.action==='SELL'?r.realized_pnl_test_usdc:null))
+   safe('TRADE_EVENT_PNL_MISMATCH');
   if(r.action==='BUY'){
    if(!n(r.amount_test_usdc)||r.amount_test_usdc<=0||!n(r.quantity)
-     ||r.quantity<=0||!n(r.execution_price_usdc)||r.execution_price_usdc<=0)
+     ||r.quantity<=0||!n(r.execution_price_usdc)||r.execution_price_usdc<=0
+     ||!n(r.fee_test_usdc)||r.fee_test_usdc>=r.amount_test_usdc
+     ||Math.abs(r.quantity*r.execution_price_usdc-
+        (r.amount_test_usdc-r.fee_test_usdc))>1e-5)
     {safe('INVALID_BUY_FINANCIALS');continue;}
    if(r.amount_test_usdc!==defaultStakeTestUsdc)
     safe('NONSTANDARD_HISTORIC_STAKE_REQUIRES_POLICY_EVIDENCE');
@@ -87,6 +101,9 @@ export function inspectReadOnlyLocalPaperSnapshot({
   }else{
    if(!n(r.proceeds_test_usdc)||!n(r.quantity)||r.quantity<=0
      ||!n(r.execution_price_usdc)||r.execution_price_usdc<=0
+     ||!n(r.fee_test_usdc)
+     ||Math.abs(r.quantity*r.execution_price_usdc-r.fee_test_usdc-
+        r.proceeds_test_usdc)>1e-5
      ||typeof e?.position_source_order_id!=='string')
     {safe('INVALID_SELL_FINANCIALS');continue;}
    expectedCash+=r.proceeds_test_usdc;
@@ -128,7 +145,11 @@ export function inspectReadOnlyLocalPaperSnapshot({
    ||original.coin.contract!==coin.contract
    ||original.coin.pool!==coin.pool
    ||!n(p.costTestUsdc)||p.costTestUsdc!==original.amount
-   ||!n(p.quantity)||Math.abs(p.quantity-original.quantity)>1e-8)
+   ||!n(p.quantity)||Math.abs(p.quantity-original.quantity)>1e-8
+   ||p.openedAt!==events.get(p.sourceOrderId)?.filled_at_utc
+   ||!n(p.entryPrice)||p.entryPrice<=0
+   ||Math.abs(p.entryPrice-
+      (state.receipts[p.sourceOrderId]?.data?.execution_price_usdc??NaN))>1e-8)
    safe('OPEN_POSITION_LOT_DOES_NOT_MATCH_FILLED_BUY');
   positionRows.push({chain:coin.chain,
    key_sha256:digest(key),opening_buy_order_sha256:digest(p.sourceOrderId),
