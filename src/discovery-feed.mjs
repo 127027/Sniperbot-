@@ -15,9 +15,10 @@ export function validateCaptureRequest(value){
  const ohlcv=value.max_ohlcv_requests??0,older=value.max_older_pool_requests??0;
  if(!Number.isInteger(older)||older<0||older>2)
   throw Error('OLDER_POOL_RESERVATION_INVALID');
- if(!Number.isInteger(ohlcv)||ohlcv<0||ohlcv>2||
-    value.max_gecko_requests-ohlcv-older<1)
-  throw Error('OHLCV_OR_OLDER_POOL_RESERVATION_INVALID');
+ if(!Number.isInteger(ohlcv)||ohlcv<0||ohlcv>2)
+  throw Error('OHLCV_RESERVATION_INVALID');
+ if(value.max_gecko_requests-ohlcv-older<1)
+  throw Error(older>0?'OLDER_POOL_RESERVATION_INVALID':'OHLCV_RESERVATION_INVALID');
  const t=Date.parse(value.created_at_utc);
  if(!Number.isFinite(t))throw Error('INVALID_REQUEST_TIME');
  return value;
