@@ -20,11 +20,15 @@ export function planMultiChainCapture({networks,checkpoints={},budget=1,asOfUtc}
    }
    const last=time(cp?.last_attempt_at_utc);
    const d=chooseNextDiscoveryPage(cp);
-   const primary=d.page,secondary=primary===1
+   // Failed backlog pages are retried after the cooldown; a page-1 refresh
+   // must not erase an already documented gap.
+   const pending=Number.isInteger(cp?.failed_page_to_retry)&&cp.failed_page_to_retry>=1
+     &&cp.failed_page_to_retry<=1000?cp.failed_page_to_retry:null;
+   const primary=pending||d.page,secondary=primary===1
      ? Math.max(2,Number.isInteger(cp?.next_page_to_consider)?cp.next_page_to_consider:2)
      : 1;
    chains.push({chain,original_order:order,last_attempt_ms:last??-Infinity,
-     primary,secondary,reason:d.reason});
+     primary,secondary,reason:pending?'RETRY_FAILED_PAGE':d.reason});
  }
  // A repeatedly fetched chain becomes newer in its persistent checkpoint,
  // so other chains win next time. Within this request use each once first.
