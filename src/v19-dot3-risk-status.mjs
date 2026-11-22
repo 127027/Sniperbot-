@@ -4,6 +4,7 @@
 // PAPER_ELIGIBLE state but NEVER grants an executable paper order.
 import {canonicalChain,poolValid,tokenValid} from './market-evidence.mjs';
 import {inspectDot3Attestation} from './risk-authorization-v18.mjs';
+import {auditDot3QuoteSourcePair} from './v19-dot3-source-pairs.mjs';
 
 const time=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
 const canon=(chain,id)=>chain==='solana'?id:String(id).toLowerCase();
@@ -25,6 +26,7 @@ export function assessDot3RiskStatus({
  const validPool=poolValid(chain,pool,candidate.pool_kind);
  const validContract=tokenValid(chain,contract);
  const key=validPool?chain+':'+canon(chain,pool):null;
+ let sourcePair=null;
  const result=(status,reason,missing=[],additional={})=>({
    schema:1,kind:'R29_V19_DOT3_RISK_STATE',mode,
    as_of_utc:asOfUtc,pool_key:key,chain:chain??null,
@@ -35,6 +37,7 @@ export function assessDot3RiskStatus({
    status_is_modeled_not_verified_authorization:true,
    original_risk_evidence_verified:false,
    issuer_authentication_verified:false,
+   source_pair_audit:sourcePair,
    trade_authorized:false,paper_filled:false,
    next_action:status==='PAPER_ELIGIBLE'?'WAIT_FOR_INDEPENDENT_ORDER_AUTHORITY':
      status==='REJECTED'?'ARCHIVE_PROVEN_HARD_BLOCK':
@@ -56,13 +59,29 @@ export function assessDot3RiskStatus({
  if(captured===null||captured>now||now-captured>10*60000)
    return result('DATA_GAP','POOL_CAPTURE_MISSING_STALE_OR_FUTURE',['FRESH_ORIGINAL_POOL_CAPTURE']);
 
+ // This is the SAME two-domain audit used for the real Dot2 handoff and
+ // historical as-of status preview. Unknown upstream/time never becomes proof.
+ if(Array.isArray(candidate.source_observations)&&candidate.source_observations.length){
+   sourcePair=auditDot3QuoteSourcePair({coin:{chain,pool,contract,
+     pool_kind:candidate.pool_kind},observations:candidate.source_observations,
+     asOfUtc});
+ }
  const comparison=finite(candidate.price_disagreement_pct);
  const prices=[candidate.primary_quote_usd,candidate.second_source_price_usd].map(finite);
  const liquidities=[candidate.primary_liquidity_usd,candidate.second_source_liquidity_usd].map(finite);
- const lowLiquidity=liquidities.some(x=>x!==null&&x<5000);
- const conflicting=comparison!==null&&comparison>3;
+ const lowLiquidity=liquidities.some(x=>x!==null&&x<5000)
+   ||sourcePair?.status==='INDICATIVE_LOW_LIQUIDITY';
+ const conflicting=(comparison!==null&&comparison>3)
+   ||sourcePair?.status==='INDICATIVE_PRICE_DISAGREEMENT';
  const quoteMissing=!candidate.independent_price_liquidity_ready
-   ||prices.some(x=>x===null||x<=0)||liquidities.some(x=>x===null||x<=0);
+   ||prices.some(x=>x===null||x<=0)||liquidities.some(x=>x===null||x<=0)
+   ||(sourcePair!==null&&sourcePair.status!=='TWO_DOMAIN_INDICATIVE_ONLY');
+ // Contradictory fresh quotes are WATCH, even if a self-declared attestation
+ // attempts to upgrade the market. Keep that candidate visible for rechecks.
+ if(sourcePair&&['INDICATIVE_PRICE_DISAGREEMENT','INDICATIVE_LOW_LIQUIDITY',
+     'SAME_REPORTED_UPSTREAM'].includes(sourcePair.status))
+   return result('WATCH','PROVIDER_SOURCE_PAIR_'+sourcePair.status,[
+     'RECHECK_CORRELATED_OR_CONFLICTING_QUOTES','INDEPENDENT_UPSTREAM_PROOF']);
 
  // This is NOT an on-chain security certificate. A user-written verified:true
  // hard-block claim is insufficient for permanent REJECTED in a live run.
@@ -76,6 +95,8 @@ export function assessDot3RiskStatus({
    if(quoteMissing)reasons.push('INDEPENDENT_CURRENT_QUOTES');
    if(conflicting)reasons.push('PRICE_CONFLICT_RECHECK');
    if(lowLiquidity)reasons.push('LIQUIDITY_DEPTH_RECHECK');
+   if(sourcePair)reasons.push('INDEPENDENT_UPSTREAM_CORROBORATION',
+     'INDEPENDENT_SOURCE_ARCHIVE');
    reasons.push('SECURITY_AND_SELLABILITY_ATTESTATIONS','VERIFIED_PROVIDER_QUOTE_TIMES');
    return result((conflicting||lowLiquidity)?'WATCH':'DATA_GAP',
      conflicting?'INDICATIVE_PRICE_DISAGREEMENT':
