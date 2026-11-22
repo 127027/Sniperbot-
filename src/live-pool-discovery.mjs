@@ -11,13 +11,23 @@ export function decodeGeckoNewPools({network,response,capturedAtUtc,page=1}={}){
  const candidates=[],rejected=[];
  for(let i=0;i<response.data.length;i++){
   const record=response.data[i],a=record?.attributes??{},pool=a.address??null;
-  if(!poolValid(chain,pool,a.pool_kind)){rejected.push({row:i,reason:'POOL_ADDRESS_MISSING_OR_INVALID'});continue;}
+  // A Gecko Uniswap V4 pool is a 32-byte pool ID; attributes.pool_kind may be absent.
+  // Infer V4 only when the trusted response's exact DEX/network relationship agrees.
+  const networkId=chain==='ethereum'?'eth':chain==='cronos'?'cro':chain;
+  const dexId=record?.relationships?.dex?.data?.id??null;
+  const inferredV4=dexId==='uniswap-v4-'+networkId
+    &&typeof pool==='string'&&/^0x[0-9a-fA-F]{64}$/.test(pool);
+  const poolKind=inferredV4||a.pool_kind==='UNISWAP_V4_POOL_ID'?'UNISWAP_V4_POOL_ID':null;
+  if(!poolValid(chain,pool,poolKind)){
+    rejected.push({row:i,reason:'POOL_ADDRESS_MISSING_OR_INVALID',source_pool_id:record?.id??null,dex_id:dexId});
+    continue;
+  }
   const ref=record?.relationships?.base_token?.data?.id;
   const base=typeof ref==='string'?included.get(ref):null;
   const value=base?.attributes?.address??null;
   const contract=tokenValid(chain,value)?value:null;
   const created=time(a.pool_created_at);
-  candidates.push({chain,pool,pool_kind:a.pool_kind??null,contract,
+  candidates.push({chain,pool,pool_kind:poolKind,contract,
     symbol:base?.attributes?.symbol??null,observed_at_utc:captured,
     pool_created_at_utc:created,
     source_url:'https://www.geckoterminal.com/'+(chain==='ethereum'?'eth':chain==='cronos'?'cro':chain)+'/pools/'+pool,
