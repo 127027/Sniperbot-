@@ -1,5 +1,7 @@
 // JSON-only public market-data decoder; no network, wallets, or order actions.
 import {canonicalChain,tokenValid,poolValid} from './market-evidence.mjs';
+import {exactPoolUrl} from './market-evidence.mjs';
+import {canonicalMarketIdentity} from './v19-canonical-market-identity.mjs';
 const num=x=>{const v=Number(x);return x===null||x===undefined||x===''||!Number.isFinite(v)?null:v;};
 const time=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?new Date(x).toISOString():null;
 const norm=(chain,val)=>chain==='solana'?String(val):String(val).toLowerCase();
@@ -49,20 +51,63 @@ export function crossCheckDexPair({candidate,response,checkedAtUtc}={}){
  if(!checked)throw Error('INVALID_PAIR_CHECK_TIME');
  const pairs=Array.isArray(response?.pairs)?response.pairs:Array.isArray(response)?response:[];
  const chain=canonicalChain(candidate?.chain),pool=candidate?.pool,token=candidate?.contract;
- if(!chain||!poolValid(chain,pool,candidate?.pool_kind)||!tokenValid(chain,token))
-  return {status:'IDENTITY_INCOMPLETE',checked_at_utc:checked,matched:false};
- const pair=pairs.find(p=>canonicalChain(p?.chainId)===chain&&poolValid(chain,p?.pairAddress,candidate?.pool_kind)
-  &&norm(chain,p.pairAddress)===norm(chain,pool)&&tokenValid(chain,p?.baseToken?.address)
-  &&norm(chain,p.baseToken.address)===norm(chain,token));
- if(!pair)return {status:'NO_MATCHING_CHAIN_POOL_BASE_TOKEN',checked_at_utc:checked,matched:false,returned_pairs:pairs.length};
- const price=num(pair.priceUsd),liq=num(pair?.liquidity?.usd),reference=num(candidate?.observed_price_usd);
+ const identity=canonicalMarketIdentity({
+  chain,pool,pool_kind:candidate?.pool_kind??null,contract:token
+ });
+ const emptyProof={
+  checked_at_utc:checked,matched:false,
+  provider_quote_asof_utc:null,provider_quote_asof_verified:false,
+  provider_quote_age_seconds:null,trade_authorized:false
+ };
+ if(!identity||!tokenValid(chain,token))
+  return {...emptyProof,status:'IDENTITY_INCOMPLETE',
+   reason:'MISSING_OR_MALFORMED_TYPED_CHAIN_POOL_CONTRACT'};
+ if(candidate?.source_url!=null&&!exactPoolUrl(candidate.source_url,chain,pool))
+  return {...emptyProof,status:'SOURCE_URL_CHAIN_OR_POOL_CONFLICT',
+   reason:'SOURCE_LINK_IS_NOT_THE_CANONICAL_POOL'};
+ if(time(candidate?.observed_at_utc)
+   &&Date.parse(candidate.observed_at_utc)>Date.parse(checked))
+  return {...emptyProof,status:'CROSSCHECK_PREDATES_SOURCE_OBSERVATION',
+   reason:'DEX_CAPTURE_CANNOT_CONFIRM_A_FUTURE_SOURCE'};
+ const canonicalAddress=(value)=>norm(chain,value);
+ const mismatches={wrong_chain:0,wrong_pool:0,wrong_base_token:0,
+   malformed_provider_pair:0};
+ let pair=null;
+ for(const p of pairs){
+  const actualChain=canonicalChain(p?.chainId);
+  if(actualChain!==chain){mismatches.wrong_chain++;continue;}
+  const pairIdentity=canonicalMarketIdentity({chain:actualChain,
+    pool:p?.pairAddress,pool_kind:candidate?.pool_kind??null,
+    contract:p?.baseToken?.address});
+  if(!pairIdentity){mismatches.malformed_provider_pair++;continue;}
+  if(pairIdentity.pool_key!==identity.pool_key){
+   mismatches.wrong_pool++;continue;
+  }
+  if(pairIdentity.token_key!==identity.token_key){
+   mismatches.wrong_base_token++;continue;
+  }
+  pair=p;break;
+ }
+ if(!pair)return {...emptyProof,
+   status:'NO_MATCHING_CHAIN_POOL_BASE_TOKEN',
+   reason:'PROVIDER_PAIR_IDENTITY_NOT_CONFIRMED',
+   chain,pool,contract:token,returned_pairs:pairs.length,
+   mismatch_counts:mismatches,pool_identity_key:identity.pool_key,
+   token_identity_key:identity.token_key};
+ const price=num(pair.priceUsd),liq=num(pair?.liquidity?.usd),
+  reference=num(candidate?.observed_price_usd);
  const delta=price!==null&&reference!==null&&price>0&&reference>0
   ?Math.abs(price-reference)/((price+reference)/2)*100:null;
  const status=price===null||liq===null?'MISSING_PRICE_OR_LIQUIDITY':
    delta===null?'MISSING_GECKO_COMPARISON_PRICE':delta>3?'PRICE_DISAGREEMENT':
    liq<5000?'LOW_LIQUIDITY':'TWO_DOMAIN_INDICATIVE_RESEARCH_ONLY';
  return {status,matched:true,checked_at_utc:checked,chain,pool,contract:token,
+   pool_identity_key:identity.pool_key,token_identity_key:identity.token_key,
    dexscreener_price_usd:price,dexscreener_liquidity_usd:liq,
    geckoterminal_price_usd:reference,price_divergence_pct:delta,
-   provider_quote_asof_verified:false,trade_authorized:false};
+   upstream_provider_independence_proven:false,
+   quote_source_capture_at_utc:time(candidate?.observed_at_utc),
+   provider_quote_asof_utc:null,provider_quote_asof_verified:false,
+   provider_quote_age_seconds:null,
+   trade_authorized:false};
 }
