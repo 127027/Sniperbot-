@@ -8,11 +8,14 @@ const time=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):
 export function assessDot4PaperDecision({
   snapshot,asOfUtc,priorObservation=null,position=null,lastLossAtUtc=null,
   fullReviewDue=false,params={},allowSyntheticForRegression=false,
+  evaluationMode='LIVE_PAPER',
   paperBudgetSettings=DEFAULT_BUDGET_SETTINGS
 }={}){
  const at=time(asOfUtc);
  const budget=resolveSharedPaperPolicy(paperBudgetSettings);
- if(at===null||typeof fullReviewDue!=='boolean')throw Error('INVALID_DOT4_TIME_OR_CADENCE');
+ if(at===null||typeof fullReviewDue!=='boolean'||
+    !['LIVE_PAPER','HISTORICAL_ASOF'].includes(evaluationMode))
+  throw Error('INVALID_DOT4_TIME_OR_CADENCE');
  if(snapshot?.provenance==='SYNTHETIC_TEST'&&!allowSyntheticForRegression)
    return {schema:1,kind:'R29_V18_DOT4_COMMON_DECISION',action:'WATCH',
      reason:'SYNTHETIC_DATA_NOT_LIVE',evidence_status:'BLOCKED',
