@@ -34,8 +34,8 @@ export function decideUnifiedMarket({
    if(!positive(position.entryPrice))return result('DATA_GAP','POSITION_ENTRY_PRICE_UNKNOWN',context);
    const move=(observedPriceUsd/position.entryPrice-1)*100;
    const payload={...context,observed_move_pct:move};
-   if(move<=-p.stopLossPct)return result('SELL','STOP_LOSS_OBSERVED',payload);
-   if(move>=p.takeProfitPct)return result('SELL','TAKE_PROFIT_OBSERVED',payload);
+   if(move<=-p.stopLossPct)return result('SELL','STOP_LOSS',payload);
+   if(move>=p.takeProfitPct)return result('SELL','TAKE_PROFIT',payload);
    return result('HOLD','POSITION_WITHIN_BOUNDS',payload);
  }
  if(!fullReviewDue)return result('WATCH','NEXT_FULL_REVIEW_NOT_DUE',context);
