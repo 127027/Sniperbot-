@@ -33,14 +33,19 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
  // Research features may use ALL older, genuinely available market history.
  // The common BUY kernel still limits its MOMENTUM BASELINE to two hours, and
  // the actual purchase/exit requires an entirely separate fresh Dot3 quote.
- const initialHistory=buildAsOfLookback({snapshots,asOfUtc:iso(start)});
+ const initialHistory=buildAsOfLookback({snapshots,asOfUtc:iso(start-1)});
+ // The first decision is at EXACT midnight. Its baseline must exclude the
+ // current tick; a candidate quote published at 00:00 may be used as current
+ // evidence, never as its own prior momentum baseline.
  for(const h of initialHistory.markets)
    history.set(h.key,{price:h.latest_price_usdc,at_utc:h.latest_observed_at_utc});
 
  // Input MUST be independently collected and available at its own timestamp.
- // We evaluate every hour :35 and never preselect winners or sort by future performance.
+ // 00:00 is a real first opportunity; later hourly check-ins remain at :35.
+ // Never wait 35 minutes to make the first as-of decision.
+ // No winner list, oracle or future source is used for candidate discovery.
  for(let hour=0;hour<24;hour++){
-   const tick=start+hour*3600000+35*60000,at=iso(tick);
+   const tick=start+hour*3600000+(hour===0?0:35*60000),at=iso(tick);
    // Dot 1 determines cadence from measured *as-of* activity on the first scan,
    // and on later hourly wakes. No evidence -> hold last setting.
    const activity=activityObservations.filter(x=>{
