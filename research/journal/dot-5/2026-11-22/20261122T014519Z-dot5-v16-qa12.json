@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "kind": "DOT5_QA_IMMUTABLE_RUN",
+  "dot": "dot-5",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "run_id": "20261122T014519Z-dot5-v16-qa12",
+  "observed_at_utc": "2026-11-22T01:45:19Z",
+  "repository": "127027/Sniperbot-",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "status": "DATA_GAP",
+  "daily_dot6": "NOT_DUE_2026-11-22_BERLIN_02_45",
+  "sources": {
+    "dot1": {
+      "path": "research/journal/dot-1/2026-11-22/UTC-010535-dot1-v16-run11.json",
+      "sha": "34a756549a3a319e3f1d727903f3afdc3f38f1e4"
+    },
+    "dot2": {
+      "path": "research/journal/dot-2/2026-11-22/20261122T011955387Z-run12-44970852447-confirmed.json",
+      "sha": "bd0b08a22871dbc33b07f399a004342cff93dd84"
+    },
+    "dot3": {
+      "path": "research/journal/dot-3/2026-11-22/20261122T012443490Z-risk-v16-run11.json",
+      "sha": "f0dd5038109efbc3ba01962e314074009db1076b"
+    },
+    "dot4": {
+      "path": "research/journal/dot-4/2026-11-22/20261122T013223083Z-dot4-v16-exit-run12.json",
+      "sha": "53c901e8305f4177735991a700c3bb04dd121df4"
+    },
+    "handoff": {
+      "path": "research/feeds/2026-11-22/44970852447/dot2-to-dot3-handoff.json",
+      "sha": "9805fe51eecd38b72415b83524deea658718e933"
+    },
+    "feed_evidence": {
+      "path": "research/feeds/2026-11-22/44970852447/evidence.json",
+      "sha": "f89ce23f9b0b11203d473729cc00fb8a765468a0"
+    },
+    "checkpoint": {
+      "path": "research/state/checkpoints/44970852447.json",
+      "sha": "e78b6e025db328e362855e6c320b103438bd710a"
+    },
+    "media_evidence": {
+      "path": "research/media/2026-11-22/44970852447/evidence.json",
+      "sha": "082bfe438035590fbf8797ecc4c17b2b44bfdc26"
+    },
+    "signal_index": {
+      "path": "signals/index.json",
+      "sha": "8f360a172e95adfda2d30105dd3fc7639497367d"
+    }
+  },
+  "counts": {
+    "dot1_target_analyses_24h": 4,
+    "dot2_base_raw_rows": 20,
+    "dot2_base_full_contracts": 2,
+    "dot2_rejected_pool_addresses": 18,
+    "dot2_exact_pair_matches": 5,
+    "dot2_independent_complete_quotes": 0,
+    "market_memory_total_pools": 186,
+    "market_memory_observation_batches": 52,
+    "fair_recheck_backlog": 178,
+    "dot3_checked": 5,
+    "dot3_rejected": 5,
+    "dot3_eligible": 0,
+    "dot4_buy": 0,
+    "dot4_sell": 0,
+    "github_indexed_orders": 0,
+    "confirmed_paper_filled": 0,
+    "confirmed_paper_rejected": 0,
+    "media_http_sources_available": 7,
+    "media_exact_contract_pool_matches": 0,
+    "forward_rankable": 0
+  },
+  "client_status": "OFFLINE_OR_UNCONFIRMED",
+  "receipt_inventory": "HTTP_404_NO_CLIENT_DIRECTORY; cannot prove all clients online/offline",
+  "issues": [
+    {
+      "code": "DOT4_OVERDUE_FULL_REVIEW",
+      "evidence": "Dot4 journal 01:32:23Z says full_review_due=false but next_full_review_due_at_utc=00:40:16Z; last full 2026-11-21T18:40:16Z; scheduled 4/day 360-minute cadence. Overdue by 52m07s at journal creation. Dot4 did hourly exit check only.",
+      "priority": "HIGH",
+      "safe_experiment": "Recalculate due from UTC timestamps, add unit test for overdue true and clock ordering; do not force BUY/SELL",
+      "rollback": "Revert only due-computation/test change if cadence regression"
+    },
+    {
+      "code": "BASE_POOL_ADDRESS_PARSER_REJECTS_18_OF_20",
+      "evidence": "Dot2 raw rows include 0x-prefixed 64-hex pool IDs likely bytes32; 2/20 accepted. Must distinguish v4 PoolId from EVM address before rejecting.",
+      "priority": "HIGH",
+      "safe_experiment": "Read archived raw rows and test v4 bytes32 identity parsing with chain/pool/contract checks; no trading gate changes",
+      "rollback": "Revert parser/test change if identity collisions"
+    },
+    {
+      "code": "INDEPENDENT_QUOTE_AND_SELLABILITY_GAP",
+      "evidence": "5 exact pairs, 0 complete independent quotes, 0 risk eligible; provider as-of unknown and sellability/honeypot/tax unverified",
+      "priority": "HIGH"
+    }
+  ],
+  "historical_oracle": "TRAINING_ONLY_12_OCT_AND_15_NOV; no verified independent holdout, oracle PnL or client fills",
+  "source_scope": "Only target cleanroom branch; no external market price asserted in this run",
+  "signal_pointer_repair": "NOT_APPLICABLE_NO_AUTHORIZED_ORDER",
+  "paper_balances_modified": false,
+  "trade_created": false
+}
