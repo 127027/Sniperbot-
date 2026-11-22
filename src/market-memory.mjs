@@ -25,7 +25,7 @@ export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtU
   const old=memory.pools[k],ref={source_path:sourcePath,observed_at_utc:seen,
     source_sha256:sourceSha256||null,provider};
   if(!old){
-   memory.pools[k]={chain:canonical,pool,contract:validContract,symbol:c.symbol||null,
+   memory.pools[k]={chain:canonical,pool,pool_kind:c.pool_kind==='UNISWAP_V4_POOL_ID'?'UNISWAP_V4_POOL_ID':null,contract:validContract,symbol:c.symbol||null,
     first_seen_at_utc:seen,last_seen_at_utc:seen,first_source_path:sourcePath,
     last_source_path:sourcePath,observation_count:1,source_refs:[ref],
     last_snapshot:{
@@ -38,7 +38,8 @@ export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtU
     status:'PENDING_RESEARCH_NOT_BUY_ELIGIBLE'};
    added++;continue;
   }
-  const prior=old.source_refs||[];
+  if(c.pool_kind==='UNISWAP_V4_POOL_ID'&&poolValid(canonical,pool,c.pool_kind))old.pool_kind=c.pool_kind;
+   const prior=old.source_refs||[];
   if(prior.some(x=>x.source_path===sourcePath)){duplicates++;continue;}
   old.source_refs=[...prior,ref];
   old.observation_count++;
@@ -94,7 +95,7 @@ export function planIncrementalScan(memory,{asOfUtc,chains=['solana','base','eth
   market_coverage_status:'INCOMPLETE_PUBLIC_SAMPLES',
   historical_pool_count:all.length,previously_discovered_count:all.length,
   recheck_pool_keys:selected.map(x=>ident(x.chain,x.pool)),
-  rechecks:selected.map(x=>({chain:x.chain,pool:x.pool,contract:x.contract,first_seen_at_utc:x.first_seen_at_utc,
+  rechecks:selected.map(x=>({chain:x.chain,pool:x.pool,pool_kind:x.pool_kind||null,contract:x.contract,first_seen_at_utc:x.first_seen_at_utc,
    last_seen_at_utc:x.last_seen_at_utc,status:x.status})),
   chains_requested:chains,chains_without_successful_capture:chains.filter(c=>!m.checkpoints[c+':GECKOTERMINAL']?.last_success_at_utc),
   not_all_pools_rechecked:selected.length<all.length,
