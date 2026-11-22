@@ -187,3 +187,44 @@ test('known post-event training and backtest report paths cannot launder oracle 
    {startUtc:start,endUtc:end}),/TRACE_SOURCE_PROVENANCE_INVALID/,path);
  }
 });
+
+test('a Dot4 BUY without same-pool prior Dot3 ELIGIBLE is reported as a forensic dependency gap',()=>{
+ const buy=mk('dot-4-strategy','BUY',41,{linked_event_ids:[]});
+ const x=buildFiveDotForensicReport({entries:[buy],startUtc:start,endUtc:end,runId});
+ assert.ok(x.causal_problems.some(z=>z.code==='BUY_WITHOUT_PRIOR_ELIGIBLE_DOT3_LINK'));
+ assert.equal(x.client_fills_independently_verified,0);
+ assert.equal(x.can_certify_five_dots_fully_correct,false);
+});
+test('Dot3 ELIGIBLE must cite a prior exact-pool Dot2 discovery in the forensic trace',()=>{
+ const risk=mk('dot-3-risk','ELIGIBLE',42,{linked_event_ids:[]});
+ const out=buildFiveDotForensicReport({entries:[risk],startUtc:start,endUtc:end,runId});
+ assert.ok(out.causal_problems.some(z=>z.code==='ELIGIBLE_WITHOUT_DOT2_DISCOVERY_LINEAGE'));
+ const d2=mk('dot-2-discovery','DISCOVERED',43,{
+  at_utc:'2026-10-11T23:59:00.000Z',phase:'WARMUP'});
+ const linked=mk('dot-3-risk','ELIGIBLE',44,{linked_event_ids:[d2.event_id]});
+ const withSource=buildFiveDotForensicReport({entries:[d2,linked],
+  startUtc:start,endUtc:end,runId});
+ assert.ok(!withSource.causal_problems.some(z=>z.code==='ELIGIBLE_WITHOUT_DOT2_DISCOVERY_LINEAGE'));
+});
+test('positive handoff chain is distinguishable from unlinked BUY and SELL model claims',()=>{
+ const d2=mk('dot-2-discovery','DISCOVERED',45,{});
+ const d3=mk('dot-3-risk','ELIGIBLE',46,{linked_event_ids:[d2.event_id]});
+ const buy=mk('dot-4-strategy','BUY',47,{linked_event_ids:[d3.event_id]});
+ const sell=mk('dot-4-strategy','SELL',48,{at_utc:'2026-10-12T01:00:00.000Z',
+  linked_event_ids:[buy.event_id]});
+ const pass=mk('dot-5-control','PASS',49,{at_utc:'2026-10-12T01:02:00.000Z',
+  linked_event_ids:[sell.event_id]});
+ const good=buildFiveDotForensicReport({entries:[d2,d3,buy,sell,pass],
+  startUtc:start,endUtc:end,runId});
+ assert.deepEqual(good.causal_problems,[]);
+ assert.equal(good.tracked_exact_pools,1);
+ assert.equal(good.paper_orders_independently_verified,0);
+ assert.equal(good.client_fills_independently_verified,0);
+ const broken=buildFiveDotForensicReport({entries:[sell],
+  startUtc:start,endUtc:end,runId});
+ assert.ok(broken.causal_problems.some(z=>z.code==='SELL_WITHOUT_RECORDED_POSITION_OR_BUY_LINK'));
+ const isolatedPass=buildFiveDotForensicReport({entries:[{
+  ...pass,event_id:'event-test-50',linked_event_ids:[]}],
+  startUtc:start,endUtc:end,runId});
+ assert.ok(isolatedPass.causal_problems.some(z=>z.code==='DOT5_PASS_WITHOUT_ANY_CAUSAL_LINK'));
+});
