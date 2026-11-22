@@ -36,19 +36,39 @@ export function prioritizeDiscoveredPools(candidates,{asOfUtc,detailedLimit=24}=
    liquidity_usd:liq,volume_24h_usd:volume,priority:Math.round(priority*100)/100,
    errors,status:errors.length?'WATCH_OR_VERIFY':'READY_FOR_RISK_REVIEW',source_url:x?.source_url||null};
  });
- const dedup=new Map(),duplicates=[];
+ const dedup=new Map(),duplicates=[],identityConflicts=new Map();
+ const identityByPool=new Map();
+ for(const row of rows){
+  if(row.key.startsWith('unresolved:'))continue;
+  const validContract=tokenValid(row.chain,row.contract);
+  if(!validContract)continue;
+  const identity=row.chain==='solana'?row.contract:row.contract.toLowerCase();
+  if(!identityByPool.has(row.key))identityByPool.set(row.key,new Set());
+  identityByPool.get(row.key).add(identity);
+ }
+ for(const [key,contracts] of identityByPool){
+  if(contracts.size>1)identityConflicts.set(key,[...contracts].sort());
+ }
  for(const row of rows){
   if(!dedup.has(row.key)){dedup.set(row.key,row);continue;}
   const previous=dedup.get(row.key);
-  duplicates.push({key:row.key,merged_input_index:row.input_index});
-  // No evidence lost: identify all source rows in duplicates.
+  duplicates.push({key:row.key,merged_input_index:row.input_index,original_input_index:previous.input_index,
+   contract:row.contract,source_url:row.source_url});
+  // Retain one ranked representative, but preserve every conflicting identity separately.
   if(row.errors.length<previous.errors.length || (row.errors.length===previous.errors.length&&row.priority>previous.priority))
     dedup.set(row.key,row);
+ }
+ for(const [key,contracts] of identityConflicts){
+  const row=dedup.get(key);
+  if(row){
+   row.errors.push('CONTRACT_IDENTITY_CONFLICT');
+   row.status='WATCH_OR_VERIFY';
+  }
  }
  const ranked=[...dedup.values()].sort((a,b)=>b.priority-a.priority||a.key.localeCompare(b.key));
  return {schema:1,input_count:rows.length,unique_count:ranked.length,
    reviewed_in_depth:ranked.slice(0,detailedLimit),pending_queue:ranked.slice(detailedLimit),
-   all_candidates:ranked,duplicates,coverage_status:rows.length?'SAMPLE_ONLY_NOT_MARKET_COMPLETE':'NO_SOURCES',
+   all_candidates:ranked,duplicates,identity_conflicts:[...identityConflicts].map(([key,contracts])=>({key,contracts})),coverage_status:rows.length?'SAMPLE_ONLY_NOT_MARKET_COMPLETE':'NO_SOURCES',
    blocked_contracts:ranked.filter(x=>x.errors.includes('CONTRACT_UNVERIFIED')).length,
    caution:'No buy authorization: all candidates preserved; scores exclude historical winner lists and future prices.'};
 }
