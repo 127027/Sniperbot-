@@ -48,6 +48,20 @@ test('a genuine 5h interval does NOT contain all six sources; Ethereum was later
  assert.equal(r.by_chain.find(x=>x.chain==='robinhood').status,'CAPTURE_VERIFIED');
  assert.equal(r.earliest_sample_at_utc,'2026-11-22T03:18:32.933Z');
 });
+test('old Unicode quote characters explain two original byte-count metadata mistakes',async()=>{
+ const r=check(await sources(),manifest.window_24h);
+ assert.deepEqual(r.recorded_byte_count_mismatches.map(x=>x.chain).sort(),
+  ['bsc','robinhood']);
+ const bsc=r.recorded_byte_count_mismatches.find(x=>x.chain==='bsc');
+ assert.equal(bsc.reported_bytes,35882);
+ assert.equal(bsc.verified_bytes,35996);
+ const robin=r.recorded_byte_count_mismatches.find(x=>x.chain==='robinhood');
+ assert.equal(robin.reported_bytes,37055);
+ assert.equal(robin.verified_bytes,37063);
+ assert.equal(r.all_six_chains_have_verified_http_samples,true);
+ assert.ok(r.source_checks.filter(x=>x.reported_size_matches_verified_bytes===false)
+  .every(x=>x.size_metadata_mismatch_does_not_invalidate_matching_cryptographic_hashes));
+});
 test('Cronos 200 response with zero pools counts as reached API, not 20 fictitious candidates',async()=>{
  const r=check(await sources(),manifest.window_24h);
  const cronos=r.by_chain.find(x=>x.chain==='cronos');
