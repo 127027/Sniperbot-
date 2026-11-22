@@ -7,6 +7,7 @@ import {resolve,dirname,sep,join} from 'node:path';
 import {homedir} from 'node:os';
 import {fingerprintProtectedFiles,assertProtectedFilesUnchanged,makeResearchOnlyReplayReceipt} from '../src/v19-replay-isolation.mjs';
 import {backtestOnRequest} from '../src/v18-requested-backtest.mjs';
+import {resolveSharedPaperPolicy} from '../src/v19-paper-budget-policy.mjs';
 import {auditFrozenOctoberTraining} from '../src/v18-frozen-reference.mjs';
 const argv=process.argv.slice(2);
 const args={};
@@ -27,7 +28,10 @@ const manifest=inputPath?JSON.parse(await readFile(resolve(inputPath),'utf8')):n
 const protectedFiles=[resolve('signals/index.json'),
  resolve(join(process.env.R29_STATE_DIR||join(homedir(),'.r29-cleanpaper'),'state.json'))];
 const paperBefore=await fingerprintProtectedFiles(protectedFiles);
+const budgetSettings=JSON.parse(await readFile('research/config/paper-budget-v19.json','utf8'));
+const resolvedPaperBudget=resolveSharedPaperPolicy(budgetSettings);
 const report=backtestOnRequest({date:args['--date'],manifest,
+ paperBudgetSettings:resolvedPaperBudget.settings,
  forceHourlyDiagnostic:args['--diagnostic-24']===true});
 const training=args['--training-reference']?await auditFrozenOctoberTraining({date:args['--date']}):null;
 const base=resolve('probe-artifacts');
