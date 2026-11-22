@@ -103,3 +103,20 @@ test('two fresh claimed provider timestamps remain untrusted until independent o
  assert.equal(x.real_upstream_independence_proven,false);
  assert.equal(x.provider_quote_times_independently_verified,false);
 });
+
+test('retro or oracle quote sources never count as the second contemporaneous provider',()=>{
+ for(const changed of [
+  {source_class:'RETRO_ASOF_RECONSTRUCTION'},
+  {source_class:'POST_EVENT_ORACLE'},
+  {future_winner_label:true},
+  {reported_gain_pct:50000}
+ ]){
+  const x=auditDot3QuoteSourcePair({coin,asOfUtc:at,observations:[
+   one('GECKOTERMINAL'),one('DEXSCREENER',changed)
+  ]});
+  assert.equal(x.status,'MISSING_SECOND_DISTINCT_DOMAIN');
+  assert.equal(x.observations_structurally_matched,1);
+  assert.ok(x.rejected.some(e=>e.reason==='RETRO_OR_ORACLE_QUOTE_NOT_CONTEMPORANEOUS'));
+  assert.equal(x.trade_authorized,false);
+ }
+});
