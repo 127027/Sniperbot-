@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "dot": "dot-5",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "run_id": "dot5-v16-qa-20261122T004121Z",
+  "run_at_utc": "2026-11-22T00:41:21.293Z",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "status": "DATA_GAP",
+  "source": "GITHUB_BRANCH_BLOB_VERIFIED",
+  "verified": {
+    "dot1": {
+      "journal_sha": "cd599862ecaa46ca6e03af39f7124fd11a09de6c",
+      "cadence_target": 4,
+      "status": "DATA_GAP"
+    },
+    "dot2": {
+      "journal_sha": "dd9193f908a955d2b55fd7c4b83119bf97b9b78f",
+      "feed_sha": "8f57f81409b5b6558eb2964e538ef44388af4b25",
+      "raw_sha": "56f62028a2dbe676117f7271e65a3c3110849543",
+      "handoff_sha": "6f080dd3ad585dfae7a91322cec67edd6d259f7f",
+      "raw_pools": 20,
+      "full_contracts": 20,
+      "exact_dex_pairs": 4,
+      "complete_independent_quotes": 0,
+      "market_memory_pools": 184,
+      "backlog": 158
+    },
+    "dot3": {
+      "journal_sha": "0eb889954518dff7e8942c6b186b64f14814c9b5",
+      "eligible": 0,
+      "rejected": 13,
+      "data_gap": 7,
+      "watch": 0
+    },
+    "dot4": {
+      "journal_sha": "3aabc0b919bd4d2d33f68d9e1d3fc98ea7b587a3",
+      "review_type": "HOURLY_EXIT_CHECK_ONLY",
+      "buy": 0,
+      "sell": 0,
+      "orders": 0
+    },
+    "signal_index": {
+      "blob_sha": "8f360a172e95adfda2d30105dd3fc7639497367d",
+      "orders": 0
+    },
+    "receipts": {
+      "directory_http_status": 404,
+      "confirmed_paper_filled": 0,
+      "confirmed_paper_rejected": 0,
+      "client_status": "OFFLINE_OR_UNCONFIRMED"
+    },
+    "media": {
+      "captured_at_utc": "2026-11-22T00:15:06.335Z",
+      "sources_working": 7,
+      "unique_events": 220,
+      "matured_ab": "WAIT_FOR_MATURED_FORWARD_LABELS"
+    }
+  },
+  "root_causes": [
+    "NO_COMPLETE_INDEPENDENT_QUOTE_PRICE_AND_LIQUIDITY",
+    "SELLABILITY_TAX_HONEYPOT_UNVERIFIED",
+    "PROVIDER_QUOTE_ASOF_UNKNOWN",
+    "FORWARD_24H_LABELS_IMMATURE",
+    "PAGING_AND_FAIR_RECHECK_BACKLOG_OPEN"
+  ],
+  "previous_sha_mismatch": "Prior Dot2 handoff pointer mismatch from 2026-11-21 was not carried into current 2026-11-22 Dot2 pointer; current handoff SHA matches.",
+  "daily_dot6": "ALREADY_PUBLISHED_2026-11-21_BERLIN; 2026-11-22_BEFORE_20_00_BERLIN",
+  "oracle": "TRAINING_ONLY_2026_10_12_AND_2026_11_15_NOT_LIVE_TRADES",
+  "improvement": {
+    "target": "independent exact-pair price/liquidity and provider quote-asof coverage",
+    "before": "0/20",
+    "after": "NOT_YET_MEASURED",
+    "experiment": "Record separate provider quote timestamp and both liquidity figures in next immutable capture; keep risk gates unchanged",
+    "rollback": "No production code or risk changes made"
+  },
+  "data_gaps": [
+    "No per-client receipts available; cannot infer online state",
+    "No verified 24h winner universe or independent holdout performance"
+  ],
+  "no_order_or_balance_mutation": true
+}
