@@ -1,7 +1,7 @@
 // Offline diagnostic only. Runs against a local checkout of the cleanroom
 // branch, never requests market data, executes a replay or writes an order.
 import {readFile} from 'node:fs/promises';
-import {auditLiveFiveDotJournalInventory,LIVE_DOT_IDS}
+import {auditLiveFiveDotJournalInventory,LIVE_DOT_IDS,validRoleJournalPath}
  from '../src/v19-dot-journal-inventory.mjs';
 
 if(process.argv.length!==2)throw Error('NO_ARGS_ALLOWED_READONLY_ONLY');
@@ -11,8 +11,7 @@ for(const id of LIVE_DOT_IDS){
   const pointer=JSON.parse(await readFile('research/latest/'+id+'.json','utf8'));
   latestByRole[id]=pointer;
   const path=pointer.journal_path;
-  if(typeof path==='string'&&
-    /^research\/journal\/dot-[1-5]\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]+\.json$/.test(path))
+  if(validRoleJournalPath(id,path))
    rawJournalsByPath[path]=await readFile(path,'utf8');
  }catch(error){
   // Missing bytes are themselves a reportable gap, not an all-green default.
