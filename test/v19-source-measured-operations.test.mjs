@@ -28,6 +28,7 @@ test('SYS-14 actual run has measured 6 Gecko and 4 DEX calls, 9 HTTP200 and one 
  assert.equal(r.measured_source_requests_per_chain.ethereum.http_429,1);
  assert.equal(r.provider_start_minute_histogram['GECKOTERMINAL|2026-11-22T16:31Z'].attempts,6);
  assert.equal(r.provider_start_minute_histogram['DEXSCREENER|2026-11-22T16:31Z'].attempts,4);
+ assert.equal(r.chain_utc_hour_histogram['ethereum|2026-11-22T16:00Z'].http_429,1);
  assert.ok(r.measured_provider_latency_p95_ms>=r.measured_provider_latency_p50_ms);
  assert.equal(r.provider_cost_usd,null);
  assert.equal(r.github_actions_cost_usd,null);
@@ -48,7 +49,9 @@ test('D5-07 separate five Dot queues and unknown time/expense from actually meas
  assert.deepEqual(r.per_dot.map(x=>x.role),[
   'dot-1-tempo','dot-2-discovery','dot-3-risk','dot-4-strategy','dot-5-control']);
  assert.equal(r.per_dot[1].queue_count,77);
- assert.equal(r.per_dot[1].provider_http_requests_directly_made_by_dot,10);
+ assert.equal(r.per_dot[1].capture_runner_http_requests_for_this_stage,10);
+ assert.equal(r.per_dot[1].task_failure_count,1);
+ assert.ok(r.per_dot.every(x=>x.actual_dot_automation_invoked===false));
  assert.equal(r.per_dot[2].input_pool_activity_count,79);
  assert.equal(r.per_dot[3].input_pool_activity_count,1);
  assert.equal(r.per_dot[4].provider_source_integrity_records,10);
