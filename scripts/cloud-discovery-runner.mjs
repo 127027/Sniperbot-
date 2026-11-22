@@ -2,7 +2,7 @@
 // Produces immutable raw public API response + validated evidence for future Dots.
 import {readFile,writeFile,mkdir,readdir} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
-import {validateCaptureRequest,chooseNetwork,decodeGeckoNewPools,crossCheckDexPair,
+import {validateCaptureRequest,decodeGeckoNewPools,crossCheckDexPair,
  fromDexPairOnly,collectSampleMetrics,sha256} from '../src/discovery-feed.mjs';
 import {canonicalChain,poolValid} from '../src/market-evidence.mjs';
 import {makeResearchHandoff} from '../src/feed-handoff.mjs';
@@ -71,8 +71,17 @@ for(let i=0;i<capturePlan.tasks.length;i++){
    const prior=fetches.findLast(x=>x.body_path===fullPath);
    const status=prior?.http_status===429?'HTTP_429':
      prior?.http_status?'HTTP_'+prior.http_status:'SOURCE_ERROR';
-   failedPages.push({chain,page,status,sourcePath:prior?.body_path||root+'/evidence.json',
-     capturedAtUtc:prior?.received_at_utc||now()});
+   const attemptTime=prior?.received_at_utc||now();
+   // When no HTTP body exists, record a unique immutable error receipt.
+   // Never claim that an unfetched pool page was successfully archived.
+   const attemptPath=prior?.body_path||root+'/gecko-'+chain+'-page'+page+'.error.json';
+   if(!prior){
+     await writeFile(attemptPath,JSON.stringify({schema:1,kind:'R29_V19_GECKO_FETCH_ERROR',
+       chain,page,attempt_at_utc:attemptTime,url,error:String(error?.message||error).slice(0,100),
+       response_body_received:false,trade_authorized:false},null,2)+'\n','utf8');
+     artifacts.push(attemptPath);
+   }
+   failedPages.push({chain,page,status,sourcePath:attemptPath,capturedAtUtc:attemptTime});
    if(prior)prior.error=String(error?.message||error).slice(0,100);
    else fetches.push({provider:'GECKOTERMINAL',url,error:String(error?.message||error).slice(0,100)});
    if(status==='HTTP_429'){
