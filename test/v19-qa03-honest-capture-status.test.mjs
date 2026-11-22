@@ -121,3 +121,17 @@ test('QA-03: workflow always commits any partial raw and state before refusing t
  assert.match(yaml,/if: \$\{\{ always\(\) && steps\.dot2_capture\.outcome != 'skipped' \}\}/);
  assert.doesNotMatch(yaml,/signals\/orders\//);
 });
+
+test('QA-03: the existing runner persists its verdict before final GitHub commit and no order publication',async()=>{
+ const runner=await readFile('scripts/cloud-discovery-runner.mjs','utf8');
+ const close=runner.indexOf('partialJournal=closePartialCapture(partialJournal');
+ const classify=runner.indexOf('const completionVerdict=assessCaptureCompletion(');
+ const archive=runner.indexOf("const completionVerdictPath=root+'/capture-completion-verdict.json'");
+ assert.ok(close>0&&classify>close&&archive>classify);
+ assert.match(runner,/await writeFile\(completionVerdictPath,JSON\.stringify\(completionVerdict/);
+ assert.match(runner,/DOT2_CAPTURE_COMPLETION/);
+ assert.doesNotMatch(runner,/writeFile\('signals\//);
+ const verifier=await readFile('scripts/v19-assert-capture-completion.mjs','utf8');
+ assert.match(verifier,/if\(process\.env\.GITHUB_STEP_SUMMARY\)/);
+ assert.match(verifier,/if\(!outcome\.workflow_may_report_success\|\|rawIssues\.length\)process\.exitCode=1/);
+});
