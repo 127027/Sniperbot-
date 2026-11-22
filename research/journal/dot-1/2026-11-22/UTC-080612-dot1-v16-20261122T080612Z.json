@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "dot": "dot-1",
+  "version": "1.6",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "run_id": "dot1-v16-20261122T080612Z",
+  "observed_at_utc": "2026-11-22T08:06:12.948Z",
+  "status": "DATA_GAP",
+  "data_available": false,
+  "target_per_24h": 4,
+  "consecutive_quiet_checks": 0,
+  "reason": "Base page-3 capture has 9 full-contract pools and 11 rejected bytes32-like pool IDs; single page cannot establish same-chain hourly delta. 4 new media events without verified growth window. HTML 24h aggregate lacks provider timestamp. DATA_GAP, not quiet; retain target 4.",
+  "metrics": {
+    "latest_chain": "base",
+    "capture_utc": "2026-11-22T07:19:41.241Z",
+    "gecko_page": 3,
+    "gecko_requested": 20,
+    "gecko_accepted": 9,
+    "complete_contracts": 9,
+    "rejected_pool_ids": 11,
+    "market_memory_pools": 240,
+    "observation_batches": 76,
+    "prospective_observed_unique_pools": 201,
+    "prospective_rankable": 0,
+    "latest_dot3_counts": {
+      "ELIGIBLE": 0,
+      "WATCH": 0,
+      "REJECTED": 10,
+      "DATA_GAP": 3
+    },
+    "media_new_unique": 4,
+    "media_capture_utc": "2026-11-22T07:19:43.872Z",
+    "media_verified_attention_delta": null,
+    "source_coverage": [
+      "base"
+    ],
+    "missing_chains": [
+      "solana",
+      "ethereum",
+      "bsc",
+      "robinhood",
+      "cronos"
+    ],
+    "same_chain_hourly_pool_delta": null,
+    "same_chain_hourly_volume_delta": null,
+    "verified_client_positions": null,
+    "verified_orders": null,
+    "html_base_volume_24h_usd": 998110000,
+    "html_base_transactions_24h": 1935709,
+    "html_provider_timestamp": null
+  },
+  "source_links": [
+    "https://www.geckoterminal.com/base/pools",
+    "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/feeds/2026-11-22/44997708364/evidence.json"
+  ],
+  "candidates": [
+    {
+      "chain": "base",
+      "symbol": "CHUBBY",
+      "contract": "0x4993ddae7fddb01f7597d492bc77a2dcc7842d43",
+      "pool": "0xcfded21830b3d430f017132ad871a68a17327c5a",
+      "source_url": "https://www.geckoterminal.com/base/pools/0xcfded21830b3d430f017132ad871a68a17327c5a",
+      "captured_at_utc": "2026-11-22T07:19:40.439Z",
+      "risk_eligible": false
+    },
+    {
+      "chain": "base",
+      "symbol": "LAPTOP",
+      "contract": "0xfaf0a0680d31b0e2f74ea9f72fb12e40270618a0",
+      "pool": "0x22735390c5c70eacbcdc50d554d7253d55d51832",
+      "source_url": "https://www.geckoterminal.com/base/pools/0x22735390c5c70eacbcdc50d554d7253d55d51832",
+      "captured_at_utc": "2026-11-22T07:19:40.439Z",
+      "risk_eligible": false
+    }
+  ],
+  "errors": [
+    {
+      "code": "POOL_ID_FORMAT_REJECTED",
+      "count": 11
+    },
+    {
+      "code": "INCOMPLETE_CHAIN_COVERAGE",
+      "missing_chains": [
+        "solana",
+        "ethereum",
+        "bsc",
+        "robinhood",
+        "cronos"
+      ]
+    },
+    {
+      "code": "NO_COMPARABLE_SAME_CHAIN_HOURLY_DELTAS"
+    },
+    {
+      "code": "MEDIA_ATTENTION_DELTA_UNKNOWN"
+    },
+    {
+      "code": "ORACLE_MATURED_LABEL_DENOMINATOR_UNKNOWN"
+    }
+  ],
+  "historical_training_is_not_live": true,
+  "oracle_accuracy_1h_3h_6h": null,
+  "next_checkpoint": "Next hourly wake; compare time-stamped same-chain captures, parse rejected IDs and media deltas.",
+  "orders_created": 0
+}
