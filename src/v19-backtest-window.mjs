@@ -13,7 +13,10 @@ export function build29HourAsOfTimeline({date,snapshots=[],warmupHours=5}={}){
  const end=start+86400000,begin=start-warmupHours*3600000;
  const ticks=[];
  for(let i=0;i<warmupHours+24;i++){
-   const tick=begin+i*3600000+35*60000;
+   // Five warmup hourly research snapshots retain their existing :35 cadence.
+   // The first TRADING opportunity at 00:00 is explicitly available;
+   // all later hourly check-ins can continue at :35.
+   const tick=begin+i*3600000+(i===warmupHours?0:35*60000);
    const at=iso(tick);
    const lookback=buildAsOfLookback({snapshots,asOfUtc:at});
    // The trading gate has a separate 10-minute quote age limit. A historical
@@ -43,6 +46,8 @@ export function build29HourAsOfTimeline({date,snapshots=[],warmupHours=5}={}){
  }
  return {schema:1,kind:'R29_V19_29H_ASOF_INPUT_TIMELINE',
    date,warmup_hours:warmupHours,decision_hours:24,
+   first_decision_opportunity_utc:iso(start),
+   first_decision_wait_minutes:0,
    begin_utc:iso(begin),decision_start_utc:iso(start),end_utc:iso(end),
    hourly_ticks:ticks.length,ticks,
    requires_separate_dot4_replay:true,
