@@ -17,6 +17,7 @@ import {chooseNextDiscoveryPage} from '../src/discovery-page-scheduler.mjs';
 import {recoverArchivedV4} from '../src/v18-archived-v4-recovery.mjs';
 import {planMultiChainCapture} from '../src/v19-discovery-budget-plan.mjs';
 import {planHotFairRechecks} from '../src/v19-hot-fair-recheck.mjs';
+import {planEvidenceRepairRechecks} from '../src/v19-evidence-repair-queue.mjs';
 import {summarizeRecheckService} from '../src/v19-recheck-service-metrics.mjs';
 import {providerRetryDelay} from '../src/v19-provider-backoff.mjs';
 import {measureDot1Activity} from '../src/v19-market-activity.mjs';
@@ -248,11 +249,31 @@ if(!memory.ingested_sources?.includes(recoveredPath)){
  }
 }
 const plan=fairRecheckPlan(memory,{asOfUtc:now(),maxRechecks:request.max_dex_pairs});
+// D2-04: old but real as-of captured observations provide a repair queue
+// when only one price / a distant comparison exists. Only historic batches
+// already on disk before this capture are eligible; no Excel/oracle inputs.
+const repairHistory=[];
+try{
+ const paths=(await readdir('research/observations',{recursive:true}))
+  .filter(x=>/\\.json$/.test(x)).sort().slice(-200);
+ for(const rel of paths){
+  try{
+   const b=JSON.parse(await readFile('research/observations/'+rel,'utf8'));
+   if(b.kind==='R29_FORWARD_UNFILTERED_POOL_OBSERVATIONS')repairHistory.push(b);
+  }catch{/* malformed source is never a current breakout signal */}
+ }
+}catch(error){if(error.code!=='ENOENT')throw error;}
+const repairAsOfUtc=now();
+const repairRanking=scoreAsOf({batches:repairHistory,asOfUtc:repairAsOfUtc,
+ maxCandidates:100000});
+const repairProposal=planEvidenceRepairRechecks({ranking:repairRanking,memory,
+ asOfUtc:repairAsOfUtc,maxCandidates:100});
 // Every fresh candidate is ranked before a bounded DEX crosscheck; unselected
 // ones still enter persistent memory and must not be silently lost.
 const recheckPlan=planHotFairRechecks({
  freshCandidates:[...(decoded?.candidates||[]),...olderCandidates],fairCandidates:plan.candidates,
- legacyCandidates:known,asOfUtc:now(),maxChecks:request.max_dex_pairs,
+ legacyCandidates:known,repairCandidates:repairProposal.selected,
+ asOfUtc:now(),maxChecks:request.max_dex_pairs,
  round:Number(process.env.GITHUB_RUN_NUMBER)||0});
 // Optional OHLCV history inside the EXISTING Gecko request budget; no other bot.
 const ohlcvPlan=planOhlcvBackfill({state:ohlcvState,candidates:recheckPlan.selected,
@@ -366,9 +387,22 @@ metrics.v19_ohlcv_backfill={budget:request.max_ohlcv_requests??0,
  deferred_due_to_provider_429:ohlcvResults.filter(x=>x.status==='DEFERRED_PROVIDER_429').length,
  results:ohlcvResults,research_only:true};
 metrics.v19_hot_fair_service=summarizeRecheckService({plan:recheckPlan,attempts,asOfUtc:now()});
+metrics.v19_evidence_repair_rechecks={
+ source_observation_batches:repairHistory.length,
+ as_of_utc:repairAsOfUtc,
+ ranking_pool_count:repairRanking.counts.observed_unique_pools,
+ eligible_repair_pool_count:repairProposal.all_due_candidates,
+ offered_for_selection:repairProposal.selected.length,
+ deferred_before_selection:repairProposal.deferred_count,
+ selected_for_actual_dex_attempt:recheckPlan.repair_selected,
+ skipped:repairProposal.skipped,
+ no_provider_calls_claimed_from_proposal:true,
+ no_oracle_winners:true,orders_authorized:0};
 metrics.v19_hot_fair_recheck_plan={selected:recheckPlan.selected.map(x=>({chain:x.chain,pool:x.pool,queue:x.queue,research_score:x.research_score??null})),
   all_new_pool_count:recheckPlan.all_new_pool_count,deferred_new_pool_count:recheckPlan.deferred_new_pool_count,
-  deferred_new_pool_keys:recheckPlan.deferred_new_pool_keys,hot_selected:recheckPlan.hot_selected,
+  deferred_new_pool_keys:recheckPlan.deferred_new_pool_keys,
+  deferred_repair_pool_keys:recheckPlan.deferred_repair_keys,
+  repair_selected:recheckPlan.repair_selected,hot_selected:recheckPlan.hot_selected,
   fair_selected:recheckPlan.fair_selected,trade_authorized:false};
 metrics.v19_chain_page_plan=capturePlan;
 // A planned chain/page is not a successful HTTP capture. A one-request Dot2
