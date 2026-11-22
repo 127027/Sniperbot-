@@ -26,6 +26,7 @@ import {makeGeckoOhlcvRequest,decodeGeckoOhlcv} from '../src/v19-gecko-ohlcv.mjs
 import {emptyOhlcvBackfillState,planOhlcvBackfill,recordOhlcvBackfill} from '../src/v19-ohlcv-backfill-queue.mjs';
 import {auditCaptureEvidenceBundle} from '../src/v19-source-integrity.mjs';
 import {emptyOlderPoolState,planOlderPoolCaptures,decodeOlderPoolPage,recordOlderPoolCapture} from '../src/v19-older-pool-discovery.mjs';
+import {planGeckoRequestPacing} from '../src/v19-gecko-pacing.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -42,13 +43,27 @@ const root='research/feeds/'+new Date(request.created_at_utc).toISOString().slic
 await mkdir(root,{recursive:true});
 const now=()=>new Date().toISOString();
 const fetches=[],dexChecks=[],fallback=[],rechecked=[],artifacts=[];
+let lastGeckoStartedMs=null;
 async function fetchRaw(url,provider,fileName){
- const started=now();
+ const pacing=planGeckoRequestPacing({
+   provider,nowEpochMs:Date.now(),
+   lastGeckoStartedEpochMs:lastGeckoStartedMs
+ });
+ if(pacing.wait_ms>0)
+   await new Promise(resolve=>setTimeout(resolve,pacing.wait_ms));
+ // All Gecko family endpoints share one provider pacing window.
+ // Successful HTTP replies, 429 errors and failed attempts count alike.
+ const actualStartMs=Date.now();
+ if(pacing.subject_to_gecko_pacing)lastGeckoStartedMs=actualStartMs;
+ const started=new Date(actualStartMs).toISOString();
  const response=await fetch(url,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(16000)});
  const received=now(),text=await response.text();
  const evidence={provider,url,started_at_utc:started,received_at_utc:received,
   http_status:response.status,http_ok:response.ok,
   retry_after_header:response.headers?.get?.('retry-after')||null,
+  gecko_request_spacing_wait_ms:pacing.wait_ms,
+  gecko_minimum_start_separation_ms:pacing.subject_to_gecko_pacing
+    ?pacing.minimum_start_separation_ms:null,
   response_sha256:sha256(text),
   raw_bytes_utf8:Buffer.byteLength(text,'utf8'),body_path:root+'/'+fileName};
  // Store response as received including error responses; never alter/repair timestamps.
