@@ -1,5 +1,17 @@
 # R29 – Verbindliche GitHub-Übergabe für neue Chats
 
+## NEUER GITHUB-HANDOFF: Capture-Status ehrlich, 5/6-429 abgefangen, absichtliche Teilscans erlaubt (22.11.2026)
+
+**Vollständig abgenommen weiterhin 12/61 (19,7 %); 31 PARTIAL und 18 OPEN. Technisch bearbeitet 43/61 = 70,5 % (NICHT Trading-Fertigstellungsgrad).**
+
+- Die vorige GitHub-Actions-Ausführung [#45057658912](https://github.com/127027/Sniperbot-/actions/runs/45057658912) speicherte 5 Gecko-HTTP200 (79 Pools), Base HTTP429 und trotzdem Workflow-success. **Jetzt repariert:** `src/v19-capture-completion-gate.mjs` validiert tatsächliche geplante Chain/Page-HTTP200, unveränderten finalen Journalstatus und Fehlseiten; `scripts/v19-assert-capture-completion.mjs` verifiziert ursprüngliche Gecko-/DEX-SHA-Bytes und gibt nach `git add/commit/push` einen strukturierten Workflow-Abschluss. Der bestehende Runner schreibt vor dem Commit zusätzlich `research/feeds/<date>/<run-id>/capture-completion-verdict.json`. GitHub Actions zeigt den Status im Job-Summary.
+- **Drei gültige Zustände:** `REQUESTED_SAMPLE_COMPLETE` (nicht Gesamtmarkt!), `BOUNDED_SAMPLE_COMPLETE_COVERAGE_INCOMPLETE` (kleineres API-Budget, alle geplanten Seiten geprüft, bewusst weitere Chainseiten ausstehend), `DEFERRED_BY_PERSISTED_COOLDOWN` (nachgewiesene aktive 429-Sperre, alle Seiten offen, kein Gecko-Call). Ein **neuer tatsächlicher HTTP429/fehlende geplante Seiten** bleibt `PARTIAL_OR_INVALID_CAPTURE`, Resultat nach der GitHub-Sicherung negativ.
+- **Echte 5/6-Archivquelle ausschließlich offline regressionstested:** GitHub [Node22 CI #45059178322](https://github.com/127027/Sniperbot-/actions/runs/45059178322), Quell-SHA `c44f41713dc82cbdb6b6354f89dc47a14cc57b4a`, **565/565 PASS, 0 FAIL, 0 Signalwrites**. Die Originale werden nicht überschrieben. `SYS-11` und `QA-03` beide weiter PARTIAL, neuer Reallauf mit 4/min noch **nicht** ausgeführt.
+- GeckoTerminal-Cooldown **bis 2026-11-22T19:54:35.719Z UTC**. Davor keine neuen Provider-Gecko-Anfragen. Das aktualisierte Budget **4/min gesamt, höchstens 3 NEW_POOLS/min**, Mindeststartabstand **15.100 ms** ist konservativ und braucht echten Nach-Cooldown-Test.
+- **Als Erstes lesen:** `docs/V19_QA03_CAPTURE_COMPLETION_AND_DEFERRED_SCANS_20261122.md` und `docs/V19_SYS11_REAL_PROVIDER_429_AND_CI_LIMITER_AUDIT_20261122.md`, dann ORIGINAL-61er-Backlog. Nichts am echten Windows-Wallet, an fünf Dots, `main` oder Echtgeld verändern.
+
+
+
 ## WICHTIGSTE NEUE LIVE-ÜBERGABE (22.11.2026, nach erstem Provider-Capture)
 
 **Fortschritt weiterhin 12 PASS / 31 PARTIAL / 18 OPEN = 43/61 (70,5 % technisch), streng komplett nur 12/61 (19,7 %).** Neue Änderungen innerhalb schon PARTIALer SYS-11/QA-03 zählen NICHT als zusätzliche Originalaufgaben.
