@@ -11,6 +11,7 @@ import {fairRecheckPlan,recordRecheckAttempt} from '../src/discovery-fair-queue.
 import {makeCaptureObservationBatch,scoreAsOf,labelAfterHorizon} from '../src/forward-learning.mjs';
 import {makeAsOfForecastSnapshot,settleMatureForecastSnapshot} from '../src/forward-oracle-journal.mjs';
 import {chooseNextDiscoveryPage} from '../src/discovery-page-scheduler.mjs';
+import {recoverArchivedV4} from '../src/v18-archived-v4-recovery.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -64,6 +65,33 @@ const incoming=JSON.parse(await readFile('research/latest/dot-2.json','utf8'));
 const known=Array.isArray(incoming?.candidates)?incoming.candidates:[];
 const memoryPath='research/state/market-memory.json';
 let memory=precedingMemory;
+// One-time provenance-checked rescue of a documented 22 Nov Base V4 parser loss.
+// The original HTTP time is preserved; no retroactive Dot2 discovery or fresh quote.
+const archivedRoot='research/feeds/2026-11-22/44997708364/';
+const archivedRawPath=archivedRoot+'gecko-base-page3.raw.json';
+const archivedEvidencePath=archivedRoot+'evidence.json';
+const recoveredPath=archivedRoot+'v18-recovered-v4.json';
+let recoveredV4Count=0,recoveryError=null;
+if(!memory.ingested_sources?.includes(recoveredPath)){
+ try{
+   const [rawText,rawEvidence]=await Promise.all([
+     readFile(archivedRawPath,'utf8'),readFile(archivedEvidencePath,'utf8')
+   ]);
+   const recovery=recoverArchivedV4({rawText,evidence:JSON.parse(rawEvidence),rawPath:archivedRawPath});
+   const archived={...recovery,recovered_at_utc:now()};
+   await writeFile(recoveredPath,JSON.stringify(archived,null,2)+'\n','utf8');
+   artifacts.push(recoveredPath);
+   const merged=mergeMemory(memory,{candidates:recovery.candidates,
+     sourcePath:recoveredPath,sourceCapturedAtUtc:recovery.originally_raw_captured_at_utc,
+     sourceSha256:recovery.source_original_sha256,
+     chain:'base',page:3,provider:'GECKOTERMINAL_ARCHIVE_RECOVERY',fetchStatus:'ARCHIVED_ONLY'});
+   memory=merged.memory;
+   recoveredV4Count=merged.added;
+ }catch(error){
+   recoveryError=String(error?.message||error).slice(0,160);
+   fetches.push({provider:'GECKOTERMINAL_ARCHIVE_RECOVERY',error:recoveryError});
+ }
+}
 const plan=fairRecheckPlan(memory,{asOfUtc:now(),maxRechecks:request.max_dex_pairs});
 const attempts=[];
 const targets=[
@@ -114,6 +142,8 @@ metrics.discovery_page=scanPage;
 metrics.discovery_page_reason=pageDecision.reason;
 metrics.previous_chain_page_checkpoint=oldCheckpoint?.next_page_to_consider??null;
 metrics.verified_recheck_price_observations=rechecked.length;
+metrics.v18_archived_v4_recovered_pool_count=recoveredV4Count;
+metrics.v18_archived_v4_recovery_error=recoveryError;
 const data={schema:1,kind:'DOT2_PUBLIC_CAPTURE_EVIDENCE',mode:'PAPER_RESEARCH_ONLY',
   request_path:path,requested_at_utc:request.created_at_utc,captured_completed_at_utc:now(),
   source_chain:chosen.chain,network_rotation:chosen.rotation,selected_page:scanPage,
