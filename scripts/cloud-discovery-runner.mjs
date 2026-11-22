@@ -35,6 +35,8 @@ import {emptyProviderBudgetState,reserveProviderRequest,recordProviderResponse,
 import {planIndependentObservations} from '../src/v19-independent-observation-schedule.mjs';
 import {summarizeCumulativeScanProgress} from '../src/v19-cumulative-scan-progress.mjs';
 import {enrichPersistentMarketIdentity} from '../src/v19-canonical-market-identity.mjs';
+import {stagePendingCapture,appendPartialHttpReceipt,closePartialCapture}
+ from '../src/v19-partial-capture-durability.mjs';
 import {selectObservationArchivePaths,parseResearchJsonWithLegacyTrailer}
  from '../src/v19-observation-archive-reader.mjs';
 
@@ -55,7 +57,12 @@ const now=()=>new Date().toISOString();
 const fetches=[],dexChecks=[],fallback=[],rechecked=[],artifacts=[];
 let lastGeckoStartedMs=null;
 let runGeckoRetryAtUtc=null;
-let precedingMemory,olderState,ohlcvState,providerBudget;
+let precedingMemory,olderState,ohlcvState,providerBudget,partialJournal;
+const partialJournalPath=root+'/inflight-capture.json';
+const persistBudget=async()=>writeFile(providerBudgetPath,
+ JSON.stringify(providerBudget,null,2)+'\n','utf8');
+const persistPartial=async()=>writeFile(partialJournalPath,
+ JSON.stringify(partialJournal,null,2)+'\n','utf8');
 const providerBudgetPath='research/state/provider-budget.json';
 const providerLane=(provider,url)=>provider==='DEXSCREENER'?'PAIR':
   url.includes('/trending_pools')?'TRENDING':
@@ -101,7 +108,13 @@ async function fetchRaw(url,provider,fileName){
       &&geckoBlock().active)throw Error('GECKO_PROVIDER_429_COOLDOWN_NOT_ELAPSED');
    const grant=reserveProviderRequest({state:providerBudget,provider,lane,
      asOfUtc:now(),requestId});
-   if(grant.gate.allowed){providerBudget=grant.state;break;}
+   if(grant.gate.allowed){
+     providerBudget=grant.state;
+     // This reservation counts as a request start even if the runner
+     // crashes before it receives a response.
+     await persistBudget();
+     break;
+   }
    if(grant.gate.reason!=='ROLLING_WINDOW_BUDGET')
      throw Error('PROVIDER_'+grant.gate.reason);
    await new Promise(resolve=>setTimeout(resolve,Math.max(1,grant.gate.wait_ms)));
@@ -116,12 +129,14 @@ async function fetchRaw(url,provider,fileName){
  }catch(error){
    providerBudget=recordProviderResponse({state:providerBudget,provider,lane,
      requestId,asOfUtc:now(),httpStatus:null});
+   await persistBudget();
    throw error;
  }
  const received=now();
  providerBudget=recordProviderResponse({state:providerBudget,provider,lane,
    requestId,asOfUtc:received,httpStatus:response.status,
    retryAfter:response.headers?.get?.('retry-after')||null});
+ await persistBudget();
  const evidence={provider,url,started_at_utc:started,received_at_utc:received,
   http_status:response.status,http_ok:response.ok,
   retry_after_header:response.headers?.get?.('retry-after')||null,
@@ -132,6 +147,8 @@ async function fetchRaw(url,provider,fileName){
   raw_bytes_utf8:Buffer.byteLength(text,'utf8'),body_path:root+'/'+fileName};
  // Store response as received including error responses; never alter/repair timestamps.
  await writeFile(evidence.body_path,text,'utf8');
+ partialJournal=appendPartialHttpReceipt(partialJournal,{evidence,atUtc:now()});
+ await persistPartial();
  artifacts.push(evidence.body_path);fetches.push(evidence);
  if(!response.ok)throw Error('HTTP_'+response.status);
  try{return {json:JSON.parse(text),evidence};}
@@ -158,6 +175,15 @@ const capturePlan=planMultiChainCapture({
  networks:request.networks,checkpoints:precedingMemory.checkpoints,
  pageCoverage,budget:request.max_gecko_requests-(request.max_ohlcv_requests??0)
    -(request.max_older_pool_requests??0),asOfUtc:now()});
+// Pre-stage every intended page in durable pending coverage so a GitHub job
+// crash does not silently forget an unattempted page.
+const stagedCapture=stagePendingCapture({
+ pageCoverage,tasks:capturePlan.tasks,atUtc:now(),runId
+});
+pageCoverage=stagedCapture.pageCoverage;
+partialJournal=stagedCapture.journal;
+await writeFile(coverageStatePath,JSON.stringify(pageCoverage,null,2)+'\n','utf8');
+await persistPartial();
 const receivedPages=[],failedPages=[],deferredPages=[];
 // Global provider throttle: every planned but unattempted page becomes
 // durable backlog even after a mid-run 503/network/429 provider cooldown.
@@ -898,5 +924,8 @@ const latest={schema:1,kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',mode:'PAPER_RES
   trading_ready:false,orders_created:0};
 await mkdir('research/feeds',{recursive:true});
 await writeFile('research/feeds/latest.json',JSON.stringify(latest,null,2)+'\n','utf8');
+partialJournal=closePartialCapture(partialJournal,{atUtc:now(),
+ finalCoverage:coverageReport.updated_memory});
+await persistPartial();
 console.log('DOT2_CAPTURE_DONE',JSON.stringify({evidence_path:filename,request_path:path,
  network:chosen.chain,metrics,memory_stats:memory.stats,memory_checkpoint:memoryCheckpointPath,prospective:prospectiveRanking.counts,recheck_prices:rechecked.length,fair_backlog:plan.backlog_count,errors:data.errors}));
