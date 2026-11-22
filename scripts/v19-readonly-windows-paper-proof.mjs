@@ -1,5 +1,5 @@
 // Execute ONLY on the Windows machine with explicit operator access.
-// NEVER calls runner.load(), starts GitHub transport, writes state, signs,
+// Does not initialize the runner, start GitHub transport, write state or sign,
 // resets the account, or sends provider/API requests. By default only prints
 // a privacy-minimized summary to local stdout; nothing uploads to GitHub.
 import {readFile} from 'node:fs/promises';
