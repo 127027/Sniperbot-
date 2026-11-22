@@ -18,7 +18,8 @@ export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtU
  if(existing&&existing.kind!=='R29_PERSISTENT_MARKET_MEMORY')throw Error('MEMORY_SCHEMA_MISMATCH');
  const dot2Live=(provider==='GECKOTERMINAL'||provider==='GECKOTERMINAL_TRENDING')
    &&fetchStatus==='OK'&&sourcePath.startsWith('research/feeds/');
- const archiveRecovery=provider==='GECKOTERMINAL_ARCHIVE_RECOVERY';
+ const archiveRecovery=provider==='GECKOTERMINAL_ARCHIVE_RECOVERY'
+   ||provider==='GECKOTERMINAL_ARCHIVED_HTTP_RECOVERY';
  const reconstructedAt=reconstructedAtUtc===null?null:iso(reconstructedAtUtc);
  if(reconstructedAtUtc!==null&&(!reconstructedAt||!archiveRecovery
     ||Date.parse(reconstructedAt)<Date.parse(t)))throw Error('INVALID_ARCHIVE_RECONSTRUCTION_TIME');
