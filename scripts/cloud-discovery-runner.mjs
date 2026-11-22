@@ -182,7 +182,7 @@ const recoveredInflight=[],rejectedInflight=[],skippedInflight=[];
 let priorInflightPaths=[];
 try{
  priorInflightPaths=(await readdir('research/feeds',{recursive:true}))
-  .filter(x=>/^\\d{4}-\\d{2}-\\d{2}\\/\\d+\\/inflight-capture\\.json$/.test(x)).sort();
+  .filter(x=>/^\d{4}-\d{2}-\d{2}\/\d+\/inflight-capture\.json$/.test(x)).sort();
 }catch(error){if(error.code!=='ENOENT')throw error;}
 for(const relative of priorInflightPaths){
  const journalPath='research/feeds/'+relative;
@@ -192,7 +192,7 @@ for(const relative of priorInflightPaths){
   const rawFiles={};
   for(const receipt of journal.http_receipts||[]){
    if(receipt?.http_status!==200||typeof receipt.body_path!=='string'
-    ||!/^research\\/feeds\\/\\d{4}-\\d{2}-\\d{2}\\/\\d+\\/gecko-(solana|base|ethereum|bsc|robinhood|cronos)-page[1-9]\\d{0,2}\\.raw\\.json$/.test(receipt.body_path))continue;
+    ||!/^research\/feeds\/\d{4}-\d{2}-\d{2}\/\d+\/gecko-(solana|base|ethereum|bsc|robinhood|cronos)-page[1-9]\d{0,2}\.raw\.json$/.test(receipt.body_path))continue;
    try{rawFiles[receipt.body_path]=await readFile(receipt.body_path,'utf8');}
    catch(error){if(error.code!=='ENOENT')throw error;}
   }
@@ -219,11 +219,11 @@ await writeFile(priorInflightRecoveryPath,JSON.stringify({
  restored_pages_are_not_fresh_provider_fetches:true,
  historical_dot2_discovery_never_backdated:true,
  orders_authorized:0
-},null,2)+'\\n','utf8');
+},null,2)+'\n','utf8');
 artifacts.push(priorInflightRecoveryPath);
 if(recoveredInflight.length){
- await writeFile(memoryFile,JSON.stringify(precedingMemory,null,2)+'\\n','utf8');
- await writeFile(coverageStatePath,JSON.stringify(pageCoverage,null,2)+'\\n','utf8');
+ await writeFile(memoryFile,JSON.stringify(precedingMemory,null,2)+'\n','utf8');
+ await writeFile(coverageStatePath,JSON.stringify(pageCoverage,null,2)+'\n','utf8');
 }
 const capturePlan=planMultiChainCapture({
  networks:request.networks,checkpoints:precedingMemory.checkpoints,
