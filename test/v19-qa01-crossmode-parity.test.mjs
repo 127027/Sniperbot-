@@ -76,3 +76,34 @@ test('QA-01 changing only the as-of time makes a future quote unavailable in eit
  const replay=replaySignalDecisions({date:day,snapshots:[snap(5,.001),current]});
  assert.equal(replay.events[5].actions.filter(x=>x.action==='BUY').length,0);
 });
+
+test('QA-01 exact shared mode parity BUY/WATCH/HOLD/SELL and quote/risk block reasons',()=>{
+ const first=snap(5,.001),second=snap(6,.0011),third=snap(7,.0014);
+ const scenarios=[
+  {snapshot:second,asOfUtc:at(6,35),priorObservation:{at_utc:at(5),price_usd:.001},
+   fullReviewDue:true,expected:'BUY'},
+  {snapshot:second,asOfUtc:at(6,35),priorObservation:{at_utc:at(5),price_usd:.001},
+   fullReviewDue:false,expected:'WATCH'},
+  {snapshot:third,asOfUtc:at(7,35),position:{entryPrice:.0011},
+   fullReviewDue:false,expected:'SELL'},
+  {snapshot:snap(7,.00115),asOfUtc:at(7,35),position:{entryPrice:.0011},
+   fullReviewDue:false,expected:'HOLD'},
+  {snapshot:{...second,risk:{status:'DATA_GAP',observed_at_utc:at(6)}},
+   asOfUtc:at(6,35),expected:'WATCH'},
+  {snapshot:{...second,quotes:[...second.quotes.slice(0,1)]},
+   asOfUtc:at(6,35),expected:'WATCH'},
+  {snapshot:{...second,archived_at_utc:at(8)},
+   asOfUtc:at(6,35),expected:'WATCH'}
+ ];
+ for(const c of scenarios){
+  const input={...c,allowSyntheticForRegression:true};
+  delete input.expected;
+  const live=assessDot4PaperDecision({...input,evaluationMode:'LIVE_PAPER'});
+  const past=assessDot4PaperDecision({...input,evaluationMode:'HISTORICAL_ASOF'});
+  assert.deepEqual(live,past);
+  assert.equal(live.action,c.expected);
+  assert.equal(live.paper_order_authorized,false);
+ }
+ assert.throws(()=>assessDot4PaperDecision({snapshot:first,asOfUtc:at(5,35),
+  evaluationMode:'UNKNOWN'}),/INVALID_DOT4_TIME_OR_CADENCE/);
+});
