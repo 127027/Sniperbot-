@@ -60,6 +60,11 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/v19-offline-final-readiness-audit.mjs
+      - name: Replay 7 original November HTTP capture archives without API or historical backtest
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/v19-seven-run-prospective-source-audit.mjs
       - name: Review each original PARTIAL acceptance and future backtest gates
         shell: bash
         run: |
@@ -117,6 +122,7 @@ jobs:
             probe-artifacts/v19-six-offline-final-readiness.json
             probe-artifacts/v19-all-46-partial-acceptance-and-backtest-readiness.json
             probe-artifacts/v19-61-original-tasks-prebacktest-gate.json
+            probe-artifacts/v19-seven-real-source-momentum-readiness.json
             probe-artifacts/v19-offline-raw-archive/**
           if-no-files-found: error
           retention-days: 30
