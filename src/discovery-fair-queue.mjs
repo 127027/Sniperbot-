@@ -46,6 +46,13 @@ export function recordRecheckAttempt(memory,{chain,pool,pool_kind=null,attemptAt
  const key=id(c,pool),prev=next.rechecks[key];
  if(prev?.attempt_at_utc&&Date.parse(at)<Date.parse(prev.attempt_at_utc))
   throw Error('RECHECK_TIME_REGRESSION');
+ // A resumed capture can replay the same archived result. Exact replay is a
+ // no-op; conflicting results at the same timestamp must not overwrite the
+ // cursor or invent an extra provider attempt.
+ if(prev?.attempt_at_utc===at){
+   if(prev.status===status&&prev.source_path===sourcePath)return next;
+   throw Error('CONFLICTING_RECHECK_RECEIPT_AT_SAME_TIME');
+ }
  next.rechecks[key]={attempt_at_utc:at,status,source_path:sourcePath,
    attempts:(prev?.attempts||0)+1};
  return next;
