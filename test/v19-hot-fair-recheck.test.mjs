@@ -77,3 +77,61 @@ test('original archived 20-pool Base page 3 is wholly considered, including 11 V
  assert.equal(selected.selected_count+selected.deferred_new_pool_count,20);
  assert.equal(selected.trade_authorized,false);
 });
+
+test('two DEX slots rotate FAIR and genuine evidence repair while HOT still discovers new coins',()=>{
+ const hot=[fresh(1,1000),fresh(2,900)],older=[fair(101),fair(102)];
+ const repair={...fresh(88),queue:'EVIDENCE_REPAIR',urgency:2,
+  repair_reason:'WATCH_PRICE_OBSERVATION_GAP',
+  risk_eligible:false,trade_authorized:false,last_capture_age_minutes:12};
+ const common={asOfUtc:at,freshCandidates:hot,fairCandidates:older,
+  repairCandidates:[repair],maxChecks:2};
+ const even=planHotFairRechecks({...common,round:2});
+ const odd=planHotFairRechecks({...common,round:3});
+ assert.equal(even.selected_count,2);
+ assert.equal(odd.selected_count,2);
+ assert.equal(even.hot_selected,1);
+ assert.equal(odd.hot_selected,1);
+ assert.equal(even.fair_selected,1);
+ assert.equal(even.repair_selected,0);
+ assert.equal(odd.repair_selected,1);
+ assert.equal(odd.fair_selected,0);
+ assert.equal(odd.trade_authorized,false);
+});
+test('four slots reserve HOT, FAIR and repair with preserved deduplication',()=>{
+ const repair={...fresh(88),queue:'EVIDENCE_REPAIR',urgency:2,
+  risk_eligible:false,trade_authorized:false,last_capture_age_minutes:8};
+ const result=planHotFairRechecks({asOfUtc:at,maxChecks:4,
+  freshCandidates:[fresh(1),fresh(2),fresh(3)],fairCandidates:[fair(101)],
+  repairCandidates:[repair],round:6});
+ assert.equal(result.hot_selected,2);
+ assert.equal(result.fair_selected,1);
+ assert.equal(result.repair_selected,1);
+ assert.equal(result.all_evidence_repair_count,1);
+ assert.equal(result.deferred_repair_pool_count,0);
+ assert.equal(new Set(result.selected.map(x=>x.key)).size,4);
+});
+test('when there is no FAIR backlog, available slots still serve price repairs',()=>{
+ const repair={...fresh(88),queue:'EVIDENCE_REPAIR',urgency:2,
+  risk_eligible:false,trade_authorized:false,last_capture_age_minutes:8};
+ const result=planHotFairRechecks({asOfUtc:at,maxChecks:4,
+  freshCandidates:[fresh(1),fresh(2),fresh(3),fresh(4)],
+  repairCandidates:[repair]});
+ assert.equal(result.hot_selected,2);
+ assert.equal(result.repair_selected,1);
+ assert.equal(result.selected_count,4);
+ assert.equal(result.trade_authorized,false);
+});
+test('invalid winner-oracle and authorization claims cannot enter price-repair queue',()=>{
+ const base={...fresh(88),queue:'EVIDENCE_REPAIR',urgency:2,
+  risk_eligible:false,trade_authorized:false,last_capture_age_minutes:8};
+ const result=planHotFairRechecks({asOfUtc:at,maxChecks:5,repairCandidates:[
+  {...base,future_winner_label:'WINNER'},
+  {...base,trade_authorized:true},
+  {...base,risk_eligible:true},
+  {...base,observed_at_utc:'2026-11-23T00:00:00Z'},
+  base
+ ]});
+ assert.equal(result.all_evidence_repair_count,1);
+ assert.equal(result.selected_count,1);
+ assert.equal(result.repair_selected,1);
+});
