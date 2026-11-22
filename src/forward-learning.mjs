@@ -60,15 +60,27 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100}={}){
    // Two distinct capture times needed for a real observed price delta;
    // first sightings must remain WATCH_COVERAGE_ONLY.
    const unique=[...new Map(list.map(x=>[x.captured_at_utc,x])).values()];
-   const newest=unique.at(-1),prior=unique.slice(0,-1).reverse().find(x=>
-     x.price_usd!==null&&newest.price_usd!==null&&ms(newest.captured_at_utc)-ms(x.captured_at_utc)>=300000);
+   const newest=unique.at(-1);
+   const newestAt=ms(newest.captured_at_utc);
+   const prior=unique.slice(0,-1).reverse().find(x=>
+     x.price_usd!==null&&newest.price_usd!==null&&
+     newestAt-ms(x.captured_at_utc)>=300000);
+   // DEX pair rechecks often provide fresh price and liquidity but NO volume
+   // observation. Carry forward the last *previously observed*, same-pool
+   // volume for RESEARCH ranking only, and expire it after four hours.
+   // An old same-time volume is not proof of a volume change.
+   const volumeSource=[...unique].reverse().find(x=>
+     x.volume_24h_usd!==null&&ms(x.captured_at_utc)<=newestAt
+     &&newestAt-ms(x.captured_at_utc)<=4*3600000);
+   const effectiveVolume=volumeSource?.volume_24h_usd??null;
    const move=prior?rel(newest.price_usd,prior.price_usd):null;
-   const deltaVol=prior?rel(newest.volume_24h_usd,prior.volume_24h_usd):null;
+   const deltaVol=prior&&volumeSource?.captured_at_utc!==prior.captured_at_utc
+     ?rel(effectiveVolume,prior.volume_24h_usd):null;
    const deltaLiquidity=prior?rel(newest.liquidity_usd,prior.liquidity_usd):null;
    const full=!!newest.contract&&tokenValid(newest.chain,newest.contract);
    const baseReady=full&&prior&&move!==null
       &&newest.liquidity_usd!==null&&newest.liquidity_usd>=5000
-      &&newest.volume_24h_usd!==null;
+      &&effectiveVolume!==null;
    const score=baseReady?
       Math.max(-50,Math.min(50,move))*0.6
       +Math.max(-100,Math.min(100,deltaVol??0))*0.2
@@ -78,7 +90,12 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100}={}){
      symbol:newest.symbol,last_capture_at_utc:newest.captured_at_utc,
      evidence_batches:unique.length,
      observed_price_change_pct:move,observed_volume_24h_change_pct:deltaVol,
-     observed_liquidity_change_pct:deltaLiquidity,score,
+     observed_liquidity_change_pct:deltaLiquidity,
+     research_effective_volume_24h_usd:effectiveVolume,
+     research_volume_source_at_utc:volumeSource?.captured_at_utc??null,
+     carried_forward_volume_for_research:!!volumeSource&&volumeSource.captured_at_utc!==newest.captured_at_utc,
+     provider_volume_and_price_are_not_independent_execution_quotes:true,
+     score,
      status:baseReady?'RESEARCH_PRIORITY_ONLY_NOT_RISK_APPROVED':'WATCH_INSUFFICIENT_REPEATED_EVIDENCE',
      risk_eligible:false,trade_authorized:false,
      oldest_signal_at_utc:prior?.captured_at_utc??null});
