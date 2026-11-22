@@ -1,6 +1,7 @@
 // Pure utilities for durable cloud research evidence; never signs orders.
 import {createHash} from 'node:crypto';
 import {canonicalChain,poolValid,tokenValid} from './market-evidence.mjs';
+import {canonicalMarketIdentity} from './v19-canonical-market-identity.mjs';
 import {decodeGeckoNewPools,crossCheckDexPair} from './live-pool-discovery.mjs';
 const chains=['solana','base','ethereum','bsc','robinhood','cronos'];
 const apiNetwork=c=>c==='ethereum'?'eth':c==='cronos'?'cro':c;
@@ -33,11 +34,15 @@ export function chooseNetwork(request,runNumber){
 const canonicalAddress=(chain,x)=>chain==='solana'?x:String(x).toLowerCase();
 export function fromDexPairOnly({chain,pool,pool_kind=null,response,capturedAtUtc}={}){
  const c=canonicalChain(chain),t=Date.parse(capturedAtUtc);
- if(!c||!poolValid(c,pool,pool_kind)||!Number.isFinite(t))throw Error('INVALID_DEX_FALLBACK');
+ const requested=canonicalMarketIdentity({chain:c,pool,pool_kind});
+ if(!c||!requested||!Number.isFinite(t))throw Error('INVALID_DEX_FALLBACK');
  const pairs=Array.isArray(response?.pairs)?response.pairs:Array.isArray(response)?response:[];
- const p=pairs.find(x=>canonicalChain(x?.chainId)===c
-  &&poolValid(c,x?.pairAddress,pool_kind)&&canonicalAddress(c,x.pairAddress)===canonicalAddress(c,pool)
-  &&tokenValid(c,x?.baseToken?.address));
+ const p=pairs.find(x=>{
+  const reply=canonicalMarketIdentity({chain:x?.chainId,pool:x?.pairAddress,
+   pool_kind,contract:x?.baseToken?.address});
+  return reply?.pool_key===requested.pool_key
+    &&!!reply.token_key&&tokenValid(c,x?.baseToken?.address);
+ });
  if(!p)return {status:'NO_VERIFIED_EXACT_PAIR_AND_BASE',candidate:null};
  const price=Number(p.priceUsd),liq=Number(p.liquidity?.usd);
  const contract=p.baseToken.address;
@@ -47,7 +52,11 @@ export function fromDexPairOnly({chain,pool,pool_kind=null,response,capturedAtUt
     observed_at_utc:new Date(t).toISOString(),
     price_usd:Number.isFinite(price)&&price>0?price:null,
     liquidity_usd:Number.isFinite(liq)&&liq>=0?liq:null,
-    proof_level:'SINGLE_DEX_PROVIDER_NOT_BUY_ELIGIBLE',trade_authorized:false}};
+    proof_level:'SINGLE_DEX_PROVIDER_NOT_BUY_ELIGIBLE',
+    pool_identity_key:requested.pool_key,
+    token_identity_key:c+'|TOKEN|'+canonicalAddress(c,contract),
+    provider_quote_asof_utc:null,provider_quote_asof_verified:false,
+    trade_authorized:false}};
 }
 export function collectSampleMetrics({geckoDecoded,dexChecks=[],fallbackCandidates=[],requests=[]}={}){
  const candidates=geckoDecoded?.candidates??[];
