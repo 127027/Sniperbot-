@@ -64,7 +64,8 @@ test('tampering with bytes, Git blob SHA or network URL cannot pass audit',async
  const broken=check(raw,manifest.window_24h);
  assert.equal(broken.verified_chain_count,5);
  assert.equal(broken.all_six_chains_have_verified_http_samples,false);
- assert.equal(broken.source_checks[0].status,'ORIGINAL_RAW_SHA256_MISMATCH');
+ // Blob identity is checked before the separate SHA256 by the source auditor.
+ assert.equal(broken.source_checks[0].status,'GIT_BLOB_ID_MISMATCH');
  const swap=original.map(x=>({...x}));
  swap[1].git_blob_sha1='f'.repeat(40);
  const corrupted=check(swap,manifest.window_24h);
