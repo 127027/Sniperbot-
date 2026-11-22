@@ -1,5 +1,17 @@
 # R29 V1.9 – Fortlaufender Umsetzungsstand (22.11.2026)
 
+## NEUER ORIGINAL-61-ABNAHMESTAND: SYS-06 jetzt PASS durch zwei echte Offline-GitHub-Aufträge (22.11.2026)
+
+**Neues streng belegtes Ergebnis:** **13/61 PASS (21,3 %), 30/61 PARTIAL (49,2 %), 18/61 OPEN (29,5 %). Technisch bearbeitet weiter 43/61 = 70,5 %.** Vorher 12 PASS / 31 PARTIAL / 18 OPEN; nur `SYS-06` von PARTIAL→PASS; nicht unbelegte andere Aufgaben doppelt zählen.
+
+**Echte, getrennte, nutzerfreigegebene, einzelne GitHub-Offline-29h-Ausführungen:** [Run #45061091065](https://github.com/127027/Sniperbot-/actions/runs/45061091065) ohne Original-Oktober-Manifest, **24/24 DATA_GAP, 0 Trades**, und [Run #45061181476](https://github.com/127027/Sniperbot-/actions/runs/45061181476) mit **explizitem synthetischem** Vier-Snapshot-Szenario, **ein modellierter BUY, ein modellierter SELL, 2 modellierte Quittungen, +12,01063839 TEST-USDC nur Synthese**, **0 tatsächliche Client-Fills, 0 echte GPT-Reviews, 0 Provider-HTTP-Requests**. Beide Workflows **success**, beide jeweils 13/13 isolierte gezielte Tests, unveränderte GitHub-Signal-Inbox, echte SHA-gekennzeichnete 30-Tage-Artefakte und 0 Orders. **Der ursprüngliche workflow_dispatch selbst wurde nicht gestartet**; der neue manuelle `research/offline-backtest-requests/**`-Request-Push ist der nachweislich ausgeführte Einzelauftrag, auf ausschließlich dem Cleanroom-Branch und mit read-only GitHub-Rechten.
+
+**Zusätzlicher tatsächlicher Regression-/CLI-End-to-End-Abnahmebeleg:** [GitHub Node22 Source-only #45060909954](https://github.com/127027/Sniperbot-/actions/runs/45060909954), Commit `482e64f07e1088f29b09790165fe03ff7da148f4`: **579/579 PASS, 0 FAIL, TEST_ONLY_NO_SIGNAL_WRITE 0** plus zwei wirklich gestartete CLI-Aufrufe und Archiv-Artefakte. Späterer umfassender Node22-Source-CI [#45061061092](https://github.com/127027/Sniperbot-/actions/runs/45061061092) auf `a06e2e22fe93099f48f9fda44aabbd3a5996a25d`: **583/583 PASS, 0 FAIL, 0 Signalwrites**.
+
+**QA-04 und SYS-09 weiter PARTIAL:** `src/point-in-time-strategy.mjs` gibt modellierte Exchangequittungen nur als `MODELED_FILL_NOT_CLIENT` aus; `src/v19-offline-replay-ledger-audit.mjs` prüft Cash-, Sequenz- und Lotkonvergenz, die CLI führt den Audit vor Research-Artefaktpublikation aus. Echte Oktober-Neutralpopulation/zeitgerecht authentifizierte Quoten und echte Windows-Paper-Client-Receipts fehlen; GitHub kann Windows-Dateien NICHT unabhängig abnehmen. Alle fünf Dots bleiben pausiert. Exakter Bericht [V19_SYS06_REAL_OFFLINE_29H_REQUEST_AND_QA04_REPLAY_20261122.md](V19_SYS06_REAL_OFFLINE_29H_REQUEST_AND_QA04_REPLAY_20261122.md). Live-API-429 und 24/7-Betrieb sind ein davon getrenntes Arbeitspaket.
+
+
+
 ## 22.11.2026 – SYS-11-/QA-03-Offline-Restart inkl. echter Drei-Run-Historie
 
 **Original 61er-Zählung UNVERÄNDERT: 12 PASS (19,7 % vollständig), 31 PARTIAL, 18 OPEN; 43/61 (70,5 % technisch bearbeitet).** Verbesserungen in bereits teilweise erledigten SYS-11/QA-03 nicht doppelt zählen.
