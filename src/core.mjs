@@ -24,7 +24,7 @@ export function gitBlobSha(text) {
 }
 export function newState(policy = DEFAULT_POLICY) {
   return { schema: 1, mode: 'PAPER_ONLY', clientId: `client-${randomBytes(8).toString('hex')}`, cash: policy.startingBalance, positions: {},
-    processed: {}, receipts: {}, nextSequence: 1, startedAt: new Date().toISOString() };
+    processed: {}, receipts: {}, trade_history: [], nextSequence: 1, startedAt: new Date().toISOString() };
 }
 export function inspectOrder(order, state, nowMs, policy = DEFAULT_POLICY) {
   if (!order || typeof order !== 'object' || Array.isArray(order)) fail('INVALID_ORDER', 'Order must be an object');
@@ -89,13 +89,27 @@ export function inspectOrder(order, state, nowMs, policy = DEFAULT_POLICY) {
     if (order.amount_test_usdc!==policy.entryAmount)
       fail('INVALID_BUY_SIZE',`Buy must use ${policy.entryAmount} TEST-USDC`);
     if (state.positions[key]) fail('POSITION_EXISTS','Position already open');
+    // A coin can appear in several pools (or EVM addresses in different
+    // letter case). Never BUY the same contract twice across those pools.
+    const norm=v=>c.chain==='solana'?String(v):String(v).toLowerCase();
+    if(Object.values(state.positions).some(p=>
+      p?.coin?.chain===c.chain&&norm(p.coin.contract)===norm(c.contract)))
+      fail('TOKEN_POSITION_EXISTS','Open position already exists for this chain and token');
     if (Object.keys(state.positions).length>=policy.maxPositions)
       fail('MAX_POSITIONS','Maximum concurrent positions reached');
     if (state.cash + 1e-8 < order.amount_test_usdc)
       fail('INSUFFICIENT_PAPER_CASH','Not enough TEST-USDC');
     if (order.amount_test_usdc/liquidity*100>policy.maxLiquidityUtilizationPct)
       fail('ORDER_TOO_LARGE_FOR_POOL','Position exceeds liquidity cap');
-  } else if (!state.positions[key]) fail('POSITION_NOT_FOUND','No matching position');
+  } else {
+    if(!state.positions[key])fail('POSITION_NOT_FOUND','No matching position');
+    // New prospective SELL orders MUST bind to the specific BUY lot. The
+    // legacy isolated core remains backward compatible with archived
+    // deterministic replay orders that predate exit_position_source_order_id.
+    if(order.exit_position_source_order_id!==undefined
+       &&order.exit_position_source_order_id!==state.positions[key].sourceOrderId)
+      fail('POSITION_GENERATION_MISMATCH','SELL refers to a different opened BUY lot');
+  }
   return { key, refPrice, liquidity };
 }
 export function settlePaper(order, previous, timeMs, policy=DEFAULT_POLICY) {
@@ -134,6 +148,14 @@ export function settlePaper(order, previous, timeMs, policy=DEFAULT_POLICY) {
     quote_sources:order.quotes.map(q=>q.provider_id),simulated:true,
     pricing_model:'median quotes + modeled spread/impact + fee',
     ...receipt,cash_after_test_usdc:state.cash};
+  if(!Array.isArray(state.trade_history))state.trade_history=[];
+  state.trade_history.push({order_id:order.id,action:order.action,
+    position_source_order_id:order.action==='BUY'?order.id:
+      previous.positions[key]?.sourceOrderId??null,
+    market_key:key,receipt_sequence:fullReceipt.sequence,
+    filled_at_utc:fullReceipt.timestamp,
+    realized_pnl_test_usdc:order.action==='SELL'?
+      fullReceipt.realized_pnl_test_usdc:null});
   state.processed[order.id]={status:'PAPER_FILLED',time:fullReceipt.timestamp};
   state.receipts[order.id]={published:false,data:fullReceipt};
   return {state,receipt:fullReceipt};
