@@ -90,11 +90,12 @@ test('D2-11: reconstructions cannot be timestamped earlier than the original sou
   provider:'GECKOTERMINAL',reconstructedAtUtc:current}),
   /INVALID_ARCHIVE_RECONSTRUCTION_TIME/);
 });
-test('D2-11: do not rewrite 409 original live-market memory rows or archival evidence',async()=>{
+test('D2-11: never rewrite existing historical memory rows as future real captures append',async()=>{
  const path='research/state/market-memory.json';
  const text=await readFile(path,'utf8');
  const m=JSON.parse(text);
- assert.equal(Object.keys(m.pools).length,409);
+ const originalPoolCount=Object.keys(m.pools).length;
+ assert.ok(originalPoolCount>=409,'historical 409-pool baseline was lost');
  const copy=structuredClone(m);
  const updated=mergeMemory(copy,{candidates:[{chain:'bsc',pool:'0x'+'f'.repeat(40),
   contract:'0x'+'e'.repeat(40),observed_at_utc:current,
@@ -102,8 +103,8 @@ test('D2-11: do not rewrite 409 original live-market memory rows or archival evi
   sourcePath:'research/feeds/2026-11-22/strict-provenance-fixture.json',
   sourceCapturedAtUtc:current,provider:'GECKOTERMINAL',
   chain:'bsc',page:1}).memory;
- assert.equal(Object.keys(updated.pools).length,410);
- assert.equal(Object.keys(copy.pools).length,409);
+ assert.equal(Object.keys(updated.pools).length,originalPoolCount+1);
+ assert.equal(Object.keys(copy.pools).length,originalPoolCount);
  assert.equal(updated.pools['bsc:'+'f'.repeat(40)],undefined);
  assert.equal(updated.pools['bsc:0x'+'f'.repeat(40)].first_dot2_detected_at_utc,current);
  assert.equal(await readFile(path,'utf8'),text);
