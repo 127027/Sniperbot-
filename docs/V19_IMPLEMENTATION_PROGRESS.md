@@ -1,5 +1,19 @@
 # R29 V1.9 – Fortlaufender Umsetzungsstand (22.11.2026)
 
+## 22.11.2026 – SYS-11-/QA-03-Offline-Restart inkl. echter Drei-Run-Historie
+
+**Original 61er-Zählung UNVERÄNDERT: 12 PASS (19,7 % vollständig), 31 PARTIAL, 18 OPEN; 43/61 (70,5 % technisch bearbeitet).** Verbesserungen in bereits teilweise erledigten SYS-11/QA-03 nicht doppelt zählen.
+
+**Vorbereitet:** `src/v19-scan-restart-preflight.mjs` und `scripts/plan-r29-research-restart.mjs` vergleichen den persistenten 429- und rollierenden Budgetzustand mit den offenen Chain/Page-Cursorn; keine Netzwerkanfrage oder Handelsorder. Der bestehende Dot2-Runner schreibt beim **nächsten echten** Capture sein `restart-preflight.json` vor jeder API-Abfrage und prüft identische Planung mit dem tatsächlichen Capture-Plan.
+
+**Nachgewiesen:** 15 originale Gecko-HTTP200-Seiten aus drei **vorherigen** echten GitHub-Capture-Läufen (Run-IDs `45036887325`, `45044300013`, `45057658912`) werden alle 15/15 original-SHA- und HTTP-Status-korrekt in `test/v19-qa03-real-multirun-source-continuity.test.mjs` bestätigt. Die weiterhin ungeprüfte Base-Seite 2 mit 429 bleibt offen. 15/60 = 25 % nur des begrenzten Sechs-Chain-/Zehn-Seiten-Beispielplans, keine globale Marktabdeckung.
+
+**GitHub-Regressionsergebnis:** [Node22 Source-only #45059990547](https://github.com/127027/Sniperbot-/actions/runs/45059990547), Code-Commit `de26f82748a8e06a550669429789f62ac47877e9`: **574/574 PASS, 0 FAIL, TEST_ONLY_NO_SIGNAL_WRITE 0**. Keine neuen Provideraufrufe, keine Papier-Orders/Client-Fills oder Dot-Ausführungen. Provider-Cooldown **bis 2026-11-22T19:54:35.719Z UTC**, vor Ablauf keine erneuten Gecko-Requests. Vierte pro Minute Policy weiterhin nur konservativ softwareseitig, realer Nach-Cooldown-Test fehlt.
+
+**Details:** [V19_SYS11_OFFLINE_RESTART_AND_THREE_CAPTURE_SHA_AUDIT_20261122.md](V19_SYS11_OFFLINE_RESTART_AND_THREE_CAPTURE_SHA_AUDIT_20261122.md).
+
+
+
 ## R29-FORTSETZUNG: ehrlicher Capture-Abschluss und inkrementelle 4/min-Scannerläufe (22.11.2026)
 
 **Kein künstlicher Statussprung:** **12/61 Original-PASS = 19,7 % vollständig; 31 PARTIAL; 18 OPEN; 43/61 = 70,5 % nur technisch bearbeitet.** Diese Arbeiten betreffen die bereits teilweise bearbeiteten `SYS-11` und `QA-03`, die vor echten mehrfachen Provider-End-to-End-Läufen **PARTIAL** bleiben.
