@@ -23,6 +23,10 @@ await writeFile('probe-artifacts/v19-61-original-tasks-prebacktest-gate.json',
  JSON.stringify(report,null,2)+'\n',{flag:'w'});
 console.log('R29_61_ORIGINAL_TASKS_PREBACKTEST_GATE',JSON.stringify({
  status:report.readiness,fully_accepted_pct:report.strict_fully_accepted_pct,
+ non_backtest_tasks_required:report.non_backtest_original_task_count,
+ non_backtest_tasks_passed:report.actual_non_backtest_pass_count,
+ non_backtest_strict_pct:report.strict_non_backtest_fully_accepted_pct,
+ final_QA04_backtest_status:report.final_qa04_backtest_status,
  technical_touched_pct:report.technical_touched_pct,
  counts:report.original_status_counts,
  pool_count:report.persisted_pool_count,
