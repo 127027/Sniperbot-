@@ -26,10 +26,19 @@ jobs:
         with:
           node-version: 22
       - name: Capture public research evidence
+        id: dot2_capture
+        continue-on-error: true
         run: node scripts/cloud-discovery-runner.mjs
       - name: V1.4 capture public meme and news evidence
+        id: media_capture
+        if: ${{ steps.dot2_capture.outcome == 'success' }}
+        continue-on-error: true
         run: node scripts/cloud-media-capture.mjs
-      - name: Commit research feed to cleanroom branch only
+      # Never discard a real HTTP 429/503 receipt or a staged pending cursor
+      # merely because a later decoder, risk preview, or media step failed.
+      # Preserve the workflow's FAILED outcome with the last step below.
+      - name: Commit research feed and partial recovery state to cleanroom branch
+        if: ${{ always() && steps.dot2_capture.outcome != 'skipped' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -46,3 +55,8 @@ jobs:
             fi
           done
           test "$success" = 1
+      - name: Report incomplete or failed research capture honestly
+        if: ${{ always() }}
+        run: |
+          test "${{ steps.dot2_capture.outcome }}" = "success"
+          test "${{ steps.media_capture.outcome }}" = "success"
