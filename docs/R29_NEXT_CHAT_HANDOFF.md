@@ -19,9 +19,11 @@
 
 ## 1. Verifizierter Übergabestand
 
-**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach D4-09-Abnahme: **22/61 = 36,1 %**, 39 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
+**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach D5-02-Abnahme: **23/61 = 37,7 %**, 38 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
 
 Bisher als `COMPLETE (targeted)` dokumentiert:
+
+- `D5-02` neutraler Dot5-Ereignistrichter `src/v19-dot5-event-ledger.mjs` und Integration in `scripts/cloud-discovery-runner.mjs` samt `dot5_event_ledger_path` im Feeds-Latestpointer. Konserviert jede erfasste Chain/Page/Zeile/Quellpool-ID (auch Parser-Rejections und 429-Gaps), verknüpft durch `event_id` Dot2-Discovery mit der Dot3-Risikovorschau, hält Prognose/Order/Receipt/Outcome bis echte Belege vorliegen `null`. Archivierter 22.11. Ethereum-Page3-Fall: **20 Zeilen – 2 Kandidaten (Bigfoot/Mfer), 18 Uniswap-V4-Parserablehnungen**, ohne behauptete Gewinner oder echten GPT-/Paper-Trade. 13/13 gezielte Checks erfolgreich; 10 Node-Tests eingecheckt, gesamtes npm test/Actions offen. `docs/V19_DOT5_EVENT_LEDGER.md`.
 
 - `D4-09` neue lokale read-only PAPER-UI-Fortschrittsdarstellung in `src/v19-paper-monitor.mjs`, `src/dashboard.mjs`, Policy-Übergabe aus `src/runner.mjs`: Cash, Einsatz/Coin, Kostenbasis, echte offene Positionen, Opening-BUY-ID, gemeldete HTTP-Zeit/Alter, Quittungs-Delay/-Blocker; fehlende unabhängige Preis-/Dot3-/Sellability-Daten ausdrücklich UNKNOWN, niemals Phantom-PnL. 11/11 gezielte direkte Checks bestanden, sieben Node-Tests eingecheckt, volle Node/Actions noch offen. Detail `docs/V19_PAPER_UI_MONITORING.md`.
 
@@ -125,6 +127,13 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - `.github/workflows/cleanroom-v19-ci.yml` liegt im Cleanroom-Branch. Es läuft **nur** auf Branch-Push für Code/Test/Config-Änderungen (oder manuell): read-only Checkout, Node 22 Syntaxcheck, `npm test`, Prüfung auf keine neuen Signal-/Receipt-Dateien. **Keine** Dot-Automation, kein `src/runner.mjs`-Start, kein Publisher, kein Order-Auftrag, keine Secrets.
 - Die GitHub-Statusabfrage für den Workflow-Commit lieferte `statuses:[]`; der Connector kann bei `fetch_commit_workflow_runs` nur PR-ausgelöste Runs auflisten (dort 0), nicht die vollständige Push-CI-Aktivität. Darum wurde **kein** erfolgreicher oder fehlgeschlagener voller Testlauf bewiesen. QA-06 und D4-08 bleiben offen. Details `docs/V19_QA06_TEST_WORKFLOW.md`.
 - Stand weiterhin **22/61 = 36,1 %**, 39 offen. D4-09 mit 11/11 gezielten Modul-/UI-Checks abgeschlossen, kein lokales Windows-Konto berührt.
+
+### Nachtrag 22.11.2026 – D5-02 und Quellseiten-Verlustnachweis
+
+- **Fortschritt 23/61 = 37,7 %, 38 offen**. D5-02 gezielt abgeschlossen, nicht voll CI- oder Handels-abgenommen. GitHub-Dokumentation: `docs/V19_DOT5_EVENT_LEDGER.md`.
+- Der Dot2-Mehrseiten-Runner hatte bisher `decoded.rejected` beim Zusammenführen von Chains/Seiten verloren; das wurde jetzt behoben. Die Original-Quellzeilen, auch abgewiesene **Uniswap-V4-IDs**, werden im Dot5-Journal als eigenständige Fehlerereignisse persistiert. HTTP 429, fehlgeschlagene und zurückgestellte Seiten bleiben als Coverage-Gaps sichtbar, ohne daraus Coins oder Trades zu erfinden.
+- Aktuelle Originalarchiv-Prüfung: 22.11.2026, Ethereum-Seite 3, 20 Quellzeilen, 2 akzeptiert, 18 Parserrejections. **Dies beweist keine 18 verpassten Gewinner**, aber eine präzise Stelle des Kandidatenverlusts. D5-01/D5-04 (ganzer Markt-Nenner und Fehlchancen-Messung) sowie D3-04/D3-05, D4-08 und QA-06 weiter OFFEN.
+- **13/13 isolierte Funktionsprüfungen + Runner-/Modul-/Test-Syntax erfolgreich.** Die Funktionsprüfung verwendete einen deterministischen V8-Hash-Mock; die eingecheckten Node-Regressionen benutzen Node SHA-256. **Volle Node-/GitHub-Actions-Resultate noch nicht belegt**. Dots deaktiviert, Branch only, keine Orders, keine Echtgeld-/Windows-Paper-Änderung.
 
 ## 2. Arbeitsreihenfolge – aktuelle nächsten Schritte
 
