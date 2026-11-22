@@ -1,6 +1,7 @@
 // V1.8 read-only provider sampler for eventual local shadow monitoring.
 // This does NOT persist evidence, attest provider quote times, trade or publish orders.
 import {canonicalChain,poolValid,tokenValid} from './market-evidence.mjs';
+import {classifyDot3QuoteTime} from './v19-dot3-quote-time.mjs';
 const nowIso=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?new Date(x).toISOString():null;
 const number=x=>{const n=Number(x);return x==null||x===''||!Number.isFinite(n)?null:n};
 const eq=(c,a,b)=>c==='solana'?a===b:String(a).toLowerCase()===String(b).toLowerCase();
@@ -52,8 +53,14 @@ export async function observePositionShadow({coin,observedAtUtc,fetchJson=defaul
        source_archive_blob_sha:null,origin:'UNARCHIVED_HTTP_CAPTURE'});
    }
  }
+ const classified=observations.map(q=>({
+  provider:q.provider_id,
+  timing:classifyDot3QuoteTime({asOfUtc:at,capturedAtUtc:q.captured_at_utc,
+    providerQuoteAsOfUtc:q.provider_quote_asof_utc})
+ }));
  return {schema:1,kind:'R29_V18_SHADOW_MARKET_SAMPLE',mode:'SHADOW_ONLY',
   observed_at_utc:at,coin,observations,gaps,independent_provider_observations:observations.length,
+  quote_time_classifications:classified,
   provider_quote_times_verified:false,raw_response_blobs_archived:false,
   trade_authorized:false,paper_filled:false,
   caution:'HTTP capture time is not provider quote as-of. Requires immutable capture, source timestamps and risk review before executable PAPER exits.'};
