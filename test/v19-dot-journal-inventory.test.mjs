@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
 import {auditLiveFiveDotJournalInventory,LIVE_DOT_IDS}
  from '../src/v19-dot-journal-inventory.mjs';
 
@@ -102,4 +103,18 @@ test('existing real five dot pointers can be audited without claiming historical
  assert.equal(a.verified_live_gpt_runs,0);
  assert.equal(a.verified_client_fills,0);
  assert.equal(a.not_a_historical_run,true);
+});
+
+test('read-only live inventory CLI generates an honest five-role diagnostic on this checkout',()=>{
+ const run=spawnSync(process.execPath,['scripts/v19-audit-current-dot-journals-readonly.mjs'],
+  {encoding:'utf8',timeout:15000});
+ assert.equal(run.status,0,run.stderr);
+ assert.ok(run.stdout.includes('R29_LIVE_FIVE_DOT_SUMMARY '));
+ const line=run.stdout.split('\n').find(x=>x.startsWith('R29_LIVE_FIVE_DOT_SUMMARY '));
+ const summary=JSON.parse(line.slice('R29_LIVE_FIVE_DOT_SUMMARY '.length));
+ assert.equal(summary.roles,5);
+ assert.equal(summary.real_gpt_invocations_authenticated,0);
+ assert.equal(summary.real_client_fills_verified,0);
+ assert.equal(summary.backtest_executed,false);
+ assert.equal(summary.orders_written,0);
 });
