@@ -16,6 +16,7 @@ export function makeResearchHandoff({evidence,atUtc,maxAgeMinutes=10}={}){
    const c=canonicalChain(item?.chain),pool=item?.pool,contract=item?.contract;
    if(!c||!poolValid(c,pool,item?.pool_kind))continue;
    raw.push({chain:c,pool,pool_kind:item.pool_kind||null,contract:tokenValid(c,contract)?contract:null,
+    source_url:item.source_url||null,
     symbol:item.symbol||null,source_class:item.source_api==='GECKOTERMINAL_TRENDING_POOLS_JSON'
       ?'GECKOTERMINAL_TRENDING_RESEARCH_ONLY':'GECKOTERMINAL_POOL_WITH_BASE_CONTRACT',
     primary_quote_usd:item.observed_price_usd,primary_liquidity_usd:item.liquidity_usd,
@@ -25,6 +26,7 @@ export function makeResearchHandoff({evidence,atUtc,maxAgeMinutes=10}={}){
    const c=canonicalChain(item?.chain),pool=item?.pool,contract=item?.contract;
    if(!c||!poolValid(c,pool,item?.pool_kind))continue;
    raw.push({chain:c,pool,pool_kind:item.pool_kind||null,contract:tokenValid(c,contract)?contract:null,
+    source_url:item.source_url||null,
     symbol:item.symbol||null,source_class:'DEX_SINGLE_SOURCE_RECOVERY',
     primary_quote_usd:null,primary_liquidity_usd:null,captured_at_utc:item.observed_at_utc});
  }
@@ -41,11 +43,36 @@ export function makeResearchHandoff({evidence,atUtc,maxAgeMinutes=10}={}){
    const independentlyMatched=['GECKOTERMINAL_POOL_WITH_BASE_CONTRACT','GECKOTERMINAL_TRENDING_RESEARCH_ONLY'].includes(c.source_class)&&p?.matched===true
       &&p?.status==='TWO_DOMAIN_INDICATIVE_RESEARCH_ONLY';
    const independentQuote=fresh&&independentlyMatched;
+   const sourceObservations=[];
+   // Raw HTTP capture times are used only for indicative research. The source
+   // has NOT supplied a verified provider quote time or independent upstream.
+   if(c.source_class!=='DEX_SINGLE_SOURCE_RECOVERY'
+     &&typeof c.source_url==='string'
+     &&typeof c.primary_quote_usd==='number'&&c.primary_quote_usd>0
+     &&typeof c.primary_liquidity_usd==='number'&&c.primary_liquidity_usd>0){
+     sourceObservations.push({provider_id:'GECKOTERMINAL',chain:c.chain,
+       pool:c.pool,contract:c.contract,source_url:c.source_url,
+       captured_at_utc:c.captured_at_utc,provider_quote_asof_utc:null,
+       price_usdc:c.primary_quote_usd,liquidity_usdc:c.primary_liquidity_usd,
+       source_archive_blob_sha:null,upstream_feed_id:null});
+   }
+   if(p?.matched===true&&typeof p.dexscreener_price_usd==='number'
+      &&p.dexscreener_price_usd>0&&typeof p.dexscreener_liquidity_usd==='number'
+      &&p.dexscreener_liquidity_usd>0){
+     sourceObservations.push({provider_id:'DEXSCREENER',chain:c.chain,
+       pool:c.pool,contract:c.contract,
+       source_url:'https://dexscreener.com/'+c.chain+'/'+c.pool,
+       captured_at_utc:p.checked_at_utc,provider_quote_asof_utc:null,
+       price_usdc:p.dexscreener_price_usd,
+       liquidity_usdc:p.dexscreener_liquidity_usd,
+       source_archive_blob_sha:null,upstream_feed_id:null});
+   }
    const researchLevel=independentQuote?'TWO_DOMAIN_PRICE_LIQUIDITY_PROVISIONAL':
       c.source_class==='DEX_SINGLE_SOURCE_RECOVERY'?'SINGLE_PROVIDER_CONTRACT_ONLY':
       p?.status==='PRICE_DISAGREEMENT'?'PRICE_DISAGREEMENT':
       'POOL_IDENTITY_ONLY_NEEDS_RISK_CHECK';
    candidates.push({...c,pool_key:key(c.chain,c.pool),evidence_path:evidence.request_path||null,
+      source_observations:sourceObservations,
       research_level:!fresh?'STALE_SOURCE_FOR_LIVE_RISK':researchLevel,
       second_source_price_usd:p?.dexscreener_price_usd??null,
       second_source_liquidity_usd:p?.dexscreener_liquidity_usd??null,
