@@ -19,7 +19,7 @@
 
 ## 1. Verifizierter Übergabestand
 
-**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Stand nach D2-09-Abnahme: **14/61 = 23,0 %**, 47 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
+**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Stand nach D2-09-Abnahme: **15/61 = 24,6 %**, 46 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
 
 Bisher als `COMPLETE (targeted)` dokumentiert:
 
@@ -36,6 +36,7 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - `D2-02` Offset-Paging- und Gap-Journal
 - `D2-07` Hot-/Fair-Warteschlange und Servicezeiten
 - `D2-08` alle neuen Pools priorisieren statt nur zwei erste crosschecken
+- `D2-05` erstmals **ältere** trending Pools je Chain/1h-/24h-Fenster erkennen, as-of vorwärts testen und in denselben Hot/Fair/Dot3-Handoff geben (`src/v19-older-pool-discovery.mjs`, `test/v19-older-pool-discovery.test.mjs`; 13/13 isolierte Prüfungen, echter Anbieter-Capture noch ausstehend).
 - `D2-09` nur ein Fair-Recheck-Planer: `src/market-memory.mjs::planIncrementalScan` delegiert an `src/discovery-fair-queue.mjs::fairRecheckPlan`; Dot2-Anweisungen bleiben pausiert, zielgerichtete Regression `test/v19-unified-recheck-planner.test.mjs`
 
 **Nicht als erledigt zählen:** `D2-01` echte Sechs-Chain-Abdeckung, `D2-03` Contract-Resolver, `D2-04` wiederholte Preis-/OHLCV-Beobachtungen, `D2-05` ältere/re-aktivierte Pools, `SYS-08` echte GPT-vs-Simulations-Trennung, `SYS-09` isolierte Wallet-Abnahme, `SYS-11` echte per-Endpoint API-Budgets und Caches, `D3-01..07` Dot3-positiver Risk/Freigabepfad, `QA-06` echtes abgeschlossenes npm-test-/Actions-Resultat. Vollständige Liste: [V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md](V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md).
@@ -48,12 +49,18 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - `signals/index.json` zuletzt mit 0 Orders geprüft. **Aktuellen Stand vor erneutem Bericht abfragen.**
 - Getestete Module wurden vielfach durch isolierte JS-Funktionsprüfungen validiert; **kein bestätigter vollständiger GitHub-Actions-/Node-Testlauf**.
 
+### Nachtrag vom 22.11.2026: Trending/ältere Pools (D2-05)
+
+- `D2-05` ist **COMPLETE (targeted)**: `src/v19-older-pool-discovery.mjs` plant bei ausdrücklichem Capture-Auftrag optional `max_older_pool_requests=0..2` innerhalb des Gecko-Gesamtbudgets. Wiederholte `1h`/`24h`-Trending-Samples pro Chain, ein persistenter und gerechter Chain-Checkpoint, 429-Cooldown, Original-Rohantworten und Kennzeichnung des eigenen Capture-Zeitpunkts. `scripts/cloud-discovery-runner.mjs` speichert Kandidaten im **selben** Marktgedächtnis und `src/feed-handoff.mjs` reicht sie an den bestehenden Dot3-Risk-Review weiter.
+- **Grenze:** Trending ist nur eine Stichprobe und belegt weder vollständige ältere Poolabdeckung noch tatsächliche Wiederbelebung, Sellability oder Erfolg. Ein angebliches `pool_created_at` nach Capture wird ausgeschlossen. **13/13 isolierte Prüfungen plus Runner-Syntax erfolgreich; kein echter Anbieter-/GitHub-Actions-Trending-Capture ausgeführt.** Keine Orders, keine Dot-Reaktivierung.
+- Nächster Schwerpunkt: D2-04 abschließen durch tatsächliche wiederholte Preis-/OHLCV-Captures und saubere As-of-Artefakte; dann Dot3 positive Risk-Freigabekette und End-to-End.
+
 ### Nachtrag vom 22.11.2026: OHLCV/Source-SHA
 
 - `D2-04` bleibt **TEILWEISE**, nicht abgeschlossen: `src/v19-gecko-ohlcv.mjs` dekodiert echte OHLCV-Arrayform `[unix_seconds,open,high,low,close,volume]`; `src/v19-ohlcv-backfill-queue.mjs` verwaltet per Pool rückwärtige `before_timestamp`-Cursor, Cache-/Restart-Status und 429. `src/discovery-feed.mjs` akzeptiert optional `max_ohlcv_requests=0..2`, solange mindestens ein Gecko-Slot für Discovery bleibt; `scripts/cloud-discovery-runner.mjs` archiviert OHLCV mit tatsächlicher HTTP-Erfassungszeit. `test/v19-gecko-ohlcv.test.mjs` und `test/v19-ohlcv-backfill-queue.test.mjs` sind eingecheckt. Acht isolierte Integrations-/Budget-/Cursorprüfungen plus Syntaxprüfung bestanden. **Noch kein echter OHLCV-Provider-Capture/Actions-Run.**
 - `SYS-07` ist **COMPLETE (targeted)**: `src/v19-source-integrity.mjs` und Dot2-Runner prüfen Raw SHA256 gegen tatsächlich gelesene Dateien, optional Git Blob SHA1. Echte `research/feeds/2026-11-22/44997708364/gecko-base-page3.raw.json`: 37.031 Bytes; Byte-SHA256 stimmt mit `evidence.json` überein, GitHub-Blob `b078886e87fe35e538403844de24f19d1601b2a5`. Ein solcher November-Capture bleibt am Oktober-As-of **nicht verfügbar**. Node-Regressionsdateien vorhanden, komplette CI-Abnahme weiterhin offen.
 - GeckoTerminal-Dokumentation hat zwei widersprüchliche öffentliche Angaben: ungefähr **10/min** laut öffentlicher API-Doku, **30/min** laut CoinGecko-Hilfe. Bis zum echten Anbieterbeleg konservativ planen und bei 429 zurückstellen; `max_gecko_requests` pro Auftrag ist keine zeitbasierte Rate-Limit-Garantie.
-- Dot2 und Dot3 gespeicherte Anweisungen wurden aktualisiert, ohne Aktivierung. 5 Dots bleiben pausiert. Letzter Fortschritt: **14/61 = 23,0 %**.
+- Dot2 und Dot3 gespeicherte Anweisungen wurden aktualisiert, ohne Aktivierung. 5 Dots bleiben pausiert. Letzter Fortschritt: **15/61 = 24,6 %**.
 
 ## 2. Arbeitsreihenfolge – aktuelle nächsten Schritte
 
@@ -96,7 +103,7 @@ Die GitHub-Dateien und gespeicherten Dot-Automationsprompts sind **getrennte Spe
 - `scripts/cloud-discovery-runner.mjs` enthielt nach Multi-Chain-Umbau einen Laufzeitfehler `oldCheckpoint` (nicht mehr definiert). Er wurde durch per-Chain-Checkpoint-Metriken ersetzt. Prüfe in einem echten Node-/Actions-Lauf, dass der Capture-Runner tatsächlich beendet und archiviert.
 - `test/v19-cleanroom-handoff-and-runner.test.mjs` validiert Node-`--check` und Dokumentationslinks. **Noch nicht** als vollständig ausgeführter CI-Test ausgegeben.
 - Alle Dot2-Vertragsänderungen in den weiterhin deaktivierten gespeicherten Dot2-Anweisungen synchronisiert.
-- **Zähler bleibt 14/61 = 23,0 %**; die D2-04-Zwischenarbeit zählt nicht als Aufgabe 14.
+- **Zähler bleibt 15/61 = 24,6 %**; die D2-04-Zwischenarbeit zählt nicht als Aufgabe 14.
 
 ## 6. Sicherer Prompt für jeden neuen Chat
 
