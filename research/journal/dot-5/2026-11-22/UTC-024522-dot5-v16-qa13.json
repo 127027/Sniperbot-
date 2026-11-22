@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "dot": "dot-5",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "run_at_utc": "2026-11-22T02:45:22Z",
+  "status": "DATA_GAP_NO_TRADE",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "source_latest_blob_shas": {
+    "dot-1": "32aec7950b62452a7eebc8f84cb7d2eeb7602d89",
+    "dot-2": "b5175caecc46b8b695bf2351131b7c3f7214c8b2",
+    "dot-3": "2097970d053984a314f0e93b05734b04bd8e2e1c",
+    "dot-4": "5e4e9f252307136e81cfe5caf9ea388217680b27",
+    "signals/index.json": "8f360a172e95adfda2d30105dd3fc7639497367d"
+  },
+  "verified_immutable_journal_shas": {
+    "dot-1": "a43c8fbe2bf2334d68a942588d4f351edb72b93d",
+    "dot-2": "9a7edd65db7d46c206af23bc7490b86f3887f34b",
+    "dot-3": "b40c8bc85e1ba5f4b3bb60faa7c0078f4f096d74",
+    "dot-4": "db70db090a12fbd4f9e4c67ae6a86b65c651b341"
+  },
+  "source_evidence": {
+    "capture_run_id": "44975257951",
+    "capture_utc": "2026-11-22T02:15:49.766Z",
+    "evidence_sha": "9a9070c8692553fabb8b731b16f842d77ff67559",
+    "handoff_sha": "c77efceed627b3f6873f834c8b5d18e92d3a3a34",
+    "checkpoint_sha": "4ecf57ace959232469b37027cfd6bdfed88a9f27"
+  },
+  "counts": {
+    "latest_ethereum_raw_rows": 20,
+    "accepted_full_contract_pools": 2,
+    "rejected_bytes32_pool_ids": 18,
+    "dex_exact_matches": 3,
+    "independent_indicative_quote_pairs": 1,
+    "dot3_rejected": 3,
+    "dot3_data_gap": 1,
+    "dot3_eligible": 0,
+    "dot4_full_review_completed": 1,
+    "dot4_buy": 0,
+    "dot4_sell": 0,
+    "indexed_orders": 0,
+    "verified_client_fills": 0,
+    "verified_client_rejections": 0,
+    "memory_pools": 188,
+    "open_rechecks": 180,
+    "media_http_sources": 7,
+    "media_contract_matches": 0
+  },
+  "client_status": "OFFLINE_OR_UNCONFIRMED",
+  "receipt_inventory": "HTTP_404_DIRECTORY_NOT_FOUND",
+  "orders_directory": "HTTP_404_DIRECTORY_NOT_FOUND",
+  "dot6": "NOT_DUE_BERLIN_2026-11-22_03_45",
+  "findings": [
+    "Dot4 full strategy review completed at 02:39:20Z, resolving prior overdue review; next due 08:39:20Z.",
+    "18/20 Ethereum raw pool rows rejected by 20-byte parser; likely bytes32/v4 identity gap, no automatic coercion.",
+    "One two-domain indicative price/liquidity pair exists, but provider quote as-of, sellability, honeypot and tax checks remain missing; no BUY authorization.",
+    "Forward 24h labeled cohort insufficient; winner recognition denominator unknown; October/November training not independent.",
+    "Media 7 successful public sources, 0 contract-pool verified links; no evidence of media alpha."
+  ],
+  "targeted_experiment": {
+    "proposal": "Inspect 18 raw Ethereum rejected IDs for bytes32 v4 pool identifiers and add isolated parser identity test without changing trade authorization",
+    "before": "2/20 accepted",
+    "after": null,
+    "rollback": "Revert parser-only change if exact chain+pool+token linkage or tests fail",
+    "implemented": false
+  },
+  "no_wallet_or_real_money": true
+}
