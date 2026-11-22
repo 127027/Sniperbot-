@@ -14,7 +14,7 @@ export function fairRecheckPlan(memory,{asOfUtc,maxRechecks=6}={}){
  }).map(p=>{
    const chain=canonicalChain(p.chain),key=id(chain,p.pool);
    const prior=history[key],last=iso(prior?.attempt_at_utc);
-   return {key,chain,pool:p.pool,contract:tokenValid(chain,p.contract)?p.contract:null,
+   return {key,chain,pool:p.pool,pool_kind:p.pool_kind||null,contract:tokenValid(chain,p.contract)?p.contract:null,
     symbol:p.symbol||null,last_recheck_utc:last,last_seen_at_utc:p.last_seen_at_utc||null,
     first_seen_at_utc:p.first_seen_at_utc,
     previous_recheck_status:prior?.status||'NEVER_ATTEMPTED'};
@@ -36,9 +36,9 @@ export function fairRecheckPlan(memory,{asOfUtc,maxRechecks=6}={}){
   historical_lookback_cutoff:null,
   orders_authorized:0};
 }
-export function recordRecheckAttempt(memory,{chain,pool,attemptAtUtc,status,sourcePath}={}){
+export function recordRecheckAttempt(memory,{chain,pool,pool_kind=null,attemptAtUtc,status,sourcePath}={}){
  const c=canonicalChain(chain),at=iso(attemptAtUtc);
- if(memory?.kind!=='R29_PERSISTENT_MARKET_MEMORY'||!poolValid(c,pool)||!at
+ if(memory?.kind!=='R29_PERSISTENT_MARKET_MEMORY'||!poolValid(c,pool,pool_kind)||!at
  ||typeof status!=='string'||!status||typeof sourcePath!=='string'||!sourcePath.startsWith('research/'))
  throw Error('INVALID_RECHECK_ATTEMPT');
  const next=structuredClone(memory);
