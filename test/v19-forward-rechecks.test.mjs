@@ -73,9 +73,10 @@ test('as-of research never ranks a previously rising but now 16-hour stale pool'
 test('stale pool becomes research-prioritized again only after genuinely newer time-separated capture',()=>{
  const first=batch(0,[candidate(0,.001,12000)],'gecko');
  const second=batch(30,[candidate(30,.0013,null)],'dex');
+ const recent=batch(970,[candidate(970,.00135,14500)],'gecko');
  const latest=batch(1000,[candidate(1000,.0014,15000)],'gecko');
  const cutoff=scoreAsOf({batches:[first,second],asOfUtc:ts(1000)});
- const recovered=scoreAsOf({batches:[first,second,latest],asOfUtc:ts(1000)});
+ const recovered=scoreAsOf({batches:[first,second,recent,latest],asOfUtc:ts(1000)});
  assert.equal(cutoff.counts.research_rankable,0);
  assert.equal(recovered.counts.research_rankable,1);
  assert.equal(recovered.candidates[0].last_capture_at_utc,ts(1000));
@@ -101,8 +102,10 @@ test('research TTL is configurable and validated, never grants buy authorization
  const long=scoreAsOf({batches:[first,second],asOfUtc:ts(151),maxLatestCaptureAgeMinutes:240});
  assert.equal(long.counts.research_rankable,1);
  assert.equal(long.candidates[0].trade_authorized,false);
- for(const value of [0,-1,1.5,1441,'120'])
+ for(const value of [0,-1,1.5,1441,'120']){
   assert.throws(()=>scoreAsOf({batches:[first],asOfUtc:ts(151),maxLatestCaptureAgeMinutes:value}),/INVALID_ASOF_SCORE/);
+  assert.throws(()=>scoreAsOf({batches:[first],asOfUtc:ts(151),maxPriceObservationGapMinutes:value}),/INVALID_ASOF_SCORE/);
+ }
 });
 test('archived 22 Nov as-of ranking contains genuinely stale previously ranked reference',async()=>{
  const {readFile}=await import('node:fs/promises');
@@ -114,4 +117,20 @@ test('archived 22 Nov as-of ranking contains genuinely stale previously ranked r
  assert.ok(fng.score!==null); // old behavior was stale ranking; regression reason
  // Do not claim this old archived file has been retroactively recomputed.
  assert.equal(obj.kind,'R29_FORWARD_BLIND_ASOF_RESEARCH_RANKING');
+});
+
+test('eight-hour observation gap is history, not proof of current price momentum',()=>{
+ const old=batch(0,[candidate(0,.001,15000)],'gecko');
+ const fresh=batch(480,[candidate(480,.0016,16000)],'gecko');
+ const r=scoreAsOf({batches:[old,fresh],asOfUtc:ts(480)});
+ assert.equal(r.counts.research_rankable,0);
+ assert.equal(r.counts.long_price_observation_gaps,1);
+ assert.equal(r.candidates[0].status,'WATCH_PRICE_OBSERVATION_GAP');
+ assert.equal(r.candidates[0].prior_price_observation_gap_minutes,480);
+ assert.ok(r.candidates[0].observed_price_change_pct>50);
+ assert.equal(r.candidates[0].trade_authorized,false);
+ const historical=scoreAsOf({batches:[old,fresh],asOfUtc:ts(480),
+  maxPriceObservationGapMinutes:600});
+ assert.equal(historical.counts.research_rankable,1);
+ assert.equal(historical.candidates[0].trade_authorized,false);
 });
