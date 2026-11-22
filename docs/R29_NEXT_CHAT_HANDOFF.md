@@ -19,9 +19,11 @@
 
 ## 1. Verifizierter Übergabestand
 
-**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach SYS-09-Abnahme: **20/61 = 32,8 %**, 41 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
+**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach D4-07-Abnahme: **21/61 = 34,4 %**, 40 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
 
 Bisher als `COMPLETE (targeted)` dokumentiert:
+
+- `D4-07` gemeinsames versioniertes Paper-Budget (`research/config/paper-budget-v19.json`, `src/v19-paper-budget-policy.mjs`) für Windows-Runner, Dot4 Live-Forschung, On-Demand-Replay; Standard **5.000/50 TEST-USDC, 30 offene Positionen**. Kein Reset des tatsächlichen Paper-Kontos bei Konfigurationsänderung. `src/core.mjs` verhindert mehrfachen Token-BUY über andere Pools und führt chronologische Trade-Historie; prospektive SELLs binden sich an `exit_position_source_order_id`. 9+8+11 isolierte/integrative Funktionskontrollen bestanden; 15 Node-Fälle eingecheckt, volle Node/Actions-Abnahme weiter offen. Details: `docs/V19_DOT4_BUDGET_AND_EXIT.md`.
 
 - `SYS-09` isolierte Research-Wallet/Dateibeweise: `src/v19-replay-isolation.mjs`, `scripts/v18-backtest-on-demand.mjs`, `test/v19-replay-isolation.test.mjs`; echter Node-22-Funktionstest 7/7 PASS, Modul-SHA passt GitHub-Blob `9ab05f7e863aff01823770fcf596784d1e8d7aa1`. Forschungs-Quittung `research-...`, `probe-artifacts` exklusiv, kein Zugriff auf vorhandenes Windows-Konto außerhalb lokaler Ausführung; `docs/V19_REPLAY_ISOLATION.md`.
 
@@ -102,6 +104,13 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - **D3-04 – nur TEILIMPLEMENTIERT:** `src/v19-dot3-authenticated-gate.mjs` prüft Ed25519-Bindung an Order/Pool/Blob/TTL mit **extern gepinntem** Public-Key; `src/publisher.mjs` und `src/runner.mjs` prüfen VOR jeder neuen PAPER-Order. **Beide sind absichtlich fail-closed**: selbst ein gültiger signierter Strukturbeleg kann ohne unabhängige Quell-/Sellability-/Issuer-Ausführung keine PAPER-Order autorisieren. Auch neue SELL-Orders bleiben aktuell blockiert; D4-08 muss sicheren Exit-Pfad gestalten. 7 neue Node-Tests auf GitHub, isolierte Struktur-/Mock-Verifikationen 8/8, **echte Ed25519-Integration im Node-Test noch nicht nachgewiesen**.
 - **D3-05 – nur TEILIMPLEMENTIERT:** `src/v19-dot3-sellability.mjs` unterscheidet EVM-Sellroute/Tax/Owner/Blacklist und Solana-Mint/Freeze/Token-2022/DryRun; gleiche `src/v19-dot3-risk-status.mjs`-Logik Live/As-of; Warnsignale bleiben WATCH, unbekannte Chain-/Routingbeweise DATA_GAP. 9/9 isolierte Prüfungen, **keine echten RPC-/On-Chain-Sellability-Simulationen**. `docs/V19_DOT3_AUTH_SELLABILITY_PENDING.md`.
 - Nächste Schritte: echten extern vertrauenswürdigen Dot3-Issuer und SHA-/Workflow-Quellpfad etablieren, sichere SELL-Ausnahme für offene Papierpositionen ohne Schutzumgehung klären, Chain-spezifische echte provider-verifizierte Sellability prüfen. D3-04 und D3-05 **nicht** zum Zähler hinzufügen bis abgenommen.
+
+### Nachtrag 22.11.2026 – D4-07 abgeschlossen, D4-08 weiterhin offen
+
+- **21/61 = 34,4 %, 40 offen.** D4-07 targeted complete, aber Live-Budget-UI und vollständige npm/CI noch nicht nachgewiesen.
+- EIN gemeinsames Versionierungs-/Risikopolizymodul `src/v19-paper-budget-policy.mjs` und `research/config/paper-budget-v19.json`; DEFAULT 5.000/50/30, bei geändertem Einsatz werden bestehende Cash-, Positionen- und Quittungswerte NICHT resettet. GitHub-Konfigurationsänderungen gelangen nur nach Synchronisierung des lokalen Checkouts und Neustart in den Windows-Runner.
+- D4-08 **teilimplementiert, nicht zählen**: `src/v19-paper-exit-convergence.mjs` bündelt STOP und DOT4_SELL einer ursprünglichen BUY-ID zur stabilen Forschungs-Exit-ID. `src/core.mjs` blockiert doppelte SELL-Gutschriften und abweichende Lot-IDs, prospektive SELLs verlangen identische Opening-BUY-ID im Publisher/Runner. 7/7 isolierte Exit-Checks bestanden, 5 Node-Tests eingecheckt. **Die Vertrauenssperre D3-04 blockiert weiterhin sowohl BUY als auch SELL**, bis echte Provider-/Sellability-/Issuer-Provenienz und sichere Exit-Abnahme vorhanden sind.
+- Vollständige technische Doku: `docs/V19_DOT4_BUDGET_AND_EXIT.md`; nächste Prioritäten D3-04, D3-05, D4-08, QA-06. Keine Phantom-Fills / Echtgeld / Dot-Aktivierung.
 
 ## 2. Arbeitsreihenfolge – aktuelle nächsten Schritte
 
