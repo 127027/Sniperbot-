@@ -25,6 +25,30 @@ export function assessCaptureCompletion({request,journal,evidence,runId}={}){
   throw Error('INVALID_CAPTURE_COMPLETION_EVIDENCE');
 
  const reasons=[],coverageWarnings=[];
+ // A self-reported HTTP journal can never outrank the separately archived
+ // API evidence. Every recorded HTTP request must agree on original identity
+ // and transport fields before it can support completion.
+ const receiptFields=['provider','body_path','url','http_status',
+   'response_sha256','started_at_utc','received_at_utc'];
+ const identity=r=>receiptFields.map(field=>r?.[field]??null);
+ const recorded=new Map();
+ for(const item of evidence.api_evidence){
+  const p=item?.body_path;
+  if(typeof p!=='string'||recorded.has(p)){
+   reasons.push('DUPLICATE_OR_INVALID_API_SOURCE_PATH');continue;
+  }
+  recorded.set(p,item);
+ }
+ const matchingReceipts=new Set();
+ for(const item of journal.http_receipts){
+  const p=item?.body_path,original=recorded.get(p);
+  if(!original||matchingReceipts.has(p)
+    ||JSON.stringify(identity(item))!==JSON.stringify(identity(original))){
+   reasons.push('JOURNAL_API_EVIDENCE_MISMATCH');
+  }else matchingReceipts.add(p);
+ }
+ if(matchingReceipts.size!==recorded.size)
+  reasons.push('JOURNAL_API_EVIDENCE_MISMATCH');
  const planned=journal.planned_pages, wanted=[...new Set(request.networks)];
  if(planned.length===0)reasons.push('NO_PAGES_PLANNED');
  if(planned.some(p=>!validPage(p))||!unique(planned.map(p=>key(p.chain,p.page))))
@@ -35,6 +59,10 @@ export function assessCaptureCompletion({request,journal,evidence,runId}={}){
  // never a silently discarded error and never a phantom planned page.
  const gecko=journal.http_receipts.filter(r=>r?.provider==='GECKOTERMINAL');
  const pageRx=/^research\/feeds\/\d{4}-\d{2}-\d{2}\/(\d+)\/gecko-(solana|base|ethereum|bsc|robinhood|cronos)-page([1-9]\d{0,2})\.raw\.json$/;
+ const pageUrl=/^https:\/\/api\.geckoterminal\.com\/api\/v2\/networks\/(solana|base|eth|bsc|robinhood|cro)\/new_pools\?include=base_token,quote_token&page=([1-9]\d{0,2})$/;
+ const canonicalNetwork=x=>x==='eth'?'ethereum':x==='cro'?'cronos':x;
+ const stamp=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
+ const finishedAt=stamp(evidence.captured_completed_at_utc);
  const olderRx=/^research\/feeds\/\d{4}-\d{2}-\d{2}\/(\d+)\/gecko-(solana|base|ethereum|bsc|robinhood|cronos)-trending-(1h|6h|24h)\.raw\.json$/;
  const succeeded=new Set();
  const failed=[],supplemental=[];
@@ -55,6 +83,15 @@ export function assessCaptureCompletion({request,journal,evidence,runId}={}){
   const candidate=key(match[2],Number(match[3]));
   if(!planned.some(p=>key(p.chain,p.page)===candidate)){
    reasons.push('RECEIPT_NOT_IN_REQUEST_PLAN');continue;
+  }
+  const endpoint=typeof r.url==='string'?r.url.match(pageUrl):null;
+  const captured=stamp(r.received_at_utc),started=stamp(r.started_at_utc);
+  if(!endpoint||canonicalNetwork(endpoint[1])!==match[2]
+    ||Number(endpoint[2])!==Number(match[3])
+    ||started===null||captured===null||started>captured
+    ||finishedAt===null||captured>finishedAt
+    ||!matchingReceipts.has(r.body_path)){
+   reasons.push('PLANNED_PAGE_ENDPOINT_OR_PROVENANCE_MISMATCH');continue;
   }
   if(r.http_status===200)succeeded.add(candidate);
   else failed.push({page:candidate,status:r.http_status??null});
