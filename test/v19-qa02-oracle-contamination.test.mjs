@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {classifyAsOfEvidence} from '../src/v19-asof-evidence.mjs';
-import {scoreAsOf} from '../src/forward-learning.mjs';
+import {scoreAsOf,makeCaptureObservationBatch} from '../src/forward-learning.mjs';
 import {replaySignalDecisions} from '../src/point-in-time-strategy.mjs';
 import {backtestOnRequest} from '../src/v18-requested-backtest.mjs';
 const when='2026-10-12T06:35:00.000Z',later='2026-11-22T10:00:00.000Z';
@@ -56,4 +56,48 @@ test('QA-02 retrospective winner-selection manifest rejected at entry, never sil
   schema:1,kind:'R29_V18_ASOF_REPLAY_INPUT',date:'2026-10-12',
   selected_from_future_winner_list:true,snapshots:[],activity_observations:[]}
  }),/UNTRUSTED_OR_HINDSIGHT_UNIVERSE/);
+});
+
+
+test('QA-02 backdated hindsight prices cannot masquerade as second forward capture',()=>{
+ const mk=(capture,price)=>({schema:1,kind:'R29_FORWARD_UNFILTERED_POOL_OBSERVATIONS',
+  mode:'PAPER_RESEARCH_ONLY',captured_at_utc:capture,
+  observations:[{key:'base:'+coin.pool,chain:'base',pool:coin.pool,
+   contract:coin.contract,symbol:'UNKNOWN',captured_at_utc:capture,
+   observed_at_utc:capture,price_usd:price,liquidity_usd:20000,volume_24h_usd:10000,
+   outcome_status:'NOT_YET_MEASURED'}]});
+ const early=mk('2026-10-12T05:00:00.000Z',.001);
+ const later=mk('2026-10-12T05:30:00.000Z',.0012);
+ const clean=scoreAsOf({batches:[early,later],asOfUtc:when});
+ assert.equal(clean.counts.research_rankable,1);
+ const poisoned={...later,observations:[{
+  ...later.observations[0],source_class:'POST_EVENT_ORACLE',
+  future_winner_label:'WINNER',reported_gain_pct:999999}]};
+ const rejected=scoreAsOf({batches:[early,poisoned],asOfUtc:when});
+ assert.equal(rejected.counts.research_rankable,0);
+ assert.equal(rejected.counts.observed_unique_pools,1);
+ assert.equal(rejected.candidates[0].evidence_batches,1);
+ const poisonBatch=scoreAsOf({batches:[early,{...later,
+  source_class:'RETRO_ASOF_RECONSTRUCTION'}],asOfUtc:when});
+ assert.equal(poisonBatch.counts.research_rankable,0);
+ const lateAvailable=scoreAsOf({batches:[early,{...later,
+  observations:[{...later.observations[0],
+    available_at_utc:'2026-11-22T10:00:00.000Z'}]}],asOfUtc:when});
+ assert.equal(lateAvailable.counts.research_rankable,0);
+});
+test('QA-02 ingest does not erase oracle tags and then accept fake unlabeled prices',()=>{
+ const stamp='2026-10-12T05:00:00.000Z';
+ const a=makeCaptureObservationBatch({capturedAtUtc:stamp,
+  sourcePath:'research/feeds/2026-10-12/fixture.json',
+  geckoCandidates:[{chain:'base',pool:coin.pool,contract:coin.contract,
+   observed_at_utc:stamp,observed_price_usd:1,liquidity_usd:25000,
+   source_class:'POST_EVENT_ORACLE',reported_gain_pct:500000}],
+  dexFallbackCandidates:[{chain:'base',pool:coin.pool,contract:coin.contract,
+   observed_at_utc:stamp,observed_price_usd:2,liquidity_usd:25000,
+   source_class:'RETRO_ASOF_RECONSTRUCTION'}]});
+ assert.equal(a.counts.valid,0);
+ assert.deepEqual(a.errors,[
+  'POST_EVENT_OR_RETRO_INPUT_QUARANTINED',
+  'POST_EVENT_OR_RETRO_INPUT_QUARANTINED']);
+ assert.equal(a.orders_published,0);
 });
