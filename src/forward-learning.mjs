@@ -40,9 +40,11 @@ export function makeCaptureObservationBatch({capturedAtUtc,sourcePath,geckoCandi
    missing_price:observations.filter(x=>x.price_usd===null).length},
   errors,orders_published:0};
 }
-export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100}={}){
+export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100,maxLatestCaptureAgeMinutes=120}={}){
  const t=ms(asOfUtc);
- if(t===null||!Array.isArray(batches)||!Number.isInteger(maxCandidates)||maxCandidates<1)throw Error('INVALID_ASOF_SCORE');
+ if(t===null||!Array.isArray(batches)||!Number.isInteger(maxCandidates)||maxCandidates<1
+   ||!Number.isInteger(maxLatestCaptureAgeMinutes)||maxLatestCaptureAgeMinutes<5
+   ||maxLatestCaptureAgeMinutes>1440)throw Error('INVALID_ASOF_SCORE');
  const rows=new Map();
  for(const batch of batches){
    const bTime=ms(batch?.captured_at_utc);
@@ -62,6 +64,12 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100}={}){
    const unique=[...new Map(list.map(x=>[x.captured_at_utc,x])).values()];
    const newest=unique.at(-1);
    const newestAt=ms(newest.captured_at_utc);
+   // An ancient price movement is useful history, never an active breakout.
+   // Independent of the 4/8/12/24 GPT review budget, a fresh MARKET capture
+   // must arrive within this bounded research TTL before the pool is ranked.
+   const lastCaptureAgeMinutes=(t-newestAt)/60000;
+   const captureFresh=lastCaptureAgeMinutes>=0
+      &&lastCaptureAgeMinutes<=maxLatestCaptureAgeMinutes;
    const prior=unique.slice(0,-1).reverse().find(x=>
      x.price_usd!==null&&newest.price_usd!==null&&
      newestAt-ms(x.captured_at_utc)>=300000);
@@ -78,7 +86,7 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100}={}){
      ?rel(effectiveVolume,prior.volume_24h_usd):null;
    const deltaLiquidity=prior?rel(newest.liquidity_usd,prior.liquidity_usd):null;
    const full=!!newest.contract&&tokenValid(newest.chain,newest.contract);
-   const baseReady=full&&prior&&move!==null
+   const baseReady=captureFresh&&full&&prior&&move!==null
       &&newest.liquidity_usd!==null&&newest.liquidity_usd>=5000
       &&effectiveVolume!==null;
    const score=baseReady?
@@ -89,6 +97,9 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100}={}){
    candidates.push({key:id,chain:newest.chain,pool:newest.pool,pool_kind:newest.pool_kind||null,contract:newest.contract,
      symbol:newest.symbol,last_capture_at_utc:newest.captured_at_utc,
      evidence_batches:unique.length,
+     latest_capture_age_minutes:Math.round(lastCaptureAgeMinutes*100)/100,
+     latest_capture_is_recent: captureFresh,
+     research_max_capture_age_minutes:maxLatestCaptureAgeMinutes,
      observed_price_change_pct:move,observed_volume_24h_change_pct:deltaVol,
      observed_liquidity_change_pct:deltaLiquidity,
      research_effective_volume_24h_usd:effectiveVolume,
@@ -96,7 +107,8 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100}={}){
      carried_forward_volume_for_research:!!volumeSource&&volumeSource.captured_at_utc!==newest.captured_at_utc,
      provider_volume_and_price_are_not_independent_execution_quotes:true,
      score,
-     status:baseReady?'RESEARCH_PRIORITY_ONLY_NOT_RISK_APPROVED':'WATCH_INSUFFICIENT_REPEATED_EVIDENCE',
+     status:!captureFresh?'WATCH_STALE_LAST_CAPTURE':
+       baseReady?'RESEARCH_PRIORITY_ONLY_NOT_RISK_APPROVED':'WATCH_INSUFFICIENT_REPEATED_EVIDENCE',
      risk_eligible:false,trade_authorized:false,
      oldest_signal_at_utc:prior?.captured_at_utc??null});
  }
@@ -104,7 +116,8 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100}={}){
  return {schema:1,kind:'R29_FORWARD_BLIND_ASOF_RESEARCH_RANKING',
   as_of_utc:new Date(t).toISOString(),candidates:candidates.slice(0,maxCandidates),
   counts:{observed_unique_pools:candidates.length,research_rankable:candidates.filter(x=>x.score!==null).length,
-   insufficient_repeated_data:candidates.filter(x=>x.score===null).length},
+   stale_last_captures:candidates.filter(x=>!x.latest_capture_is_recent).length,
+   insufficient_repeated_data:candidates.filter(x=>x.score===null&&x.latest_capture_is_recent).length},
   contamination_protection:'NO_WINNER_LIST_NO_FUTURE_CAPTURES_NO_RISK_APPROVAL',orders:0};
 }
 export function labelAfterHorizon({batches=[],decisionAtUtc,horizonHours=24,toleranceMinutes=60,
