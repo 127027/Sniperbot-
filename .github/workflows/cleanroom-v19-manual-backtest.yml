@@ -35,6 +35,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Require independently verified 100-percent ORIGINAL acceptance before 29h Backtest
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/v19-verify-100pct-before-backtest.mjs --require-ready
       - name: Validate requested date, source branch and neutral input path
         run: |
           node --input-type=module -e 'import {validateManualBacktestRequest} from "./src/v19-manual-backtest-request.mjs"; const x=validateManualBacktestRequest({date:process.env.R29_TEST_DATE,inputPath:process.env.R29_MANIFEST,ref:process.env.GITHUB_REF}); console.log(JSON.stringify(x));'
