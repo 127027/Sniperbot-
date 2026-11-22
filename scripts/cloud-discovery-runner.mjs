@@ -13,6 +13,7 @@ import {makeAsOfForecastSnapshot,settleMatureForecastSnapshot} from '../src/forw
 import {chooseNextDiscoveryPage} from '../src/discovery-page-scheduler.mjs';
 import {recoverArchivedV4} from '../src/v18-archived-v4-recovery.mjs';
 import {planMultiChainCapture} from '../src/v19-discovery-budget-plan.mjs';
+import {providerRetryDelay} from '../src/v19-provider-backoff.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -34,7 +35,9 @@ async function fetchRaw(url,provider,fileName){
  const response=await fetch(url,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(16000)});
  const received=now(),text=await response.text();
  const evidence={provider,url,started_at_utc:started,received_at_utc:received,
-  http_status:response.status,http_ok:response.ok,response_sha256:sha256(text),
+  http_status:response.status,http_ok:response.ok,
+  retry_after_header:response.headers?.get?.('retry-after')||null,
+  response_sha256:sha256(text),
   raw_bytes_utf8:text.length,body_path:root+'/'+fileName};
  // Store response as received including error responses; never alter/repair timestamps.
  await writeFile(evidence.body_path,text,'utf8');
@@ -70,8 +73,13 @@ for(let i=0;i<capturePlan.tasks.length;i++){
  }catch(error){
    const prior=fetches.findLast(x=>x.body_path===fullPath);
    const status=prior?.http_status===429?'HTTP_429':
+     prior?.http_ok===true?'DECODE_ERROR':
      prior?.http_status?'HTTP_'+prior.http_status:'SOURCE_ERROR';
    const attemptTime=prior?.received_at_utc||now();
+   const backoff=providerRetryDelay({
+     httpStatus:prior?.http_ok===true?null:(prior?.http_status||null),
+     previousFailures:precedingMemory.checkpoints[chain+':GECKOTERMINAL']?.consecutive_failures||0,
+     retryAfter:prior?.retry_after_header||null,atUtc:attemptTime});
    // When no HTTP body exists, record a unique immutable error receipt.
    // Never claim that an unfetched pool page was successfully archived.
    const attemptPath=prior?.body_path||root+'/gecko-'+chain+'-page'+page+'.error.json';
@@ -81,7 +89,8 @@ for(let i=0;i<capturePlan.tasks.length;i++){
        response_body_received:false,trade_authorized:false},null,2)+'\n','utf8');
      artifacts.push(attemptPath);
    }
-   failedPages.push({chain,page,status,sourcePath:attemptPath,capturedAtUtc:attemptTime});
+   failedPages.push({chain,page,status,sourcePath:attemptPath,
+     capturedAtUtc:attemptTime,retryAfterUtc:backoff.next_retry_at_utc});
    if(prior)prior.error=String(error?.message||error).slice(0,100);
    else fetches.push({provider:'GECKOTERMINAL',url,error:String(error?.message||error).slice(0,100)});
    if(status==='HTTP_429'){
@@ -190,7 +199,8 @@ metrics.previous_chain_page_checkpoint=oldCheckpoint?.next_page_to_consider??nul
 metrics.verified_recheck_price_observations=rechecked.length;
 metrics.v19_chain_page_plan=capturePlan;
 metrics.v19_gecko_received_pages=receivedPages.map(x=>({chain:x.chain,page:x.page,found:x.decoded.found_count}));
-metrics.v19_gecko_failed_pages=failedPages.map(x=>({chain:x.chain,page:x.page,status:x.status}));
+metrics.v19_gecko_failed_pages=failedPages.map(x=>({chain:x.chain,page:x.page,
+  status:x.status,retry_after_utc:x.retryAfterUtc}));
 metrics.v19_gecko_deferred_pages=deferredPages;
 metrics.v19_gecko_actual_attempts=receivedPages.length+failedPages.length;
 metrics.v18_archived_v4_recovered_pool_count=recoveredV4Count;
@@ -229,7 +239,8 @@ for(const failure of failedPages){
  const merged=mergeMemory(memory,{candidates:[],
    sourcePath:failure.sourcePath,
    sourceCapturedAtUtc:failure.capturedAtUtc,provider:'GECKOTERMINAL',
-   chain:failure.chain,page:failure.page,fetchStatus:failure.status});
+   chain:failure.chain,page:failure.page,fetchStatus:failure.status,
+   retryAfterUtc:failure.retryAfterUtc});
  memory=merged.memory;
 }
 const mergedDex=mergeMemory(memory,{candidates:fallback,
