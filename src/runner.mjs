@@ -97,7 +97,7 @@ async function main(){
  out('PAPER_BUDGET_POLICY',configured.policy_id,
    'stake='+executionPolicy.entryAmount,'cash_preserved='+preserved.existing_paper_cash_test_usdc);
  const transport=new GitHubTransport(process.env.GITHUB_TOKEN,state.clientId);
- startDashboard(()=>state,Number(process.env.R29_DASHBOARD_PORT||8765));
+ startDashboard(()=>state,Number(process.env.R29_DASHBOARD_PORT||8765),()=>executionPolicy);
  out('R29 CLEANROOM PAPER ONLY', 'client='+state.clientId,'balance='+state.cash,'state='+stateFile,'dashboard=http://127.0.0.1:8765');
  const pollMs=Math.max(15000,Number(process.env.R29_POLL_MS||30000));
  while(true){try{await pollOnce(transport);}catch(e){out('POLL_FAILURE',e.message);}await sleep(pollMs);}
