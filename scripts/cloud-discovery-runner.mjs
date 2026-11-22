@@ -35,6 +35,7 @@ import {emptyProviderBudgetState,reserveProviderRequest,recordProviderResponse,
 import {planIndependentObservations} from '../src/v19-independent-observation-schedule.mjs';
 import {summarizeCumulativeScanProgress} from '../src/v19-cumulative-scan-progress.mjs';
 import {enrichPersistentMarketIdentity} from '../src/v19-canonical-market-identity.mjs';
+import {makeNeutralEvaluationPopulation} from '../src/v19-neutral-evaluation-population.mjs';
 import {stagePendingCapture,appendPartialHttpReceipt,closePartialCapture}
  from '../src/v19-partial-capture-durability.mjs';
 import {selectObservationArchivePaths,parseResearchJsonWithLegacyTrailer}
@@ -832,6 +833,14 @@ if(maturePrior){
 // SYS-13: add typed/normalized identities while preserving all 409+ legacy
 // keys, source refs, as-of observations and existing fair-queue cursors.
 memory=enrichPersistentMarketIdentity(memory);
+// SYS-12: publish ALL as-of observed pools including non-buyable candidates,
+// without consulting post-event winners or inventing labeled outcomes.
+const neutralPopulation=makeNeutralEvaluationPopulation({
+ memory,asOfUtc:now()
+});
+const neutralPopulationPath=root+'/neutral-evaluation-population.json';
+await writeFile(neutralPopulationPath,JSON.stringify(neutralPopulation,null,2)+'\n','utf8');
+artifacts.push(neutralPopulationPath);
 await mkdir('research/state/checkpoints',{recursive:true});
 await writeFile(memoryPath,JSON.stringify(memory,null,2)+'\n','utf8');
 await writeFile(providerBudgetPath,JSON.stringify(providerBudget,null,2)+'\n','utf8');
@@ -860,7 +869,9 @@ const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
  matured_label_path:matureLabelsPath,
  prospective_ranking_counts:prospectiveRanking.counts,
  no_history_age_cutoff:true,no_trades_authorized:true,
- source_errors:data.errors};
+ source_errors:data.errors,
+ neutral_population_path:neutralPopulationPath,
+ neutral_population_pool_count:neutralPopulation.population_size};
 await writeFile(memoryCheckpointPath,JSON.stringify(memoryCheckpoint,null,2)+'\n','utf8');
 await writeFile('research/state/latest.json',JSON.stringify({
  schema:1,checkpoint_path:memoryCheckpointPath,memory_path:memoryPath,
