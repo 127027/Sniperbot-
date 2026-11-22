@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {planEvidenceRepairRechecks} from '../src/v19-evidence-repair-queue.mjs';
 import {scoreAsOf} from '../src/forward-learning.mjs';
-import {scoreAsOf} from '../src/forward-learning.mjs';
 const t='2026-11-22T15:20:00.000Z',pool=n=>'0x'+n.toString(16).padStart(40,'0');
 const key=n=>'base:'+pool(n);
 const mem=()=>({kind:'R29_PERSISTENT_MARKET_MEMORY',pools:Object.fromEntries([1,2,3,4].map(n=>
