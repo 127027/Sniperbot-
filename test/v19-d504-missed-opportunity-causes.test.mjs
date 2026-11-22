@@ -59,12 +59,14 @@ test('D5-04: verified process failure classes retain evidence and timestamps but
  assert.ok(reasons.every(x=>x.next_action));
  assert.equal(r.observed_missed_winners,null);
 });
-test('D5-04: actual 409 pool source report keeps unknown missed-outcome rates unknown',async()=>{
+test('D5-04: growing real pool population keeps unknown missed-outcome rates unknown',async()=>{
  const original=JSON.parse(await readFile('research/state/market-memory.json','utf8'));
  const p=makeNeutralEvaluationPopulation({memory:original,asOfUtc:now});
  const r=diagnoseMissedOpportunities({population:p,asOfUtc:now});
- assert.equal(r.neutral_observed_pool_population,409);
- assert.equal(r.per_pool.length,409);
+ const sourcePoolCount=Object.keys(original.pools).length;
+ assert.ok(sourcePoolCount>=409,'historical baseline lost');
+ assert.equal(r.neutral_observed_pool_population,sourcePoolCount);
+ assert.equal(r.per_pool.length,sourcePoolCount);
  assert.equal(r.observed_missed_winners,null);
  assert.equal(r.estimated_missed_pnl_test_usdc,null);
  assert.equal(r.stats.NO_CASH.verified_process_cause_events,0);
