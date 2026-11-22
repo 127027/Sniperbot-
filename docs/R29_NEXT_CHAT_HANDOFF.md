@@ -19,9 +19,11 @@
 
 ## 1. Verifizierter Übergabestand
 
-**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach D5-02-Abnahme: **23/61 = 37,7 %**, 38 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
+**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach D2-06-Abnahme: **24/61 = 39,3 %**, 37 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
 
 Bisher als `COMPLETE (targeted)` dokumentiert:
+
+- `D2-06`: echtes Originalcapture vom **22.11.2026** erneut entschlüsselt: Uniswap-V4-DEX-ID ist `uniswap-v4-ethereum`, NICHT `uniswap-v4-eth` (Gecko-API-Slug `eth` darf nicht für DEX-Domänen-ID verwendet werden). Einzeilige Korrektur in `src/live-pool-discovery.mjs`, V4-Typ-Erhaltung in `src/v19-dot3-risk-status.mjs`, `test/v19-ethereum-v4-original-capture.test.mjs`. SHA-256 des Ethereum-Originals stimmt unabhängig; **2/20→20/20 Pools, 18 V4**, alle 20 separate Contracts. Base-Kontrolle **9/20→20/20, 11 V4**. 22/22 gezielte Integrationschecks, 7 Node-Regressionen eingecheckt, volle CI noch offen. Keine rückwirkende ursprüngliche Dot2-Entdeckung; `docs/V19_ETHEREUM_V4_ORIGINAL_CAPTURE_ABNAHME.md`.
 
 - `D5-02` neutraler Dot5-Ereignistrichter `src/v19-dot5-event-ledger.mjs` und Integration in `scripts/cloud-discovery-runner.mjs` samt `dot5_event_ledger_path` im Feeds-Latestpointer. Konserviert jede erfasste Chain/Page/Zeile/Quellpool-ID (auch Parser-Rejections und 429-Gaps), verknüpft durch `event_id` Dot2-Discovery mit der Dot3-Risikovorschau, hält Prognose/Order/Receipt/Outcome bis echte Belege vorliegen `null`. Archivierter 22.11. Ethereum-Page3-Fall: **20 Zeilen – 2 Kandidaten (Bigfoot/Mfer), 18 Uniswap-V4-Parserablehnungen**, ohne behauptete Gewinner oder echten GPT-/Paper-Trade. 13/13 gezielte Checks erfolgreich; 10 Node-Tests eingecheckt, gesamtes npm test/Actions offen. `docs/V19_DOT5_EVENT_LEDGER.md`.
 
@@ -134,6 +136,14 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - Der Dot2-Mehrseiten-Runner hatte bisher `decoded.rejected` beim Zusammenführen von Chains/Seiten verloren; das wurde jetzt behoben. Die Original-Quellzeilen, auch abgewiesene **Uniswap-V4-IDs**, werden im Dot5-Journal als eigenständige Fehlerereignisse persistiert. HTTP 429, fehlgeschlagene und zurückgestellte Seiten bleiben als Coverage-Gaps sichtbar, ohne daraus Coins oder Trades zu erfinden.
 - Aktuelle Originalarchiv-Prüfung: 22.11.2026, Ethereum-Seite 3, 20 Quellzeilen, 2 akzeptiert, 18 Parserrejections. **Dies beweist keine 18 verpassten Gewinner**, aber eine präzise Stelle des Kandidatenverlusts. D5-01/D5-04 (ganzer Markt-Nenner und Fehlchancen-Messung) sowie D3-04/D3-05, D4-08 und QA-06 weiter OFFEN.
 - **13/13 isolierte Funktionsprüfungen + Runner-/Modul-/Test-Syntax erfolgreich.** Die Funktionsprüfung verwendete einen deterministischen V8-Hash-Mock; die eingecheckten Node-Regressionen benutzen Node SHA-256. **Volle Node-/GitHub-Actions-Resultate noch nicht belegt**. Dots deaktiviert, Branch only, keine Orders, keine Echtgeld-/Windows-Paper-Änderung.
+
+### Nachtrag 22.11.2026 – D2-06 Uniswap-V4 Original-Regressionsabnahme
+
+- **24/61 = 39,3 %, 37 offen.** D2-06 gezielt abgeschlossen. **Keine echte positive Sicherheitsfreigabe und kein neuer Echt-/Paper-Handel.**
+- Ursprüngliches Problem in `src/live-pool-discovery.mjs`: Falsche DEX-ID `uniswap-v4-eth` aus dem Gecko-API-Netzwerkslug abgeleitet; die tatsächliche `relationships.dex.data.id` für Ethereum heißt `uniswap-v4-ethereum`. Die 32-Byte-`PoolId` darf nicht mit 20-Byte-Contract verwechselt werden.
+- Der unveränderte originale Ethereum-Page-3-Rohbeleg `research/feeds/2026-11-22/45002280249/gecko-ethereum-page3.raw.json` (22.11.2026) wurde mit eigenständig neu berechnetem SHA-256 `3ddf82cda515d3001aeb4ed6312a926ba19e213f2f91918b211bb3ecee3788c2` und 34.888 Bytes überprüft. Der zuvor archivierte Fehlerbericht bleibt als Nachweis 2/20 akzeptiert, 18 V4-Rejects unverändert bestehen. Der jetzt gefixte Decoder rekonstruiert **20/20** mit **18 typisierten V4** und **20 separat identifizierten Token-Contracts**.
+- `src/v19-dot3-risk-status.mjs` trägt jetzt `pool_kind` explizit auch im Dot3-Status. Gezielter Originaldatenpfad `decode → Marktgedächtnis → Handoff → Dot3 → Dot5 → Hot/Fair`: 22/22 isolierte Integrationschecks bestanden, 7 Node-Regressionsfälle eingecheckt. Base-Originalgegencheck `9+11=20` weiterhin bestanden. Ein unabhängiger SHA-Test war **kein** Nachweis tatsächlicher alter Dot2-GPT-Ausführung, globaler Marktabdeckung oder gesicherter DEX-Quotes.
+- `D2-01/02` (alle Chains/Paging), `D3-04/05` (echte Sicherheits-/Sellability-Quelle), `D4-08` (sichere Verkäufe) und `QA-06` (erfolgreich abgeschlossene komplette Node-/Actions-Tests) sind **weiter offen**. Voller Bericht `docs/V19_ETHEREUM_V4_ORIGINAL_CAPTURE_ABNAHME.md`.
 
 ## 2. Arbeitsreihenfolge – aktuelle nächsten Schritte
 
