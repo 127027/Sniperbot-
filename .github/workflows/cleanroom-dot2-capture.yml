@@ -58,5 +58,9 @@ jobs:
       - name: Report incomplete or failed research capture honestly
         if: ${{ always() }}
         run: |
+          # Raw responses, pending pages and provider budget have ALREADY been
+          # committed by the preceding always() step. A GitHub job with five
+          # successful pages and one HTTP429 must now finish as FAILURE.
+          node scripts/v19-assert-capture-completion.mjs
           test "${{ steps.dot2_capture.outcome }}" = "success"
           test "${{ steps.media_capture.outcome }}" = "success"
