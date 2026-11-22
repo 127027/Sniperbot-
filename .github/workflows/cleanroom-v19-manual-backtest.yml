@@ -49,7 +49,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          args=(--date "$R29_TEST_DATE")
+          # User-approved future backtests start the first virtual decision
+          # exactly at 00:00 UTC, rather than the older :35 research model.
+          args=(--date "$R29_TEST_DATE" --first-scan-at-start)
           if [[ -n "$R29_MANIFEST" ]]; then
             args+=(--input "$R29_MANIFEST")
           fi
