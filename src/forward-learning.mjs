@@ -104,6 +104,7 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100,maxLatestCapture
       +Math.log10(Math.max(1,newest.liquidity_usd))*2:null;
    candidates.push({key:id,chain:newest.chain,pool:newest.pool,pool_kind:newest.pool_kind||null,contract:newest.contract,
      symbol:newest.symbol,last_capture_at_utc:newest.captured_at_utc,
+     latest_observed_liquidity_usd:newest.liquidity_usd,
      evidence_batches:unique.length,
      latest_capture_age_minutes:Math.round(lastCaptureAgeMinutes*100)/100,
      latest_capture_is_recent: captureFresh,
