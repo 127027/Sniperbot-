@@ -30,6 +30,8 @@ import {emptyOlderPoolState,planOlderPoolCaptures,decodeOlderPoolPage,recordOlde
 import {planGeckoRequestPacing} from '../src/v19-gecko-pacing.mjs';
 import {activeGeckoProviderCooldown} from '../src/v19-gecko-provider-cooldown.mjs';
 import {summarizeR29OperatingMeasurements} from '../src/v19-operating-measurements.mjs';
+import {emptyProviderBudgetState,reserveProviderRequest,recordProviderResponse,
+ summarizeProviderBudget} from '../src/v19-provider-budget.mjs';
 import {selectObservationArchivePaths,parseResearchJsonWithLegacyTrailer}
  from '../src/v19-observation-archive-reader.mjs';
 
@@ -50,13 +52,25 @@ const now=()=>new Date().toISOString();
 const fetches=[],dexChecks=[],fallback=[],rechecked=[],artifacts=[];
 let lastGeckoStartedMs=null;
 let runGeckoRetryAtUtc=null;
-let precedingMemory,olderState,ohlcvState;
-const geckoBlock=()=>activeGeckoProviderCooldown({
- checkpoints:precedingMemory?.checkpoints||{},
- olderCheckpoints:olderState?.checkpoints||{},
- ohlcvMarkets:ohlcvState?.markets||{},atUtc:now(),
- runRetryAtUtc:runGeckoRetryAtUtc
-});
+let precedingMemory,olderState,ohlcvState,providerBudget;
+const providerBudgetPath='research/state/provider-budget.json';
+const providerLane=(provider,url)=>provider==='DEXSCREENER'?'PAIR':
+  url.includes('/trending_pools')?'TRENDING':
+  url.includes('/ohlcv/')?'OHLCV':'NEW_POOLS';
+const geckoBlock=()=>{
+ const inherited=activeGeckoProviderCooldown({
+  checkpoints:precedingMemory?.checkpoints||{},
+  olderCheckpoints:olderState?.checkpoints||{},
+  ohlcvMarkets:ohlcvState?.markets||{},atUtc:now(),
+  runRetryAtUtc:runGeckoRetryAtUtc
+ });
+ const until=Date.parse(providerBudget?.providers?.GECKOTERMINAL?.cooldown_until_utc||'');
+ if(Number.isFinite(until)&&until>Date.now()&&
+    (!inherited.active||until>Date.parse(inherited.retry_not_before_utc)))
+   return {...inherited,active:true,http_requests_authorized:false,
+    retry_not_before_utc:new Date(until).toISOString(),source:'PERSISTENT_SHARED_PROVIDER_BUDGET'};
+ return inherited;
+};
 async function fetchRaw(url,provider,fileName){
  if((provider==='GECKOTERMINAL'||provider==='GECKOTERMINAL_OHLCV')
     &&geckoBlock().active)
@@ -69,11 +83,36 @@ async function fetchRaw(url,provider,fileName){
    await new Promise(resolve=>setTimeout(resolve,pacing.wait_ms));
  // All Gecko family endpoints share one provider pacing window.
  // Successful HTTP replies, 429 errors and failed attempts count alike.
+ const lane=providerLane(provider,url),requestId=runId+':'+provider+':'+fileName;
+ // Real rolling-window and endpoint reservations are shared between jobs.
+ // If the minute budget is full, wait for the next slot instead of
+ // treating an unattempted page as an HTTP error.
+ for(;;){
+   if((provider==='GECKOTERMINAL'||provider==='GECKOTERMINAL_OHLCV')
+      &&geckoBlock().active)throw Error('GECKO_PROVIDER_429_COOLDOWN_NOT_ELAPSED');
+   const grant=reserveProviderRequest({state:providerBudget,provider,lane,
+     asOfUtc:now(),requestId});
+   if(grant.gate.allowed){providerBudget=grant.state;break;}
+   if(grant.gate.reason!=='ROLLING_WINDOW_BUDGET')
+     throw Error('PROVIDER_'+grant.gate.reason);
+   await new Promise(resolve=>setTimeout(resolve,Math.max(1,grant.gate.wait_ms)));
+ }
  const actualStartMs=Date.now();
  if(pacing.subject_to_gecko_pacing)lastGeckoStartedMs=actualStartMs;
  const started=new Date(actualStartMs).toISOString();
- const response=await fetch(url,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(16000)});
- const received=now(),text=await response.text();
+ let response,text;
+ try{
+   response=await fetch(url,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(16000)});
+   text=await response.text();
+ }catch(error){
+   providerBudget=recordProviderResponse({state:providerBudget,provider,lane,
+     requestId,asOfUtc:now(),httpStatus:null});
+   throw error;
+ }
+ const received=now();
+ providerBudget=recordProviderResponse({state:providerBudget,provider,lane,
+   requestId,asOfUtc:received,httpStatus:response.status,
+   retryAfter:response.headers?.get?.('retry-after')||null});
  const evidence={provider,url,started_at_utc:started,received_at_utc:received,
   http_status:response.status,http_ok:response.ok,
   retry_after_header:response.headers?.get?.('retry-after')||null,
@@ -104,6 +143,8 @@ catch(err){if(err.code!=='ENOENT')throw err;olderState=emptyOlderPoolState();}
 const ohlcvStatePath='research/state/ohlcv-backfill.json';
 try{ohlcvState=JSON.parse(await readFile(ohlcvStatePath,'utf8'));}
 catch(err){if(err.code!=='ENOENT')throw err;ohlcvState=emptyOhlcvBackfillState();}
+try{providerBudget=JSON.parse(await readFile(providerBudgetPath,'utf8'));}
+catch(err){if(err.code!=='ENOENT')throw err;providerBudget=emptyProviderBudgetState();}
 const capturePlan=planMultiChainCapture({
  networks:request.networks,checkpoints:precedingMemory.checkpoints,
  pageCoverage,budget:request.max_gecko_requests-(request.max_ohlcv_requests??0)
@@ -449,6 +490,8 @@ metrics.v19_gecko_failed_pages=failedPages.map(x=>({chain:x.chain,page:x.page,
   status:x.status,retry_after_utc:x.retryAfterUtc}));
 metrics.v19_gecko_deferred_pages=deferredPages;
 metrics.v19_gecko_provider_429_cooldown=geckoBlock();
+metrics.v19_persistent_provider_budget=summarizeProviderBudget({state:providerBudget,asOfUtc:now()});
+metrics.v19_provider_budget_checkpoint_path=providerBudgetPath;
 metrics.v19_gecko_actual_attempts=receivedPages.length+failedPages.length;
 // Offset pages can move between calls: keep a separate, immutable-evidence
 // backed ledger for failed, deferred, skipped and overlapping page indices.
@@ -707,6 +750,7 @@ if(maturePrior){
 }
 await mkdir('research/state/checkpoints',{recursive:true});
 await writeFile(memoryPath,JSON.stringify(memory,null,2)+'\n','utf8');
+await writeFile(providerBudgetPath,JSON.stringify(providerBudget,null,2)+'\n','utf8');
 const memoryCheckpointPath='research/state/checkpoints/'+runId+'.json';
 const nextPlan=fairRecheckPlan(memory,{asOfUtc:data.captured_completed_at_utc,maxRechecks:request.max_dex_pairs});
 const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
