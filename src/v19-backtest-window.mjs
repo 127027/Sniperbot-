@@ -6,17 +6,19 @@ import {buildAsOfLookback} from './v19-asof-lookback.mjs';
 const day=x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)
  &&Number.isFinite(Date.parse(x+'T00:00:00.000Z'))?Date.parse(x+'T00:00:00.000Z'):null;
 const iso=x=>new Date(x).toISOString();
-export function build29HourAsOfTimeline({date,snapshots=[],warmupHours=5}={}){
+export function build29HourAsOfTimeline({date,snapshots=[],warmupHours=5,
+ firstScanAtStart=false}={}){
  const start=day(date);
  if(start===null||!Array.isArray(snapshots)||!Number.isInteger(warmupHours)
-    ||warmupHours<1||warmupHours>48)throw Error('INVALID_V19_WINDOW');
+    ||warmupHours<1||warmupHours>48||typeof firstScanAtStart!=='boolean')
+    throw Error('INVALID_V19_WINDOW');
  const end=start+86400000,begin=start-warmupHours*3600000;
  const ticks=[];
  for(let i=0;i<warmupHours+24;i++){
-   // Five warmup hourly research snapshots retain their existing :35 cadence.
-   // The first TRADING opportunity at 00:00 is explicitly available;
-   // all later hourly check-ins can continue at :35.
-   const tick=begin+i*3600000+(i===warmupHours?0:35*60000);
+   // Explicit opt-in for the immediate 00:00 decision, while retaining
+   // legacy :35 diagnostics for existing unchanged benchmark comparisons.
+   const tick=begin+i*3600000+
+     (firstScanAtStart&&i===warmupHours?0:35*60000);
    const at=iso(tick);
    const lookback=buildAsOfLookback({snapshots,asOfUtc:at});
    // The trading gate has a separate 10-minute quote age limit. A historical
@@ -46,8 +48,9 @@ export function build29HourAsOfTimeline({date,snapshots=[],warmupHours=5}={}){
  }
  return {schema:1,kind:'R29_V19_29H_ASOF_INPUT_TIMELINE',
    date,warmup_hours:warmupHours,decision_hours:24,
-   first_decision_opportunity_utc:iso(start),
-   first_decision_wait_minutes:0,
+   first_decision_opportunity_utc:firstScanAtStart?iso(start):iso(start+35*60000),
+   first_decision_wait_minutes:firstScanAtStart?0:35,
+   first_scan_at_start_enabled:firstScanAtStart,
    begin_utc:iso(begin),decision_start_utc:iso(start),end_utc:iso(end),
    hourly_ticks:ticks.length,ticks,
    requires_separate_dot4_replay:true,
