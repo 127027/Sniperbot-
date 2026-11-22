@@ -24,18 +24,18 @@ export function chooseNetwork(request,runNumber){
  return {chain:list[index],rotation:index,network:apiNetwork(list[index])};
 }
 const canonicalAddress=(chain,x)=>chain==='solana'?x:String(x).toLowerCase();
-export function fromDexPairOnly({chain,pool,response,capturedAtUtc}={}){
+export function fromDexPairOnly({chain,pool,pool_kind=null,response,capturedAtUtc}={}){
  const c=canonicalChain(chain),t=Date.parse(capturedAtUtc);
- if(!c||!poolValid(c,pool)||!Number.isFinite(t))throw Error('INVALID_DEX_FALLBACK');
+ if(!c||!poolValid(c,pool,pool_kind)||!Number.isFinite(t))throw Error('INVALID_DEX_FALLBACK');
  const pairs=Array.isArray(response?.pairs)?response.pairs:Array.isArray(response)?response:[];
  const p=pairs.find(x=>canonicalChain(x?.chainId)===c
-  &&poolValid(c,x?.pairAddress)&&canonicalAddress(c,x.pairAddress)===canonicalAddress(c,pool)
+  &&poolValid(c,x?.pairAddress,pool_kind)&&canonicalAddress(c,x.pairAddress)===canonicalAddress(c,pool)
   &&tokenValid(c,x?.baseToken?.address));
  if(!p)return {status:'NO_VERIFIED_EXACT_PAIR_AND_BASE',candidate:null};
  const price=Number(p.priceUsd),liq=Number(p.liquidity?.usd);
  const contract=p.baseToken.address;
  return {status:'SINGLE_PROVIDER_IDENTITY_NEEDS_SECOND_CONFIRMATION',
-  candidate:{chain:c,pool,contract,symbol:p.baseToken?.symbol||null,
+  candidate:{chain:c,pool,pool_kind,contract,symbol:p.baseToken?.symbol||null,
     source_api:'DEXSCREENER_PAIR_JSON',source_url:'https://dexscreener.com/'+dexNetwork(c)+'/'+pool,
     observed_at_utc:new Date(t).toISOString(),
     price_usd:Number.isFinite(price)&&price>0?price:null,
