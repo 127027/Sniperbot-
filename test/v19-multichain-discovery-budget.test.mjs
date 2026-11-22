@@ -104,18 +104,29 @@ test('a chain cooldown is a coverage gap even with sufficient budget',()=>{
  assert.equal(plan.orders_authorized,0);
 });
 
-test('real 16:31 Ethereum 429 stays deferred until the exact persisted two-hour cooldown',async()=>{
+test('archived real 16:31 Ethereum 429 remains auditable after a later successful retry',async()=>{
  const {readFile}=await import('node:fs/promises');
- const memory=JSON.parse(await readFile('research/state/market-memory.json','utf8'));
- const cp=memory.checkpoints['ethereum:GECKOTERMINAL'];
- assert.equal(cp.last_status,'HTTP_429');
- assert.equal(cp.failed_page_to_retry,1);
- assert.equal(cp.retry_after_utc,'2026-11-22T18:31:56.465Z');
- const justBefore=planMultiChainCapture({networks,budget:6,checkpoints:memory.checkpoints,
+ const archived=JSON.parse(await readFile(
+  'research/feeds/2026-11-22/45044300013/evidence.json','utf8'));
+ const failed=archived.page_capture_failures.find(x=>x.chain==='ethereum'&&x.page===1);
+ assert.ok(failed,'immutable 16:31 real HTTP429 evidence missing');
+ assert.equal(failed.status,'HTTP_429');
+ assert.equal(failed.retry_after_utc,'2026-11-22T18:31:56.465Z');
+ const originalReceipt=archived.api_evidence.find(x=>x.http_status===429
+  &&x.body_path===failed.source_path);
+ assert.ok(originalReceipt,'HTTP429 must have its original raw receipt');
+ assert.equal(originalReceipt.received_at_utc,failed.attempt_at_utc);
+ // Mutable live memory legitimately changed to OK when ETH retry succeeded.
+ // The original 429 must still lead to the exact historical retry plan.
+ const checkpoints={'ethereum:GECKOTERMINAL':{
+  last_status:'HTTP_429',failed_page_to_retry:failed.page,
+  last_attempt_at_utc:failed.attempt_at_utc,
+  retry_after_utc:failed.retry_after_utc}};
+ const justBefore=planMultiChainCapture({networks,budget:6,checkpoints,
   asOfUtc:'2026-11-22T18:31:56.464Z'});
  assert.ok(!justBefore.tasks.some(x=>x.chain==='ethereum'));
  assert.ok(justBefore.unscheduled_chains_due_to_cooldown.includes('ethereum'));
- const ready=planMultiChainCapture({networks,budget:6,checkpoints:memory.checkpoints,
+ const ready=planMultiChainCapture({networks,budget:6,checkpoints,
   asOfUtc:'2026-11-22T18:31:56.466Z'});
  assert.equal(ready.tasks.length,6);
  assert.equal(ready.tasks[0].chain,'ethereum');
