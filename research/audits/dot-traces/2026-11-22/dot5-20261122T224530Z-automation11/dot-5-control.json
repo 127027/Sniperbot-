@@ -1,0 +1,156 @@
+{
+  "schema": 1,
+  "kind": "R29_V19_DOT5_FORENSIC_CONTROL_RESEARCH_ONLY",
+  "run_id": "dot5-20261122T224530Z-automation11",
+  "role": "dot-5-control",
+  "executed_at_utc": "2026-11-22T22:45:30Z",
+  "time_basis": "automation supplied Toronto local 17:45:30 -05:00; UTC converted",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "independent_automation_receipt": "UNVERIFIED",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "status": "DATA_GAP_NO_TRADE",
+  "input_refs": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "4106c66b8bd08557fcd9f82eafbfd9484fbd069c"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "896dee2b80a1899bb53fef58429ae2ac2d1430fb"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "5e0f6e3bb8a35ce6d14285dd5ed0526446fe5786"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "research/latest/dot-1.json",
+      "blob_sha": "e8d569ade2c6b1b18aca506a594e3be5dcae1553"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "blob_sha": "654957162b70d75d05f15bb802a6ac36718019bf"
+    },
+    {
+      "path": "research/latest/dot-3.json",
+      "blob_sha": "07b659d4db2f49f7eaab508994bd75ae02e678aa"
+    },
+    {
+      "path": "research/latest/dot-4.json",
+      "blob_sha": "88d26c0239f05b6632aa1b9c611f79e9d093d15d"
+    },
+    {
+      "path": "signals/index.json",
+      "blob_sha": "8f360a172e95adfda2d30105dd3fc7639497367d"
+    },
+    {
+      "path": "research/feeds/2026-11-22/45076917554/evidence.json",
+      "blob_sha": "8516faba607c527cfb4501360c87f92a1709db3a"
+    },
+    {
+      "path": "research/feeds/2026-11-22/45076917554/dot2-to-dot3-handoff.json",
+      "blob_sha": "0390d46f0fb17468313fa40982800dc272197325"
+    }
+  ],
+  "scope": {
+    "chains": [
+      "solana",
+      "base",
+      "ethereum",
+      "bsc",
+      "robinhood",
+      "cronos"
+    ],
+    "actually_inspected_latest_capture": "base page 3",
+    "latest_capture_run": "45076917554",
+    "latest_capture_utc": "2026-11-22T22:18:01.614Z",
+    "full_contracts": 18,
+    "rejected_rows": 2,
+    "market_memory_pools": 644,
+    "first_dot2_detected": 235,
+    "observation_batches": 128
+  },
+  "observations": [
+    {
+      "event_id": "D5-224530-01",
+      "error_code": "DOT3_DOWNSTREAM_STALE_RELATIVE_TO_DOT2",
+      "earliest_step": "Dot3 research handoff not yet reconciled",
+      "source_path": "research/latest/dot-3.json",
+      "source_blob_sha": "07b659d4db2f49f7eaab508994bd75ae02e678aa",
+      "impact": "Dot3 still points to 45070668194 while newer capture 45076917554 exists; not evidence of a missed trade",
+      "correction": "On next real Dot3 wake reconcile 45076917554 handoff by SHA and log all 18 candidates without trading",
+      "regression_test": "Assert Dot3 source_run_id equals verified latest handoff after Dot3 wake; preserve prior history"
+    },
+    {
+      "event_id": "D5-224530-02",
+      "error_code": "NO_PROVIDER_QUOTE_ASOF_OR_INDEPENDENT_RISK_ISSUER",
+      "earliest_step": "Dot2 quote provenance / Dot3 risk",
+      "source_path": "research/feeds/2026-11-22/45076917554/dot2-to-dot3-handoff.json",
+      "impact": "4 indicative cross-domain matches do not prove upstream quote times or sellability; D3-04 and D3-05 OPEN",
+      "correction": "Independent origin-attested quote-asof, issuer and chain-specific sellability evidence",
+      "regression_test": "Reject PAPER_ELIGIBLE for null provider_quote_asof_utc or missing independent sellability"
+    },
+    {
+      "event_id": "D5-224530-03",
+      "error_code": "DOT5_LATEST_BEHIND_NEW_FEED",
+      "earliest_step": "Dot5 latest pointer",
+      "source_path": "research/latest/dot-5.json",
+      "impact": "Previous 626/217 counters are stale vs 644/235",
+      "correction": "CAS update latest to this forensic report and fresh source stats",
+      "regression_test": "Latest forensic journal SHA matches fetched Git blob and source stats match state/feed"
+    }
+  ],
+  "provider": {
+    "gecko_last_http": 200,
+    "gecko_rolling_recent_starts": 1,
+    "gecko_cooldown": null,
+    "dex_last_http": 200,
+    "rate_limit_429_in_latest_capture": 0,
+    "global_coverage_verified": false
+  },
+  "acceptance": {
+    "total": 61,
+    "pass": 13,
+    "partial": 46,
+    "open": 2,
+    "non_backtest_pass": 13,
+    "non_backtest_required": 60,
+    "unaccepted": 48,
+    "release": "NOT_READY_BLOCKED_BY_ORIGINAL_EVIDENCE"
+  },
+  "trading": {
+    "github_index_orders": 0,
+    "confirmed_client_receipts": null,
+    "client_status": "OFFLINE_OR_UNCONFIRMED",
+    "orders_written": false
+  },
+  "holdout": {
+    "end_utc": "2026-11-25T06:54:05.033Z",
+    "matured": false,
+    "precision": null,
+    "recall": null,
+    "missed_profit": null,
+    "october_original_asof": "DATA_GAP",
+    "backtest_executed": false
+  },
+  "eight_hour_bucket": "2026-11-22T22:00:00Z/2026-11-22T23:00:00Z",
+  "eight_hour_verified_capture_slots": "NOT_YET_FULLY_ENUMERATED",
+  "ci_current_head": "NOT_VERIFIED_THIS_WAKE",
+  "review": "WATCH_DATA_GAP",
+  "alternatives": [
+    "Do not publish BUY/SELL",
+    "Do not trigger QA-04",
+    "Reconcile newest capture and wait for independently verified risk/holdout"
+  ],
+  "limitations": [
+    "No exhaustive tree traversal of all immutable Dot1-4 journals in this wake",
+    "No independently authenticated GPT execution receipt",
+    "No verified Windows client inventory",
+    "No fresh CI HEAD confirmation"
+  ],
+  "next_action": "Verify exact eight-hour source capture audit and branch CI; retain 13/61 strict PASS; no trades"
+}
