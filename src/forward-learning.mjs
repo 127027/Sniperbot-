@@ -35,7 +35,14 @@ export function makeCaptureObservationBatch({capturedAtUtc,sourcePath,geckoCandi
   const row={key:id,chain,pool,pool_kind:c.pool_kind||null,contract:tokenValid(chain,c.contract)?c.contract:null,
    symbol:c.symbol||null,observed_at_utc:new Date(stamp).toISOString(),
    captured_at_utc:new Date(time).toISOString(),source_path:sourcePath,
-   source_provider:c.provider,price_usd:price!==null&&price>0?price:null,
+   source_provider:c.provider,
+   source_raw_path:typeof c.source_raw_path==='string'&&c.source_raw_path.startsWith('research/feeds/')
+     ?c.source_raw_path:null,
+   source_raw_sha256:typeof c.source_raw_sha256==='string'
+      &&/^[a-f0-9]{64}$/.test(c.source_raw_sha256)?c.source_raw_sha256:null,
+   independently_verified_provider_quote_asof_utc:null,
+   provider_quote_origin_time_verified:false,
+   price_usd:price!==null&&price>0?price:null,
    liquidity_usd:liquidity!==null&&liquidity>=0?liquidity:null,
    volume_24h_usd:volume!==null&&volume>=0?volume:null,
    source_page:c.source_page??null,
@@ -81,7 +88,22 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100,maxLatestCapture
    list.sort((a,b)=>ms(a.captured_at_utc)-ms(b.captured_at_utc));
    // Two distinct capture times needed for a real observed price delta;
    // first sightings must remain WATCH_COVERAGE_ONLY.
-   const unique=[...new Map(list.map(x=>[x.captured_at_utc,x])).values()];
+   const uniqueByHttpCaptureTime=[...new Map(list.map(x=>[x.captured_at_utc,x])).values()];
+   // Two network HTTP200 replies can be exact copies of a cached quote.
+   // When archived raw SHA is known, identical bytes from the SAME
+   // provider cannot count as a new independent price observation.
+   // Legacy historic batches without SHA are retained for research, but
+   // must never be described as independently verified quote-time data.
+   const seenOriginalRaw=new Set();
+   const unique=uniqueByHttpCaptureTime.filter(x=>{
+     const fingerprint=x.source_raw_sha256&&/^[a-f0-9]{64}$/.test(x.source_raw_sha256)
+       ?String(x.source_provider)+'|'+x.source_raw_sha256:null;
+     if(!fingerprint)return true;
+     if(seenOriginalRaw.has(fingerprint))return false;
+     seenOriginalRaw.add(fingerprint);
+     return true;
+   });
+   const duplicateRawCapturesSuppressed=uniqueByHttpCaptureTime.length-unique.length;
    const newest=unique.at(-1);
    const newestAt=ms(newest.captured_at_utc);
    // An ancient price movement is useful history, never an active breakout.
@@ -123,6 +145,9 @@ export function scoreAsOf({batches=[],asOfUtc,maxCandidates=100,maxLatestCapture
      symbol:newest.symbol,last_capture_at_utc:newest.captured_at_utc,
      latest_observed_liquidity_usd:newest.liquidity_usd,
      evidence_batches:unique.length,
+     distinct_http_capture_times:uniqueByHttpCaptureTime.length,
+     duplicated_original_provider_raw_captures_suppressed:duplicateRawCapturesSuppressed,
+     independent_provider_quote_time_verified:false,
      latest_capture_age_minutes:Math.round(lastCaptureAgeMinutes*100)/100,
      latest_capture_is_recent: captureFresh,
      research_max_capture_age_minutes:maxLatestCaptureAgeMinutes,
