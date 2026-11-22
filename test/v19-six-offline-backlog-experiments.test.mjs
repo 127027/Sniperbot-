@@ -89,14 +89,14 @@ test('D4-05: prior negative MODEL receipt permits reentry shadow WATCH only afte
   /INVALID_SHADOW_LOSS_REENTRY_STUDY/);
 });
 test('D4-06: mature dense 1/3/6h path scores real observed endpoint separately from intrahorizon peaks',()=>{
- const start='2026-10-12T00:00:00.000Z';
+ const start='2026-10-12T00:00:00.000Z',poolKey='base:'+coin.pool;
  const obs=Array.from({length:12},(_,i)=>({
-  source_class:'SYNTHETIC_TEST',source_path:'research/backtest-inputs/paths.json',
+  pool_key:poolKey,source_class:'SYNTHETIC_TEST',source_path:'research/backtest-inputs/paths.json',
   observed_at_utc:new Date(Date.parse(start)+(i+1)*30*60000).toISOString(),
   available_at_utc:new Date(Date.parse(start)+(i+1)*30*60000).toISOString(),
   price_usd:i===2?1.4:i===3?1.1:1+.02*(i+1)
  }));
- const s=analyzeAsOfForecastPath({startAtUtc:start,entryPriceUsd:1,
+ const s=analyzeAsOfForecastPath({startAtUtc:start,poolKey,entryPriceUsd:1,
   observations:obs,asOfUtc:'2026-10-12T06:00:00.000Z'});
  assert.equal(s.horizon_metrics[1].endpoint_label_mature_and_present,true);
  assert.ok(s.horizon_metrics[1].observed_end_return_pct>0);
@@ -105,15 +105,23 @@ test('D4-06: mature dense 1/3/6h path scores real observed endpoint separately f
  assert.ok(s.horizon_metrics[3].observed_intrahorizon_max_drawdown_pct>0);
  assert.equal(s.horizon_metrics[6].endpoint_label_mature_and_present,true);
  assert.equal(s.model_orders_authorized,0);
- const sparse=analyzeAsOfForecastPath({startAtUtc:start,entryPriceUsd:1,
+ const sparse=analyzeAsOfForecastPath({startAtUtc:start,poolKey,entryPriceUsd:1,
   observations:[obs[1],obs[5],obs[11]],asOfUtc:'2026-10-12T06:00:00.000Z'});
  assert.equal(sparse.horizon_metrics[1].dense_sampling_within_horizon,false);
  assert.equal(sparse.horizon_metrics[1].observed_intrahorizon_peak_return_pct,null);
  assert.equal(sparse.horizon_metrics[1].observed_end_return_pct,obs[1].price_usd/1*100-100);
- const early=analyzeAsOfForecastPath({startAtUtc:start,entryPriceUsd:1,
+ const early=analyzeAsOfForecastPath({startAtUtc:start,poolKey,entryPriceUsd:1,
   observations:obs,asOfUtc:'2026-10-12T00:35:00.000Z'});
  assert.equal(early.horizon_metrics[1].observed_end_return_pct,null);
  assert.equal(early.horizon_metrics[6].observed_intrahorizon_max_drawdown_pct,null);
+ const wrongPool=structuredClone(obs);
+ wrongPool[5].pool_key='ethereum:another-pool';
+ const guarded=analyzeAsOfForecastPath({startAtUtc:start,poolKey,entryPriceUsd:1,
+  observations:wrongPool,asOfUtc:'2026-10-12T06:00:00.000Z'});
+ assert.ok(guarded.excluded.some(x=>x.reason==='NOT_ASOF_CAPTURE_OR_POST_EVENT_ORACLE'));
+ assert.equal(guarded.horizon_metrics[3].observed_intrahorizon_peak_return_pct,null);
+ assert.throws(()=>analyzeAsOfForecastPath({startAtUtc:start,entryPriceUsd:1,
+  observations:obs,asOfUtc:'2026-10-12T06:00:00.000Z'}),/INVALID_ASOF_FORECAST_PATH/);
 });
 test('D5-05: frozen 6h purges and future-holdout outcome scarcity remain unknown, not zero wins',()=>{
  const freeze=freezeProspectiveHoldout({frozenAtUtc:'2026-10-12T00:00:00.000Z'});
