@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "dot": "dot-4",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "run_at_utc": "2026-11-22T02:39:20.211Z",
+  "review_type": "FULL_GPT_STRATEGY_REVIEW_AND_EXIT_CHECK",
+  "decision": "NO_TRADE_DATA_GAP",
+  "cadence_target_per_24h": 4,
+  "previous_full_review_utc": "2026-11-21T18:40:16.012Z",
+  "full_review_due_at_utc": "2026-11-22T00:40:16.012Z",
+  "full_review_completed": true,
+  "positions": {
+    "receipts_directory": "HTTP_404",
+    "status": "OFFLINE_OR_UNCONFIRMED",
+    "confirmed_paper_filled_positions": 0,
+    "not_proof_of_no_offline_positions": true
+  },
+  "signals": {
+    "indexed_orders": 0,
+    "new_orders": 0,
+    "client_fills_verified": 0
+  },
+  "sources": {
+    "dot3_journal": "research/journal/dot-3/2026-11-22/20261122T022513Z-risk-v16-automation11.json",
+    "dot3_journal_sha": "b40c8bc85e1ba5f4b3bb60faa7c0078f4f096d74",
+    "dot2_feed": "research/feeds/2026-11-22/44975257951/evidence.json",
+    "dot2_capture_utc": "2026-11-22T02:15:49.766Z",
+    "market_memory_path": "research/state/market-memory.json",
+    "market_memory_discovered": 188,
+    "market_memory_batches": 56,
+    "media_latest": "research/media/latest.json",
+    "media_contract_pool_matches": 0,
+    "ranking": "research/observations/2026-11-22/44975257951-asof-ranking.json"
+  },
+  "risk_counts": {
+    "ELIGIBLE": 0,
+    "WATCH": 0,
+    "REJECTED": 3,
+    "DATA_GAP": 1
+  },
+  "decisions": [
+    {
+      "chain": "ethereum",
+      "contract": "0x08f4c64c1ba99561431b0588ebe9c77c921e7283",
+      "pool": "0x99e4e8b120f39eb5597cdba6ea3c7ce6c85e6a1b",
+      "symbol": "Mfer",
+      "decision": "WATCH",
+      "risk_status": "DATA_GAP",
+      "blockers": [
+        "PROVIDER_QUOTE_ASOF_UNKNOWN",
+        "STALE_CAPTURE",
+        "SELLABILITY_UNVERIFIED",
+        "HONEYPOT_UNVERIFIED",
+        "TAX_UNVERIFIED"
+      ],
+      "quote_price_difference_pct": 2.118850763260028,
+      "gecko_liquidity_usd": 45500.3437,
+      "dex_liquidity_usd": 45595.08,
+      "provider_quote_asof_utc": null
+    },
+    {
+      "chain": "ethereum",
+      "contract": "0x430ef9263e76dae63c84292c3409d61c598e9682",
+      "pool": "0x890e2d77e75b2d84edbc2ae2237c30e7ffa20474",
+      "symbol": "PYR",
+      "decision": "NO_TRADE",
+      "risk_status": "REJECTED",
+      "blockers": [
+        "LIQUIDITY_BELOW_5000_GECKO",
+        "MISSING_INDEPENDENT_COMPLETE_QUOTE",
+        "PROVIDER_QUOTE_ASOF_UNKNOWN",
+        "STALE_CAPTURE",
+        "SELLABILITY_UNVERIFIED",
+        "HONEYPOT_UNVERIFIED",
+        "TAX_UNVERIFIED"
+      ],
+      "quote_price_difference_pct": null,
+      "gecko_liquidity_usd": 0,
+      "dex_liquidity_usd": null,
+      "provider_quote_asof_utc": null
+    },
+    {
+      "chain": "bsc",
+      "contract": "0x2b7b32a4f5f5ee7a58aa78e811890e4a54ac7777",
+      "pool": "0xfec191fe42fecd805c97d510e00e3cb033c0f8dd",
+      "symbol": "黎曼猜",
+      "decision": "NO_TRADE",
+      "risk_status": "REJECTED",
+      "blockers": [
+        "LIQUIDITY_BELOW_5000_DEX",
+        "MISSING_INDEPENDENT_COMPLETE_QUOTE",
+        "PROVIDER_QUOTE_ASOF_UNKNOWN",
+        "STALE_CAPTURE",
+        "SELLABILITY_UNVERIFIED",
+        "HONEYPOT_UNVERIFIED",
+        "TAX_UNVERIFIED"
+      ],
+      "quote_price_difference_pct": null,
+      "gecko_liquidity_usd": null,
+      "dex_liquidity_usd": 0.04,
+      "provider_quote_asof_utc": null
+    },
+    {
+      "chain": "cronos",
+      "contract": "0x09741c1dbc02cacd778d5365109295f64c573326",
+      "pool": "0x1cdc0cf7879e187b12d2710819077573227acebd",
+      "symbol": "Jko ¥",
+      "decision": "NO_TRADE",
+      "risk_status": "REJECTED",
+      "blockers": [
+        "LIQUIDITY_BELOW_5000_DEX",
+        "MISSING_INDEPENDENT_COMPLETE_QUOTE",
+        "PROVIDER_QUOTE_ASOF_UNKNOWN",
+        "STALE_CAPTURE",
+        "SELLABILITY_UNVERIFIED",
+        "HONEYPOT_UNVERIFIED",
+        "TAX_UNVERIFIED"
+      ],
+      "quote_price_difference_pct": null,
+      "gecko_liquidity_usd": null,
+      "dex_liquidity_usd": 2324.16,
+      "provider_quote_asof_utc": null
+    }
+  ],
+  "research_ranking": {
+    "observed_unique_pools": 149,
+    "rankable": 0,
+    "insufficient_repeated_data": 149,
+    "decision": "WATCH_INSUFFICIENT_REPEATED_EVIDENCE",
+    "not_buy_authorized": true
+  },
+  "oracle_forecasts": {
+    "horizons_hours": [
+      1,
+      3,
+      6
+    ],
+    "thresholds_pct": [
+      20,
+      50,
+      100
+    ],
+    "probabilities": null,
+    "status": "INSUFFICIENT_DATA_NO_CALIBRATION"
+  },
+  "gates": {
+    "dot3_eligible": 0,
+    "independent_complete_quotes": 1,
+    "verified_security": 0,
+    "indicative_reviewable": 0,
+    "order_quote_freshness": "NOT_VERIFIED",
+    "sellability": "UNVERIFIED"
+  },
+  "data_gaps": [
+    "NO_CONFIRMED_CLIENT_PAPER_FILLED",
+    "NO_DOT3_ELIGIBLE",
+    "NO_VERIFIED_SELLABILITY_HONEYPOT_TAX",
+    "NO_FRESH_TWO_SOURCE_ORDER_QUOTE",
+    "NO_VERIFIED_MEDIA_CONTRACT_POOL_LINK",
+    "NO_CALIBRATED_ORACLE_PROBABILITIES"
+  ],
+  "checkpoint": {
+    "source_feed_capture_utc": "2026-11-22T02:15:49.766Z",
+    "market_memory_path": "research/state/market-memory.json",
+    "fair_recheck_backlog_remaining": 180,
+    "ranking_path": "research/observations/2026-11-22/44975257951-asof-ranking.json"
+  },
+  "notes": "No fabricated fills or orders; ranking is research only. Dot3 Mfer two indicative prices match within 3% but is not risk eligible. No BUY/SELL."
+}
