@@ -19,7 +19,7 @@
 
 ## 1. Verifizierter Übergabestand
 
-**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Bei Einrichtung dieser Übergabe: **12/61 = 19,7 %**, 49 offen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
+**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Stand nach D2-09-Abnahme: **13/61 = 21,3 %**, 48 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
 
 Bisher als `COMPLETE (targeted)` dokumentiert:
 
@@ -35,6 +35,7 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - `D2-02` Offset-Paging- und Gap-Journal
 - `D2-07` Hot-/Fair-Warteschlange und Servicezeiten
 - `D2-08` alle neuen Pools priorisieren statt nur zwei erste crosschecken
+- `D2-09` nur ein Fair-Recheck-Planer: `src/market-memory.mjs::planIncrementalScan` delegiert an `src/discovery-fair-queue.mjs::fairRecheckPlan`; Dot2-Anweisungen bleiben pausiert, zielgerichtete Regression `test/v19-unified-recheck-planner.test.mjs`
 
 **Nicht als erledigt zählen:** `D2-01` echte Sechs-Chain-Abdeckung, `D2-03` Contract-Resolver, `D2-04` wiederholte Preis-/OHLCV-Beobachtungen, `D2-05` ältere/re-aktivierte Pools, `SYS-07` Byte-/Hash-Provenienz, `SYS-08` echte GPT-vs-Simulations-Trennung, `SYS-09` isolierte Wallet-Abnahme, `SYS-11` echte per-Endpoint API-Budgets und Caches, `D3-01..07` Dot3-positiver Risk/Freigabepfad, `QA-06` echtes abgeschlossenes npm-test-/Actions-Resultat. Vollständige Liste: [V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md](V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md).
 
