@@ -323,6 +323,24 @@ metrics.v19_hot_fair_recheck_plan={selected:recheckPlan.selected.map(x=>({chain:
   deferred_new_pool_keys:recheckPlan.deferred_new_pool_keys,hot_selected:recheckPlan.hot_selected,
   fair_selected:recheckPlan.fair_selected,trade_authorized:false};
 metrics.v19_chain_page_plan=capturePlan;
+// A planned chain/page is not a successful HTTP capture. A one-request Dot2
+// payload for six requested chains is a measurable research DATA_GAP, not
+// evidence that other five chains were quiet or already fully scanned.
+const actuallyReceivedChains=new Set(receivedPages.map(x=>x.chain));
+metrics.v19_actual_chain_capture={
+ requested_chains:[...request.networks],
+ attempted_chains:[...new Set([...receivedPages,...failedPages].map(x=>x.chain))],
+ http_success_chains:[...actuallyReceivedChains].sort(),
+ http_success_chain_count:actuallyReceivedChains.size,
+ chains_without_success_this_run:request.networks.filter(x=>!actuallyReceivedChains.has(x)),
+ scheduled_request_budget:capturePlan.requested_budget,
+ minimum_one_page_per_chain_budget:capturePlan.minimum_gecko_page_requests_for_one_attempt_per_chain,
+ plan_was_underbudgeted:capturePlan.incomplete_chain_attempts_are_a_data_gap,
+ all_six_requested_chains_received_this_run:
+  request.networks.length===6&&request.networks.every(x=>actuallyReceivedChains.has(x)),
+ verified_global_market_coverage:false,
+ note:'A source capture 200 is a sample, not an autonomous GPT review, executable quote, or full-chain completeness.'
+};
 metrics.v19_gecko_received_pages=receivedPages.map(x=>({chain:x.chain,page:x.page,found:x.decoded.found_count}));
 metrics.v19_gecko_failed_pages=failedPages.map(x=>({chain:x.chain,page:x.page,
   status:x.status,retry_after_utc:x.retryAfterUtc}));
