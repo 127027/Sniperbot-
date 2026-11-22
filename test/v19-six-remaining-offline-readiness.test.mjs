@@ -53,7 +53,9 @@ test('D2-03: 65 post-event winner references are never converted to October disc
  const out=resolveHistoricalWinnerIdentity({winnerRegister:winner,memory,asOfUtc:asOf});
  assert.equal(out.reference_count,65);
  assert.equal(out.name_only_unresolved,57);
- assert.equal(out.exact_pool_link_count,8);
+ assert.equal(out.source_pool_link_count,8);
+ assert.equal(out.exact_pool_link_count,4);
+ assert.ok(out.rows.filter(x=>x.match_status==='LINK_PRESENT_POOL_TYPE_NOT_VERIFIED').length===4);
  assert.ok(out.retrospective_archived_contract_matches<=8);
  assert.ok(out.rows.every(x=>!x.safe_to_replay_as_historical_early_discovery
   &&!x.eligible_as_automatic_buy_candidate));
@@ -131,7 +133,8 @@ test('D5-01: 65 postevent labels compared only against 488 neutral archived pool
  assert.equal(pop.population_size,488);
  assert.equal(out.postevent_winner_reference_count,65);
  assert.equal(out.neutral_observed_pool_count,488);
- assert.equal(out.exact_pool_reference_count,8);
+ assert.equal(out.source_pool_link_count,8);
+ assert.equal(out.exact_pool_reference_count,4);
  assert.equal(out.actual_original_october_early_detection_confirmed,0);
  assert.equal(out.recall,null);
  assert.equal(out.precision,null);
