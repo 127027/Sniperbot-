@@ -31,6 +31,8 @@ export function appendPartialHttpReceipt(journal,{evidence,atUtc}={}){
    ||evidence.http_status<100||evidence.http_status>599
    ||typeof evidence.body_path!=='string'
    ||!evidence.body_path.startsWith('research/feeds/')
+   ||typeof evidence.url!=='string'
+   ||!evidence.url.startsWith('https://')
    ||!/^[a-f0-9]{64}$/.test(evidence.response_sha256||''))
   throw Error('INVALID_PARTIAL_HTTP_RECEIPT');
  if(journal.http_receipts.some(x=>x.body_path===evidence.body_path))
@@ -38,6 +40,7 @@ export function appendPartialHttpReceipt(journal,{evidence,atUtc}={}){
  const next=structuredClone(journal);
  next.http_receipts.push({
   provider:evidence.provider,http_status:evidence.http_status,
+  url:evidence.url,
   started_at_utc:evidence.started_at_utc,
   received_at_utc:evidence.received_at_utc,
   response_sha256:evidence.response_sha256,
