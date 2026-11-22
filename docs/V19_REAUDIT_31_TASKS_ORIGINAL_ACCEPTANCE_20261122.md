@@ -1,5 +1,8 @@
 # R29 V1.9 – Unabhängige Zweitabnahme der früher gemeldeten 31 von 61 Aufgaben
 
+> **HISTORISCHER SNAPSHOT:** Diese unabhängige Zweitabnahme dokumentiert die **ursprüngliche** Korrektur 9 PASS / 22 PARTIAL / 30 OPEN. Danach wurde D2-09 mit einem **wirklich frisch gestarteten Node-Prozess** und 486/486 GitHub-Tests auf PASS abgenommen; SYS-11, D1-04 und QA-03 wurden teilimplementiert. **Der aktuelle Status ist daher 10/61 PASS = 16,4 %, 24/61 PARTIAL und 27/61 OPEN.** Aktuelle Quelle: [V19_API_GITHUB_INCREMENTAL_SCANNER_PHASES_20261122.md](V19_API_GITHUB_INCREMENTAL_SCANNER_PHASES_20261122.md) und [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md). Die 31 Einzelbefunde unten bleiben für den damaligen Prüfzeitpunkt unverändert.
+
+
 **Datum:** 22.11.2026. **Geltungsbereich:** ausschließlich Cleanroom-Branch `codex/r29-cleanroom-paper-20261121` im Repository `127027/Sniperbot-`. **Prüfkriterien:** Die ORIGINALEN Abnahmesätze aus `docs/V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md` (61 IDs), nicht die nachträglich abgeschwächte Formulierung `COMPLETE (targeted)` im alten Fortschrittsbericht. Synthetische Tests zählen als voller Nachweis **nur dort**, wo die Originalabnahme ausdrücklich einen synthetischen Softwaretest verlangt. Eine Originalabnahme mit realen HTTP-Requests, Windows-State, echter GPT-Review-Quittung, vollständigen Quellseiten oder tatsächlich zeitgemessenem SLA muss diese reale Evidenz nachweisen.
 
 ## Ergebnis: zwei getrennte Wahrheiten, keine Vermischung
