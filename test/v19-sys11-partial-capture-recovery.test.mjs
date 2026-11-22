@@ -45,8 +45,13 @@ test('QA-03: abrupt crash after one of six Chain/page HTTP attempts retains all 
   assert.equal(Object.values(confirmed.chains)
     .reduce((n,x)=>n+x.pending_pages.length,0),5);
   assert.equal(provenance.status_is_not_successful_capture,true);
-  assert.equal(closePartialCapture(provenance,{atUtc:now,
-    finalCoverage:confirmed}).state,'FINALIZED_BY_RUNNER');
+  const closed=closePartialCapture(provenance,{atUtc:now,
+    finalCoverage:confirmed});
+  assert.equal(closed.state,'FINALIZED_BY_RUNNER');
+  assert.equal(closed.proven_successful_pages_this_run,1);
+  assert.equal(closed.unresolved_planned_pages_this_run.length,5);
+  assert.equal(closed.has_unresolved_page_gaps,true);
+  assert.equal(closed.status_is_not_successful_capture,true);
  }finally{await rm(dir,{recursive:true,force:true})}
 });
 test('SYS-11: crash after reservation without response still conservatively counts the request start',()=>{
@@ -102,4 +107,36 @@ test('QA-03: failed GitHub capture commits partial recovery evidence, but job re
  assert.match(yaml,/test "\$\{\{ steps\.media_capture\.outcome \}\}" = "success"/);
  assert.match(yaml,/group: r29-cleanroom-dot2-capture/);
  assert.doesNotMatch(yaml,/signals\//);
+});
+
+test('QA-03: a normal finalized runner with 429 gaps cannot claim complete sample',()=>{
+ const tasks=[{chain:'base',page:1},{chain:'ethereum',page:1}];
+ const journal=stagePendingCapture({pageCoverage:emptyPageCoverage(),tasks,
+  atUtc:now,runId:'450777404'}).journal;
+ const coverage=updatePageCoverage(emptyPageCoverage(),{asOfUtc:now,
+  successes:[{chain:'base',page:1,captured_at_utc:now,
+   source_path:'research/feeds/2026-11-22/450777404/gecko-base-page1.raw.json',
+   source_sha256:'a'.repeat(64),candidates:[]}],
+  failures:[{chain:'ethereum',page:1,attempt_at_utc:now,http_status:429,
+    reason:'HTTP_429'}]}).updated_memory;
+ const closed=closePartialCapture(journal,{atUtc:now,finalCoverage:coverage});
+ assert.equal(closed.state,'FINALIZED_BY_RUNNER');
+ assert.equal(closed.proven_successful_pages_this_run,1);
+ assert.equal(closed.unresolved_planned_pages_this_run.length,1);
+ assert.equal(closed.unresolved_planned_pages_this_run[0].chain,'ethereum');
+ assert.equal(closed.status_is_not_successful_capture,true);
+ assert.equal(closed.no_global_market_completeness_claim,true);
+});
+test('QA-03: historic success from a PRIOR run cannot certify a failed current request',()=>{
+ const tasks=[{chain:'base',page:1}];
+ const current=stagePendingCapture({pageCoverage:emptyPageCoverage(),tasks,
+  atUtc:now,runId:'450777500'}).journal;
+ const history=updatePageCoverage(emptyPageCoverage(),{
+  asOfUtc:now,successes:[{chain:'base',page:1,captured_at_utc:now,
+   source_path:'research/feeds/2026-11-21/450777499/old.raw.json',
+   source_sha256:'b'.repeat(64),candidates:[]}]
+ }).updated_memory;
+ const closed=closePartialCapture(current,{finalCoverage:history,atUtc:now});
+ assert.equal(closed.proven_successful_pages_this_run,0);
+ assert.equal(closed.has_unresolved_page_gaps,true);
 });
