@@ -66,8 +66,36 @@ export function assessCaptureCompletion({request,journal,evidence,runId}={}){
   &&wanted.length===6&&missingChains.length)reasons.push('FALSE_ALL_SIX_CHAIN_CLAIM');
  if(evidence.published_paper_orders!==0||evidence.verified_client_fills!==0)
   reasons.push('NOT_RESEARCH_ONLY');
+ // A deliberately paused scan is not a provider error. No HTTP call may be
+ // performed under the persistent 429 cooldown. Every planned page must be
+ // recorded as DEFERRED and the future retry timestamp must be evidenced.
+ const cooldown=evidence.metrics?.v19_gecko_provider_429_cooldown;
+ const retry=Date.parse(cooldown?.retry_not_before_utc||'');
+ const completion=Date.parse(evidence.captured_completed_at_utc||'');
+ const deferredKeys=evidence.page_capture_deferred.map(p=>key(p.chain,p.page));
+ const isSafeDeferred=planned.length>0&&gecko.length===0
+  &&!evidence.api_evidence.some(r=>r?.provider==='GECKOTERMINAL')
+  &&failed.length===0&&evidence.page_capture_failures.length===0
+  &&cooldown?.active===true&&Number.isFinite(retry)
+  &&Number.isFinite(completion)&&retry>completion
+  &&deferredKeys.length===planned.length
+  &&unique(deferredKeys)
+  &&planned.every(p=>deferredKeys.includes(key(p.chain,p.page)))
+  &&journal.unresolved_planned_pages_this_run.length===planned.length
+  &&journal.proven_successful_pages_this_run===0
+  &&journal.state==='FINALIZED_BY_RUNNER';
+ const onlyExpectedDeferralReasons=reasons.every(r=>[
+  'PLANNED_PAGES_WITHOUT_HTTP200','UNATTEMPTED_DEFERRED_PAGES',
+  'JOURNAL_CONFIRMS_INCOMPLETE_CAPTURE','PROVEN_PAGE_COUNT_MISMATCH'
+ ].includes(r));
+ if(isSafeDeferred&&onlyExpectedDeferralReasons){
+  reasons.length=0;
+  coverageWarnings.push('PERSISTED_PROVIDER_COOLDOWN_NO_HTTP_ATTEMPT');
+ }
+ const deferredAccepted=isSafeDeferred&&onlyExpectedDeferralReasons;
  return {schema:1,kind:'R29_V19_CAPTURE_COMPLETION_GATE',
-  status:reasons.length?'PARTIAL_OR_INVALID_CAPTURE':
+  status:deferredAccepted?'DEFERRED_BY_PERSISTED_COOLDOWN':
+   reasons.length?'PARTIAL_OR_INVALID_CAPTURE':
    missingChains.length?'BOUNDED_SAMPLE_COMPLETE_COVERAGE_INCOMPLETE':'REQUESTED_SAMPLE_COMPLETE',
   requested_chain_count:wanted.length,
   planned_page_count:planned.length,
