@@ -12,6 +12,7 @@ const iso=t=>new Date(t).toISOString();
 
 export function planResearchRestart({
  memory,pageCoverage,providerBudget,olderState=null,ohlcvState=null,
+ chainService=null,
  networks=['solana','base','ethereum','bsc','robinhood','cronos'],
  asOfUtc,maxNewPoolPages=1,targetPagesPerChain=10
 }={}){
@@ -53,7 +54,7 @@ export function planResearchRestart({
  // Planning is allowed while blocked; execution is not.
  const plan=planMultiChainCapture({
   networks,checkpoints:memory.checkpoints,pageCoverage,
-  budget:maxNewPoolPages,asOfUtc
+  budget:maxNewPoolPages,asOfUtc,chainService
  });
  const progress=summarizeCumulativeScanProgress({
   coverage:pageCoverage,networks,targetPagesPerChain,asOfUtc
