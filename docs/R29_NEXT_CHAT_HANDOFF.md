@@ -2,6 +2,15 @@
 
 > **Versionsstand:** R29 V1.9, 22. November 2026, Cleanroom-Branch. **Dieses Dokument zusammen mit `AGENTS.md` und `docs/V19_IMPLEMENTATION_PROGRESS.md` vor jedem Auftrag LIVE aus GitHub lesen.** Es ist kein Garant für automatische Synchronisierung mit ChatGPT; der neue Chat muss GitHub lesen können. Bei Widersprüchen gelten live verifizierter Code, GitHub-Commits und tatsächliche Test-/Evidenzdateien über ältere Chat-Aussagen.
 
+## AKTUELLER Nachtrag – 22.11.2026: SYS-11 Provider-429-Sperre und konservatives Gecko-Pacing
+
+- Neuster **getesteter Code-Snapshot**: `9af740d51ecc3d37738ffeb24d01f693dfc24c6b`. GitHub-Actions-Workflow [#45038974988](https://github.com/127027/Sniperbot-/actions/runs/45038974988) ist für genau diesen Commit **completed/success**; der eigentliche echte Gecko-Capture wurde **nicht** erneut ausgeführt. Dokumentations-Commits danach ändern nicht diese Testgrundlage.
+- Nach dem am 22.11., 15:11:15.734 UTC tatsächlich belegten **Ethereum-HTTP-429** greift nun eine **anbieterweite** GeckoTerminal-Sperre auch über alte Trending-/OHLCV-Checkpoints und spätere Job-Starts. Geplante, nicht versuchte Seiten bleiben explizit DEFERRED und im Backlog; DEXScreener bleibt getrennt.
+- **6,1 Sekunden Mindestabstand** zwischen sämtlichen GeckoTerminal-Requeststarts statt bisher 1,7 s: konservativ gemäß ungefähr 10 Aufrufen/Minute in der öffentlichen GeckoTerminal-Doku; abweichende offizielle CoinGecko-Hilfe nennt 30/Minute. Keine Garantie für Erfolg bei gemeinsam genutzter API/IP.
+- Dokumentation und Technikdetails: [V19_SYS11_PROVIDER_429_GLOBAL_GUARD.md](V19_SYS11_PROVIDER_429_GLOBAL_GUARD.md), `src/v19-gecko-provider-cooldown.mjs`, `src/v19-gecko-pacing.mjs`, `scripts/cloud-discovery-runner.mjs` und die beiden zugehörigen Regressionstestdateien.
+- **Aufgabenstatus bleibt 25/61 = 41,0 % / 36 offen**. **SYS-11** ist durch die technischen Sicherungen nur TEILIMPLEMENTIERT; **D2-01** ist weiter offen, weil das letzte echte gemeinsame Original-Capture nur **5/6 HTTP 200** und einen Ethereum 429 ergab. Frühester damals gespeicherter Provider-Retry: **22.11.2026, 16:11:15.734 UTC**. Vor diesem Zeitpunkt keine neue Gecko-Abfrage auslösen; nachher nur explizit genehmigte, einmalige Research-Captures mit echtem Audit.
+- Ältere Aussagen weiter unten „1,7 s“ oder „kein CI“ beziehen sich auf historische Zwischenstände und sind für den neuen Code **überholt**. Alle fünf Dots **pausiert**; keine Orders, kein Echtgeld, kein `main` oder Legacy/Windows-Paper-State verändert.
+
 ## Wichtigste neue Erkenntnisse (22.11.2026, Stand 15:17 UTC)
 
 **Bei Widersprüchen zu chronologisch älteren Absätzen weiter unten gilt diese jüngste verifizierte Schicht.**
