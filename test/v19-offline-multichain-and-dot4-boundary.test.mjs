@@ -32,6 +32,8 @@ test('D2-01: three authentic November captures replayed, all real original page 
 test('D2-04: actual previously recorded price observations are paired ONLY across time and pool',async()=>{
  const a=await originals(),r=replayArchivedSixChainEvidence(a);
  assert.ok(r.unique_pool_keys_from_these_replayed_pages>=1);
+ assert.equal(r.observed_price_pairs_5_to_240min_total,0,
+  'Three real November capture slices do not prove even one repeat-price market pair');
  assert.ok(r.research_pairs.length<=100);
  assert.ok(r.research_pairs.every(x=>x.gap_minutes>=5&&x.gap_minutes<=240
   &&x.original_october_information_not_available&&x.paper_buy_authorized===false
