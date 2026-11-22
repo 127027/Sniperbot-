@@ -48,7 +48,7 @@ export function buildNeutralPoolRegistry({observations=[],asOfUtc}={}){
  return {schema:1,kind:'R29_V19_NEUTRAL_ASOF_POOL_UNIVERSE',as_of_utc:asOfUtc,
    universe_source:'UNBIASED_RECORDED_MARKET_OBSERVATIONS_ONLY',
    winners_list_or_oracle_used:false,coverage_proven_complete:false,
-   counts:{pools:entries.length,full_contracts:entries.filter(x=>x.contract).length,
+   counts:{pools:entries.length,full_contracts:entries.filter(x=>x.contract&&x.identity_status==='CONTRACT_IDENTIFIED').length,
      identity_gaps:entries.filter(x=>x.identity_status==='WATCH_IDENTITY_GAP').length,
      identity_conflicts:entries.filter(x=>x.identity_status==='IDENTITY_CONFLICT').length,
      rejected:rejected.length},
