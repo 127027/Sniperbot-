@@ -62,7 +62,7 @@ export function planHotFairRechecks({freshCandidates=[],fairCandidates=[],legacy
     ||a.key.localeCompare(b.key));
  // The caller-provided fair queue is already oldest/never-checked first.
  let hotQuota=Math.ceil(maxChecks/2),fairQuota=maxChecks-hotQuota;
- if(!fair.length)hotQuota=maxChecks;
+ if(!fair.length&&!repair.length)hotQuota=maxChecks;
  if(!hot.length)fairQuota=maxChecks;
  // A one-request capacity must alternate across runs if both queues have work.
  if(maxChecks===1&&hot.length&&fair.length&&round%2===1){
@@ -92,6 +92,9 @@ export function planHotFairRechecks({freshCandidates=[],fairCandidates=[],legacy
      // Guarantee one old FAIR and one recent price-repair when budget allows.
      for(const c of fair)if(add(c))break;
      for(const c of repair)if(add(c))break;
+   }else if(remaining>0&&repair.length&&!fair.length){
+     // No FAIR backlog: spend available non-HOT capacity on actual repairs.
+     for(const c of repair)add(c);
    }
  }
  // Unused quota is reallocated, but not from a fabricated paper order.
