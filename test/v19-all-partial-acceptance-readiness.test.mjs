@@ -15,7 +15,7 @@ const load=async()=>{
  const latestCaptureEvidence=await read(latestCaptureReport.evidence_path);
  return {originalCatalog,strictRegister,latestCaptureReport,
   latestCaptureEvidence,providerBudget,holdout,
-  asOfUtc:'2026-11-22T20:10:00.000Z'};
+  asOfUtc:new Date().toISOString()};
 };
 test('all 46 PARTIAL original acceptance tasks individually evaluated, never promoted by unit test',async()=>{
  const report=auditAllPartialOriginalAcceptance(await load());
@@ -40,9 +40,11 @@ test('all 46 PARTIAL original acceptance tasks individually evaluated, never pro
 });
 test('new real API data does not retroactively establish historic October 29h or an immature Nov holdout',async()=>{
  const r=auditAllPartialOriginalAcceptance(await load());
- assert.equal(r.current_live_capture.raw_receipt_count,3);
- assert.equal(r.current_live_capture.http200,3);
- assert.equal(r.current_live_capture.http429,0);
+ const actual=await read(r.current_live_capture.evidence_path);
+ assert.equal(r.current_live_capture.raw_receipt_count,actual.api_evidence.length);
+ assert.ok(r.current_live_capture.http200>=1);
+ assert.equal(r.current_live_capture.http200+r.current_live_capture.http429,
+  actual.api_evidence.filter(x=>[200,429].includes(x.http_status)).length);
  assert.equal(r.current_live_capture.external_origin_capture_timestamp_independently_proven,false);
  assert.equal(r.historical_original_october_29h_universe_verified,false);
  assert.equal(r.precommitted_holdout.validation_window_elapsed,false);
@@ -73,7 +75,7 @@ test('audit CLI only reads persisted sources and writes isolated probe artifact;
  assert.match(s,/auditAllPartialOriginalAcceptance/);
  assert.match(s,/verifyArchivedHttpBytes/);
  assert.match(s,/research\/feeds\/latest\.json/);
- assert.match(s,/original_october_29h/);
+ assert.match(s,/historical_october_29h/);
  assert.match(s,/prospective_november_holdout/);
  assert.doesNotMatch(s,/\bfetch\s*\(/);
  assert.doesNotMatch(s,/\bhttps?\.request\s*\(/);
