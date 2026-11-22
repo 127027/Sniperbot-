@@ -31,7 +31,13 @@ Beim echten manuellen Research-Job [#45057658912](https://github.com/127027/Snip
 - `.github/workflows/cleanroom-dot2-capture.yml`: sammelt und committet weiterhin **immer** Raw/Recovery-State, danach erst wird im finalen Schritt der Abschlussstatus geprüft. Teilmengen und begründete 429-Pausen sind keine künstlich defekten GitHub-Jobs, aber ein **neuer** echter API-429 innerhalb geplanter Seiten ist ein echter fehlgeschlagener Capture. Der Workflow zeigt den Status zusätzlich als GitHub-Actions-Schrittzusammenfassung.
 - `test/v19-qa03-honest-capture-status.test.mjs` und `test/v19-qa03-capture-completion-cli.test.mjs`: echter 5/6-Archivfehler, bewusst kleine legitime Sample-Budgets, fehlerfrei eingefrorene hypothetische 6/6-Belege (nur **synthetisch**), persistente Cooldown-only-Zwischentakte, falsche Cooldown-Angaben, offline geprüfte Original-SHA und Workflow-Reihenfolge. Alle Tests ohne echte neue Provider-Aufrufe.
 
-## 4. Was für die Originalabnahme weiterhin fehlt
+## 4. Verifizierte Abnahme der neuen Softwarechecks
+
+GitHub [Node22 Source-only #45059178322](https://github.com/127027/Sniperbot-/actions/runs/45059178322), Quellcommit `c44f41713dc82cbdb6b6354f89dc47a14cc57b4a`: **565 von 565 Tests PASS, 0 FAIL, `TEST_ONLY_NO_SIGNAL_WRITE 0`**. Der echte alte 5/6-429-Originalrun wird hierbei **ausschließlich OFFLINE** durch den neuen CLI-Prüfer gelesen; dessen Original-Gecko-/DEX-SHA-Nachweise passen, und der Prüfer liefert bewusst den Fehler-Exit-Code 1 für den unvollständigen damaligen Sample.
+
+Dies ist ein erfolgreicher **Regressionstest**, kein neuer tatsächlicher API-Nach-Cooldown-Mehrlauf. Nur neue Source/Tests wurden geprüft; Dots und Orderpublisher bleiben unangetastet.
+
+## 5. Was für die Originalabnahme weiterhin fehlt
 
 - **SYS-11 / QA-03: PARTIAL**, bis wenigstens zwei unabhängige **wirklich ausgeführte** Research-Läufe nach Ende des letzten 429-Backoffs mit unveränderten Page-/Pool-Hashes, begrenztem Providerbudget und reproduzierbarer Continuation vorliegen.
 - Letzte tatsächlich persistierte Gecko-Sperre: **2026-11-22T19:54:35.719Z**, vor diesem Zeitpunkt keine Gecko-Abfrage. Ob die konservativen **vier Requests pro Minute / höchstens drei NEW_POOLS** und **15.100 ms Startabstand** nach dem Backoff wirklich ohne neuen 429 funktionieren, ist noch offen.
