@@ -17,7 +17,7 @@ export function auditArchivedDexRecheckFreshness({apiEvidence=[],rawFiles={},asO
  const now=ms(asOfUtc);
  if(now===null||!Array.isArray(apiEvidence)||!rawFiles||typeof rawFiles!=='object')
   throw Error('INVALID_ARCHIVED_DEX_FRESHNESS_INPUT');
- const seen=new Map(),failures=[],values=[];
+ const seen=new Map(),failures=[],unmatched=[];
  let http200=0,errors=0;
  for(const [index,e] of apiEvidence.entries()){
   const m=e?.body_path?.match(rx);
@@ -37,14 +37,14 @@ export function auditArchivedDexRecheckFreshness({apiEvidence=[],rawFiles={},asO
    p=arr.find(q=>canonicalChain(q?.chainId)===chain
     &&norm(chain,q?.pairAddress)===norm(chain,requestedPool));
   }catch{}
-  if(!p){failures.push({index,source:e.body_path,reason:'EXACT_CHAIN_AND_POOL_NOT_IN_PROVIDER_BODY'});continue;}
+  if(!p){unmatched.push({index,source:e.body_path,reason:'EXACT_CHAIN_AND_POOL_NOT_IN_PROVIDER_BODY'});continue;}
   const poolKind=Array.isArray(p.labels)
     &&p.labels.some(l=>String(l).toLowerCase()==='v4')
     &&/^0x[a-fA-F0-9]{64}$/.test(p.pairAddress)
     ?'UNISWAP_V4_POOL_ID':null;
   const identity=canonicalMarketIdentity({chain,pool:p.pairAddress,pool_kind:poolKind,
    contract:p.baseToken?.address});
-  if(!identity){failures.push({index,source:e.body_path,reason:'NO_TYPED_CHAIN_POOL_AND_CONTRACT'});continue;}
+  if(!identity){unmatched.push({index,source:e.body_path,reason:'NO_TYPED_CHAIN_POOL_AND_CONTRACT'});continue;}
   const key=identity.pool_key+'|'+identity.token_key;
   const sample={key,chain,pool:p.pairAddress,contract:p.baseToken.address,
    captured_at_utc:e.received_at_utc,source_path:e.body_path,
@@ -52,7 +52,7 @@ export function auditArchivedDexRecheckFreshness({apiEvidence=[],rawFiles={},asO
    observed_liquidity_usd:price(p.liquidity?.usd),
    provider_quote_asof_utc:null,provider_quote_time_independently_verified:false};
   (seen.get(key)??seen.set(key,[]).get(key)).push(sample);
-  values.push(sample);
+
  }
  const paired=[];
  for(const [key,arr] of seen.entries()){
@@ -94,7 +94,8 @@ export function auditArchivedDexRecheckFreshness({apiEvidence=[],rawFiles={},asO
   identical_original_response_repeats:paired.filter(x=>x.identical_source_response_body).length,
   different_response_bytes_but_unverified_quote_time:paired.filter(x=>!x.identical_source_response_body).length,
   provider_quote_timestamp_independently_verified_count:0,
-  source_integrity_failures:failures,repeated_samples:paired,
+  source_integrity_failures:failures,
+  structurally_unmatched_or_empty_pair_responses:unmatched,repeated_samples:paired,
   original_captures_are_not_original_october_asof_data:true,
   genuine_new_independent_live_quote_approved_count:0,
   total_orders_authorized:0,actual_network_calls:0};
