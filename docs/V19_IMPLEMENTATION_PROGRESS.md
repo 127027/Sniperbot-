@@ -1,5 +1,23 @@
 # R29 V1.9 – Fortlaufender Umsetzungsstand (22.11.2026)
 
+## NEUSTER ABGENOMMENER CODE-/TEILIMPLEMENTIERUNGSSTAND: 70,5 % technisch bearbeitet (22.11.2026)
+
+**Verbindlicher ORIGINAL-61-Aufgabenstatus:** **12/61 PASS = 19,7 %**, **31/61 PARTIAL = 50,8 %**, **18/61 OPEN = 29,5 %**. Somit **43/61 PASS+PARTIAL = 70,5 % TECHNISCH BEARBEITET**, NICHT zu 70,5 % vollständig wie gewollt abgeschlossen. Vorher waren es 38/61 = 62,3 % technisch bearbeitet; kein Codeverlust.
+
+**Fünf NEUE substanzielle Arbeiten OPEN→PARTIAL:**
+- `D1-05`: sechs-Chain FAIR-Scheduler mit as-of-Bedarf nur als Tie-Breaker hinter Starvation-Schutz, echte HTTP200- und unbekannte Queue-SLA-Zeiten getrennt dokumentiert.
+- `D3-06`: fester 50-TEST-USDC-/5.000-USD-/1-%-Policy-Schattenvergleich aus aktuellen Pools mit Gebühren/Spread/Impact; keinerlei Änderung der Risk-Freigaben.
+- `D4-03`: vier vorab feste Varianten Baseline/Trailing/Teilverkauf/Time-Stop, Gegenrechnung inklusive Gebühren und Datenlücken – reine Research-Bibliothek, KEINE Order oder empirischer Holdout-PnL.
+- `D5-04`: pro Originalpool konkreter Prozess-Gap nach neun Ursacheklassen und nächster Gegenmaßnahme, nicht erfundene verpasste Gewinner.
+- `QA-05`: SHA-gefrorener prospektiver 6h-Purge/24h-Validation/6h-Purge/24h-Holdout; `research/state/prospective-holdout-freeze.json` wird erst beim nächsten echten Capture einmalig erzeugt, nicht rückwirkend.
+
+**Vollständige Quellcode-CI:** [GitHub Node22 #45055292351](https://github.com/127027/Sniperbot-/actions/runs/45055292351), Source `5dfa7634e31e809ca25cb0dbe8fa4441e0b3d2fb`: **553/553 PASS, 0 FAIL, TEST_ONLY_NO_SIGNAL_WRITE 0**. Vollbericht [V19_70PCT_TECHNICAL_MILESTONE_20261122.md](V19_70PCT_TECHNICAL_MILESTONE_20261122.md).
+
+**Nicht abgenommen:** wirklicher stündlicher bzw. 24/7-API-Dauerbetrieb, komplette echte sechs-Chain-HTTP-Captures nach dem neuen Quoten-Scheduler, unabhängige Provider-Zeit/Sellability, authentischer Dot3-Autor, echte GPT-Entscheidungen und lokale 50-TEST-USDC-Paper-Fills. Alle fünf Dots bleiben ausgeschaltet; kein Echtgeld/Windows-Wallet-/main-/Legacy-Eingriff.
+
+**Dieser Kopfabschnitt hat Vorrang vor allen historischen „AKTUELL“-Abschnitten weiter unten.**
+
+
 ## JETZT AKTUELL: Neutraler Evaluationsnenner und kommittierte API-Rohdaten nach Fehlstart (22.11.2026)
 
 **Strenger Originalabnahme-Stand: 12/61 = 19,7 % PASS, 26/61 = 42,6 % PARTIAL, 23/61 = 37,7 % OPEN.** **38/61 = 62,3 % wurden technisch bearbeitet (PASS+PARTIAL)**, aber es wurde durch strengere Abnahmeregeln **kein Code zurückgebaut**. Ältere Werte 50,8 %, 59 %, 60,7 % und 9/10/12 PASSES weiter unten sind historische Snapshots.
