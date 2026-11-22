@@ -19,9 +19,11 @@
 
 ## 1. Verifizierter Übergabestand
 
-**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach D3-01-Abnahme: **17/61 = 27,9 %**, 44 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
+**Die verbindliche aktuelle Zählung steht in [V19_IMPLEMENTATION_PROGRESS.md](V19_IMPLEMENTATION_PROGRESS.md).** Aktueller Stand nach D3-02-Abnahme: **18/61 = 29,5 %**, 43 offen. Bei späteren Fortsetzungen **immer zuerst** den aktuellen Stand in der Fortschrittsdatei prüfen. Diese Zählung nicht aus Gewohnheit fortschreiben: alle späteren Commits/Abnahmen prüfen.
 
 Bisher als `COMPLETE (targeted)` dokumentiert:
+
+- `D3-02` zwei-Domänen-Quellenbeobachtungen mit eigener Upstream-/Quotezeit-Diagnostik ohne falsche echte Authentizität (`src/v19-dot3-source-pairs.mjs`, `src/feed-handoff.mjs`, `src/v19-dot3-risk-status.mjs`, `src/v19-dot3-recheck-scheduler.mjs`). 21/21 gezielte isolierte Prüfungen, weitere echte Provider-/Node-CI-Abnahme offen; `docs/V19_DOT3_SOURCE_CAPABILITY.md`.
 
 - `SYS-01` 29h as-of-Zeitplan
 - `SYS-02` neutrales historisches Pool-/Contract-Register; 65 Excel-Meldungen nur Evaluations-Oracle
@@ -78,6 +80,12 @@ Bisher als `COMPLETE (targeted)` dokumentiert:
 - **Tests:** 12/12 gezielte Statuskontrollen und 10/10 Live-/historischer Replay-/Queue-Integrationskontrollen bestanden; Node-Testdateien hinzugefügt, vollständige `npm test`-/Actions-Ausführung weiterhin unbestätigt. Dot3-/Dot4-/Dot5-Prompts während Pausierung synchronisiert.
 - Vollständiger Vertrag, Implementierung und Abnahme: **[`docs/V19_DOT3_RISK_STATE_MACHINE.md`](V19_DOT3_RISK_STATE_MACHINE.md)**.
 - Bestehende `test/v19-dot3-recheck-scheduler.test.mjs` wurde auf `WATCH`-Einstufung aktualisiert. Nicht behaupten, echte Dot3-Provider-Sicherheitschecks seien schon ausgeführt worden.
+
+### Nachtrag vom 22.11.2026: D3-02 – Domain ≠ unabhängiger Upstream
+
+- **18/61 = 29,5 %**, 43 Maßnahmen offen. D3-02 ist gezielt geprüft, aber nicht extern provider-validiert.
+- Dot2 übergibt `source_observations` mit HTTP-Erfassungszeit sowie `provider_quote_asof_utc:null`, sofern nicht wirklich belegt. Die gemeinsame Dot3-Statusmaschine nutzt `source_pair_audit` für Live-Paper und As-of-Replay. Nachprüfungsplan fordert noch unabhängigen Upstream, Providerzeit und Sellability nach.
+- **Kein unabhängig verifizierter Upstream, keine gültige Original-Oktober-Bestätigung, keine realen Paper-Orders**. D3-03, D3-04 und D3-05 bleiben offen; `npm test`/Actions-CI ebenfalls.
 
 ## 2. Arbeitsreihenfolge – aktuelle nächsten Schritte
 
