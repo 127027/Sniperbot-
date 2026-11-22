@@ -118,6 +118,10 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
   accepted_input_count:accepted.length,rejected_input_count:rejected.length,
   role_audit:perRole,role_execution_provenance:executionProvenance,
   model_replay_summary:result.summary,
+  // Model exchange receipts stay in a separate provenance namespace and are
+  // NEVER accepted as real Windows/GitHub client fills or actual GPT outputs.
+  isolated_model_receipts:result.isolated_model_receipts,
+  isolated_model_trade_history:result.isolated_model_trade_history,
   model_ending_cash_test_usdc:result.ending_cash_test_usdc,
   model_open_positions:result.positions_end,
   historical_proven_trades:0,confirmed_paper_orders:0,confirmed_paper_fills:0,
