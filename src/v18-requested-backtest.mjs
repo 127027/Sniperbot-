@@ -3,6 +3,7 @@
 // The five roles below are deterministic REPLAY AUDITS, not historical GPT-Dot executions.
 import {replaySignalDecisions} from './point-in-time-strategy.mjs';
 import {build29HourAsOfTimeline} from './v19-backtest-window.mjs';
+import {auditFiveDotExecution} from './v19-dot-execution-audit.mjs';
 const dayMs=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)
   &&Number.isFinite(Date.parse(d+'T00:00:00Z'))?Date.parse(d+'T00:00:00Z'):null;
 const stamp=v=>typeof v==='string'&&Number.isFinite(Date.parse(v))?Date.parse(v):null;
@@ -16,7 +17,8 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
  if(source.schema!==1||source.kind!=='R29_V18_ASOF_REPLAY_INPUT'||source.date!==date
     ||source.selected_from_future_winner_list!==false
     ||!Array.isArray(source.snapshots)||!Array.isArray(source.activity_observations)
-    ||(source.activity_page_captures!==undefined&&!Array.isArray(source.activity_page_captures)))
+    ||(source.activity_page_captures!==undefined&&!Array.isArray(source.activity_page_captures))
+    ||(source.claimed_gpt_journals!==undefined&&!Array.isArray(source.claimed_gpt_journals)))
    throw Error('UNTRUSTED_OR_HINDSIGHT_UNIVERSE');
  const sources=source.snapshots;
  const accepted=[],rejected=[],first=start,end=start+86400000;
@@ -40,6 +42,11 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
   activityObservations:source.activity_observations,
   activityPageCaptures:source.activity_page_captures||[],
   forceHourlyReview:forceHourlyDiagnostic,targetPer24h:forceHourlyDiagnostic?24:4});
+ const executionProvenance=auditFiveDotExecution({
+   events:result.events,asOfUtc:new Date(end).toISOString(),
+   mode:'HISTORICAL_ASOF',
+   claimedGptJournals:source.claimed_gpt_journals||[]
+ });
  const original=accepted.filter(s=>s.provenance==='CONTEMPORANEOUS_RECORD');
  const simulated=accepted.filter(s=>s.provenance==='SYNTHETIC_TEST');
  const perRole={
@@ -83,7 +90,8 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
    same_signal_engine_for_live_and_backtest:true,
    source_input_count:sources.length,
   accepted_input_count:accepted.length,rejected_input_count:rejected.length,
-  role_audit:perRole,model_replay_summary:result.summary,
+  role_audit:perRole,role_execution_provenance:executionProvenance,
+  model_replay_summary:result.summary,
   model_ending_cash_test_usdc:result.ending_cash_test_usdc,
   model_open_positions:result.positions_end,
   historical_proven_trades:0,confirmed_paper_orders:0,confirmed_paper_fills:0,
