@@ -45,6 +45,7 @@ import {restoreCommittedInflightCapture}
 import {stagePendingCapture,appendPartialHttpReceipt,closePartialCapture}
  from '../src/v19-partial-capture-durability.mjs';
 import {assessCaptureCompletion} from '../src/v19-capture-completion-gate.mjs';
+import {planResearchRestart} from '../src/v19-scan-restart-preflight.mjs';
 import {selectObservationArchivePaths,parseResearchJsonWithLegacyTrailer}
  from '../src/v19-observation-archive-reader.mjs';
 
@@ -243,10 +244,26 @@ try{
  holdoutFreeze=freezeProspectiveHoldout({frozenAtUtc:now()});
  await writeFile(holdoutFreezePath,JSON.stringify(holdoutFreeze,null,2)+'\n','utf8');
 }
+// Offline-first restart: record all 429/rolling-window and pending-page
+// decisions BEFORE the first possible provider request. This consumes zero
+// HTTP quota and can be replayed after a crash or across successive wakes.
+const requestedNewPoolBudget=request.max_gecko_requests-
+ (request.max_ohlcv_requests??0)-(request.max_older_pool_requests??0);
+const preflightAtUtc=now();
+const restartPreflight=planResearchRestart({
+ memory:precedingMemory,pageCoverage,providerBudget,olderState,ohlcvState,
+ networks:request.networks,asOfUtc:preflightAtUtc,
+ maxNewPoolPages:requestedNewPoolBudget,chainService
+});
+const restartPreflightPath=root+'/restart-preflight.json';
+await writeFile(restartPreflightPath,JSON.stringify(restartPreflight,null,2)+'\n','utf8');
+artifacts.push(restartPreflightPath);
 const capturePlan=planMultiChainCapture({
  networks:request.networks,checkpoints:precedingMemory.checkpoints,
- pageCoverage,budget:request.max_gecko_requests-(request.max_ohlcv_requests??0)
-   -(request.max_older_pool_requests??0),asOfUtc:now(),chainService});
+ pageCoverage,budget:requestedNewPoolBudget,asOfUtc:preflightAtUtc,chainService});
+if(JSON.stringify(restartPreflight.proposed_bounded_sample)!==
+ JSON.stringify(capturePlan.tasks))
+ throw Error('PREFLIGHT_CAPTURE_PLAN_DIVERGENCE');
 // Pre-stage every intended page in durable pending coverage so a GitHub job
 // crash does not silently forget an unattempted page.
 const stagedCapture=stagePendingCapture({
@@ -550,6 +567,16 @@ for(const c of targets){
   source_path:latestCheck?.source||root+'/evidence.json'});
 }
 const metrics=collectSampleMetrics({geckoDecoded:decoded,dexChecks,fallbackCandidates:fallback,requests:fetches});
+metrics.v19_offline_restart_preflight={
+ status:restartPreflight.status,
+ source_path:restartPreflightPath,
+ checked_at_utc:restartPreflight.as_of_utc,
+ safe_to_attempt_provider_http_at_preflight:restartPreflight.can_issue_provider_http_now,
+ retry_not_before_utc:restartPreflight.not_before_utc,
+ waiting_chain_page_count:restartPreflight.waiting_chain_pages.length,
+ preflight_http_starts:0,preflight_order_authorizations:0,
+ preflight_alone_never_proves_http_200:true
+};
 metrics.discovery_page=scanPage;
 metrics.discovery_page_reason=pageDecision.reason;
 // Explicit per-chain checkpoint provenance: the former single-chain
