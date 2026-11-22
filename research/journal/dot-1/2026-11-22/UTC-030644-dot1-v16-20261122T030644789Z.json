@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "dot": "dot-1",
+  "version": "1.6",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "run_id": "dot1-v16-20261122T030644789Z",
+  "timestamp": "2026-11-22T03:06:44.789Z",
+  "status": "DATA_GAP",
+  "target_per_24h": 4,
+  "consecutive_quiet_checks": 0,
+  "data_available": false,
+  "reason": "DATA_GAP: Ethereum 02:15:49Z capture accepted 2 of 20 raw rows; 18 bytes32-format pool IDs rejected by parser. No comparable consecutive same-chain hourly pool/volume deltas; latest capture omits five chains. Media +4 unique events without comparable attention windows. Rolling 24h HTML is not a provider-timestamped hourly delta. No verified client positions or matured 1/3/6h labels. Preserve target.",
+  "metrics": {
+    "latest_chain": "ethereum",
+    "capture_utc": "2026-11-22T02:15:49.766Z",
+    "gecko_accepted": 2,
+    "complete_contracts": 2,
+    "raw_rows": 20,
+    "parser_rejected_bytes32": 18,
+    "dex_checks": 6,
+    "dex_exact_matched": 3,
+    "rechecked_prices": 3,
+    "market_memory_pools": 188,
+    "observation_batches": 56,
+    "prospective_rankable": 0,
+    "latest_dot3_counts": {
+      "ELIGIBLE": 0,
+      "WATCH": 0,
+      "REJECTED": 3,
+      "DATA_GAP": 1
+    },
+    "media_new_unique": 4,
+    "media_capture_utc": "2026-11-22T02:15:52.256Z",
+    "media_sources_available": 7,
+    "media_verified_attention_delta": null,
+    "source_coverage": [
+      "ethereum"
+    ],
+    "missing_chains": [
+      "solana",
+      "base",
+      "bsc",
+      "robinhood",
+      "cronos"
+    ],
+    "same_chain_hourly_pool_delta": null,
+    "same_chain_hourly_volume_delta": null,
+    "verified_client_positions": null,
+    "verified_orders": null
+  },
+  "sources": [
+    {
+      "url": "https://www.geckoterminal.com/eth/pools",
+      "kind": "PUBLIC_HTML",
+      "observed_at_utc": "2026-11-22T03:06:44.789Z",
+      "rolling_24h_volume_usd_approx": 1600000000,
+      "rolling_24h_transactions": 406123,
+      "provider_asof_verified": false
+    },
+    {
+      "url": "https://www.geckoterminal.com/solana/pools",
+      "kind": "PUBLIC_HTML",
+      "observed_at_utc": "2026-11-22T03:06:44.789Z",
+      "rolling_24h_volume_usd_approx": 2560000000,
+      "rolling_24h_transactions": 30375791,
+      "provider_asof_verified": false
+    },
+    {
+      "url": "https://www.geckoterminal.com/eth/pools/0x99e4e8b120f39eb5597cdba6ea3c7ce6c85e6a1b",
+      "kind": "DOT2_RECORDED_POOL_LINK",
+      "observed_at_utc": "2026-11-22T02:15:49.766Z"
+    }
+  ],
+  "source_paths": {
+    "dot2": "research/latest/dot-2.json",
+    "dot3": "research/latest/dot-3.json",
+    "feed": "research/feeds/latest.json",
+    "memory": "research/state/latest.json",
+    "media": "research/media/latest.json",
+    "media_asof": "research/media/2026-11-22/44975257951/asof-signals.json",
+    "ranking": "research/observations/2026-11-22/44975257951-asof-ranking.json"
+  },
+  "candidates": [
+    {
+      "chain": "ethereum",
+      "symbol": "Mfer",
+      "pool": "0x99e4e8b120f39eb5597cdba6ea3c7ce6c85e6a1b",
+      "contract": "0x08f4c64c1ba99561431b0588ebe9c77c921e7283",
+      "status": "DATA_GAP_NOT_TRADE_ELIGIBLE"
+    },
+    {
+      "chain": "ethereum",
+      "symbol": "PYR",
+      "pool": "0x890e2d77e75b2d84edbc2ae2237c30e7ffa20474",
+      "contract": "0x430ef9263e76dae63c84292c3409d61c598e9682",
+      "status": "REJECTED"
+    }
+  ],
+  "data_gaps": [
+    "No verified comparable same-chain consecutive capture deltas or hourly new-pool births",
+    "Ethereum latest capture rejected 18/20 bytes32 pool IDs by 20-byte parser; not proof of market quiet",
+    "Only Ethereum scanned in latest new-pool capture; Solana, Base, BSC, Robinhood, Cronos absent",
+    "HTML rolling 24h aggregates have no verified provider as-of timestamp; cannot calculate hourly delta",
+    "No verified client positions or order/fill count from this capture",
+    "Media comparison windows insufficient; X and Reddit unavailable",
+    "No mature 1h/3h/6h forward labels"
+  ],
+  "errors": [],
+  "forecast_accuracy": {
+    "h1": null,
+    "h3": null,
+    "h6": null
+  },
+  "next_checkpoint": "Next hourly Dot1 wake: compare time-stamped same-chain raw captures and media as-of windows; retain cadence on gaps",
+  "orders_created": 0
+}
