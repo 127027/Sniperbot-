@@ -206,7 +206,14 @@ for(const c of targets){
 const metrics=collectSampleMetrics({geckoDecoded:decoded,dexChecks,fallbackCandidates:fallback,requests:fetches});
 metrics.discovery_page=scanPage;
 metrics.discovery_page_reason=pageDecision.reason;
-metrics.previous_chain_page_checkpoint=oldCheckpoint?.next_page_to_consider??null;
+// Explicit per-chain checkpoint provenance: the former single-chain
+// 'oldCheckpoint' was removed when multi-chain capture was introduced.
+metrics.previous_chain_page_checkpoint=receivedPages.length===1
+  ?precedingMemory.checkpoints[receivedPages[0].chain+':GECKOTERMINAL']?.next_page_to_consider??null
+  :null;
+metrics.previous_chain_page_checkpoints=Object.fromEntries(
+  request.networks.map(chain=>[chain,
+    precedingMemory.checkpoints[chain+':GECKOTERMINAL']?.next_page_to_consider??null]));
 metrics.verified_recheck_price_observations=rechecked.length;
 metrics.v19_hot_fair_service=summarizeRecheckService({plan:recheckPlan,attempts,asOfUtc:now()});
 metrics.v19_hot_fair_recheck_plan={selected:recheckPlan.selected.map(x=>({chain:x.chain,pool:x.pool,queue:x.queue,research_score:x.research_score??null})),
