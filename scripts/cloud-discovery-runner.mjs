@@ -58,6 +58,12 @@ const providerBudgetPath='research/state/provider-budget.json';
 const providerLane=(provider,url)=>provider==='DEXSCREENER'?'PAIR':
   url.includes('/trending_pools')?'TRENDING':
   url.includes('/ohlcv/')?'OHLCV':'NEW_POOLS';
+const deferredByProviderBudget=e=>{
+ const m=String(e?.message||e);
+ return m==='GECKO_PROVIDER_429_COOLDOWN_NOT_ELAPSED'
+  ||m==='PROVIDER_PROVIDER_COOLDOWN'
+  ||m==='PROVIDER_REQUEST_ALREADY_RESERVED';
+};
 const geckoBlock=()=>{
  const inherited=activeGeckoProviderCooldown({
   checkpoints:precedingMemory?.checkpoints||{},
@@ -173,6 +179,17 @@ for(let i=0;i<capturePlan.tasks.length;i++){
      sourcePath:got.evidence.body_path,sourceSha256:got.evidence.response_sha256,
      capturedAtUtc:got.evidence.received_at_utc});
  }catch(error){
+   // A provider-budget veto is NOT a failed HTTP request. Preserve this
+   // page and all remaining planned pages as unattempted durable backlog.
+   if(deferredByProviderBudget(error)){
+     const until=geckoBlock().retry_not_before_utc;
+     deferredPages.push({chain,page,reason:'PROVIDER_BUDGET_DEFERRED',
+       retry_after_utc:until});
+     deferredPages.push(...capturePlan.tasks.slice(i+1).map(task=>({
+       ...task,reason:'PROVIDER_BUDGET_DEFERRED',retry_after_utc:until
+     })));
+     break;
+   }
    const prior=fetches.findLast(x=>x.body_path===fullPath);
    const status=prior?.http_status===429?'HTTP_429':
      prior?.http_ok===true?'DECODE_ERROR':
@@ -227,6 +244,13 @@ for(const job of olderPlan.tasks){
     capturedAtUtc:result.evidence.received_at_utc,
     sourceRawPath:result.evidence.body_path,sourceSha256:result.evidence.response_sha256});
  }catch(err){
+  if(deferredByProviderBudget(err)){
+    olderFailures.push({chain:job.chain,duration:job.duration,
+      status:'DEFERRED_PROVIDER_429',
+      retry_after_utc:geckoBlock().retry_not_before_utc,
+      reason:'NO_HTTP_REQUEST_BUDGET_VETO'});
+    continue;
+  }
   const prior=fetches.findLast(x=>x.provider==='GECKOTERMINAL'&&x.url===job.url);
   const status=prior?.http_status===429?'HTTP_429':'ERROR',when=prior?.received_at_utc||now();
   const wait=providerRetryDelay({httpStatus:prior?.http_status||null,
@@ -352,6 +376,12 @@ for(const target of ohlcvPlan.targets){
     candle_count:archive.decoded_candle_count,available_at_utc:received,
     trade_authorized:false});
  }catch(err){
+  if(deferredByProviderBudget(err)){
+    ohlcvResults.push({key:target.key,status:'DEFERRED_PROVIDER_429',
+      retry_after_utc:geckoBlock().retry_not_before_utc,
+      reason:'NO_HTTP_REQUEST_BUDGET_VETO',trade_authorized:false});
+    continue;
+  }
   const attempted=now();
   const response=fetches.findLast(x=>x.provider==='GECKOTERMINAL_OHLCV'&&x.url===q.source_url);
   const status=response?.http_status===429?'HTTP_429':
@@ -404,7 +434,13 @@ for(const c of targets){
     matched:!!rec.candidate});
    if(rec.candidate)fallback.push({...rec.candidate,source_raw_path:data.evidence.body_path});
   }
- }catch(error){dexChecks.push({chain,pool,status:'DEX_ERROR',error:String(error.message||error).slice(0,100)});}
+ }catch(error){
+   // A DEX provider-budget veto did NOT query this pool. Leave its fair
+   // cursor untouched for the next capture, never manufacture an attempt.
+   if(deferredByProviderBudget(error))continue;
+   dexChecks.push({chain,pool,status:'DEX_ERROR',
+     error:String(error.message||error).slice(0,100)});
+ }
  const latestCheck=dexChecks.at(-1);
  attempts.push({chain,pool,pool_kind:poolKind,checked_at_utc:checkedAt,status:latestCheck?.status||'UNKNOWN',
   source_path:latestCheck?.source||root+'/evidence.json'});
