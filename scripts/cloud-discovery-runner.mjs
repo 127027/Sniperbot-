@@ -32,6 +32,7 @@ import {activeGeckoProviderCooldown} from '../src/v19-gecko-provider-cooldown.mj
 import {summarizeR29OperatingMeasurements} from '../src/v19-operating-measurements.mjs';
 import {emptyProviderBudgetState,reserveProviderRequest,recordProviderResponse,
  summarizeProviderBudget} from '../src/v19-provider-budget.mjs';
+import {planIndependentObservations} from '../src/v19-independent-observation-schedule.mjs';
 import {selectObservationArchivePaths,parseResearchJsonWithLegacyTrailer}
  from '../src/v19-observation-archive-reader.mjs';
 
@@ -587,6 +588,14 @@ metrics.v19_dot1_activity_journal_path=activityPath;
 metrics.v19_dot1_cadence_recommendation={target:dot1Advice.target,
   reason:dot1Advice.reason,quiet_confirmations:dot1Advice.quiet_confirmations,
   actual_gpt_reviews:0};
+metrics.v19_independent_observation_cadence=planIndependentObservations({
+ asOfUtc:now(),priorCaptureAtUtc:precedingMemory.generated_at_utc||null,
+ reviewTarget:dot1Advice.target,hotPoolCount:recheckPlan.all_new_pool_count,
+ unresolvedPageCount:coverageReport.total_unresolved_page_indices,
+ openPaperPositions:null,
+ capturedPagesThisRun:receivedPages.length+olderPages.length+
+   ohlcvResults.filter(x=>x.status==='ARCHIVED_RESEARCH_ONLY').length
+});
 metrics.v18_archived_v4_recovered_pool_count=recoveredV4Count;
 metrics.v18_archived_v4_recovery_error=recoveryError;
 // Re-read all actual on-disk raw responses before publishing the evidence
