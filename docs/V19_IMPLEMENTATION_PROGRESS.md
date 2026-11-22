@@ -1,5 +1,19 @@
 # R29 V1.9 – Fortlaufender Umsetzungsstand (22.11.2026)
 
+## JETZT AKTUELL 22.11.2026 – Absturzsicheres API-Zwischenspeichern und Chain-Contract-Prüfungen
+
+**Strenge Originalabnahme bleibt bei 12/61 = 19,7 % PASS; 25/61 = 41,0 % PARTIAL; 24/61 = 39,3 % OPEN.** **37/61 = 60,7 % sind technisch implementiert oder teilweise abgenommen**; diese Zahl darf nicht mit echtem GPT-Handel, kompletter Coin-Erfassung oder ursprünglicher PASS-Abnahme verwechselt werden.
+
+**Neuer Code-Fortschritt (ohne künstlichen PASS):** `SYS-11` und `QA-03` erhalten die echte GitHub-Zwischenpersistenz für Provider-Budget und offene Seiten VOR bzw. WÄHREND aller HTTP-Aufrufe. `src/v19-partial-capture-durability.mjs` plus produktiver `scripts/cloud-discovery-runner.mjs` speichern Pending-Seiten, HTTP-Raw/SHA-Beleg und reservierte/verbrauchte Aufrufbudgets auch bei möglichem Jobabbruch; `.github/workflows/cleanroom-dot2-capture.yml` versucht einen Teilcommit selbst nach Capture-Fehlern und markiert die Workflow-Gesamtausführung trotzdem fehlgeschlagen. Unbeobachtete Seiten verbleiben dokumentiert und ein normal endender Run mit HTTP429 darf keine vollständig erfolgreichen Ergebnisse beanspruchen.
+
+`D2-10` **OPEN→PARTIAL:** typisierte Chain/Pool/Contract-Verifikation und eigene positive/negative Software-Prüfungen für **Robinhood, Solana, BSC, Ethereum V4, Cronos**, konkrete Fehlgründe und sichere Quotezeit-Ungewissheit. Echte ältere Original-HTTP-Antworten von Base V4 (positiv) und Cronos (negativ) mit archiviertem SHA gegengeprüft. Für einen vollständigen PASS fehlen echte **providerseitige positive** Prüfbelege aller fünf verlangten Chains.
+
+**Letzter erfolgreich geprüfter Code-Snapshot:** GitHub Node22 [#45053198019](https://github.com/127027/Sniperbot-/actions/runs/45053198019), Quellcommit `4ffea8d2979e28c9123f6d216c019e96c2329525`, **516/516 PASS, 0 FAIL, TEST_ONLY_NO_SIGNAL_WRITE 0**. Vollbericht [V19_20261122_API_CRASH_RECOVERY_PROVIDER_IDENTITY.md](V19_20261122_API_CRASH_RECOVERY_PROVIDER_IDENTITY.md).
+
+**Noch keine echten neuen mehrstündigen API-Captures nach der Änderung, kein 24/7-GPT-Betrieb, kein authentifizierter Paper-BUY oder -SELL.** Das alte Ethereum-HTTP429-Cooldown bis 2026-11-22T18:31:56.465Z bleibt bindend; keine Dots, Echtgeld oder Windows-Kontobewegungen. Alle Prozentangaben weiter unten sind ältere Snapshots.
+
+
+
 ## JETZT AKTUELL (22.11.2026): 12/61 original PASS – Identität & zeitgerechte Quelle
 
 **Strenger Status: 12/61 = 19,7 % PASS, 24/61 = 39,3 % PARTIAL, 25/61 = 41,0 % OPEN.** **Technisch bearbeitet sind 36/61 = 59,0 % (`PASS+PARTIAL`)**; kein Code und keine bereits erreichte Funktion wurde wegen der ehrlicheren Abnahmeregel zurückgenommen. Historische Angaben „31/61 = 50,8 % COMPLETE“ waren lediglich der frühere Teilimplementierungszähler und sind **nicht** dieselbe strenge Fortschrittsmetrik.
