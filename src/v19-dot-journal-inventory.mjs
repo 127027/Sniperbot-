@@ -3,6 +3,7 @@
 // proof, not a 29h replay, and never a Paper fill or independent issuer proof.
 import {createHash} from 'node:crypto';
 import {asOfMillis} from './v19-asof-evidence.mjs';
+import {resolveDot2CaptureView} from './v19-dot2-capture-view.mjs';
 
 export const LIVE_DOT_IDS=Object.freeze(['dot-1','dot-2','dot-3','dot-4','dot-5']);
 const pat=/^research\/journal\/(dot-[1-5])\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]+\.json$/;
@@ -87,6 +88,8 @@ export function auditLiveFiveDotJournalInventory({
       'Newer source feed exists; latest Dot2 journal still points to older capture (not necessarily a failed capture)');
   }
   details.push({role:id,status:status(issues),
+   ...(id==='dot-2'?{reconciled_current_capture:resolveDot2CaptureView({
+     gptPointer:pointer,feedPointer,asOfUtc})}:{}),
    latest_pointer_status:pointer?.status??null,
    updated_at_utc:pointer?.updated_at_utc??null,
    journal_path:path??null,claimed_git_blob_sha:pointer?.journal_blob_sha??null,
@@ -107,6 +110,6 @@ export function auditLiveFiveDotJournalInventory({
   all_five_forensic_traces_verified:false,
   no_backtest_or_api_writes:true,not_a_historical_run:true,
   limitations:['Git blobs and local research journals do not independently attest ChatGPT execution.',
-   'A pending Dot2 pointer may remain stale after the workflow produces a newer HTTP feed.',
+   'Dot2 source capture is reconciled separately from the last genuine GPT journal; pending source progress must not count as GPT execution.',
    'All five latest pointers must link per-role forensic traces before complete diagnosis.']};
 }
