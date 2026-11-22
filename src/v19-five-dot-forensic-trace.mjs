@@ -32,7 +32,14 @@ function containsOracle(value,depth=0){
 }
 const forbidPath=p=>/^research\/(?:backtests?(?:\/|-)|training\/|evaluation\/)/i.test(p)
  ||/(?:^|\/)(?:oracle|evaluation|winners?|reference-manifest|future-labels?)(?:\/|\.|$)/i.test(p);
-const closeTo=(a,b)=>a===b;
+const marketKey=market=>{
+ if(!market)return null;
+ const chain=canonicalChain(market.chain);
+ if(!chain)return null;
+ const contract=chain==='solana'?market.contract:String(market.contract).toLowerCase();
+ const pool=chain==='solana'?market.pool:String(market.pool).toLowerCase();
+ return chain+':'+contract+':'+pool;
+};
 const check=(code,condition)=>{if(!condition)throw Error(code);};
 
 export function inspectFiveDotTraceEntry(entry,{startUtc,endUtc,warmupHours=5}={}){
@@ -124,8 +131,7 @@ export function inspectFiveDotTraceEntry(entry,{startUtc,endUtc,warmupHours=5}={
    retrospective_research_only_count:retro,
    origin:entry.execution_origin,gpt_execution_independently_verified:false,
    client_fill_independently_verified:false,
-   action:entry.action,market_key:coin?
-    coin.chain+':'+coin.contract+':'+coin.pool:null};
+   action:entry.action,market_key:marketKey(coin)};
 }
 
 export function buildFiveDotForensicReport({entries=[],startUtc,endUtc,
@@ -146,14 +152,12 @@ export function buildFiveDotForensicReport({entries=[],startUtc,endUtc,
    ||a.event.event_id.localeCompare(b.event.event_id));
  const problems=[];
  const linkedTo=(event,role,actions)=>{
-  const key=event.market&&[
-   event.market.chain,event.market.contract,event.market.pool].join(':');
+  const key=marketKey(event.market);
   return event.linked_event_ids.some(id=>{
    const upstream=byId.get(id)?.event;
    return upstream?.role===role&&actions.includes(upstream.action)
     &&iso(upstream.at_utc)<=iso(event.at_utc)
-    &&!!upstream.market&&key===[
-      upstream.market.chain,upstream.market.contract,upstream.market.pool].join(':');
+    &&key!==null&&key===marketKey(upstream.market);
   });
  };
  for(const {event} of records){
@@ -183,10 +187,8 @@ export function buildFiveDotForensicReport({entries=[],startUtc,endUtc,
    if(iso(parent.at_utc)>iso(event.at_utc))
     problems.push({event_id:event.event_id,
      code:'FUTURE_CAUSAL_DEPENDENCY',linked_event_id:id});
-   if(parent?.market&&event?.market&&
-    (parent.market.chain!==event.market.chain
-      ||parent.market.contract!==event.market.contract
-      ||parent.market.pool!==event.market.pool))
+   if(parent?.market&&event?.market
+    &&marketKey(parent.market)!==marketKey(event.market))
     problems.push({event_id:event.event_id,
       code:'DIFFERENT_POOL_DEPENDENCY',linked_event_id:id});
   }
