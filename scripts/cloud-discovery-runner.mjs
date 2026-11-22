@@ -17,6 +17,7 @@ import {chooseNextDiscoveryPage} from '../src/discovery-page-scheduler.mjs';
 import {recoverArchivedV4} from '../src/v18-archived-v4-recovery.mjs';
 import {planMultiChainCapture} from '../src/v19-discovery-budget-plan.mjs';
 import {chainServiceSignals,summarizeChainServiceSla} from '../src/v19-chain-service-sla.mjs';
+import {buildLiquiditySensitivityStudy} from '../src/v19-paper-liquidity-sensitivity.mjs';
 import {planHotFairRechecks} from '../src/v19-hot-fair-recheck.mjs';
 import {planEvidenceRepairRechecks} from '../src/v19-evidence-repair-queue.mjs';
 import {summarizeRecheckService} from '../src/v19-recheck-service-metrics.mjs';
@@ -591,6 +592,21 @@ metrics.v19_hot_fair_recheck_plan={selected:recheckPlan.selected.map(x=>({chain:
   deferred_repair_pool_keys:recheckPlan.deferred_repair_keys,
   repair_selected:recheckPlan.repair_selected,hot_selected:recheckPlan.hot_selected,
   fair_selected:recheckPlan.fair_selected,trade_authorized:false};
+// Paper-cost sensitivity is a separate research file, never a new risk gate.
+const liquidityStudy=buildLiquiditySensitivityStudy({
+ candidates:receivedPages.flatMap(x=>x.decoded.candidates),
+ asOfUtc:now(),entryAmountTestUsdc:50
+});
+const liquidityStudyPath=root+'/paper-liquidity-sensitivity.json';
+await writeFile(liquidityStudyPath,JSON.stringify(liquidityStudy,null,2)+'\n','utf8');
+artifacts.push(liquidityStudyPath);
+metrics.v19_liquidity_sensitivity={
+ source_path:liquidityStudyPath,
+ studied_pool_rows:liquidityStudy.included_pool_rows,
+ observed_false_buy_count:null,
+ applied_policy_changes:false,
+ orders_authorized:0
+};
 metrics.v19_chain_page_plan=capturePlan;
 metrics.v19_chain_service_sla=summarizeChainServiceSla({
  signals:chainService,plan:capturePlan,asOfUtc:now(),
