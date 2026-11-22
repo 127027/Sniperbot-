@@ -50,7 +50,7 @@ async function fetchRaw(url,provider,fileName){
   http_status:response.status,http_ok:response.ok,
   retry_after_header:response.headers?.get?.('retry-after')||null,
   response_sha256:sha256(text),
-  raw_bytes_utf8:text.length,body_path:root+'/'+fileName};
+  raw_bytes_utf8:Buffer.byteLength(text,'utf8'),body_path:root+'/'+fileName};
  // Store response as received including error responses; never alter/repair timestamps.
  await writeFile(evidence.body_path,text,'utf8');
  artifacts.push(evidence.body_path);fetches.push(evidence);
