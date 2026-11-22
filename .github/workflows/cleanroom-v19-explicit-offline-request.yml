@@ -29,6 +29,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Require independently verified 100-percent ORIGINAL acceptance before 29h Backtest
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/v19-verify-100pct-before-backtest.mjs --require-ready
       - name: Guard original evidence gates and isolated model receipt audit
         shell: bash
         run: |
