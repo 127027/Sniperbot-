@@ -77,16 +77,17 @@ test('SYS-13: conflicting contracts never receive a trustworthy unified token ke
  assert.equal(migrated.canonical_identity_audit.conflicts.length,1);
  assert.equal(p.status,'PENDING_RESEARCH_NOT_BUY_ELIGIBLE');
 });
-test('SYS-13: real 409-pool legacy archive migrates without rekeying, deleting or rescorings',async()=>{
+test('SYS-13: real evolving archive migrates without rekeying, deleting or rescorings',async()=>{
  const raw=await readFile('research/state/market-memory.json','utf8');
  const original=JSON.parse(raw);
- assert.equal(Object.keys(original.pools).length,409);
+ const originalPoolCount=Object.keys(original.pools).length;
+ assert.ok(originalPoolCount>=409,'historical 409-pool baseline was lost');
  const beforeKeys=Object.keys(original.pools).sort();
  const beforeRefs=Object.fromEntries(Object.entries(original.pools).map(([k,x])=>
   [k,JSON.stringify({refs:x.source_refs,source:x.first_source_path,last:x.last_source_path,
    snapshot:x.last_snapshot,first:x.first_seen_at_utc,last_seen:x.last_seen_at_utc})]));
  const migrated=enrichPersistentMarketIdentity(original);
- assert.equal(migrated.canonical_identity_audit.preserved_pool_count,409);
+ assert.equal(migrated.canonical_identity_audit.preserved_pool_count,originalPoolCount);
  assert.equal(migrated.canonical_identity_audit.invalid.length,0);
  assert.equal(migrated.canonical_identity_audit.collisions.length,0);
  assert.equal(migrated.canonical_identity_audit.conflicts.length,0);
