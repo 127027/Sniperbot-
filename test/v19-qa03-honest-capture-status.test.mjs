@@ -33,6 +33,10 @@ test('QA-03: synthetic six-chain all-HTTP200 journal may pass the requested samp
  const last=args.journal.http_receipts.find(x=>x.http_status===429&&x.body_path.includes('gecko-base-page2'));
  assert.ok(last,'fixture must have real original HTTP429');
  last.http_status=200; // Deliberately SYNTHETIC only; never rewrite the real file.
+ const mirrored=args.evidence.api_evidence.find(x=>x.body_path===last.body_path);
+ assert.ok(mirrored);
+ mirrored.http_status=200;
+ mirrored.http_ok=true;
  args.journal.unresolved_planned_pages_this_run=[];
  args.journal.has_unresolved_page_gaps=false;
  args.journal.status_is_not_successful_capture=false;
@@ -75,6 +79,8 @@ test('QA-03: a deliberately bounded two-chain page budget is valid incremental p
  const evidence=structuredClone(args.evidence);
  evidence.page_capture_failures=[];
  evidence.page_capture_deferred=[];
+ evidence.api_evidence=evidence.api_evidence.filter(r=>
+  r.provider!=='GECKOTERMINAL'||journal.http_receipts.some(j=>j.body_path===r.body_path));
  const outcome=assessCaptureCompletion({...args,journal,evidence});
  assert.equal(outcome.workflow_may_report_success,true);
  assert.equal(outcome.status,'BOUNDED_SAMPLE_COMPLETE_COVERAGE_INCOMPLETE');
@@ -134,4 +140,44 @@ test('QA-03: the existing runner persists its verdict before final GitHub commit
  const verifier=await readFile('scripts/v19-assert-capture-completion.mjs','utf8');
  assert.match(verifier,/if\(process\.env\.GITHUB_STEP_SUMMARY\)/);
  assert.match(verifier,/if\(!outcome\.workflow_may_report_success\|\|rawIssues\.length\)process\.exitCode=1/);
+});
+
+test('QA-03: any forged journal HTTP200 status or source SHA without matching API archive cannot pass',async()=>{
+ const original=await archived();
+ const synthetic=structuredClone(original);
+ const first=synthetic.journal.http_receipts.find(r=>r.provider==='GECKOTERMINAL'
+  &&r.http_status===200);
+ assert.ok(first);
+ first.response_sha256='f'.repeat(64);
+ const denied=assessCaptureCompletion(synthetic);
+ assert.equal(denied.workflow_may_report_success,false);
+ assert.ok(denied.reasons.includes('JOURNAL_API_EVIDENCE_MISMATCH'));
+ const missing=structuredClone(original);
+ missing.evidence.api_evidence.splice(0,1);
+ const unknown=assessCaptureCompletion(missing);
+ assert.equal(unknown.workflow_may_report_success,false);
+ assert.ok(unknown.reasons.includes('JOURNAL_API_EVIDENCE_MISMATCH'));
+});
+test('QA-03: wrong source endpoint, future receipt, or mismatched page cannot pass a forged complete sample',async()=>{
+ const original=await archived();
+ const base=structuredClone(original);
+ const x=base.journal.http_receipts.find(r=>r.provider==='GECKOTERMINAL'
+  &&r.http_status===200);
+ assert.ok(x);
+ const row=base.evidence.api_evidence.find(r=>r.body_path===x.body_path);
+ assert.ok(row);
+ const forgedUrl=x.url.replace('page=1','page=3');
+ x.url=forgedUrl;row.url=forgedUrl;
+ let denied=assessCaptureCompletion(base);
+ assert.equal(denied.workflow_may_report_success,false);
+ assert.ok(denied.reasons.includes('PLANNED_PAGE_ENDPOINT_OR_PROVENANCE_MISMATCH'));
+ const future=structuredClone(original);
+ const y=future.journal.http_receipts.find(r=>r.provider==='GECKOTERMINAL'
+  &&r.http_status===200);
+ const yr=future.evidence.api_evidence.find(r=>r.body_path===y.body_path);
+ y.received_at_utc='2026-11-25T00:00:00.000Z';
+ yr.received_at_utc=y.received_at_utc;
+ denied=assessCaptureCompletion(future);
+ assert.equal(denied.workflow_may_report_success,false);
+ assert.ok(denied.reasons.includes('PLANNED_PAGE_ENDPOINT_OR_PROVENANCE_MISMATCH'));
 });
