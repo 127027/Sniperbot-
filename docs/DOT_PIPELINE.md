@@ -1,5 +1,17 @@
 # R29 Cleanroom: dauerhaftes Cloud-Signal-System (kein laufender Endgeräte-Bot erforderlich)
 
+## V1.8 Phase B – Forschungs-/Shadow-Grenze (22.11.2026)
+
+V1.8-Code wird **stufenweise** eingeführt. Ungeprüfte Änderungen sind KEINE Freigabe für BUY/SELL. Die unveränderten GitHub-Paper-Konten, Orders und Receipts bleiben erhalten. Bis ein unabhängiger vollständiger Sicherheits- und Client-Receipt-Test samt späterer Aktivierungsfreigabe belegt ist, dürfen V1.8-Shadow-Befunde **niemals** in `signals/orders/` als PAPER-Orders veröffentlicht werden.
+
+- **Dot 1:** Das 4/8/12/24-Tempo anhand tatsächlich vergleichbarer Zeitbeobachtungen steuern. Eine Seite mit 20 Pools beweist keine vollständige Marktaktivität.
+- **Dot 2:** Neue GeckoTerminal-Uniswap-V4-Pools haben **32-Byte-Pool-IDs**. `src/live-pool-discovery.mjs` erkennt diese nur mit passendem `relationships.dex.data.id = uniswap-v4-<network>`; `pool_kind: UNISWAP_V4_POOL_ID` muss in den Quellen, im Marktgedächtnis und im Handoff erhalten bleiben. Die Originalantwort mit 20 Pools vom 22.11.07:19 UTC lieferte vor dem Fix nur 9 gültige Decoder-Kandidaten; der isolierte Neuvergleich lieferte 20. Der alte unveränderliche Rohbeleg wurde **nicht rückdatiert oder live nacherfasst**.
+- **Dot 3:** `src/risk-authorization-v18.mjs` prüft nur die **Struktur** einer attestierten Freigabe und endet selbst bei positivem Ergebnis stets mit `trade_authorized:false`. GitHub-Blob-Provenienz, echte unabhängige Quellen und Sellability müssen später zusätzlich nachgewiesen werden; niemals aus SHA-Text allein schließen.
+- **Dot 4:** `src/forecast-calibration-v18.mjs` liefert nur forschungsbezogene, zeitlich getrennt trainierte 1-/3-/6-h-Einschätzungen. Unreife oder zu kleine Kohorten = `null`. Kein automatischer Einsatz als Kauf-/Verkaufsstrategie. `src/protective-exit.mjs` liefert nur `SHADOW_SELL_CANDIDATE` oder `EXIT_DATA_GAP`, niemals PAPER_FILLED.
+- **Dot 5:** Fehlende vollständige Kurse und Ende-zu-Ende-Receipts weiterhin offen ausweisen. Der neue read-only `src/market-observer-v18.mjs` behauptet **keinen** Anbieter-Kurszeitpunkt oder archivierten Git-Blob, wenn er nicht real vorliegt. Unverbundene Shadow-Hilfsmodule nicht als aktiven Windows-Exit-Schutz darstellen.
+
+**Aktivierungs-Gate:** V1.8-Marktbeobachtung und Exit-Ausführung sind aktuell **nicht mit dem Windows-Runner verbunden**. Voraussetzung für spätere Freigabe: durchgehende Quellenevidenz, authentische Dot3-Prüfung, reproduzierbare negative/positive Regressionen, Shadow-E2E und ein vollständig verifizierter lokaler BUY-/SELL-/Receipt-Kreislauf. Der historische Oracle-PnL zählt nicht als solcher Nachweis.
+
 Nur Repo `127027/Sniperbot-`, Branch `codex/r29-cleanroom-paper-20261121`. Fünf unabhängige **stündliche** ChatGPT-Automationen (Dot 6 läuft als **tägliche getrennte Prüfphase innerhalb der Dot-5-Automation**, weil maximal fünf aktive Automationen zulässig sind) arbeiten auf Cloud-Seite auch dann, wenn kein Windows-/Laptop-/Handy-Client läuft. Das ist wiederkehrende Recherche, **kein sekündlich garantierter 24/7-Marktdatenstream**. Alte R29-Automationen und main werden nicht verwendet.
 
 ## Alle fünf Dots
