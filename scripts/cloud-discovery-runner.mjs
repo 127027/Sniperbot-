@@ -314,7 +314,8 @@ if(!memory.ingested_sources?.includes(recoveredPath)){
    const merged=mergeMemory(memory,{candidates:recovery.candidates,
      sourcePath:recoveredPath,sourceCapturedAtUtc:recovery.originally_raw_captured_at_utc,
      sourceSha256:sha256(recoveryFileText),
-     chain:'base',page:3,provider:'GECKOTERMINAL_ARCHIVE_RECOVERY',fetchStatus:'ARCHIVED_ONLY'});
+     chain:'base',page:3,provider:'GECKOTERMINAL_ARCHIVE_RECOVERY',fetchStatus:'ARCHIVED_ONLY',
+     reconstructedAtUtc:archived.recovered_at_utc});
    memory=merged.memory;
    recoveredV4Count=merged.added;
  }catch(error){
