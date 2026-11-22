@@ -37,7 +37,7 @@ test('D2-04: only separately recorded DIFFERENT original raw responses count as 
  assert.equal(report.candidates[0].distinct_http_capture_times,3);
  assert.equal(report.candidates[0].evidence_batches,2);
  assert.equal(report.candidates[0].duplicated_original_provider_raw_captures_suppressed,1);
- assert.equal(report.candidates[0].observed_price_change_pct,20);
+ assert.ok(Math.abs(report.candidates[0].observed_price_change_pct-20)<1e-8);
  assert.equal(report.candidates[0].status,'RESEARCH_PRIORITY_ONLY_NOT_RISK_APPROVED');
  assert.equal(report.candidates[0].trade_authorized,false);
  assert.equal(report.orders,0);
