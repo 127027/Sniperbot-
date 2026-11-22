@@ -10,29 +10,32 @@ function start(state,{provider='GECKOTERMINAL',lane='NEW_POOLS',ms=0,n}={}){
  const r=reserveProviderRequest({state,provider,lane,asOfUtc:later(ms),requestId:id(n)});
  return r;
 }
-test('SYS-11: 6 new pool + 2 reserved trending calls fill conservative Gecko 8/min bucket',()=>{
+test('SYS-11: observed HTTP429 drives four-per-minute provider cap, three new-pool plus one reserved lane',()=>{
  let state=emptyProviderBudgetState();
- for(let n=0;n<6;n++){
-  const r=start(state,{n,ms:n*6100});assert.equal(r.gate.allowed,true);
+ for(let n=0;n<3;n++){
+  const r=start(state,{n,ms:n*15100});
+  assert.equal(r.gate.allowed,true);
   state=r.state;
  }
- const newMore=start(state,{n:6,ms:37000});
+ const newMore=start(state,{n:3,ms:45300});
  assert.equal(newMore.gate.allowed,false);
  assert.equal(newMore.gate.reason,'ROLLING_WINDOW_BUDGET');
- const older=start(state,{n:7,ms:38000,lane:'TRENDING'});
+ const older=start(state,{n:4,ms:45300,lane:'TRENDING'});
  assert.equal(older.gate.allowed,true);state=older.state;
- const ohlcv=start(state,{n:8,ms:44000,lane:'OHLCV'});
- assert.equal(ohlcv.gate.allowed,true);state=ohlcv.state;
- assert.equal(start(state,{n:9,ms:49000,lane:'OHLCV'}).gate.allowed,false);
- const summary=summarizeProviderBudget({state,asOfUtc:later(50000)});
- assert.equal(summary.per_provider.GECKOTERMINAL.rolling_starts,8);
- assert.equal(summary.per_provider.GECKOTERMINAL.started_lanes.NEW_POOLS,6);
+ const ohlcv=start(state,{n:5,ms:50000,lane:'OHLCV'});
+ assert.equal(ohlcv.gate.allowed,false);
+ assert.equal(ohlcv.gate.reason,'ROLLING_WINDOW_BUDGET');
+ const summary=summarizeProviderBudget({state,asOfUtc:later(52000)});
+ assert.equal(summary.per_provider.GECKOTERMINAL.rolling_starts,4);
+ assert.equal(summary.per_provider.GECKOTERMINAL.started_lanes.NEW_POOLS,3);
  assert.equal(summary.per_provider.GECKOTERMINAL.started_lanes.TRENDING,1);
- assert.equal(summary.per_provider.GECKOTERMINAL.started_lanes.OHLCV,1);
+ assert.equal(summary.per_provider.GECKOTERMINAL.started_lanes.OHLCV,0);
+ assert.equal(summary.per_provider.GECKOTERMINAL.caps.per_minute,4);
  const restarted=JSON.parse(JSON.stringify(state));
- const recovered=start(restarted,{n:10,ms:61000});
+ const recovered=start(restarted,{n:6,ms:61000});
  assert.equal(recovered.gate.allowed,true);
- assert.equal(recovered.state.providers.GECKOTERMINAL.request_starts_total,9);
+ assert.equal(recovered.state.providers.GECKOTERMINAL.request_starts_total,5);
+ assert.equal(start(recovered.state,{n:7,ms:62000}).gate.reason,'ROLLING_WINDOW_BUDGET');
 });
 test('SYS-11: HTTP429 crosses Gecko lanes and cold JSON restart, DEX remains independent',()=>{
  let state=start(emptyProviderBudgetState(),{n:1}).state;
