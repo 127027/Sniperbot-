@@ -6,7 +6,6 @@ const validRun=x=>typeof x==='string'&&/^\d{1,20}$/.test(x);
 const key=(chain,page)=>chain+':'+page;
 const validPage=p=>p&&chains.has(p.chain)&&Number.isInteger(p.page)&&p.page>0&&p.page<=1000;
 const unique=xs=>new Set(xs).size===xs.length;
-const count=o=>Array.isArray(o)?o.length:0;
 
 export function assessCaptureCompletion({request,journal,evidence,runId}={}){
  if(!validRun(runId)||request?.mode!=='PAPER_RESEARCH_ONLY'
@@ -25,7 +24,7 @@ export function assessCaptureCompletion({request,journal,evidence,runId}={}){
   ||!Array.isArray(evidence.api_evidence))
   throw Error('INVALID_CAPTURE_COMPLETION_EVIDENCE');
 
- const reasons=[];
+ const reasons=[],coverageWarnings=[];
  const planned=journal.planned_pages, wanted=[...new Set(request.networks)];
  if(planned.length===0)reasons.push('NO_PAGES_PLANNED');
  if(planned.some(p=>!validPage(p))||!unique(planned.map(p=>key(p.chain,p.page))))
@@ -49,7 +48,9 @@ export function assessCaptureCompletion({request,journal,evidence,runId}={}){
   &&Object.hasOwn(requestedChains,p.chain))requestedChains[p.chain]=true;
  const missingChains=Object.keys(requestedChains).filter(c=>!requestedChains[c]);
  const missingPages=planned.filter(p=>!succeeded.has(key(p.chain,p.page)));
- if(missingChains.length)reasons.push('REQUESTED_CHAINS_WITHOUT_HTTP200');
+ // Intentionally budgeted partial sampling is legitimate progress when all
+ // *planned* pages succeeded; it must not be mislabeled as a provider failure.
+ if(missingChains.length)coverageWarnings.push('REQUESTED_CHAINS_OUTSIDE_SUCCESSFUL_SAMPLE');
  if(missingPages.length)reasons.push('PLANNED_PAGES_WITHOUT_HTTP200');
  if(failed.length||evidence.page_capture_failures.length)reasons.push('PROVIDER_HTTP_FAILURES');
  if(evidence.page_capture_deferred.length)reasons.push('UNATTEMPTED_DEFERRED_PAGES');
@@ -66,14 +67,15 @@ export function assessCaptureCompletion({request,journal,evidence,runId}={}){
  if(evidence.published_paper_orders!==0||evidence.verified_client_fills!==0)
   reasons.push('NOT_RESEARCH_ONLY');
  return {schema:1,kind:'R29_V19_CAPTURE_COMPLETION_GATE',
-  status:reasons.length?'PARTIAL_OR_INVALID_CAPTURE':'REQUESTED_SAMPLE_COMPLETE',
+  status:reasons.length?'PARTIAL_OR_INVALID_CAPTURE':
+   missingChains.length?'BOUNDED_SAMPLE_COMPLETE_COVERAGE_INCOMPLETE':'REQUESTED_SAMPLE_COMPLETE',
   requested_chain_count:wanted.length,
   planned_page_count:planned.length,
   verified_http200_planned_pages:succeeded.size,
   missing_requested_chains:missingChains,
   unresolved_planned_pages:missingPages,
   provider_http_failures:failed,
-  reasons:[...new Set(reasons)],
+  reasons:[...new Set(reasons)],coverage_warnings:coverageWarnings,
   workflow_may_report_success:reasons.length===0,
   global_market_coverage_proven:false,
   paper_orders_authorized:0};
