@@ -56,7 +56,7 @@ export function buildOfflineResearchExperimentSuite({report,manifest=null}={}){
  });
  const horizons=map('shadow_forecast_paths',r=>analyzeAsOfForecastPath({
   startAtUtc:r.start_at_utc,entryPriceUsd:r.entry_price_usd,
-  observations:r.observations,asOfUtc:r.as_of_utc
+  poolKey:r.pool_key,observations:r.observations,asOfUtc:r.as_of_utc
  }));
  const holdouts=map('shadow_holdout_scorecards',r=>{
   // This optionally recreates a purely SYNTHETIC exercise freeze; it never
