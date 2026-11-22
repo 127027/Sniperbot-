@@ -12,11 +12,12 @@ export function makeResearchHandoff({evidence,atUtc,maxAgeMinutes=10}={}){
  const fresh=capture!==null&&capture<=now&&now-capture<=maxAgeMinutes*60000;
  const pairs=Array.isArray(evidence.dex_checks)?evidence.dex_checks:[];
  const raw=[];
- for(const item of evidence.gecko?.candidates??[]){
+ for(const item of [...(evidence.gecko?.candidates??[]),...(evidence.older_pool_candidates??[])]){
    const c=canonicalChain(item?.chain),pool=item?.pool,contract=item?.contract;
    if(!c||!poolValid(c,pool,item?.pool_kind))continue;
    raw.push({chain:c,pool,pool_kind:item.pool_kind||null,contract:tokenValid(c,contract)?contract:null,
-    symbol:item.symbol||null,source_class:'GECKOTERMINAL_POOL_WITH_BASE_CONTRACT',
+    symbol:item.symbol||null,source_class:item.source_api==='GECKOTERMINAL_TRENDING_POOLS_JSON'
+      ?'GECKOTERMINAL_TRENDING_RESEARCH_ONLY':'GECKOTERMINAL_POOL_WITH_BASE_CONTRACT',
     primary_quote_usd:item.observed_price_usd,primary_liquidity_usd:item.liquidity_usd,
     captured_at_utc:item.observed_at_utc});
  }
@@ -37,7 +38,7 @@ export function makeResearchHandoff({evidence,atUtc,maxAgeMinutes=10}={}){
  const candidates=[];
  for(const c of dedup.values()){
    const p=pairs.find(p=>canonicalChain(p.chain)===c.chain&&p.pool&&key(c.chain,p.pool)===key(c.chain,c.pool));
-   const independentlyMatched=c.source_class==='GECKOTERMINAL_POOL_WITH_BASE_CONTRACT'&&p?.matched===true
+   const independentlyMatched=['GECKOTERMINAL_POOL_WITH_BASE_CONTRACT','GECKOTERMINAL_TRENDING_RESEARCH_ONLY'].includes(c.source_class)&&p?.matched===true
       &&p?.status==='TWO_DOMAIN_INDICATIVE_RESEARCH_ONLY';
    const independentQuote=fresh&&independentlyMatched;
    const researchLevel=independentQuote?'TWO_DOMAIN_PRICE_LIQUIDITY_PROVISIONAL':
