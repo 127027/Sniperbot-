@@ -121,7 +121,12 @@ test('QA-03: a normal finalized runner with 429 gaps cannot claim complete sampl
    source_sha256:'a'.repeat(64),candidates:[]}],
   failures:[{chain:'ethereum',page:1,attempt_at_utc:now,http_status:429,
     reason:'HTTP_429'}]}).updated_memory;
- const closed=closePartialCapture(journal,{atUtc:now,finalCoverage:coverage});
+ const actualReceipt=appendPartialHttpReceipt(journal,{atUtc:now,evidence:{
+  provider:'GECKOTERMINAL',http_status:200,started_at_utc:now,received_at_utc:now,
+  url:'https://api.geckoterminal.com/api/v2/networks/base/new_pools?include=base_token,quote_token&page=1',
+  body_path:'research/feeds/2026-11-22/450777404/gecko-base-page1.raw.json',
+  response_sha256:'a'.repeat(64)}});
+ const closed=closePartialCapture(actualReceipt,{atUtc:now,finalCoverage:coverage});
  assert.equal(closed.state,'FINALIZED_BY_RUNNER');
  assert.equal(closed.proven_successful_pages_this_run,1);
  assert.equal(closed.unresolved_planned_pages_this_run.length,1);
@@ -141,4 +146,70 @@ test('QA-03: historic success from a PRIOR run cannot certify a failed current r
  const closed=closePartialCapture(current,{finalCoverage:history,atUtc:now});
  assert.equal(closed.proven_successful_pages_this_run,0);
  assert.equal(closed.has_unresolved_page_gaps,true);
+});
+
+test('QA-03: a forged success coverage entry without original HTTP receipt is never accepted',()=>{
+ const request=[{chain:'base',page:1}];
+ const base=stagePendingCapture({pageCoverage:emptyPageCoverage(),tasks:request,
+  atUtc:now,runId:'450777700'}).journal;
+ const path='research/feeds/2026-11-22/450777700/gecko-base-page1.raw.json';
+ const coverage=updatePageCoverage(emptyPageCoverage(),{asOfUtc:now,
+  successes:[{chain:'base',page:1,captured_at_utc:now,
+    source_path:path,source_sha256:'a'.repeat(64),candidates:[]}]}).updated_memory;
+ const forged=closePartialCapture(base,{atUtc:now,finalCoverage:coverage});
+ assert.equal(forged.proven_successful_pages_this_run,0);
+ assert.equal(forged.has_unresolved_page_gaps,true);
+ const receipt=appendPartialHttpReceipt(base,{atUtc:now,evidence:{
+  provider:'GECKOTERMINAL',http_status:429,started_at_utc:now,received_at_utc:now,
+  url:'https://api.geckoterminal.com/api/v2/networks/base/new_pools?include=base_token,quote_token&page=1',
+  body_path:path,response_sha256:'a'.repeat(64)}});
+ const failed=closePartialCapture(receipt,{atUtc:now,finalCoverage:coverage});
+ assert.equal(failed.proven_successful_pages_this_run,0);
+ assert.deepEqual(failed.unresolved_planned_pages_this_run,request);
+});
+test('SYS-11: only the exact planned page, URL and raw SHA can finalize a capture',()=>{
+ const runId='450777701';
+ const base=stagePendingCapture({pageCoverage:emptyPageCoverage(),
+  tasks:[{chain:'ethereum',page:2}],atUtc:now,runId}).journal;
+ const path='research/feeds/2026-11-22/'+runId+'/gecko-ethereum-page2.raw.json';
+ const coverage=updatePageCoverage(emptyPageCoverage(),{asOfUtc:now,
+  successes:[{chain:'ethereum',page:2,captured_at_utc:now,
+   source_path:path,source_sha256:'a'.repeat(64),candidates:[]}]}).updated_memory;
+ const source={provider:'GECKOTERMINAL',http_status:200,
+  started_at_utc:now,received_at_utc:now,response_sha256:'a'.repeat(64),
+  body_path:path,
+  url:'https://api.geckoterminal.com/api/v2/networks/eth/new_pools?include=base_token,quote_token&page=2'};
+ const confirmed=appendPartialHttpReceipt(base,{evidence:source,atUtc:now});
+ assert.equal(closePartialCapture(confirmed,{atUtc:now,finalCoverage:coverage})
+  .proven_successful_pages_this_run,1);
+ for(const tamper of [
+  {url:source.url.replace('page=2','page=3')},
+  {response_sha256:'b'.repeat(64)},
+  {provider:'DEXSCREENER'},
+  {http_status:503}
+ ]){
+  const spoofed=appendPartialHttpReceipt(base,{atUtc:now,evidence:{...source,...tamper}});
+  const final=closePartialCapture(spoofed,{atUtc:now,finalCoverage:coverage});
+  assert.equal(final.proven_successful_pages_this_run,0,JSON.stringify(tamper));
+ }
+});
+test('SYS-11: wrong-run source paths, invalid or future capture timestamps and duplicates are rejected',()=>{
+ const base=stagePendingCapture({pageCoverage:emptyPageCoverage(),
+  tasks:[{chain:'base',page:1}],atUtc:now,runId:'450777800'}).journal;
+ const source={provider:'GECKOTERMINAL',http_status:200,
+  started_at_utc:now,received_at_utc:now,response_sha256:'a'.repeat(64),
+  body_path:'research/feeds/2026-11-22/450777800/gecko-base-page1.raw.json',
+  url:'https://api.geckoterminal.com/api/v2/networks/base/new_pools?include=base_token,quote_token&page=1'};
+ for(const e of [
+  {...source,body_path:source.body_path.replace('450777800','450777801')},
+  {...source,body_path:'research/feeds/2026-11-22/450777800/../escape.json'},
+  {...source,received_at_utc:'2026-11-23T00:00:00Z'},
+  {...source,started_at_utc:'2026-11-22T18:44:59Z'}
+ ]){
+  assert.throws(()=>appendPartialHttpReceipt(base,{atUtc:now,evidence:e}),
+   /INVALID_PARTIAL_HTTP_RECEIPT/);
+ }
+ assert.throws(()=>stagePendingCapture({pageCoverage:emptyPageCoverage(),
+  tasks:[{chain:'base',page:1},{chain:'base',page:1}],atUtc:now,
+  runId:'450777802'}),/INVALID_PENDING_CAPTURE_STAGE/);
 });
