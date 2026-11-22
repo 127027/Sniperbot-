@@ -46,9 +46,11 @@ const now=()=>new Date().toISOString();
 const fetches=[],dexChecks=[],fallback=[],rechecked=[],artifacts=[];
 let lastGeckoStartedMs=null;
 let runGeckoRetryAtUtc=null;
-let precedingMemory;
+let precedingMemory,olderState,ohlcvState;
 const geckoBlock=()=>activeGeckoProviderCooldown({
- checkpoints:precedingMemory?.checkpoints||{},atUtc:now(),
+ checkpoints:precedingMemory?.checkpoints||{},
+ olderCheckpoints:olderState?.checkpoints||{},
+ ohlcvMarkets:ohlcvState?.markets||{},atUtc:now(),
  runRetryAtUtc:runGeckoRetryAtUtc
 });
 async function fetchRaw(url,provider,fileName){
@@ -92,6 +94,12 @@ const coverageStatePath='research/state/page-coverage.json';
 let pageCoverage;
 try{pageCoverage=JSON.parse(await readFile(coverageStatePath,'utf8'));}
 catch(error){if(error.code!=='ENOENT')throw error;pageCoverage=emptyPageCoverage();}
+const olderStatePath='research/state/older-pool-captures.json';
+try{olderState=JSON.parse(await readFile(olderStatePath,'utf8'));}
+catch(err){if(err.code!=='ENOENT')throw err;olderState=emptyOlderPoolState();}
+const ohlcvStatePath='research/state/ohlcv-backfill.json';
+try{ohlcvState=JSON.parse(await readFile(ohlcvStatePath,'utf8'));}
+catch(err){if(err.code!=='ENOENT')throw err;ohlcvState=emptyOhlcvBackfillState();}
 const capturePlan=planMultiChainCapture({
  networks:request.networks,checkpoints:precedingMemory.checkpoints,
  pageCoverage,budget:request.max_gecko_requests-(request.max_ohlcv_requests??0)
@@ -151,10 +159,6 @@ for(let i=0;i<capturePlan.tasks.length;i++){
  }
 }
 // Optional older/trending pool discovery: same Dot2 and public Gecko request budget.
-const olderStatePath='research/state/older-pool-captures.json';
-let olderState;
-try{olderState=JSON.parse(await readFile(olderStatePath,'utf8'));}
-catch(err){if(err.code!=='ENOENT')throw err;olderState=emptyOlderPoolState();}
 const olderPlan=planOlderPoolCaptures({state:olderState,networks:request.networks,
  asOfUtc:now(),maxRequests:request.max_older_pool_requests??0});
 const olderPages=[],olderFailures=[];
@@ -251,10 +255,6 @@ const recheckPlan=planHotFairRechecks({
  legacyCandidates:known,asOfUtc:now(),maxChecks:request.max_dex_pairs,
  round:Number(process.env.GITHUB_RUN_NUMBER)||0});
 // Optional OHLCV history inside the EXISTING Gecko request budget; no other bot.
-const ohlcvStatePath='research/state/ohlcv-backfill.json';
-let ohlcvState;
-try{ohlcvState=JSON.parse(await readFile(ohlcvStatePath,'utf8'));}
-catch(err){if(err.code!=='ENOENT')throw err;ohlcvState=emptyOhlcvBackfillState();}
 const ohlcvPlan=planOhlcvBackfill({state:ohlcvState,candidates:recheckPlan.selected,
  asOfUtc:now(),maxRequests:request.max_ohlcv_requests??0,limit:600});
 const ohlcvResults=[];
