@@ -36,6 +36,8 @@ import {planIndependentObservations} from '../src/v19-independent-observation-sc
 import {summarizeCumulativeScanProgress} from '../src/v19-cumulative-scan-progress.mjs';
 import {enrichPersistentMarketIdentity} from '../src/v19-canonical-market-identity.mjs';
 import {makeNeutralEvaluationPopulation} from '../src/v19-neutral-evaluation-population.mjs';
+import {restoreCommittedInflightCapture}
+ from '../src/v19-inflight-http-recovery.mjs';
 import {stagePendingCapture,appendPartialHttpReceipt,closePartialCapture}
  from '../src/v19-partial-capture-durability.mjs';
 import {selectObservationArchivePaths,parseResearchJsonWithLegacyTrailer}
@@ -172,6 +174,57 @@ try{ohlcvState=JSON.parse(await readFile(ohlcvStatePath,'utf8'));}
 catch(err){if(err.code!=='ENOENT')throw err;ohlcvState=emptyOhlcvBackfillState();}
 try{providerBudget=JSON.parse(await readFile(providerBudgetPath,'utf8'));}
 catch(err){if(err.code!=='ENOENT')throw err;providerBudget=emptyProviderBudgetState();}
+// An interrupted earlier action may have COMMITTED an original HTTP200 body
+// without finishing the candidate memory/page index. Recover its verified raw
+// bytes BEFORE planning fresh API calls. Archive capture time is NOT a Dot2
+// first-discovery timestamp and recovery is NEVER a new network attempt.
+const recoveredInflight=[],rejectedInflight=[],skippedInflight=[];
+let priorInflightPaths=[];
+try{
+ priorInflightPaths=(await readdir('research/feeds',{recursive:true}))
+  .filter(x=>/^\\d{4}-\\d{2}-\\d{2}\\/\\d+\\/inflight-capture\\.json$/.test(x)).sort();
+}catch(error){if(error.code!=='ENOENT')throw error;}
+for(const relative of priorInflightPaths){
+ const journalPath='research/feeds/'+relative;
+ try{
+  const journal=JSON.parse(await readFile(journalPath,'utf8'));
+  if(journal?.kind!=='R29_V19_INFLIGHT_CAPTURE_JOURNAL')continue;
+  const rawFiles={};
+  for(const receipt of journal.http_receipts||[]){
+   if(receipt?.http_status!==200||typeof receipt.body_path!=='string'
+    ||!/^research\\/feeds\\/\\d{4}-\\d{2}-\\d{2}\\/\\d+\\/gecko-(solana|base|ethereum|bsc|robinhood|cronos)-page[1-9]\\d{0,2}\\.raw\\.json$/.test(receipt.body_path))continue;
+   try{rawFiles[receipt.body_path]=await readFile(receipt.body_path,'utf8');}
+   catch(error){if(error.code!=='ENOENT')throw error;}
+  }
+  const restored=restoreCommittedInflightCapture({
+   journal,rawFiles,memory:precedingMemory,pageCoverage,asOfUtc:now()
+  });
+  precedingMemory=restored.memory;
+  pageCoverage=restored.pageCoverage;
+  recoveredInflight.push(...restored.recovered);
+  rejectedInflight.push(...restored.rejected);
+  skippedInflight.push(...restored.skipped);
+ }catch(error){
+  // A corrupt prior journal cannot authorize a false request or a paper BUY.
+  rejectedInflight.push({journal_path:journalPath,
+    reason:'INVALID_OLD_JOURNAL_'+String(error.message||error).slice(0,80)});
+ }
+}
+const priorInflightRecoveryPath=root+'/previous-inflight-recovery.json';
+await writeFile(priorInflightRecoveryPath,JSON.stringify({
+ schema:1,kind:'R29_V19_PREVIOUS_INFLIGHT_REPLAY_AUDIT',
+ checked_journal_count:priorInflightPaths.length,
+ recovered:recoveredInflight,rejected:rejectedInflight,skipped:skippedInflight,
+ original_raw_files_rewritten:0,
+ restored_pages_are_not_fresh_provider_fetches:true,
+ historical_dot2_discovery_never_backdated:true,
+ orders_authorized:0
+},null,2)+'\\n','utf8');
+artifacts.push(priorInflightRecoveryPath);
+if(recoveredInflight.length){
+ await writeFile(memoryFile,JSON.stringify(precedingMemory,null,2)+'\\n','utf8');
+ await writeFile(coverageStatePath,JSON.stringify(pageCoverage,null,2)+'\\n','utf8');
+}
 const capturePlan=planMultiChainCapture({
  networks:request.networks,checkpoints:precedingMemory.checkpoints,
  pageCoverage,budget:request.max_gecko_requests-(request.max_ohlcv_requests??0)
@@ -537,6 +590,16 @@ metrics.v19_hot_fair_recheck_plan={selected:recheckPlan.selected.map(x=>({chain:
   repair_selected:recheckPlan.repair_selected,hot_selected:recheckPlan.hot_selected,
   fair_selected:recheckPlan.fair_selected,trade_authorized:false};
 metrics.v19_chain_page_plan=capturePlan;
+metrics.v19_prior_inflight_recovery={
+ checked_journals:priorInflightPaths.length,
+ recovered_original_raw_pages:recoveredInflight.length,
+ rejected_replay_entries:rejectedInflight.length,
+ recovered_raw_path_list:recoveredInflight.map(x=>x.raw_path),
+ evidence_path:priorInflightRecoveryPath,
+ did_not_issue_network_calls_for_recovery:true,
+ did_not_backdate_dot2_discovery:true,
+ no_trade_authority:true
+};
 // A planned chain/page is not a successful HTTP capture. A one-request Dot2
 // payload for six requested chains is a measurable research DATA_GAP, not
 // evidence that other five chains were quiet or already fully scanned.
