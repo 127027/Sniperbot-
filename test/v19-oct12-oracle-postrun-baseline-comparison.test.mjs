@@ -8,7 +8,7 @@ import {compareOct12SourceGapBaselineAfterRun}
 const read=async p=>readFile(p,'utf8');
 const blob=s=>{
  const b=Buffer.from(s,'utf8');
- return createHash('sha1').update('blob '+b.length+'\\0').update(b).digest('hex');
+ return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');
 };
 async function build(){
  const [reportText,refText]=await Promise.all([
