@@ -1,5 +1,19 @@
 # R29 V1.9 – Fortlaufender Umsetzungsstand (22.11.2026)
 
+## LIVE-FORTSETZUNG NACH 70,5-%-MEILENSTEIN – 22.11.2026, 18:54 UTC
+
+**Unveränderte 61er-Abnahme:** **12 PASS (19,7 %), 31 PARTIAL, 18 OPEN; 43/61 (70,5 %) nur technisch bearbeitet**. Kein neuer ursprünglicher Voll-PASS.
+
+**Tatsächlich durchgeführte Arbeit:** Push-CI-Liveprobes sind jetzt `workflow_dispatch`-opt-in statt automatisch (Push-CI #45057583875: beide Provider-Probes SKIPPED). Kontrollierter tatsächlicher 6-Chain-Capture [#45057658912](https://github.com/127027/Sniperbot-/actions/runs/45057658912) brachte 5/6 HTTP200, 1 Base-HTTP429, 79 Poolbeobachtungen, 2 DEX-HTTP200, 0 Orders; Original-SHA, pending Base-Seite, request budgets und 429-Cooldown sind in `research/feeds/2026-11-22/45057658912/` und `research/state/provider-budget.json` committed. **Vor 2026-11-22T19:54:35.719Z keine neue Gecko-Anfrage**. `research/state/market-memory.json` enthält dadurch 488 Pools (zuvor 409); V4-Poolzahl stieg 61→97. Historische Originale bleiben im Test-Nachweis unterscheidbar.
+
+**SYS-11 / QA-03 weiterhin PARTIAL:** Wegen realem 429 nach sechs Anfragen wurde der Gecko-Limiter auf **4 Provider-Starts/Minute, maximal 3 NEW_POOLS/Minute** und die Mindeststartdistanz auf **15.100 ms** gesetzt. Das ist ein **noch nicht erneut real nachgetestetes** konservatives Limit, kein Versprechen 429-freien Betriebs. Archivtests wurden von falschen 409/61-Festannahmen auf wachsende Ursprungspopulation und bewahrte alte HTTP429-Belege umgestellt. Verifizierter [Source-Node22-CI #45058091004](https://github.com/127027/Sniperbot-/actions/runs/45058091004) auf `1905b368da3c79f711c7b717da78a3efc570b975`: **555/555 PASS, 0 FAIL, TEST_ONLY_NO_SIGNAL_WRITE 0**.
+
+**QA-05 weiterhin PARTIAL:** Echte Holdout-Freeze-Datei existiert jetzt ab 2026-11-22T18:54:05.033Z, SHA-256 `7116f2fbc858d89bda46d38d10f20e66822aca0aa882be07bb7ee94365d86050`; zukünftiger Holdout ist noch nicht gereift. Keine Dots aktiviert, keine Paper-Fills, keine echten Wallet-Änderungen.
+
+**Technischer Detail- und Belegbericht:** [V19_SYS11_REAL_PROVIDER_429_AND_CI_LIMITER_AUDIT_20261122.md](V19_SYS11_REAL_PROVIDER_429_AND_CI_LIMITER_AUDIT_20261122.md). Alte 70,5-%-Abnahmeregeln bleiben unverändert gültig.
+
+
+
 ## NEUSTER ABGENOMMENER CODE-/TEILIMPLEMENTIERUNGSSTAND: 70,5 % technisch bearbeitet (22.11.2026)
 
 **Verbindlicher ORIGINAL-61-Aufgabenstatus:** **12/61 PASS = 19,7 %**, **31/61 PARTIAL = 50,8 %**, **18/61 OPEN = 29,5 %**. Somit **43/61 PASS+PARTIAL = 70,5 % TECHNISCH BEARBEITET**, NICHT zu 70,5 % vollständig wie gewollt abgeschlossen. Vorher waren es 38/61 = 62,3 % technisch bearbeitet; kein Codeverlust.
