@@ -48,7 +48,8 @@ export function measureDot1Activity({
  // A stable page pair needs separate real capture times. Compare exact
  // token/pool IDs, never sorted row numbers or future winners.
  const currentPages=[],comparisons=[],chainStatus=[];
- const uniqueNew=new Set(),observedNow=new Set();
+ const uniqueNew=new Set(),observedNow=new Set(),countedVolume=new Set();
+ let rejectedWinnerFields=0;
  let prevVolume=0,newVolume=0,volumePairs=0;
  for(const chain of networks){
    const available=[...grouped.entries()].filter(([k])=>k.startsWith(chain+':'))
@@ -74,6 +75,11 @@ export function measureDot1Activity({
      const normalise=x=>{
        const m=new Map();
        for(const candidate of x.candidates){
+         if(candidate&&typeof candidate==='object'&&(
+           'reported_gain_pct' in candidate||'future_winner_label' in candidate
+           ||'post_event_rank' in candidate||candidate.source_class==='POST_EVENT_ORACLE')){
+           rejectedWinnerFields++;continue;
+         }
          const c=canonicalChain(candidate?.chain??chain);
          if(c!==chain||!poolValid(chain,candidate?.pool,candidate?.pool_kind))continue;
          const id=key(chain,candidate.pool);
@@ -96,8 +102,9 @@ export function measureDot1Activity({
        const prior=normalise(earlier);
        for(const [id,row] of curr){
          const old=prior.get(id);
-         if(old?.volume!==null&&old?.volume!==undefined&&old.volume>0&&row.volume!==null){
-           prevVolume+=old.volume;newVolume+=row.volume;volumePairs++;
+         if(!countedVolume.has(id)&&old?.volume!==null&&old?.volume!==undefined
+           &&old.volume>0&&row.volume!==null){
+           prevVolume+=old.volume;newVolume+=row.volume;volumePairs++;countedVolume.add(id);
          }
        }
        comparisons.push({chain,page,current_at_utc:current.captured_at_utc,
@@ -127,7 +134,7 @@ export function measureDot1Activity({
    comparable_page_pairs:comparisons.length,active_chains:activeChains,
    chains_requested:networks.length,chain_coverage:chainStatus,
    comparable_panel_complete:comparablePanel,
-   pages:currentPages,comparisons,excluded,
+   pages:currentPages,comparisons,excluded,rejected_post_event_candidate_rows:rejectedWinnerFields,
    market_universe_complete:false,
    market_quiet_confirmed:false,
    no_future_winner_labels_used:true,
