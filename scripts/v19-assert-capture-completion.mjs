@@ -1,7 +1,7 @@
 // Called only AFTER the workflow commits research and partial recovery state.
 // An incomplete 429/deferred sample must cause the GitHub job to FAIL, but
 // cannot erase the authenticated raw evidence or its resume cursor.
-import {readdir,readFile} from 'node:fs/promises';
+import {readdir,readFile,appendFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {assessCaptureCompletion} from '../src/v19-capture-completion-gate.mjs';
 
@@ -38,4 +38,18 @@ const result={...outcome,run_id:runId,raw_receipts_checked:journal.http_receipts
  raw_receipt_integrity_errors:rawIssues.length?rawIssues:null,
  evidence_committed_before_verification:true};
 console.log('DOT2_CAPTURE_COMPLETION_VERDICT',JSON.stringify(result));
+// Highlight the difference between a normal bounded scan, an intentional
+// cooldown-only wake, and a failed API call directly in GitHub Actions UI.
+if(process.env.GITHUB_STEP_SUMMARY){
+ const summary=['### R29 Research-Capture (keine Orders)',
+  '- Status: **'+outcome.status+'**',
+  '- Erfolgreiche geplante Gecko-Seiten: '+outcome.verified_http200_planned_pages+
+    '/'+outcome.planned_page_count,
+  '- Nicht mit HTTP200 abgedeckte angeforderte Chains: '+
+    (outcome.missing_requested_chains.join(', ')||'keine'),
+  '- Gründe: '+(outcome.reasons.join(', ')||'keine'),
+  '- Globale Marktabdeckung: **nicht nachgewiesen**',
+  '- Paper-/Echtgeldorders: **0**',''].join('\n');
+ await appendFile(process.env.GITHUB_STEP_SUMMARY,summary+'\n','utf8');
+}
 if(!outcome.workflow_may_report_success||rawIssues.length)process.exitCode=1;
