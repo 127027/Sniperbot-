@@ -6,7 +6,7 @@ import {summarizeCumulativeScanProgress} from '../src/v19-cumulative-scan-progre
 const sha=x=>createHash('sha256').update(x,'utf8').digest('hex');
 const chains=['solana','base','ethereum','bsc','robinhood','cronos'];
 
-test('QA-03: all 15 real page-index snapshots across three actual GitHub captures retain raw HTTP200+matching SHA',async()=>{
+test('QA-03: all indexed growing page snapshots retain original raw SHA and old baseline successes are immutable',async()=>{
  const coverage=JSON.parse(await readFile('research/state/page-coverage.json','utf8'));
  const sources=[],ids=new Set();
  for(const [chain,row] of Object.entries(coverage.chains)){
@@ -34,28 +34,50 @@ test('QA-03: all 15 real page-index snapshots across three actual GitHub capture
    sources.push({chain,page:Number(number),runId:id,sha:digest});
   }
  }
- assert.equal(sources.length,15,'known GitHub baseline has 15 independently archived page snapshots');
- assert.deepEqual([...ids].sort(),['45036887325','45044300013','45057658912']);
+ // Current indexed pages GROW when an old missing 429 page is recovered;
+ // the original 15 successes from the FIRST three capture runs stay immutable.
+ assert.ok(sources.length>=16,'new Base page2 HTTP200 recovery was lost');
+ let historic200=0;
+ for(const runId of ['45036887325','45044300013','45057658912']){
+  const base='research/feeds/2026-11-22/'+runId+'/';
+  const evidence=JSON.parse(await readFile(base+'evidence.json','utf8'));
+  for(const receipt of evidence.api_evidence.filter(x=>
+    x.provider==='GECKOTERMINAL'&&x.http_status===200)){
+   historic200++;
+   const raw=await readFile(receipt.body_path,'utf8');
+   assert.equal(sha(raw),receipt.response_sha256,'original old successful page rewritten');
+  }
+ }
+ assert.equal(historic200,15,'original three-run HTTP200 archive lost');
  const fixed=summarizeCumulativeScanProgress({coverage,networks:chains,
-  asOfUtc:'2026-11-22T19:14:16.000Z',targetPagesPerChain:10});
- assert.equal(fixed.numerator_successful_unique_chain_pages,15);
+  asOfUtc:new Date().toISOString(),targetPagesPerChain:10});
+ assert.equal(fixed.numerator_successful_unique_chain_pages,sources.length);
  assert.equal(fixed.denominator_fixed_planned_chain_pages,60);
- assert.equal(fixed.captured_plan_progress_pct,25);
+ assert.equal(fixed.captured_plan_progress_pct,Math.round(sources.length/60*10000)/100);
  assert.equal(fixed.total_known_meme_market_coverage_pct,null);
  assert.equal(fixed.actual_gpt_reviews,0);
  assert.equal(fixed.orders_authorized,0);
 });
 
-test('QA-03: earlier HTTP429 for Base page2 is still a durable backlog item, not one of the 15 HTTP200s',async()=>{
- const coverage=JSON.parse(await readFile('research/state/page-coverage.json','utf8'));
- assert.equal(coverage.chains.base.pages[2],undefined);
- assert.ok(coverage.chains.base.pending_pages.includes(2));
- const evidence=JSON.parse(await readFile(
+test('QA-03: archived Base2 HTTP429 is preserved while the later bounded real HTTP200 repairs the missing page',async()=>{
+ const before=JSON.parse(await readFile(
   'research/feeds/2026-11-22/45057658912/evidence.json','utf8'));
- const original=evidence.api_evidence.find(r=>r.body_path.endsWith('/gecko-base-page2.raw.json'));
- assert.ok(original);
- assert.equal(original.http_status,429);
- const raw=await readFile(original.body_path,'utf8');
- assert.equal(sha(raw),original.response_sha256);
- assert.equal(evidence.published_paper_orders,0);
+ const failed=before.api_evidence.find(r=>r.body_path.endsWith('/gecko-base-page2.raw.json'));
+ assert.ok(failed);
+ assert.equal(failed.http_status,429);
+ const raw429=await readFile(failed.body_path,'utf8');
+ assert.equal(sha(raw429),failed.response_sha256);
+ assert.equal(before.published_paper_orders,0);
+ const base='research/feeds/2026-11-22/45064131641/';
+ const recovered=JSON.parse(await readFile(base+'evidence.json','utf8'));
+ const http200=recovered.api_evidence.find(r=>r.body_path.endsWith('/gecko-base-page2.raw.json'));
+ assert.ok(http200,'actual later captured page2 HTTP200 missing');
+ assert.equal(http200.http_status,200);
+ assert.ok(Date.parse(http200.received_at_utc)>Date.parse(failed.received_at_utc));
+ assert.equal(sha(await readFile(http200.body_path,'utf8')),http200.response_sha256);
+ const report=JSON.parse(await readFile(base+'page-coverage-report.json','utf8'));
+ assert.equal(report.updated_memory.chains.base.pages[2].last_sha256,
+  http200.response_sha256);
+ assert.equal(report.updated_memory.chains.base.pending_pages.includes(2),false);
+ assert.equal(recovered.published_paper_orders,0);
 });
