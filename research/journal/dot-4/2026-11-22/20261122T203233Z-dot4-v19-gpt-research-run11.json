@@ -1,0 +1,165 @@
+{
+  "schema": 1,
+  "kind": "R29_V19_DOT4_AUTHENTIC_GPT_RESEARCH_REVIEW",
+  "role": "dot-4-strategy",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "run_id": "dot4-v19-gpt-research-run11-20261122T203233Z",
+  "review_started_at_utc": "2026-11-22T20:32:33Z",
+  "review_asof_utc": "2026-11-22T20:32:33Z",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "baseline": "UNIFIED_V18_SIGNAL_V1",
+  "modes_compared": [
+    "LIVE_PAPER_RESEARCH",
+    "HISTORICAL_ASOF_RESEARCH"
+  ],
+  "same_baseline_required": true,
+  "review_executed_by": "GPT_AUTOMATION",
+  "review_count_this_run": 1,
+  "source_pins": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "653cf59072d193c9fc41ea91cf8c8957e8fb922e"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "f1933b669668357ce7c469580d9234e56bbbeb55"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "b13bef7d9108610fa2f5159d9617009b56d34276"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "research/feeds/2026-11-22/45066246697/dot2-to-dot3-handoff.json",
+      "blob_sha": "fe70cd34287615eb74cce44b4b3417d1b52ecfbf"
+    },
+    {
+      "path": "research/feeds/2026-11-22/45066246697/dot3-research-risk-status-preview.json",
+      "blob_sha": "5543d2b956ceddb1a35b4ad2e7208c4ffd36324c"
+    },
+    {
+      "path": "research/observations/2026-11-22/45066246697-asof-ranking.json",
+      "blob_sha": "2a29caac04b4a596f5b439f13d655bd7fc799f38"
+    },
+    {
+      "path": "research/forecasts/2026-11-22/45066246697-asof.json",
+      "blob_sha": "a507feb48e5b9d95d705628d183f0cfe618a5087"
+    },
+    {
+      "path": "signals/index.json",
+      "blob_sha": "8f360a172e95adfda2d30105dd3fc7639497367d"
+    }
+  ],
+  "universe": {
+    "persisted_pools": 606,
+    "first_dot2_captures": 197,
+    "global_market_coverage_verified": false,
+    "ranking_observed_unique_pools": 557,
+    "rankable": 0,
+    "stale": 357,
+    "insufficient_repeated": 199,
+    "long_observation_gap": 1
+  },
+  "current_handoff": {
+    "candidates": 20,
+    "exact_contracts": 20,
+    "independent_quote_matches": 0,
+    "risk_preview_data_gap": 20,
+    "paper_eligible": 0
+  },
+  "decisions": [
+    {
+      "status": "WATCH",
+      "research_only": true,
+      "identity": "base:0x01784ef301d79e4b2df3a21ad9a536d4cf09a5ce:0xacfe6019ed1a7dc6f7b508c02d1b04ec88cc21bf",
+      "symbol": "VVV",
+      "asof_utc": "2026-11-22T20:24:40.627Z",
+      "reason": [
+        "single capture only",
+        "no independent exact-pool second quote",
+        "no issuer attestation",
+        "no onchain sellability",
+        "no provider quote asof"
+      ]
+    },
+    {
+      "status": "WATCH",
+      "research_only": true,
+      "identity": "base:0x00855c1ef81070027576a0bc363046c7945733309882084d01c9379f1a8509c4:0x05b4b60b99632468b0698697db3c74dbdda9bf5f",
+      "symbol": "URPS",
+      "asof_utc": "2026-11-22T16:31:57.003Z",
+      "reason": [
+        "stale last capture",
+        "V4 pool id requires exact pool validation",
+        "no independently authenticated quote or sellability"
+      ]
+    },
+    {
+      "status": "DATA_GAP",
+      "research_only": true,
+      "scope": "all 20 latest handoff candidates",
+      "reason": [
+        "20 of 20 missing independent Dot3 risk attestation",
+        "no verified provider quote time",
+        "no independently proven sellability",
+        "no second authenticated source"
+      ]
+    },
+    {
+      "status": "HOLD",
+      "research_only": true,
+      "scope": "positions",
+      "reason": "no authenticated PAPER_FILLED client positions supplied or independently confirmed; HOLD is not a position claim",
+      "verified_position_count": null
+    }
+  ],
+  "risk_gates": {
+    "D3_04": "OPEN",
+    "D3_05": "OPEN",
+    "issuer_verified": false,
+    "sellability_verified": false,
+    "client_authorized": false,
+    "trade_authorized": false
+  },
+  "forecast": {
+    "horizons_hours": [
+      1,
+      3,
+      6
+    ],
+    "targets_pct": [
+      20,
+      50,
+      100
+    ],
+    "calibrated_probabilities": null,
+    "status": "INSUFFICIENT_DATA"
+  },
+  "historical_asof": {
+    "october_original_neutral_snapshots_verified": 0,
+    "october_winners_input": false,
+    "backtest_executed": false,
+    "holdout_end_utc": "2026-11-25T06:54:05.033Z",
+    "holdout_matured": false
+  },
+  "paper_ledger": {
+    "existing_test_usdc": 5000,
+    "amount_per_coin_test_usdc": 50,
+    "mutated": false,
+    "orders_written": 0,
+    "fills_claimed": 0,
+    "client_receipts_verified": null
+  },
+  "decision": "NO_TRADE_DATA_GAP",
+  "next_actions": [
+    "obtain independent exact-pool source and provider quote timestamps",
+    "resolve D3-04 independently authenticated issuer and D3-05 onchain sellability",
+    "collect neutral as-of repeated captures and matured positive/negative outcomes",
+    "do not publish orders or run backtest"
+  ],
+  "provider_calls_made_by_this_review": 0,
+  "signal_writes": 0
+}
