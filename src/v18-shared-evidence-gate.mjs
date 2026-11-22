@@ -2,6 +2,7 @@
 // This module does not verify external truth from a self-declared SHA string.
 // Discovery/WATCH may continue with missing evidence; BUY requires valid gates.
 import {inspectOrder,newState,Reject,DEFAULT_POLICY} from './core.mjs';
+import {classifyAsOfEvidence} from './v19-asof-evidence.mjs';
 const ms=value=>typeof value==='string'
   &&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(value)
   &&Number.isFinite(Date.parse(value))?Date.parse(value):null;
@@ -17,8 +18,11 @@ export function makeReplayCheckOrder(snapshot,now,action='BUY',sequence=0){
   quotes:snapshot.quotes.map(({source_published_at_utc,...quote})=>quote)};
 }
 export function checkUnifiedEvidence(snapshot,now){
- if(!snapshot||!['SYNTHETIC_TEST','CONTEMPORANEOUS_RECORD'].includes(snapshot.provenance))
-   return 'UNKNOWN_PROVENANCE';
+ if(!snapshot||!['SYNTHETIC_TEST','CONTEMPORANEOUS_RECORD'].includes(snapshot.provenance)
+   &&snapshot.source_class!=='ORIGINAL_CAPTURE')return 'UNKNOWN_PROVENANCE';
+ const historical=classifyAsOfEvidence(snapshot,{asOfUtc:new Date(now).toISOString()});
+ if(!['SYNTHETIC_REGRESSION_ONLY','PROVISIONAL_ASOF'].includes(historical.status))
+   return 'ASOF_'+historical.reason;
  const observed=ms(snapshot.observed_at_utc),captured=ms(snapshot.archived_at_utc);
  if(observed===null||captured===null||observed>now||captured>now)
    return 'FUTURE_OR_UNVERIFIED_ARCHIVE';
