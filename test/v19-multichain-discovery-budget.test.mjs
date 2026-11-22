@@ -103,3 +103,36 @@ test('a chain cooldown is a coverage gap even with sufficient budget',()=>{
  assert.equal(plan.incomplete_chain_attempts_are_a_data_gap,true);
  assert.equal(plan.orders_authorized,0);
 });
+
+test('real 16:31 Ethereum 429 stays deferred until the exact persisted two-hour cooldown',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const memory=JSON.parse(await readFile('research/state/market-memory.json','utf8'));
+ const cp=memory.checkpoints['ethereum:GECKOTERMINAL'];
+ assert.equal(cp.last_status,'HTTP_429');
+ assert.equal(cp.failed_page_to_retry,1);
+ assert.equal(cp.retry_after_utc,'2026-11-22T18:31:56.465Z');
+ const justBefore=planMultiChainCapture({networks,budget:6,checkpoints:memory.checkpoints,
+  asOfUtc:'2026-11-22T18:31:56.464Z'});
+ assert.ok(!justBefore.tasks.some(x=>x.chain==='ethereum'));
+ assert.ok(justBefore.unscheduled_chains_due_to_cooldown.includes('ethereum'));
+ const ready=planMultiChainCapture({networks,budget:6,checkpoints:memory.checkpoints,
+  asOfUtc:'2026-11-22T18:31:56.466Z'});
+ assert.equal(ready.tasks.length,6);
+ assert.equal(ready.tasks[0].chain,'ethereum');
+ assert.equal(ready.tasks[0].page,1);
+ assert.equal(ready.tasks[0].priority,'EXPIRED_FAILED_PAGE_RETRY');
+ assert.equal(new Set(ready.tasks.map(x=>x.chain)).size,6);
+ assert.equal(ready.orders_authorized,0);
+});
+test('multiple expired failure pages rotate by last attempted time, without erasing fair chains',()=>{
+ const ck={
+  'base:GECKOTERMINAL':{last_attempt_at_utc:'2026-11-22T08:58:00Z',failed_page_to_retry:2,retry_after_utc:'2026-11-22T08:59:00Z'},
+  'ethereum:GECKOTERMINAL':{last_attempt_at_utc:'2026-11-22T08:59:00Z',failed_page_to_retry:1,retry_after_utc:'2026-11-22T08:59:30Z'},
+  'solana:GECKOTERMINAL':{last_attempt_at_utc:'2026-11-22T07:00:00Z',next_page_to_consider:2}
+ };
+ const plan=planMultiChainCapture({networks:['solana','base','ethereum'],budget:3,
+  checkpoints:ck,asOfUtc:at});
+ assert.deepEqual(plan.tasks.map(x=>x.chain),['base','ethereum','solana']);
+ assert.deepEqual(plan.tasks.map(x=>x.page).slice(0,2),[2,1]);
+ assert.equal(plan.tasks.filter(x=>x.priority==='EXPIRED_FAILED_PAGE_RETRY').length,2);
+});
