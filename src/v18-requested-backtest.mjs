@@ -2,6 +2,7 @@
 // NO provider requests, GitHub writes, order publication, wallet, or real Paper balance changes.
 // The five roles below are deterministic REPLAY AUDITS, not historical GPT-Dot executions.
 import {replaySignalDecisions} from './point-in-time-strategy.mjs';
+import {build29HourAsOfTimeline} from './v19-backtest-window.mjs';
 const dayMs=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)
   &&Number.isFinite(Date.parse(d+'T00:00:00Z'))?Date.parse(d+'T00:00:00Z'):null;
 const stamp=v=>typeof v==='string'&&Number.isFinite(Date.parse(v))?Date.parse(v):null;
@@ -33,6 +34,7 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
  }
  // Synthetic inputs are for software regression only. They can never prove
  // a real historical market, even if the model produces simulated fills.
+ const timeLine=build29HourAsOfTimeline({date,snapshots:accepted,warmupHours:5});
  const result=replaySignalDecisions({date,snapshots:accepted,
   activityObservations:source.activity_observations,
   forceHourlyReview:forceHourlyDiagnostic,targetPer24h:forceHourlyDiagnostic?24:4});
@@ -62,6 +64,9 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
  const missing=original.length===0;
  return {schema:1,kind:'R29_V18_ON_DEMAND_FIVE_ROLE_SHADOW_BACKTEST',
   date,start_utc:new Date(first).toISOString(),end_utc:new Date(end).toISOString(),
+  historical_warmup_start_utc:timeLine.begin_utc,
+  historical_warmup_hours:timeLine.warmup_hours,
+  on_demand_29h_timeline:timeLine,
   status:missing?'DATA_GAP_NO_CONTEMPORANEOUS_HISTORICAL_UNIVERSE':'PROVISIONAL_ASOF_SOURCE_AUTHENTICITY_NOT_VERIFIED',
   mode:forceHourlyDiagnostic?'EXPLICIT_FIXED_24_HOURLY_DIAGNOSTIC':'ADAPTIVE_4_8_12_24',
   start_capital_test_usdc:5000,amount_per_coin_test_usdc:50,
