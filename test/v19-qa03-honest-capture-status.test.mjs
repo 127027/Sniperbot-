@@ -61,6 +61,30 @@ test('QA-03: a missing requested chain or unfinalized runner is not a complete s
  const notFinal=assessCaptureCompletion({...args,journal:{...args.journal,state:'STARTED_NOT_FINALIZED'}});
  assert.ok(notFinal.reasons.includes('RUNNER_NOT_FINALIZED'));
 });
+test('QA-03: a deliberately bounded two-chain page budget is valid incremental progress, not an API failure',async()=>{
+ const args=await archived();
+ const selected=new Set(['ethereum','bsc']);
+ const journal=structuredClone(args.journal);
+ journal.planned_pages=journal.planned_pages.filter(p=>selected.has(p.chain));
+ journal.http_receipts=journal.http_receipts.filter(r=>
+  r.provider!=='GECKOTERMINAL'||[...selected].some(c=>r.body_path.includes('gecko-'+c+'-page')));
+ journal.proven_successful_pages_this_run=2;
+ journal.unresolved_planned_pages_this_run=[];
+ journal.has_unresolved_page_gaps=false;
+ journal.status_is_not_successful_capture=false;
+ const evidence=structuredClone(args.evidence);
+ evidence.page_capture_failures=[];
+ evidence.page_capture_deferred=[];
+ const outcome=assessCaptureCompletion({...args,journal,evidence});
+ assert.equal(outcome.workflow_may_report_success,true);
+ assert.equal(outcome.status,'BOUNDED_SAMPLE_COMPLETE_COVERAGE_INCOMPLETE');
+ assert.equal(outcome.verified_http200_planned_pages,2);
+ assert.equal(outcome.missing_requested_chains.length,4);
+ assert.deepEqual(outcome.reasons,[]);
+ assert.deepEqual(outcome.coverage_warnings,['REQUESTED_CHAINS_OUTSIDE_SUCCESSFUL_SAMPLE']);
+ assert.equal(outcome.global_market_coverage_proven,false);
+});
+
 test('QA-03: workflow always commits any partial raw and state before refusing to report success',async()=>{
  const yaml=await readFile('.github/workflows/cleanroom-dot2-capture.yml','utf8');
  const commit=yaml.indexOf('Commit research feed and partial recovery state');
