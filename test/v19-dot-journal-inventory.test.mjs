@@ -183,3 +183,50 @@ test('Dot5 journal and forensic path cannot point at different sources unnoticed
   &&x.code==='DOT5_FORENSIC_JOURNAL_POINTER_DIVERGENCE'));
  assert.equal(audit.verified_live_gpt_runs,0);
 });
+
+test('same-capture Dot2 stale totals, checkpoint and handoff count are independently diagnosed',()=>{
+ const p=build(),row=p.latestByRole['dot-2'];
+ row.captured_at_utc='2026-11-22T21:11:22.118Z';
+ row.evidence_path='research/feeds/2026-11-22/98765432101/evidence.json';
+ row.capture_request_path='research/requests/2026-11-22/valid-dot2-request.json';
+ row.market_memory_stats={total_discovered:626,first_dot2_detected_count:217};
+ row.checkpoint_path='research/state/checkpoints/previous.json';
+ row.full_contract_candidates=2;
+ const feedPointer={kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',
+  captured_at_utc:row.captured_at_utc,
+  evidence_path:row.evidence_path,
+  request_path:row.capture_request_path,
+  memory_stats:{total_discovered:644,first_dot2_detected_count:235},
+  memory_checkpoint_path:'research/state/checkpoints/98765432101.json',
+  handoff_counts:{full_contracts:18}};
+ const a=auditLiveFiveDotJournalInventory({...p,feedPointer});
+ for(const code of ['DOT2_LATEST_SOURCE_STATS_STALE',
+  'DOT2_LATEST_SOURCE_CHECKPOINT_STALE','DOT2_LATEST_HANDOFF_COUNT_STALE'])
+  assert.ok(a.issues.some(x=>x.role==='dot-2'&&x.code===code),code);
+ row.market_memory_stats=feedPointer.memory_stats;
+ row.checkpoint_path=feedPointer.memory_checkpoint_path;
+ row.full_contract_candidates=18;
+ const fixed=auditLiveFiveDotJournalInventory({...p,feedPointer});
+ assert.ok(!fixed.issues.some(x=>x.role==='dot-2'
+  &&x.code.startsWith('DOT2_LATEST_SOURCE_')));
+ assert.ok(!fixed.issues.some(x=>x.role==='dot-2'
+  &&x.code==='DOT2_LATEST_HANDOFF_COUNT_STALE'));
+ assert.equal(fixed.verified_live_gpt_runs,0);
+});
+test('real newly repaired Dot2 latest pointer agrees with completed capture feed',async()=>{
+ const d=JSON.parse(await readFile('research/latest/dot-2.json','utf8'));
+ const f=JSON.parse(await readFile('research/feeds/latest.json','utf8'));
+ if(d.capture_request_path!==f.request_path){
+  // Live jobs may commit a newer feed while an older legitimate GPT review
+  // is still pending; that must be handled by the separate view instead.
+  assert.notEqual(d.evidence_path,f.evidence_path);
+  return;
+ }
+ assert.equal(d.evidence_path,f.evidence_path);
+ assert.equal(d.market_memory_stats.total_discovered,f.memory_stats.total_discovered);
+ assert.equal(d.market_memory_stats.first_dot2_detected_count,
+  f.memory_stats.first_dot2_detected_count);
+ assert.equal(d.checkpoint_path,f.memory_checkpoint_path);
+ assert.equal(d.full_contract_candidates,f.handoff_counts.full_contracts);
+ assert.equal(d.orders_created,0);
+});
