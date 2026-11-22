@@ -13,9 +13,11 @@ export function decodeGeckoNewPools({network,response,capturedAtUtc,page=1}={}){
   const record=response.data[i],a=record?.attributes??{},pool=a.address??null;
   // A Gecko Uniswap V4 pool is a 32-byte pool ID; attributes.pool_kind may be absent.
   // Infer V4 only when the trusted response's exact DEX/network relationship agrees.
-  const networkId=chain==='ethereum'?'eth':chain==='cronos'?'cro':chain;
+  // Gecko API network slug (eth/cro) is NOT the DEX relationship slug.
+  // Original 22-Nov ETH page3 uses dex.id='uniswap-v4-ethereum', not
+  // 'uniswap-v4-eth'. A mismatch previously discarded 18/20 source rows.
   const dexId=record?.relationships?.dex?.data?.id??null;
-  const inferredV4=dexId==='uniswap-v4-'+networkId
+  const inferredV4=dexId==='uniswap-v4-'+chain
     &&typeof pool==='string'&&/^0x[0-9a-fA-F]{64}$/.test(pool);
   const poolKind=inferredV4||a.pool_kind==='UNISWAP_V4_POOL_ID'?'UNISWAP_V4_POOL_ID':null;
   if(!poolValid(chain,pool,poolKind)){
