@@ -4,6 +4,8 @@
 import {replaySignalDecisions} from './point-in-time-strategy.mjs';
 import {build29HourAsOfTimeline} from './v19-backtest-window.mjs';
 import {auditFiveDotExecution} from './v19-dot-execution-audit.mjs';
+import {buildDotExecutionTruth} from './v19-dot5-execution-truth.mjs';
+import {buildSeparatedPerformanceLedgers} from './v19-three-ledger-report.mjs';
 import {summarizeDot3RiskStatuses} from './v19-dot3-risk-status.mjs';
 import {resolveSharedPaperPolicy,DEFAULT_BUDGET_SETTINGS} from './v19-paper-budget-policy.mjs';
 const dayMs=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)
@@ -99,7 +101,7 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
    result_not_a_live_paper_receipt:true}
  };
  const missing=original.length===0;
- return {schema:1,kind:'R29_V18_ON_DEMAND_FIVE_ROLE_SHADOW_BACKTEST',
+ const report={schema:1,kind:'R29_V18_ON_DEMAND_FIVE_ROLE_SHADOW_BACKTEST',
   date,start_utc:new Date(first).toISOString(),end_utc:new Date(end).toISOString(),
   historical_warmup_start_utc:timeLine.begin_utc,
   historical_warmup_hours:timeLine.warmup_hours,
@@ -131,4 +133,9 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
    'Oracle or future outcome labels must be evaluated in a separate post-replay step.',
    'No GitHub signal, local paper account, wallet, or receipt is modified.'
   ]};
+ report.dot_execution_truth=buildDotExecutionTruth({
+  roleAudit:executionProvenance,asOfUtc:report.end_utc});
+ report.separated_performance_ledgers=buildSeparatedPerformanceLedgers({
+  replayReport:report,asOfUtc:report.end_utc});
+ return report;
 }
