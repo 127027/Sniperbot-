@@ -2,7 +2,7 @@
 
 **Maßstab:** 61 konkrete Aufgaben aus `docs/V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md`. Eine Aufgabe gilt hier als technisch abgeschlossen, wenn die konkrete Codeänderung auf dem Cleanroom-Branch eingecheckt und mittels gezielter Regression/Funktionsprüfung geprüft wurde. **Noch keine vollständige Node-/GitHub-Actions-End-to-End-Abnahme**; diese zählt separat als QA-06 und bleibt offen. Zahl ist **Aufgabenzählung**, keine Berechnung von Gesamtarbeitsstunden.
 
-**Stand: 22/61 = 36,1 % technisch abgeschlossen (gezielt geprüft). 39 offen.**
+**Stand: 23/61 = 37,7 % technisch abgeschlossen (gezielt geprüft). 38 offen.**
 
 | Task | Status | Verifizierbare Änderungen | Prüfung / offene Einschränkung |
 |---|---|---|---|
@@ -46,7 +46,12 @@
 - `scripts/cloud-discovery-runner.mjs`: nicht definierter `oldCheckpoint`-Verweis aus dem nach V1.9 mehrkettigen Capture verbliebenen Berichtspfad entfernt und durch nachvollziehbare `previous_chain_page_checkpoints` ersetzt. Fehlerbehebung wird nicht als weitere der 61 Entwicklungsaufgaben gezählt. Echter Runner-Workflow-Integrationstest weiterhin ausstehend.
 - In neuen Chats **zuerst live** den Branch und diese Fortschrittsdatei prüfen. Vorheriges Gespräch kann einen veralteten Stand enthalten.
 
+| D5-02 | COMPLETE (targeted) | `src/v19-dot5-event-ledger.mjs`, `scripts/cloud-discovery-runner.mjs`, `test/v19-dot5-event-ledger.test.mjs`, `docs/V19_DOT5_EVENT_LEDGER.md` | Neutraler as-of-Ereignistrichter mit stabiler `event_id` je Pool, Chain/Page/Row/Original-ID/FirstSeen/Risikobefund; Forecast/Order/Client-Receipt/Outcome explizit `null` bis echter unabhängiger Nachweis. Multi-Chain-Runner bewahrt **alle** original vom Gecko-Parser abgewiesenen V4-Zeilen; HTTP-429-/fehlgeschlagene und aufgeschobene Seiten werden als Coverage-Gap **ohne fiktiven Coin** archiviert. Echtes archiviertes Ethereum-Page-3-Beispiel vom 22.11.: **20 Quellzeilen, 2 angenommene Kandidaten, 18 Uniswap-V4-Parserablehnungen**. **13/13 gezielte Funktionskontrollen + Modul-/Runner-/Testsyntax bestanden**; Node-Datei mit 10 Regressionstests eingecheckt, umfassendes `npm test`/Actions weiter **nicht** bestätigt. Das 20er Sample ist kein Markt-Nenner, kein Oktober-Backtest, keine echte GPT-/Handelsaktivität. |
+
 ## In Bearbeitung, NICHT abgeschlossen
+
+- **D5-02** ist auf der vorhandenen Dot2/Dot3-Forschungskette gezielt umgesetzt und auf echten archivierten V4-Verlusten geprüft, **nicht** mit authentischen Paper-/GPT-Trades belegt; D5-01/D5-03/D5-04 bleiben eigene offene Aufgaben. Bei 429/Datenlücken wird nichts still verworfen. Siehe `docs/V19_DOT5_EVENT_LEDGER.md`.
+
 
 - **QA-06 weiterhin OFFEN:** Die neue reine Code-Test-Automation `.github/workflows/cleanroom-v19-ci.yml` liegt auf dem isolierten Branch, startet nur `node --check`, `npm test` und prüft, dass der Signalindex und Orders nicht verändert wurden. Kein Dot, keine Publisher-/Runner-Ausführung, keine Secrets, nur `contents: read`. **Ein abgeschlossener erfolgreicher GitHub-Actions-Lauf ist noch NICHT nachgewiesen** (`statuses:[]`, über verfügbaren Connector nur PR-gefilterte Run-Query). Quelle: `docs/V19_QA06_TEST_WORKFLOW.md`. Für D4-09 sind 7 Node-Regressionen eingecheckt und 11/11 gezielte Modul-/UI-Kontrollen bestanden; das ersetzt keinen CI-Gesamterfolg.
 
