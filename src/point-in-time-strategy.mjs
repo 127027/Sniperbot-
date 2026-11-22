@@ -4,6 +4,7 @@
 // can create both BUY and SELL from pre-existing market observations.
 import {newState,settlePaper,inspectOrder,Reject,marketKey,DEFAULT_POLICY} from './core.mjs';
 import {researchDue,chooseCadence} from './cadence.mjs';
+import {decideUnifiedMarket,UNIFIED_V18_RULES} from './unified-decision-v18.mjs';
 
 const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 const ms=value=>typeof value==='string'&&ISO.test(value)&&Number.isFinite(Date.parse(value))?Date.parse(value):null;
@@ -47,11 +48,11 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
  if(typeof forceHourlyReview!=='boolean')throw Error('INVALID_FORCE_HOURLY');
  if(!Array.isArray(snapshots)||!Array.isArray(activityObservations))throw Error('INVALID_SNAPSHOTS');
  const start=ms(date+'T00:00:00Z'),end=start+86400000;
- const p={entryMomentumPct:5,takeProfitPct:20,stopLossPct:10,maxMomentumAgeHours:2,...params};
+ const p={...UNIFIED_V18_RULES,...params};
  if(![p.entryMomentumPct,p.takeProfitPct,p.stopLossPct,p.maxMomentumAgeHours].every(x=>typeof x==='number'&&Number.isFinite(x)&&x>0))throw Error('INVALID_PARAMS');
  const state=newState(),initial=state.cash,events=[],sums={dataGap:0,available:0,fullReviews:0,buys:0,sells:0};
  let ledger=state,lastReview=null,sequence=0,currentTarget=targetPer24h;
- const history=new Map();
+ const history=new Map(),lastRealizedLoss=new Map();
  // Training from BEFORE the day: no future snapshots; requires complete original
  // timestamps, matching quotes, and prior observations available before day start.
  for(const s of [...snapshots].sort((a,b)=>(ms(a?.observed_at_utc)??0)-(ms(b?.observed_at_utc)??0))){
@@ -97,16 +98,17 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
      const candidate=fresh.get(key);
      if(!candidate)continue;
      const avg=candidate.quotes.reduce((total,q)=>total+q.price_usdc,0)/candidate.quotes.length;
-     const move=(avg/position.entryPrice-1)*100;
-     let reason=move>=p.takeProfitPct?'TAKE_PROFIT':move<=-p.stopLossPct?'STOP_LOSS':null;
-     if(!reason)continue;
+     const decision=decideUnifiedMarket({asOfUtc:at,observedAtUtc:candidate.observed_at_utc,
+       observedPriceUsd:avg,position,fullReviewDue:due,params:p});
+     if(decision.action!=='SELL')continue;
      const order=policyOrder(candidate,tick,'SELL',sequence++);
      try{
        const settled=settlePaper(order,ledger,tick,DEFAULT_POLICY);ledger=settled.state;
-       sums.sells++;step.status='SELL';step.actions.push({action:'SELL',reason,coin:candidate.coin,at_utc:at,
+       if(settled.receipt.realized_pnl_test_usdc<0)lastRealizedLoss.set(key,at);
+       sums.sells++;step.status='SELL';step.actions.push({action:'SELL',reason:decision.reason,coin:candidate.coin,at_utc:at,
          simulated_price_usdc:settled.receipt.execution_price_usdc,realized_pnl_test_usdc:settled.receipt.realized_pnl_test_usdc,
-         paper_receipt_status:'SYNTHETIC_REPLAY_ONLY'});
-     }catch(err){step.actions.push({action:'SELL_REJECTED',code:err instanceof Reject?err.code:'UNEXPECTED_ERROR',reason});}
+         unified_decision_kind:decision.kind,paper_receipt_status:'SYNTHETIC_REPLAY_ONLY'});
+     }catch(err){step.actions.push({action:'SELL_REJECTED',code:err instanceof Reject?err.code:'UNEXPECTED_ERROR',reason:decision.reason});}
    }
    // A BUY needs at least one earlier recorded, time-valid quote: momentum computed
    // only from earlier records, never from a later daily winner table.
@@ -114,19 +116,22 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
      for(const [key,candidate] of fresh.entries()){
        if(ledger.positions[key])continue;
        const prev=history.get(key);
-       if(!prev)continue;
-       const prevAt=ms(prev.at_utc),currentAt=ms(candidate.observed_at_utc);
-       if(prevAt===null||currentAt===null||currentAt<=prevAt||currentAt-prevAt>p.maxMomentumAgeHours*3600000)continue;
        const price=candidate.quotes.reduce((sum,q)=>sum+q.price_usdc,0)/candidate.quotes.length;
-       const rise=(price/prev.price-1)*100;
-       if(!(rise>=p.entryMomentumPct))continue;
+       const decision=decideUnifiedMarket({asOfUtc:at,observedAtUtc:candidate.observed_at_utc,
+         observedPriceUsd:price,priorAtUtc:prev?.at_utc||null,priorPriceUsd:prev?.price??null,
+         lastLossAtUtc:lastRealizedLoss.get(key)||null,fullReviewDue:due,params:p});
+       if(decision.action!=='BUY'){
+         step.actions.push({action:decision.action,reason:decision.reason,
+           coin:candidate.coin,at_utc:at,unified_decision_kind:decision.kind});
+         continue;
+       }
        const order=policyOrder(candidate,tick,'BUY',sequence++);
        try{
          const settled=settlePaper(order,ledger,tick,DEFAULT_POLICY);ledger=settled.state;
-         sums.buys++;step.status='BUY';step.actions.push({action:'BUY',reason:'POSITIVE_OBSERVED_MOMENTUM',
-           observed_momentum_pct:rise,coin:candidate.coin,at_utc:at,
+         sums.buys++;step.status='BUY';step.actions.push({action:'BUY',reason:decision.reason,
+           observed_momentum_pct:decision.observed_momentum_pct,coin:candidate.coin,at_utc:at,
            simulated_price_usdc:settled.receipt.execution_price_usdc,
-           paper_receipt_status:'SYNTHETIC_REPLAY_ONLY'});
+           unified_decision_kind:decision.kind,paper_receipt_status:'SYNTHETIC_REPLAY_ONLY'});
        }catch(err){step.actions.push({action:'BUY_REJECTED',code:err instanceof Reject?err.code:'UNEXPECTED_ERROR'});}
      }
    }
