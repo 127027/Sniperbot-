@@ -75,7 +75,8 @@ test('first review may BUY using strictly pre-window observations, not requiring
  previous.observed_at_utc=prior;previous.archived_at_utc=prior;
  previous.discovery.observed_at_utc=prior;previous.risk.observed_at_utc=prior;
  for(const q of previous.quotes){q.observed_at=prior;q.source_published_at_utc=prior;}
- const r=replaySignalDecisions({date,snapshots:[previous,first]});
+ const r=replaySignalDecisions({date,snapshots:[previous,first],
+  firstScanAtStart:true});
  assert.equal(r.summary.buys,1);
  assert.equal(r.events[0].actions[0].action,'BUY');
  assert.equal(r.events[0].at_utc,'2026-10-12T00:00:00.000Z');
@@ -116,7 +117,8 @@ test('forced 24-review mode ignores adaptive downshifts only within explicit dia
 
 test('00:34 observation cannot be used for a midnight BUY or cadence decision',()=>{
  const future=synth(0,.0013);
- const r=replaySignalDecisions({date,snapshots:[future],activityObservations:[{
+ const r=replaySignalDecisions({date,snapshots:[future],firstScanAtStart:true,
+  activityObservations:[{
   provenance:'CONTEMPORANEOUS_RECORD',
   observed_at_utc:'2026-10-12T00:34:00.000Z',
   archived_at_utc:'2026-10-12T00:34:00.000Z',
