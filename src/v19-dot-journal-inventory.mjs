@@ -1,0 +1,108 @@
+// R29 V1.9: read-only, current-live five-Dot journal inventory.
+// This is a diagnostic of supplied Git snapshots, NOT historical GPT execution
+// proof, not a 29h replay, and never a Paper fill or independent issuer proof.
+import {createHash} from 'node:crypto';
+import {asOfMillis} from './v19-asof-evidence.mjs';
+
+export const LIVE_DOT_IDS=Object.freeze(['dot-1','dot-2','dot-3','dot-4','dot-5']);
+const pat=/^research\/journal\/(dot-[1-5])\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]+\.json$/;
+const iso=x=>asOfMillis(x);
+const sha=/^[a-f0-9]{40}$/;
+const hash=raw=>{
+ const data=Buffer.from(raw,'utf8');
+ return createHash('sha1').update('blob '+data.length+'\0')
+   .update(data).digest('hex');
+};
+const roleSuffix=(id)=>id.replace('-','');
+const status=(issues)=>issues.length?'INCOMPLETE':'SNAPSHOT_CONSISTENT_UNAUTHENTICATED';
+
+export function auditLiveFiveDotJournalInventory({
+ latestByRole={},rawJournalsByPath={},feedPointer=null,
+ asOfUtc
+}={}){
+ const at=iso(asOfUtc);
+ if(at===null||latestByRole===null||typeof latestByRole!=='object'
+   ||Array.isArray(latestByRole)||rawJournalsByPath===null
+   ||typeof rawJournalsByPath!=='object'||Array.isArray(rawJournalsByPath))
+  throw Error('INVALID_LIVE_DOT_INVENTORY_ARGUMENTS');
+ const findings=[],details=[];
+ for(const id of LIVE_DOT_IDS){
+  const pointer=latestByRole[id];
+  const issues=[];
+  const issue=(code,detail)=>issues.push({code,detail});
+  if(pointer?.dot!==id||pointer?.schema!==1
+    ||typeof pointer?.journal_path!=='string'
+    ||pointer?.journal_path.match(pat)?.[1]!==id)
+   issue('MISSING_OR_UNTRUSTED_LATEST_POINTER',id+' requires a valid role-specific latest journal');
+  const updated=iso(pointer?.updated_at_utc);
+  if(updated===null||updated>at)
+   issue('INVALID_OR_FUTURE_POINTER_TIME','Latest pointer must be at or before this audit UTC');
+  const path=pointer?.journal_path;
+  let raw=null,journal=null,rawSha=null;
+  if(path?.match(pat)?.[1]===id){
+   raw=rawJournalsByPath[path];
+   if(typeof raw!=='string')issue('POINTER_JOURNAL_BYTES_NOT_IN_INVENTORY','Raw file missing: '+path);
+   else{
+    rawSha=hash(raw);
+    try{journal=JSON.parse(raw);}catch{issue('JOURNAL_JSON_MALFORMED',path);}
+   }
+  }
+  if(journal!==null){
+   if(journal?.schema!==1||typeof journal.kind!=='string')
+    issue('JOURNAL_SCHEMA_MISSING',path);
+   const referenced=pointer?.journal_blob_sha;
+   if(typeof referenced!=='string'||!sha.test(referenced))
+    issue('MISSING_IMMUTABLE_JOURNAL_SHA',id+' latest pointer has no verifiable blob SHA');
+   else if(rawSha!==referenced)
+    issue('JOURNAL_GIT_BLOB_MISMATCH',id+' latest pointer disagrees with immutable journal');
+   const executed=iso(journal.executed_at_utc??journal.created_at_utc
+    ??journal.observed_at_utc??journal.updated_at_utc
+    ??journal.at_utc);
+   if(executed===null||executed>at||updated!==null&&executed>updated)
+    issue('JOURNAL_TIME_CONTRADICTION','Journal cannot be newer than its latest pointer');
+   else if(updated!==null&&updated-executed>10*60*1000)
+    issue('LATEST_POINTS_TO_PRIOR_JOURNAL',
+      'Pointer updated more than 10min after referenced journal; check separate forensic trace');
+   const claimed=journal.dot??journal.role??null;
+   if(claimed!==null&&!([id,
+     { 'dot-1':'dot-1-tempo','dot-2':'dot-2-discovery',
+       'dot-3':'dot-3-risk','dot-4':'dot-4-strategy','dot-5':'dot-5-control'}[id]].includes(claimed)))
+    issue('JOURNAL_ROLE_CLAIM_DIFFERENT','Journal role disagrees with its directory');
+   // No key/number in a local research file authenticates a GPT execution.
+  }
+  if(!pointer?.forensic_trace_path)
+   issue('FORENSIC_TRACE_NOT_LINKED',
+    'Latest role pointer has no dedicated forensic trace path');
+  if(id==='dot-2'&&feedPointer?.kind==='LATEST_DOT2_PUBLIC_CAPTURE_POINTER'){
+   const pointerAt=iso(pointer?.captured_at_utc),
+     feedAt=iso(feedPointer.captured_at_utc);
+   const feedPath=feedPointer.evidence_path;
+   if(feedAt!==null&&feedAt<=at&&pointerAt!==null&&feedAt>pointerAt
+     &&pointer?.evidence_path!==feedPath)
+    issue('DOT2_LATEST_BEHIND_FEED',
+      'Newer source feed exists; latest Dot2 journal still points to older capture (not necessarily a failed capture)');
+  }
+  details.push({role:id,status:status(issues),
+   latest_pointer_status:pointer?.status??null,
+   updated_at_utc:pointer?.updated_at_utc??null,
+   journal_path:path??null,claimed_git_blob_sha:pointer?.journal_blob_sha??null,
+   computed_git_blob_sha:rawSha,
+   immutable_bytes_match:typeof pointer?.journal_blob_sha==='string'
+     &&rawSha!==null&&pointer.journal_blob_sha===rawSha,
+   forensic_trace_path:pointer?.forensic_trace_path??null,
+   genuine_gpt_review_independently_authenticated:false,
+   problems:issues});
+  findings.push(...issues.map(item=>({role:id,...item})));
+ }
+ return {schema:1,kind:'R29_V19_LIVE_FIVE_DOT_JOURNAL_INVENTORY',
+  as_of_utc:asOfUtc,status:findings.length?'INCOMPLETE_EVIDENCE':'SNAPSHOT_CONSISTENT_NOT_AUTHENTICATED',
+  role_count:LIVE_DOT_IDS.length,roles:details,
+  issues:findings,issue_count:findings.length,
+  verified_live_gpt_runs:0,verified_historical_gpt_runs:0,
+  verified_client_fills:0,verified_trades:0,
+  all_five_forensic_traces_verified:false,
+  no_backtest_or_api_writes:true,not_a_historical_run:true,
+  limitations:['Git blobs and local research journals do not independently attest ChatGPT execution.',
+   'A pending Dot2 pointer may remain stale after the workflow produces a newer HTTP feed.',
+   'All five latest pointers must link per-role forensic traces before complete diagnosis.']};
+}
