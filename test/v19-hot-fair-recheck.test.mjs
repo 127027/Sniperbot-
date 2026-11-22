@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {planHotFairRechecks} from '../src/v19-hot-fair-recheck.mjs';
+import {decodeGeckoNewPools} from '../src/live-pool-discovery.mjs';
+import {readFile} from 'node:fs/promises';
 
 const at='2026-11-22T09:00:00.000Z',token='0x'+'a'.repeat(40);
 const pool=n=>'0x'+n.toString(16).padStart(40,'0');
@@ -57,4 +59,21 @@ test('unknown contract is retained for DEX-only identification, but never author
  assert.equal(r.all_new_pool_count,1);
  assert.equal(r.selected[0].contract,null);
  assert.equal(r.trade_authorized,false);
+});
+
+test('original archived 20-pool Base page 3 is wholly considered, including 11 V4 IDs',async()=>{
+ const body=JSON.parse(await readFile(new URL(
+  '../research/feeds/2026-11-22/44997708364/gecko-base-page3.raw.json',
+  import.meta.url),'utf8'));
+ const decoded=decodeGeckoNewPools({network:'base',response:body,
+  capturedAtUtc:'2026-11-22T07:19:41.241Z',page:3});
+ const selected=planHotFairRechecks({asOfUtc:'2026-11-22T07:20:00.000Z',
+  freshCandidates:decoded.candidates,maxChecks:8});
+ assert.equal(decoded.candidates.length,20);
+ assert.equal(decoded.candidates.filter(x=>x.pool_kind==='UNISWAP_V4_POOL_ID').length,11);
+ assert.equal(selected.all_new_pool_count,20);
+ assert.equal(selected.selected_count,8);
+ assert.equal(selected.deferred_new_pool_count,12);
+ assert.equal(selected.selected_count+selected.deferred_new_pool_count,20);
+ assert.equal(selected.trade_authorized,false);
 });
