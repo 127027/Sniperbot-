@@ -1,4 +1,6 @@
 # R29 Cleanroom – verbindliche Arbeitsanweisungen für neue Chats und Coding-Agenten
+> **VERBINDLICHE KORREKTUR DER 50-%-AUSSAGE (22.11.2026):** 31/61 = 50,8 % bezeichnete nur gezielt getestete *Teilimplementierungs-Arbeitspakete*, nicht 31 erfüllte ursprüngliche Abnahmekriterien. Unabhängige strenge Zweitabnahme: **9/61 = 14,8 % PASS**, **22/61 PARTIAL**, **30/61 OPEN**. Vor weiteren Änderungen immer docs/V19_REAUDIT_31_TASKS_ORIGINAL_ACCEPTANCE_20261122.md lesen; docs/V19_IMPLEMENTATION_PROGRESS.md und docs/R29_NEXT_CHAT_HANDOFF.md wurden korrigiert. Ein grüner Unit-CI-Lauf ist kein echter Provider-/GPT-/Windows-/Paper-Fill-Nachweis.
+
 
 > **Einstieg:** Vor jeder Änderung **[docs/R29_NEXT_CHAT_HANDOFF.md](docs/R29_NEXT_CHAT_HANDOFF.md)** und **[docs/V19_IMPLEMENTATION_PROGRESS.md](docs/V19_IMPLEMENTATION_PROGRESS.md)** vollständig lesen. Maßgebliche Aufgabendefinitionen stehen in **[docs/V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md](docs/V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md)**. Die Dokumentation ist eine Anleitung, kein Beweis für einen durchgeführten Test.
 
