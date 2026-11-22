@@ -102,20 +102,24 @@ export function resolveHistoricalWinnerIdentity({winnerRegister,memory,asOfUtc}=
   ||!Array.isArray(winnerRegister.entries)
   ||memory?.kind!=='R29_PERSISTENT_MARKET_MEMORY')
   throw Error('INVALID_POSTEVENT_IDENTITY_AUDIT');
- const rows=[];let nameOnly=0,linked=0,matched=0;
+ const rows=[];let nameOnly=0,linkedCount=0,matched=0,typedValid=0;
  for(const e of winnerRegister.entries){
   const chain=network(e.reported_chain),pool=e.pool;
   if(!chain||!Number.isInteger(e.rank)||e.rank<1)throw Error('INVALID_WINNER_ID');
-  const exact=!!pool&&poolValid(chain,pool),key=exact?chain+':'+normalized(chain,pool):null;
+  const linked=typeof pool==='string'&&pool.length>0;
+  const exact=linked&&poolValid(chain,pool),key=exact?chain+':'+normalized(chain,pool):null;
   const archived=key?memory.pools?.[key]:null;
   const contract=archived?.contract;
   const conflicts=archived?.contract_conflicts?.length>0;
   const matching=!!archived&&tokenValid(chain,contract)&&!conflicts;
-  if(exact)linked++;else nameOnly++;
+  if(linked)linkedCount++;else nameOnly++;
+  if(exact)typedValid++;
   if(matching)matched++;
   rows.push({reference_rank:e.rank,reported_chain:e.reported_chain,
-   reference_pool:exact?pool:null,matched_memory_pool_key:archived?key:null,
-   match_status:!exact?'NAME_ONLY_NO_SAFE_CONTRACT_LOOKUP':
+   reference_pool:linked?pool:null,pool_id_validated_for_chain:exact,
+   matched_memory_pool_key:archived?key:null,
+   match_status:!linked?'NAME_ONLY_NO_SAFE_CONTRACT_LOOKUP':
+    !exact?'LINK_PRESENT_POOL_TYPE_NOT_VERIFIED':
     !archived?'LINKED_POOL_NOT_IN_ARCHIVED_MEMORY':
     conflicts?'ARCHIVED_CONTRACT_CONFLICT':
     !tokenValid(chain,contract)?'ARCHIVED_CONTRACT_MISSING':
@@ -129,7 +133,8 @@ export function resolveHistoricalWinnerIdentity({winnerRegister,memory,asOfUtc}=
  }
  return {schema:1,kind:'R29_V19_D203_POSTEVENT_IDENTITY_RESEARCH',
   as_of_utc:asOfUtc,reference_count:rows.length,
-  name_only_unresolved:nameOnly,exact_pool_link_count:linked,
+  name_only_unresolved:nameOnly,source_pool_link_count:linkedCount,
+  exact_pool_link_count:typedValid,
   retrospective_archived_contract_matches:matched,
   exact_historical_october_detection_verified:0,rows,
   oracle_label_access_only_after_decision_window:true,
@@ -210,11 +215,14 @@ export function auditPostEventWinnerCoverage({winnerRegister,population,asOfUtc,
  const observed=new Set(population.entries.map(e=>e.legacy_pool_key));
  const rows=winnerRegister.entries.map(w=>{
   const chain=network(w.reported_chain);
-  const exact=!!chain&&poolValid(chain,w.pool),k=exact?chain+':'+normalized(chain,w.pool):null;
+  const linked=typeof w.pool==='string'&&w.pool.length>0;
+  const exact=linked&&!!chain&&poolValid(chain,w.pool);
+  const k=exact?chain+':'+normalized(chain,w.pool):null;
   const matched=!!k&&observed.has(k);
   return {reference_rank:w.rank,
    reference_pool_key:k,matched_archived_observed_pool:matched,
-   had_exact_pool_link:exact,reference_identity_missing:!exact,
+   original_pool_link_present:linked,pool_identity_type_valid:exact,
+   had_exact_pool_link:exact,reference_identity_missing:!linked,
    original_october_early_discovery_verified:false,
    historical_tradeable_entry_proven:false,
    winner_gain_not_used_as_buy_or_training_signal:true};
@@ -224,6 +232,7 @@ export function auditPostEventWinnerCoverage({winnerRegister,population,asOfUtc,
   as_of_utc:asOfUtc,decision_window_end_utc:decisionWindowEndUtc,
   neutral_observed_pool_count:population.entries.length,
   postevent_winner_reference_count:rows.length,
+  source_pool_link_count:rows.filter(x=>x.original_pool_link_present).length,
   exact_pool_reference_count:rows.filter(x=>x.had_exact_pool_link).length,
   matched_pool_references_in_later_archive:matched,
   unmatched_or_name_only_reference_count:rows.length-matched,
