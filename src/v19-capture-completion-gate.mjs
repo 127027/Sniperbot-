@@ -29,17 +29,33 @@ export function assessCaptureCompletion({request,journal,evidence,runId}={}){
  if(planned.length===0)reasons.push('NO_PAGES_PLANNED');
  if(planned.some(p=>!validPage(p))||!unique(planned.map(p=>key(p.chain,p.page))))
   reasons.push('INVALID_OR_DUPLICATE_PLANNED_PAGE');
+ // The provider is shared by new_pools and optional trending/OHLCV.
+ // Only a strictly typed -pageN response can count as a PLANNED PAGE.
+ // A valid trending response is a separate supplementary HTTP receipt,
+ // never a silently discarded error and never a phantom planned page.
  const gecko=journal.http_receipts.filter(r=>r?.provider==='GECKOTERMINAL');
+ const pageRx=/^research\/feeds\/\d{4}-\d{2}-\d{2}\/(\d+)\/gecko-(solana|base|ethereum|bsc|robinhood|cronos)-page([1-9]\d{0,2})\.raw\.json$/;
+ const olderRx=/^research\/feeds\/\d{4}-\d{2}-\d{2}\/(\d+)\/gecko-(solana|base|ethereum|bsc|robinhood|cronos)-trending-(1h|6h|24h)\.raw\.json$/;
  const succeeded=new Set();
- const failed=[];
+ const failed=[],supplemental=[];
  for(const r of gecko){
-  const match=String(r.body_path||'').match(
-   /^research\/feeds\/\d{4}-\d{2}-\d{2}\/(\d+)\/gecko-(solana|base|ethereum|bsc|robinhood|cronos)-page([1-9]\d{0,2})\.raw\.json$/);
-  if(!match||match[1]!==runId||!/^[0-9a-f]{64}$/.test(r.response_sha256||''))
-   {reasons.push('UNVERIFIABLE_GECKO_RECEIPT');continue;}
+  const path=String(r.body_path||''),match=path.match(pageRx),
+   older=match?null:path.match(olderRx);
+  if(!/^[0-9a-f]{64}$/.test(r.response_sha256||'')
+    ||(!match&&!older)||(match||older)[1]!==runId){
+   reasons.push('UNVERIFIABLE_GECKO_RECEIPT');continue;
+  }
+  if(older){
+   supplemental.push({chain:older[2],lane:'TRENDING',
+    status:r.http_status??null,source_path:path});
+   if(r.http_status!==200)
+    reasons.push('SUPPLEMENTAL_GECKO_HTTP_FAILURE');
+   continue;
+  }
   const candidate=key(match[2],Number(match[3]));
-  if(!planned.some(p=>key(p.chain,p.page)===candidate))
-   {reasons.push('RECEIPT_NOT_IN_REQUEST_PLAN');continue;}
+  if(!planned.some(p=>key(p.chain,p.page)===candidate)){
+   reasons.push('RECEIPT_NOT_IN_REQUEST_PLAN');continue;
+  }
   if(r.http_status===200)succeeded.add(candidate);
   else failed.push({page:candidate,status:r.http_status??null});
  }
@@ -66,6 +82,8 @@ export function assessCaptureCompletion({request,journal,evidence,runId}={}){
   &&wanted.length===6&&missingChains.length)reasons.push('FALSE_ALL_SIX_CHAIN_CLAIM');
  if(evidence.published_paper_orders!==0||evidence.verified_client_fills!==0)
   reasons.push('NOT_RESEARCH_ONLY');
+ // In the cooldown branch also require NO supplementary provider HTTP;
+ // one successful extra endpoint cannot masquerade as a fully deferred wake.
  // A deliberately paused scan is not a provider error. No HTTP call may be
  // performed under the persistent 429 cooldown. Every planned page must be
  // recorded as DEFERRED and the future retry timestamp must be evidenced.
@@ -74,6 +92,7 @@ export function assessCaptureCompletion({request,journal,evidence,runId}={}){
  const completion=Date.parse(evidence.captured_completed_at_utc||'');
  const deferredKeys=evidence.page_capture_deferred.map(p=>key(p.chain,p.page));
  const isSafeDeferred=planned.length>0&&gecko.length===0
+  &&!journal.http_receipts.some(r=>r.provider==='GECKOTERMINAL_OHLCV')
   &&!evidence.api_evidence.some(r=>r?.provider==='GECKOTERMINAL')
   &&failed.length===0&&evidence.page_capture_failures.length===0
   &&cooldown?.active===true&&Number.isFinite(retry)
@@ -103,6 +122,8 @@ export function assessCaptureCompletion({request,journal,evidence,runId}={}){
   missing_requested_chains:missingChains,
   unresolved_planned_pages:missingPages,
   provider_http_failures:failed,
+  supplemental_gecko_receipts:supplemental,
+  supplemental_gecko_http_failures:supplemental.filter(x=>x.status!==200),
   reasons:[...new Set(reasons)],coverage_warnings:coverageWarnings,
   workflow_may_report_success:reasons.length===0,
   global_market_coverage_proven:false,
