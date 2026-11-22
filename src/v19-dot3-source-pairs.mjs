@@ -87,6 +87,12 @@ export function auditDot3QuoteSourcePair({coin,observations=[],asOfUtc,
  const pair=[...byHost.values()];
  const distinctDomains=pair.length>=2,agesOk=pair.length>=2
    &&pair.every(q=>q.http_capture_fresh);
+ // A fresh HTTP response may contain an explicitly stale provider quote.
+ // Do not give that pair the healthy two-domain indicative status.
+ const staleProviderQuote=pair.some(q=>
+   q.quote_time_class==='PROVIDER_TIMESTAMP_CLAIMED_STALE');
+ const providerTimesPresentAndFresh=pair.length>=2&&pair.every(q=>
+   q.quote_time_class==='PROVIDER_TIMESTAMP_CLAIMED_FRESH');
  const prices=pair.slice(0,2).map(q=>q.price_usdc);
  const divergence=prices.length===2
    ?100*Math.abs(prices[0]-prices[1])/((prices[0]+prices[1])/2):null;
@@ -98,12 +104,14 @@ export function auditDot3QuoteSourcePair({coin,observations=[],asOfUtc,
  const tooLittleLiquidity=liquidity!==null&&liquidity<minimumLiquidityUsd;
  const status=!distinctDomains?'MISSING_SECOND_DISTINCT_DOMAIN':
    !agesOk?'HTTP_CAPTURE_STALE':
+   staleProviderQuote?'PROVIDER_QUOTE_STALE':
    assertedUpstreamOverlap?'SAME_REPORTED_UPSTREAM':
    quoteConflict?'INDICATIVE_PRICE_DISAGREEMENT':
    tooLittleLiquidity?'INDICATIVE_LOW_LIQUIDITY':
    'TWO_DOMAIN_INDICATIVE_ONLY';
  const nextAction=status==='MISSING_SECOND_DISTINCT_DOMAIN'?'FETCH_ALTERNATIVE_EXACT_POOL_SOURCE':
    status==='HTTP_CAPTURE_STALE'?'REFRESH_SOURCE_CAPTURES':
+   status==='PROVIDER_QUOTE_STALE'?'REFRESH_STALE_PROVIDER_QUOTE_AND_CHECK_ORIGIN':
    status==='SAME_REPORTED_UPSTREAM'?'FIND_PROVABLY_INDEPENDENT_UPSTREAM':
    status==='INDICATIVE_PRICE_DISAGREEMENT'?'RECHECK_CONFLICTING_QUOTES':
    status==='INDICATIVE_LOW_LIQUIDITY'?'RECHECK_LIQUIDITY_AND_EXIT_DEPTH':
@@ -117,7 +125,11 @@ export function auditDot3QuoteSourcePair({coin,observations=[],asOfUtc,
    independently_verified_upstream_count:0,
    real_upstream_independence_proven:false,
    provider_quote_times_independently_verified:false,
-   full_quote_pair_age_valid:agesOk,
+   http_capture_pair_age_valid:agesOk,
+   full_quote_pair_age_valid:agesOk&&providerTimesPresentAndFresh,
+   explicitly_stale_provider_quote_detected:staleProviderQuote,
+   provider_time_missing_count:pair.filter(x=>
+     x.quote_time_class==='HTTP_CAPTURE_ONLY_INDICATIVE').length,
    quoted_price_disagreement_pct:divergence,
    minimum_observed_liquidity_usd:liquidity,
    matched_sources:pair,
