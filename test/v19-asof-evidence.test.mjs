@@ -5,7 +5,7 @@ import {checkUnifiedEvidence} from '../src/v18-shared-evidence-gate.mjs';
 
 const asOfUtc='2026-10-12T09:35:00.000Z';
 const at='2026-10-12T09:34:00.000Z';
-const coin={chain:'base',contract:'0x'+'a'.repeat(40),pool:'0x'+'b'.repeat(40)};
+const coin={chain:'base',contract:'0x'+'a'.repeat(40),pool:'0x'+'b'.repeat(40),symbol:'TEST'};
 const urls=['https://www.geckoterminal.com/base/pools/'+coin.pool,
  'https://dexscreener.com/base/'+coin.pool];
 function snapshot(){
