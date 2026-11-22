@@ -77,3 +77,32 @@ test('synthetic regression data cannot masquerade as live research decision by d
  assert.equal(result.reason,'SYNTHETIC_DATA_NOT_LIVE');
  assert.equal(result.paper_order_authorized,false);
 });
+
+test('independent indicative PAPER captures are research-reviewable without inventing provider timestamp',()=>{
+ const c=snap(6,.0011);
+ c.quote_quality='INDICATIVE_WEB_ONLY';
+ c.provider_time_unknown_acknowledged=true;
+ c.risk.status='PAPER_ELIGIBLE';
+ for(const q of c.quotes)delete q.source_published_at_utc;
+ const prev={at_utc:hour(5),price_usd:.001};
+ const permitted=live(c,{priorObservation:prev,fullReviewDue:true});
+ assert.equal(permitted.action,'BUY');
+ assert.equal(permitted.paper_order_authorized,false);
+ const noAcknowledgement={...c,provider_time_unknown_acknowledged:false};
+ const missing=live(noAcknowledgement,{priorObservation:prev,fullReviewDue:true});
+ assert.equal(missing.action,'WATCH');
+ assert.equal(missing.reason,'EVIDENCE_QUOTE_FUTURE_OR_UNDATED');
+});
+
+test('protective shadow uses same SELL rule but does not pretend it filled a trade',async()=>{
+ const {inspectProtectiveExit}=await import('../src/protective-exit.mjs');
+ const c=snap(7,.0014),position={coin,entryPrice:.00111,quantity:50,costTestUsdc:50};
+ const quotes=c.quotes.map((q,i)=>({...q,captured_at_utc:q.observed_at,
+   provider_quote_asof_utc:q.observed_at,source_archive_blob_sha:String(i+1).repeat(40)}));
+ const result=inspectProtectiveExit({position,observations:quotes,asOfUtc:hour(7,35)});
+ const liveDecision=live(c,{position,fullReviewDue:false});
+ assert.equal(result.decision_engine,'UNIFIED_V18_SIGNAL_V1');
+ assert.equal(result.trigger_reason,liveDecision.reason);
+ assert.equal(result.status,'SHADOW_SELL_CANDIDATE');
+ assert.equal(result.paper_filled,false);
+});
