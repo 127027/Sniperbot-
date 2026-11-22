@@ -95,3 +95,32 @@ test('invalid source, future proposal, no open position are never eligible',()=>
  assert.equal(no.rejected.length,2);
  assert.equal(no.exit_candidates,0);
 });
+
+test('D4-08 receipt audit refuses altered cash, another open lot or mutated earlier receipt',()=>{
+ const a=bought();
+ const b=settlePaper(order('sell-lot-0002','SELL',t+2000,
+  {exit_position_source_order_id:'buy-lot-0001'}),a.state,t+3000).state;
+ const inspect=after=>auditSingleExitReceipt({stateBefore:a.state,stateAfter:after,
+  openingBuyOrderId:'buy-lot-0001',sellOrderId:'sell-lot-0002',coin});
+ assert.equal(inspect(b).model_receipt_consistent,true);
+ const wrongCash=structuredClone(b);wrongCash.cash+=100;
+ assert.ok(inspect(wrongCash).local_proof_blockers.includes('EXIT_CASH_NOT_RECONCILED'));
+ const wrongLot=structuredClone(b);wrongLot.positions['other:pool:id']={sourceOrderId:'fake'};
+ assert.ok(inspect(wrongLot).local_proof_blockers.includes('UNRELATED_POSITIONS_CHANGED'));
+ const prior=structuredClone(b);prior.receipts['buy-lot-0001'].data.quantity=9999;
+ assert.ok(inspect(prior).local_proof_blockers.includes('PREVIOUS_RECEIPTS_CHANGED'));
+});
+test('D4-08 receipt audit refuses mismatched sell money, duplicate history and faked sequence',()=>{
+ const a=bought();
+ const b=settlePaper(order('sell-lot-0002','SELL',t+2000,
+  {exit_position_source_order_id:'buy-lot-0001'}),a.state,t+3000).state;
+ const inspect=after=>auditSingleExitReceipt({stateBefore:a.state,stateAfter:after,
+  openingBuyOrderId:'buy-lot-0001',sellOrderId:'sell-lot-0002',coin});
+ const wrongProceeds=structuredClone(b);
+ wrongProceeds.receipts['sell-lot-0002'].data.proceeds_test_usdc+=500;
+ assert.ok(inspect(wrongProceeds).local_proof_blockers.includes('EXIT_QUANTITY_FEES_OR_PNL_NOT_RECONCILED'));
+ const duplicated=structuredClone(b);duplicated.trade_history.push(duplicated.trade_history.at(-1));
+ assert.ok(inspect(duplicated).local_proof_blockers.includes('EXIT_TRADE_EVENT_NOT_RECONCILED'));
+ const wrongSequence=structuredClone(b);wrongSequence.nextSequence+=2;
+ assert.ok(inspect(wrongSequence).local_proof_blockers.includes('EXIT_SEQUENCE_NOT_RECONCILED'));
+});
