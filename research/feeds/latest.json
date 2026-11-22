@@ -2,45 +2,45 @@
   "schema": 1,
   "kind": "LATEST_DOT2_PUBLIC_CAPTURE_POINTER",
   "mode": "PAPER_RESEARCH_ONLY",
-  "request_path": "research/requests/2026-11-22/20261122T200222Z-r29-v19-postcooldown-bounded-base2-resume.json",
-  "evidence_path": "research/feeds/2026-11-22/45064131641/evidence.json",
-  "handoff_path": "research/feeds/2026-11-22/45064131641/dot2-to-dot3-handoff.json",
-  "dot3_recheck_plan_path": "research/feeds/2026-11-22/45064131641/dot3-next-evidence-rechecks.json",
-  "dot3_status_preview_path": "research/feeds/2026-11-22/45064131641/dot3-research-risk-status-preview.json",
-  "dot5_event_ledger_path": "research/feeds/2026-11-22/45064131641/dot5-neutral-event-ledger.json",
-  "operating_metrics_path": "research/feeds/2026-11-22/45064131641/v19-operating-measurements.json",
-  "captured_at_utc": "2026-11-22T20:02:39.479Z",
-  "source_chain": "base",
+  "request_path": "research/requests/2026-11-22/20261122T201015Z-r29-v19-slo-bounded-multichain-recheck2.json",
+  "evidence_path": "research/feeds/2026-11-22/45064898786/evidence.json",
+  "handoff_path": "research/feeds/2026-11-22/45064898786/dot2-to-dot3-handoff.json",
+  "dot3_recheck_plan_path": "research/feeds/2026-11-22/45064898786/dot3-next-evidence-rechecks.json",
+  "dot3_status_preview_path": "research/feeds/2026-11-22/45064898786/dot3-research-risk-status-preview.json",
+  "dot5_event_ledger_path": "research/feeds/2026-11-22/45064898786/dot5-neutral-event-ledger.json",
+  "operating_metrics_path": "research/feeds/2026-11-22/45064898786/v19-operating-measurements.json",
+  "captured_at_utc": "2026-11-22T20:10:40.718Z",
+  "source_chain": "MULTI_CHAIN",
   "metrics": {
     "schema": 1,
     "mode": "PAPER_RESEARCH_ONLY",
     "source_network": "MULTI_CHAIN",
-    "gecko_fetched": 19,
-    "gecko_complete_contracts": 19,
+    "gecko_fetched": 39,
+    "gecko_complete_contracts": 39,
     "dex_checks": 2,
     "dex_exact_matched": 2,
     "dex_two_domain_identity_matches": 2,
     "dex_single_provider_identity_only": 0,
     "dex_indicative_complete": 1,
     "dex_fallback_full_contracts": 0,
-    "total_observations": 19,
+    "total_observations": 39,
     "fetch_errors": [],
     "actionable_orders": 0,
     "client_fills": 0,
     "v19_offline_restart_preflight": {
       "status": "READY_TO_ATTEMPT_BOUNDED_RESEARCH",
-      "source_path": "research/feeds/2026-11-22/45064131641/restart-preflight.json",
-      "checked_at_utc": "2026-11-22T20:02:38.656Z",
+      "source_path": "research/feeds/2026-11-22/45064898786/restart-preflight.json",
+      "checked_at_utc": "2026-11-22T20:10:25.305Z",
       "safe_to_attempt_provider_http_at_preflight": true,
       "retry_not_before_utc": null,
-      "waiting_chain_page_count": 5,
+      "waiting_chain_page_count": 4,
       "preflight_http_starts": 0,
       "preflight_order_authorizations": 0,
       "preflight_alone_never_proves_http_200": true
     },
-    "discovery_page": 2,
+    "discovery_page": 4,
     "discovery_page_reason": "V19_BOUNDED_MULTI_CHAIN_CAPTURE",
-    "previous_chain_page_checkpoint": 5,
+    "previous_chain_page_checkpoint": null,
     "previous_chain_page_checkpoints": {
       "solana": 5,
       "base": 5,
@@ -70,7 +70,7 @@
     "v19_hot_fair_service": {
       "schema": 1,
       "kind": "R29_V19_HOT_FAIR_SERVICE_METRICS",
-      "as_of_utc": "2026-11-22T20:02:39.469Z",
+      "as_of_utc": "2026-11-22T20:10:40.705Z",
       "selected_for_recheck": 2,
       "attempted_rechecks": 2,
       "still_pending": 0,
@@ -78,23 +78,21 @@
       "matched_two_domain_quotes": 1,
       "reported_risk_blocks_or_errors": 1,
       "hot_checked_with_time": 1,
-      "fair_checked_with_time": 0,
-      "repair_attempted": 1,
-      "repair_checked_with_time": 1,
-      "repair_status_counts": {
-        "MISSING_GECKO_COMPARISON_PRICE": 1
-      },
+      "fair_checked_with_time": 1,
+      "repair_attempted": 0,
+      "repair_checked_with_time": 0,
+      "repair_status_counts": {},
       "repair_indicative_quotes": 0,
       "repair_unmatched_identity": 0,
-      "hot_p50_wait_minutes": 0,
-      "hot_p95_wait_minutes": 0,
-      "fair_p50_wait_minutes": null,
-      "fair_p95_wait_minutes": null,
-      "repair_p50_wait_minutes": 68.06,
-      "repair_p95_wait_minutes": 68.06,
+      "hot_p50_wait_minutes": 0.25,
+      "hot_p95_wait_minutes": 0.25,
+      "fair_p50_wait_minutes": 299.42,
+      "fair_p95_wait_minutes": 299.42,
+      "repair_p50_wait_minutes": null,
+      "repair_p95_wait_minutes": null,
       "hot_sla_minutes": 10,
       "hot_sla_met_pct": 100,
-      "deferred_new_candidates": 18,
+      "deferred_new_candidates": 38,
       "actual_api_calls_claimed_from_attempts": 2,
       "selection_does_not_delete_deferred_candidates": true,
       "trade_authorized": false,
@@ -102,20 +100,18 @@
       "note": "Queue latency statistics are null until a matched observed/check timestamp pair exists."
     },
     "v19_evidence_repair_rechecks": {
-      "source_observation_batches": 23,
-      "as_of_utc": "2026-11-22T20:02:39.261Z",
-      "ranking_pool_count": 439,
-      "eligible_repair_pool_count": 80,
-      "offered_for_selection": 80,
+      "source_observation_batches": 24,
+      "as_of_utc": "2026-11-22T20:10:40.505Z",
+      "ranking_pool_count": 458,
+      "eligible_repair_pool_count": 99,
+      "offered_for_selection": 99,
       "deferred_before_selection": 0,
-      "selected_for_actual_dex_attempt": 1,
-      "actually_attempted_dex_checks": 1,
-      "actual_dex_response_count": 1,
-      "exact_pair_responses": 1,
-      "new_observed_repair_prices": 1,
-      "attempt_status_counts": {
-        "MISSING_GECKO_COMPARISON_PRICE": 1
-      },
+      "selected_for_actual_dex_attempt": 0,
+      "actually_attempted_dex_checks": 0,
+      "actual_dex_response_count": 0,
+      "exact_pair_responses": 0,
+      "new_observed_repair_prices": 0,
+      "attempt_status_counts": {},
       "skipped": {
         "oracle": 0,
         "identity": 0,
@@ -132,39 +128,59 @@
     "v19_hot_fair_recheck_plan": {
       "selected": [
         {
-          "chain": "base",
-          "pool": "0x9b1ecccc4d850696dcdcff38bedf32aedc2dd314",
+          "chain": "ethereum",
+          "pool": "0x838c0195408562ee6ac0155217fa6070fc522a766f3fbabbf51c1932408330e8",
           "queue": "HOT_CURRENT_CAPTURE",
-          "research_score": 43.21
+          "research_score": 48.93
         },
         {
           "chain": "base",
-          "pool": "0x08efe87903028dc989d0a85a290381e7ca0fcd389dd03085410a36f845aba713",
-          "queue": "EVIDENCE_REPAIR",
+          "pool": "0x09c849f0f87cc534a85998c93de40604d948bc9adfa0d16896789d4c9173a23f",
+          "queue": "PERSISTENT_FAIR_RECHECK",
           "research_score": null
         }
       ],
-      "all_new_pool_count": 19,
-      "deferred_new_pool_count": 18,
+      "all_new_pool_count": 39,
+      "deferred_new_pool_count": 38,
       "deferred_new_pool_keys": [
-        "base:0x592e793bfc40098eda865606a8d62aa6cde78073da5c0d026ed3b524c1f49cbb",
-        "base:0x2fbb98666ebfe6b7c4b9f4ea20aa03a7a4d95abaef3361c153de8489304fc0fe",
-        "base:0x29931305c28f438a01a286c460c95fdc405ebaa97499c3e767916d0c2507e672",
-        "base:0xbffa4ef2d24245e7b0613ae16b56dbc95e09ee91f9fed17d591a3d63d96b4d27",
-        "base:0x6b3098e8923f81fa8f469fd51eb45ab1d87c9cc222a345cb0919f1ece44aa148",
-        "base:0x0d98cb0b1a99f66a8b26396cf3d7aa7c7959f235cb350f383ca1b6c7b62e90f4",
-        "base:0x7df34ee7cae49278ed5cd5935df925a0ebd90ac0b95f44be7836d9fed77105f4",
-        "base:0x1064815e84c96979187bd7eda97076d5c887fadb",
-        "base:0x7c71b5391416aba747e2b01c39f81faecb86e635",
-        "base:0x99562c4022d94f1221f71f92b815a6e2fa70c7280c1eeae35b267646f784863b",
-        "base:0xd87b0cc4659784af3ebc68935cadc764c4daf868d5ec554cb64693858303441b",
-        "base:0x7599a99ee2177f436195771bf1c85cf6dbcf2c2b",
-        "base:0x56583bce2f89e58d2c5bfbe2673d94f0085a183f3e43ef79e159f8b96cdbea0a",
-        "base:0xed7c9e2469db4ee9223de366f1be52b921314863851f856a61227f940b2d6dfc",
-        "base:0xbc114b8956afa476a2bc6e33ffd81cc59ecd99e2",
-        "base:0xa632d0b31449b77ad7c23ad792c6e2aee00440c3a578882415640e29fe15cd25",
-        "base:0x9a7b695a8e035ce4a09bb14093ff8d0f5546fc3b",
-        "base:0x402c0937953832f5f964a9266a114d378f5e12a144b5678291e8804d8e3c5292"
+        "ethereum:0xefcbbcd6381a15fbdc3f07907d91c4c7b266c1cd4f57b4b5579fb09e5cbdb44c",
+        "bsc:0x08698dcfc5912bee0a125841324ce53a9b34d54f",
+        "ethereum:0xb74b153b995c64d4c0edb4e46f152392b40f0aa523fe4beda0ee999e76377aca",
+        "bsc:0x43e72f35934ab1e0444941470dfa7408676c1b0e",
+        "bsc:0x125e5bbaafb62d704396efac9b658e2b9b9574bd",
+        "bsc:0xa08ed7a6e706c161c14424bbe123462edff9d4fe",
+        "bsc:0x7b1c5fab5c815e131433709d91e1bb6a619d60f1065d483fc8e6544e485546d6",
+        "ethereum:0xd5c83ccde8cf0ec479bc1e57d9d64cb879e506ae5f8acc0960996ed092864f56",
+        "ethereum:0xf28a534be7ac967cd246d6b27807930fc16ae006086ba7d1bb3fa8cda6697a29",
+        "ethereum:0xd90a783e1d2c721d9d8243ff2cc0b72b655073a8282e1b1004c15226ea3add4d",
+        "bsc:0x466b79fa46b9f6561dc6e57aafec141d91dfaa35",
+        "bsc:0x39f3f39ee1f2bc3424cd0ed5eb4ff7811be9eb1e",
+        "bsc:0xd79bf7bb5803328a8944d4a4efe9f8eee0b07ddc837d30010d3b39c8941ef350",
+        "bsc:0x5e919fb092304abdc15437c5da1789a7c94d1ae1",
+        "bsc:0x618b3b4389a225f45d4a5e8e8916c225a8500edc53bd7b7849df3dae2c3b9f2a",
+        "ethereum:0x3853d6ca059390af37301941e6b06c631a0f8a67cb6d96a9e9a0306d3bda9da4",
+        "ethereum:0x36f42053bbedf32994ee0a6d858a4dbb3ef72dc9d05f7f7bfcf2775fac7e50a8",
+        "ethereum:0x39dcf8685a3d6d655fcf55155390ccd8f9625f3e",
+        "ethereum:0x2bf3ab844a78ffc914ba95654165682a3335e194",
+        "bsc:0x70fb7e9cac176490223138893407979f48ca4444",
+        "ethereum:0xdae7d13aff7dd5de5fc6c57b8095fdb47ca8570b",
+        "bsc:0x7fe5e2270fa4b3a2084794831b8a934239d60f25",
+        "bsc:0x2868087b49c9ba5db14bdc9d8fad0561d7d3ffff",
+        "bsc:0x95822590f38cebb62acc08b20c60f6503b7effff",
+        "ethereum:0x78f2ea1e22a3039361f11953e738120524e84596f636eaf4877bb74fedaad61c",
+        "ethereum:0xa8b2b523a60e9dc81b7521fc0e715149fd23fa70",
+        "ethereum:0x60cb92600a62bd6696c55e57679c9b46acb9aae04531dda4d6195e7d15dc368b",
+        "ethereum:0x43305c457509b98c2316d42ba4bcc99de6f8e8fcf72728e17974d989a170eaa2",
+        "bsc:0x5ef0b3991325c1279419cc837d2d3739b7ecdd0d269860e21605543378b6ff1f",
+        "ethereum:0xff145819b51d1958626de71a9c88b09d595da8c8a5085761779d0b7c471b96ae",
+        "bsc:0xef1b1440a4b77eb6ca9e1a6efc9a92d2944a27147a252e5e5e3dad380ed81bb7",
+        "ethereum:0x788160658084df295a452da249f2b5a973c665911c9760805f004d854cd658e5",
+        "ethereum:0x1034175ba25f5af33e3fa993cf56e367c84fd4f0294092cd08af1b6d0480dbda",
+        "bsc:0x8533bf7dfbb90dd35029c8047cedce5707e614351770e835879a2d6b052e155c",
+        "ethereum:0x12fa976946465e5adbe33892191932d0f349271e7263f54a6f621a24c9bdbf6b",
+        "ethereum:0xac535835f8cf88e532fa13061a06d263f4f1802d",
+        "bsc:0x1ab7133650aee98e514200b467470ff86aaaafec",
+        "bsc:0xb800c86c040553067913594d290202242a31e73d62de5560e97724dea9c980fe"
       ],
       "deferred_repair_pool_keys": [
         "bsc:0x0dcc12e6ffd71cadfa64577e3170cbb60179b2193b6ca2c41bd269f36c5dbcbb",
@@ -245,16 +261,36 @@
         "solana:HAD3MD8Xcgs2tTgZMr8pjSKr5jk1ZxEYCsnucrPQB9Wd",
         "solana:hApp8CeoKktD4CpUQ4sWZwJaBhBUtSmvodqEkU2pD2s",
         "solana:hqSBhVhvvNYgMHtuyoLtqNiDUKSoGnMSZUDceRjGyEQ",
-        "solana:HUiZbKkbnSjkbjSTgWeK4FXgSwhWE2bFMJJBMxzJhGu3"
+        "solana:HUiZbKkbnSjkbjSTgWeK4FXgSwhWE2bFMJJBMxzJhGu3",
+        "base:0x08efe87903028dc989d0a85a290381e7ca0fcd389dd03085410a36f845aba713",
+        "base:0x0d98cb0b1a99f66a8b26396cf3d7aa7c7959f235cb350f383ca1b6c7b62e90f4",
+        "base:0x1064815e84c96979187bd7eda97076d5c887fadb",
+        "base:0x29931305c28f438a01a286c460c95fdc405ebaa97499c3e767916d0c2507e672",
+        "base:0x2fbb98666ebfe6b7c4b9f4ea20aa03a7a4d95abaef3361c153de8489304fc0fe",
+        "base:0x402c0937953832f5f964a9266a114d378f5e12a144b5678291e8804d8e3c5292",
+        "base:0x56583bce2f89e58d2c5bfbe2673d94f0085a183f3e43ef79e159f8b96cdbea0a",
+        "base:0x592e793bfc40098eda865606a8d62aa6cde78073da5c0d026ed3b524c1f49cbb",
+        "base:0x6b3098e8923f81fa8f469fd51eb45ab1d87c9cc222a345cb0919f1ece44aa148",
+        "base:0x7599a99ee2177f436195771bf1c85cf6dbcf2c2b",
+        "base:0x7c71b5391416aba747e2b01c39f81faecb86e635",
+        "base:0x7df34ee7cae49278ed5cd5935df925a0ebd90ac0b95f44be7836d9fed77105f4",
+        "base:0x99562c4022d94f1221f71f92b815a6e2fa70c7280c1eeae35b267646f784863b",
+        "base:0x9a7b695a8e035ce4a09bb14093ff8d0f5546fc3b",
+        "base:0x9b1ecccc4d850696dcdcff38bedf32aedc2dd314",
+        "base:0xa632d0b31449b77ad7c23ad792c6e2aee00440c3a578882415640e29fe15cd25",
+        "base:0xbc114b8956afa476a2bc6e33ffd81cc59ecd99e2",
+        "base:0xbffa4ef2d24245e7b0613ae16b56dbc95e09ee91f9fed17d591a3d63d96b4d27",
+        "base:0xd87b0cc4659784af3ebc68935cadc764c4daf868d5ec554cb64693858303441b",
+        "base:0xed7c9e2469db4ee9223de366f1be52b921314863851f856a61227f940b2d6dfc"
       ],
-      "repair_selected": 1,
+      "repair_selected": 0,
       "hot_selected": 1,
-      "fair_selected": 0,
+      "fair_selected": 1,
       "trade_authorized": false
     },
     "v19_liquidity_sensitivity": {
-      "source_path": "research/feeds/2026-11-22/45064131641/paper-liquidity-sensitivity.json",
-      "studied_pool_rows": 19,
+      "source_path": "research/feeds/2026-11-22/45064898786/paper-liquidity-sensitivity.json",
+      "studied_pool_rows": 39,
       "observed_false_buy_count": null,
       "applied_policy_changes": false,
       "orders_authorized": 0
@@ -262,43 +298,40 @@
     "v19_chain_page_plan": {
       "schema": 1,
       "kind": "R29_V19_BOUND_MULTI_CHAIN_PLAN",
-      "at_utc": "2026-11-22T20:02:38.656Z",
-      "requested_budget": 1,
+      "at_utc": "2026-11-22T20:10:25.305Z",
+      "requested_budget": 2,
       "requested_chain_count": 6,
       "minimum_gecko_page_requests_for_one_attempt_per_chain": 6,
-      "scheduled_chain_count": 1,
+      "scheduled_chain_count": 2,
       "scheduled_all_requested_chains_at_least_once": false,
       "unscheduled_chains_due_to_budget": [
-        "ethereum",
-        "bsc",
         "robinhood",
         "cronos",
-        "solana"
+        "solana",
+        "base"
       ],
       "unscheduled_chains_due_to_cooldown": [],
       "incomplete_chain_attempts_are_a_data_gap": true,
       "recommendation_when_underbudget": "NEXT_CAPTURE_REQUEST_RESERVE_AT_LEAST_ONE_GECKO_PAGE_PER_CHAIN_IF_FREE_RATE_LIMIT_ALLOWS",
       "one_pass_is_not_proof_of_full_pages_or_historical_market": true,
       "actual_http_success_per_chain_is_not_proven_by_plan": true,
-      "scheduled_requests": 1,
+      "scheduled_requests": 2,
       "task_cap_per_chain": 2,
       "tasks": [
         {
-          "chain": "base",
-          "page": 2,
-          "priority": "EXPIRED_FAILED_PAGE_RETRY",
-          "reason": "RETRY_FAILED_PAGE"
-        }
-      ],
-      "not_scheduled": [
-        {
           "chain": "ethereum",
-          "reason": "WAIT_NEXT_BUDGET_WINDOW"
+          "page": 4,
+          "priority": "FAIR_CHAIN_BASELINE",
+          "reason": "RESUME_BACKLOG_PAGE"
         },
         {
           "chain": "bsc",
-          "reason": "WAIT_NEXT_BUDGET_WINDOW"
-        },
+          "page": 1,
+          "priority": "FAIR_CHAIN_BASELINE",
+          "reason": "REFRESH_NEW_POOLS_FIRST_PAGE"
+        }
+      ],
+      "not_scheduled": [
         {
           "chain": "robinhood",
           "reason": "WAIT_NEXT_BUDGET_WINDOW"
@@ -310,6 +343,10 @@
         {
           "chain": "solana",
           "reason": "WAIT_NEXT_BUDGET_WINDOW"
+        },
+        {
+          "chain": "base",
+          "reason": "WAIT_NEXT_BUDGET_WINDOW"
         }
       ],
       "coverage_claim": "BUDGETED_SAMPLE_NOT_WHOLE_MARKET",
@@ -319,7 +356,7 @@
     "v19_chain_service_sla": {
       "schema": 1,
       "kind": "R29_V19_CHAIN_SERVICE_SLA_REPORT",
-      "as_of_utc": "2026-11-22T20:02:39.471Z",
+      "as_of_utc": "2026-11-22T20:10:40.708Z",
       "per_chain": [
         {
           "chain": "solana",
@@ -327,7 +364,7 @@
           "recent_identity_gaps": 0,
           "pending_page_count": 1,
           "last_attempt_at_utc": "2026-11-22T18:54:29.481Z",
-          "minutes_since_last_attempt": 68.15,
+          "minutes_since_last_attempt": 75.93,
           "cooldown_active": false,
           "backlog_first_pending_at_utc": null,
           "backlog_age_minutes": null,
@@ -343,15 +380,35 @@
         },
         {
           "chain": "base",
-          "observed_recent_pool_count": 0,
+          "observed_recent_pool_count": 20,
           "recent_identity_gaps": 0,
-          "pending_page_count": 2,
-          "last_attempt_at_utc": "2026-11-22T18:54:35.569Z",
-          "minutes_since_last_attempt": 68.05,
+          "pending_page_count": 1,
+          "last_attempt_at_utc": "2026-11-22T20:02:39.106Z",
+          "minutes_since_last_attempt": 7.77,
           "cooldown_active": false,
           "backlog_first_pending_at_utc": null,
           "backlog_age_minutes": null,
-          "demand_weight": 10,
+          "demand_weight": 45,
+          "weight_is_research_priority_not_trade_risk": true,
+          "scheduled_pages": 0,
+          "actual_http_attempts_in_report": 0,
+          "actual_http200_pages_in_report": 0,
+          "planned_but_not_http_verified": 0,
+          "service_verified_by_real_http": false,
+          "pending_first_seen_age_minutes": null,
+          "historical_max_wait_minutes_inferable": false
+        },
+        {
+          "chain": "ethereum",
+          "observed_recent_pool_count": 0,
+          "recent_identity_gaps": 0,
+          "pending_page_count": 0,
+          "last_attempt_at_utc": "2026-11-22T18:54:05.230Z",
+          "minutes_since_last_attempt": 76.33,
+          "cooldown_active": false,
+          "backlog_first_pending_at_utc": null,
+          "backlog_age_minutes": null,
+          "demand_weight": 0,
           "weight_is_research_priority_not_trade_risk": true,
           "scheduled_pages": 1,
           "actual_http_attempts_in_report": 1,
@@ -362,42 +419,22 @@
           "historical_max_wait_minutes_inferable": false
         },
         {
-          "chain": "ethereum",
-          "observed_recent_pool_count": 0,
-          "recent_identity_gaps": 0,
-          "pending_page_count": 0,
-          "last_attempt_at_utc": "2026-11-22T18:54:05.230Z",
-          "minutes_since_last_attempt": 68.56,
-          "cooldown_active": false,
-          "backlog_first_pending_at_utc": null,
-          "backlog_age_minutes": null,
-          "demand_weight": 0,
-          "weight_is_research_priority_not_trade_risk": true,
-          "scheduled_pages": 0,
-          "actual_http_attempts_in_report": 0,
-          "actual_http200_pages_in_report": 0,
-          "planned_but_not_http_verified": 0,
-          "service_verified_by_real_http": false,
-          "pending_first_seen_age_minutes": null,
-          "historical_max_wait_minutes_inferable": false
-        },
-        {
           "chain": "bsc",
           "observed_recent_pool_count": 0,
           "recent_identity_gaps": 0,
           "pending_page_count": 0,
           "last_attempt_at_utc": "2026-11-22T18:54:11.901Z",
-          "minutes_since_last_attempt": 68.45,
+          "minutes_since_last_attempt": 76.22,
           "cooldown_active": false,
           "backlog_first_pending_at_utc": null,
           "backlog_age_minutes": null,
           "demand_weight": 0,
           "weight_is_research_priority_not_trade_risk": true,
-          "scheduled_pages": 0,
-          "actual_http_attempts_in_report": 0,
-          "actual_http200_pages_in_report": 0,
+          "scheduled_pages": 1,
+          "actual_http_attempts_in_report": 1,
+          "actual_http200_pages_in_report": 1,
           "planned_but_not_http_verified": 0,
-          "service_verified_by_real_http": false,
+          "service_verified_by_real_http": true,
           "pending_first_seen_age_minutes": null,
           "historical_max_wait_minutes_inferable": false
         },
@@ -407,7 +444,7 @@
           "recent_identity_gaps": 0,
           "pending_page_count": 1,
           "last_attempt_at_utc": "2026-11-22T18:54:17.340Z",
-          "minutes_since_last_attempt": 68.36,
+          "minutes_since_last_attempt": 76.13,
           "cooldown_active": false,
           "backlog_first_pending_at_utc": null,
           "backlog_age_minutes": null,
@@ -427,7 +464,7 @@
           "recent_identity_gaps": 0,
           "pending_page_count": 1,
           "last_attempt_at_utc": "2026-11-22T18:54:23.480Z",
-          "minutes_since_last_attempt": 68.25,
+          "minutes_since_last_attempt": 76.03,
           "cooldown_active": false,
           "backlog_first_pending_at_utc": null,
           "backlog_age_minutes": null,
@@ -443,11 +480,11 @@
         }
       ],
       "due_chain_count": 6,
-      "scheduled_due_chain_count": 1,
-      "scheduled_due_chain_coverage_pct": 16.67,
-      "verified_http200_chain_count": 1,
-      "p95_elapsed_minutes_since_last_attempt": 68.56,
-      "max_elapsed_minutes_since_last_attempt": 68.56,
+      "scheduled_due_chain_count": 2,
+      "scheduled_due_chain_coverage_pct": 33.33,
+      "verified_http200_chain_count": 2,
+      "p95_elapsed_minutes_since_last_attempt": 76.33,
+      "max_elapsed_minutes_since_last_attempt": 76.33,
       "p95_actual_queue_wait_minutes": null,
       "max_backlog_age_minutes": null,
       "note": "Elapsed since last chain attempt is NOT age of an individual queued page.",
@@ -458,11 +495,11 @@
       "orders_authorized": 0
     },
     "v19_prior_inflight_recovery": {
-      "checked_journals": 1,
+      "checked_journals": 2,
       "recovered_original_raw_pages": 0,
       "rejected_replay_entries": 0,
       "recovered_raw_path_list": [],
-      "evidence_path": "research/feeds/2026-11-22/45064131641/previous-inflight-recovery.json",
+      "evidence_path": "research/feeds/2026-11-22/45064898786/previous-inflight-recovery.json",
       "did_not_issue_network_calls_for_recovery": true,
       "did_not_backdate_dot2_discovery": true,
       "no_trade_authority": true
@@ -477,20 +514,21 @@
         "cronos"
       ],
       "attempted_chains": [
-        "base"
+        "ethereum",
+        "bsc"
       ],
       "http_success_chains": [
-        "base"
+        "bsc",
+        "ethereum"
       ],
-      "http_success_chain_count": 1,
+      "http_success_chain_count": 2,
       "chains_without_success_this_run": [
         "solana",
-        "ethereum",
-        "bsc",
+        "base",
         "robinhood",
         "cronos"
       ],
-      "scheduled_request_budget": 1,
+      "scheduled_request_budget": 2,
       "minimum_one_page_per_chain_budget": 6,
       "plan_was_underbudgeted": true,
       "all_six_requested_chains_received_this_run": false,
@@ -499,8 +537,13 @@
     },
     "v19_gecko_received_pages": [
       {
-        "chain": "base",
-        "page": 2,
+        "chain": "ethereum",
+        "page": 4,
+        "found": 20
+      },
+      {
+        "chain": "bsc",
+        "page": 1,
         "found": 19
       }
     ],
@@ -520,10 +563,10 @@
     "v19_persistent_provider_budget": {
       "schema": 1,
       "kind": "R29_V19_PROVIDER_BUDGET_REPORT",
-      "as_of_utc": "2026-11-22T20:02:39.471Z",
+      "as_of_utc": "2026-11-22T20:10:40.708Z",
       "per_provider": {
         "GECKOTERMINAL": {
-          "rolling_starts": 1,
+          "rolling_starts": 2,
           "caps": {
             "per_minute": 4,
             "lanes": {
@@ -534,10 +577,10 @@
           },
           "last_http_status": 200,
           "cooldown_until_utc": null,
-          "request_starts_total": 7,
+          "request_starts_total": 9,
           "rolling_429": 0,
           "started_lanes": {
-            "NEW_POOLS": 1,
+            "NEW_POOLS": 2,
             "TRENDING": 0,
             "OHLCV": 0
           }
@@ -552,7 +595,7 @@
           },
           "last_http_status": 200,
           "cooldown_until_utc": null,
-          "request_starts_total": 4,
+          "request_starts_total": 6,
           "rolling_429": 0,
           "started_lanes": {
             "PAIR": 2
@@ -566,9 +609,9 @@
       "orders_authorized": 0
     },
     "v19_provider_budget_checkpoint_path": "research/state/provider-budget.json",
-    "v19_gecko_actual_attempts": 1,
+    "v19_gecko_actual_attempts": 2,
     "v19_page_coverage": {
-      "unresolved_page_indices": 4,
+      "unresolved_page_indices": 6,
       "page_overlap_records": 0,
       "chain_coverage": [
         {
@@ -577,7 +620,7 @@
           "max_observed_page": 3,
           "missing_page_indices": [],
           "offset_shift_may_hide_pools": true,
-          "latest_page_span_seconds": 13376.799,
+          "latest_page_span_seconds": 17965.355,
           "recent_set_within_90s": false,
           "whole_market_complete": false,
           "has_failed_or_deferred_pages": false
@@ -636,27 +679,30 @@
         },
         {
           "chain": "ethereum",
-          "ever_captured_pages": 1,
-          "max_observed_page": 1,
-          "missing_page_indices": [],
+          "ever_captured_pages": 2,
+          "max_observed_page": 4,
+          "missing_page_indices": [
+            2,
+            3
+          ],
           "offset_shift_may_hide_pools": true,
-          "latest_page_span_seconds": 0,
+          "latest_page_span_seconds": 4580.402,
           "recent_set_within_90s": false,
           "whole_market_complete": false,
-          "has_failed_or_deferred_pages": false
+          "has_failed_or_deferred_pages": true
         }
       ],
       "coverage_is_complete": false
     },
-    "v19_page_coverage_path": "research/feeds/2026-11-22/45064131641/page-coverage-report.json",
+    "v19_page_coverage_path": "research/feeds/2026-11-22/45064898786/page-coverage-report.json",
     "v19_fixed_sample_progress": {
       "schema": 1,
       "kind": "R29_V19_BOUNDED_CAPTURE_PLAN_PROGRESS",
-      "as_of_utc": "2026-11-22T20:02:39.472Z",
-      "numerator_successful_unique_chain_pages": 16,
+      "as_of_utc": "2026-11-22T20:10:40.709Z",
+      "numerator_successful_unique_chain_pages": 17,
       "denominator_fixed_planned_chain_pages": 60,
-      "captured_plan_progress_pct": 26.67,
-      "missing_planned_pages": 44,
+      "captured_plan_progress_pct": 28.33,
+      "missing_planned_pages": 43,
       "per_chain": [
         {
           "chain": "solana",
@@ -708,15 +754,15 @@
         },
         {
           "chain": "ethereum",
-          "unique_successful_pages_in_plan": 1,
+          "unique_successful_pages_in_plan": 2,
           "intended_pages": 10,
           "captured_page_numbers": [
-            1
+            1,
+            4
           ],
           "still_missing_page_numbers": [
             2,
             3,
-            4,
             5,
             6,
             7,
@@ -724,8 +770,11 @@
             9,
             10
           ],
-          "progress_pct": 10,
-          "documented_waiting_page_numbers": [],
+          "progress_pct": 20,
+          "documented_waiting_page_numbers": [
+            2,
+            3
+          ],
           "provider_success_not_inferred_from_requested_pages": true
         },
         {
@@ -820,31 +869,31 @@
       "recovery_rule": "ONLY_EXACT_FINAL_HEX_5C6E_WITH_VALID_JSON_PREFIX"
     },
     "v19_dot1_measured_activity": {
-      "observed_newly_created_pools": 19,
+      "observed_newly_created_pools": 38,
       "volume_change_pct": 0,
-      "comparable_page_pairs": 0,
+      "comparable_page_pairs": 1,
       "active_chains": 6,
       "complete_comparable_panel": false,
       "no_market_calm_claim": true
     },
-    "v19_dot1_activity_journal_path": "research/observations/2026-11-22/45064131641-activity-pages.json",
+    "v19_dot1_activity_journal_path": "research/observations/2026-11-22/45064898786-activity-pages.json",
     "v19_dot1_cadence_recommendation": {
       "target": 12,
-      "reason": "INCOMPLETE_COMPARABLE_PANEL_NO_DOWNSHIFT",
+      "reason": "OBSERVED_MARKET_METRICS",
       "quiet_confirmations": 0,
       "actual_gpt_reviews": 0
     },
     "v19_independent_observation_cadence": {
       "schema": 1,
       "kind": "R29_V19_DUAL_CADENCE_RESEARCH_ADVISORY",
-      "as_of_utc": "2026-11-22T20:02:39.478Z",
+      "as_of_utc": "2026-11-22T20:10:40.716Z",
       "lightweight_capture": {
         "suggested_interval_minutes": 15,
-        "next_due_utc": "2026-11-22T19:09:35.911Z",
-        "due_for_new_capture": true,
+        "next_due_utc": "2026-11-22T20:17:39.479Z",
+        "due_for_new_capture": false,
         "theoretical_windows_per_24h": 96,
-        "captured_http_pages_in_this_run": 1,
-        "previous_capture_at_utc": "2026-11-22T18:54:35.911Z",
+        "captured_http_pages_in_this_run": 2,
+        "previous_capture_at_utc": "2026-11-22T20:02:39.479Z",
         "needs_actual_external_capture_request": true,
         "API_budget_and_provider_cooldown_override": false
       },
@@ -860,8 +909,8 @@
         "independent_exit_observer_required": true
       },
       "urgency": {
-        "hot_pool_candidates": 19,
-        "unresolved_chain_pages": 4
+        "hot_pool_candidates": 39,
+        "unresolved_chain_pages": 6
       },
       "no_global_market_completeness_claim": true,
       "market_quote_age_is_not_tradeable_price_proof": true,
@@ -871,63 +920,64 @@
     "v18_archived_v4_recovered_pool_count": 0,
     "v18_archived_v4_recovery_error": null,
     "v19_source_integrity": {
-      "checked": 3,
-      "bytes_verified": 3,
+      "checked": 4,
+      "bytes_verified": 4,
       "late_capture": 0,
       "errors_or_rejected": 0,
       "capture_time_independently_attested": false
     }
   },
   "handoff_counts": {
-    "observations": 19,
-    "unique_pools": 19,
-    "full_contracts": 19,
+    "observations": 39,
+    "unique_pools": 39,
+    "full_contracts": 39,
     "independently_quote_matched": 1,
-    "risk_review_candidates": 19,
+    "risk_review_candidates": 39,
     "trade_eligible": 0
   },
-  "observation_path": "research/observations/2026-11-22/45064131641.json",
-  "ranking_path": "research/observations/2026-11-22/45064131641-asof-ranking.json",
-  "forecast_path": "research/forecasts/2026-11-22/45064131641-asof.json",
-  "matured_forecast_path": "research/forecasts/2026-11-22/45064131641-matured.json",
-  "matured_label_path": "research/observations/2026-11-22/45064131641-mature-24h-labels.json",
+  "observation_path": "research/observations/2026-11-22/45064898786.json",
+  "ranking_path": "research/observations/2026-11-22/45064898786-asof-ranking.json",
+  "forecast_path": "research/forecasts/2026-11-22/45064898786-asof.json",
+  "matured_forecast_path": "research/forecasts/2026-11-22/45064898786-matured.json",
+  "matured_label_path": "research/observations/2026-11-22/45064898786-mature-24h-labels.json",
   "prospective_counts": {
-    "observed_unique_pools": 458,
+    "observed_unique_pools": 497,
     "research_rankable": 0,
-    "stale_last_captures": 359,
-    "long_price_observation_gaps": 0,
-    "insufficient_repeated_data": 99
+    "stale_last_captures": 358,
+    "long_price_observation_gaps": 1,
+    "insufficient_repeated_data": 138
   },
-  "fair_recheck_backlog_remaining": 486,
+  "fair_recheck_backlog_remaining": 505,
   "market_memory_path": "research/state/market-memory.json",
-  "memory_checkpoint_path": "research/state/checkpoints/45064131641.json",
+  "memory_checkpoint_path": "research/state/checkpoints/45064898786.json",
   "memory_stats": {
-    "total_discovered": 507,
-    "total_observation_batches": 109,
-    "contracts_complete": 507,
+    "total_discovered": 546,
+    "total_observation_batches": 113,
+    "contracts_complete": 546,
     "unresolved_identity_conflicts": 0,
-    "first_dot2_detected_count": 98,
+    "first_dot2_detected_count": 137,
     "archive_reconstructed_count": 0
   },
-  "page_coverage_report_path": "research/feeds/2026-11-22/45064131641/page-coverage-report.json",
+  "page_coverage_report_path": "research/feeds/2026-11-22/45064898786/page-coverage-report.json",
   "source_evidence_paths": [
-    "research/feeds/2026-11-22/45064131641/previous-inflight-recovery.json",
-    "research/feeds/2026-11-22/45064131641/restart-preflight.json",
-    "research/feeds/2026-11-22/45064131641/gecko-base-page2.raw.json",
-    "research/feeds/2026-11-22/45064131641/dex-base-0x9b1ecccc4d850696dcdcff38bedf32aedc2dd314.raw.json",
-    "research/feeds/2026-11-22/45064131641/dex-base-0x08efe87903028dc989d0a85a290381e7ca0fcd389dd03085410a36f845aba713.raw.json",
-    "research/feeds/2026-11-22/45064131641/paper-liquidity-sensitivity.json",
-    "research/feeds/2026-11-22/45064131641/page-coverage-report.json",
-    "research/feeds/2026-11-22/45064131641/evidence.json",
-    "research/feeds/2026-11-22/45064131641/dex-recheck-observations.json",
-    "research/feeds/2026-11-22/45064131641/neutral-evaluation-population.json",
-    "research/feeds/2026-11-22/45064131641/missed-opportunity-process-gaps.json",
-    "research/feeds/2026-11-22/45064131641/prospective-holdout-assignment.json",
-    "research/feeds/2026-11-22/45064131641/dot2-to-dot3-handoff.json",
-    "research/feeds/2026-11-22/45064131641/dot3-research-risk-status-preview.json",
-    "research/feeds/2026-11-22/45064131641/dot5-neutral-event-ledger.json",
-    "research/feeds/2026-11-22/45064131641/v19-operating-measurements.json",
-    "research/feeds/2026-11-22/45064131641/dot3-next-evidence-rechecks.json"
+    "research/feeds/2026-11-22/45064898786/previous-inflight-recovery.json",
+    "research/feeds/2026-11-22/45064898786/restart-preflight.json",
+    "research/feeds/2026-11-22/45064898786/gecko-ethereum-page4.raw.json",
+    "research/feeds/2026-11-22/45064898786/gecko-bsc-page1.raw.json",
+    "research/feeds/2026-11-22/45064898786/dex-ethereum-0x838c0195408562ee6ac0155217fa6070fc522a766f3fbabbf51c1932408330e8.raw.json",
+    "research/feeds/2026-11-22/45064898786/dex-base-0x09c849f0f87cc534a85998c93de40604d948bc9adfa0d16896789d4c9173a23f.raw.json",
+    "research/feeds/2026-11-22/45064898786/paper-liquidity-sensitivity.json",
+    "research/feeds/2026-11-22/45064898786/page-coverage-report.json",
+    "research/feeds/2026-11-22/45064898786/evidence.json",
+    "research/feeds/2026-11-22/45064898786/dex-recheck-observations.json",
+    "research/feeds/2026-11-22/45064898786/neutral-evaluation-population.json",
+    "research/feeds/2026-11-22/45064898786/missed-opportunity-process-gaps.json",
+    "research/feeds/2026-11-22/45064898786/prospective-holdout-assignment.json",
+    "research/feeds/2026-11-22/45064898786/dot2-to-dot3-handoff.json",
+    "research/feeds/2026-11-22/45064898786/dot3-research-risk-status-preview.json",
+    "research/feeds/2026-11-22/45064898786/dot5-neutral-event-ledger.json",
+    "research/feeds/2026-11-22/45064898786/v19-operating-measurements.json",
+    "research/feeds/2026-11-22/45064898786/dot3-next-evidence-rechecks.json"
   ],
   "trading_ready": false,
   "orders_created": 0
