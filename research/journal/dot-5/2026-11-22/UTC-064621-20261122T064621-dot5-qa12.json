@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "dot": "dot-5",
+  "run_id": "20261122T064621-dot5-qa12",
+  "as_of_utc": "2026-11-22T06:46:21Z",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "status": "DATA_GAP_NO_TRADE",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "source_refs": {
+    "docs/DOT_PIPELINE.md": "c7e13e58f12045847334c1c983193b7e1f55a627",
+    "research/feeds/latest.json": "893e1fe568b3db8a7c1f3a8ee87ddb799bc68c0a",
+    "research/state/latest.json": "febd622b315adff3d7123cb6ae8b866985a07a5a",
+    "signals/index.json": "8f360a172e95adfda2d30105dd3fc7639497367d",
+    "research/latest/dot-1.json": "16c4d8bae0525a595de47e7d8d1eb1b590ec734b",
+    "research/latest/dot-2.json": "f68186d302dd73267e63cb49d5d361883dac5763",
+    "research/latest/dot-3.json": "d192b50bf0abe4e78e694e1907f70308349f6389",
+    "research/latest/dot-4.json": "51c68767246eea59cb4778b0fc17772ab042a3d2",
+    "research/media/latest.json": "37acf5c8a3de2846d1b5fb4ab46b676253b38934"
+  },
+  "counts": {
+    "market_memory_pools": 231,
+    "observation_batches": 72,
+    "latest_solana_raw_pools": 20,
+    "latest_full_contracts": 20,
+    "latest_exact_pair_matches": 3,
+    "latest_independent_complete_quotes": 0,
+    "dot3_checked": 21,
+    "dot3_rejected": 20,
+    "dot3_data_gap": 1,
+    "dot3_eligible": 0,
+    "dot4_published_buy": 0,
+    "dot4_published_sell": 0,
+    "signal_index_orders": 0,
+    "verified_client_fills": 0,
+    "verified_client_rejections": 0,
+    "media_available_sources": 7,
+    "media_unique_events": 237
+  },
+  "client_status": "OFFLINE_OR_UNCONFIRMED",
+  "daily_dot6": "NOT_DUE_BEFORE_20_00_EUROPE_BERLIN",
+  "findings": [
+    "Latest Dot2 request completed in GitHub Action feed at 06:16:52.439Z but dot2 latest still CAPTURE_PENDING and references prior Cronos feed; handoff/status synchronization lag",
+    "20 Solana full-contract pools, 3 exact pair identity matches but zero independent complete quotes; Dot3 20 rejected, 1 data gap, zero eligible",
+    "Dot4 hourly exit check 06:31:44Z: zero BUY/SELL, next full review due 08:39:20.211Z",
+    "signals/index.json contains no orders, so no orphan signal pointer repair warranted; receipts directory not exhaustively enumerable via connector, zero verified receipts is not proof no clients exist",
+    "Media 7/7 accessible sources, 237 unique archived events; no mature paired A/B evidence",
+    "12 Oct and 15 Nov historical training/Oracle results excluded from forward fills"
+  ],
+  "limitations": [
+    "GitHub connector does not expose recursive directory enumeration in this run; full immutable journal and receipts inventory not proven",
+    "No independent current live provider prices fetched in this QA wake; evidence from timestamped GitHub feed only",
+    "No global >100% winner completeness claimed"
+  ],
+  "recommendation": "Fix Dot2 latest journal synchronization with completed immutable capture and test before/after; do not weaken risk rules or invent orders."
+}
