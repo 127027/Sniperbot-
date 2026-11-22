@@ -46,3 +46,28 @@ test('capture runner reads only old forward observations before any new DEX sele
  assert.match(source,/no_provider_calls_claimed_from_proposal:true/);
  assert.equal(source.includes('R29_ENABLE_LIVE=true'),false);
 });
+
+
+test('real 22-Nov repair had an HTTP200 DEX response but zero usable second price',async()=>{
+ const evidence=JSON.parse(await readFile('research/feeds/2026-11-22/45044300013/evidence.json','utf8'));
+ const q=evidence.metrics.v19_hot_fair_recheck_plan.selected.filter(x=>x.queue==='EVIDENCE_REPAIR');
+ assert.equal(q.length,1);
+ const dex=evidence.dex_checks.find(x=>x.chain===q[0].chain&&x.pool===q[0].pool);
+ const request=evidence.api_evidence.find(x=>x.body_path===dex.source);
+ assert.ok(request);
+ assert.equal(request.http_status,200);
+ assert.equal(dex.status,'NO_MATCHING_CHAIN_POOL_BASE_TOKEN');
+ assert.equal(dex.matched,false);
+ assert.equal(dex.returned_pairs,0);
+ assert.equal(evidence.verified_client_fills,0);
+ assert.equal(evidence.published_paper_orders,0);
+});
+test('new runner metrics must distinguish selected, attempted, exact-pair match and recorded price',async()=>{
+ const source=await readFile('scripts/cloud-discovery-runner.mjs','utf8');
+ assert.match(source,/repairActualAttempts=attempts\.filter/);
+ assert.match(source,/repairActualDexResponses=dexChecks\.filter/);
+ assert.match(source,/repairTruePriceObservations=rechecked\.filter/);
+ assert.match(source,/actually_attempted_dex_checks:repairActualAttempts\.length/);
+ assert.match(source,/new_observed_repair_prices:repairTruePriceObservations\.length/);
+ assert.match(source,/attempt_status_counts:repairStatusCounts/);
+});
