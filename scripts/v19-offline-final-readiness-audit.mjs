@@ -5,6 +5,8 @@ import {createHash} from 'node:crypto';
 import {gzipSync,gunzipSync} from 'node:zlib';
 import {join} from 'node:path';
 import {newState,settlePaper} from '../src/core.mjs';
+import {replayArchivedSixChainEvidence} from '../src/v19-offline-multichain-replay.mjs';
+import {auditOfflineDot4OrderBoundary} from '../src/v19-offline-dot4-order-boundary.mjs';
 import {makeNeutralEvaluationPopulation} from '../src/v19-neutral-evaluation-population.mjs';
 import {
  auditOfflineRawArchive,summarizeOfflineOperationalReceipts,
@@ -56,6 +58,23 @@ const [memory,winners,recheck]=await Promise.all([
  read('research/evaluation/2026-10-12/v19-winner-reference-identity-status.json'),
  read('research/feeds/2026-11-22/45057658912/dot3-next-evidence-rechecks.json')
 ]);
+const multichain=replayArchivedSixChainEvidence({apiEvidence:all,rawFiles,asOfUtc});
+if(multichain.archive_failures.length||multichain.total_original_http200_pages!==15
+ ||multichain.total_original_http429_pages!==3
+ ||multichain.chains_with_at_least_one_prior_real_http200!==6)
+ throw Error('SIX_CHAIN_OFFLINE_ORIGINAL_REPLAY_FAILED');
+const manifest=await read('research/backtest-inputs/2026-10-12/qa04-synthetic-three-observations.json');
+const originalPrice=manifest.snapshots.find(x=>x.observed_at_utc==='2026-10-12T05:34:00.000Z');
+const buyInput=manifest.snapshots.find(x=>x.observed_at_utc==='2026-10-12T06:34:00.000Z');
+const dot4Boundary=await auditOfflineDot4OrderBoundary({
+ snapshot:buyInput,asOfUtc:'2026-10-12T06:35:00.000Z',
+ priorObservation:{at_utc:originalPrice.observed_at_utc,price_usd:.001},
+ fullReviewDue:true,syntheticRegressionOnly:true,
+ proposedOrder:{id:'offline-buy-proof-0001',action:'BUY',coin:buyInput.coin}
+});
+if(dot4Boundary.action!=='BUY'||dot4Boundary.independent_dot3_status!=='BLOCKED'
+ ||dot4Boundary.paper_order_authorized!==false)
+ throw Error('OFFLINE_DOT4_ORDER_BOUNDARY_FAILED');
 const population=makeNeutralEvaluationPopulation({memory,asOfUtc});
 const operations=summarizeOfflineOperationalReceipts({apiEvidence:all,asOfUtc});
 const identity=resolveHistoricalWinnerIdentity({winnerRegister:winners,memory,asOfUtc});
@@ -123,14 +142,17 @@ const summary={schema:1,kind:'R29_V19_FINAL_OFFLINE_READINESS_AUDIT',
  compressed_copy_receipts:receipts,
  source_provider_metrics:operations,
  postevent_identity_research:identity,
+ original_multichain_replay:multichain,
+ shared_dot4_order_boundary:dot4Boundary,
  neutral_pool_count:population.population_size,
  risk_field_deadlines:risk,
  postevent_winner_coverage:winnersAfter,
  synthetic_model_stop_and_dot4_convergence:exits,
- six_original_items_implemented_for_offline_review:[
-  'SYS-10','SYS-14','D2-03','D3-07','D4-08','D5-01'
+ nine_original_items_implemented_for_offline_review:[
+  'SYS-10','SYS-14','D2-03','D3-07','D4-08','D5-01',
+  'D2-01','D2-04','D4-01'
  ],
- all_six_only_partial_not_completed:true,
+ all_nine_only_partial_not_completed:true,
  no_live_http_called_by_this_job:true,
  gpt_dots_executed:0,real_paper_client_fills:0,real_money_orders:0,
  paper_order_inbox_written:false,remote_windows_state_not_inspected:true,
@@ -150,6 +172,10 @@ console.log('R29_V19_FINAL_OFFLINE_READINESS',JSON.stringify({
  winner_references:identity.reference_count,source_pool_links:identity.source_pool_link_count,
  typed_valid_pool_links:identity.exact_pool_link_count,
  risk_field_tasks:risk.field_task_count,
+ replayed_gecko200_pages:multichain.total_original_http200_pages,
+ replayed_six_chains:multichain.chains_with_at_least_one_prior_real_http200,
+ real_november_price_pairs:multichain.observed_price_pairs_5_to_240min_total,
+ dot4_shared_buy_still_blocked:dot4Boundary.paper_order_authorized===false,
  model_convergent_exit:exits.convergent_intent_count,
  actual_gpt_runs:0,real_fills:0,output:out
 }));
