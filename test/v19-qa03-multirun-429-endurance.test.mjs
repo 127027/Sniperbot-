@@ -31,7 +31,9 @@ test('QA-03: 12 durable two-hour wakes resume all six chains after cross-endpoin
    pageCoverage:pages,budget:6,asOfUtc:iso(base)});
   const successes=[],failures=[],deferred=[];
   for(let index=0;index<plan.tasks.length;index++){
-   const task=plan.tasks[index],at=iso(base+index*6500);
+   // A 4/min provider cap permits only three NEW_POOLS starts per
+   // rolling minute; 21s slots are conservative even after a restart.
+   const task=plan.tasks[index],at=iso(base+index*21000);
    const requestId='qa03-'+cycle+'-'+task.chain+'-'+task.page;
    const grant=reserveProviderRequest({state:budget,provider:'GECKOTERMINAL',
     lane:'NEW_POOLS',asOfUtc:at,requestId});
@@ -65,7 +67,7 @@ test('QA-03: 12 durable two-hour wakes resume all six chains after cross-endpoin
      source_path:src,source_sha256:'a'.repeat(64),candidates:[c]});
    served.add(task.chain+':'+c.pool);captured++;
   }
-  pages=updatePageCoverage(pages,{asOfUtc:iso(base+60000),successes,failures,
+  pages=updatePageCoverage(pages,{asOfUtc:iso(base+120000),successes,failures,
    deferred}).updated_memory;
   assert.equal(memory.kind,'R29_PERSISTENT_MARKET_MEMORY');
   assert.equal(pages.kind,'R29_V19_OFFSET_PAGE_COVERAGE');
