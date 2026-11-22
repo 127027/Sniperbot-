@@ -15,9 +15,10 @@ const argv=process.argv.slice(2);
 const args={};
 for(let i=0;i<argv.length;i++){
  const key=argv[i];
- if(!['--date','--input','--output','--diagnostic-24','--training-reference'].includes(key)||args[key]!==undefined)
+ if(!['--date','--input','--output','--diagnostic-24','--training-reference','--first-scan-at-start'].includes(key)||args[key]!==undefined)
    throw Error('INVALID_ON_DEMAND_ARGUMENT: '+key);
- if(key==='--diagnostic-24'||key==='--training-reference'){args[key]=true;continue;}
+ if(key==='--diagnostic-24'||key==='--training-reference'
+   ||key==='--first-scan-at-start'){args[key]=true;continue;}
  if(i===argv.length-1||argv[i+1].startsWith('--'))throw Error('MISSING_ARG_VALUE: '+key);
  args[key]=argv[++i];
 }
@@ -34,7 +35,8 @@ const budgetSettings=JSON.parse(await readFile('research/config/paper-budget-v19
 const resolvedPaperBudget=resolveSharedPaperPolicy(budgetSettings);
 const report=backtestOnRequest({date:args['--date'],manifest,
  paperBudgetSettings:resolvedPaperBudget.settings,
- forceHourlyDiagnostic:args['--diagnostic-24']===true});
+ forceHourlyDiagnostic:args['--diagnostic-24']===true,
+ firstScanAtStart:args['--first-scan-at-start']===true});
 // Fail closed before generating any artifact if the detached model ledger
 // cannot reconcile 5,000 TEST-USDC, buys, sells, fees, and open lots.
 const isolatedLedgerAudit=auditOfflineReplayLedger({report});
@@ -58,6 +60,7 @@ await writeFile(target,JSON.stringify({requested_backtest:report,
 assertProtectedFilesUnchanged(paperBefore,await fingerprintProtectedFiles(protectedFiles));
 console.log('R29_V18_BACKTEST_ON_DEMAND',JSON.stringify({
  date:report.date,status:report.status,mode:report.mode,
+ first_scan_utc:report.first_scan_virtual_utc,
  snapshots:report.accepted_input_count,model_buys:report.model_replay_summary.buys,
  model_sells:report.model_replay_summary.sells,full_reviews:report.model_replay_summary.fullReviews,
  model_receipts_reconciled:isolatedLedgerAudit.model_receipt_count,
