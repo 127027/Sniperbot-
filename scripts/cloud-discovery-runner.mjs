@@ -79,11 +79,14 @@ if(!memory.ingested_sources?.includes(recoveredPath)){
    ]);
    const recovery=recoverArchivedV4({rawText,evidence:JSON.parse(rawEvidence),rawPath:archivedRawPath});
    const archived={...recovery,recovered_at_utc:now()};
-   await writeFile(recoveredPath,JSON.stringify(archived,null,2)+'\n','utf8');
+   const recoveryFileText=JSON.stringify(archived,null,2)+'\n';
+   await writeFile(recoveredPath,recoveryFileText,'utf8');
    artifacts.push(recoveredPath);
+   // sourcePath points to the *derived* file, so its digest must be the
+   // derived file's SHA; the original raw SHA remains in archived metadata.
    const merged=mergeMemory(memory,{candidates:recovery.candidates,
      sourcePath:recoveredPath,sourceCapturedAtUtc:recovery.originally_raw_captured_at_utc,
-     sourceSha256:recovery.source_original_sha256,
+     sourceSha256:sha256(recoveryFileText),
      chain:'base',page:3,provider:'GECKOTERMINAL_ARCHIVE_RECOVERY',fetchStatus:'ARCHIVED_ONLY'});
    memory=merged.memory;
    recoveredV4Count=merged.added;
