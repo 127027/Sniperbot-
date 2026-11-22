@@ -1,0 +1,134 @@
+{
+  "schema": 1,
+  "dot": "dot-4",
+  "version": "V1.6",
+  "mode": "PAPER",
+  "run_at_utc": "2026-11-22T05:33:40.988Z",
+  "review_type": "HOURLY_EXIT_CHECK_NOT_FULL_REVIEW",
+  "decision": "NO_TRADE_DATA_GAP",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "review_control": {
+    "last_completed_full_review_utc": "2026-11-22T02:39:20.211Z",
+    "target_per_24h": 4,
+    "next_full_review_due_at_utc": "2026-11-22T08:39:20.211Z",
+    "full_review_performed": false
+  },
+  "receipts": {
+    "directory": "receipts",
+    "read_result": "HTTP_404_NOT_FOUND",
+    "status": "OFFLINE_OR_UNCONFIRMED",
+    "verified_paper_fills": 0,
+    "verified_open_positions": 0,
+    "interpretation": "No receipts found; no claim of zero actual fills"
+  },
+  "signals": {
+    "index_path": "signals/index.json",
+    "index_blob_sha": "8f360a172e95adfda2d30105dd3fc7639497367d",
+    "published_order_count_in_index": 0,
+    "new_orders": 0
+  },
+  "market": {
+    "feed_capture_utc": "2026-11-22T05:11:26.822Z",
+    "market_memory_pools": 211,
+    "observation_batches": 68,
+    "rankable": 0,
+    "unrankable": 172,
+    "recheck_backlog": 205,
+    "dot3_journal": "research/journal/dot-3/2026-11-22/20261122T052552471Z-risk-v16-cronos-recheck.json",
+    "dot3_sha": "72ad766899718c3de5ca20e21939e1e7d6b0e9da",
+    "dot3_counts": {
+      "ELIGIBLE": 0,
+      "WATCH": 0,
+      "REJECTED": 4,
+      "DATA_GAP": 0
+    },
+    "candidates": [
+      {
+        "symbol": "Mei-chan",
+        "chain": "bsc",
+        "decision": "NO_TRADE",
+        "liquidity_usdc_dex": 0.06,
+        "reason": [
+          "DEX_LIQUIDITY_BELOW_5000",
+          "MISSING_INDEPENDENT_GECKO_QUOTE",
+          "STALE_CAPTURE",
+          "SELLABILITY_UNVERIFIED",
+          "TAX_HONEYPOT_UNVERIFIED"
+        ]
+      },
+      {
+        "symbol": "Dark",
+        "chain": "bsc",
+        "decision": "NO_TRADE",
+        "liquidity_usdc_dex": 0,
+        "reason": [
+          "DEX_LIQUIDITY_BELOW_5000",
+          "MISSING_INDEPENDENT_GECKO_QUOTE",
+          "STALE_CAPTURE",
+          "SELLABILITY_UNVERIFIED",
+          "TAX_HONEYPOT_UNVERIFIED"
+        ]
+      },
+      {
+        "symbol": "EQANT",
+        "chain": "bsc",
+        "decision": "NO_TRADE",
+        "liquidity_usdc_dex": 0.02,
+        "reason": [
+          "DEX_LIQUIDITY_BELOW_5000",
+          "MISSING_INDEPENDENT_GECKO_QUOTE",
+          "STALE_CAPTURE",
+          "SELLABILITY_UNVERIFIED",
+          "TAX_HONEYPOT_UNVERIFIED"
+        ]
+      },
+      {
+        "symbol": "Not Gas",
+        "chain": "bsc",
+        "decision": "NO_TRADE",
+        "liquidity_usdc_dex": 0.07,
+        "reason": [
+          "DEX_LIQUIDITY_BELOW_5000",
+          "MISSING_INDEPENDENT_GECKO_QUOTE",
+          "STALE_CAPTURE",
+          "SELLABILITY_UNVERIFIED",
+          "TAX_HONEYPOT_UNVERIFIED"
+        ]
+      }
+    ]
+  },
+  "media": {
+    "captured_at_utc": "2026-11-22T05:11:29.524Z",
+    "added_unique_events": 2,
+    "verified_contract_pool_match": false,
+    "used_as_buy_evidence": false
+  },
+  "oracle": {
+    "horizons_hours": [
+      1,
+      3,
+      6
+    ],
+    "thresholds_pct": [
+      20,
+      50,
+      100
+    ],
+    "probabilities": null,
+    "status": "INSUFFICIENT_DATA"
+  },
+  "publication": {
+    "paper_orders": 0,
+    "client_fills_claimed": 0
+  },
+  "errors": [
+    "NO_CONFIRMED_PAPER_POSITION",
+    "NO_DOT3_ELIGIBLE",
+    "NO_FRESH_TWO_POOL_DETAIL_QUOTES",
+    "NO_SELLABILITY_PROOF",
+    "CLIENT_RECEIPTS_NOT_FOUND"
+  ],
+  "checkpoint": {
+    "next": "Recheck receipts and Dot3 ELIGIBLE, review new as-of data at next hourly wake; do not modify full-review clock."
+  }
+}
