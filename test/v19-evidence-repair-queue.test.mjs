@@ -71,3 +71,19 @@ test('real archived Nov observation batch creates due forward-only repairs after
  assert.ok(q.selected.every(x=>x.queue==='EVIDENCE_REPAIR'));
  assert.equal(q.paper_orders_authorized,0);
 });
+
+test('persistent last-attempt cursor prevents a repeatedly failing repair from starving unseen pools',()=>{
+ const m=mem();
+ m.rechecks[key(1)]={attempt_at_utc:'2026-11-22T15:00:00Z',status:'DEX_ERROR'};
+ const ranking=rank([item(1,'WATCH_PRICE_OBSERVATION_GAP'),
+  item(2,'WATCH_INSUFFICIENT_REPEATED_EVIDENCE'),
+  item(3,'WATCH_INSUFFICIENT_REPEATED_EVIDENCE')]);
+ const first=planEvidenceRepairRechecks({ranking,memory:m,asOfUtc:t,maxCandidates:1});
+ assert.equal(first.selected[0].key,key(2));
+ assert.equal(first.deferred_count,2);
+ // A completed (even failed) genuine attempt advances the existing cursor.
+ m.rechecks[key(2)]={attempt_at_utc:'2026-11-22T15:10:00Z',status:'DEX_ERROR'};
+ const second=planEvidenceRepairRechecks({ranking,memory:m,asOfUtc:t,maxCandidates:1});
+ assert.equal(second.selected[0].key,key(3));
+ assert.equal(second.paper_orders_authorized,0);
+});
