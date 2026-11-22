@@ -557,3 +557,21 @@ Die GitHub-Dateien und gespeicherten Dot-Automationsprompts sind **getrennte Spe
 - Vollständige Diagnose mit Root Cause, jeweiligem SHA, Codepfad und Grenzen: [R29_V19_DOT1_DOT2_DOT5_ROOT_CAUSE_FIX_20261122.md](R29_V19_DOT1_DOT2_DOT5_ROOT_CAUSE_FIX_20261122.md).
 
 **Wichtig:** Dot2-Historienstatus nicht heimlich zu „GPT erledigt“ umetikettieren. Der neue **lesende** Merge beseitigt den falschen Eindruck veralteter Marktdaten, jedoch steht die echte **nächste GPT-Review-Abnahme** noch aus. Auch für Dot1/5 ist Git-Byteintegrität keine unabhängige GPT-Ausführungsquittung. D3-04/D3-05 weiter OPEN, Windows-Client-Belege und vollständiges neutrales Oktober-Dataset fehlen. Ursprüngliche 61 Aufgaben bleiben `13 PASS / 46 PARTIAL / 2 OPEN`; vor QA-04 `13/60` PASS. Keine echten Paper-Orders, kein historischer Backtest, kein Main-/Wallet-Update.
+
+
+## Ergänzung: Dot3-Quellzeit, synthetische Risikoüberstimmung und Fünf-Dot-Kausalreport
+
+**Nutzerfreigabe:** Fortsetzung und nachgewiesene Fehlerbehebung im R29-Cleanroom, kein historischer Backtest, keine Echtgeld- oder Paper-Order und keine Änderung am bestehenden Windows-Paper-Konto. **Letzter geprüfter neuer Test-SHA:** `df06abaa8efea7a998085dd66a1d2cee28c7431c`; Node 22 **717/717 PASS, 0 FAIL in beiden GitHub-CI-Workflows**:
+- [Paper Tests #45075311441](https://github.com/127027/Sniperbot-/actions/runs/45075311441)
+- [V1.9 Tests Only #45075311435](https://github.com/127027/Sniperbot-/actions/runs/45075311435)
+
+**Beweisbare Software-Root-Causes und konkrete Codefixes:**
+1. `src/v19-dot3-source-pairs.mjs`: Zweidomain-Paar mit aktueller HTTP-Antwort und **staler Providerquote** war zuvor nur wegen HTTP-Alters als `TWO_DOMAIN_INDICATIVE_ONLY` klassifiziert. Jetzt explizit `PROVIDER_QUOTE_STALE`, getrennte `http_capture_pair_age_valid`/`full_quote_pair_age_valid` und Nachprüfungs-Aktion. UNKNOWN Quotezeit bleibt indikativ ohne vollständige Zeitechtheit, kein ORDER.
+2. `src/v19-dot3-risk-status.mjs`: Ein strukturell positives synthetisches Risk-Paket konnte zuvor mangelhafte, stark unterschiedliche oder unterliquide **Kandidateneingangsquotes** überstimmen. Die Kandidatenrisiken und `quoteMissing` werden jetzt **vor** irgendeinem synthetischen `PAPER_ELIGIBLE` abgefragt. Außerdem wird `price_disagreement_pct` **aus den zwei vorliegenden Preisen selbst** berechnet, nicht nur der eingereichte Prozentwert vertraut.
+3. `src/v19-dot3-quote-time.mjs`, `src/v19-dot3-risk-status.mjs`, `src/v19-dot3-sellability.mjs`, `src/v19-dot3-source-pairs.mjs`: statt toleranter `Date.parse()` nun expliziter **ISO-UTC-Z-Zeitvertrag**. Zeitstempel ohne Zeitzone bzw. mit Offset werden nicht still als historische UTC-Originalquelle verwendet.
+4. `src/v19-dot3-source-pairs.mjs`: explizite `RETRO_ASOF_RECONSTRUCTION`-/`POST_EVENT_ORACLE`-Quoten sowie Future-Winner-/Gain-Labels werden **vor** dem Quellvergleich ausgeschlossen; andernfalls könnte Oracle als zweite historische Quelle auftreten.
+5. `src/v19-five-dot-forensic-trace.mjs`: Jeder gemeldete positive Dot3-ELIGIBLE / Dot4-BUY / Dot4-SELL / Dot5-PASS wird auf passende kausale **vorherige** Dot2 / Dot3 / Dot4 / Dot5-Event-IDs geprüft, fehlende Ketten bleiben als **diagnostischer Fehler**, keine Phantom-Fills. EVM-Pool-/Contract-Adressen werden case-insensitiv normalisiert, Solana bleibt case-sensitiv.
+
+**Änderungen, genaue Ursachen und Prüfpfade vollständig dokumentiert:** [V19_DOT3_PROVENANCE_AND_FORENSIC_CAUSALITY_REPAIR_20261122.md](V19_DOT3_PROVENANCE_AND_FORENSIC_CAUSALITY_REPAIR_20261122.md). Die Quell-/Kausalvalidierung ist für den **späteren** diagnostischen Oktober-29h-Blindtest vorbereitet; **QA-04 nicht gestartet**.
+
+**Noch nicht behoben/nicht beweisbar durch CI:** D3-04 unabhängiger Dot3-Issuer/Quote-Origin; D3-05 reale Chain- und Pool-Sellability (Honeypot/Tax/Transfer/Blacklist/Exit); fünf unabhängige echte GPT-Ausführungsquittungen für alle Rollen; historisches neutrales Oktober-Universum mit News/Quote-As-of-Belegen; Windows-Paper-Client-Buy/Sell-Lot-Receipts; gereifter unabhängiger Holdout nach 25.11.2026 06:54 UTC. **Original-Abnahme weiterhin 13 PASS / 46 PARTIAL / 2 OPEN**, nicht die 717 Tests als 717/717 Anforderungen zählen. Keine Änderungen an Main, `signals/`, Dots/Automations-Plan oder Windows-Konto. Backtest erst nach separater Nutzerfreigabe.
