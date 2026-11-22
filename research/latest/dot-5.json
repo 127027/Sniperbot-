@@ -1,39 +1,66 @@
 {
   "schema": 1,
   "dot": "dot-5",
-  "mode": "PAPER_RESEARCH_ONLY",
-  "updated_at_utc": "2026-11-22T07:43:51.575Z",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "updated_at_utc": "2026-11-22T20:43:10Z",
   "status": "DATA_GAP_NO_TRADE",
-  "journal_path": "research/journal/dot-5/2026-11-22/UTC-074351-dot5-qa-v16-074351.json",
-  "counts": {
-    "market_memory_pools": 240,
-    "observation_batches": 76,
-    "latest_base_page": 3,
-    "latest_raw_requested": 20,
-    "latest_full_contracts": 9,
-    "latest_rejected_pool_ids": 11,
-    "latest_exact_pair_matches": 5,
-    "latest_independent_complete_quotes": 0,
-    "dot3_checked": 13,
-    "dot3_rejected": 10,
-    "dot3_data_gap": 3,
-    "dot3_eligible": 0,
-    "dot4_published_buy": 0,
-    "dot4_published_sell": 0,
-    "signal_index_orders": 0,
-    "verified_client_fills": 0,
-    "verified_client_rejections": 0,
-    "media_working_sources": 7,
-    "media_unique_events": 241
+  "journal_path": "research/journal/dot-5/2026-11-22/20261122T204310Z-dot5-v19-qa11.json",
+  "acceptance": {
+    "total": 61,
+    "pass": 13,
+    "partial": 46,
+    "open": 2,
+    "strict_pass_pct": 21.31,
+    "technically_touched": 59,
+    "fully_complete": false,
+    "open_ids": [
+      "D3-04",
+      "D3-05"
+    ],
+    "partial_original_criteria_not_promoted": true
   },
-  "client_status": "OFFLINE_OR_UNCONFIRMED",
-  "daily_dot6": "NOT_DUE_BEFORE_20_00_EUROPE_BERLIN",
-  "priority_findings": [
-    "Dot2 latest confirms feed 44997708364 at 07:19:41Z, 9 full Base contracts, 11 rejected raw pool IDs; raw feed SHA and handoff SHA verified",
-    "Dot3 13 checked, 0 eligible due to liquidity/quote/sellability gaps; no trade authorization",
-    "Dot4 07:36:44Z hourly exit check, no full review, next full review 08:39:20Z; zero published orders",
-    "signals/index.json has empty orders array, no verifiable orphan pointer to repair",
-    "Market memory 240 pools and 76 batches, but no matured A/B labels; 7 media sources, 241 archived events",
-    "October 12 and November 15 historical oracle/training excluded from real trades"
-  ]
+  "market": {
+    "persisted_pools": 606,
+    "first_dot2_discoveries": 197,
+    "observation_batches": 121,
+    "global_coverage_verified": false,
+    "latest_capture_run": "45066246697",
+    "latest_capture_utc": "2026-11-22T20:24:40.627Z",
+    "provider_gecko_last_http": 200,
+    "provider_gecko_429_cooldown": null,
+    "provider_rolling_limit_starts_per_min": 4,
+    "provider_new_pools_per_min": 3,
+    "provider_pacing_seconds": 15.1,
+    "latest_handoff_independent_quotes": 0
+  },
+  "risk": {
+    "latest_dot4_handoff_candidates": 20,
+    "latest_dot4_handoff_data_gap": 20,
+    "latest_dot4_eligible": 0,
+    "issuer_verified": false,
+    "sellability_verified": false,
+    "honeypot_probe_run": "45066522539",
+    "honeypot_http": 404,
+    "honeypot_status": "DATA_GAP"
+  },
+  "trading": {
+    "github_index_orders": 0,
+    "published_buy": 0,
+    "published_sell": 0,
+    "verified_client_fills": 0,
+    "client_receipt_inventory": "NOT_VERIFIED",
+    "client_status": "OFFLINE_OR_UNCONFIRMED",
+    "signals_written": false
+  },
+  "holdout": {
+    "frozen_at_utc": "2026-11-22T18:54:05.033Z",
+    "end_utc": "2026-11-25T06:54:05.033Z",
+    "matured": false,
+    "precision": null,
+    "recall": null,
+    "missed_profit": null,
+    "october_29h": "DATA_GAP_NO_NEUTRAL_ASOF_SOURCES",
+    "historical_backtest_executed": false
+  },
+  "full_acceptance_not_reached": true
 }
