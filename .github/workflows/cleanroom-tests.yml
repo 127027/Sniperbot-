@@ -37,6 +37,12 @@ jobs:
           node-version: 22
       - name: Run tests
         run: npm test
+      - name: Require 100-percent original acceptance before any manual historical replay
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_training_replays == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/v19-verify-100pct-before-backtest.mjs --require-ready
       - name: V1.3 prospective temporal learning audit (no labels before horizon)
         # The user explicitly excluded backtests from the current work.
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_training_replays == true }}
