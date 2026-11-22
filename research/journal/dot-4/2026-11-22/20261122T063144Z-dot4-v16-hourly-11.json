@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "kind": "DOT4_V16_HOURLY_EXIT",
+  "dot": "dot-4",
+  "run_id": "automation11-20261122T063144Z",
+  "observed_at_utc": "2026-11-22T06:31:44Z",
+  "mode": "PAPER",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "review_type": "HOURLY_EXIT_CHECK_NOT_FULL_REVIEW",
+  "decision": "NO_TRADE_DATA_GAP",
+  "cadence_target_per_24h": 4,
+  "last_completed_full_review_utc": "2026-11-22T02:39:20.211Z",
+  "next_full_review_due_at_utc": "2026-11-22T08:39:20.211Z",
+  "receipts": {
+    "status": "OFFLINE_OR_UNCONFIRMED",
+    "directory_read": "HTTP_404",
+    "confirmed_fills": 0,
+    "confirmed_positions": 0,
+    "interpretation": "No receipts verified; not evidence of zero actual offline fills"
+  },
+  "orders": {
+    "index_blob_sha": "8f360a172e95adfda2d30105dd3fc7639497367d",
+    "published_in_index": 0,
+    "published_this_run": 0,
+    "client_fills_verified": 0
+  },
+  "market": {
+    "latest_capture_utc": "2026-11-22T06:16:52.439Z",
+    "capture_chain": "solana",
+    "memory_pools": 231,
+    "observation_batches": 72,
+    "prospective_rankable": 0,
+    "dot3_report_utc": "2026-11-22T06:26:56.383Z",
+    "dot3_counts": {
+      "ELIGIBLE": 0,
+      "WATCH": 0,
+      "REJECTED": 20,
+      "DATA_GAP": 1
+    },
+    "dot3_independent_complete_quotes": 0,
+    "dot3_security_verified": 0,
+    "dot3_indicative_reviewable": 0,
+    "example_rejections": [
+      {
+        "symbol": "CLAUDE",
+        "pool": "GnbR5dhAZa1Fs9dFpMG6dk9UBhdc2vqirhg2tUgvoeEb",
+        "reason": [
+          "QUOTE_CONFLICT_GT_3PCT",
+          "LIQUIDITY_BELOW_5000",
+          "SELLABILITY_UNVERIFIED"
+        ]
+      },
+      {
+        "symbol": "QUANTMAS",
+        "pool": "8atyqzF1VxXxUrMfNkdDqhfxk1NgZEkb24nP6YmjojPB",
+        "reason": [
+          "QUOTE_CONFLICT_GT_3PCT",
+          "LIQUIDITY_BELOW_5000",
+          "SELLABILITY_UNVERIFIED"
+        ]
+      }
+    ]
+  },
+  "media": {
+    "capture_utc": "2026-11-22T06:16:54.335Z",
+    "new_events": 4,
+    "contract_pool_verified_trade_signals": 0,
+    "interpretation": "Media only WATCH context; not BUY permission"
+  },
+  "oracle": {
+    "horizons_hours": [
+      1,
+      3,
+      6
+    ],
+    "targets_pct": [
+      20,
+      50,
+      100
+    ],
+    "probabilities": null,
+    "status": "INSUFFICIENT_DATA"
+  },
+  "blockers": [
+    "NO_CONFIRMED_PAPER_POSITION",
+    "NO_DOT3_ELIGIBLE",
+    "NO_FRESH_TWO_POOL_DETAIL_QUOTES",
+    "SELLABILITY_TAX_HONEYPOT_UNVERIFIED",
+    "CLIENT_RECEIPTS_NOT_FOUND"
+  ],
+  "sources": [
+    {
+      "path": "research/latest/dot-3.json",
+      "sha": "d192b50bf0abe4e78e694e1907f70308349f6389"
+    },
+    {
+      "path": "research/journal/dot-3/2026-11-22/20261122T062656383Z-risk-v16.json",
+      "sha": "e4099b6c348023cbbd19230f50ee8a73c45e7201"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "sha": "893e1fe568b3db8a7c1f3a8ee87ddb799bc68c0a"
+    },
+    {
+      "path": "research/media/latest.json",
+      "sha": "37acf5c8a3de2846d1b5fb4ab46b676253b38934"
+    }
+  ],
+  "checkpoint": {
+    "pending_market_memory_recheck": 205,
+    "priority": "Check verified client receipts first next wake; new Dot3 ELIGIBLE only if available; full review due at 08:39:20 UTC"
+  },
+  "no_order_reason": "No confirmed position for SELL and no independently verified eligible BUY candidate; feed >10 minutes old and risk blocks remain."
+}
