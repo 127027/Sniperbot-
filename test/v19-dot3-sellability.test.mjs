@@ -81,3 +81,14 @@ test('Dot3 common LIVE and HISTORICAL status sees same sellability warning',()=>
   assert.equal(a.trade_authorized,false);
  }
 });
+
+test('Dot3 sellability as-of proof refuses locale-dependent timestamps',()=>{
+ for(const value of ['2026-11-22T10:00:00','2026-11-22T10:00:00+00:00']){
+  assert.throws(()=>assessChainSellability({coin:base,evidence:evm,asOfUtc:value}),
+   /INVALID_DOT3_SELLABILITY_INPUT/);
+ }
+ const x=assessChainSellability({coin:base,asOfUtc:at,
+  evidence:{...evm,captured_at_utc:'2026-11-22T09:59:45'}});
+ assert.ok(x.missing_fields.includes('CONTEMPORANEOUS_SOURCE_TIME'));
+ assert.equal(x.live_paper_buy_authorized,false);
+});
