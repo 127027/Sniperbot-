@@ -64,7 +64,9 @@ export function decodeOlderPoolPage({network,response,capturedAtUtc,page=1,
      buy_eligible:false,trade_authorized:false};
  });
  return {...decoded,source_kind:'GECKOTERMINAL_TRENDING_POOL_WATCH',
-   source_duration:duration,candidates,
+   source_duration:duration,candidates,found_count:candidates.length,
+   rejected_count:decoded.rejected_count+futureCreated.length,
+   rejected_future_pool_creation:futureCreated,
    older_or_equal_24h_count:candidates.filter(x=>x.category==='OLDER_POOL_WATCH').length,
    revival_confirmed_count:0,
    caveat:'Only currently sampled trending pools; no claim to all historic pools or future gains.'};
