@@ -51,13 +51,10 @@ jobs:
           set -euo pipefail
           mkdir -p probe-artifacts
           npm test 2>&1 | tee probe-artifacts/v19-node-tests.tap
-      - name: Run three real offline 29h CLIs – October data gap, synthetic gain and loss
-        shell: bash
-        run: |
-          set -euo pipefail
-          # No live API calls, no Dot activation, no read/write access to
-          # a remote Windows-paper account. These are isolated Research CLIs.
-          node scripts/v19-offline-backtest-acceptance.mjs
+      # Formal 29h Backtest CLIs are deliberately excluded from routine CI.
+      # User requested all remaining prep work EXCEPT the Backtest.
+      # They remain available ONLY through explicitly approved
+      # .github/workflows/cleanroom-v19-explicit-offline-request.yml.
       - name: Audit three original GitHub captures and nine offline readiness workstreams
         shell: bash
         run: |
