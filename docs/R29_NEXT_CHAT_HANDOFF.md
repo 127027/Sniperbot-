@@ -1,5 +1,19 @@
 # R29 – Verbindliche GitHub-Übergabe für neue Chats
 
+## VERBINDLICH NEUESTER R29-SNAPSHOT: 22.11.2026 – GitHub HTTP-Replay und neutraler Evaluationsnenner
+
+**AKTUELL: 12/61 = 19,7 % Original-PASS, 26/61 = 42,6 % PARTIAL, 23/61 = 37,7 % OPEN; 38/61 = 62,3 % PASS+PARTIAL TECHNISCH BEARBEITET.** Das ist keine 62,3-%-End-to-End-Abnahme oder tatsächliche Trading-Reife. Alle älteren 31/61=50,8 %, 36/61=59 %, 37/61=60,7 % und früheren „aktuell“-Absätze unten sind historische Arbeitssnapshots; kein Codeverlust.
+
+**NEU im bestehenden Cleanroom-Code:**
+1. `SYS-11` bleibt PARTIAL: `src/v19-inflight-http-recovery.mjs` rekonstruiert nach vorherigem GitHub-Teillauf die bereits **committeten, verifizierten Gecko-Original-HTTP200-Quellen** vor frischen API-Requests, verhindert doppelte Verarbeitung, trennt Originalempfangs- und spätere Rekonstruktionszeit, erhält aktuellere Page-/Chain-Cursors. `src/v19-partial-capture-durability.mjs` protokolliert dazu die Original-HTTPS-URL. **Uncommittete** lokale Daten eines abrupt getöteten Runners sind NICHT wiederherstellbar. Keine echten neuen API-Mehrläufe nach dem Code.
+2. `SYS-12` OPEN→PARTIAL: `src/v19-neutral-evaluation-population.mjs` führt ALLEN 409 im originalen GitHub-Memory vorhandenen Pools einen neutralen as-of-Evaluationsnenner zu, ohne 65 spätere Gewinnerreferenzen als Entdeckungsinput zu verwenden. Fehlende Token/Risikodaten bleiben beobachtete, aber unbeurteilte Pools. `recall/FPR/precision=null` bis echte vollständig gesicherte Entscheidungen und Outcomes unabhängig überprüft sind.
+3. Der schon bestehende `scripts/cloud-discovery-runner.mjs` ist aktualisiert, um beide Module research-only zu nutzen. Keine Orders, kein Echtgeld, kein Windows-Paper-State, kein `main` verändert.
+
+**CI zum aktuellen SOURCE-Snapshot:** GitHub Node22 [#45054150056](https://github.com/127027/Sniperbot-/actions/runs/45054150056) Commit `581f16c09c1914693722d09c951c22a8f9f38684`, **528/528 PASS, 0 FAIL, TEST_ONLY_NO_SIGNAL_WRITE 0**. Hauptnachweis [docs/V19_SYS11_INFLIGHT_REPLAY_SYS12_NEUTRAL_DENOMINATOR_20261122.md](V19_SYS11_INFLIGHT_REPLAY_SYS12_NEUTRAL_DENOMINATOR_20261122.md).
+
+**NÄCHSTE WICHTIGE PRÜFUNG:** Ein kontrollierter realer Research-only API-Lauf erst nach Ablauf des originalen Gecko-429-Backoffs `2026-11-22T18:31:56.465Z`, dann ein zweiter Live-Resume-Lauf mit identischem gespeicherten API-Budget, sechs Chains, Pool-/Contract-Evidenz und ohne stille fehlende Seiten. Keine FPR/Recall-Erfindung; alle fünf bestehenden GPT-Dots müssen pausiert bleiben und D1-04 tatsächliches stündliches Markt- und 5-minütiges Positionsmonitoring bleibt noch unbewiesen.
+
+
 ## NEUSTER Verbindlicher Stand: HTTP-Crash-Resume und D2-10, 22.11.2026
 
 **12/61 = 19,7 % PASS; 25/61 = 41,0 % PARTIAL; 24/61 = 39,3 % OPEN. 37/61 = 60,7 % PASS+PARTIAL technisch bearbeitet**. Das ist keine 60,7-%-Abnahme. Alle älteren 31/61, 9/61, 10/61 und 36/61 weiter unten sind historische Snapshots. Kein Code-Rückbau.
