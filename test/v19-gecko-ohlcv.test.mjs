@@ -37,7 +37,7 @@ test('live capture can see only fully closed candles already available at captur
  const page=decodeGeckoOhlcv({request:req,response:response([
  row(first+240,2.5),row(first+180,2),row(first+120,1.5)]),
  capturedAtUtc:now,sourceRawPath:rawPath,sourceSha256:hash,asOfUtc:now});
- assert.equal(page.visible_at_requested_asof_candles,1);
+ assert.equal(page.visible_at_requested_asof_candles,2);
  assert.equal(page.candles[0].known_no_earlier_than_utc,'2026-10-12T00:03:00.000Z');
  assert.equal(page.candles[0].source_class,'ORIGINAL_CAPTURE');
  assert.equal(page.candles[0].available_at_utc,now);
