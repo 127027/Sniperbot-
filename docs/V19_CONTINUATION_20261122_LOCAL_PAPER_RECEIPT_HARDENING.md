@@ -33,3 +33,12 @@ Quellstand `2a629b6a88dfd9b8ec1e1bc354359e26969d75b6`:
 Echte unabhängige Risk-/Quote-/Sellability-Belege erfassen, mehrstündige sechs-Chain- und 429-Continuity belegen, die fünf GPT-Review-Journale mitsamt ausgeführten 4/8/12/24-Frequenzen verifizieren, echte Windows-Paper-Client-Quittungen und Read-only-Kontobestand nachweisen, eingefrorenen Holdout nach dem 25.11.2026 mit neutralem Nenner auswerten und dann alle 60 Nicht-Backtest-Aufgaben neu abnehmen. **QA-04 Backtest nur nach separater ausdrücklicher Nutzerfreigabe.**
 
 Verbindliche unveränderte Ursprungstabellen: `docs/V19_48_ORIGINAL_RESTBAUSTELLEN_VOR_BACKTEST_20261122.md`, `docs/V19_46_PARTIAL_ACCEPTANCE_AND_NEXT_BACKTEST_PLAN_20261122.md` und `research/audits/2026-11-22/r29-v19-offline-61-task-reconciliation.json`.
+
+## Nachtrag: clientübergreifende Lot-Abgrenzung und feldreihenfolgenfeste Markt-IDs
+
+Nach dem oben dokumentierten 656-Test-Snapshot wurden noch zwei weitere kleine, sicherheitsrelevante Änderungen durchgeführt:
+
+- [Commit `8a47ece`](https://github.com/127027/Sniperbot-/commit/8a47ece13966c6c49a8d73f18b9b9512f54b939f): Bei `auditSingleExitReceipt` bleiben `clientId`, `startedAt` und Paper-Schema vor/nach der Abwicklung identisch. Ein anderes Clientkonto darf den Receipt nicht übernehmen. Die Poolidentität wird anhand identischer `chain`, `contract`, `pool` geprüft, ohne von JSON-Schlüsselreihenfolge abzuhängen.
+- [Commit `015604a`](https://github.com/127027/Sniperbot-/commit/015604a7ea3fa08b7e9aa0b3293c51e1c0236f59): neuer Regressionstest für denselben Pool mit anderer Feldreihenfolge und zwei verfälschte Client-Provenienzfelder.
+
+**Neuster explizit bestätigter Source-SHA: `015604a7ea3fa08b7e9aa0b3293c51e1c0236f59`.** Die zwei echten GitHub-Workflows [#45071334292](https://github.com/127027/Sniperbot-/actions/runs/45071334292) und [#45071334277](https://github.com/127027/Sniperbot-/actions/runs/45071334277) endeten beide **SUCCESS** mit **657/657 Node-Tests PASS, 0 FAIL**. Keine Orders, keine backtestartige Wiederholung historischer Handelssimulation und kein Main-/Windows-Zugriff. Strenge Originalabnahme weiterhin 13/46/2, `QA-04` unberührt.
