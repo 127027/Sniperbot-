@@ -1,5 +1,21 @@
 # R29 – Originalabnahme aller 46 PARTIAL-Aufgaben und vorbereiteter nächster Backtest
 
+## Fünf vorhandene GPT-Dot-Automationen: PROMPTS SICHER SYNCHRONISIERT, AUTOMATIONEN NOCH PAUSIERT (22.11.2026, 21:16 MEZ)
+
+Nach den zwei echten public-API-Captures #45064131641 und #45064898786 wurden **alle fünf bestehenden** ChatGPT-Automationen mit eigenen passenden Rollen-Prompts aktualisiert, **keine zusätzliche Automation erstellt**, bestehende Zeitpläne unverändert gelassen:
+
+| Dot | Bestehende Automation-ID | Aktualisierte Rolle | Tatsächlicher Status |
+|---|---|---|---|
+| Dot1 | `6b0168805644819195490d6a0e6757b7` | Marktbeobachtung, echte 4/8/12/24-GPT-Reviews von API-Captures unterscheiden | `is_enabled:false` |
+| Dot2 | `6b0168a567e0819188a12558c7f1c0c5` | Sechs-Chain Discovery, persistierte Provider-429-Budgets und GitHub Raw/SHA | `is_enabled:false` |
+| Dot3 | `6b0168a5f9f081918868a72008e24a04` | unabhängig attestiertes Risiko/Sellability statt Fake-ELIGIBLE | `is_enabled:false` |
+| Dot4 | `6b0168a6a6d48191aabcc9240315aabe` | identische Research-As-of Strategie, keine Signal-/Paper-Orders ohne Sicherheit | `is_enabled:false` |
+| Dot5 | `6b0168a76a988191b0ef751ae1787f10` | neutrale positive/negative Outcomes, Holdout, ehrliche 61er-Abnahmen | `is_enabled:false` |
+
+**Die prompt-only Updates waren erfolgreich und `is_enabled:false` wurde danach nochmals mit dem echten Automation-Status überprüft**. Die alten 24–45k-Charakter-Prompt-Blöcke mit veralteten 70%-Fortschritten/429-Fristen und gegenseitig widersprechenden Pause-Anweisungen wurden auf gemeinsame 4k-Zeichen Cleanroom-Research-Only-Instruktionen vereinheitlicht; fachspezifische Details bleiben in den verlinkten Original-GitHub-Dokumenten. Dies sind KEINE ausgeführten GPT-Dot-Runs: **0 tatsächliche neue GPT-Reviews, keine API-Aufrufe durch die pausierten ChatGPT-Dots, 0 Orderwrites.** Die **tatsächlichen** zwei Markt- und Medien-API-Captures wurden gesondert durch den bestehenden GitHub Dot2-Workflow ausgeführt. Eine spätere tatsächliche GPT-Aktivierung ist ein eigener Freigabeschritt; bestehende risikorelevante D3-04/05 müssen für BUY/SELL weiter fail-closed bleiben. Besonders die **50 TEST-USDC/Coin und existierende 5.000 TEST-USDC Windows-Paper-Historie** wurden nicht verändert.
+
+
+
 **Datum:** 22.11.2026, nach kontrollierter Wiederaufnahme der kostenlosen öffentlichen Research-APIs. **Gültiger Branch:** `codex/r29-cleanroom-paper-20261121` im Repo `127027/Sniperbot-`. Alle Einträge wurden mit der **ursprünglichen 61-Aufgaben-Matrix**, nicht mit einer nachträglich vereinfachten Checkliste abgeglichen.
 
 ## 1. Verbindliches Qualitätsurteil
