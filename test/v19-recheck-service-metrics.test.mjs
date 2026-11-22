@@ -64,3 +64,47 @@ test('three of six FAIR slots per run eventually service every old pool despite 
  assert.equal(seen.size,18);
  assert.equal(fairRecheckPlan(memory,{asOfUtc:'2026-11-22T16:00:00Z'}).never_checked_count,0);
 });
+
+
+test('real November EHUNT REPAIR was executed but DEX provider returned no exact matching pair',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const original=JSON.parse(await readFile('research/observations/2026-11-22/45036887325.json','utf8'));
+ const evidence=JSON.parse(await readFile('research/feeds/2026-11-22/45044300013/evidence.json','utf8'));
+ const queued=evidence.metrics.v19_hot_fair_recheck_plan.selected.find(x=>x.queue==='EVIDENCE_REPAIR');
+ assert.equal(queued.chain,'cronos');
+ const observed=original.observations.find(x=>x.chain===queued.chain&&x.pool===queued.pool);
+ assert.ok(observed);
+ assert.equal(observed.liquidity_usd,0.0005);
+ const actual=evidence.dex_checks.find(x=>x.chain===queued.chain&&x.pool===queued.pool);
+ assert.equal(actual.status,'NO_MATCHING_CHAIN_POOL_BASE_TOKEN');
+ assert.equal(actual.returned_pairs,0);
+ const plan={kind:'R29_V19_HOT_FAIR_RISK_RECHECK_PLAN',selected:[{
+  chain:queued.chain,pool:queued.pool,queue:queued.queue,
+  observed_at_utc:observed.captured_at_utc
+ }]};
+ const review=summarizeRecheckService({plan,asOfUtc:evidence.metrics.v19_hot_fair_service.as_of_utc,
+  attempts:[{chain:actual.chain,pool:actual.pool,
+   checked_at_utc:actual.checked_at_utc,status:actual.status}]});
+ assert.equal(review.attempted_rechecks,1);
+ assert.equal(review.repair_attempted,1);
+ assert.equal(review.repair_checked_with_time,1);
+ assert.equal(review.repair_unmatched_identity,1);
+ assert.equal(review.repair_indicative_quotes,0);
+ assert.ok(review.repair_p50_wait_minutes>80&&review.repair_p50_wait_minutes<82);
+ assert.equal(review.trade_authorized,false);
+ assert.equal(review.actual_paper_fills,0);
+});
+test('research-only matching REPAIR is measurable but does not authorize a paper order',()=>{
+ const ts='2026-11-22T09:15:00.000Z',source='2026-11-22T09:00:00.000Z';
+ const p={kind:'R29_V19_HOT_FAIR_RISK_RECHECK_PLAN',selected:[
+  {chain:'base',pool:pool(8),queue:'EVIDENCE_REPAIR',observed_at_utc:source}
+ ]};
+ const r=summarizeRecheckService({plan:p,asOfUtc:ts,
+  attempts:[{chain:'base',pool:pool(8),status:'TWO_DOMAIN_INDICATIVE_RESEARCH_ONLY',
+   checked_at_utc:'2026-11-22T09:14:00.000Z'}]});
+ assert.equal(r.repair_attempted,1);
+ assert.equal(r.repair_indicative_quotes,1);
+ assert.equal(r.repair_unmatched_identity,0);
+ assert.equal(r.repair_p50_wait_minutes,14);
+ assert.equal(r.trade_authorized,false);
+});
