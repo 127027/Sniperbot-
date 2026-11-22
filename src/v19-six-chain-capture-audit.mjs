@@ -11,9 +11,6 @@ const ms=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?
  Date.parse(x):null;
 const rawPath=/^research\/feeds\/\d{4}-\d{2}-\d{2}\/\d+\/gecko-(solana|base|ethereum|bsc|robinhood|cronos)-page(\d+)\.raw\.json$/;
 const gitSha=/^[a-f0-9]{40}$/;
-const statusRow=(chain,reason)=>({chain,status:reason,
-  verified_http_sources:0,observed_pool_ids:0,
-  nonempty_pool_response_verified:false});
 
 export function auditSixChainCaptureWindow({
  sources=[],windowStartUtc,windowEndUtc,asOfUtc
@@ -62,6 +59,12 @@ export function auditSixChainCaptureWindow({
    status,original_http_sha256:proof?.actual_sha256??null,
    git_blob_id_verified:proof?.git_blob_sha_matched_independent_reference===true,
    raw_source_byte_count:proof?.raw_bytes_utf8??null,
+   reported_byte_count:evidence?.raw_bytes_utf8??null,
+   reported_size_matches_verified_bytes:
+     typeof proof?.raw_bytes_utf8==='number'
+     &&Number.isInteger(evidence?.raw_bytes_utf8)
+       ?proof.raw_bytes_utf8===evidence.raw_bytes_utf8:null,
+   size_metadata_mismatch_does_not_invalidate_matching_cryptographic_hashes:true,
    response_has_zero_pools:decoded?decoded.requested_pool_count===0:null,
    raw_pool_rows:decoded?.requested_pool_count??null,
    decoder_accepted:decoded?.found_count??null,
@@ -92,6 +95,11 @@ export function auditSixChainCaptureWindow({
   all_six_chains_have_verified_http_samples:verified.length===6,
   chains_with_nonempty_responses:verified.filter(x=>x.nonempty_pool_response_verified).length,
   checked_source_count:checks.length,
+  recorded_byte_count_mismatches:checks.filter(x=>
+    x.status==='ORIGINAL_HTTP_200_BYTES_AND_BLOB_VERIFIED'
+    &&x.reported_size_matches_verified_bytes===false).map(x=>({
+      chain:x.chain,source_path:x.source_path,
+      reported_bytes:x.reported_byte_count,verified_bytes:x.raw_source_byte_count})),
   earliest_sample_at_utc:times.length?new Date(Math.min(...times)).toISOString():null,
   latest_sample_at_utc:times.length?new Date(Math.max(...times)).toISOString():null,
   actual_sample_time_span_minutes:times.length>=2?
