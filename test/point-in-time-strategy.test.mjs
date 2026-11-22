@@ -35,7 +35,10 @@ test('future-publication evidence cannot cause trade even if price rises',()=>{
 test('late archived source cannot retroactively trade',()=>{
  const after='2026-10-13T00:00:00.000Z';
  const r=replaySignalDecisions({date,snapshots:[synth(5,.001),synth(6,.0011,{archive_at:after})]});
- assert.equal(r.summary.buys,0);assert.equal(r.events[6].blocked_sources[0].reason,'FUTURE_OR_UNVERIFIED_ARCHIVE');
+ // The shared as-of provenance classifier blocks a November/archive-late
+ // record before the legacy quote-only branch could inspect it.
+ assert.equal(r.summary.buys,0);
+ assert.equal(r.events[6].blocked_sources[0].reason,'ASOF_NOT_YET_AVAILABLE_AT_VIRTUAL_TIME');
 });
 test('falling synthetic markets trigger an hourly stop instead of claiming a winner',()=>{
  const r=replaySignalDecisions({date,snapshots:[synth(5,.001),synth(6,.0011),synth(7,.0008)]});
