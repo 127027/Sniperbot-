@@ -44,6 +44,7 @@ import {restoreCommittedInflightCapture}
  from '../src/v19-inflight-http-recovery.mjs';
 import {stagePendingCapture,appendPartialHttpReceipt,closePartialCapture}
  from '../src/v19-partial-capture-durability.mjs';
+import {assessCaptureCompletion} from '../src/v19-capture-completion-gate.mjs';
 import {selectObservationArchivePaths,parseResearchJsonWithLegacyTrailer}
  from '../src/v19-observation-archive-reader.mjs';
 
@@ -1059,5 +1060,20 @@ await writeFile('research/feeds/latest.json',JSON.stringify(latest,null,2)+'\n',
 partialJournal=closePartialCapture(partialJournal,{atUtc:now(),
  finalCoverage:coverageReport.updated_memory});
 await persistPartial();
+// Always archive an honest per-run requested-sample verdict BEFORE the
+// GitHub Action commit. Budgeted partial progress is not a failed HTTP call;
+// a real 429 is not an all-six-chains success. Never infer trading readiness.
+const completionVerdict=assessCaptureCompletion({
+ request,journal:partialJournal,evidence:data,runId
+});
+const completionVerdictPath=root+'/capture-completion-verdict.json';
+await writeFile(completionVerdictPath,JSON.stringify(completionVerdict,null,2)+'\n','utf8');
+console.log('DOT2_CAPTURE_COMPLETION',JSON.stringify({
+ status:completionVerdict.status,
+ requested_chains:completionVerdict.requested_chain_count,
+ verified_planned_pages:completionVerdict.verified_http200_planned_pages,
+ missing_chains:completionVerdict.missing_requested_chains,
+ workflow_success_permitted:completionVerdict.workflow_may_report_success
+}));
 console.log('DOT2_CAPTURE_DONE',JSON.stringify({evidence_path:filename,request_path:path,
  network:chosen.chain,metrics,memory_stats:memory.stats,memory_checkpoint:memoryCheckpointPath,prospective:prospectiveRanking.counts,recheck_prices:rechecked.length,fair_backlog:plan.backlog_count,errors:data.errors}));
