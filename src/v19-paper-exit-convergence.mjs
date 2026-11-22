@@ -88,23 +88,77 @@ export function planConvergentExitIntents({paperState,
   note:'This is a signal/intent audit only. Actual SELL authorization, fresh verified source and one real client receipt are separate gates.'};
 }
 
+// Strictly compare two supplied local-model snapshots. This never imports a
+// trusted Windows receipt, never publishes a signal, and never mutates state.
 export function auditSingleExitReceipt({stateBefore,stateAfter,
  openingBuyOrderId,sellOrderId,coin}={}){
+ const issues=[],mark=code=>{if(!issues.includes(code))issues.push(code);};
+ const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+ const finite=x=>typeof x==='number'&&Number.isFinite(x);
+ const sameMoney=(a,b)=>finite(a)&&finite(b)&&Math.abs(a-b)<=1e-5;
+ const round=x=>Math.round(x*1e8)/1e8;
  const key=coin&&typeof coin==='object'?marketKey(coin):null;
- const before=key?stateBefore?.positions?.[key]:null,
-   after=key?stateAfter?.positions?.[key]:undefined,
-   processed=stateAfter?.processed?.[sellOrderId],
-   receipt=stateAfter?.receipts?.[sellOrderId]?.data;
- const matched=!!before&&before.sourceOrderId===openingBuyOrderId
-   &&after===undefined&&processed?.status==='PAPER_FILLED'
-   &&receipt?.status==='PAPER_FILLED'&&receipt?.action==='SELL'
-   &&receipt.id===sellOrderId
-   &&stateAfter?.trade_history?.filter(x=>x.order_id===sellOrderId
-     &&x.action==='SELL'&&x.position_source_order_id===openingBuyOrderId)
-     ?.length===1;
+ const before=key?stateBefore?.positions?.[key]:null;
+ const after=key?stateAfter?.positions?.[key]:undefined;
+ const processed=stateAfter?.processed?.[sellOrderId];
+ const receipt=stateAfter?.receipts?.[sellOrderId]?.data;
+ const prevHistory=stateBefore?.trade_history, nextHistory=stateAfter?.trade_history;
+ const event=Array.isArray(nextHistory)?nextHistory.at(-1):null;
+ if(!before||before.sourceOrderId!==openingBuyOrderId||after!==undefined
+  ||stateBefore?.mode!=='PAPER_ONLY'||stateAfter?.mode!=='PAPER_ONLY')
+  mark('LOT_NOT_CLOSED_EXACTLY_ONCE');
+ if(!processed||processed.status!=='PAPER_FILLED'
+  ||!receipt||receipt.status!=='PAPER_FILLED'||receipt.action!=='SELL'
+  ||receipt.id!==sellOrderId||receipt.mode!=='PAPER'
+  ||receipt.simulated!==true||when(receipt.timestamp)===null
+  ||processed.time!==receipt.timestamp)
+  mark('EXIT_RECEIPT_NOT_RECONCILED');
+ if(!before||!receipt||!eq(receipt.coin,coin)
+  ||!eq(before.coin,coin)||!finite(before.quantity)
+  ||receipt.quantity!==before.quantity
+  ||!finite(receipt.execution_price_usdc)||receipt.execution_price_usdc<=0
+  ||!finite(receipt.fee_test_usdc)||receipt.fee_test_usdc<0
+  ||!finite(receipt.proceeds_test_usdc)||receipt.proceeds_test_usdc<0
+  ||!sameMoney(receipt.quantity*receipt.execution_price_usdc
+    -receipt.fee_test_usdc,receipt.proceeds_test_usdc)
+  ||!sameMoney(receipt.realized_pnl_test_usdc,
+    round(receipt.proceeds_test_usdc-before.costTestUsdc)))
+  mark('EXIT_QUANTITY_FEES_OR_PNL_NOT_RECONCILED');
+ if(!receipt||!sameMoney(stateAfter?.cash,
+    round(stateBefore?.cash+receipt.proceeds_test_usdc))
+  ||!sameMoney(receipt.cash_after_test_usdc,stateAfter?.cash)
+  ||stateAfter?.cash<0)
+  mark('EXIT_CASH_NOT_RECONCILED');
+ if(!Number.isInteger(stateBefore?.nextSequence)
+  ||stateAfter?.nextSequence!==stateBefore.nextSequence+1
+  ||receipt?.sequence!==stateBefore.nextSequence)
+  mark('EXIT_SEQUENCE_NOT_RECONCILED');
+ if(!Array.isArray(prevHistory)||!Array.isArray(nextHistory)
+  ||nextHistory.length!==prevHistory.length+1
+  ||!eq(nextHistory.slice(0,-1),prevHistory)
+  ||event?.order_id!==sellOrderId||event?.action!=='SELL'
+  ||event?.position_source_order_id!==openingBuyOrderId
+  ||event?.receipt_sequence!==receipt?.sequence
+  ||event?.filled_at_utc!==receipt?.timestamp||event?.market_key!==key
+  ||event?.realized_pnl_test_usdc!==receipt?.realized_pnl_test_usdc)
+  mark('EXIT_TRADE_EVENT_NOT_RECONCILED');
+ for(const field of ['processed','receipts']){
+  const was=stateBefore?.[field],now=stateAfter?.[field];
+  if(!was||!now||Object.hasOwn(was,sellOrderId)
+   ||Object.keys(now).length!==Object.keys(was).length+1
+   ||Object.keys(was).some(id=>!eq(now[id],was[id])))
+    mark('PREVIOUS_'+field.toUpperCase()+'_CHANGED');
+ }
+ const oldPositions=stateBefore?.positions,newPositions=stateAfter?.positions;
+ if(!key||!oldPositions||!newPositions
+  ||Object.keys(newPositions).length!==Object.keys(oldPositions).length-1
+  ||Object.entries(oldPositions).some(([k,v])=>k!==key&&!eq(newPositions[k],v)))
+  mark('UNRELATED_POSITIONS_CHANGED');
+ const matched=issues.length===0;
  return {schema:1,kind:'R29_V19_LOCAL_MODEL_EXIT_RECEIPT_AUDIT',
   status:matched?'MODEL_EXIT_RECEIPT_CONSISTENT':'MISSING_OR_MISMATCHED_EXIT_RECEIPT',
-  model_receipt_consistent:matched,
+  model_receipt_consistent:matched,local_proof_blockers:issues,
+  receipt_proceeds_reconciled:matched,
   independently_authenticated_client_receipt:false,
   does_not_prove_actual_external_paper_fill:true,
   no_fictional_receipt_created:true};
