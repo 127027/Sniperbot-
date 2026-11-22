@@ -175,7 +175,11 @@ export function auditAllPartialOriginalAcceptance({
   next_backtest_mode:'OCTOBER_ORIGINAL_DATA_GAP_SEPARATE_FROM_PROSPECTIVE_NOVEMBER_HOLDOUT',
   fully_accepted_tasks_not_inflated:true,
   no_paper_orders_published:true,
-  no_dot_automations_activated:true,
+  // GitHub-only data cannot inspect ChatGPT automation enabled state.
+  // The five independent Dots were explicitly resumed outside GitHub.
+  dot_automation_enabled_state_verified_from_this_github_capture:null,
+  dot_automations_can_run_independently_of_provider_capture:true,
+  actual_gpt_dot_reviews_authenticated_by_this_capture:0,
   review_entries:reviews
  };
 }
