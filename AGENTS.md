@@ -41,6 +41,7 @@
 - Überblick und Chat-Übergabe: `docs/R29_NEXT_CHAT_HANDOFF.md`
 - Fortschritt: `docs/V19_IMPLEMENTATION_PROGRESS.md`
 - Vollständige 61-Punkte-Liste: `docs/V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md`
+- **Aktuelle 50-%-Abnahme und kritischer Architektur-Soll/Ist-Abgleich:** `docs/V19_MILESTONE_50_PERCENT_ARCHITECTURE_REVIEW.md` (Stand 31/61, 50,8 %, 30 offen; grüner Node-22-CI 465/465, **keine** realen GPT-Reviews oder Client-Paper-Fills).
 - Ein-System-Vertrag: `docs/V18_ONE_SYSTEM_CONTRACT.md`; Rollen: `docs/DOT_PIPELINE.md`
 - Manueller research-only Replay: `docs/V19_MANUAL_BACKTEST_USAGE.md`, `.github/workflows/cleanroom-v19-manual-backtest.yml`
 - Anwendbare Tests: `test/v19-*.test.mjs` und `npm test`; Status der Node-/CI-Abnahme unbedingt verifizieren.
