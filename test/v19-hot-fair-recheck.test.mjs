@@ -116,7 +116,8 @@ test('when there is no FAIR backlog, available slots still serve price repairs',
  const result=planHotFairRechecks({asOfUtc:at,maxChecks:4,
   freshCandidates:[fresh(1),fresh(2),fresh(3),fresh(4)],
   repairCandidates:[repair]});
- assert.equal(result.hot_selected,2);
+ // After 1 reserved repair, an unused fourth slot is correctly filled from HOT.
+ assert.equal(result.hot_selected,3);
  assert.equal(result.repair_selected,1);
  assert.equal(result.selected_count,4);
  assert.equal(result.trade_authorized,false);
