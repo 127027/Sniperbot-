@@ -158,14 +158,17 @@ const capturePlan=planMultiChainCapture({
  pageCoverage,budget:request.max_gecko_requests-(request.max_ohlcv_requests??0)
    -(request.max_older_pool_requests??0),asOfUtc:now()});
 const receivedPages=[],failedPages=[],deferredPages=[];
-// Global provider throttle: planned pages are DEFERRED, never marked HTTP-attempted.
-const startingGeckoCooldown=geckoBlock();
-if(startingGeckoCooldown.active)deferredPages.push(...capturePlan.tasks.map(task=>({
- ...task,reason:'PROVIDER_429_COOLDOWN',
- retry_after_utc:startingGeckoCooldown.retry_not_before_utc
-})));
+// Global provider throttle: every planned but unattempted page becomes
+// durable backlog even after a mid-run 503/network/429 provider cooldown.
 for(let i=0;i<capturePlan.tasks.length;i++){
- if(geckoBlock().active)break;
+ const beforeRequestBlock=geckoBlock();
+ if(beforeRequestBlock.active){
+   deferredPages.push(...capturePlan.tasks.slice(i).map(task=>({
+     ...task,reason:'PROVIDER_COOLDOWN_NOT_HTTP_ATTEMPTED',
+     retry_after_utc:beforeRequestBlock.retry_not_before_utc
+   })));
+   break;
+ }
  const task=capturePlan.tasks[i],chain=task.chain,page=task.page;
  const network=chain==='ethereum'?'eth':chain==='cronos'?'cro':chain;
  const url='https://api.geckoterminal.com/api/v2/networks/'+network
