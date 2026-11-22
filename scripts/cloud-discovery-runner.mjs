@@ -22,6 +22,7 @@ import {advanceAdaptiveCadence} from '../src/v19-adaptive-cadence.mjs';
 import {makeGeckoOhlcvRequest,decodeGeckoOhlcv} from '../src/v19-gecko-ohlcv.mjs';
 import {emptyOhlcvBackfillState,planOhlcvBackfill,recordOhlcvBackfill} from '../src/v19-ohlcv-backfill-queue.mjs';
 import {auditCaptureEvidenceBundle} from '../src/v19-source-integrity.mjs';
+import {emptyOlderPoolState,planOlderPoolCaptures,decodeOlderPoolPage,recordOlderPoolCapture} from '../src/v19-older-pool-discovery.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -66,7 +67,8 @@ try{pageCoverage=JSON.parse(await readFile(coverageStatePath,'utf8'));}
 catch(error){if(error.code!=='ENOENT')throw error;pageCoverage=emptyPageCoverage();}
 const capturePlan=planMultiChainCapture({
  networks:request.networks,checkpoints:precedingMemory.checkpoints,
- pageCoverage,budget:request.max_gecko_requests-(request.max_ohlcv_requests??0),asOfUtc:now()});
+ pageCoverage,budget:request.max_gecko_requests-(request.max_ohlcv_requests??0)
+   -(request.max_older_pool_requests??0),asOfUtc:now()});
 const receivedPages=[],failedPages=[],deferredPages=[];
 for(let i=0;i<capturePlan.tasks.length;i++){
  const task=capturePlan.tasks[i],chain=task.chain,page=task.page;
@@ -113,6 +115,41 @@ for(let i=0;i<capturePlan.tasks.length;i++){
    }
  }
 }
+// Optional older/trending pool discovery: same Dot2 and public Gecko request budget.
+const olderStatePath='research/state/older-pool-captures.json';
+let olderState;
+try{olderState=JSON.parse(await readFile(olderStatePath,'utf8'));}
+catch(err){if(err.code!=='ENOENT')throw err;olderState=emptyOlderPoolState();}
+const olderPlan=planOlderPoolCaptures({state:olderState,networks:request.networks,
+ asOfUtc:now(),maxRequests:request.max_older_pool_requests??0});
+const olderPages=[],olderFailures=[];
+for(const job of olderPlan.tasks){
+ const fileName='gecko-'+job.chain+'-trending-'+job.duration+'.raw.json';
+ try{
+  const result=await fetchRaw(job.url,'GECKOTERMINAL',fileName);
+  const decodedOlder=decodeOlderPoolPage({network:job.chain,response:result.json,
+    capturedAtUtc:result.evidence.received_at_utc,page:job.page,duration:job.duration});
+  olderPages.push({job,decoded:decodedOlder,sourcePath:result.evidence.body_path,
+    sourceSha256:result.evidence.response_sha256,
+    capturedAtUtc:result.evidence.received_at_utc});
+  olderState=recordOlderPoolCapture({state:olderState,task:job,status:'OK',
+    capturedAtUtc:result.evidence.received_at_utc,
+    sourceRawPath:result.evidence.body_path,sourceSha256:result.evidence.response_sha256});
+ }catch(err){
+  const prior=fetches.findLast(x=>x.provider==='GECKOTERMINAL'&&x.url===job.url);
+  const status=prior?.http_status===429?'HTTP_429':'ERROR',when=prior?.received_at_utc||now();
+  const wait=providerRetryDelay({httpStatus:prior?.http_status||null,
+    previousFailures:olderState.checkpoints[job.chain]?.failures||0,
+    retryAfter:prior?.retry_after_header||null,atUtc:when});
+  olderState=recordOlderPoolCapture({state:olderState,task:job,status,
+    capturedAtUtc:when,retryAfterUtc:wait.next_retry_at_utc});
+  olderFailures.push({chain:job.chain,duration:job.duration,status,
+    retry_after_utc:wait.next_retry_at_utc});
+  if(status==='HTTP_429')break;
+ }
+}
+await writeFile(olderStatePath,JSON.stringify(olderState,null,2)+'\n','utf8');
+const olderCandidates=olderPages.flatMap(p=>p.decoded.candidates);
 const decoded=receivedPages.length?{
  schema:1,network:'MULTI_CHAIN',page:null,
  found_count:receivedPages.reduce((n,x)=>n+x.decoded.found_count,0),
@@ -163,7 +200,7 @@ const plan=fairRecheckPlan(memory,{asOfUtc:now(),maxRechecks:request.max_dex_pai
 // Every fresh candidate is ranked before a bounded DEX crosscheck; unselected
 // ones still enter persistent memory and must not be silently lost.
 const recheckPlan=planHotFairRechecks({
- freshCandidates:decoded?.candidates||[],fairCandidates:plan.candidates,
+ freshCandidates:[...(decoded?.candidates||[]),...olderCandidates],fairCandidates:plan.candidates,
  legacyCandidates:known,asOfUtc:now(),maxChecks:request.max_dex_pairs,
  round:Number(process.env.GITHUB_RUN_NUMBER)||0});
 // Optional OHLCV history inside the EXISTING Gecko request budget; no other bot.
@@ -265,6 +302,10 @@ metrics.previous_chain_page_checkpoints=Object.fromEntries(
   request.networks.map(chain=>[chain,
     precedingMemory.checkpoints[chain+':GECKOTERMINAL']?.next_page_to_consider??null]));
 metrics.verified_recheck_price_observations=rechecked.length;
+metrics.v19_older_pool_discovery={requested_budget:request.max_older_pool_requests??0,
+ attempted:olderPages.length+olderFailures.length,old_pool_watch_candidates:olderCandidates.filter(x=>x.category==='OLDER_POOL_WATCH').length,
+ page_sources:olderPages.map(x=>x.sourcePath),failures:olderFailures,
+ no_global_market_completeness_claim:true,no_buy_authorization:true};
 metrics.v19_ohlcv_backfill={budget:request.max_ohlcv_requests??0,
  attempted:ohlcvResults.length,results:ohlcvResults,research_only:true};
 metrics.v19_hot_fair_service=summarizeRecheckService({plan:recheckPlan,attempts,asOfUtc:now()});
@@ -377,6 +418,7 @@ const data={schema:1,kind:'DOT2_PUBLIC_CAPTURE_EVIDENCE',mode:'PAPER_RESEARCH_ON
   source_chain:receivedPages.length===1?chosen.chain:'MULTI_CHAIN',network_rotation:chosen.rotation,selected_page:scanPage,
   coverage_is_global:false,coverage_is_all_chains:false,gecko:decoded,
   dex_checks:dexChecks,dex_fallback_candidates:fallback,
+  older_pool_candidates:olderCandidates,
   api_evidence:fetches,metrics,source_integrity:sourceIntegrity,
   errors:fetches.filter(x=>x.error||x.http_ok===false).map(x=>({provider:x.provider,status:x.http_status||null,error:x.error||'HTTP_NOT_OK'})),
   published_paper_orders:0,verified_client_fills:0,
@@ -400,6 +442,14 @@ for(const pageResult of receivedPages){
    sourceSha256:pageResult.sourceSha256,provider:'GECKOTERMINAL',
    chain:pageResult.chain,page:pageResult.page,fetchStatus:'OK'});
  memory=merged.memory;geckoAdded+=merged.added;geckoUpdated+=merged.updated;
+}
+// Trending pools join SAME pool memory, never a parallel bot.
+for(const p of olderPages){
+ const merged=mergeMemory(memory,{candidates:p.decoded.candidates,
+  sourcePath:p.sourcePath,sourceCapturedAtUtc:p.capturedAtUtc,
+  sourceSha256:p.sourceSha256,provider:'GECKOTERMINAL_TRENDING',
+  chain:p.job.chain,page:p.job.page,fetchStatus:'OK'});
+ memory=merged.memory;
 }
 // Persist failed page attempts too: a failure is NOT successful coverage.
 for(const failure of failedPages){
@@ -437,7 +487,7 @@ for(const attempt of attempts)memory=recordRecheckAttempt(memory,{
 const observationPath='research/observations/'+new Date(data.captured_completed_at_utc).toISOString().slice(0,10)+'/'+runId+'.json';
 const batch=makeCaptureObservationBatch({
  capturedAtUtc:data.captured_completed_at_utc,sourcePath:filename,
- geckoCandidates:decoded?.candidates||[],dexFallbackCandidates:[...fallback,...rechecked]});
+ geckoCandidates:[...(decoded?.candidates||[]),...olderCandidates],dexFallbackCandidates:[...fallback,...rechecked]});
 await mkdir('research/observations/'+new Date(data.captured_completed_at_utc).toISOString().slice(0,10),{recursive:true});
 await writeFile(observationPath,JSON.stringify(batch,null,2)+'\n','utf8');
 const previous=[];
