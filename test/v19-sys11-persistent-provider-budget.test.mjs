@@ -70,6 +70,28 @@ test('SYS-11: corrupted clock/history must not re-grant capacity',()=>{
   lane:'NEW_POOLS',asOfUtc:at,requestId:id(2)}),
   /INVALID_PROVIDER_BUDGET_REQUEST/);
 });
+test('SYS-11: 503 and network failures back off without calling again',()=>{
+ let s=start(emptyProviderBudgetState(),{provider:'DEXSCREENER',lane:'PAIR',n:101}).state;
+ s=recordProviderResponse({state:s,provider:'DEXSCREENER',lane:'PAIR',
+  requestId:id(101),asOfUtc:later(30),httpStatus:503});
+ const denied=inspectProviderBudget({state:JSON.parse(JSON.stringify(s)),
+  provider:'DEXSCREENER',lane:'PAIR',asOfUtc:later(1000),requestId:id(102)});
+ assert.equal(denied.reason,'PROVIDER_COOLDOWN');
+ const next=start(s,{provider:'DEXSCREENER',lane:'PAIR',ms:360000,n:103});
+ assert.equal(next.gate.allowed,true);
+ s=recordProviderResponse({state:next.state,provider:'DEXSCREENER',lane:'PAIR',
+   requestId:id(103),asOfUtc:later(360100),httpStatus:null});
+ assert.equal(inspectProviderBudget({state:s,provider:'DEXSCREENER',
+  lane:'PAIR',asOfUtc:later(362000),requestId:id(104)}).reason,'PROVIDER_COOLDOWN');
+});
+test('SYS-11: unattempted provider veto must never become a false provider HTTP receipt',async()=>{
+ const runner=await readFile('scripts/cloud-discovery-runner.mjs','utf8');
+ assert.match(runner,/const deferredByProviderBudget=e=>/);
+ assert.match(runner,/if\(deferredByProviderBudget\(error\)\)/);
+ assert.match(runner,/if\(deferredByProviderBudget\(err\)\)/);
+ assert.match(runner,/NO_HTTP_REQUEST_BUDGET_VETO/);
+ assert.match(runner,/Leave its fair[\s\S]*cursor untouched/);
+});
 test('SYS-11: existing runner uses this budget for real HTTP starts and persists its cursor',async()=>{
  const runner=await readFile('scripts/cloud-discovery-runner.mjs','utf8');
  assert.match(runner,/reserveProviderRequest\(/);
