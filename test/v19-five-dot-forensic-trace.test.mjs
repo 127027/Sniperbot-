@@ -228,3 +228,16 @@ test('positive handoff chain is distinguishable from unlinked BUY and SELL model
   startUtc:start,endUtc:end,runId});
  assert.ok(isolatedPass.causal_problems.some(z=>z.code==='DOT5_PASS_WITHOUT_ANY_CAUSAL_LINK'));
 });
+
+test('EVM checksum casing of identical contract/pool cannot split one forensic causal chain',()=>{
+ const d2=mk('dot-2-discovery','DISCOVERED',55,{});
+ const d3=mk('dot-3-risk','ELIGIBLE',56,{
+  market:{...coin,contract:'0x'+'A'.repeat(40),pool:'0x'+'B'.repeat(40)},
+  linked_event_ids:[d2.event_id]});
+ const buy=mk('dot-4-strategy','BUY',57,{linked_event_ids:[d3.event_id]});
+ const report=buildFiveDotForensicReport({entries:[d2,d3,buy],
+  startUtc:start,endUtc:end,runId});
+ assert.equal(report.tracked_exact_pools,1);
+ assert.deepEqual(report.causal_problems,[]);
+ assert.equal(report.client_fills_independently_verified,0);
+});
