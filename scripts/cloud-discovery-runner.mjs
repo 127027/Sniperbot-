@@ -68,13 +68,13 @@ const plan=fairRecheckPlan(memory,{asOfUtc:now(),maxRechecks:request.max_dex_pai
 const attempts=[];
 const targets=[
  ...(decoded?.candidates||[]).filter(c=>c.contract).slice(0,2),
- ...plan.candidates.filter(c=>canonicalChain(c.chain)&&poolValid(c.chain,c.pool)),
- ...known.filter(c=>canonicalChain(c.chain)&&poolValid(c.chain,c.pool)).slice(0,request.max_dex_pairs)
+ ...plan.candidates.filter(c=>canonicalChain(c.chain)&&poolValid(c.chain,c.pool,c.pool_kind)),
+ ...known.filter(c=>canonicalChain(c.chain)&&poolValid(c.chain,c.pool,c.pool_kind)).slice(0,request.max_dex_pairs)
 ];
 const unique=new Set();
 for(const c of targets){
  if(dexChecks.length>=request.max_dex_pairs)break;
- const chain=canonicalChain(c.chain),pool=c.pool;
+ const chain=canonicalChain(c.chain),pool=c.pool,poolKind=c.pool_kind||null;
  const key=chain+':'+pool;
  const checkedAt=now();
  if(!chain||!pool||unique.has(key))continue;
@@ -88,7 +88,7 @@ for(const c of targets){
    dexChecks.push({chain,pool,source:data.evidence.body_path,...check});
    if(check.matched===true&&Number.isFinite(check.dexscreener_price_usd)
      &&check.dexscreener_price_usd>0&&Number.isFinite(check.dexscreener_liquidity_usd)){
-      rechecked.push({chain,pool,contract:c.contract,symbol:c.symbol||null,
+      rechecked.push({chain,pool,pool_kind:poolKind,contract:c.contract,symbol:c.symbol||null,
        pool_kind:c.pool_kind||null,
        observed_at_utc:data.evidence.received_at_utc,
        source_api:'DEXSCREENER_VERIFIED_RECHECK',
@@ -99,14 +99,14 @@ for(const c of targets){
        trade_authorized:false});
    }
   }else{
-   const rec=fromDexPairOnly({chain,pool,response:data.json,capturedAtUtc:data.evidence.received_at_utc});
+   const rec=fromDexPairOnly({chain,pool,pool_kind:poolKind,response:data.json,capturedAtUtc:data.evidence.received_at_utc});
    dexChecks.push({chain,pool,source:data.evidence.body_path,status:rec.status,
     matched:!!rec.candidate});
    if(rec.candidate)fallback.push({...rec.candidate,source_raw_path:data.evidence.body_path});
   }
  }catch(error){dexChecks.push({chain,pool,status:'DEX_ERROR',error:String(error.message||error).slice(0,100)});}
  const latestCheck=dexChecks.at(-1);
- attempts.push({chain,pool,checked_at_utc:checkedAt,status:latestCheck?.status||'UNKNOWN',
+ attempts.push({chain,pool,pool_kind:poolKind,checked_at_utc:checkedAt,status:latestCheck?.status||'UNKNOWN',
   source_path:latestCheck?.source||root+'/evidence.json'});
 }
 const metrics=collectSampleMetrics({geckoDecoded:decoded,dexChecks,fallbackCandidates:fallback,requests:fetches});
@@ -161,7 +161,7 @@ if(rechecked.length){
  memory=mergedRechecks.memory;
 }
 for(const attempt of attempts)memory=recordRecheckAttempt(memory,{
- chain:attempt.chain,pool:attempt.pool,attemptAtUtc:attempt.checked_at_utc,
+ chain:attempt.chain,pool:attempt.pool,pool_kind:attempt.pool_kind,attemptAtUtc:attempt.checked_at_utc,
  status:attempt.status,sourcePath:attempt.source_path
 });
 // Unfiltered, forward-only observations, NOT winner names or historical labels.
