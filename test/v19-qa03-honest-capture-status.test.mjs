@@ -85,6 +85,32 @@ test('QA-03: a deliberately bounded two-chain page budget is valid incremental p
  assert.equal(outcome.global_market_coverage_proven,false);
 });
 
+test('SYS-11: persisted 429 cooldown legitimately defers all pages without another API request',async()=>{
+ const args=await archived();
+ const journal=structuredClone(args.journal);
+ journal.http_receipts=journal.http_receipts.filter(r=>r.provider!=='GECKOTERMINAL');
+ journal.proven_successful_pages_this_run=0;
+ journal.unresolved_planned_pages_this_run=structuredClone(journal.planned_pages);
+ journal.has_unresolved_page_gaps=true;
+ journal.status_is_not_successful_capture=true;
+ const evidence=structuredClone(args.evidence);
+ evidence.api_evidence=evidence.api_evidence.filter(r=>r.provider!=='GECKOTERMINAL');
+ evidence.page_capture_failures=[];
+ evidence.page_capture_deferred=journal.planned_pages.map(p=>({...p,status:'NOT_CAPTURED_DEFERRED'}));
+ const outcome=assessCaptureCompletion({...args,journal,evidence});
+ assert.equal(outcome.status,'DEFERRED_BY_PERSISTED_COOLDOWN');
+ assert.equal(outcome.workflow_may_report_success,true);
+ assert.equal(outcome.verified_http200_planned_pages,0);
+ assert.equal(outcome.unresolved_planned_pages.length,6);
+ assert.deepEqual(outcome.reasons,[]);
+ assert.ok(outcome.coverage_warnings.includes('PERSISTED_PROVIDER_COOLDOWN_NO_HTTP_ATTEMPT'));
+ const falsified=structuredClone(evidence);
+ falsified.metrics.v19_gecko_provider_429_cooldown.active=false;
+ const denied=assessCaptureCompletion({...args,journal,evidence:falsified});
+ assert.equal(denied.workflow_may_report_success,false);
+ assert.equal(denied.status,'PARTIAL_OR_INVALID_CAPTURE');
+});
+
 test('QA-03: workflow always commits any partial raw and state before refusing to report success',async()=>{
  const yaml=await readFile('.github/workflows/cleanroom-dot2-capture.yml','utf8');
  const commit=yaml.indexOf('Commit research feed and partial recovery state');
