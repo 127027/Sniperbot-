@@ -2,7 +2,8 @@
 // research, structural Dot3 preflight and historical as-of replay.
 // A fetch time is NOT a provider quote time, and a timestamp field is not
 // independent proof of that timestamp. NO order authorization here.
-const stamp=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
+import {asOfMillis} from './v19-asof-evidence.mjs';
+const stamp=asOfMillis;
 export function classifyDot3QuoteTime({
  asOfUtc,capturedAtUtc,providerQuoteAsOfUtc=null,
  availableAtUtc=capturedAtUtc,maxQuoteAgeSeconds=90,
