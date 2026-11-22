@@ -27,6 +27,7 @@ import {emptyOhlcvBackfillState,planOhlcvBackfill,recordOhlcvBackfill} from '../
 import {auditCaptureEvidenceBundle} from '../src/v19-source-integrity.mjs';
 import {emptyOlderPoolState,planOlderPoolCaptures,decodeOlderPoolPage,recordOlderPoolCapture} from '../src/v19-older-pool-discovery.mjs';
 import {planGeckoRequestPacing} from '../src/v19-gecko-pacing.mjs';
+import {activeGeckoProviderCooldown} from '../src/v19-gecko-provider-cooldown.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -44,7 +45,16 @@ await mkdir(root,{recursive:true});
 const now=()=>new Date().toISOString();
 const fetches=[],dexChecks=[],fallback=[],rechecked=[],artifacts=[];
 let lastGeckoStartedMs=null;
+let runGeckoRetryAtUtc=null;
+let precedingMemory;
+const geckoBlock=()=>activeGeckoProviderCooldown({
+ checkpoints:precedingMemory?.checkpoints||{},atUtc:now(),
+ runRetryAtUtc:runGeckoRetryAtUtc
+});
 async function fetchRaw(url,provider,fileName){
+ if((provider==='GECKOTERMINAL'||provider==='GECKOTERMINAL_OHLCV')
+    &&geckoBlock().active)
+   throw Error('GECKO_PROVIDER_429_COOLDOWN_NOT_ELAPSED');
  const pacing=planGeckoRequestPacing({
    provider,nowEpochMs:Date.now(),
    lastGeckoStartedEpochMs:lastGeckoStartedMs
@@ -76,7 +86,6 @@ async function fetchRaw(url,provider,fileName){
 // Existing Dot2 runner, but all six chains can now share a bounded request.
 // A capture *plan* is not evidence that each planned page was received.
 const memoryFile='research/state/market-memory.json';
-let precedingMemory;
 try{precedingMemory=JSON.parse(await readFile(memoryFile,'utf8'));}
 catch(err){if(err.code!=='ENOENT')throw err;precedingMemory=emptyMarketMemory();}
 const coverageStatePath='research/state/page-coverage.json';
@@ -88,7 +97,14 @@ const capturePlan=planMultiChainCapture({
  pageCoverage,budget:request.max_gecko_requests-(request.max_ohlcv_requests??0)
    -(request.max_older_pool_requests??0),asOfUtc:now()});
 const receivedPages=[],failedPages=[],deferredPages=[];
+// Global provider throttle: planned pages are DEFERRED, never marked HTTP-attempted.
+const startingGeckoCooldown=geckoBlock();
+if(startingGeckoCooldown.active)deferredPages.push(...capturePlan.tasks.map(task=>({
+ ...task,reason:'PROVIDER_429_COOLDOWN',
+ retry_after_utc:startingGeckoCooldown.retry_not_before_utc
+})));
 for(let i=0;i<capturePlan.tasks.length;i++){
+ if(geckoBlock().active)break;
  const task=capturePlan.tasks[i],chain=task.chain,page=task.page;
  const network=chain==='ethereum'?'eth':chain==='cronos'?'cro':chain;
  const url='https://api.geckoterminal.com/api/v2/networks/'+network
@@ -126,6 +142,7 @@ for(let i=0;i<capturePlan.tasks.length;i++){
    if(prior)prior.error=String(error?.message||error).slice(0,100);
    else fetches.push({provider:'GECKOTERMINAL',url,error:String(error?.message||error).slice(0,100)});
    if(status==='HTTP_429'){
+     runGeckoRetryAtUtc=backoff.next_retry_at_utc;
      // Back off for the remaining work; persistent checkpoint retains
      // failed attempt so other chains can be serviced next time.
      deferredPages.push(...capturePlan.tasks.slice(i+1));
@@ -142,6 +159,12 @@ const olderPlan=planOlderPoolCaptures({state:olderState,networks:request.network
  asOfUtc:now(),maxRequests:request.max_older_pool_requests??0});
 const olderPages=[],olderFailures=[];
 for(const job of olderPlan.tasks){
+ if(geckoBlock().active){
+  olderFailures.push({chain:job.chain,duration:job.duration,
+   status:'DEFERRED_PROVIDER_429',
+   retry_after_utc:geckoBlock().retry_not_before_utc});
+  continue;
+ }
  const fileName='gecko-'+job.chain+'-trending-'+job.duration+'.raw.json';
  try{
   const result=await fetchRaw(job.url,'GECKOTERMINAL',fileName);
@@ -163,7 +186,7 @@ for(const job of olderPlan.tasks){
     capturedAtUtc:when,retryAfterUtc:wait.next_retry_at_utc});
   olderFailures.push({chain:job.chain,duration:job.duration,status,
     retry_after_utc:wait.next_retry_at_utc});
-  if(status==='HTTP_429')break;
+  if(status==='HTTP_429')runGeckoRetryAtUtc=wait.next_retry_at_utc;
  }
 }
 await writeFile(olderStatePath,JSON.stringify(olderState,null,2)+'\n','utf8');
@@ -236,6 +259,11 @@ const ohlcvPlan=planOhlcvBackfill({state:ohlcvState,candidates:recheckPlan.selec
  asOfUtc:now(),maxRequests:request.max_ohlcv_requests??0,limit:600});
 const ohlcvResults=[];
 for(const target of ohlcvPlan.targets){
+ if(geckoBlock().active){
+  ohlcvResults.push({key:target.key,status:'DEFERRED_PROVIDER_429',
+   retry_after_utc:geckoBlock().retry_not_before_utc,trade_authorized:false});
+  continue;
+ }
  const q=makeGeckoOhlcvRequest({chain:target.chain,pool:target.pool,
   pool_kind:target.pool_kind,tokenContract:target.contract,
   beforeTimestamp:target.next_before_timestamp,limit:ohlcvPlan.limit});
@@ -266,6 +294,7 @@ for(const target of ohlcvPlan.targets){
   const delay=providerRetryDelay({httpStatus:response?.http_status||null,
     previousFailures:ohlcvState.markets[target.key]?.failed_pages||0,
     retryAfter:response?.retry_after_header||null,atUtc:attempted});
+  if(status==='HTTP_429')runGeckoRetryAtUtc=delay.next_retry_at_utc;
   ohlcvState=recordOhlcvBackfill(ohlcvState,{target,status,asOfUtc:attempted,
     retryAfterUtc:delay.next_retry_at_utc});
   ohlcvResults.push({key:target.key,status,
@@ -327,11 +356,15 @@ metrics.previous_chain_page_checkpoints=Object.fromEntries(
     precedingMemory.checkpoints[chain+':GECKOTERMINAL']?.next_page_to_consider??null]));
 metrics.verified_recheck_price_observations=rechecked.length;
 metrics.v19_older_pool_discovery={requested_budget:request.max_older_pool_requests??0,
- attempted:olderPages.length+olderFailures.length,old_pool_watch_candidates:olderCandidates.filter(x=>x.category==='OLDER_POOL_WATCH').length,
+ attempted:olderPages.length+olderFailures.filter(x=>x.status!=='DEFERRED_PROVIDER_429').length,
+ deferred_due_to_provider_429:olderFailures.filter(x=>x.status==='DEFERRED_PROVIDER_429').length,
+ old_pool_watch_candidates:olderCandidates.filter(x=>x.category==='OLDER_POOL_WATCH').length,
  page_sources:olderPages.map(x=>x.sourcePath),failures:olderFailures,
  no_global_market_completeness_claim:true,no_buy_authorization:true};
 metrics.v19_ohlcv_backfill={budget:request.max_ohlcv_requests??0,
- attempted:ohlcvResults.length,results:ohlcvResults,research_only:true};
+ attempted:ohlcvResults.filter(x=>x.status!=='DEFERRED_PROVIDER_429').length,
+ deferred_due_to_provider_429:ohlcvResults.filter(x=>x.status==='DEFERRED_PROVIDER_429').length,
+ results:ohlcvResults,research_only:true};
 metrics.v19_hot_fair_service=summarizeRecheckService({plan:recheckPlan,attempts,asOfUtc:now()});
 metrics.v19_hot_fair_recheck_plan={selected:recheckPlan.selected.map(x=>({chain:x.chain,pool:x.pool,queue:x.queue,research_score:x.research_score??null})),
   all_new_pool_count:recheckPlan.all_new_pool_count,deferred_new_pool_count:recheckPlan.deferred_new_pool_count,
@@ -360,6 +393,7 @@ metrics.v19_gecko_received_pages=receivedPages.map(x=>({chain:x.chain,page:x.pag
 metrics.v19_gecko_failed_pages=failedPages.map(x=>({chain:x.chain,page:x.page,
   status:x.status,retry_after_utc:x.retryAfterUtc}));
 metrics.v19_gecko_deferred_pages=deferredPages;
+metrics.v19_gecko_provider_429_cooldown=geckoBlock();
 metrics.v19_gecko_actual_attempts=receivedPages.length+failedPages.length;
 // Offset pages can move between calls: keep a separate, immutable-evidence
 // backed ledger for failed, deferred, skipped and overlapping page indices.
