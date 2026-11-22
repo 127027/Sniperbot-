@@ -66,3 +66,12 @@ test('cannot compare a synthetic profitable fixture or a fabricated winner-eligi
  assert.throws(()=>compareOct12SourceGapBaselineAfterRun(args),
   /POSTRUN_BASELINE_OR_REFERENCE_INVALID_OR_LEAK_RISK/);
 });
+
+test('committed 65-row comparison exactly matches both immutable source blobs',async()=>{
+ const expected=compareOct12SourceGapBaselineAfterRun(await build());
+ const stored=JSON.parse(await read(
+  'research/evaluation/2026-10-12/v19-source-gap-baseline-vs-65-reference-20261122.json'));
+ assert.deepEqual(stored,expected);
+ assert.ok(stored.results.every(x=>x.comparison_outcome==='UNKNOWN_NOT_A_VERIFIED_FALSE_NEGATIVE'));
+ assert.equal(stored.baseline_provenance,'PRIOR_ARCHIVED_EVIDENCE_ONLY_REPLAY_NOT_NEW_BACKTEST');
+});
