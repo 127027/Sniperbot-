@@ -58,7 +58,8 @@ test('on-demand five-role result uses same trade kernel with 29h prep attached',
 test('29-hour report includes an exact 00:00 first decision and does not leak a 00:34 observation',()=>{
  const late=snap('2026-10-12T00:34:00.000Z',2.0);
  const before=snap('2026-10-11T23:59:00.000Z',1.0);
- const r=build29HourAsOfTimeline({date,snapshots:[late,before]});
+ const r=build29HourAsOfTimeline({date,snapshots:[late,before],
+  firstScanAtStart:true});
  assert.equal(r.first_decision_opportunity_utc,'2026-10-12T00:00:00.000Z');
  assert.equal(r.first_decision_wait_minutes,0);
  assert.equal(r.hourly_ticks,29);
