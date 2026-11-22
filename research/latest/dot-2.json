@@ -2,18 +2,18 @@
   "schema": 1,
   "dot": "dot-2",
   "mode": "PAPER_RESEARCH_ONLY",
-  "status": "CAPTURE_CONFIRMED_RESEARCH_ONLY",
-  "updated_at_utc": "2026-11-22T22:18:11.112Z",
-  "journal_path": "research/journal/dot-2/2026-11-22/20261122T221803063Z-v19-research.json",
-  "journal_blob_sha": "84a3ce8be7aa77e8f0160261ad1b4384bac3de29",
+  "status": "CAPTURE_CONFIRMED_DATA_GAP_RISK_UNVERIFIED",
+  "updated_at_utc": "2026-11-22T22:18:27.681Z",
+  "journal_path": "research/journal/dot-2/2026-11-22/20261122T221821703Z-capture-reconciliation.json",
+  "journal_blob_sha": "4d99552b65b1d29dc00a668ee00bb8f7b73c7ce6",
   "capture_request_path": "research/requests/2026-11-22/20261122T221749376Z-dot2-research-window.json",
   "feed_is_current_request": true,
-  "source_run_id": "45070668194",
-  "captured_at_utc": "2026-11-22T21:11:22.118Z",
-  "source_chain": "cronos",
+  "source_run_id": "45076917554",
+  "captured_at_utc": "2026-11-22T22:18:01.614Z",
+  "source_chain": "base",
   "source_page": 3,
-  "evidence_path": "research/feeds/2026-11-22/45070668194/evidence.json",
-  "handoff_path": "research/feeds/2026-11-22/45066246697/dot2-to-dot3-handoff.json",
+  "evidence_path": "research/feeds/2026-11-22/45076917554/evidence.json",
+  "handoff_path": "research/feeds/2026-11-22/45076917554/dot2-to-dot3-handoff.json",
   "full_contract_candidates": 2,
   "market_memory_path": "research/state/market-memory.json",
   "market_memory_stats": {
@@ -27,19 +27,20 @@
   "pending_queue_path": "research/state/market-memory.json",
   "errors": [
     {
-      "code": "CAPTURE_PENDING",
-      "detail": "Current request not yet matched to a completed source feed at review."
+      "code": "DATA_GAP_RISK_UNVERIFIED",
+      "detail": "HTTP capture is not independent quote-as-of, issuer, or sellability proof."
     },
     {
-      "code": "DATA_GAP_RISK_UNVERIFIED",
-      "detail": "No independent issuer or sellability proof."
+      "code": "POOL_ROWS_REJECTED",
+      "count": 2,
+      "detail": "Retain raw response and investigate without guessing identity."
     }
   ],
   "trading_ready": false,
   "orders_created": 0,
   "capture_request_commit_sha": "ff4e3d45bde1ba60d073e6f598154b2c2e445078",
-  "new_pool_count_this_wake": null,
-  "full_contract_candidates_this_wake": null,
+  "new_pool_count_this_wake": 18,
+  "full_contract_candidates_this_wake": 18,
   "paper_fills_claimed": 0,
   "backtest_executed": false,
   "forensic_audit_path": "research/audits/dot-traces/2026-11-22/20261122T221803063Z/dot-2-discovery.json",
