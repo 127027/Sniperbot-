@@ -1,10 +1,9 @@
-// R29 formal pre-backtest stop/go. PASS+PARTIAL is never completion.
+// R29 formal pre-backtest stop/go: first 60 NON-BACKTEST tasks must PASS.
+// QA-04 is the FINAL backtest, so cannot be a prerequisite of itself.
 // No outbound HTTP, no order/fill, no historical replay. All inputs are
 // from read-only original docs/state. Gate is deliberately FAIL-CLOSED
 // on externally unverified issuer/sellability/Windows or October sources.
 import {validateFrozenHoldout} from './v19-prospective-holdout-freeze.mjs';
-import {inspectReadOnlyLocalPaperSnapshot}
- from './v19-local-client-readonly-proof.mjs';
 
 const ms=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
 const ids=s=>[...s.matchAll(/^\| ((?:SYS|D[1-5]|QA)-\d{2})\s*\|/gm)].map(m=>m[1]);
@@ -37,11 +36,16 @@ export function inspectR29OriginalAcceptanceReleaseGate({
  };
  if(JSON.stringify(status)!==JSON.stringify(taskRegister.status_counts))
   throw Error('REPORTED_ACCEPTANCE_STATUS_NOT_EQUAL_TO_ORIGINAL_61');
+ const nonBacktest=taskRegister.tasks.filter(t=>t.id!=='QA-04');
+ const backtestTask=taskRegister.tasks.find(t=>t.id==='QA-04');
+ if(nonBacktest.length!==60||!backtestTask)
+  throw Error('QA04_FINAL_BACKTEST_TASK_REQUIRED_IN_ORIGINAL_61');
+ const acceptedNonBacktest=nonBacktest.filter(t=>t.status==='PASS').length;
  const blockers=[];
- if(status.PASS!==61||status.PARTIAL!==0||status.OPEN!==0)
-  blockers.push({gate:'ORIGINAL_TASK_ACCEPTANCE',
-   reason:'ALL_61_ORIGINAL_CRITERIA_NOT_PASS',
-   outstanding_task_ids:taskRegister.tasks.filter(t=>t.status!=='PASS')
+ if(acceptedNonBacktest!==60)
+  blockers.push({gate:'NON_BACKTEST_ORIGINAL_TASK_ACCEPTANCE',
+   reason:'ALL_60_NON_BACKTEST_ORIGINAL_CRITERIA_NOT_PASS',
+   outstanding_task_ids:nonBacktest.filter(t=>t.status!=='PASS')
      .map(t=>t.id)});
  const holdoutEnd=ms(holdout.holdout_end_utc);
  const holdoutMature=now>=holdoutEnd;
@@ -80,11 +84,15 @@ export function inspectR29OriginalAcceptanceReleaseGate({
  return {schema:1,kind:'R29_V19_ORIGINAL_ACCEPTANCE_PREBACKTEST_GATE',
   as_of_utc:asOfUtc,mode:'PAPER_RESEARCH_ONLY',branch:taskRegister.branch,
   original_task_count:61,
+  non_backtest_original_task_count:60,
+  actual_non_backtest_pass_count:acceptedNonBacktest,
+  strict_non_backtest_fully_accepted_pct:Math.round(acceptedNonBacktest/60*10000)/100,
+  final_qa04_backtest_status:backtestTask.status,
   original_status_counts:status,
   strict_fully_accepted_pct:Math.round(status.PASS/61*10000)/100,
   technical_touched_pct:Math.round((status.PASS+status.PARTIAL)/61*10000)/100,
   persisted_pool_count:poolCount,
-  all_original_acceptance_items_passed:status.PASS===61,
+  all_nonbacktest_original_acceptance_items_passed:acceptedNonBacktest===60,
   precommitted_holdout_window_elapsed:holdoutMature,
   independently_authenticated_historical_market:false,
   independent_risk_and_sellability_proven:false,
@@ -97,5 +105,5 @@ export function inspectR29OriginalAcceptanceReleaseGate({
   client_state_read_or_written:false,
   live_trade_authorized:false,orders_published:0,
   blockers,
-  source_of_truth:'61 original acceptance tasks and independent authenticated source/position evidence, not PASS+PARTIAL'};
+  source_of_truth:'60 non-backtest original acceptance tasks plus independent authenticated source/position evidence; QA-04 is a final Backtest check, never a prerequisite of itself'};
 }
