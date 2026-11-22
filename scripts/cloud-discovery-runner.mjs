@@ -157,7 +157,13 @@ const decoded=receivedPages.length?{
  schema:1,network:'MULTI_CHAIN',page:null,
  found_count:receivedPages.reduce((n,x)=>n+x.decoded.found_count,0),
  rejected_count:receivedPages.reduce((n,x)=>n+x.decoded.rejected_count,0),
+ requested_pool_count:receivedPages.reduce((n,x)=>n+(x.decoded.requested_pool_count||0),0),
  candidates:receivedPages.flatMap(x=>x.decoded.candidates),
+ // Preserve all parser rejects across chain/page, even unsupported V4 pools.
+ rejected:receivedPages.flatMap(x=>(x.decoded.rejected||[]).map(r=>({
+   ...r,chain:x.chain,source_page:x.page,source_raw_path:x.sourcePath,
+   source_http_captured_at_utc:x.capturedAtUtc
+ }))),
  captured_at_utc:now()
 }:null;
 const chosen={chain:receivedPages[0]?.chain||capturePlan.tasks[0]?.chain||'UNKNOWN',
@@ -422,6 +428,12 @@ const data={schema:1,kind:'DOT2_PUBLIC_CAPTURE_EVIDENCE',mode:'PAPER_RESEARCH_ON
   coverage_is_global:false,coverage_is_all_chains:false,gecko:decoded,
   dex_checks:dexChecks,dex_fallback_candidates:fallback,
   older_pool_candidates:olderCandidates,
+  page_capture_failures:failedPages.map(x=>({
+    chain:x.chain,page:x.page,status:x.status,
+    source_path:x.sourcePath,attempt_at_utc:x.capturedAtUtc,
+    retry_after_utc:x.retryAfterUtc})),
+  page_capture_deferred:deferredPages.map(x=>({
+    chain:x.chain,page:x.page,status:'NOT_CAPTURED_DEFERRED'})),
   api_evidence:fetches,metrics,source_integrity:sourceIntegrity,
   errors:fetches.filter(x=>x.error||x.http_ok===false).map(x=>({provider:x.provider,status:x.http_status||null,error:x.error||'HTTP_NOT_OK'})),
   published_paper_orders:0,verified_client_fills:0,
