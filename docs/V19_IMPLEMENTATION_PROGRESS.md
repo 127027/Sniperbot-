@@ -1,5 +1,17 @@
 # R29 V1.9 – Fortlaufender Umsetzungsstand (22.11.2026)
 
+## R29-FORTSETZUNG: ehrlicher Capture-Abschluss und inkrementelle 4/min-Scannerläufe (22.11.2026)
+
+**Kein künstlicher Statussprung:** **12/61 Original-PASS = 19,7 % vollständig; 31 PARTIAL; 18 OPEN; 43/61 = 70,5 % nur technisch bearbeitet.** Diese Arbeiten betreffen die bereits teilweise bearbeiteten `SYS-11` und `QA-03`, die vor echten mehrfachen Provider-End-to-End-Läufen **PARTIAL** bleiben.
+
+**Realer Befund**: der vorherige 5/6-HTTP200-/Base-429-Researchrun [#45057658912](https://github.com/127027/Sniperbot-/actions/runs/45057658912) wurde trotz ungelöster Seite fälschlich als erfolgreicher GitHub-Capture behandelt. **Implementiert:** `src/v19-capture-completion-gate.mjs`, `scripts/v19-assert-capture-completion.mjs`, Runner-Archiv `capture-completion-verdict.json`, Workflow-Abschluss **nach** dem verpflichtenden Research-/Recovery-Commit; zusätzlich GitHub-Actions-Schrittzusammenfassung. Tatsächlicher HTTP429 bei angeforderter Seite ist unvollständig/fehlerhaft, sämtliche Raw-Belege und pending Pages bleiben erhalten.
+
+**Inkrementelles Scannen korrekt zugelassen:** `BOUNDED_SAMPLE_COMPLETE_COVERAGE_INCOMPLETE` bedeutet alle **geplanten**, aber nicht alle denkbaren/angeforderten Chainseiten HTTP200 (gültiger Budget-Teilschritt). `DEFERRED_BY_PERSISTED_COOLDOWN` ist ohne neuen Provider-Aufruf möglich, wenn der spätere Retry und alle offenen Seiten belegt sind (gültige Pause, kein ruhiger Markt). `REQUESTED_SAMPLE_COMPLETE` bezeichnet nur den begrenzten angeforderten Sample, niemals alle Memecoins. Fehlende Roh-SHA oder echter neuer HTTP429 wird erst **nach** erfolgreichem GitHub-Commit als Workflow-Fehler bewertet.
+
+**Verifiziert:** GitHub Node22 [#45059178322](https://github.com/127027/Sniperbot-/actions/runs/45059178322) auf `c44f41713dc82cbdb6b6354f89dc47a14cc57b4a`, **565/565 PASS, 0 FAIL, TEST_ONLY_NO_SIGNAL_WRITE 0**. Offline-CLI testete den echten alten 5/6/429-Run inkl. acht originaler SHA-Prüfungen und verlangte zu Recht Fehlerstatus. **Kein zweiter echter Providerlauf**. Ausführlich: [V19_QA03_CAPTURE_COMPLETION_AND_DEFERRED_SCANS_20261122.md](V19_QA03_CAPTURE_COMPLETION_AND_DEFERRED_SCANS_20261122.md). Letzte Gecko-Cooldowngrenze **2026-11-22T19:54:35.719Z** bleibt verbindlich. Keine Dots, Echtgeldorders, Windows-Paper-Zustandsänderungen.
+
+
+
 ## LIVE-FORTSETZUNG NACH 70,5-%-MEILENSTEIN – 22.11.2026, 18:54 UTC
 
 **Unveränderte 61er-Abnahme:** **12 PASS (19,7 %), 31 PARTIAL, 18 OPEN; 43/61 (70,5 %) nur technisch bearbeitet**. Kein neuer ursprünglicher Voll-PASS.
