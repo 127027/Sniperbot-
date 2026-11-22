@@ -19,6 +19,8 @@ import {providerRetryDelay} from '../src/v19-provider-backoff.mjs';
 import {measureDot1Activity} from '../src/v19-market-activity.mjs';
 import {emptyPageCoverage,updatePageCoverage} from '../src/v19-page-coverage.mjs';
 import {advanceAdaptiveCadence} from '../src/v19-adaptive-cadence.mjs';
+import {makeGeckoOhlcvRequest,decodeGeckoOhlcv} from '../src/v19-gecko-ohlcv.mjs';
+import {emptyOhlcvBackfillState,planOhlcvBackfill,recordOhlcvBackfill} from '../src/v19-ohlcv-backfill-queue.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -63,7 +65,7 @@ try{pageCoverage=JSON.parse(await readFile(coverageStatePath,'utf8'));}
 catch(error){if(error.code!=='ENOENT')throw error;pageCoverage=emptyPageCoverage();}
 const capturePlan=planMultiChainCapture({
  networks:request.networks,checkpoints:precedingMemory.checkpoints,
- pageCoverage,budget:request.max_gecko_requests,asOfUtc:now()});
+ pageCoverage,budget:request.max_gecko_requests-(request.max_ohlcv_requests??0),asOfUtc:now()});
 const receivedPages=[],failedPages=[],deferredPages=[];
 for(let i=0;i<capturePlan.tasks.length;i++){
  const task=capturePlan.tasks[i],chain=task.chain,page=task.page;
@@ -163,6 +165,53 @@ const recheckPlan=planHotFairRechecks({
  freshCandidates:decoded?.candidates||[],fairCandidates:plan.candidates,
  legacyCandidates:known,asOfUtc:now(),maxChecks:request.max_dex_pairs,
  round:Number(process.env.GITHUB_RUN_NUMBER)||0});
+// Optional OHLCV history inside the EXISTING Gecko request budget; no other bot.
+const ohlcvStatePath='research/state/ohlcv-backfill.json';
+let ohlcvState;
+try{ohlcvState=JSON.parse(await readFile(ohlcvStatePath,'utf8'));}
+catch(err){if(err.code!=='ENOENT')throw err;ohlcvState=emptyOhlcvBackfillState();}
+const ohlcvPlan=planOhlcvBackfill({state:ohlcvState,candidates:recheckPlan.selected,
+ asOfUtc:now(),maxRequests:request.max_ohlcv_requests??0,limit:600});
+const ohlcvResults=[];
+for(const target of ohlcvPlan.targets){
+ const q=makeGeckoOhlcvRequest({chain:target.chain,pool:target.pool,
+  pool_kind:target.pool_kind,tokenContract:target.contract,
+  beforeTimestamp:target.next_before_timestamp,limit:ohlcvPlan.limit});
+ const safe=String(target.pool).replace(/[^a-zA-Z0-9]/g,'');
+ const name='gecko-'+target.chain+'-'+safe+'-'+target.next_before_timestamp;
+ try{
+  const result=await fetchRaw(q.source_url,'GECKOTERMINAL_OHLCV',name+'.raw.json');
+  const received=result.evidence.received_at_utc;
+  const archive=decodeGeckoOhlcv({request:q,response:result.json,
+    capturedAtUtc:received,asOfUtc:received,
+    sourceRawPath:result.evidence.body_path,sourceSha256:result.evidence.response_sha256});
+  const archivePath=root+'/'+name+'.research.json';
+  await writeFile(archivePath,JSON.stringify(archive,null,2)+'\n','utf8');
+  artifacts.push(archivePath);
+  ohlcvState=recordOhlcvBackfill(ohlcvState,{target,page:archive,
+    asOfUtc:received,status:'OK',sourceRawPath:result.evidence.body_path,
+    sourceSha256:result.evidence.response_sha256});
+  ohlcvResults.push({key:target.key,status:'ARCHIVED_RESEARCH_ONLY',
+    raw_path:result.evidence.body_path,research_path:archivePath,
+    candle_count:archive.decoded_candle_count,available_at_utc:received,
+    trade_authorized:false});
+ }catch(err){
+  const attempted=now();
+  const response=fetches.findLast(x=>x.provider==='GECKOTERMINAL_OHLCV'&&x.url===q.source_url);
+  const status=response?.http_status===429?'HTTP_429':
+    response?.http_ok===true?'INVALID_RESPONSE':
+    response?.http_status?'HTTP_ERROR':'SOURCE_ERROR';
+  const delay=providerRetryDelay({httpStatus:response?.http_status||null,
+    previousFailures:ohlcvState.markets[target.key]?.failed_pages||0,
+    retryAfter:response?.retry_after_header||null,atUtc:attempted});
+  ohlcvState=recordOhlcvBackfill(ohlcvState,{target,status,asOfUtc:attempted,
+    retryAfterUtc:delay.next_retry_at_utc});
+  ohlcvResults.push({key:target.key,status,
+    reason:String(err.message||err).slice(0,100),
+    retry_after_utc:delay.next_retry_at_utc,trade_authorized:false});
+ }
+}
+await writeFile(ohlcvStatePath,JSON.stringify(ohlcvState,null,2)+'\n','utf8');
 const attempts=[];
 const targets=recheckPlan.selected;
 const unique=new Set();
@@ -215,6 +264,8 @@ metrics.previous_chain_page_checkpoints=Object.fromEntries(
   request.networks.map(chain=>[chain,
     precedingMemory.checkpoints[chain+':GECKOTERMINAL']?.next_page_to_consider??null]));
 metrics.verified_recheck_price_observations=rechecked.length;
+metrics.v19_ohlcv_backfill={budget:request.max_ohlcv_requests??0,
+ attempted:ohlcvResults.length,results:ohlcvResults,research_only:true};
 metrics.v19_hot_fair_service=summarizeRecheckService({plan:recheckPlan,attempts,asOfUtc:now()});
 metrics.v19_hot_fair_recheck_plan={selected:recheckPlan.selected.map(x=>({chain:x.chain,pool:x.pool,queue:x.queue,research_score:x.research_score??null})),
   all_new_pool_count:recheckPlan.all_new_pool_count,deferred_new_pool_count:recheckPlan.deferred_new_pool_count,
@@ -457,6 +508,7 @@ const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
  observation_path:observationPath,ranking_path:rankingPath,
  activity_capture_path:activityPath,
  page_coverage_report_path:coverageReportPath,
+ ohlcv_backfill_state_path:ohlcvStatePath,
  dot1_cadence_advice_path:dot1AdvicePath,
  forecast_path:forecastPath,matured_forecast_path:matureForecastPath,
  matured_label_path:matureLabelsPath,
