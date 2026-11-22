@@ -11,7 +11,7 @@ test('SYS-06: explicit on-demand request reuses original 5h/24h contract, never 
  assert.equal(req.manual_trigger_only,true);
  assert.equal(req.winner_reference_oracle_input_allowed,false);
  assert.equal(req.existing_paper_account_mutation_allowed,false);
- assert.deepEqual(req.cli_args,['--date','2026-10-12','--input',
+ assert.deepEqual(req.cli_args,['--date','2026-10-12','--first-scan-at-start','--input',
   'research/backtest-inputs/2026-10-12/qa04-synthetic-three-observations.json']);
  assert.throws(()=>validateManualBacktestRequest({date:'2026-10-12',
   inputPath:'research/evaluation/winner-list.json'}));
