@@ -1,5 +1,19 @@
 # R29 – Verbindliche GitHub-Übergabe für neue Chats
 
+## WICHTIGSTE NEUE LIVE-ÜBERGABE (22.11.2026, nach erstem Provider-Capture)
+
+**Fortschritt weiterhin 12 PASS / 31 PARTIAL / 18 OPEN = 43/61 (70,5 % technisch), streng komplett nur 12/61 (19,7 %).** Neue Änderungen innerhalb schon PARTIALer SYS-11/QA-03 zählen NICHT als zusätzliche Originalaufgaben.
+
+1. Der normale `cleanroom-tests.yml`-Push darf **nicht** mehr selbst echte Gecko/DEX-Probes auslösen. Beide Live-Probes erfordern manuelles `workflow_dispatch` mit explizitem `run_provider_probes=true`, Standard `false`. GitHub-CI #45057583875 zeigt tatsächlich beide als SKIPPED.
+2. **Erster realer neuer Research-Capture** [GitHub Actions #45057658912](https://github.com/127027/Sniperbot-/actions/runs/45057658912): 5/6 Gecko-HTTP200 über sechs versuchte Chains, **Base Seite 2 HTTP429**; **79 Poolbeobachtungen**, 2 DEX200, 0 Orders. Original-Body+SHA, in-flight Journal und pending Page gespeichert. 6/6, realer Multi-Run-Resume und Marktvollständigkeit **NICHT** bewiesen. Aktuelles `research/state/market-memory.json` nach diesem Capture **488 Pools**, V4 **97** statt bisher 409/61. Entsprechende CI-Tests müssen mit dem echten wachsenden Bestand funktionieren.
+3. **Providerweite Gecko-429-Sperre bis 2026-11-22T19:54:35.719Z** aus `research/state/provider-budget.json`. Keine neue Gecko-Folgeabfrage vor dieser Zeit. Aus realem Fehler abgeleitet: `src/v19-provider-budget.mjs` Gecko nun konservativ **4/min insgesamt, 3/min NEW_POOLS**; `src/v19-gecko-pacing.mjs` jetzt **15.100 ms Mindestabstand**. Diese Einstellungen sind noch NICHT durch einen realen Nach-Cooldown-Mehrlauf verifiziert.
+4. Echte prospektive `research/state/prospective-holdout-freeze.json` ist jetzt erstellt (SHA `7116f2fbc858d89bda46d38d10f20e66822aca0aa882be07bb7ee94365d86050`, Freeze 18:54:05 UTC). Validation/Holdout sind noch Zukunft; ohne echte Outcomes **QA-05 PARTIAL**.
+5. GitHub [Node22 Source-only #45058091004](https://github.com/127027/Sniperbot-/actions/runs/45058091004) auf `1905b368da3c79f711c7b717da78a3efc570b975`: **555/555 PASS, 0 FAIL, 0 Orderwrites**. Keine echten GPT-Reviews oder Client-Paper-Fills daraus ableiten.
+
+**LIES ZUERST** [`docs/V19_SYS11_REAL_PROVIDER_429_AND_CI_LIMITER_AUDIT_20261122.md`](V19_SYS11_REAL_PROVIDER_429_AND_CI_LIMITER_AUDIT_20261122.md) und den ursprünglichen 61er-Katalog. Dann erst weitere Änderungen. Keine Dots/Main/Legacy/Windows-Paper-Orderaktivierung.
+
+
+
 ## VERBINDLICH NEUSTER R29-STAND (22.11.2026) – 70,5 % technische Arbeit, kein fertiger Trading-Bot
 
 **61 Originalaufgaben: 12 PASS (19,7 %), 31 PARTIAL (50,8 %), 18 OPEN (29,5 %).** **43/61 = 70,5 % haben nachweisbare technische Teil- oder vollständige Arbeiten**. Historische 50,8/59/60,7/62,3-%-Technikzähler und alte 9/10/12 PASS sind vorangegangene Momentaufnahmen; **KEINE** ursprüngliche abgeschlossene Codestufe wurde zurückgesetzt. Niemals 70,5 % als vollständige Original-Abnahme, tatsächlichen Trading-Erfolg oder Marktabdeckung angeben.
