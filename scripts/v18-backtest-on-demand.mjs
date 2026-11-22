@@ -8,6 +8,7 @@ import {homedir} from 'node:os';
 import {fingerprintProtectedFiles,assertProtectedFilesUnchanged,makeResearchOnlyReplayReceipt} from '../src/v19-replay-isolation.mjs';
 import {backtestOnRequest} from '../src/v18-requested-backtest.mjs';
 import {auditOfflineReplayLedger} from '../src/v19-offline-replay-ledger-audit.mjs';
+import {buildOfflineResearchExperimentSuite} from '../src/v19-offline-experiment-suite.mjs';
 import {resolveSharedPaperPolicy} from '../src/v19-paper-budget-policy.mjs';
 import {auditFrozenOctoberTraining} from '../src/v18-frozen-reference.mjs';
 const argv=process.argv.slice(2);
@@ -37,6 +38,7 @@ const report=backtestOnRequest({date:args['--date'],manifest,
 // Fail closed before generating any artifact if the detached model ledger
 // cannot reconcile 5,000 TEST-USDC, buys, sells, fees, and open lots.
 const isolatedLedgerAudit=auditOfflineReplayLedger({report});
+const offlineResearchExperiments=buildOfflineResearchExperimentSuite({report,manifest});
 const training=args['--training-reference']?await auditFrozenOctoberTraining({date:args['--date']}):null;
 const base=resolve('probe-artifacts');
 const runTimestamp=new Date().toISOString().replace(/[-:.]/g,'');
@@ -49,6 +51,7 @@ const paperAfter=await fingerprintProtectedFiles(protectedFiles);
 const protectedFilesProof=assertProtectedFilesUnchanged(paperBefore,paperAfter);
 await writeFile(target,JSON.stringify({requested_backtest:report,
  research_only_receipt:researchReceipt,isolated_model_ledger_audit:isolatedLedgerAudit,
+ offline_research_experiments:offlineResearchExperiments,
  protected_files_unchanged:protectedFilesProof,
  retrospective_training_reference:training},null,2)+'\n',{encoding:'utf8',flag:'wx'});
 // Verify one more time after writing the ONLY allowed output artifact.
