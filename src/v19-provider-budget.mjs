@@ -2,12 +2,15 @@
 // EXISTING Dot2 capture runner. Both Gecko endpoints share one provider bucket.
 // A budget reservation is a REQUEST START, not an HTTP 200 or GPT review.
 // No network, paper orders, API keys, or trading authority in this module.
+// 22 Nov real run 45057658912: five Gecko 200s then HTTP429 on sixth
+// request within 31 seconds. This is a conservative response, not an
+// inference of the provider's official quota or a guarantee against 429.
 import {providerRetryDelay} from './v19-provider-backoff.mjs';
 const ms=x=>typeof x==='string'&&Number.isFinite(Date.parse(x))?Date.parse(x):null;
 const iso=t=>new Date(t).toISOString();
 const WINDOW_MS=60000;
 const POLICY=Object.freeze({
- GECKOTERMINAL:{per_minute:8,lanes:{NEW_POOLS:6,TRENDING:2,OHLCV:2}},
+ GECKOTERMINAL:{per_minute:4,lanes:{NEW_POOLS:3,TRENDING:1,OHLCV:1}},
  DEXSCREENER:{per_minute:120,lanes:{PAIR:120}}
 });
 const group=provider=>provider==='GECKOTERMINAL_OHLCV'?'GECKOTERMINAL':provider;
