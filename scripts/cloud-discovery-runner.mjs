@@ -17,6 +17,7 @@ import {planHotFairRechecks} from '../src/v19-hot-fair-recheck.mjs';
 import {summarizeRecheckService} from '../src/v19-recheck-service-metrics.mjs';
 import {providerRetryDelay} from '../src/v19-provider-backoff.mjs';
 import {measureDot1Activity} from '../src/v19-market-activity.mjs';
+import {emptyPageCoverage,updatePageCoverage} from '../src/v19-page-coverage.mjs';
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
@@ -55,9 +56,13 @@ const memoryFile='research/state/market-memory.json';
 let precedingMemory;
 try{precedingMemory=JSON.parse(await readFile(memoryFile,'utf8'));}
 catch(err){if(err.code!=='ENOENT')throw err;precedingMemory=emptyMarketMemory();}
+const coverageStatePath='research/state/page-coverage.json';
+let pageCoverage;
+try{pageCoverage=JSON.parse(await readFile(coverageStatePath,'utf8'));}
+catch(error){if(error.code!=='ENOENT')throw error;pageCoverage=emptyPageCoverage();}
 const capturePlan=planMultiChainCapture({
  networks:request.networks,checkpoints:precedingMemory.checkpoints,
- budget:request.max_gecko_requests,asOfUtc:now()});
+ pageCoverage,budget:request.max_gecko_requests,asOfUtc:now()});
 const receivedPages=[],failedPages=[],deferredPages=[];
 for(let i=0;i<capturePlan.tasks.length;i++){
  const task=capturePlan.tasks[i],chain=task.chain,page=task.page;
@@ -213,6 +218,30 @@ metrics.v19_gecko_failed_pages=failedPages.map(x=>({chain:x.chain,page:x.page,
   status:x.status,retry_after_utc:x.retryAfterUtc}));
 metrics.v19_gecko_deferred_pages=deferredPages;
 metrics.v19_gecko_actual_attempts=receivedPages.length+failedPages.length;
+// Offset pages can move between calls: keep a separate, immutable-evidence
+// backed ledger for failed, deferred, skipped and overlapping page indices.
+const coverageReport=updatePageCoverage(pageCoverage,{
+ asOfUtc:now(),
+ successes:receivedPages.map(x=>({chain:x.chain,page:x.page,
+   captured_at_utc:x.capturedAtUtc,source_path:x.sourcePath,
+   source_sha256:x.sourceSha256,
+   requested_pool_count:x.decoded.requested_pool_count,
+   rejected_count:x.decoded.rejected_count,
+   candidates:x.decoded.candidates})),
+ failures:failedPages.map(x=>({chain:x.chain,page:x.page,
+   attempt_at_utc:x.capturedAtUtc,reason:x.status,
+   http_status:x.status==='HTTP_429'?429:null})),
+ deferred:deferredPages.map(x=>({chain:x.chain,page:x.page}))
+});
+const coverageReportPath=root+'/page-coverage-report.json';
+await writeFile(coverageReportPath,JSON.stringify(coverageReport,null,2)+'\n','utf8');
+await writeFile(coverageStatePath,JSON.stringify(coverageReport.updated_memory,null,2)+'\n','utf8');
+artifacts.push(coverageReportPath);
+metrics.v19_page_coverage={unresolved_page_indices:coverageReport.total_unresolved_page_indices,
+ page_overlap_records:coverageReport.run.duplicate_pool_ids_across_pages,
+ chain_coverage:coverageReport.chain_coverage,coverage_is_complete:false};
+metrics.v19_page_coverage_path=coverageReportPath;
+
 // Exact original per-page samples, persisted independently of the flattened
 // candidate report. Dot1 and historical replay use the SAME activity extractor.
 const activityDay=dataDate=>dataDate.slice(0,10);
@@ -405,6 +434,7 @@ const memoryCheckpoint={schema:1,kind:'R29_MEMORY_SCAN_CHECKPOINT',
  fair_recheck_backlog_remaining:plan.backlog_count,
  observation_path:observationPath,ranking_path:rankingPath,
  activity_capture_path:activityPath,
+ page_coverage_report_path:coverageReportPath,
  forecast_path:forecastPath,matured_forecast_path:matureForecastPath,
  matured_label_path:matureLabelsPath,
  prospective_ranking_counts:prospectiveRanking.counts,
@@ -415,6 +445,7 @@ await writeFile('research/state/latest.json',JSON.stringify({
  schema:1,checkpoint_path:memoryCheckpointPath,memory_path:memoryPath,
  observation_path:observationPath,ranking_path:rankingPath,
  activity_capture_path:activityPath,
+ page_coverage_report_path:coverageReportPath,
  forecast_path:forecastPath,matured_forecast_path:matureForecastPath,
  matured_label_path:matureLabelsPath,
  created_at_utc:data.captured_completed_at_utc,stats:memory.stats},null,2)+'\n','utf8');
@@ -428,7 +459,7 @@ const latest={schema:1,kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',mode:'PAPER_RES
  observation_path:observationPath,ranking_path:rankingPath,
  forecast_path:forecastPath,matured_forecast_path:matureForecastPath,
  matured_label_path:matureLabelsPath,prospective_counts:prospectiveRanking.counts,
- fair_recheck_backlog_remaining:plan.backlog_count,market_memory_path:memoryPath,memory_checkpoint_path:memoryCheckpointPath,memory_stats:memory.stats,source_evidence_paths:artifacts,
+ fair_recheck_backlog_remaining:plan.backlog_count,market_memory_path:memoryPath,memory_checkpoint_path:memoryCheckpointPath,memory_stats:memory.stats,page_coverage_report_path:coverageReportPath,source_evidence_paths:artifacts,
   trading_ready:false,orders_created:0};
 await mkdir('research/feeds',{recursive:true});
 await writeFile('research/feeds/latest.json',JSON.stringify(latest,null,2)+'\n','utf8');
