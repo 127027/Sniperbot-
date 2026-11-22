@@ -1,0 +1,32 @@
+# R29 V1.8 Phase B – technischer Implementierungsstand (22.11.2026)
+
+Repository: `127027/Sniperbot-`, Branch ausschließlich `codex/r29-cleanroom-paper-20261121`, PAPER ONLY.
+
+## Implementiert
+1. **Uniswap-V4-Discovery-Fix:** `src/live-pool-discovery.mjs` liest die Chain-spezifische Gecko-Dex-Verknüpfung `relationships.dex.data.id` und erlaubt nur für ausdrücklich passende `uniswap-v4-<chain>`-Metadaten die vollständige 32-Byte-Pool-ID. `pool_kind` wird in Marktgedächtnis, Fair-Recheck, Capture-Runner, DEX-Fallback, Forschungsranking, Handoff, Risikowarteschlange und Kandidatenqueue weitergereicht.
+2. **Original-Beobachtung erneut ausgewertet:** `research/feeds/2026-11-22/44997708364/gecko-base-page3.raw.json` enthält 20 Pool-Datensätze, davon 11 V4 mit 32-Byte-Pool-ID. Alte Verarbeitung: 9 akzeptierte Pools; neue Decoder-Funktion: 20. Bei isolierter Weiterverarbeitung: 20 im Forschungs-Marktgedächtnis, 20 in der Fair-Queue, 20 im Handoff, 20 im Forschungscapture, 0 Risikofreigaben oder Orders. **Dieser isolierte Neuvergleich hat den tatsächlichen live persistierten Marktbestand nicht umgeschrieben** und bewirkt keine historische Erstentdeckung.
+3. **Dot3-Risk-Attestation-Shadow:** `src/risk-authorization-v18.mjs` prüft Struktur, Chain/Token/Pool, Anbieterunabhängigkeit, Preis/Liquidität, Quotealter und separate Sicherheits-/Sellability-Nachweise. Selbst wenn strukturell alles passt, bleiben `source_blobs_actually_verified:false`, `issuer_actually_verified:false` und `trade_authorized:false`. Die tatsächliche GitHub-Blob- und Ausstellerverifikation fehlt bewusst noch.
+4. **Read-only-Position-Marktdatenprobe:** `src/market-observer-v18.mjs` erlaubt beim späteren Client-Aufruf zwei öffentliche JSON-Quellen über einen injizierten/standardmäßigen HTTP-Leser. Ergebnisse mit `provider_quote_asof_utc:null` und `source_archive_blob_sha:null` sind **nicht** als frische, beweiskräftige Exit-Quotes gültig. Es gibt noch **keinen** dauerhaft laufenden lokalen Beobachtungsloop.
+5. **Schutzverkaufs-Shadow:** `src/protective-exit.mjs` bewertet aktuelle nachweisgestützte zwei-Provider-Quoten gegen den bekannten Einstieg. Stop-Loss-/Take-Profit-Auslöser erzeugen ausschließlich `SHADOW_SELL_CANDIDATE`; widersprüchliche/stale/illiquide Kurse blockieren. Nie Änderung an Kontoständen, `PAPER_FILLED` oder GitHub-Signalen.
+6. **Zeitliches Prognoselernen:** `src/forecast-calibration-v18.mjs` sammelt 1/3/6h-Endpunkt-Labels nur aus vor Holdout bereits abgeschlossenen und gereiften Fällen. Es erfordert je grober Scoreklasse mindestens 30 Beispiele sowie mindestens fünf positive und fünf negative je Prognoseziel. Andernfalls bleiben Wahrscheinlichkeiten `null`. Das ist ein einfaches Research-Modell, keine nachgewiesene GPT-Prognosequalität oder Trading-Freigabe.
+
+## Neue Regressionen im Branch
+- `test/v18-uniswap-v4.test.mjs`: echter archivierter 20-Record-Capture, falsche V4-Metadaten, Kandidatenmemory/Fair-Queue/Handoff/Ranking/Risk, synthetischer Zweit-Capture.
+- `test/v18-risk-attestation-shadow.test.mjs`: fehlende/stale Quellen, Identitätsmismatch, Liquidität, Sellability, positive Struktur bleibt nicht autorisiert.
+- `test/v18-protective-exit-shadow.test.mjs`: HOLD, Verluststop, Gewinnmitnahme, Quellenkonflikt, unzureichende Liquidität, keine Fills.
+- `test/v18-temporal-calibration.test.mjs`: fehlende Labels und Zukunftsdaten, monotone Zielwahrscheinlichkeiten, keine automatische BUY-Regel.
+- `test/v18-market-observer-shadow.test.mjs`: zwei Quellen, mismatch, HTTP-429, 32-Byte-V4-Identität, kein erfundener Anbieter-Zeitpunkt.
+- `test/v18-shadow-e2e.test.mjs`: read-only Marktbeobachtung bis zum Schutzverkaufs-Gate; bei fehlendem Quoten-Zeitnachweis keinerlei Cash-/Positions-/Receipt-Veränderung.
+
+Gezielte isolierte JavaScript-Ausführungen der frisch aus GitHub geladenen Pure-Funktionen waren erfolgreich: 10/10 V4-Verarbeitungsprüfungen, 5/5 Attestationschecks, 9/9 Exitchecks, 7/7 Lernchecks, 5/5 Read-only-Beobachtungschecks. Diese Prüfungen sind **nicht** gleichbedeutend mit einem ausgeführten `npm test`-Lauf unter Node.js. Die neu eingecheckten Node-Tests und bestehende Gesamtsuite müssen in CI separat mit Ergebnis nachgewiesen werden; ein leerer GitHub-Combined-Status und fehlende PR-Run-Daten sind kein Bestehensnachweis.
+
+## Aktivierungssperren und offene Aufgaben
+- V1.8-Shadow-Module sind **nicht** in `src/runner.mjs` oder `src/publisher.mjs` als aktive Handelskomponenten eingebunden. Der bisherige lokale Client-Code wurde nicht verändert.
+- Für eine reale Paper-Order fehlt noch ein SHA- und ausstellerverifizierter Dot3-Nachweis, ein tatsächlich zeitgerechter Quoten-/Sellability-Beleg und ein verifizierter lokaler BUY-/SELL-/Receipt-Test auf isoliertem TEST-USDC-Stand.
+- Der Marktbeobachter muss vor Aktivierung Quellen-Originale revisionssicher archivieren und den tatsächlichen Provider-Quotezeitpunkt von bloßem HTTP-Capture unterscheiden. Bei fehlenden Daten gilt DATA_GAP; ein Schutzverkauf kann dann nicht garantiert werden.
+- Uniswap-V4-Pools aus alten Roh-Captures können als archivierte, damals tatsächlich erfasste Belege neu rekonstruiert werden; dies ist noch nicht automatisch in das live Marktgedächtnis rückgemergt. Keine Umdeutung als frische Beobachtung.
+- Die 59 nicht eingefrorenen historischen Oktober-Meldungen bleiben zur Identitäts-/OHLCV-Nachprüfung offen; ohne Originaldaten dürfen keine Oracle-Trades oder Gewinne erfunden werden.
+- Die fünf stündlichen Dots bleiben auf ihren vorhandenen Rollen; die neuen Module führen keine neuen Automationen oder Bots ein. Adaptives GPT-Tempo besteht bereits als `src/cadence.mjs`; die reale Inputabdeckung bleibt begrenzt.
+- Vor vollständiger sicherer V1.8-Aktivierung: komplette Node-CI, negativer Sicherheits-End-to-End-Test, authentischer lokaler Paper-Receipt-Test und unabhängiger Prospektiv-/Holdout-Vergleich. **Ohne diese Nachweise keine Freigabe der neuen Trading-Funktionen.**
+
+Keine Veränderung an `main`, altem Bot, `signals/index.json`, Orderdateien, Receipts oder bestehendem Windows-Paper-Guthaben durch die hier vorgenommenen Code-Commits.
