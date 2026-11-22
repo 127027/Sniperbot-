@@ -16,10 +16,26 @@ async function realState(){
  ].map(read));
  return {memory,pageCoverage,providerBudget,olderState,ohlcvState};
 }
+async function preRecoveryState(){
+ // Exact original provider budget and page coverage from prior GitHub blob
+ // SHA, plus a narrowly reconstructed read-only Base-429 planning checkpoint.
+ // Never time-travel against mutable CURRENT provider state.
+ const fixture=await read('test/fixtures/v19-pre-recovery-real-budget-and-coverage.json');
+ assert.equal(fixture.kind,'R29_V19_PRE_RECOVERY_ARCHIVED_PROVIDER_CONTEXT');
+ assert.equal(fixture.source_blob_sha['research/state/provider-budget.json'],
+  'bade54144c11fe961607fded877566d8e1c684b4');
+ assert.equal(fixture.source_blob_sha['research/state/page-coverage.json'],
+  'e35180cfae887c2815f6ebe8cfa345833270f1ec');
+ return {memory:fixture.prior_asof_planning_memory,
+  pageCoverage:fixture.original_before_recovery_pageCoverage,
+  providerBudget:fixture.original_before_recovery_providerBudget,
+  olderState:fixture.original_before_recovery_olderState,
+  ohlcvState:fixture.original_before_recovery_ohlcvState};
+}
 const six=['solana','base','ethereum','bsc','robinhood','cronos'];
 
 test('SYS-11: real 19:14Z preflight respects persistent Base 429, zero HTTP/zero trading',async()=>{
- const state=await realState();
+ const state=await preRecoveryState();
  const p=planResearchRestart({...state,asOfUtc:'2026-11-22T19:14:16.000Z'});
  assert.equal(p.status,'WAIT_PERSISTED_PROVIDER_COOLDOWN');
  assert.equal(p.can_issue_provider_http_now,false);
@@ -34,7 +50,7 @@ test('SYS-11: real 19:14Z preflight respects persistent Base 429, zero HTTP/zero
  assert.equal(p.real_orders_created,0);
 });
 test('SYS-11: after saved cool-down a new single-page preview prioritizes the expired Base2 failure without HTTP',async()=>{
- const state=await realState();
+ const state=await preRecoveryState();
  const p=planResearchRestart({...state,asOfUtc:'2026-11-23T04:00:00.000Z',
   maxNewPoolPages:1});
  assert.equal(p.status,'READY_TO_ATTEMPT_BOUNDED_RESEARCH');
@@ -73,7 +89,7 @@ test('SYS-11: rolling provider budget alone blocks a restart until a slot really
  assert.equal(providerBudget.providers.GECKOTERMINAL.recent_starts.length,3);
 });
 test('SYS-11: preflight rejects future/corrupt clock instead of consuming provider capacity',async()=>{
- const state=await realState();
+ const state=await preRecoveryState();
  assert.throws(()=>planResearchRestart({...state,asOfUtc:'no-date'}),
   /INVALID_RESEARCH_RESTART_PREFLIGHT/);
  assert.throws(()=>planResearchRestart({...state,asOfUtc:'2026-11-22T18:50:00Z'}),
@@ -81,18 +97,25 @@ test('SYS-11: preflight rejects future/corrupt clock instead of consuming provid
  assert.throws(()=>planResearchRestart({...state,asOfUtc:'2026-11-22T19:14:16Z',
   networks:['base','base']}),/INVALID_RESEARCH_RESTART_PREFLIGHT/);
 });
-test('SYS-11: end-to-end read-only CLI prints persisted cooldown without network or fake BUY',()=>{
- const run=spawnSync(process.execPath,['scripts/plan-r29-research-restart.mjs'],{
+test('SYS-11: CLI refuses fake historical time-travel over a newer real HTTP receipt, but current read-only preflight works',()=>{
+ const old=spawnSync(process.execPath,['scripts/plan-r29-research-restart.mjs'],{
   encoding:'utf8',timeout:15000,
   env:{...process.env,R29_PREFLIGHT_ASOF_UTC:'2026-11-22T19:14:16.000Z'}
+ });
+ assert.notEqual(old.status,0,'current persisted provider state MUST reject a 19:14Z as-of request');
+ assert.match(old.stderr,/CORRUPT_PROVIDER_REQUEST_HISTORY/);
+ const run=spawnSync(process.execPath,['scripts/plan-r29-research-restart.mjs'],{
+  encoding:'utf8',timeout:15000,
+  env:{...process.env,R29_PREFLIGHT_ASOF_UTC:new Date().toISOString()}
  });
  assert.equal(run.status,0,run.stderr);
  const row=run.stdout.split('\n').find(v=>v.startsWith('R29_RESEARCH_RESTART_PREFLIGHT '));
  assert.ok(row);
  const p=JSON.parse(row.slice('R29_RESEARCH_RESTART_PREFLIGHT '.length));
- assert.equal(p.can_issue_provider_http_now,false);
- assert.equal(p.not_before_utc,'2026-11-22T19:54:35.719Z');
  assert.equal(p.no_network_no_persistent_write,true);
+ assert.equal(p.actual_http_starts,0);
+ assert.equal(p.actual_gpt_reviews,0);
+ assert.equal(p.paper_orders_created,0);
 });
 test('SYS-11: preflight source only inspects existing state and does not write research requests or orders',async()=>{
  const code=await readFile('scripts/plan-r29-research-restart.mjs','utf8');
