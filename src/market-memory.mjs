@@ -11,10 +11,21 @@ export function emptyMarketMemory(){
   stats:{total_discovered:0,total_observation_batches:0}};
 }
 export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtUtc,sourceSha256=null,
- chain=null,page=1,provider='GECKOTERMINAL',fetchStatus='OK',retryAfterUtc=null}={}){
+ chain=null,page=1,provider='GECKOTERMINAL',fetchStatus='OK',retryAfterUtc=null,
+ reconstructedAtUtc=null}={}){
  const t=iso(sourceCapturedAtUtc);
  if(!t||!sourcePath?.startsWith('research/')||!Array.isArray(candidates))throw Error('INVALID_MEMORY_EVIDENCE');
  if(existing&&existing.kind!=='R29_PERSISTENT_MARKET_MEMORY')throw Error('MEMORY_SCHEMA_MISMATCH');
+ const dot2Live=(provider==='GECKOTERMINAL'||provider==='GECKOTERMINAL_TRENDING')
+   &&fetchStatus==='OK'&&sourcePath.startsWith('research/feeds/');
+ const archiveRecovery=provider==='GECKOTERMINAL_ARCHIVE_RECOVERY';
+ const reconstructedAt=reconstructedAtUtc===null?null:iso(reconstructedAtUtc);
+ if(reconstructedAtUtc!==null&&(!reconstructedAt||!archiveRecovery
+    ||Date.parse(reconstructedAt)<Date.parse(t)))throw Error('INVALID_ARCHIVE_RECONSTRUCTION_TIME');
+ // The original HTTP capture time and the later indexing time are different.
+ // Old recovery rows MUST NOT become a contemporary Dot2 detection.
+ const sourceClassification=archiveRecovery?'ARCHIVED_RAW_RECONSTRUCTION':
+   dot2Live?'LIVE_DOT2_CAPTURE':'DERIVED_OR_LEGACY_IMPORT';
  const memory=structuredClone(existing||emptyMarketMemory());
  if(!Array.isArray(memory.ingested_sources))throw Error('INVALID_MEMORY_INDEX');
  if(memory.ingested_sources.includes(sourcePath))return {memory,added:0,updated:0,duplicates:0,already_ingested:true};
@@ -23,8 +34,17 @@ export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtU
   const canonical=canonicalChain(c.chain),pool=c.pool,seen=iso(c.observed_at_utc||sourceCapturedAtUtc);
   if(!canonical||!poolValid(canonical,pool,c.pool_kind)||!seen||Date.parse(seen)>Date.parse(t)){invalid++;continue;}
   const k=ident(canonical,pool),validContract=tokenValid(canonical,c.contract)?c.contract:null;
+  const originalCreation=iso(c.pool_created_at_utc);
+  const validCreation=originalCreation&&Date.parse(originalCreation)<=Date.parse(seen)
+    ?originalCreation:null;
   const old=memory.pools[k],ref={source_path:sourcePath,observed_at_utc:seen,
-    source_sha256:sourceSha256||null,provider};
+    source_sha256:sourceSha256||null,provider,
+    source_class:sourceClassification,
+    source_page:Number.isInteger(c.source_page)?c.source_page:page,
+    source_row:Number.isInteger(c.source_row)?c.source_row:null,
+    original_pool_created_at_utc:validCreation,
+    first_processed_by_dot2_at_utc:dot2Live?t:null,
+    archive_reconstructed_at_utc:archiveRecovery?reconstructedAt:null};
   if(!old){
    memory.pools[k]={chain:canonical,pool,pool_kind:c.pool_kind==='UNISWAP_V4_POOL_ID'?'UNISWAP_V4_POOL_ID':null,contract:validContract,symbol:c.symbol||null,
     first_seen_at_utc:seen,last_seen_at_utc:seen,first_source_path:sourcePath,
@@ -36,6 +56,12 @@ export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtU
       liquidity_usd:Number.isFinite(c.liquidity_usd)&&c.liquidity_usd>=0?c.liquidity_usd:null
     },
     contract_conflicts:[],source_categories:[c.category||'UNCATEGORIZED'],
+    first_original_pool_created_at_utc:validCreation,
+    first_dot2_detected_at_utc:dot2Live?t:null,
+    first_dot2_detected_source_path:dot2Live?sourcePath:null,
+    first_archive_reconstructed_at_utc:archiveRecovery?reconstructedAt:null,
+    first_archive_reconstruction_source_path:archiveRecovery?sourcePath:null,
+    first_seen_legacy_timestamp_is_not_dot2_proof:true,
     status:'PENDING_RESEARCH_NOT_BUY_ELIGIBLE'};
    added++;continue;
   }
@@ -44,6 +70,23 @@ export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtU
   if(prior.some(x=>x.source_path===sourcePath)){duplicates++;continue;}
   old.source_refs=[...prior,ref];
   old.observation_count++;
+  // Never backdate an actual Dot2 discovery from a reconstructed raw API
+  // timestamp. Original pool creation is a separate, provider-sourced fact.
+  const firstCreated=iso(old.first_original_pool_created_at_utc);
+  if(validCreation&&(!firstCreated||Date.parse(validCreation)<Date.parse(firstCreated)))
+    old.first_original_pool_created_at_utc=validCreation;
+  if(dot2Live&&(!iso(old.first_dot2_detected_at_utc)
+    ||Date.parse(t)<Date.parse(old.first_dot2_detected_at_utc))){
+    old.first_dot2_detected_at_utc=t;
+    old.first_dot2_detected_source_path=sourcePath;
+  }
+  if(archiveRecovery&&reconstructedAt
+    &&(!iso(old.first_archive_reconstructed_at_utc)
+      ||Date.parse(reconstructedAt)<Date.parse(old.first_archive_reconstructed_at_utc))){
+    old.first_archive_reconstructed_at_utc=reconstructedAt;
+    old.first_archive_reconstruction_source_path=sourcePath;
+  }
+  old.first_seen_legacy_timestamp_is_not_dot2_proof=true;
   if(Date.parse(seen)>Date.parse(old.last_seen_at_utc)){
    old.last_seen_at_utc=seen;old.last_source_path=sourcePath;
    if(c.symbol)old.symbol=c.symbol;
@@ -85,7 +128,11 @@ export function mergeMemory(existing,{candidates=[],sourcePath,sourceCapturedAtU
  memory.stats={total_discovered:Object.keys(memory.pools).length,
   total_observation_batches:memory.ingested_sources.length,
   contracts_complete:Object.values(memory.pools).filter(x=>tokenValid(x.chain,x.contract)).length,
-  unresolved_identity_conflicts:Object.values(memory.pools).filter(x=>x.contract_conflicts.length>0).length};
+  unresolved_identity_conflicts:Object.values(memory.pools).filter(x=>x.contract_conflicts.length>0).length,
+  first_dot2_detected_count:Object.values(memory.pools)
+    .filter(x=>!!x.first_dot2_detected_at_utc).length,
+  archive_reconstructed_count:Object.values(memory.pools)
+    .filter(x=>!!x.first_archive_reconstructed_at_utc).length};
  return {memory,added,updated,duplicates,invalid,contractConflicts,already_ingested:false};
 }
 // Backwards-compatible read-only facade. There is ONE authoritative selection
