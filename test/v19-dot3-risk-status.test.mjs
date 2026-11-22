@@ -95,3 +95,42 @@ test('real 22 November Dot2 handoff yields two WATCH, zero REAL positive approva
  assert.equal(x.order_authorized_count,0);
  assert.equal(x.candidates.every(y=>y.candidate_preserved_for_recheck),true);
 });
+
+test('synthetic attestation cannot override contradictory candidate price or poor liquidity',()=>{
+ const conflicting=calc({mode:'SYNTHETIC_REGRESSION_ONLY',
+  candidate:{...candidate,price_disagreement_pct:45}});
+ assert.equal(conflicting.status,'WATCH');
+ assert.equal(conflicting.reason,'INDICATIVE_PRICE_DISAGREEMENT');
+ assert.equal(conflicting.trade_authorized,false);
+ const thin=calc({mode:'SYNTHETIC_REGRESSION_ONLY',
+  candidate:{...candidate,primary_liquidity_usd:100}});
+ assert.equal(thin.status,'WATCH');
+ assert.equal(thin.reason,'INDICATIVE_LOW_LIQUIDITY');
+ assert.equal(thin.trade_authorized,false);
+});
+test('structurally positive attestation cannot manufacture missing candidate quote evidence',()=>{
+ const missing=calc({mode:'SYNTHETIC_REGRESSION_ONLY',
+  candidate:{...candidate,independent_price_liquidity_ready:false}});
+ assert.equal(missing.status,'DATA_GAP');
+ assert.equal(missing.reason,'CANDIDATE_QUOTE_EVIDENCE_INCOMPLETE');
+ assert.equal(missing.trade_authorized,false);
+ const zero=calc({mode:'SYNTHETIC_REGRESSION_ONLY',
+  candidate:{...candidate,second_source_price_usd:null}});
+ assert.equal(zero.status,'DATA_GAP');
+ assert.equal(zero.trade_authorized,false);
+});
+test('Dot3 candidate source pair with stale provider quote cannot yield PAPER_ELIGIBLE',()=>{
+ const q=(provider,source_url,provider_quote_asof_utc)=>({
+  chain:'base',pool,contract,source_url,
+  captured_at_utc:'2026-11-22T08:20:40.000Z',
+  price_usdc:.01,liquidity_usdc:20000,provider_quote_asof_utc
+ });
+ const badPair=[q('g','https://www.geckoterminal.com/base/pools/'+pool,
+  '2026-11-22T08:00:00.000Z'),
+ q('d','https://dexscreener.com/base/'+pool,'2026-11-22T08:20:35.000Z')];
+ const x=calc({mode:'SYNTHETIC_REGRESSION_ONLY',
+  candidate:{...candidate,source_observations:badPair}});
+ assert.equal(x.status,'DATA_GAP');
+ assert.equal(x.source_pair_audit.status,'PROVIDER_QUOTE_STALE');
+ assert.equal(x.trade_authorized,false);
+});
