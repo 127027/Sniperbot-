@@ -3,7 +3,8 @@
 // This is NOT the cloud GPT strategy; it tests that the same PAPER execution gates
 // can create both BUY and SELL from pre-existing market observations.
 import {newState,settlePaper,Reject,marketKey,DEFAULT_POLICY} from './core.mjs';
-import {researchDue,chooseCadence} from './cadence.mjs';
+import {researchDue} from './cadence.mjs';
+import {advanceAdaptiveCadence} from './v19-adaptive-cadence.mjs';
 import {decideUnifiedMarket,UNIFIED_V18_RULES} from './unified-decision-v18.mjs';
 import {buildAsOfLookback} from './v19-asof-lookback.mjs';
 import {planDataGapRecovery} from './v19-coverage-recovery.mjs';
@@ -23,7 +24,7 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
  const p={...UNIFIED_V18_RULES,...params};
  if(![p.entryMomentumPct,p.takeProfitPct,p.stopLossPct,p.maxMomentumAgeHours].every(x=>typeof x==='number'&&Number.isFinite(x)&&x>0))throw Error('INVALID_PARAMS');
  const state=newState(),initial=state.cash,events=[],sums={dataGap:0,available:0,fullReviews:0,buys:0,sells:0};
- let ledger=state,lastReview=null,sequence=0,currentTarget=targetPer24h;
+ let ledger=state,lastReview=null,sequence=0,currentTarget=targetPer24h,cadenceState=null;
  const history=new Map(),lastRealizedLoss=new Map();
  // Research features may use ALL older, genuinely available market history.
  // The common BUY kernel still limits its MOMENTUM BASELINE to two hours, and
@@ -47,8 +48,11 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    const measured=activityPageCaptures.length
      ?measureDot1Activity({pageCaptures:activityPageCaptures,asOfUtc:at}):null;
    const cadenceMetrics=measured?.metrics?.dataAvailable?measured.metrics:activity?.metrics??null;
+   const cadenceEval=forceHourlyReview?null:advanceAdaptiveCadence({
+     previous:cadenceState,metrics:cadenceMetrics,asOfUtc:at,initialTarget:targetPer24h});
+   if(cadenceEval)cadenceState=cadenceEval.state;
    const cadence=forceHourlyReview?{target:24,reason:'EXPLICIT_24_HOUR_DIAGNOSTIC'}
-     :chooseCadence(cadenceMetrics,currentTarget);
+     :{target:cadenceEval.target,reason:cadenceEval.reason};
    currentTarget=cadence.target;
    const due=researchDue(at,lastReview,currentTarget).due;
    if(due){lastReview=at;sums.fullReviews++;}
@@ -66,7 +70,9 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    const featureHistory=buildAsOfLookback({snapshots,asOfUtc:at});
    const gapRecovery=planDataGapRecovery({asOfUtc:at,activityObservations});
    const step={at_utc:at,full_review:due,target_per_24h:currentTarget,cadence_reason:cadence.reason,
-     measured_page_activity:measured,eligible_snapshots:fresh.size,blocked_sources:blocked,
+     measured_page_activity:measured,
+     cadence_quiet_confirmations:cadenceState?.quiet_confirmations??0,
+     eligible_snapshots:fresh.size,blocked_sources:blocked,
      data_gap_capture_recommendations:gapRecovery,
      past_only_feature_history:{market_count:featureHistory.market_count,
        observation_count:featureHistory.observation_count,
