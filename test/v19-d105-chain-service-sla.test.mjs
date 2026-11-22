@@ -81,6 +81,7 @@ test('D1-05: six-chain slots and actual HTTP200 are measured separately',()=>{
 test('D1-05: source runner uses chain demand before planned requests and stores SLA',async()=>{
  const code=await readFile('scripts/cloud-discovery-runner.mjs','utf8');
  assert.ok(code.indexOf('chainServiceSignals({')<code.indexOf('const capturePlan=planMultiChainCapture'));
- assert.match(code,/asOfUtc:now\(\),chainService/);
+ assert.match(code,/asOfUtc:preflightAtUtc,chainService/);
+ assert.match(code,/maxNewPoolPages:requestedNewPoolBudget,chainService/);
  assert.match(code,/metrics\.v19_chain_service_sla=summarizeChainServiceSla/);
 });
