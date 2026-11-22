@@ -60,7 +60,12 @@ export function planEvidenceRepairRechecks({ranking,memory,asOfUtc,
    source_as_of_utc:ranking.as_of_utc,
    risk_eligible:false,trade_authorized:false});
  }
- candidates.sort((a,b)=>b.urgency-a.urgency
+ // Unchecked evidence gaps first, then oldest successful/failed attempt.
+ // This prevents a single repeatedly failing pool from crowding out all
+ // other recent WATCH candidates. Urgency only breaks fair-cursor ties.
+ candidates.sort((a,b)=>
+   (stamp(a.last_recheck_utc)??-Infinity)-(stamp(b.last_recheck_utc)??-Infinity)
+   ||b.urgency-a.urgency
    ||b.last_capture_age_minutes-a.last_capture_age_minutes
    ||a.key.localeCompare(b.key));
  return {schema:1,kind:'R29_V19_ASOF_PRICE_EVIDENCE_REPAIR_QUEUE',
