@@ -234,3 +234,74 @@ export function runV20IsolatedScenario({
       'No fill without two distinct fresh synthetic providers and pool capacity',
       'Open positions are not forcibly liquidated or assigned hindsight exit prices']};
 }
+
+
+// Strict read-only self-consistency audit of the hypothetical cash and lot ledger.
+// Passing this audit does NOT prove sources, fillability, GPT actions or profitability.
+export function auditV20IsolatedScenario(report){
+ const bad=()=>{throw Error('INVALID_V20_SYNTHETIC_MODEL_LEDGER')};
+ if(report?.kind!=='R29_V20_SYNTHETIC_IN_MEMORY_SCENARIO'
+   ||report.mode!=='SYNTHETIC_REGRESSION_ONLY'
+   ||report.reported_real_paper_fills!==0||report.orders_published!==0
+   ||report.windows_state_read_or_modified!==false
+   ||report.original_QA04_pass!==false
+   ||!Array.isArray(report.synthetic_receipts)
+   ||!Array.isArray(report.synthetic_open_positions)
+   ||!Array.isArray(report.ticks)
+   ||report.warmup_hour_count!==5||report.decision_hour_count!==24
+   ||!finitePositive(report.starting_cash_test_usdc)
+   ||report.stake_per_coin_test_usdc!==DEFAULT_POLICY.entryAmount)bad();
+ let cash=round(report.starting_cash_test_usdc),realized=0,buys=0,sells=0;
+ const open=new Map();
+ for(const [i,r] of report.synthetic_receipts.entries()){
+   if(r?.status!=='SYNTHETIC_MODEL_FILL_NOT_CLIENT'
+     ||r.client_receipt!==false||r.reported_real_trade!==false
+     ||r.sequence!==i+1
+     ||!['BUY','SELL'].includes(r.action)
+     ||!Number.isFinite(r.quantity)||r.quantity<=0
+     ||!finitePositive(r.entry_or_exit_price_test_usdc)
+     ||!Number.isFinite(r.fee_test_usdc)||r.fee_test_usdc<0
+     ||!Number.isFinite(r.cash_after_test_usdc)
+     ||typeof r.market_key!=='string'||r.market_key.length<8)bad();
+   if(r.action==='BUY'){
+     if(open.has(r.market_key)||r.proceeds_test_usdc!==undefined
+       ||r.realized_pnl_test_usdc!==undefined)bad();
+     cash=round(cash-report.stake_per_coin_test_usdc);
+     open.set(r.market_key,{quantity:r.quantity,source_plan_id:r.plan_id});
+     buys++;
+   }else{
+     const lot=open.get(r.market_key);
+     if(!lot||Math.abs(lot.quantity-r.quantity)>1e-10
+       ||!finitePositive(r.proceeds_test_usdc)
+       ||!Number.isFinite(r.realized_pnl_test_usdc)
+       ||Math.abs(round(r.proceeds_test_usdc-report.stake_per_coin_test_usdc)
+         -r.realized_pnl_test_usdc)>1e-7)bad();
+     cash=round(cash+r.proceeds_test_usdc);
+     realized=round(realized+r.realized_pnl_test_usdc);
+     open.delete(r.market_key);sells++;
+   }
+   if(cash<0||Math.abs(cash-r.cash_after_test_usdc)>1e-7)bad();
+ }
+ if(buys!==report.synthetic_buys||sells!==report.synthetic_sells
+   ||Math.abs(cash-report.ending_cash_test_usdc)>1e-7
+   ||Math.abs(realized-report.synthetic_realized_pnl_test_usdc)>1e-7
+   ||open.size!==report.synthetic_open_positions.length
+   ||report.ticks.length!==29)bad();
+ const ids=new Set();
+ for(const p of report.synthetic_open_positions){
+   const lot=open.get(p?.market_key);
+   if(!lot||ids.has(p.market_key)||Math.abs(p.quantity-lot.quantity)>1e-10
+      ||p.source_plan_id!==lot.source_plan_id
+      ||p.initial_cost_test_usdc!==report.stake_per_coin_test_usdc
+      ||p.unrealized_pnl_unverified!==true)bad();
+   ids.add(p.market_key);
+ }
+ return {kind:'R29_V20_ISOLATED_SYNTHETIC_LEDGER_AUDIT',
+   status:'SYNTHETIC_MODEL_LEDGER_RECONCILED_NOT_REAL_FILLS',
+   modeled_buy_count:buys,modeled_sell_count:sells,
+   modeled_open_positions:open.size,modeled_cash_end_test_usdc:cash,
+   modeled_realized_pnl_test_usdc:realized,
+   independent_external_evidence_verified:false,
+   actual_client_receipts_verified:0,orders_published:0,
+   original_qa04_approved:false};
+}
