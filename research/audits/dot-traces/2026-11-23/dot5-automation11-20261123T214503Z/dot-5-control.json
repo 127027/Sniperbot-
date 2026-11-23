@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "role": "dot-5-control",
+  "execution_utc": "2026-11-23T21:45:03Z",
+  "run_identity": "automation-turn-11; independent GPT execution receipt UNVERIFIED",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "status": "DATA_GAP_NO_TRADE",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "observed_branch_head": "27cdafd87a0d1dcae6c0273c1b9abaaca87cdf2d",
+  "source_blobs": {
+    "AGENTS.md": "0eb297c00294afa4f27cf94b42b126f5946adb9e",
+    "research/state/latest.json": "55c12d4e2c8a7ebf897c367463653da603881207",
+    "research/feeds/latest.json": "885746fdc33ebe19676b5675376019bc161858e5",
+    "research/state/provider-budget.json": "92428ea46bd32a2f648ada3c35a2b117e93c6572",
+    "research/state/prospective-holdout-freeze.json": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d",
+    "research/latest/dot-1.json": "fe1d5437fb94f2e3a0aaf19ecc269747e3e659c3",
+    "research/latest/dot-2.json": "1584a8fc1334f1941e00471b8bad1e12f7ef2d3c",
+    "research/latest/dot-3.json": "07b659d4db2f49f7eaab508994bd75ae02e678aa",
+    "research/latest/dot-4.json": "88d26c0239f05b6632aa1b9c611f79e9d093d15d"
+  },
+  "source_capture": {
+    "run_id": "45258147195",
+    "captured_at_utc": "2026-11-23T20:19:23.151Z",
+    "chain": "cronos",
+    "page": 6,
+    "gecko_http": 200,
+    "gecko_starts_total": 38,
+    "gecko_consecutive_429": 0,
+    "gecko_cooldown": null,
+    "raw_response_bytes_independently_verified_this_wake": false,
+    "persisted_pools": 982,
+    "first_dot2_detected": 587,
+    "global_coverage": false,
+    "handoff_path": "research/feeds/2026-11-23/45258147195/dot2-to-dot3-handoff.json",
+    "handoff_blob_sha": "ad3546c300ca2539a3fdc9cd4fc44684c319be8e",
+    "handoff_full_contracts": 0
+  },
+  "findings": [
+    {
+      "event_id": "45266204458",
+      "error_code": "CONCURRENT_PROVIDER_RESEARCH_DEFERRED",
+      "earliest_pipeline_step": "Dot2 capture scheduling",
+      "source_path": "research/latest/dot-2.json",
+      "impact": "21:10 UTC Dot2 deferred; no new source capture; feed remains 20:19 UTC",
+      "correction": "After shared-provider audit, resume bounded Dot2 research without 429 bypass",
+      "regression_test": "deferred wake must have null capture_request_path and no new capture claims"
+    },
+    {
+      "event_id": "45258147195",
+      "error_code": "DOT3_DOT4_HANDOFF_LAG",
+      "earliest_pipeline_step": "risk handoff",
+      "source_path": "research/latest/dot-3.json",
+      "impact": "Dot3/Dot4 still reference 45070668194, no fresh issuer/sellability verification",
+      "correction": "source-pinned independent Dot3 issuer, quote as-of and sellability evidence",
+      "regression_test": "risk gate fail closed when source handoff stale"
+    },
+    {
+      "event_id": "45272055484",
+      "error_code": "HISTORICAL_ORIGINAL_ASOF_PROVENANCE_MISSING",
+      "earliest_pipeline_step": "historical data availability",
+      "source_path": "docs/R29_CROSS_CHAT_ROOT_CAUSE_AND_STOP_THE_LOOP_20261123.md",
+      "impact": "259851 Oct11-12 retro raw rows, 63890 unique Solana mints by 23:00 are post-event published, not original GPT-available multi-chain evidence",
+      "correction": "obtain original publication/availability and 50-USDC two-way quote/client evidence",
+      "regression_test": "reject retro source as historical provider as-of"
+    }
+  ],
+  "acceptance": {
+    "pass": 13,
+    "partial": 46,
+    "open": 2,
+    "non_backtest_pass": 13,
+    "required": 60,
+    "release": "BLOCKED",
+    "not_reassessed_independently": true
+  },
+  "holdout": {
+    "end_utc": "2026-11-25T06:54:05.033Z",
+    "matured": false,
+    "precision": null,
+    "recall": null,
+    "missed_profit": null
+  },
+  "historical": {
+    "official_29h_backtest_started": false,
+    "oracle_65": "POST_EVENT_ONLY",
+    "retro_reconstruction_run": "45272055484",
+    "retro_unique_solana_mints_23utc": 63890
+  },
+  "independent_gpt_receipts": "UNVERIFIED",
+  "windows_client_receipts": "UNVERIFIED",
+  "orders_written": 0,
+  "paper_fills_verified": 0,
+  "alternatives": [
+    "Release QA04 rejected because original gates incomplete",
+    "Repeat 176-mint provider research rejected as duplicate, provider budget shared",
+    "Read-only historical provenance and issuer verification prioritized"
+  ],
+  "not_examined": "Full raw HTTP bytes, all Dot1-Dot4 append-only journals, current GitHub CI run logs and original 61-row acceptance matrix not exhaustively independently verified this wake",
+  "follow_up": "Check branch source provenance, external D3 issuer/sellability, mature holdout, independent GPT and Windows receipts. No orders."
+}
