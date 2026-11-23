@@ -10,6 +10,8 @@ import {homedir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {backtestOnRequest} from '../src/v18-requested-backtest.mjs';
 import {compare24HourlyScansAfterReplay} from '../src/v19-hourly-scanner-comparison.mjs';
+import {auditRetrospectiveNeutral24HourlySource}
+ from '../src/v19-retrospective-neutral-source-overlay.mjs';
 import {auditOfflineReplayLedger} from '../src/v19-offline-replay-ledger-audit.mjs';
 import {resolveSharedPaperPolicy} from '../src/v19-paper-budget-policy.mjs';
 import {fingerprintProtectedFiles,assertProtectedFilesUnchanged}
@@ -51,10 +53,33 @@ if(ledger.status!=='MODEL_CASH_AND_LOTS_RECONCILED'
  throw Error('UNSAFE_OR_INVALID_ISOLATED_24H_MODEL_RESULT');
 // Decisions and their ledger are frozen in memory BEFORE opening the oracle.
 const reportJson=JSON.stringify(report);
+// Pin the original source bytes; never use late-November source features as
+// October quote inputs. These retrospective files are opened ONLY AFTER the
+// completed replay decision JSON has been frozen in memory.
+const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+const retroBase='probe-artifacts/neutral-source-v2/';
+const priorBytes=await readFile(retroBase+'2026-10-11.json');
+const dayBytes=await readFile(retroBase+'2026-10-12.json');
+const priorDigest=sha(priorBytes),dayDigest=sha(dayBytes);
+if(priorDigest!=='7b4e917ec5904ab089452029564baf09fa99bbda9c11e91db8d54a79cd49097c'
+ ||dayDigest!=='8a03d0b3f065a6f6fd35867cd7c61719fb37f2cca06134aef6a81f14b3d7ab')
+ throw Error('POSTRUN_NEUTRAL_ARCHIVE_SHA256_MISMATCH');
+const retro=auditRetrospectiveNeutral24HourlySource({
+ priorDay:JSON.parse(priorBytes.toString('utf8')),
+ tradingDay:JSON.parse(dayBytes.toString('utf8')),
+ artifactDownloadedAtUtc:new Date().toISOString()
+});
 const referencePath='research/evaluation/2026-10-12/v19-winner-reference-identity-status.json';
 const reference=JSON.parse(await readFile(referencePath,'utf8'));
-const comparison=compare24HourlyScansAfterReplay({replay:report,oracle:reference});
-const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+const comparison=compare24HourlyScansAfterReplay({
+ replay:report,oracle:reference,retrospectiveNeutral:retro});
+if(retro.distinct_sample_mints!==192
+ ||retro.retrospective_mint_occurrences_in_24_last5min_windows!==2598
+ ||retro.retrospective_feature_rows_in_24_last5min_windows!==11226
+ ||retro.sampled_mint_occurrences!==192
+ ||retro.claimed_age_field_disagrees_with_recomputed_observation_age_count!==191
+ ||comparison.post_decision_retrospective_neutral_research?.joined_only_after_decisions!==true)
+ throw Error('POSTRUN_NEUTRAL_ARCHIVE_COVERAGE_CHANGED_OR_NOT_FROZEN');
 const receipt={schema:1,kind:'R29_V19_EXPLICIT_USER_24H_DIAGNOSTIC_RECEIPT',
  source_request_path:request[0],request_sha256:sha(raw),
  source_commit:commit,github_run_id:runId,started_from_actual_actions:true,
@@ -67,6 +92,13 @@ const receipt={schema:1,kind:'R29_V19_EXPLICIT_USER_24H_DIAGNOSTIC_RECEIPT',
  original_october_capture_claims:comparison.original_october_capture_claims,
  winner_oracle_consulted_only_after_decisions:true,
  comparison_reference_count:comparison.winner_reference.reported_rows,
+ archive_was_read_only_after_frozen_model_decisions:true,
+ retro_source_prior_day_json_sha256:priorDigest,
+ retro_source_trade_day_json_sha256:dayDigest,
+ retro_mint_occurrences:retro.retrospective_mint_occurrences_in_24_last5min_windows,
+ retro_distinct_sample_mints:retro.distinct_sample_mints,
+ retro_unverified_provider_age_field_mismatch_count:
+   retro.claimed_age_field_disagrees_with_recomputed_observation_age_count,
  modeled_decision_sha256:sha(reportJson),
  model_ledger_receipts:ledger.model_receipt_count,
  client_wallet_modified:false,provider_api_calls:0};
@@ -74,20 +106,22 @@ await mkdir('probe-artifacts',{recursive:true});
 const pref='probe-artifacts/v19-hourly-user-oct12-'+runId;
 await writeFile(pref+'-decisions.json',reportJson+'\n',{flag:'wx'});
 await writeFile(pref+'-comparison.json',JSON.stringify(comparison,null,2)+'\n',{flag:'wx'});
+await writeFile(pref+'-neutral-retro-source.json',JSON.stringify(retro,null,2)+'\n',{flag:'wx'});
 await writeFile(pref+'-receipt.json',JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});
 await writeFile(pref+'-scans.md',[
  '# R29 Oktober – 24 exakt stündliche Offline-Diagnose-Scans',
  '',
  '**NICHT** die endgültige QA-04-Backtest-Abnahme: fehlende historische Originalquellen und externe Sicherheitsbelege.',
  '',
- '| Scan | UTC | Modell-BUY | Modell-SELL | Modell-HOLD | Datenstatus |',
- '|---:|---|---|---|---|---|',
+ '| Scan | UTC | Rückblickende Mint-Nennungen (letzte 5m) | Rückblickende Merkmalszeilen | Modell-BUY | Modell-SELL | Modell-HOLD |',
+ '|---:|---|---:|---:|---|---|---|',
  ...comparison.scans.map(x=>
   '| '+x.scan+' | '+x.scan_at_utc.slice(11,16)+' | '+
+  (x.post_decision_retrospective_source?.mint_occurrences_last_five_minutes??'?')+' | '+
+  (x.post_decision_retrospective_source?.feature_rows_last_five_minutes??'?')+' | '+
   (x.buy.map(a=>a.symbol||a.pool).join(', ')||'—')+' | '+
   (x.sell.map(a=>a.symbol||a.pool).join(', ')||'—')+' | '+
-  (x.hold.map(a=>a.symbol||a.pool).join(', ')||'—')+' | '+
-  x.historical_coin_selection_status+' |'),
+  (x.hold.map(a=>a.symbol||a.pool).join(', ')||'—')+' |'),
  '',
  '### Ergebnis',
  '',
@@ -96,11 +130,25 @@ await writeFile(pref+'-scans.md',[
  '- Modell-BUY: '+comparison.model_buys,
  '- Modell-SELL: '+comparison.model_sells,
  '- Oktober-Originalquotes im Manifest: '+comparison.original_october_capture_claims,
+ '- Neutrale Solana-Archivquelle NUR POST-RUN: '+retro.retrospective_mint_occurrences_in_24_last5min_windows+
+   ' Mint-Nennungen / '+retro.distinct_sample_mints+' verschiedene Stichproben-Mints.',
+ '- 191/192 Quell-Age-Felder stimmen nicht mit UTC-Event→Scan-Zeitabstand überein; UTC-Differenz wurde neu berechnet.',
+ '- Die 192 Adressen sind TOKEN-Mints ohne bestätigten Chain-Pool, kein identifizierter Gewinner bzw. BUY.',
  '- 65 rückblickende Referenzmeldungen: **nur Post-Run**, keine vollständige Marktmenge',
  '- Fehlende Quelldaten sind keine nachweislich verpassten Kaufgelegenheiten.',
  '- Startguthaben des ISOLIERTEN Modells: 5000 TEST-USDC; Position: 50 TEST-USDC.',
  '',
- 'Detaillierte JSON-Berichte und Eingabe-SHA siehe GitHub-Actions-Artefakt.'
+ '## 192 neutrale Mint-Beispiele, NUR nachträglich aus dem Forschungsarchiv',
+ '',
+ ...comparison.scans.flatMap(x=>[
+  '### Scan '+String(x.scan).padStart(2,'0')+' – '+x.scan_at_utc,
+  '',
+  ...x.post_decision_retrospective_source.selected_research_mints.map(s=>
+   '- '+s.mint+' – beobachtet '+s.source_observed_at_utc+
+   ', '+s.seconds_before_scan.toFixed(3)+' Sekunden vor dem Scan; Quelle nachträglich, BUY nicht verifiziert'),
+  ''
+ ]),
+ 'Detaillierte JSON-Berichte, Source-SHA und alle Disclaimer siehe GitHub-Actions-Artefakt.'
  ].join('\n')+'\n',{flag:'wx'});
 assertProtectedFilesUnchanged(before,await fingerprintProtectedFiles(protectedPaths));
 console.log('R29_USER_24_SCANS_COMPLETED',JSON.stringify(receipt));
