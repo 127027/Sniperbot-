@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "role": "dot-5-control",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "run_id": "dot5-20261123T1843Z-research",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "gpt_execution_identity": "UNVERIFIED",
+  "actual_execution_utc": "2026-11-23T18:43:00Z",
+  "status": "DATA_GAP_NO_TRADE",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "source_paths_and_blob_sha": {
+    "docs/R29_FIVE_DOT_FORENSIC_BACKTEST_PROTOCOL_20261122.md": "3f7ba1977cb0df637fd3c7486897aa11780bea97",
+    "docs/R29_NEXT_CHAT_HANDOFF.md": "158a77408276ddd89afbee32c987afae0bea7c92",
+    "AGENTS.md": "40a0252d8ef7724cd3ba323d436291f443356e0c",
+    "research/state/latest.json": "067a82a3fa777073d7e2ff3d70ee35ad247fa695",
+    "research/feeds/latest.json": "af16330bf4a4a2045ef5869efc80795ca9292fb3",
+    "research/state/provider-budget.json": "a427e7d9bc7fe6aa2e310597afa15367d786a67e",
+    "research/state/prospective-holdout-freeze.json": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d",
+    "research/latest/dot-1.json": "e134299efb6537f335a66a60c7dbc0b84116936f",
+    "research/latest/dot-2.json": "d7ffff73c106b8c83257b426e25848c35c1d49a0",
+    "research/latest/dot-3.json": "07b659d4db2f49f7eaab508994bd75ae02e678aa",
+    "research/latest/dot-4.json": "88d26c0239f05b6632aa1b9c611f79e9d093d15d"
+  },
+  "reviewed_scope": "Global source/latest pointers and role 1-4 latest summaries; not exhaustive underlying pool-by-pool journals",
+  "latest_source": {
+    "run_id": "45235801160",
+    "captured_at_utc": "2026-11-23T18:12:07.870Z",
+    "total_discovered": 963,
+    "first_dot2_detected_count": 568,
+    "observation_batches": 201,
+    "gecko_http_200_page_count": 1,
+    "gecko_last_http_status": 200,
+    "dex_checks": 6,
+    "confirmed_orderwrites": 0,
+    "confirmed_client_fills": 0
+  },
+  "findings": [
+    {
+      "event_id": "dot5-20261123-1843-01",
+      "error_code": "DOT2_LATEST_CAPTURE_PENDING_AFTER_FEED_COMPLETION",
+      "earliest_pipeline_step": "Dot2 latest pointer reconciliation",
+      "affected_file": "research/latest/dot-2.json",
+      "source": "research/feeds/latest.json",
+      "impact": "Dot2 latest remains on previous run 45225394417 while feed/latest is 45235801160; new request 20261123T181136Z now has HTTP completion. Cannot equate pending state with latest capture.",
+      "correction": "Reconcile exact request/evidence/checkpoint/handoff and all source stats using CAS, retaining previous capture separately",
+      "regression_test": "Fixture: matching request and completion but stale total_discovered, first_dot2_detected_count, checkpoint_path or handoff_counts.full_contracts must fail freshness guard."
+    },
+    {
+      "event_id": "dot5-20261123-1843-02",
+      "error_code": "DOT3_DOT4_STALE",
+      "earliest_pipeline_step": "Risk/strategy handoff",
+      "affected_file": "research/latest/dot-3.json; research/latest/dot-4.json",
+      "impact": "Both latest role summaries reference 2026-11-22 capture 45070668194, not current 45235801160; no current independently attested sellability or risk.",
+      "correction": "Source-pin next research-only Dot3 and Dot4 journals; do not authorize orders.",
+      "regression_test": "Latest feed capture newer than risk/strategy source must flag lag without fabricating fills."
+    },
+    {
+      "event_id": "dot5-20261123-1843-03",
+      "error_code": "BOUNDED_CHAIN_PAGE_COVERAGE",
+      "earliest_pipeline_step": "Provider request scheduling",
+      "affected_file": "research/feeds/latest.json",
+      "impact": "Only BSC page1 scheduled under budget 1; five chains not scheduled; no global completeness.",
+      "correction": "Persist pending page/chain queue and rotate fairly under provider limits.",
+      "regression_test": "With budget 1 and six chains, five remain pending, not counted as negative discoveries."
+    }
+  ],
+  "acceptance": {
+    "original_total": 61,
+    "pass": 13,
+    "partial": 46,
+    "open": 2,
+    "non_backtest_pass": 13,
+    "non_backtest_required": 60,
+    "release": "NOT_READY_BLOCKED_BY_ORIGINAL_EVIDENCE"
+  },
+  "missing_evidence": [
+    "D3-04 independent issuer",
+    "D3-05 empirical onchain sellability",
+    "original Oct12 neutral as-of source",
+    "independent upstream quote time",
+    "five independently authenticated GPT receipts",
+    "actual Windows paper client receipts",
+    "mature November holdout labels after 2026-11-25T06:54:05Z",
+    "exhaustive Dot1-Dot4 per-pool forensic verification"
+  ],
+  "precision": null,
+  "recall": null,
+  "missed_profit": null,
+  "backtest_executed": false,
+  "orders_written": 0,
+  "paper_fills_verified": 0,
+  "why_this_action": "Source pointer discrepancies and absent independent release evidence require DATA_GAP, not PASS or trading.",
+  "alternatives_considered": [
+    "Promote stale source to current without matching stats: rejected",
+    "Start historical replay with post-event Oracle: rejected",
+    "Pause research automation: rejected"
+  ],
+  "follow_up": "Read newest completed Dot2 evidence/checkpoint/handoff, reconcile latest via CAS; verify source raw bytes and independent risk/holdout evidence; keep research schedule unchanged."
+}
