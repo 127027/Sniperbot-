@@ -125,7 +125,9 @@ export function assessV23DexBatch({batch,receipt}={}){
  }
  const ordered=[...pairs.values()].sort((a,b)=>a.mint.localeCompare(b.mint)
   ||a.pool.localeCompare(b.pool));
- return {...base,status:'POST_EVENT_POOL_IDENTITY_RESEARCH_ONLY',
+ return {...base,status:ordered.length
+     ?'POST_EVENT_POOL_IDENTITY_RESEARCH_ONLY'
+     :'HTTP200_NO_EXACT_MINT_POOL_MATCH_COVERAGE_UNKNOWN',
   matched_mints:[...found].sort(),matched_count:found.size,
   pools:ordered,rejected_rows:invalid,returned_provider_rows:data.length};
 }
@@ -137,7 +139,7 @@ export function summarizeV23NeutralBatchFindings({plan,assessments=[]}={}){
   fail('NOT_COMPLETE_SEVEN_BATCH_RESEARCH');
  const all=new Set(plan.neutral_rows.map(x=>x.mint));
  const found=new Set(),poolIds=new Set(),pools=[],details=[];
- let http200=0,gaps=0,rejected=0;
+ let http200=0,gaps=0,rejected=0,emptyIndexBatches=0;
  for(let i=0;i<7;i++){
   const a=assessments[i],req=plan.requests[i];
   if(a?.batch_index!==i||a.expected_mints!==req.mints.length
@@ -149,6 +151,9 @@ export function summarizeV23NeutralBatchFindings({plan,assessments=[]}={}){
       ||!validPool(x.pool)||x.paper_trade_authorized!==false))
    fail('UNTRUSTED_BATCH_ASSESSMENT_'+i);
   if(a.status==='POST_EVENT_POOL_IDENTITY_RESEARCH_ONLY')http200++;
+  else if(a.status==='HTTP200_NO_EXACT_MINT_POOL_MATCH_COVERAGE_UNKNOWN'){
+    http200++;emptyIndexBatches++;
+  }
   else if(a.status==='PUBLIC_HTTP_DATA_GAP'||a.status==='PROVIDER_INVALID_JSON_DATA_GAP')gaps++;
   else fail('UNRECOGNIZED_SOURCE_STATUS_'+i);
   for(const mint of a.matched_mints)found.add(mint);
@@ -165,8 +170,12 @@ export function summarizeV23NeutralBatchFindings({plan,assessments=[]}={}){
  return {schema:1,kind:'R29_V23_OCT12_NEUTRAL_MINT_CURRENT_IDENTITY_AUDIT',
   historical_date:'2026-10-12',source_population:'192_RETROSPECTIVE_NEUTRAL_SOLANA_MINTS',
   exact_sample_mints:all.size,provider_http_requests:7,provider_http200:http200,
-  provider_http_data_gap:gaps,matched_neutral_mints:found.size,
-  unmatched_neutral_mints:192-found.size,matched_exact_mint_pool_pairs:pools.length,
+  provider_http_data_gap:gaps,provider_http200_without_matching_pools:emptyIndexBatches,
+  matched_neutral_mints:found.size,
+  unmatched_neutral_mints:192-found.size,
+  unmatched_mints_have_unknown_pool_status:true,
+  current_provider_empty_response_not_proof_pool_never_existed:true,
+  matched_exact_mint_pool_pairs:pools.length,
   invalid_or_unrelated_provider_rows:rejected,matched_pools:pools,
   per_batch:details,
   original_october_provider_delivery_proven:false,
@@ -176,6 +185,8 @@ export function summarizeV23NeutralBatchFindings({plan,assessments=[]}={}){
   historical_replay_or_live_trade_authorized:false,
   winner_reference_oracle_accessed:false,
   population_represents_all_chains_or_all_october_pools:false,
-  finding:'POST_EVENT_NEUTRAL_IDENTITY_ONLY_NEVER_FEED_OCT12_GPT_OR_TRADING',
+  finding:found.size
+   ?'POST_EVENT_NEUTRAL_IDENTITY_ONLY_NEVER_FEED_OCT12_GPT_OR_TRADING'
+   :'ALL_CURRENT_BATCH_RESPONSES_UNRESOLVED_NOT_PROOF_OF_HISTORICAL_NONEXISTENCE',
   real_model_orders:0,client_fills:0,actual_gpt_reviews:0};
 }
