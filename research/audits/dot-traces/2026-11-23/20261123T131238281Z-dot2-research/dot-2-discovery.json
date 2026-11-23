@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "role": "dot-2-discovery",
+  "run_id": "20261123T131238281Z-dot2-research",
+  "executed_at_utc": "2026-11-23T13:12:38.281Z",
+  "gpt_run_identity": "UNVERIFIED",
+  "status": "CAPTURE_PENDING_DATA_GAP",
+  "action": "ONE_BOUNDED_RESEARCH_CAPTURE_REQUEST_COMMITTED",
+  "request_path": "research/requests/2026-11-23/20261123T131238281Z-dot2-research.json",
+  "request_commit_sha": "1ae565e996d47fc104e948b344f85ceb43a50b89",
+  "inputs": [
+    {
+      "path": "research/feeds/latest.json",
+      "git_blob_sha": "0122a80e3c6efec81389af5b1544200b6995303e"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45172666153/evidence.json",
+      "git_blob_sha": "92a86ec4c10a739db1961c4817f6212d61e1c726"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45172666153/dot2-to-dot3-handoff.json",
+      "git_blob_sha": "f48ec7fee66cb08686150026bf1931d88874ef50"
+    },
+    {
+      "path": "research/state/checkpoints/45172666153.json",
+      "git_blob_sha": "86920df77dd9be174d23161f2f6dbf7e13885a99"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "git_blob_sha": "62293fde73b4ee9bf6294703a7d44e8c72b9ad61"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "git_blob_sha": "ca3baee5afa17b1d6b6df4f376e8d09c2ab6c6a1"
+    }
+  ],
+  "prior_capture": {
+    "run_id": "45172666153",
+    "chain": "bsc",
+    "page": 5,
+    "requested_at_utc": "2026-11-23T12:15:37Z",
+    "captured_at_utc": "2026-11-23T12:16:13.510Z",
+    "http_status": 200,
+    "raw_path": "research/feeds/2026-11-23/45172666153/gecko-bsc-page5.raw.json",
+    "reported_raw_sha256": "30183e45e9d8f8ae530b3ac5fcc51e26422b07e5a6f6acc1befb34b29467986a",
+    "raw_bytes_independently_rehashed": false,
+    "pool_rows": 20,
+    "full_contract_candidates": 20,
+    "dex_rechecks": 6,
+    "indicative_two_domain_quotes": 1,
+    "memory_pools": 879,
+    "first_dot2_detections": 484,
+    "checkpoint_path": "research/state/checkpoints/45172666153.json",
+    "handoff_full_contracts": 20
+  },
+  "scope": {
+    "chains": [
+      "solana",
+      "base",
+      "ethereum",
+      "bsc",
+      "robinhood",
+      "cronos"
+    ],
+    "pages_checked_this_gpt_wake": [],
+    "provider_pages_requested_max": 1,
+    "dex_rechecks_requested_max": 6
+  },
+  "what_was_done": "Read current handoff, frozen holdout, source feed, source evidence, source checkpoint, provider budget, and previous GPT pointer; committed exactly one new bounded discovery request. No new HTTP capture was executed in this GPT wake.",
+  "why_this_action": "Prior BSC page5 request has matching source request and completed evidence; six-chain paging remains incomplete, while no active provider cooldown was recorded at last persisted provider response. Defer actual provider admission to runner rolling-window guard.",
+  "alternatives_considered": [
+    "No new request: rejected because source has completed and chain backlog remains",
+    "Six-chain parallel capture: rejected due one-request budget and rate limits",
+    "Reuse BSC page5: rejected as duplicate"
+  ],
+  "not_inspected": [
+    "Other five chains' pages this wake",
+    "Current HTTP status of newly queued request",
+    "Global market coverage",
+    "Independent quote as-of",
+    "Risk issuer",
+    "Onchain sellability",
+    "Windows client"
+  ],
+  "data_gaps": [
+    "New request completion unverified",
+    "Original raw SHA not independently recomputed",
+    "No independently authenticated GPT execution receipt",
+    "No upstream quote timestamp",
+    "No risk/sellability authorization",
+    "Eight-hour buckets not independently audited in this wake"
+  ],
+  "follow_up": "At next actual GPT wake compare exact request path with feed/latest, evidence, checkpoint, handoff, raw bytes SHA, and completion gate; update same-run source pointer atomically; audit eight hourly buckets read-only.",
+  "orders_created": 0,
+  "paper_fills_claimed": 0,
+  "backtest_executed": false
+}
