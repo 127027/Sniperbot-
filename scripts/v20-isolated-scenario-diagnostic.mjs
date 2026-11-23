@@ -1,7 +1,7 @@
 // Explicit read-only software diagnostic, no input files, no GitHub, APIs or orders.
 // No arg: valid empty October evidence -> DATA_GAP; --synthetic-fixture: fabricated
 // test quotes and fixed plan -> only tests portfolio math, NOT a trading strategy.
-import {runV20IsolatedScenario} from '../src/v20-isolated-scenario.mjs';
+import {runV20IsolatedScenario,auditV20IsolatedScenario} from '../src/v20-isolated-scenario.mjs';
 
 const args=process.argv.slice(2);
 if(args.length>1||(args.length===1&&args[0]!=='--synthetic-fixture'))
@@ -24,6 +24,7 @@ const scenario=runV20IsolatedScenario({
     plan_id:'synthetic-plan-0001',precommitted_at_utc:'2026-10-11T18:59:00.000Z',
     at_utc:iso(0),action:'BUY'}]:[]
 });
+const internalAudit=auditV20IsolatedScenario(scenario);
 const report={
   schema:1,kind:'R29_V20_READ_ONLY_SOFTWARE_DIAGNOSTIC',
   status:demo?'SYNTHETIC_MATH_EXERCISED_NOT_OCTOBER_TRADING':
@@ -38,6 +39,7 @@ const report={
   synthetic_no_fills:scenario.synthetic_no_fills,
   synthetic_open_positions:scenario.synthetic_open_positions.length,
   synthetic_realized_pnl_test_usdc:scenario.synthetic_realized_pnl_test_usdc,
+  internal_synthetic_ledger_audit:internalAudit.status,
   real_historical_trades_verified:0,
   real_gpt_reviews_verified:0,
   actual_windows_client_fills:0,
