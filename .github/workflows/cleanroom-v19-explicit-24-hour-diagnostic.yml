@@ -7,6 +7,7 @@ on:
       - 'research/diagnostic-24-requests/**'
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: r29-explicit-user-24hour-diagnostic
   cancel-in-progress: false
@@ -33,7 +34,15 @@ jobs:
         run: npm test
       - name: Report strict QA-04 release gate as NOT_READY (never authorize full historical backtest)
         run: node scripts/v19-verify-100pct-before-backtest.mjs
-      - name: Execute user-requested isolated 24 hourly model diagnosis and postdecision 65 reference audit
+      - name: Download pinned retrospective source-only artifact from 17 November (NOT trading input)
+        uses: actions/download-artifact@v4
+        with:
+          name: r29-real-43day-fresh5minute-candidates-no-fills-v2
+          repository: 127027/Sniperbot-
+          run-id: '44048309420'
+          github-token: ${{ github.token }}
+          path: probe-artifacts/neutral-source-v2
+      - name: Execute user-requested isolated 24 hourly model diagnosis and POSTRUN only 65 reference plus neutral Solana archive audit
         run: node scripts/v19-run-explicit-hourly-diagnostic.mjs
       - name: Verify model did not write any GitHub trade signals
         shell: bash
