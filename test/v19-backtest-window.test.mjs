@@ -67,6 +67,10 @@ test('29-hour report includes an exact 00:00 first decision and does not leak a 
  assert.equal(r.ticks[5].past_only_history_observations,1);
  assert.equal(r.ticks[5].excluded_future_or_unavailable,1);
  assert.equal(r.ticks[5].phase,'PAPER_DECISION_WINDOW');
- assert.equal(r.ticks[6].at_utc,'2026-10-12T01:35:00.000Z');
+ assert.equal(r.ticks[0].at_utc,'2026-10-11T19:00:00.000Z');
+ assert.equal(r.ticks[6].at_utc,'2026-10-12T01:00:00.000Z');
+ assert.equal(r.ticks[28].at_utc,'2026-10-12T23:00:00.000Z');
+ assert.deepEqual(r.ticks.slice(5).map(x=>x.at_utc),
+   Array.from({length:24},(_,h)=>'2026-10-12T'+String(h).padStart(2,'0')+':00:00.000Z'));
  assert.equal(r.orders_written,0);
 });
