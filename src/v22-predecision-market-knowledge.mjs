@@ -27,6 +27,7 @@ export function inspectPredecisionKnowledge({
    future_or_not_yet_available:0,retrospective:0,oracle_or_future_label:0
  };
  let acceptableEvents=0,earlyEvents=0,newSinceWarmup=0;
+ const recentDiscoveryPools=new Set();
  const add=(k,source,at,eventType)=> {
    const m=markets.get(k)||{market_key:k,sources:new Set(),kinds:new Set(),
      first_known_at_utc:at,last_known_at_utc:at,knowledge_event_count:0,
@@ -82,6 +83,8 @@ export function inspectPredecisionKnowledge({
    const avail=s.available_at_utc;
    const k=key(chain,s.contract,s.pool);
    add(k,'EXPLICIT_MARKET_KNOWLEDGE_EVENT',avail,s.event_type);
+   if(s.event_type==='POOL_DISCOVERY'&&asOfMillis(avail)>now-3600000)
+     recentDiscoveryPools.add(k);
    acceptableEvents++;
    if(warmup!==null&&asOfMillis(avail)<warmup)earlyEvents++;
    else if(warmup!==null)newSinceWarmup++;
@@ -105,6 +108,7 @@ export function inspectPredecisionKnowledge({
    no_historical_age_cutoff:true,
    available_knowledge_markets:all.length,
    available_knowledge_events:acceptableEvents,
+   recently_discovered_pools_last_60m:recentDiscoveryPools.size,
    events_known_before_five_hour_warmup:earlyEvents,
    events_known_during_or_after_warmup:newSinceWarmup,
    markets_with_pre_warmup_knowledge:all.filter(m=>m.before_warmup_knowledge).length,
