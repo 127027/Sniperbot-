@@ -79,10 +79,16 @@ def verify_archived_43day_frames(path):
     # The existing GitHub artifact is SHA-pinned to the very same revision.
     # Its 8-mint sample is only a legacy statistical crosscheck, not an input.
     import zipfile
-    with zipfile.ZipFile(path) as z:
+    archive=Path(path)
+    if archive.is_dir():
+        get=lambda day:(archive/(day+'.json')).read_bytes()
+    else:
+        z=zipfile.ZipFile(archive)
+        get=lambda day:z.read(day+'.json')
+    try:
         out={}
         for day in PINS:
-            raw=z.read(day+'.json')
+            raw=get(day)
             if sha(raw)!=ORIGINAL_ARCHIVE_SHA[day]:
                 raise ValueError('ORIGINAL_NEUTRAL_FIVE_MIN_ARCHIVE_SHA_MISMATCH_'+day)
             obj=json.loads(raw)
@@ -92,6 +98,8 @@ def verify_archived_43day_frames(path):
               'old_frame_raw_parquet_sha256':obj['source_raw_parquet_sha256'],
               'reported_original_8perhour_sample_count':obj['fresh_candidate_occurrences']}
         return out
+    finally:
+        if not archive.is_dir():z.close()
 
 def main(output,archive):
     if os.getenv('GITHUB_REF')!='refs/heads/codex/r29-cleanroom-paper-20261121':
@@ -151,7 +159,7 @@ def main(output,archive):
       'winner_oracle_accessed':False,'gpt_trades_authorized':False,
       'frames':frames}
     snapfile=root/'neutral-oct12-full-feature-mint-visibility.json.gz'
-    with gzip.open(snapfile,'wb',mtime=None) as out:
+    with gzip.GzipFile(filename=str(snapfile),mode='wb',mtime=0) as out:
         out.write((json.dumps(payload,separators=(',',':'))+'\n').encode())
     data=snapfile.read_bytes()
     summary={'schema':1,'kind':'R29_V26_FULL_TWO_DAY_PINNED_RAW_PARQUET_MINT_COVERAGE_AUDIT',
