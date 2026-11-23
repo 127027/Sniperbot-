@@ -1,0 +1,57 @@
+name: R29 Next 24h Five-Dot Honest Source Readiness Preflight
+on:
+  push:
+    branches:
+      - codex/r29-cleanroom-paper-20261121
+    paths:
+      - 'research/next-backtest-preflight-requests/**'
+permissions:
+  contents: read
+concurrency:
+  group: r29-next-five-dot-readonly-historical-preflight
+  cancel-in-progress: false
+jobs:
+  source-and-five-role-acceptance-preflight-only:
+    if: ${{ github.ref == 'refs/heads/codex/r29-cleanroom-paper-20261121' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      R29_MODE: PAPER
+      R29_ENABLE_LIVE: ''
+    steps:
+      - name: Checkout exact explicit user-approved preflight commit read-only
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run full regression tests and validate preflight syntax
+        run: |
+          node --check src/v19-next-backtest-five-dot-freshness.mjs
+          node --check scripts/v19-next-backtest-five-dot-preflight.mjs
+          npm test
+      - name: Strict 61 original task stop/go audit, never release unfinished QA04
+        run: node scripts/v19-verify-100pct-before-backtest.mjs
+      - name: Resolve actual five role Git forensic traces, pending Dot2 feed and 29h scanner schedule, NO backtest
+        run: node scripts/v19-next-backtest-five-dot-preflight.mjs
+      - name: Confirm signals and Paper state were never mutated
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain -- signals)"
+      - name: Upload honest five-role source-readiness blockers and immutable original gate
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-next-backtest-five-dot-preflight-${{ github.run_id }}
+          path: |
+            probe-artifacts/v19-next-five-dot-preflight-*.json
+            probe-artifacts/v19-next-five-dot-preflight-*.md
+            probe-artifacts/v19-61-original-tasks-prebacktest-gate.json
+          if-no-files-found: warn
+          retention-days: 30
