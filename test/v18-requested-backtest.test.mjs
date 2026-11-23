@@ -87,3 +87,37 @@ test('R29 29h direct-start mode chooses 00:00 without changing older :35 diagnos
  assert.throws(()=>backtestOnRequest({date,firstScanAtStart:'yes'}),
   /INVALID_BACKTEST_DAY_OR_MODE/);
 });
+
+test('direct-start diagnostic actually performs all 24 hourly scans with no hidden 35-minute offset',()=>{
+ const x=backtestOnRequest({date,forceHourlyDiagnostic:true,firstScanAtStart:true});
+ assert.equal(x.model_replay_summary.fullReviews,24);
+ assert.deepEqual(x.role_audit.dot4_strategy.timeline.map(e=>e.at_utc),
+  Array.from({length:24},(_,h)=>'2026-10-12T'+String(h).padStart(2,'0')+':00:00.000Z'));
+ assert.equal(x.on_demand_29h_timeline.ticks[28].at_utc,'2026-10-12T23:00:00.000Z');
+ assert.equal(x.confirmed_paper_fills,0);
+});
+test('00:00 can place isolated MODEL buy using two pre-midnight observations, never future data',()=>{
+ const pre=synth(-1,1);
+ pre.observed_at_utc='2026-10-11T23:40:00.000Z';
+ pre.archived_at_utc=pre.observed_at_utc;
+ pre.discovery.observed_at_utc=pre.observed_at_utc;
+ pre.risk.observed_at_utc=pre.observed_at_utc;
+ pre.quotes=pre.quotes.map(q=>({...q,observed_at:pre.observed_at_utc,
+  source_published_at_utc:pre.observed_at_utc}));
+ const recent=synth(-1,1.12);
+ recent.observed_at_utc='2026-10-11T23:59:00.000Z';
+ recent.archived_at_utc=recent.observed_at_utc;
+ recent.discovery.observed_at_utc=recent.observed_at_utc;
+ recent.risk.observed_at_utc=recent.observed_at_utc;
+ recent.quotes=recent.quotes.map(q=>({...q,observed_at:recent.observed_at_utc,
+  source_published_at_utc:recent.observed_at_utc}));
+ const r=backtestOnRequest({date,manifest:input([pre,recent]),
+   firstScanAtStart:true,forceHourlyDiagnostic:true});
+ assert.equal(r.role_audit.dot4_strategy.timeline[0].at_utc,'2026-10-12T00:00:00.000Z');
+ assert.equal(r.model_replay_summary.buys,1);
+ assert.equal(r.role_audit.dot4_strategy.timeline[0].actions.some(x=>
+   x.action==='BUY'&&x.coin.symbol==='SYNTH'),true);
+ assert.equal(r.historical_proven_trades,0);
+ assert.equal(r.confirmed_paper_orders,0);
+ assert.equal(r.confirmed_paper_fills,0);
+});
