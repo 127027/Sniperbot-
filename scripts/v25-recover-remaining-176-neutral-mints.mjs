@@ -181,7 +181,7 @@ await writeFile(base+'/final-audit.json',JSON.stringify({
  cleanly_stopped_on_repeated_rate_limit:stoppedByBackpressure,
  stop_reason:stopReason,
  all_records_maintain_november_capture_provenance:true,
- 65_post_event_winners_never_consulted:true,
+ winner_reference_65_post_event_never_consulted:true,
  historical_trading_qa04_accepted:false,
  trade_signals_published:0,
  wallet_changes:0
