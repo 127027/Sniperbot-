@@ -128,7 +128,13 @@ export function auditLiveFiveDotJournalInventory({
   }
   const linkedForensic=pointer?.forensic_trace_path
     ??pointer?.forensic_audit_path??null;
-  if(!roleForensics.test(linkedForensic??'')&&!pendingDot2)
+  // Existing independent per-role forensic paths may be named trace.json;
+  // validate the newer forensic_audit_path when it is used as an alias,
+  // without changing legacy role-specific trace names or pretending
+  // that a git path alone verifies a GPT execution.
+  if(!pointer?.forensic_trace_path
+    &&!roleForensics.test(pointer?.forensic_audit_path??'')
+    &&!pendingDot2)
    issue('FORENSIC_TRACE_NOT_LINKED',
     'Latest role pointer has no dedicated forensic trace path');
   if(id==='dot-5'&&forensic.test(path??'')
