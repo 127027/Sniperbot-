@@ -66,6 +66,11 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
  for(let hour=0;hour<24;hour++){
    const tick=start+hour*3600000+
      (firstScanAtStart?0:35*60000),at=iso(tick);
+   // At 00:00 the bot already sees ALL causally available earlier research,
+   // regardless of how long before the five-hour warmup it was observed.
+   const priorKnowledge=inspectPredecisionKnowledge({
+     asOfUtc:at,snapshots,marketKnowledgeEvents,
+     warmupStartUtc:iso(start-5*3600000)});
    // Dot 1 determines cadence from measured *as-of* activity on the first scan,
    // and on later hourly wakes. No evidence -> hold last setting.
    const activity=activityObservations.filter(x=>{
@@ -76,7 +81,19 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    }).sort((a,b)=>ms(b.observed_at_utc)-ms(a.observed_at_utc))[0];
    const measured=activityPageCaptures.length
      ?measureDot1Activity({pageCaptures:activityPageCaptures,asOfUtc:at}):null;
-   const cadenceMetrics=measured?.metrics?.dataAvailable?measured.metrics:activity?.metrics??null;
+   // Real comparable market activity wins. A source-pinned discovery-only
+   // panel may still trigger an immediate upward cadence jump (4→24),
+   // but missing coverage can NEVER justify a quiet-market downshift.
+   const discovered=priorKnowledge.recently_discovered_pools_last_60m;
+   const researchPoolActivity=discovered>0?{
+     dataAvailable:true,newPools:discovered,eligible:0,
+     openPositions:Object.keys(ledger.positions).length,
+     volumeChangePct:0,allowDownshift:false,comparableWindowComplete:false,
+     observed_volume_pairs:0,
+     metric_scope:'ASOF_DISCOVERY_EVENTS_ONLY_NOT_COMPLETE_MARKET'
+   }:null;
+   const cadenceMetrics=measured?.metrics?.dataAvailable?measured.metrics:
+     activity?.metrics?.dataAvailable===true?activity.metrics:researchPoolActivity;
    const cadenceEval=forceHourlyReview?null:advanceAdaptiveCadence({
      previous:cadenceState,metrics:cadenceMetrics,asOfUtc:at,initialTarget:targetPer24h});
    if(cadenceEval)cadenceState=cadenceEval.state;
@@ -97,12 +114,6 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    const fresh=new Map();
    for(const s of valid)fresh.set(marketKey(s.coin),s);
    const featureHistory=buildAsOfLookback({snapshots,asOfUtc:at});
-   // A midnight research scan already knows all earlier causally available
-   // markets, even those first observed weeks before the 5h warmup. Events
-   // never become fresh executable BUY/SELL quotes through this memory.
-   const priorKnowledge=inspectPredecisionKnowledge({
-     asOfUtc:at,snapshots,marketKnowledgeEvents,
-     warmupStartUtc:iso(start-5*3600000)});
    const validatedMomentumFeatures=buildAsOfLookback({
      snapshots:eligibleMomentumHistory,asOfUtc:at});
    const marketLookback=new Map(validatedMomentumFeatures.markets.map(x=>[x.key,x]));
@@ -110,11 +121,16 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    const step={at_utc:at,full_review:due,target_per_24h:currentTarget,cadence_reason:cadence.reason,
      measured_page_activity:measured,
      cadence_quiet_confirmations:cadenceState?.quiet_confirmations??0,
+     asof_discovery_pools_last_60m:discovered,
+     cadence_input_source:measured?.metrics?.dataAvailable?'MEASURED_PAGE_ACTIVITY':
+       activity?.metrics?.dataAvailable===true?'ARCHIVED_MARKET_ACTIVITY':
+       researchPoolActivity?'PAST_ONLY_DISCOVERY_EVENTS':'NO_VERIFIABLE_ACTIVITY',
      eligible_snapshots:fresh.size,blocked_sources:blocked,
      data_gap_capture_recommendations:gapRecovery,
      predecision_market_knowledge:{
        available_knowledge_markets:priorKnowledge.available_knowledge_markets,
        available_knowledge_events:priorKnowledge.available_knowledge_events,
+       recently_discovered_pools_last_60m:discovered,
        markets_with_pre_warmup_knowledge:priorKnowledge.markets_with_pre_warmup_knowledge,
        excluded:priorKnowledge.excluded,
        historical_universe_complete:false,execution_quote_authorized:false},
