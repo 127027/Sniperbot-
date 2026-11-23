@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "role": "dot-5-control",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "executed_at_utc": "2026-11-23T13:41:24.129Z",
+  "gpt_run_identity": "UNVERIFIED_INDEPENDENT_AUTOMATION_RECEIPT",
+  "decision": "DATA_GAP_NO_TRADE",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "source_inputs": [
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "0dd1554e8c2a8d8658f163cd05ab7f99a4503593"
+    },
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "b4eb1330e25a3abfd804f19ddcbc9cfe1d0d5a0e"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "dd4bb50d7b369567fe32098c94e97ba2b91dbdac"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45181658547/evidence.json",
+      "blob_sha": "b29cab88581176130470ebbf039df65ae9309de1"
+    }
+  ],
+  "source_capture_utc": "2026-11-23T13:12:48.155Z",
+  "source_run_id": "45181658547",
+  "source_chain": "robinhood",
+  "source_page": 1,
+  "source_pool_count": 20,
+  "source_raw_sha256": "15c57f0eb7dc45271a95ee2021af5108bbec78233c6b8087950ab98fa9d86140",
+  "source_raw_path": "research/feeds/2026-11-23/45181658547/gecko-robinhood-page1.raw.json",
+  "market_memory": {
+    "pools": 899,
+    "first_dot2": 504,
+    "observation_batches": 186,
+    "global_coverage": false
+  },
+  "provider": {
+    "gecko_last_http": 200,
+    "consecutive_429": 0,
+    "cooldown": null,
+    "rolling_limit_per_minute": 4,
+    "new_pool_limit_per_minute": 3
+  },
+  "dot_journal_audit": {
+    "dot1_source_run": "45172666153",
+    "dot2_latest_status": "CAPTURE_PENDING_DATA_GAP",
+    "dot2_feed_newer_than_dot2_latest": true,
+    "dot3_source_run": "45070668194",
+    "dot4_source_run": "45070668194",
+    "dot5_previous_source_run": "45172666153",
+    "independent_gpt_receipts_verified": false,
+    "client_receipts_verified": false
+  },
+  "earliest_detected_pipeline_issue": {
+    "event_id": "45181658547",
+    "code": "DOT2_LATEST_FEED_COMPLETION_NOT_RECONCILED",
+    "impact": "dot2 latest remains pending despite newer completed feed; cross-dot source and risk reviews lag",
+    "affected_files": [
+      "research/latest/dot-2.json",
+      "research/feeds/latest.json"
+    ],
+    "correction": "Reconcile only after matching request/evidence, raw SHA, checkpoint and handoff counts; retain prior_capture separately; CAS update",
+    "regression_test": "Feed completed after pending request must reconcile source_run_id, market_memory_stats, checkpoint_path and handoff_counts.full_contracts; no GPT/order promotion"
+  },
+  "release_gate": {
+    "strict_pass": 13,
+    "total": 61,
+    "non_backtest_pass": 13,
+    "non_backtest_required": 60,
+    "d3_04": "OPEN",
+    "d3_05": "OPEN",
+    "october_original_asof": "DATA_GAP",
+    "holdout_mature": false,
+    "holdout_end_utc": "2026-11-25T06:54:05.033Z",
+    "backtest": "BLOCKED",
+    "orders": 0,
+    "verified_fills": 0
+  },
+  "alternatives": [
+    "Promote feed completion as GPT review: rejected, no independent receipt",
+    "Start QA-04: rejected, original release gates unmet",
+    "Research-only audit: selected"
+  ],
+  "unverified": [
+    "Source raw SHA is reported in evidence, raw bytes not independently rehashed in this wake",
+    "All pool-level Dot1-4 journals not exhaustively byte-revalidated in this wake",
+    "Latest GitHub CI HEAD not independently checked"
+  ],
+  "next_action": "Verify raw bytes, dot2 completion reconciliation, Dot3 issuer and sellability, Windows receipts and 60/60 original acceptance; no orders"
+}
