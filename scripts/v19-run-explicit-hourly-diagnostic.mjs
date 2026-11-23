@@ -10,7 +10,7 @@ import {homedir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {backtestOnRequest} from '../src/v18-requested-backtest.mjs';
 import {compare24HourlyScansAfterReplay} from '../src/v19-hourly-scanner-comparison.mjs';
-import {auditRetrospectiveNeutral24HourlySource}
+import {auditRetrospectiveNeutral24HourlySource,R29_PINNED_NEUTRAL_OCT_SOURCE}
  from '../src/v19-retrospective-neutral-source-overlay.mjs';
 import {auditOfflineReplayLedger} from '../src/v19-offline-replay-ledger-audit.mjs';
 import {resolveSharedPaperPolicy} from '../src/v19-paper-budget-policy.mjs';
@@ -61,8 +61,8 @@ const retroBase='probe-artifacts/neutral-source-v2/';
 const priorBytes=await readFile(retroBase+'2026-10-11.json');
 const dayBytes=await readFile(retroBase+'2026-10-12.json');
 const priorDigest=sha(priorBytes),dayDigest=sha(dayBytes);
-if(priorDigest!=='7b4e917ec5904ab089452029564baf09fa99bbda9c11e91db8d54a79cd49097c'
- ||dayDigest!=='8a03d0b3f065a6f6fd35867cd7c61719fb37f2cca06134aef6a81f14b3d7ab')
+if(priorDigest!==R29_PINNED_NEUTRAL_OCT_SOURCE.day_11_sha256
+ ||dayDigest!==R29_PINNED_NEUTRAL_OCT_SOURCE.day_12_sha256)
  throw Error('POSTRUN_NEUTRAL_ARCHIVE_SHA256_MISMATCH');
 const retro=auditRetrospectiveNeutral24HourlySource({
  priorDay:JSON.parse(priorBytes.toString('utf8')),
