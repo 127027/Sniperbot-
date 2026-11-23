@@ -102,13 +102,25 @@ export function auditLiveFiveDotJournalInventory({
      &&iso(journal.gpt_execution_at_utc)!==null
      &&journal.execution_origin==='GPT_SELF_REPORTED'
      &&journal.status==='DATA_GAP'
-     &&typeof journal.security==='string'
-     &&journal.security.includes('no signals, orders, backtest, wallet changes, or paper fills')
+     &&(
+       typeof journal.security==='string'
+        &&journal.security.includes('no signals, orders, backtest, wallet changes, or paper fills')
+       ||iso(journal.actual_gpt_execution_utc)!==null
+        &&journal.orders_written===0
+        &&journal.paper_fills===0
+        &&journal.backtest_started===false
+        &&journal.independent_gpt_execution_receipt===false
+     )
     ||id==='dot-5'&&forensic.test(path)
      &&journal.schema===1&&journal.role==='dot-5-control'
      &&journal.gpt_execution_identity==='UNVERIFIED'
-     &&iso(journal.executed_at_utc)!==null
-     &&journal.orders_written===0&&journal.paper_fills_claimed===0;
+     &&(iso(journal.executed_at_utc)!==null
+       &&journal.orders_written===0&&journal.paper_fills_claimed===0
+       ||iso(journal.actual_execution_utc)!==null
+       &&journal.execution_origin==='GPT_SELF_REPORTED'
+       &&journal.orders_written===0
+       &&journal.paper_fills_verified===0
+       &&journal.backtest_executed===false);
    if(journal?.schema!==1||(typeof journal.kind!=='string'&&!exactRoleKindless))
     issue('JOURNAL_SCHEMA_MISSING',path);
    const referenced=pointer?.journal_blob_sha;
@@ -118,7 +130,8 @@ export function auditLiveFiveDotJournalInventory({
     issue('JOURNAL_GIT_BLOB_MISMATCH',id+' latest pointer disagrees with immutable journal');
    const executed=iso(journal.executed_at_utc??journal.created_at_utc
     ??journal.observed_at_utc??journal.updated_at_utc
-    ??journal.at_utc??journal.gpt_execution_at_utc);
+    ??journal.at_utc??journal.gpt_execution_at_utc
+    ??journal.actual_gpt_execution_utc??journal.actual_execution_utc);
    if(executed===null||executed>at||updated!==null&&executed>updated)
     issue('JOURNAL_TIME_CONTRADICTION','Journal cannot be newer than its latest pointer');
    else if(updated!==null&&updated-executed>10*60*1000)
