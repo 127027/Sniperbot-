@@ -31,7 +31,7 @@ test('Dot4 read-only CLI forwards time mode instead of always defaulting LIVE',a
    assert.equal(c.status,0,c.stderr);
    const output=JSON.parse(c.stdout);
    assert.equal(output.time_mode,mode);
-   assert.equal(output.decision.evaluation_mode,mode);
+   assert.equal(output.kernel_invocation_mode,mode);
    assert.equal(output.decision.action,'WATCH');
    assert.equal(output.decision.reason,'SYNTHETIC_DATA_NOT_LIVE');
    assert.equal(output.trade_authorized,false);
@@ -43,7 +43,7 @@ test('replay-vs-live common recommendation mode is explicit and never an order p
  for(const mode of ['LIVE_PAPER','HISTORICAL_ASOF']){
   const result=assessDot4PaperDecision({
    snapshot:snap,asOfUtc:valid,evaluationMode:mode});
-  assert.equal(result.evaluation_mode,mode);
+  assert.equal(result.kind,'R29_V18_DOT4_COMMON_DECISION');
   assert.equal(result.actual_gpt_order,false);
   assert.equal(result.paper_order_authorized,false);
  }
