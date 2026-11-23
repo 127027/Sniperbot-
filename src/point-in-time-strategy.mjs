@@ -54,7 +54,7 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
  // Both modes block all sources unavailable as of their exact virtual tick.
  for(let hour=0;hour<24;hour++){
    const tick=start+hour*3600000+
-     (firstScanAtStart&&hour===0?0:35*60000),at=iso(tick);
+     (firstScanAtStart?0:35*60000),at=iso(tick);
    // Dot 1 determines cadence from measured *as-of* activity on the first scan,
    // and on later hourly wakes. No evidence -> hold last setting.
    const activity=activityObservations.filter(x=>{
