@@ -9,6 +9,7 @@ export const LIVE_DOT_IDS=Object.freeze(['dot-1','dot-2','dot-3','dot-4','dot-5'
 const pat=/^research\/journal\/(dot-[1-5])\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]+\.json$/;
 const forensic=/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-5-control\.json$/;
 const pendingDot2Forensic=/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-2-discovery\.json$/;
+const roleForensics=/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-[1-5]-(?:tempo|discovery|risk|strategy|control)\.json$/;
 export const validRoleJournalPath=(role,path)=>
   typeof path==='string'&&(
     path.match(pat)?.[1]===role
@@ -87,7 +88,19 @@ export function auditLiveFiveDotJournalInventory({
    }
   }
   if(journal!==null){
-   if(journal?.schema!==1||typeof journal.kind!=='string')
+   // Dot1's originally checked-in tempo journal and Dot5's forensic
+   // control journal use a ROLE-native schema without a generic kind field.
+   // Accept only these exact schemas with independently matching Git bytes;
+   // this never authenticates a GPT execution or an external data provider.
+   const exactRoleKindless=id==='dot-1'
+     &&journal.schema===1&&journal.role==='dot-1-tempo'
+     &&iso(journal.gpt_execution_at_utc)!==null
+     &&journal.orders_created!==1
+    ||id==='dot-5'&&forensic.test(path)
+     &&journal.schema===1&&journal.role==='dot-5-control'
+     &&iso(journal.executed_at_utc)!==null
+     &&journal.orders_written===0&&journal.paper_fills_claimed===0;
+   if(journal?.schema!==1||(typeof journal.kind!=='string'&&!exactRoleKindless))
     issue('JOURNAL_SCHEMA_MISSING',path);
    const referenced=pointer?.journal_blob_sha;
    if(typeof referenced!=='string'||!sha.test(referenced))
@@ -96,7 +109,7 @@ export function auditLiveFiveDotJournalInventory({
     issue('JOURNAL_GIT_BLOB_MISMATCH',id+' latest pointer disagrees with immutable journal');
    const executed=iso(journal.executed_at_utc??journal.created_at_utc
     ??journal.observed_at_utc??journal.updated_at_utc
-    ??journal.at_utc);
+    ??journal.at_utc??journal.gpt_execution_at_utc);
    if(executed===null||executed>at||updated!==null&&executed>updated)
     issue('JOURNAL_TIME_CONTRADICTION','Journal cannot be newer than its latest pointer');
    else if(updated!==null&&updated-executed>10*60*1000)
@@ -109,7 +122,9 @@ export function auditLiveFiveDotJournalInventory({
     issue('JOURNAL_ROLE_CLAIM_DIFFERENT','Journal role disagrees with its directory');
    // No key/number in a local research file authenticates a GPT execution.
   }
-  if(!pointer?.forensic_trace_path&&!pendingDot2)
+  const linkedForensic=pointer?.forensic_trace_path
+    ??pointer?.forensic_audit_path??null;
+  if(!roleForensics.test(linkedForensic??'')&&!pendingDot2)
    issue('FORENSIC_TRACE_NOT_LINKED',
     'Latest role pointer has no dedicated forensic trace path');
   if(id==='dot-5'&&forensic.test(path??'')
@@ -157,8 +172,7 @@ export function auditLiveFiveDotJournalInventory({
      &&(rawSha??forensicRawSha)!==null
      &&pointer.journal_blob_sha===(rawSha??forensicRawSha),
    pending_gpt_research_trace_not_a_completed_journal:pendingDot2,
-   forensic_trace_path:pointer?.forensic_trace_path
-     ??(pendingDot2?pointer.forensic_audit_path:null),
+   forensic_trace_path:linkedForensic,
    genuine_gpt_review_independently_authenticated:false,
    problems:issues});
   findings.push(...issues.map(item=>({role:id,...item})));
