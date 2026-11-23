@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "run_id": "dot1-v19-20261123T050055052Z",
+  "role": "dot-1-tempo",
+  "phase": "LIVE_RESEARCH",
+  "at_utc": "2026-11-23T05:00:55.052Z",
+  "actual_execution_at_utc": "2026-11-23T05:00:55.052Z",
+  "virtual_historical_time": null,
+  "execution_origin": "GPT_SELF_REPORTED",
+  "activity": "CADENCE_REVIEW",
+  "action": "DATA_GAP_KEEP_4",
+  "scope": "GLOBAL",
+  "what_was_done": "Read pinned GitHub branch files, compared two persisted capture checkpoints, inspected provider and media coverage and retained prior cadence.",
+  "why_this_action": "DATA_GAP: latest bounded Base page1 capture 45111126096 (04:19:21 UTC) has 19 complete pool identities of 20 rows, 1 rejected; memory 727→746, first-Dot2 332→351, batches 148→152. These are discovery/capture deltas, not verified same-pool hourly price/volume/liquidity or global six-chain market deltas. 15 newly observed Base pools deferred. Media +12 unique items across 7 reachable feeds but no verified attention growth, X/Reddit unavailable. Gecko HTTP200/no active cooldown does not prove quiet market. Keep prior target 4; quiet checks 0.",
+  "alternatives_considered": [
+    8,
+    12,
+    24
+  ],
+  "linked_event_ids": [],
+  "missing_evidence": [
+    "No comparable independent provider-asof same-pool deltas across six chains",
+    "Base page 1 is not full-chain coverage",
+    "Dot3 latest report is older than latest Dot2 capture",
+    "Independent GPT execution receipt unavailable",
+    "Independent provider quote-asof and onchain sellability unavailable"
+  ],
+  "input_refs": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "0bded7d2368ca3a245092e710d66cd39e31b195b",
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/state/latest.json"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "4d25f62525bc5d04928a13b9918fbf8d88cff211",
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/feeds/latest.json"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "2c2efbaa92a37b3b897ff9c9211e7d5196e2b2ff",
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/state/provider-budget.json"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "blob_sha": "47b3ea22cafdc7f08e1797a350ba2ef216cbc2e1",
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/latest/dot-2.json"
+    },
+    {
+      "path": "research/latest/dot-3.json",
+      "blob_sha": "07b659d4db2f49f7eaab508994bd75ae02e678aa",
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/latest/dot-3.json"
+    },
+    {
+      "path": "research/media/latest.json",
+      "blob_sha": "8035683aee892b1444f2717f6c087f74f4aae226",
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/media/latest.json"
+    },
+    {
+      "path": "research/media/2026-11-23/45111126096/asof-signals.json",
+      "blob_sha": "3764634863667dc9dca2e8a9a535ea2b1d5e91ca",
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/media/2026-11-23/45111126096/asof-signals.json"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45111126096/evidence.json",
+      "blob_sha": "8addcfc076a73b114fe9fcbe7a49f5a298007f08",
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/feeds/2026-11-23/45111126096/evidence.json"
+    }
+  ],
+  "metrics": {
+    "source_run_id": "45111126096",
+    "captured_at_utc": "2026-11-23T04:19:21.554Z",
+    "latest_chain": "base",
+    "latest_page": 1,
+    "latest_page_raw_rows": 20,
+    "latest_page_contract_complete": 19,
+    "latest_page_rejected": 1,
+    "persisted_pools_previous": 727,
+    "persisted_pools_now": 746,
+    "first_dot2_previous": 332,
+    "first_dot2_now": 351,
+    "observation_batches_previous": 148,
+    "observation_batches_now": 152,
+    "dex_rechecks": 6,
+    "dex_indicative_complete": 4,
+    "deferred_new_pools": 15,
+    "media_new_unique_events": 12,
+    "media_sources_available": 7,
+    "media_sources_attempted": 9,
+    "media_coverage_missing": [
+      "X_SEARCH",
+      "REDDIT_SEARCH"
+    ],
+    "gecko_last_http_status": 200,
+    "gecko_cooldown_until_utc": null,
+    "verified_same_pool_provider_asof_hourly_deltas": 0,
+    "verified_gpt_reviews_in_http_jobs": 0,
+    "independent_risk_issuer": false,
+    "empirical_sellability": false,
+    "orders_created": 0
+  },
+  "independent_gpt_execution_attested": false,
+  "orders_created": 0
+}
