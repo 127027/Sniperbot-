@@ -94,7 +94,7 @@ export function auditFiveDotNextBacktestForensicFreshness({
    captureView=resolveDot2CaptureView({
     gptPointer:pointer,feedPointer,asOfUtc});
    const completed=time(feedPointer?.captured_at_utc);
-   if(pointer?.status==='CAPTURE_PENDING_DATA_GAP'
+   if(['CAPTURE_PENDING_DATA_GAP','CAPTURE_PENDING_GPT_RECEIPT_UNVERIFIED_DATA_GAP'].includes(pointer?.status)
     &&feedPointer?.request_path===pointer?.capture_request_path
     &&completed!==null&&pointerAt!==null&&completed>pointerAt
     &&completed<=now)
