@@ -22,6 +22,7 @@ test('no October input produces 29h DATA_GAP report with zero published orders',
  assert.equal(r.order_writes,0);
  assert.equal(r.actual_windows_client_fills,0);
  assert.equal(r.original_qa04_approved,false);
+ assert.equal(r.internal_synthetic_ledger_audit,'SYNTHETIC_MODEL_LEDGER_RECONCILED_NOT_REAL_FILLS');
 });
 test('opt-in synthetic fixture runs the isolated portfolio math without trading claims',()=>{
  const r=execute(['--synthetic-fixture']);
