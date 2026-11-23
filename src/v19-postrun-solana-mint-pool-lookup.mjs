@@ -157,7 +157,7 @@ export function evaluatePostrunDexMintPools({neutralMintRows,providerPages}={}){
        ?'NO_POOL_REPORTED_IN_CURRENT_PROVIDER_RESPONSE_NOT_HISTORIC_ABSENCE'
        :'POST_EVENT_CURRENT_PROVIDER_POOL_HINT_ONLY',
    independence_proven:false,simulatable_historical_buy_sell:false,
-   historical_usdc_quote_proven:false});
+   historical_usdc_quote_proven:false};
  });
  const matched=rows.filter(x=>x.current_provider_pool_pair_count>0);
  return {schema:1,kind:'R29_V19_POSTRUN_DEX_MINT_POOL_IDENTITY_RESEARCH_ONLY',
