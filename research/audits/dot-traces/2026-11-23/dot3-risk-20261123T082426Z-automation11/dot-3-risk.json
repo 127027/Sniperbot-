@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "kind": "R29_DOT3_FORENSIC_RESEARCH_REVIEW",
+  "role": "dot-3-risk",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "gpt_run_identity": "UNVERIFIED",
+  "actual_execution_at_utc": "2026-11-23T08:24:26Z",
+  "execution_time_basis": "automation supplied current local time converted from America/Toronto -05:00; not independently authenticated",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "source_capture_at_utc": "2026-11-23T08:18:23.571Z",
+  "source_chain": "cronos",
+  "source_paths_and_git_blob_shas": [
+    {
+      "path": "docs/R29_FIVE_DOT_FORENSIC_BACKTEST_PROTOCOL_20261122.md",
+      "blob_sha": "3f7ba1977cb0df637fd3c7486897aa11780bea97"
+    },
+    {
+      "path": "docs/R29_NEXT_CHAT_HANDOFF.md",
+      "blob_sha": "4d061f76fb1ebb52bae89dc95f98c848511f40bf"
+    },
+    {
+      "path": "docs/V19_46_PARTIAL_ACCEPTANCE_AND_NEXT_BACKTEST_PLAN_20261122.md",
+      "blob_sha": "8becade5b6ff5e91017c0a0836741d7aa77e09bd"
+    },
+    {
+      "path": "AGENTS.md",
+      "blob_sha": "aa90a74d66bdb5059af5e22c7f14185d176b952a"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "63eff336bef6f82edfbfa5a0ef7e42c54fa219f1"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45137531562/dot2-to-dot3-handoff.json",
+      "blob_sha": "180a047ae8909f084ae30094a651b4a9e015a0f6"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45137531562/dot3-next-evidence-rechecks.json",
+      "blob_sha": "e1b5006c9463fec467952306c3e9f88ca4ca54e1"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45137531562/dot3-research-risk-status-preview.json",
+      "blob_sha": "ddf5964831a5544ab0a09e96e9e7b7d0e4bbcb4f"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "593fdd6d5f1e3aef44a3441a7b1012f2d22f2955"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "src/v19-honeypot-risk-research.mjs",
+      "blob_sha": "36b12b8c916186726c13567cb9db4165b4f06227"
+    }
+  ],
+  "dot2_handoff": {
+    "candidate_count": 0,
+    "unique_pools": 0,
+    "full_contracts": 0
+  },
+  "risk_recheck_queue": {
+    "selected_count": 0,
+    "backlog_count": 0
+  },
+  "reviewed_pools": [],
+  "unreviewed_pools": "No pool handed off by current Dot2 capture; prior captures not silently treated as fresh",
+  "chain_contract_pool": "UNKNOWN_NO_CANDIDATES",
+  "decision": "DATA_GAP",
+  "reason": "Latest Dot2 handoff contains zero observations and zero candidates, hence no exact pool/contract to validate. Cannot assert absence of market opportunities. Independent issuer D3-04 and empirical chain sellability D3-05 remain OPEN.",
+  "alternatives_considered": [
+    "Reusing older risk queues as if fresh: rejected because as-of and provenance differ",
+    "Treating six DEX pair HTTP checks as independent source-matched current Dot2 candidates: rejected because current handoff is empty",
+    "Issuing paper eligible/order: prohibited by missing independently authenticated quote times, issuer, sellability and client authorization"
+  ],
+  "missing_evidence": [
+    "Fresh exact chain+contract+pool Dot2 handoff",
+    "Independent upstream quote-as-of timestamps",
+    "Two independent underlying price upstreams with <=3% drift",
+    "USD liquidity >=5000 for each exact pool",
+    "Honeypot/tax/blacklist/token permissions and chain-specific executable sell-route",
+    "Independently authenticated Dot3 risk issuer and empirical chain sellability"
+  ],
+  "provider_observations": {
+    "gecko_http_status_last": 200,
+    "gecko_cooldown_until_utc": null,
+    "gecko_recent_start_at_utc": "2026-11-23T08:18:22.587Z",
+    "dex_recheck_http200_count": 6,
+    "provider_quote_published_at_utc": null,
+    "provider_quote_asof_utc": null,
+    "new_http_requests_by_this_review": 0,
+    "new_429_by_this_review": 0
+  },
+  "next_retry": {
+    "not_before_utc": "2026-11-23T09:15:00Z",
+    "deadline_utc": "2026-11-23T09:35:00Z",
+    "action": "At next existing research wake read latest pinned handoff and queue; review exact identities only if newly present, without bypassing provider budgets"
+  },
+  "status_counts": {
+    "WATCH": 0,
+    "DATA_GAP": 0,
+    "REJECTED": 0,
+    "PAPER_ELIGIBLE": 0
+  },
+  "actual_gpt_review_receipt": "UNVERIFIED",
+  "paper_orders_created": 0,
+  "paper_fills": 0,
+  "backtest_started": false,
+  "october_oracle_used": false,
+  "history_modified": false
+}
