@@ -95,9 +95,13 @@ export function auditLiveFiveDotJournalInventory({
    const exactRoleKindless=id==='dot-1'
      &&journal.schema===1&&journal.role==='dot-1-tempo'
      &&iso(journal.gpt_execution_at_utc)!==null
-     &&journal.orders_created!==1
+     &&journal.execution_origin==='GPT_SELF_REPORTED'
+     &&journal.status==='DATA_GAP'
+     &&typeof journal.security==='string'
+     &&journal.security.includes('no signals, orders, backtest, wallet changes, or paper fills')
     ||id==='dot-5'&&forensic.test(path)
      &&journal.schema===1&&journal.role==='dot-5-control'
+     &&journal.gpt_execution_identity==='UNVERIFIED'
      &&iso(journal.executed_at_utc)!==null
      &&journal.orders_written===0&&journal.paper_fills_claimed===0;
    if(journal?.schema!==1||(typeof journal.kind!=='string'&&!exactRoleKindless))
