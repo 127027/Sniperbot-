@@ -7,6 +7,7 @@ import {auditFiveDotExecution} from './v19-dot-execution-audit.mjs';
 import {buildDotExecutionTruth} from './v19-dot5-execution-truth.mjs';
 import {buildSeparatedPerformanceLedgers} from './v19-three-ledger-report.mjs';
 import {summarizeDot3RiskStatuses} from './v19-dot3-risk-status.mjs';
+import {inspectPredecisionKnowledge} from './v22-predecision-market-knowledge.mjs';
 import {resolveSharedPaperPolicy,DEFAULT_BUDGET_SETTINGS} from './v19-paper-budget-policy.mjs';
 const dayMs=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)
   &&Number.isFinite(Date.parse(d+'T00:00:00Z'))?Date.parse(d+'T00:00:00Z'):null;
@@ -24,6 +25,7 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
     ||source.selected_from_future_winner_list!==false
     ||!Array.isArray(source.snapshots)||!Array.isArray(source.activity_observations)
     ||(source.activity_page_captures!==undefined&&!Array.isArray(source.activity_page_captures))
+    ||(source.market_knowledge_events!==undefined&&!Array.isArray(source.market_knowledge_events))
     ||(source.claimed_gpt_journals!==undefined&&!Array.isArray(source.claimed_gpt_journals))
     ||(source.dot3_risk_handoffs!==undefined&&!Array.isArray(source.dot3_risk_handoffs)))
    throw Error('UNTRUSTED_OR_HINDSIGHT_UNIVERSE');
@@ -45,11 +47,12 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
  }
  // Synthetic inputs are for software regression only. They can never prove
  // a real historical market, even if the model produces simulated fills.
+ const marketKnowledgeEvents=source.market_knowledge_events||[];
  const timeLine=build29HourAsOfTimeline({date,snapshots:accepted,
-  warmupHours:5,firstScanAtStart});
+  marketKnowledgeEvents,warmupHours:5,firstScanAtStart});
  const result=replaySignalDecisions({date,snapshots:accepted,
   activityObservations:source.activity_observations,
-  activityPageCaptures:source.activity_page_captures||[],
+  activityPageCaptures:source.activity_page_captures||[],marketKnowledgeEvents,
   forceHourlyReview:forceHourlyDiagnostic,targetPer24h:forceHourlyDiagnostic?24:4,
   paperPolicy:paperBudget.policy,firstScanAtStart});
  const executionProvenance=auditFiveDotExecution({
@@ -57,6 +60,9 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
    mode:'HISTORICAL_ASOF',
    claimedGptJournals:source.claimed_gpt_journals||[]
  });
+ const initialKnowledge=inspectPredecisionKnowledge({
+   asOfUtc:new Date(start).toISOString(),snapshots:accepted,marketKnowledgeEvents,
+   warmupStartUtc:new Date(start-5*3600000).toISOString()});
  const original=accepted.filter(s=>s.provenance==='CONTEMPORANEOUS_RECORD');
  const simulated=accepted.filter(s=>s.provenance==='SYNTHETIC_TEST');
  // Replay and current Dot2 capture use the same Dot3 status engine.
@@ -83,6 +89,12 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
    observed_page_activity_is_not_all_market_coverage:true,
    simulation_not_autonomous_gpt:true},
   dot2_discovery:{accepted_input_snapshots:accepted.length,original_capture_claims:original.length,
+   first_scan_preexisting_knowledge_markets:initialKnowledge.available_knowledge_markets,
+   first_scan_preexisting_knowledge_events:initialKnowledge.available_knowledge_events,
+   known_before_five_hour_warmup:initialKnowledge.markets_with_pre_warmup_knowledge,
+   first_scan_knowledge_exclusions:initialKnowledge.excluded,
+   predecision_knowledge_unlimited_in_age:true,
+   missing_original_universe_not_replaced_by_knowledge:true,
    synthetic_test_snapshots:simulated.length,rejected_input_snapshots:rejected.length,
    all_discovery_original_sources_independently_verified:false,
    known_original_full_market_universe:false},
@@ -119,6 +131,14 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
   source_input_kind:source.kind,common_signal_engine:'UNIFIED_V18_SIGNAL_V1',
    same_signal_engine_for_live_and_backtest:true,
    source_input_count:sources.length,
+   market_knowledge_event_input_count:marketKnowledgeEvents.length,
+   first_scan_prior_knowledge_summary:{
+     known_markets:initialKnowledge.available_knowledge_markets,
+     known_events:initialKnowledge.available_knowledge_events,
+     markets_known_before_warmup:initialKnowledge.markets_with_pre_warmup_knowledge,
+     not_independently_authenticating_original_data:true,
+     not_buy_or_sell_authorization:true},
+   full_historical_knowledge_not_limited_to_five_hour_warmup:true,
   accepted_input_count:accepted.length,rejected_input_count:rejected.length,
   role_audit:perRole,role_execution_provenance:executionProvenance,
   model_replay_summary:result.summary,
