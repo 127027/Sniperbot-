@@ -146,8 +146,14 @@ export function auditSolanaPoolSignatureHistory({target,pages=[]}={}){
   row.oldest_block_time_utc=iso(pageOldest);
   // Read backward from recent signatures. Earliest needs to cross START.
   // Never call an incomplete page "no old transactions".
-  if(pageOldest<=START||entries.length<PAGE_LIMIT){
+  if(pageOldest<=START){
    oldCovered=true;hasMore=false;break;
+  }
+  if(entries.length<PAGE_LIMIT){
+   // A short page might be an address with genuinely short history OR
+   // a non-archival/rate-limited node. Never declare 2026 completeness.
+   row.short_page_with_no_independent_archive_coverage_proof=true;
+   hasMore=false;break;
   }
   previousBefore=entries.at(-1).signature;
   hasMore=true;
@@ -174,7 +180,10 @@ export function auditSolanaPoolSignatureHistory({target,pages=[]}={}){
   all_target_window_reported_signatures:within,
   suggested_detail_signatures:successful.slice(-MAX_CHAIN_TRANSACTION_DETAILS_PER_POOL)
    .map(x=>x.signature),
-  history_complete_for_whole_window:oldCovered&&!sourceGap,
+  // A single public RPC cannot prove it has returned EVERY historical
+  // transaction even if its page crosses the warmup boundary.
+  history_complete_for_whole_window:false,
+  observed_page_reaches_warmup_time_boundary:oldCovered&&!sourceGap,
   no_signatures_means_no_swaps:false,
   original_october_provider_price_delivery_verified:false,
   independent_historical_50_usdc_slippage_quote_verified:false,
