@@ -1,0 +1,64 @@
+name: R29 Readonly Postrun 192 Solana Mint Pool Research
+on:
+  push:
+    branches:
+      - codex/r29-cleanroom-paper-20261121
+    paths:
+      - 'research/mint-pool-lookup-requests/**'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: r29-user-postrun-solana-mint-pool-lookup
+  cancel-in-progress: false
+jobs:
+  only-postrun-provider-research:
+    if: ${{ github.ref == 'refs/heads/codex/r29-cleanroom-paper-20261121' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      R29_MODE: PAPER
+      R29_ENABLE_LIVE: ''
+    steps:
+      - name: Checkout exact approved research request commit without credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify all source safety regressions
+        run: |
+          node --check scripts/v19-research-retro-192-mint-pool-links.mjs
+          npm test
+      - name: Report strict overall QA04 risk and provenance gate (never waive it)
+        run: node scripts/v19-verify-100pct-before-backtest.mjs
+      - name: Load SHA pinned neutral 11 and 12 October source only from prior source archive
+        uses: actions/download-artifact@v4
+        with:
+          name: r29-real-43day-fresh5minute-candidates-no-fills-v2
+          repository: 127027/Sniperbot-
+          run-id: '44048309420'
+          github-token: ${{ github.token }}
+          path: probe-artifacts/neutral-source-v2
+      - name: Bounded keyless PRESENT-DAY token-to-pool lookup only, no historical BUY/SELL
+        run: node scripts/v19-research-retro-192-mint-pool-links.mjs
+      - name: Verify no GitHub order or receipt modification
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain -- signals)"
+      - name: Upload raw public-response receipts and timestamped research only
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-current-pool-research-${{ github.run_id }}
+          path: |
+            probe-artifacts/r29-retro-mint-pool-*/
+            probe-artifacts/v19-61-original-tasks-prebacktest-gate.json
+          if-no-files-found: warn
+          retention-days: 30
