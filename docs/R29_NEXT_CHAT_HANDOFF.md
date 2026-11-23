@@ -1,5 +1,10 @@
 # R29 – Verbindliche GitHub-Übergabe für neue Chats
 
+## 23.11.2026, 18:48 UTC – NÄCHSTER VERBINDLICHER STAND: V2.0 ISOLIERTER 29H-SOFTWAREDIAGNOSEPFAD, 819/819 PASS
+
+**[Neuester vollständig geprüfter technischer Bericht](R29_V20_ISOLATED_29H_DIAGNOSTIC_20261123.md)**. Tatsächlich in **GitHub CI #45242081198** (Node22, 819/819 PASS, 0 FAIL, 0 Orders) zwei isolierte 5h-Warmup/24h-Diagnosen ausgeführt: echtes Oktober-Quellen-GAP=0 hypothetische Trades; ausdrücklich synthetische Preisfixture=1 Modell-BUY, 1 Modell-SELL, 5.000→5.023,24502994 TEST-USDC ausschließlich hypothetische Buchhaltungsrechnung, **nicht** historischer Gewinn. Strenger eigener Auditor für Cash/Lots/PnL/negative Verluste, deduplizierte Frischquotes, Gebühren/Spread/Impact, Hourly Stop/Take/No-fill. Dateien `src/v20-isolated-scenario.mjs`, `scripts/v20-isolated-scenario-diagnostic.mjs`, `test/v20-isolated-scenario*.test.mjs`; `npm run diagnose:v20` und `npm run diagnose:v20:synthetic`. CI archiviert beide Quelle-GAP-/Fixture-Protokolle. **QA-04 NICHT freigegeben**, originale Nicht-Backtest-Abnahme unverändert **13/60 = 21,67 %** und **8 externe Beweisgates blockiert**, keine echte GPT-/Windows-Fill-Quittung, keine Dots oder Konten geändert. Nächste Chats bitte dieses aktuelle Dossier vor älteren Prozent-/Backtest-Dokumenten lesen.
+
+
 ## NEUSTER TECHNISCHER NACHTRAG 23.11.2026, 18:35 UTC – 802/802 GRÜN, KEIN QA-04
 
 **ZUERST LESEN:** [Dokumentierte kausale Replay-/Dot2-Pending-Reparatur](R29_V20_CAUSAL_REPLAY_AND_DOT2_PENDING_CI_20261123.md) .
