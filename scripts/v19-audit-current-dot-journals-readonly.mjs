@@ -13,6 +13,14 @@ for(const id of LIVE_DOT_IDS){
   const path=pointer.journal_path;
   if(validRoleJournalPath(id,path))
    rawJournalsByPath[path]=await readFile(path,'utf8');
+  // Pending Dot2 capture has an explicit self-reported forensic record
+  // instead of a completed GPT journal; hash its exact bytes separately.
+  if(id==='dot-2'&&pointer.status==='CAPTURE_PENDING_DATA_GAP'
+    &&typeof pointer.forensic_audit_path==='string'
+    &&/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-2-discovery\.json$/
+      .test(pointer.forensic_audit_path))
+   rawJournalsByPath[pointer.forensic_audit_path]=
+     await readFile(pointer.forensic_audit_path,'utf8');
  }catch(error){
   // Missing bytes are themselves a reportable gap, not an all-green default.
   if(error.code!=='ENOENT')throw error;
