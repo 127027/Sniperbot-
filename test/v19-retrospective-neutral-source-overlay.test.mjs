@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {auditRetrospectiveNeutral24HourlySource}
+import {auditRetrospectiveNeutral24HourlySource,R29_PINNED_NEUTRAL_OCT_SOURCE}
  from '../src/v19-retrospective-neutral-source-overlay.mjs';
 import {readFile} from 'node:fs/promises';
 import {backtestOnRequest} from '../src/v18-requested-backtest.mjs';
@@ -101,4 +101,17 @@ test('retro overlay is attached only after independently frozen 24 scan trades; 
  const evil=structuredClone(retro);evil.never_eligible_to_seed_historical_discovery=false;
  assert.throws(()=>compare24HourlyScansAfterReplay({replay,oracle,retrospectiveNeutral:evil}),
   /RETROSPECTIVE_SOURCE_CANNOT_ENTER_MODEL_TRADES/);
+});
+
+test('both fixed original October file SHA-256 pins are complete and exactly anchored',()=>{
+ const pin=R29_PINNED_NEUTRAL_OCT_SOURCE;
+ assert.equal(pin.actions_run_id,44048309420);
+ assert.equal(pin.artifact_id,14312891173);
+ assert.match(pin.full_artifact_zip_sha256,/^[0-9a-f]{64}$/);
+ for(const day of ['day_11_sha256','day_12_sha256'])
+  assert.match(pin[day],/^[0-9a-f]{64}$/);
+ assert.equal(pin.day_11_sha256,
+  '7b4e917ec5904ab089452029564baf09fa99bbda9c11e91db8d54a79cd49097c');
+ assert.equal(pin.day_12_sha256,
+  '8a03d0b3f065a6f6fd35867cd7c61719fb37f2cca06134aef6a81f14b3d7d3ab');
 });
