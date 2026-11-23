@@ -7,6 +7,7 @@ import {researchDue} from './cadence.mjs';
 import {advanceAdaptiveCadence} from './v19-adaptive-cadence.mjs';
 import {decideUnifiedMarket,UNIFIED_V18_RULES} from './unified-decision-v18.mjs';
 import {buildAsOfLookback} from './v19-asof-lookback.mjs';
+import {inspectPredecisionKnowledge} from './v22-predecision-market-knowledge.mjs';
 import {planDataGapRecovery} from './v19-coverage-recovery.mjs';
 import {measureDot1Activity} from './v19-market-activity.mjs';
 
@@ -14,14 +15,14 @@ const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 const ms=value=>typeof value==='string'&&ISO.test(value)&&Number.isFinite(Date.parse(value))?Date.parse(value):null;
 const iso=value=>new Date(value).toISOString();
 import {checkUnifiedEvidence as gate,makeReplayCheckOrder as policyOrder} from './v18-shared-evidence-gate.mjs';
-export function replaySignalDecisions({date,snapshots=[],activityObservations=[],activityPageCaptures=[],targetPer24h=4,forceHourlyReview=false,params={},paperPolicy=DEFAULT_POLICY,
+export function replaySignalDecisions({date,snapshots=[],activityObservations=[],activityPageCaptures=[],marketKnowledgeEvents=[],targetPer24h=4,forceHourlyReview=false,params={},paperPolicy=DEFAULT_POLICY,
  firstScanAtStart=false}){
  if(typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date+'T00:00:00Z')))
    throw Error('INVALID_DATE');
  if(![4,8,12,24].includes(targetPer24h))throw Error('INVALID_TARGET');
  if(typeof forceHourlyReview!=='boolean'||typeof firstScanAtStart!=='boolean')
   throw Error('INVALID_FORCE_HOURLY_OR_INITIAL_SCAN');
- if(!Array.isArray(snapshots)||!Array.isArray(activityObservations)||!Array.isArray(activityPageCaptures))throw Error('INVALID_SNAPSHOTS');
+ if(!Array.isArray(snapshots)||!Array.isArray(activityObservations)||!Array.isArray(activityPageCaptures)||!Array.isArray(marketKnowledgeEvents))throw Error('INVALID_SNAPSHOTS');
  const start=ms(date+'T00:00:00Z'),end=start+86400000;
  const p={...UNIFIED_V18_RULES,...params};
  if(![p.entryMomentumPct,p.takeProfitPct,p.stopLossPct,p.maxMomentumAgeHours].every(x=>typeof x==='number'&&Number.isFinite(x)&&x>0))throw Error('INVALID_PARAMS');
@@ -96,6 +97,12 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    const fresh=new Map();
    for(const s of valid)fresh.set(marketKey(s.coin),s);
    const featureHistory=buildAsOfLookback({snapshots,asOfUtc:at});
+   // A midnight research scan already knows all earlier causally available
+   // markets, even those first observed weeks before the 5h warmup. Events
+   // never become fresh executable BUY/SELL quotes through this memory.
+   const priorKnowledge=inspectPredecisionKnowledge({
+     asOfUtc:at,snapshots,marketKnowledgeEvents,
+     warmupStartUtc:iso(start-5*3600000)});
    const validatedMomentumFeatures=buildAsOfLookback({
      snapshots:eligibleMomentumHistory,asOfUtc:at});
    const marketLookback=new Map(validatedMomentumFeatures.markets.map(x=>[x.key,x]));
@@ -105,6 +112,12 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
      cadence_quiet_confirmations:cadenceState?.quiet_confirmations??0,
      eligible_snapshots:fresh.size,blocked_sources:blocked,
      data_gap_capture_recommendations:gapRecovery,
+     predecision_market_knowledge:{
+       available_knowledge_markets:priorKnowledge.available_knowledge_markets,
+       available_knowledge_events:priorKnowledge.available_knowledge_events,
+       markets_with_pre_warmup_knowledge:priorKnowledge.markets_with_pre_warmup_knowledge,
+       excluded:priorKnowledge.excluded,
+       historical_universe_complete:false,execution_quote_authorized:false},
      past_only_feature_history:{market_count:featureHistory.market_count,
        observation_count:featureHistory.observation_count,
        oldest_observation_at_utc:featureHistory.oldest_observation_at_utc,
