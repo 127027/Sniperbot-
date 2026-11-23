@@ -5,6 +5,14 @@
 // Never return features, prices, safety gates, or positive trade instructions.
 import {asOfMillis} from './v19-asof-evidence.mjs';
 
+// Original SHA-256 digests of *uncompressed* days pinned to archived artifact.
+export const R29_PINNED_NEUTRAL_OCT_SOURCE=Object.freeze({
+ actions_run_id:44048309420,
+ artifact_id:14312891173,
+ full_artifact_zip_sha256:'71665923352ed392e6314cad9afcf9219354cc46390b050019f6426c026b96b1',
+ day_11_sha256:'7b4e917ec5904ab089452029564baf09fa99bbda9c11e91db8d54a79cd49097c',
+ day_12_sha256:'8a03d0b3f065a6f6fd35867cd7c61719fb37f2cca06134aef6a81f14b3d7d3ab'
+});
 const SCHEMA='r29_real_43day_fresh_5minute_asof_frames_v2';
 const MINT=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const iso=millis=>new Date(millis).toISOString();
