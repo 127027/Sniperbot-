@@ -1,0 +1,65 @@
+name: R29 Oct12 Two-Pool Solana Public RPC Readonly Proof Audit
+on:
+  push:
+    branches:
+      - codex/r29-cleanroom-paper-20261121
+    paths:
+      - 'research/oct12-two-pool-chain-requests/**'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: r29-explicit-oct12-two-pool-chain-research
+  cancel-in-progress: false
+jobs:
+  only-research-historical-pool-signatures:
+    if: ${{ github.ref == 'refs/heads/codex/r29-cleanroom-paper-20261121' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      R29_MODE: PAPER
+      R29_ENABLE_LIVE: ''
+    steps:
+      - name: Exact isolated research commit without credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify all protection tests and prohibit malformed research scripts
+        run: |
+          node --check src/v19-october-solana-chain-research.mjs
+          node --check scripts/v19-research-oct12-two-solana-pools-rpc.mjs
+          npm test
+      - name: Keep original 61-task and D3-04 D3-05 release gate as source of truth
+        run: node scripts/v19-verify-100pct-before-backtest.mjs
+      - name: Download pinned two-domain post-event source for exact 2 pools
+        uses: actions/download-artifact@v4
+        with:
+          name: r29-two-pool-gecko-research-45132577450
+          repository: 127027/Sniperbot-
+          run-id: '45132577450'
+          github-token: ${{ github.token }}
+          path: probe-artifacts/verified-two-pools
+      - name: Strictly read-only bounded historical pool signature research
+        run: node scripts/v19-research-oct12-two-solana-pools-rpc.mjs
+      - name: Verify GitHub order, receipts and paper state were never modified
+        shell: bash
+        if: ${{ always() }}
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain -- signals)"
+      - name: Upload all original RPC raw bytes, SHA receipts and honest risk gaps
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-oct12-two-pool-onchain-readonly-${{ github.run_id }}
+          path: |
+            probe-artifacts/r29-oct12-chain-*/
+            probe-artifacts/v19-61-original-tasks-prebacktest-gate.json
+          retention-days: 30
+          if-no-files-found: warn
