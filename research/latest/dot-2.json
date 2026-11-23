@@ -2,21 +2,43 @@
   "schema": 1,
   "dot": "dot-2",
   "mode": "PAPER_RESEARCH_ONLY",
-  "status": "CAPTURE_CONFIRMED_DATA_GAP_RISK_UNVERIFIED",
-  "updated_at_utc": "2026-11-23T03:14:38.449Z",
-  "journal_path": "research/journal/dot-2/2026-11-23/20261123T031412766Z-automation11.json",
-  "journal_blob_sha": "aecd97fa9d1381526f6b04c008fa5de6e652006f",
-  "capture_request_path": "research/requests/2026-11-23/20261123T031355353Z-dot2-automation11.json",
-  "feed_is_current_request": true,
-  "source_run_id": "45104744515",
-  "captured_at_utc": "2026-11-23T03:14:09.925Z",
-  "source_chain": "solana",
-  "source_page": 1,
-  "evidence_path": "research/feeds/2026-11-23/45104744515/evidence.json",
-  "handoff_path": "research/feeds/2026-11-23/45104744515/dot2-to-dot3-handoff.json",
-  "full_contract_candidates": 20,
+  "status": "CAPTURE_PENDING_DATA_GAP",
+  "updated_at_utc": "2026-11-23T04:19:31.636Z",
+  "journal_path": "research/journal/dot-2/2026-11-23/20261123T041911265Z-dot2-research.json",
+  "journal_blob_sha": "a27f69960d4f7c292bb31d20cb275e008e3434d2",
+  "capture_request_path": "research/requests/2026-11-23/20261123T041911265Z-dot2-research.json",
+  "feed_is_current_request": false,
+  "source_run_id": null,
+  "captured_at_utc": null,
+  "source_chain": null,
+  "source_page": null,
+  "evidence_path": null,
+  "handoff_path": null,
+  "full_contract_candidates": null,
   "market_memory_path": "research/state/market-memory.json",
-  "market_memory_stats": {
+  "market_memory_stats": null,
+  "checkpoint_path": null,
+  "pending_queue_path": "research/state/market-memory.json",
+  "errors": [
+    {
+      "code": "CAPTURE_PENDING",
+      "detail": "New request not yet matched to research/feeds/latest.json evidence/completion; prior source stats intentionally excluded from current fields."
+    },
+    {
+      "code": "DATA_GAP_RISK_UNVERIFIED",
+      "detail": "Independent issuer/sellability/provider quote asof/client receipt absent; no authenticated GPT execution receipt."
+    }
+  ],
+  "trading_ready": false,
+  "orders_created": 0,
+  "capture_request_commit_sha": "c14d67f32602750bc8ca14d671a495fdfe20d00e",
+  "new_pool_count_this_wake": 0,
+  "full_contract_candidates_this_wake": 0,
+  "paper_fills_claimed": 0,
+  "backtest_executed": false,
+  "forensic_audit_path": "research/audits/dot-traces/2026-11-23/20261123T041911265Z-dot2-research/dot-2-discovery.json",
+  "forensic_audit_blob_sha": "6136f71bce955b042dfc1b37e27a508ad4997d64",
+  "prior_capture_market_memory_stats": {
     "total_discovered": 727,
     "total_observation_batches": 148,
     "contracts_complete": 727,
@@ -25,47 +47,22 @@
     "archive_reconstructed_count": 0,
     "as_of_utc": "2026-11-23T03:14:09.925Z"
   },
-  "checkpoint_path": "research/state/checkpoints/45104744515.json",
-  "pending_queue_path": "research/state/market-memory.json",
-  "errors": [
-    {
-      "code": "DATA_GAP_RISK_UNVERIFIED",
-      "detail": "No independently authenticated issuer/sellability/quote-asof/client receipt or GPT execution receipt; capture bounded to Solana page1."
-    }
-  ],
-  "trading_ready": false,
-  "orders_created": 0,
-  "capture_request_commit_sha": "90cc339c8c545996d508acd1d24f6b9b6717ba06",
-  "new_pool_count_this_wake": 20,
-  "full_contract_candidates_this_wake": 20,
-  "paper_fills_claimed": 0,
-  "backtest_executed": false,
-  "forensic_audit_path": "research/audits/dot-traces/2026-11-23/dot2-automation11-20261123T031412766Z/dot-2-discovery.json",
-  "forensic_audit_blob_sha": "94dfde805b9587c12afab3e10232150c48e36ba7",
-  "prior_capture_market_memory_stats": {
-    "total_discovered": 707,
-    "total_observation_batches": 144,
-    "contracts_complete": 707,
-    "unresolved_identity_conflicts": 0,
-    "first_dot2_detected_count": 312,
-    "archive_reconstructed_count": 0,
-    "as_of_utc": "2026-11-23T02:15:09.219Z"
-  },
-  "prior_capture_checkpoint_path": "research/state/checkpoints/45099104735.json",
+  "prior_capture_checkpoint_path": "research/state/checkpoints/45104744515.json",
   "capture_state_reconciled_at_utc": "2026-11-23T03:14:38.449Z",
-  "capture_state_origin": "MATCHED_REQUEST_EVIDENCE_CHECKPOINT_HANDOFF",
-  "handoff_counts": {
+  "capture_state_origin": "PENDING_NO_MATCHED_SOURCE_COMPLETION",
+  "handoff_counts": null,
+  "authentic_gpt_review_receipt": false,
+  "previous_capture_source_run_id": "45104744515",
+  "previous_capture_stats_are_not_current_request": true,
+  "prior_capture_source_run_id": "45104744515",
+  "capture_reconciliation_journal_path": "research/journal/dot-2/2026-11-23/20261123T031438449Z-capture-reconciliation.json",
+  "capture_reconciliation_journal_blob_sha": "3bd3993d47a3cc460625f343a85e1c0a6a04e5bb",
+  "prior_capture_handoff_counts": {
     "observations": 20,
     "unique_pools": 20,
     "full_contracts": 20,
     "independently_quote_matched": 0,
     "risk_review_candidates": 20,
     "trade_eligible": 0
-  },
-  "authentic_gpt_review_receipt": false,
-  "previous_capture_source_run_id": "45099104735",
-  "previous_capture_stats_are_not_current_request": false,
-  "prior_capture_source_run_id": "45099104735",
-  "capture_reconciliation_journal_path": "research/journal/dot-2/2026-11-23/20261123T031438449Z-capture-reconciliation.json",
-  "capture_reconciliation_journal_blob_sha": "3bd3993d47a3cc460625f343a85e1c0a6a04e5bb"
+  }
 }
