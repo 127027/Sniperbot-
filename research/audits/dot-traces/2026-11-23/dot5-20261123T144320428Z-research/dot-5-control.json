@@ -1,0 +1,152 @@
+{
+  "schema": 1,
+  "role": "dot-5-control",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "run_id": "dot5-20261123T144320428Z-research",
+  "executed_at_utc": "2026-11-23T14:43:20.428Z",
+  "gpt_execution_identity": "UNVERIFIED_INDEPENDENT_AUTOMATION_RECEIPT",
+  "status": "DATA_GAP_NO_TRADE",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "observed_branch_head": "fb0dec53b03e9815ffaf624ec5b16a87531e2258",
+  "inputs": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "0d2b5fae39cac960a3183bef40357ef7ef0d693c"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "f2959dd581956d8ef585bc1cabe9d9ca422f6f3e"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45192931339/evidence.json",
+      "blob_sha": "16fc2cdcd1d812271d57e084642206fe2733fa6b"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45192931339/dot2-to-dot3-handoff.json",
+      "blob_sha": "abe8b39883bc4b6b13e6ae12faddc4e234bd18f1"
+    },
+    {
+      "path": "research/latest/dot-1.json",
+      "blob_sha": "f87cfcb1da1e33cfb231a8f919edc31aac3b3713"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "blob_sha": "aa383f1de31bfd548a8396ab7773f2ed6270506e"
+    },
+    {
+      "path": "research/latest/dot-3.json",
+      "blob_sha": "07b659d4db2f49f7eaab508994bd75ae02e678aa"
+    },
+    {
+      "path": "research/latest/dot-4.json",
+      "blob_sha": "88d26c0239f05b6632aa1b9c611f79e9d093d15d"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "d3b5995dfcec953144f730faed4ca30c7b264340"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    }
+  ],
+  "observed": {
+    "latest_capture_run": "45192931339",
+    "capture_utc": "2026-11-23T14:19:26.543Z",
+    "chain": "cronos",
+    "page": 1,
+    "source_pool_count": 11,
+    "market_memory_total": 900,
+    "first_dot2_detected": 505,
+    "previous_dot5_total": 899,
+    "previous_dot5_first_dot2": 504,
+    "gecko_last_http": 200,
+    "gecko_cooldown": null,
+    "source_run_workflow_conclusion": "success",
+    "latest_dot2_pointer": "CAPTURE_PENDING_DATA_GAP",
+    "latest_dot3_source_run": "45070668194",
+    "latest_dot4_source_run": "45070668194",
+    "dot3_eligible": 0,
+    "orders": 0,
+    "client_fills_verified": 0,
+    "verified_provider_quote_asof": false
+  },
+  "acceptance": {
+    "original_total": 61,
+    "pass": 13,
+    "partial": 46,
+    "open": 2,
+    "nonbacktest_pass": 13,
+    "nonbacktest_required": 60,
+    "release": "NOT_READY_BLOCKED_BY_ORIGINAL_EVIDENCE",
+    "holdout_earliest_utc": "2026-11-25T06:54:05.033Z",
+    "precision": null,
+    "recall": null,
+    "missed_profit": null
+  },
+  "issues": [
+    {
+      "event_id": "dot5-dot5-20261123T144320428Z-research-001",
+      "code": "DOT2_LATEST_COMPLETION_POINTER_STALE",
+      "earliest_pipeline_step": "Dot2 post-capture latest pointer reconciliation",
+      "affected_path": "research/latest/dot-2.json",
+      "source_path": "research/feeds/latest.json",
+      "source_run_id": "45192931339",
+      "impact": "Current Dot2 pointer remains CAPTURE_PENDING although matching request has completed and 900/505 persisted; must not interpret prior_capture stats as current",
+      "fix": "Reconcile only after verified evidence and source hashes; compare request/evidence path, market_memory_stats.total_discovered, first_dot2_detected_count, checkpoint_path and handoff_counts.full_contracts; preserve prior_capture separately",
+      "regression": "Completed same-request feed with changed stats/checkpoint/handoff must fail stale guard until all fields updated; pending state cannot claim current capture"
+    },
+    {
+      "event_id": "dot5-dot5-20261123T144320428Z-research-002",
+      "code": "DOT3_DOT4_STALE_VS_FEED",
+      "earliest_pipeline_step": "Risk handoff review",
+      "affected_path": "research/latest/dot-3.json",
+      "source_path": "research/feeds/2026-11-23/45192931339/dot2-to-dot3-handoff.json",
+      "impact": "Risk and strategy latest remain on 2026-11-22 capture; no new security release",
+      "fix": "Queue independent Dot3 research for latest full contract pool identities, preserving no-trade",
+      "regression": "Reject release if Dot3 source capture predates latest Dot2 feed"
+    },
+    {
+      "event_id": "dot5-dot5-20261123T144320428Z-research-003",
+      "code": "EXTERNAL_RISK_AND_CLIENT_PROOFS_MISSING",
+      "earliest_pipeline_step": "Independent issuer/sellability authorization",
+      "affected_path": "src/v19-original-acceptance-release-gate.mjs",
+      "impact": "D3-04/D3-05 OPEN; quote provider time, independent GPT receipts and Windows client receipts missing",
+      "fix": "Require authenticated independent proofs; never infer sellability from HTTP200",
+      "regression": "--require-ready exits blocked without all 60 original passes and external proofs"
+    }
+  ],
+  "reviewed_roles": [
+    "dot-1",
+    "dot-2",
+    "dot-3",
+    "dot-4"
+  ],
+  "scope": {
+    "chains": [
+      "cronos"
+    ],
+    "pages": [
+      "cronos:NEW_POOLS:1"
+    ],
+    "full_pool_audit": "NOT_COMPLETED_ALL_POOL_RAW_BYTES",
+    "pool_identity": "UNKNOWN_FOR_UNINSPECTED_POOL_ROWS"
+  },
+  "source_timing": {
+    "capture_utc": "2026-11-23T14:19:26.543Z",
+    "provider_quote_asof_utc": null,
+    "published_utc": null,
+    "available_utc": "2026-11-23T14:19:26.543Z"
+  },
+  "api_429": "No current 429 in latest budget; historic 429 not re-audited in this wake",
+  "alternatives": [
+    "Do not promote completed HTTP capture to risk approval",
+    "Do not run October backtest or issue orders",
+    "Keep research wake enabled and report stale pointers"
+  ],
+  "follow_up": "Reconcile Dot2 latest after completed capture, audit all original source hashes and Dot3/4 journals, preserve blocked release; no trades",
+  "oracle_65": "POST_EVENT_ONLY_NOT_READ_AS_BLIND_INPUT",
+  "backtest_requested": false,
+  "orders_written": false,
+  "client_modified": false
+}
