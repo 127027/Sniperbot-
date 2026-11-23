@@ -1,5 +1,11 @@
 # R29 V2.0 – verbindliches Ziel und Implementierungsstatus (23.11.2026)
 
+## NEUSTER TECHNISCHER NACHTRAG 23.11.2026, 18:35 UTC – 802/802 GRÜN, KEIN QA-04
+
+**ZUERST LESEN:** [Dokumentierte kausale Replay-/Dot2-Pending-Reparatur](R29_V20_CAUSAL_REPLAY_AND_DOT2_PENDING_CI_20261123.md) .
+GitHub [Source-only CI #45239801393](https://github.com/127027/Sniperbot-/actions/runs/45239801393): **802/802 PASS, 0 FAIL, 0 Orderwrites**, `NOT_READY_BLOCKED_BY_ORIGINAL_EVIDENCE`; **963 Research-Pools** (keine weltweite Marktdeckung), **13/60** echte Nicht-Backtest-Originalabnahmen, acht Blocker. Späte historische Captures werden nicht rückwirkend als damals verfügbare Replay-Daten genutzt; Zeitstempel sind UTC-strikt und Gewinner-/Oracle-Felder quarantänisiert. Aktueller Dot2-Pending-Forensikstatus und `gpt_execution_identity:'UNVERIFIED'` werden SHA-geprüft, nicht als echte GPT-Authentifizierung ausgegeben. Kein tatsächlicher QA-04-Backtest, keine Orders/Windows-Kontoänderungen, keine Dots angehalten.
+
+
 ## Nutzerfreigabe
 Der Nutzer hat die vollständige Weiterentwicklung einschließlich eines **rein offline simulierten, chronologischen Diagnose-Backtests** für 12.10.2026 00:00–13.10.2026 00:00 UTC ausdrücklich freigegeben. Die frühere Anweisung „noch keinen Backtest“ ist nur insofern ersetzt: **ein echter belastbarer historischer Blindbacktest darf weiterhin nicht behauptet werden**, solange originale neutrale und zeitgerecht verfügbare Oktoberquellen fehlen. Keine Paper-/Echtgeldorders und keine Änderung des lokalen Clients.
 
