@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {replayCausalResearch,validateCausalEvent} from '../src/v19-causal-replay-research.mjs';
+const base={chain:'solana-mainnet',pool:'pool-address-123456',contract:'contract-address-123456',published_at_utc:'2026-10-12T00:10:00Z',available_at_utc:'2026-10-12T00:11:00Z',captured_at_utc:'2026-10-12T00:12:00Z',source_origin_verified:true,original_bytes_verified:true,source_blob_sha:'a'.repeat(40)};
+test('future observation not available to prior hour',()=>{const r=replayCausalResearch({events:[base]});assert.equal(r.ticks[0].newly_available.length,0);assert.equal(r.ticks[1].newly_available.length,1);assert.equal(r.orders_created,0);});
+test('missing source time quarantined',()=>{const r=replayCausalResearch({events:[{...base,available_at_utc:null}]});assert.equal(r.accepted_source_count,0);assert.equal(r.quarantined[0].reason,'SOURCE_TIME_UNKNOWN');});
+test('oracle is never used',()=>{assert.equal(validateCausalEvent({...base,post_event_oracle:true}),'ORACLE_INPUT_FORBIDDEN');});
+test('retrospective capture does not prove October availability',()=>{const r=replayCausalResearch({events:[{...base,captured_at_utc:'2026-11-23T00:00:00Z',available_at_utc:null}]});assert.equal(r.accepted_source_count,0);});
+test('timestamp contradiction rejected',()=>{assert.equal(validateCausalEvent({...base,available_at_utc:'2026-10-12T00:09:00Z'}),'SOURCE_TIME_CONTRADICTION');});
+test('no input is a transparent no-trade diagnostic, not success',()=>{const r=replayCausalResearch();assert.equal(r.ticks.length,24);assert.equal(r.backtest_success_claimed,false);assert.equal(r.client_fills_claimed,0);});
