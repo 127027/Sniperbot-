@@ -24,13 +24,11 @@ export function assessDot4PaperDecision({
  if(snapshot?.provenance==='SYNTHETIC_TEST'&&!allowSyntheticForRegression)
    return {schema:1,kind:'R29_V18_DOT4_COMMON_DECISION',action:'WATCH',
      reason:'SYNTHETIC_DATA_NOT_LIVE',evidence_status:'BLOCKED',
-     evaluation_mode:evaluationMode,
      paper_order_authorized:false,actual_gpt_order:false};
  const reason=checkUnifiedEvidence(snapshot,at,budget.policy);
  if(reason!==null)return {schema:1,kind:'R29_V18_DOT4_COMMON_DECISION',
      action:'WATCH',reason:'EVIDENCE_'+reason,
      evidence_status:'NOT_ELIGIBLE_YET',risk_recheck_required:true,
-     evaluation_mode:evaluationMode,
      paper_order_authorized:false,actual_gpt_order:false};
  const average=snapshot.quotes.reduce((sum,q)=>sum+q.price_usdc,0)/snapshot.quotes.length;
  const decision=decideUnifiedMarket({asOfUtc,observedAtUtc:snapshot.observed_at_utc,
@@ -42,7 +40,6 @@ export function assessDot4PaperDecision({
    observed_momentum_pct:decision.observed_momentum_pct??null,
    observed_move_pct:decision.observed_move_pct??null,
    evidence_status:'POINT_IN_TIME_GATES_PASS',
-   evaluation_mode:evaluationMode,
    decision_model:'UNIFIED_V18_SIGNAL_V1',
    shared_paper_budget_policy_id:budget.policy_id,
    research_coin_stake_test_usdc:budget.policy.entryAmount,
