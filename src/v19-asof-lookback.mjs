@@ -44,6 +44,8 @@ export function buildAsOfLookback({snapshots=[],asOfUtc}={}){
      first_observed_at_utc:first.observed_at_utc,
      latest_observed_at_utc:latest.observed_at_utc,
      first_price_usdc:first.price_usdc,latest_price_usdc:latest.price_usdc,
+     previous_observed_at_utc:unique.length>1?unique.at(-2).observed_at_utc:null,
+     previous_price_usdc:unique.length>1?unique.at(-2).price_usdc:null,
      past_observed_return_pct:moveFirst,
      past_24h_return_pct:ago24?(latest.price_usdc/ago24.price_usdc-1)*100:null,
      prior_to_day_eligible:false,execution_quote_authorized:false,
