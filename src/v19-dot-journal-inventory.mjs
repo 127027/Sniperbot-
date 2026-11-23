@@ -8,6 +8,7 @@ import {resolveDot2CaptureView} from './v19-dot2-capture-view.mjs';
 export const LIVE_DOT_IDS=Object.freeze(['dot-1','dot-2','dot-3','dot-4','dot-5']);
 const pat=/^research\/journal\/(dot-[1-5])\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]+\.json$/;
 const forensic=/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-5-control\.json$/;
+const pendingDot2Forensic=/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-2-discovery\.json$/;
 export const validRoleJournalPath=(role,path)=>
   typeof path==='string'&&(
     path.match(pat)?.[1]===role
@@ -33,11 +34,17 @@ export function auditLiveFiveDotJournalInventory({
  const findings=[],details=[];
  for(const id of LIVE_DOT_IDS){
   const pointer=latestByRole[id];
+  // An in-flight Dot2 GPT wake may truthfully create a SHA-pinned forensic
+  // review but no completed canonical journal yet. Never invent one.
+  const pendingDot2=id==='dot-2'
+    &&pointer?.status==='CAPTURE_PENDING_DATA_GAP'
+    &&pendingDot2Forensic.test(pointer?.forensic_audit_path??'')
+    &&(pointer?.journal_path===undefined||pointer?.journal_path===null);
+  let forensicRawSha=null;
   const issues=[];
   const issue=(code,detail)=>issues.push({code,detail});
   if(pointer?.dot!==id||pointer?.schema!==1
-    ||typeof pointer?.journal_path!=='string'
-    ||!validRoleJournalPath(id,pointer?.journal_path))
+    ||!pendingDot2&&!validRoleJournalPath(id,pointer?.journal_path))
    issue('MISSING_OR_UNTRUSTED_LATEST_POINTER',id+' requires a valid role-specific latest journal');
   const updated=iso(pointer?.updated_at_utc);
   if(updated===null||updated>at)
@@ -50,6 +57,33 @@ export function auditLiveFiveDotJournalInventory({
    else{
     rawSha=hash(raw);
     try{journal=JSON.parse(raw);}catch{issue('JOURNAL_JSON_MALFORMED',path);}
+   }
+  }
+  if(pendingDot2){
+   const forensicPath=pointer.forensic_audit_path;
+   const body=rawJournalsByPath[forensicPath];
+   if(typeof body!=='string')
+    issue('DOT2_PENDING_FORENSIC_BYTES_MISSING','Pending GPT forensic trace must exist as Git bytes');
+   else{
+    forensicRawSha=hash(body);
+    let trace=null;
+    try{trace=JSON.parse(body)}
+    catch{issue('DOT2_PENDING_FORENSIC_JSON_MALFORMED',forensicPath);}
+    if(trace!==null){
+     const executed=iso(trace.actual_execution_utc??trace.executed_at_utc
+       ??trace.actual_execution_at_utc??trace.at_utc);
+     if(trace.schema!==1||trace.role!=='dot-2-discovery'
+       ||trace.gpt_run_identity!=='UNVERIFIED'
+       ||executed===null||executed>at||updated!==null&&executed>updated
+       ||trace.orders_written>0||trace.backtest_executed===true)
+      issue('DOT2_PENDING_FORENSIC_SEMANTICS_UNTRUSTED',
+        'Research trace cannot certify completed GPT or contain orders');
+    }
+    if(!sha.test(pointer?.forensic_audit_blob_sha??'')
+      ||forensicRawSha!==pointer.forensic_audit_blob_sha
+      ||pointer.journal_blob_sha!==forensicRawSha)
+     issue('DOT2_PENDING_FORENSIC_GIT_BLOB_MISMATCH',
+       'Forensic byte SHA must match BOTH immutable pending fields');
    }
   }
   if(journal!==null){
@@ -75,7 +109,7 @@ export function auditLiveFiveDotJournalInventory({
     issue('JOURNAL_ROLE_CLAIM_DIFFERENT','Journal role disagrees with its directory');
    // No key/number in a local research file authenticates a GPT execution.
   }
-  if(!pointer?.forensic_trace_path)
+  if(!pointer?.forensic_trace_path&&!pendingDot2)
    issue('FORENSIC_TRACE_NOT_LINKED',
     'Latest role pointer has no dedicated forensic trace path');
   if(id==='dot-5'&&forensic.test(path??'')
@@ -118,10 +152,13 @@ export function auditLiveFiveDotJournalInventory({
    latest_pointer_status:pointer?.status??null,
    updated_at_utc:pointer?.updated_at_utc??null,
    journal_path:path??null,claimed_git_blob_sha:pointer?.journal_blob_sha??null,
-   computed_git_blob_sha:rawSha,
+   computed_git_blob_sha:rawSha??forensicRawSha,
    immutable_bytes_match:typeof pointer?.journal_blob_sha==='string'
-     &&rawSha!==null&&pointer.journal_blob_sha===rawSha,
-   forensic_trace_path:pointer?.forensic_trace_path??null,
+     &&(rawSha??forensicRawSha)!==null
+     &&pointer.journal_blob_sha===(rawSha??forensicRawSha),
+   pending_gpt_research_trace_not_a_completed_journal:pendingDot2,
+   forensic_trace_path:pointer?.forensic_trace_path
+     ??(pendingDot2?pointer.forensic_audit_path:null),
    genuine_gpt_review_independently_authenticated:false,
    problems:issues});
   findings.push(...issues.map(item=>({role:id,...item})));
