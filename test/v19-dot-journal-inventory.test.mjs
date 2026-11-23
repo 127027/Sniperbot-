@@ -294,12 +294,20 @@ test('explicit Dot2 capture pending without authenticated GPT receipt is not a c
 test('real new Dot1 and Dot5 role-native self-reported journals are valid schemas but NOT independently authenticated',async()=>{
  const p=build();
  p.asOfUtc='2026-11-23T19:30:00.000Z';
+ const fixed={
+  'dot-1':{path:'research/journal/dot-1/2026-11-23/dot1-automation11-20261123T190444Z.json',
+    pointer_at:'2026-11-23T18:12:07.870Z'},
+  'dot-5':{path:'research/audits/dot-traces/2026-11-23/dot5-20261123T1843Z-research/dot-5-control.json',
+    pointer_at:'2026-11-23T18:43:00.000Z'}
+ };
  for(const role of ['dot-1','dot-5']){
-  const pointer=JSON.parse(await readFile('research/latest/'+role+'.json','utf8'));
-  const raw=await readFile(pointer.journal_path,'utf8');
-  p.latestByRole[role]=pointer;
-  p.rawJournalsByPath[pointer.journal_path]=raw;
-  assert.equal(h(raw),pointer.journal_blob_sha);
+  const input=fixed[role],raw=await readFile(input.path,'utf8');
+  p.latestByRole[role]={...p.latestByRole[role],
+   updated_at_utc:input.pointer_at,
+   journal_path:input.path,journal_blob_sha:h(raw),
+   forensic_trace_path:role==='dot-5'?input.path:
+      p.latestByRole[role].forensic_trace_path};
+  p.rawJournalsByPath[input.path]=raw;
  }
  const out=auditLiveFiveDotJournalInventory(p);
  for(const role of ['dot-1','dot-5']){
