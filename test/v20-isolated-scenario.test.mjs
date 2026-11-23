@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {runV20IsolatedScenario} from '../src/v20-isolated-scenario.mjs';
+import {runV20IsolatedScenario,auditV20IsolatedScenario} from '../src/v20-isolated-scenario.mjs';
 const P='2026-10-11T18:59:00.000Z';
 const at=h=>'2026-10-12T'+String(h).padStart(2,'0')+':00:00.000Z';
 const id={chain:'solana',contract:'Contract1111111111',pool:'Pool1111111111111'};
@@ -126,4 +126,25 @@ test('capacity, cash, and action idempotence are bounded',()=>{
  const small=run(pair(at(0),1,4999),[plan(at(0))]);
  assert.equal(small.synthetic_buys,0);
  assert.equal(small.ticks[5].attempts[0].reason,'INSUFFICIENT_LIQUIDITY');
+});
+
+test('cash/lot auditor reconciles synthetic gain and genuine negative modeled PnL',()=>{
+ const gain=run([...pair(at(0),1),...pair(at(1),1.5)],[plan(at(0))]);
+ const loss=run([...pair(at(0),1),...pair(at(1),.75)],[plan(at(0))]);
+ assert.equal(auditV20IsolatedScenario(gain).status,
+   'SYNTHETIC_MODEL_LEDGER_RECONCILED_NOT_REAL_FILLS');
+ assert.equal(auditV20IsolatedScenario(loss).modeled_sell_count,1);
+ assert.ok(auditV20IsolatedScenario(loss).modeled_realized_pnl_test_usdc<0);
+});
+test('auditor rejects cash tampering, forged client fill and synthetic lot double count',()=>{
+ const baseline=run([...pair(at(0),1),...pair(at(1),1.5)],[plan(at(0))]);
+ const forged=structuredClone(baseline);
+ forged.synthetic_receipts[0].cash_after_test_usdc+=1;
+ assert.throws(()=>auditV20IsolatedScenario(forged),/INVALID_V20_SYNTHETIC_MODEL_LEDGER/);
+ const promoted=structuredClone(baseline);
+ promoted.synthetic_receipts[0].client_receipt=true;
+ assert.throws(()=>auditV20IsolatedScenario(promoted),/INVALID_V20_SYNTHETIC_MODEL_LEDGER/);
+ const open=run(pair(at(0)),[plan(at(0))]);
+ open.synthetic_open_positions.push({...open.synthetic_open_positions[0]});
+ assert.throws(()=>auditV20IsolatedScenario(open),/INVALID_V20_SYNTHETIC_MODEL_LEDGER/);
 });
