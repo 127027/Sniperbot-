@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "role": "dot-1-tempo",
+  "run_id": "dot1-45225394417-20261123T180859Z",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "actual_gpt_execution_utc": null,
+  "automation_runtime_local_time_reported": "2026-11-23T13:08:59-05:00",
+  "virtual_historical_utc": null,
+  "source_run_id": "45225394417",
+  "source_capture_utc": "2026-11-23T17:14:11.006Z",
+  "source_branch": "codex/r29-cleanroom-paper-20261121",
+  "source_inputs": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "ff3c1ea00adf8028cb1e866a6b3bd0153a029618"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "7398ac7bd6c6b8742f211a27f7012dffb8abbf42"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "13622fb30c666657214f05f6eb29255cbdb19914"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45225394417/evidence.json",
+      "blob_sha": "0b98a816d22c70e7abe6c11c043c6d3ed9c6b5f9"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45225394417/v19-operating-measurements.json",
+      "blob_sha": "70815f742cf50a970617585343bdddbb7409b561"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45225394417/page-coverage-report.json",
+      "blob_sha": "73268db6abe705cda1e4fd1ba8109f9345d36569"
+    }
+  ],
+  "checked_chains": [
+    "ethereum"
+  ],
+  "other_chains_not_new_gecko_page": [
+    "solana",
+    "base",
+    "bsc",
+    "robinhood",
+    "cronos"
+  ],
+  "source_raw_path": "research/feeds/2026-11-23/45225394417/gecko-ethereum-page5.raw.json",
+  "source_raw_sha256": "a8141ce8fb3c9550b714ef4e7fd68b9152595991d459a65ae248f8cd48f9fb55",
+  "observed": {
+    "persisted_pools_previous": 940,
+    "persisted_pools_now": 943,
+    "first_dot2_previous": 545,
+    "first_dot2_now": 548,
+    "observation_batches_previous": 195,
+    "observation_batches_now": 198,
+    "ethereum_page5_valid_pools": 20,
+    "dex_rechecks": 6,
+    "dex_indicative_complete": 1,
+    "deferred_new_candidates": 16,
+    "http200": 7,
+    "http429": 0,
+    "gecko_cooldown_until": null,
+    "verified_gpt_reviews_in_http_job": 0
+  },
+  "example_pool": {
+    "chain": "ethereum",
+    "contract": "0xffc4b80a4fbe90125b2c2e00fd2ff18dffae0505",
+    "pool": "0x2c1f6ea4593ecb0386e09deb2503235b4159164e",
+    "liquidity_usd": 10268510.0349,
+    "volume_24h_usd": 1053823.01430118,
+    "observed_at_utc": "2026-11-23T17:14:10.058Z",
+    "note": "Single source snapshot, no independently verified same-pool hourly delta; not trade eligibility"
+  },
+  "status": "DATA_GAP",
+  "recommendation_full_gpt_reviews_per_24h": 4,
+  "rejected_alternatives": [
+    8,
+    12,
+    24
+  ],
+  "reason": "The deterministic 12 recommendation relies on bounded discovery counts. Only one new Gecko chain page was fetched; no independently timestamped same-pool price, volume and liquidity deltas or independently verified media acceleration. Pool memory growth may reflect paging and capture accumulation, not market acceleration. Missing chain pages cannot establish calm; no quiet checks counted.",
+  "consecutive_quiet_checks": 0,
+  "next_review": "Next scheduled research wake, on newer source-pinned capture",
+  "not_checked": [
+    "Independent upstream quote as-of",
+    "Media acceleration",
+    "New Gecko pages for five other chains",
+    "Onchain sellability",
+    "Independent risk issuer",
+    "Actual Windows client"
+  ],
+  "independent_gpt_execution_receipt": false,
+  "orders_created": 0,
+  "backtest_started": false,
+  "trade_authorized": false
+}
