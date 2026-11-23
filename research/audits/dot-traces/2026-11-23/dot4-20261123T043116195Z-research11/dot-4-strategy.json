@@ -1,0 +1,1161 @@
+{
+  "schema": 1,
+  "role": "dot-4-strategy",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "strategy": "UNIFIED_V18_SIGNAL_V1",
+  "real_execution_at_utc": "2026-11-23T04:31:16.195Z",
+  "run_id": "dot4-20261123T043116195Z-research11",
+  "gpt_run_identity": "UNVERIFIED",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "independently_authenticated_gpt_receipt": false,
+  "source_run_id": "45111126096",
+  "source_capture_at_utc": "2026-11-23T04:19:21.554Z",
+  "input_refs": [
+    {
+      "path": "research/feeds/2026-11-23/45111126096/dot3-research-risk-status-preview.json",
+      "git_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45111126096/dot2-to-dot3-handoff.json",
+      "git_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc"
+    },
+    {
+      "path": "research/observations/2026-11-23/45111126096.json",
+      "git_blob_sha": "cf6670ea442de92d39510d043fe956f942565ebc"
+    },
+    {
+      "path": "research/state/latest.json",
+      "git_blob_sha": "0bded7d2368ca3a245092e710d66cd39e31b195b"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "git_blob_sha": "4d25f62525bc5d04928a13b9918fbf8d88cff211"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "git_blob_sha": "2c2efbaa92a37b3b897ff9c9211e7d5196e2b2ff"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "git_blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "research/latest/dot-3.json",
+      "git_blob_sha": "07b659d4db2f49f7eaab508994bd75ae02e678aa"
+    },
+    {
+      "path": "signals/index.json",
+      "git_blob_sha": "8f360a172e95adfda2d30105dd3fc7639497367d"
+    }
+  ],
+  "scope": {
+    "chains_examined": [
+      "base"
+    ],
+    "pages_examined": [
+      1
+    ],
+    "pools_examined": 19,
+    "market_memory_total": 746,
+    "other_chains_not_individually_examined": [
+      "solana",
+      "ethereum",
+      "bsc",
+      "robinhood",
+      "cronos"
+    ],
+    "older_memory_pools_not_individually_examined": true
+  },
+  "provider_status": {
+    "gecko_last_http_status": 200,
+    "gecko_cooldown_until_utc": null,
+    "new_http_requests_by_this_review": 0
+  },
+  "position_review": {
+    "signal_index_orders": 0,
+    "authenticated_client_receipts_checked": false,
+    "authenticated_open_lots": "UNKNOWN",
+    "decision": "NO_SELL_WITHOUT_AUTHENTICATED_POSITION"
+  },
+  "summary": {
+    "status": "NO_TRADE_DATA_GAP",
+    "dot3_modeled_counts": {
+      "DISCOVERED": 0,
+      "DATA_GAP": 8,
+      "WATCH": 11,
+      "REJECTED": 0,
+      "PAPER_ELIGIBLE": 0
+    },
+    "independent_risk_issuer": "OPEN_D3-04",
+    "empirical_sellability": "OPEN_D3-05",
+    "verified_current_provider_quote_asof": false,
+    "orders_created": 0,
+    "client_fills_claimed": 0,
+    "backtest_executed": false,
+    "existing_test_usdc_reference": 5000,
+    "per_coin_test_usdc_reference": 50
+  },
+  "records": [
+    {
+      "sequence": 1,
+      "identity": {
+        "chain": "base",
+        "contract": "0xb200000000000000000000397293cb8cda9a10c5",
+        "pool": "0x2ff806597d2d81d384b710c79f81bc8f6438ba9e",
+        "pool_kind": "UNKNOWN",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "SNDKc",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 679.428434894508,
+          "liquidity_usdc": 7.9642,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "WATCH",
+      "decision": "WATCH_RESEARCH_ONLY",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. INDICATIVE_LOW_LIQUIDITY",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "LIQUIDITY_DEPTH_RECHECK",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 2,
+      "identity": {
+        "chain": "base",
+        "contract": "0xf16d91707da8ee16588e96dd9f6d50b017d7d187",
+        "pool": "0x8101ad32f94f747992a3f37f90cb9aab968358e4",
+        "pool_kind": "UNKNOWN",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "SPACEX",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 9.3572673731455e-7,
+          "liquidity_usdc": 10307.0133,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "DATA_GAP",
+      "decision": "NO_TRADE_DATA_GAP",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. MISSING_RISK_ATTESTATION",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 3,
+      "identity": {
+        "chain": "base",
+        "contract": "0xb2000000000000000000006f393ea255a5b417b6",
+        "pool": "0x10d3e44930ff3bd9dc027fbf73bdb664d676bd92727d9d8a6dd51458812d8e63",
+        "pool_kind": "UNISWAP_V4_POOL_ID",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "MACCA",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 9.83549822653198e-7,
+          "liquidity_usdc": 979.7653,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "WATCH",
+      "decision": "WATCH_RESEARCH_ONLY",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. INDICATIVE_LOW_LIQUIDITY",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "LIQUIDITY_DEPTH_RECHECK",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 4,
+      "identity": {
+        "chain": "base",
+        "contract": "0x22f3aa494bee97115b405b4d6b4cad347409366b",
+        "pool": "0x72bafe9ce1b4964f5c643738f01ad735104216dcd9198a09d001ab0dcf9fa22c",
+        "pool_kind": "UNISWAP_V4_POOL_ID",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "QFE",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 0.00000137438702085142,
+          "liquidity_usdc": 2197.7571,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "WATCH",
+      "decision": "WATCH_RESEARCH_ONLY",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. INDICATIVE_LOW_LIQUIDITY",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "LIQUIDITY_DEPTH_RECHECK",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 5,
+      "identity": {
+        "chain": "base",
+        "contract": "0x35abf00544d85d7005790b2da273a4c1731c0a32",
+        "pool": "0xdebea8a7f77e01ad417d12afdb290cab34ebb06242b450a385c895f6fd18103d",
+        "pool_kind": "UNISWAP_V4_POOL_ID",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "ELSA",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 0.000104712259838287,
+          "liquidity_usdc": 104068.8938,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "DATA_GAP",
+      "decision": "NO_TRADE_DATA_GAP",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. MISSING_RISK_ATTESTATION",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 6,
+      "identity": {
+        "chain": "base",
+        "contract": "0xc2858192ea2a286ed8ca7683bf7a1bdadaa23d7f",
+        "pool": "0xfc551cfa6fc43cdf4074d048f7175aff202d8044",
+        "pool_kind": "UNKNOWN",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "MEOW",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 0.00000139201743289763,
+          "liquidity_usdc": 13726.7224,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        },
+        {
+          "provider": "DEXSCREENER",
+          "price_usdc": 0.000001389,
+          "liquidity_usdc": 13736.12,
+          "captured_at_utc": "2026-11-23T04:19:21.539Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": 0.217002084340479,
+      "modeled_dot3_status": "DATA_GAP",
+      "decision": "NO_TRADE_DATA_GAP",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. MISSING_RISK_ATTESTATION",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 7,
+      "identity": {
+        "chain": "base",
+        "contract": "0x408362a405d6d72c9b6e3993dde7a01cbd51ee57",
+        "pool": "0x813c32d1dc723122175b5802cc4a5fedfa48d0f3a5445e0f6056f87a1b3e6adb",
+        "pool_kind": "UNISWAP_V4_POOL_ID",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "NOTF",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 0.0969559501378301,
+          "liquidity_usdc": 713732.1191,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        },
+        {
+          "provider": "DEXSCREENER",
+          "price_usdc": 0.09681,
+          "liquidity_usdc": 712590.69,
+          "captured_at_utc": "2026-11-23T04:19:21.294Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": 0.15064580513375309,
+      "modeled_dot3_status": "DATA_GAP",
+      "decision": "NO_TRADE_DATA_GAP",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. MISSING_RISK_ATTESTATION",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 8,
+      "identity": {
+        "chain": "base",
+        "contract": "0x38b31f56e5769708cd25cdb6ba32505d015d7ab3",
+        "pool": "0xa76b3f4351a328d22002610ad6e2a3652f2cd32c504705adcfe7535154af5559",
+        "pool_kind": "UNISWAP_V4_POOL_ID",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "PUBLIC",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 0.00012417905529728,
+          "liquidity_usdc": 118252.9382,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "DATA_GAP",
+      "decision": "NO_TRADE_DATA_GAP",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. MISSING_RISK_ATTESTATION",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 9,
+      "identity": {
+        "chain": "base",
+        "contract": "0x3e000f8204579993141f6af9ca0cae862a4a1013",
+        "pool": "0x79507424aeff9758016e2fcd985197a8c822d32048af67e5f67fe0186b65cedc",
+        "pool_kind": "UNISWAP_V4_POOL_ID",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "BTC",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 1.72571460191236e-7,
+          "liquidity_usdc": 2241.1557,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "WATCH",
+      "decision": "WATCH_RESEARCH_ONLY",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. INDICATIVE_LOW_LIQUIDITY",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "LIQUIDITY_DEPTH_RECHECK",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 10,
+      "identity": {
+        "chain": "base",
+        "contract": "0x067a5a71dd1787707933ca45a208dc3dbbbc74ef",
+        "pool": "0xdcb8f1f4442efe04eeb09d845836b2bdd43b4f519f4c450d7f6a14306c61e789",
+        "pool_kind": "UNISWAP_V4_POOL_ID",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "BTC",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 1.72571460191236e-7,
+          "liquidity_usdc": 2241.4798,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "WATCH",
+      "decision": "WATCH_RESEARCH_ONLY",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. INDICATIVE_LOW_LIQUIDITY",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "LIQUIDITY_DEPTH_RECHECK",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 11,
+      "identity": {
+        "chain": "base",
+        "contract": "0x17d267657796a1c281dfaa414bc8eb3afab950a5",
+        "pool": "0x28867e0ac71e1e3576b9e5a1adcbd2658599940feb62e2f819ab63831814397f",
+        "pool_kind": "UNISWAP_V4_POOL_ID",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "UCASH",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 1.72515624729191e-7,
+          "liquidity_usdc": 2241.4798,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "WATCH",
+      "decision": "WATCH_RESEARCH_ONLY",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. INDICATIVE_LOW_LIQUIDITY",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "LIQUIDITY_DEPTH_RECHECK",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 12,
+      "identity": {
+        "chain": "base",
+        "contract": "0x86959d728d7c664fd23ef2b09b7750a5501a6881",
+        "pool": "0x76cae24462827fe420e88a16f1d49fbe49a4e2df29b188bd9155f8832b0a08a8",
+        "pool_kind": "UNISWAP_V4_POOL_ID",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "WATER",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "WATCH",
+      "decision": "WATCH_RESEARCH_ONLY",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. INDICATIVE_LOW_LIQUIDITY",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "LIQUIDITY_DEPTH_RECHECK",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 13,
+      "identity": {
+        "chain": "base",
+        "contract": "0x2c1d8b890ad9c1f7b43a1f0a0833bd33950cc611",
+        "pool": "0xc5315c83b7238d308e753961917dcba7fa0d81c794dc6db70f089764889f2c22",
+        "pool_kind": "UNISWAP_V4_POOL_ID",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "UCASH",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 1.72515624729191e-7,
+          "liquidity_usdc": 2241.4798,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "WATCH",
+      "decision": "WATCH_RESEARCH_ONLY",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. INDICATIVE_LOW_LIQUIDITY",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "LIQUIDITY_DEPTH_RECHECK",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 14,
+      "identity": {
+        "chain": "base",
+        "contract": "0xd5ce838275dcf766abc19fd306a22a3644ded6fd",
+        "pool": "0xb1b7e3d2aea608cd2a2e736785cdfd438a2447cb",
+        "pool_kind": "UNKNOWN",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "REBOOT",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 0.0000115105530266362,
+          "liquidity_usdc": 155355.3889,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        },
+        {
+          "provider": "DEXSCREENER",
+          "price_usdc": 0.00001168,
+          "liquidity_usdc": 156660.03,
+          "captured_at_utc": "2026-11-23T04:19:21.355Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": 1.4613448257932966,
+      "modeled_dot3_status": "DATA_GAP",
+      "decision": "NO_TRADE_DATA_GAP",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. MISSING_RISK_ATTESTATION",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 15,
+      "identity": {
+        "chain": "base",
+        "contract": "0x8b018cd38d14a8a070ec86f995bcea40e7a9a890",
+        "pool": "0x0053a63d142fecf4d0c77cf64c8ddcd15f9cf129",
+        "pool_kind": "UNKNOWN",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "1KTO100M",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 7.32122078035321e-15,
+          "liquidity_usdc": 0.00006923832997,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "WATCH",
+      "decision": "WATCH_RESEARCH_ONLY",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. INDICATIVE_LOW_LIQUIDITY",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "LIQUIDITY_DEPTH_RECHECK",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 16,
+      "identity": {
+        "chain": "base",
+        "contract": "0xb6721c5382f955e7c70aa8b9b78ccc891b92e0c3",
+        "pool": "0x503c06a535001e1cdef29e0d2b3e92248dc29bd512f809e31c22585207f02f65",
+        "pool_kind": "UNISWAP_V4_POOL_ID",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "THR",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 0.0000805603327712251,
+          "liquidity_usdc": 79815.748,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "DATA_GAP",
+      "decision": "NO_TRADE_DATA_GAP",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. MISSING_RISK_ATTESTATION",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 17,
+      "identity": {
+        "chain": "base",
+        "contract": "0xffaa5b5ab330d7cf8237db9a06e67f07e97dabf4",
+        "pool": "0x16d6533f309e08b02ec0777ac49621bb1351a2be",
+        "pool_kind": "UNKNOWN",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "BLESS",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 0.00000489372905160262,
+          "liquidity_usdc": 58609.8756,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        },
+        {
+          "provider": "DEXSCREENER",
+          "price_usdc": 0.000004904,
+          "liquidity_usdc": 58859.66,
+          "captured_at_utc": "2026-11-23T04:19:21.392Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": 0.209659776123329,
+      "modeled_dot3_status": "DATA_GAP",
+      "decision": "NO_TRADE_DATA_GAP",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. MISSING_RISK_ATTESTATION",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 18,
+      "identity": {
+        "chain": "base",
+        "contract": "0xb2000000000000000000007c1cc9538f0fb3bc1e",
+        "pool": "0x0ed32867e438e92b0a41eba110c131fabbcee8105006cc9861b8f0f7d3b463b8",
+        "pool_kind": "UNISWAP_V4_POOL_ID",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "CPL",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 0.0000046367304686235,
+          "liquidity_usdc": 4431.711,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "WATCH",
+      "decision": "WATCH_RESEARCH_ONLY",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. INDICATIVE_LOW_LIQUIDITY",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "LIQUIDITY_DEPTH_RECHECK",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    },
+    {
+      "sequence": 19,
+      "identity": {
+        "chain": "base",
+        "contract": "0xe93831875c123d499bc9fcb1030e2fed0fd25d9d",
+        "pool": "0x384f7b60ed48ccb1375a52e908f91b78e433535fe99f3dbcd393d339d6a8e661",
+        "pool_kind": "UNISWAP_V4_POOL_ID",
+        "lot_id": "UNKNOWN_NO_AUTHENTICATED_POSITION"
+      },
+      "symbol_untrusted_label": "Blackrock+ Visa + Mastercard+ DTCC",
+      "as_of_utc": "2026-11-23T04:19:21.554Z",
+      "source_capture_utc": "2026-11-23T04:19:21.099Z",
+      "source_published_utc": null,
+      "source_available_utc": "2026-11-23T04:19:21.554Z",
+      "upstream_provider_quote_asof_utc": null,
+      "dot2_handoff_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot3_preview_blob_sha": "2386255c5767095a328e2ae93bdf5df7b644b90e",
+      "dot3_independent_issuer_verified": false,
+      "source_quotes": [
+        {
+          "provider": "GECKOTERMINAL",
+          "price_usdc": 1.48782477041329e-7,
+          "liquidity_usdc": 147.141,
+          "captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "independent_authentication": false
+        }
+      ],
+      "indicative_price_disagreement_pct": null,
+      "modeled_dot3_status": "WATCH",
+      "decision": "WATCH_RESEARCH_ONLY",
+      "why": "No independently authenticated Dot3 risk issuer, empirical chain sellability or upstream quote time. Captured HTTP timestamps do not prove provider quote freshness; no authorized client receipts. INDICATIVE_LOW_LIQUIDITY",
+      "alternatives_considered": [
+        "Research WATCH and later source recheck",
+        "Hypothetical 50 TEST-USDC BUY rejected because fail-closed safety gates",
+        "Shadow HOLD/SELL not applicable without authenticated open lot"
+      ],
+      "missing_evidence": [
+        "INDEPENDENT_CURRENT_QUOTES",
+        "LIQUIDITY_DEPTH_RECHECK",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "planned_entry_test_usdc_if_authorized": 50,
+      "fees_spread_slippage": "UNKNOWN_NOT_EXECUTABLE",
+      "stop_take_profit": "SHADOW_ONLY_NOT_APPLIED",
+      "forecast_1h": null,
+      "forecast_3h": null,
+      "forecast_6h": null,
+      "forecast_reason": "INSUFFICIENT_CALIBRATED_POSITIVE_NEGATIVE_SAMPLES",
+      "order_published": false,
+      "fill_claimed": false
+    }
+  ],
+  "follow_up": [
+    "Dot3 independent issuer origin proof and onchain sellability evidence",
+    "Capture provider quote time and independent upstream origins",
+    "Obtain independently verifiable read-only client receipt before claiming open lots",
+    "Continue bounded neutral multi-chain discovery without oracle winners"
+  ],
+  "notes": "Append-only forensic self-report; SHA is a Git blob reference not independent origin authentication. No signal or client account mutation."
+}
