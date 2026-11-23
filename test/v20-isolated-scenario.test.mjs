@@ -61,7 +61,8 @@ test('a single provider cannot produce a synthetic fill',()=>{
   assert.equal(r.ticks[5].attempts[0].reason,'NO_FRESH_TWO_SOURCE_QUOTES');
 });
 test('late November capture is quarantined from earlier October synthetic ticks',()=>{
-  const late=pair('2026-11-23T00:00:00.000Z');
+  const late=pair('2026-11-23T00:00:00.000Z').map(q=>({
+    ...q,published_at_utc:at(0),available_at_utc:at(0)}));
   const r=run(late,[plan(at(0))]);
   assert.equal(r.synthetic_buys,0);
   assert.equal(r.quarantined_source_events.length,2);
