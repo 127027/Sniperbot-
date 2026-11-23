@@ -37,3 +37,13 @@ test('unrelated events are ordered by capture rather than provider claimed avail
  const r=replayCausalResearch({events:[late,early]});
  assert.deepEqual(r.ticks[1].newly_available.map(e=>e.contract),['contract-early-123456','contract-late-123456']);
 });
+
+test('timezone-less timestamps and impossible UTC calendar dates are rejected',()=>{
+ assert.equal(validateCausalEvent({...base,available_at_utc:'2026-10-12T00:11:00'}),'SOURCE_TIME_UNKNOWN');
+ assert.equal(validateCausalEvent({...base,published_at_utc:'2026-02-30T00:10:00Z'}),'SOURCE_TIME_UNKNOWN');
+});
+test('post-event winner gains and ranks cannot enter source evidence',()=>{
+ assert.equal(validateCausalEvent({...base,reported_gain_pct:1000}),'ORACLE_INPUT_FORBIDDEN');
+ assert.equal(validateCausalEvent({...base,post_event_rank:1}),'ORACLE_INPUT_FORBIDDEN');
+ assert.equal(validateCausalEvent({...base,source_class:'POST_EVENT_ORACLE'}),'ORACLE_INPUT_FORBIDDEN');
+});
