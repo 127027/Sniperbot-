@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "kind": "R29_DOT3_RESEARCH_FORENSIC_JOURNAL",
+  "role": "dot-3-risk",
+  "run_id": "dot3-risk-20261123T212531228Z-research",
+  "actual_executed_at_utc": "2026-11-23T21:25:31.228Z",
+  "gpt_run_identity": "UNVERIFIED",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "independent_gpt_execution_receipt_verified": false,
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "mode": "PUBLIC_RESEARCH/PAPER_ONLY",
+  "source_as_of_utc": "2026-11-23T20:19:23.151Z",
+  "sources": [
+    {
+      "path": "docs/R29_FIVE_DOT_FORENSIC_BACKTEST_PROTOCOL_20261122.md",
+      "blob_sha": "3f7ba1977cb0df637fd3c7486897aa11780bea97"
+    },
+    {
+      "path": "docs/R29_NEXT_CHAT_HANDOFF.md",
+      "blob_sha": "3922a0ead5f911d8bd39a365fd34facb0afdc747"
+    },
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "55c12d4e2c8a7ebf897c367463653da603881207"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "885746fdc33ebe19676b5675376019bc161858e5"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "92428ea46bd32a2f648ada3c35a2b117e93c6572"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45258147195/dot2-to-dot3-handoff.json",
+      "blob_sha": "ad3546c300ca2539a3fdc9cd4fc44684c319be8e"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45258147195/dot3-next-evidence-rechecks.json",
+      "blob_sha": "7d793a29c8ecbf2c178b9004129a95370c9f2dda"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45258147195/dot3-research-risk-status-preview.json",
+      "blob_sha": "89995dc77a26a732795240f12a5834d815c89025"
+    },
+    {
+      "path": "src/v19-honeypot-risk-research.mjs",
+      "blob_sha": "36b12b8c916186726c13567cb9db4165b4f06227"
+    }
+  ],
+  "scope": {
+    "chains": [
+      "cronos"
+    ],
+    "pool_keys": [],
+    "pages": [
+      6
+    ],
+    "exact_chain_contract_pool": "UNKNOWN_NO_HANDOFF_CANDIDATES"
+  },
+  "source_times": {
+    "capture_at_utc": "2026-11-23T20:19:23.151Z",
+    "published_at_utc": null,
+    "provider_quote_asof_utc": null,
+    "http_request_start_at_utc": "2026-11-23T20:19:21.749Z",
+    "http_response_at_utc": "2026-11-23T20:19:22.250Z",
+    "available_at_utc": "2026-11-23T20:19:23.151Z"
+  },
+  "review": {
+    "activity": "READ_ONLY_SOURCE_PINNED_DOT3_REVIEW",
+    "what_was_done": "Read forensic protocol, handoff, current pointers, provider budget, freeze, risk queue, preview and honeypot research implementation. Current handoff has zero candidates and recheck queue is empty.",
+    "why_this_action": "No exact chain+pool+contract entries to classify; source capture HTTP200 does not imply a valid tradable quote or complete market coverage.",
+    "alternatives_considered": [
+      "Treat zero candidates as calm market: rejected, coverage not proven",
+      "Reclassify old pool names without fresh handoff: rejected, exact identity/as-of required",
+      "Issue paper BUY/SELL: prohibited without issuer, quote and chain sellability proof"
+    ],
+    "classification_counts": {
+      "WATCH": 0,
+      "DATA_GAP": 0,
+      "REJECTED": 0,
+      "PAPER_ELIGIBLE": 0
+    },
+    "global_status": "DATA_GAP_NO_CURRENT_HANDOFF",
+    "missing_evidence": [
+      "No new Dot2 candidate with full contract/pool",
+      "Independent provider quote timestamp",
+      "Independent risk issuer origin/immutable proof D3-04",
+      "Empirical chain sellability, 50 TEST-USDC buy/sell route, taxes, blacklist and token rights D3-05",
+      "Independent second price/liquidity source, 3% drift and >=5000 USD liquidity for each future candidate"
+    ],
+    "http_429_observed_in_current_budget": false,
+    "provider_calls_in_this_review": 0,
+    "follow_up": "At next regular wake re-read current Dot2 handoff and queued rechecks; if candidates appear, check each exact identity, quote provider/published/available timestamps, 3% drift, liquidity >=5000 USD, chain-specific sellability, issuer and permissions; observe provider-wide 429 cooldowns.",
+    "retry_not_before_utc": null,
+    "deadline": "NEXT_REGULAR_RESEARCH_WAKE",
+    "requested_correction": "Do not mistake empty Cronos handoff for full coverage; preserve deferred cross-chain backlog and gather independent chain-level issuer/sellability evidence."
+  },
+  "market_memory": {
+    "total_discovered": 982,
+    "first_dot2_detected_count": 587
+  },
+  "original_acceptance": {
+    "D3_04": "OPEN",
+    "D3_05": "OPEN"
+  },
+  "orders_created": 0,
+  "paper_fills": 0,
+  "backtest_started": false,
+  "oracle_65_used_for_discovery": false,
+  "automation_changed": false
+}
