@@ -15,10 +15,10 @@ export function build29HourAsOfTimeline({date,snapshots=[],warmupHours=5,
  const end=start+86400000,begin=start-warmupHours*3600000;
  const ticks=[];
  for(let i=0;i<warmupHours+24;i++){
-   // Explicit opt-in for the immediate 00:00 decision, while retaining
-   // legacy :35 diagnostics for existing unchanged benchmark comparisons.
-   const tick=begin+i*3600000+
-     (firstScanAtStart&&i===warmupHours?0:35*60000);
+   // Direct-start mode has exactly five preparation hours followed by ALL
+   // 24 hourly decision opportunities on the hour, not only the first one.
+   // Keep :35 only for older benchmark runs when direct-start is disabled.
+   const tick=begin+i*3600000+(firstScanAtStart?0:35*60000);
    const at=iso(tick);
    const lookback=buildAsOfLookback({snapshots,asOfUtc:at});
    // The trading gate has a separate 10-minute quote age limit. A historical
