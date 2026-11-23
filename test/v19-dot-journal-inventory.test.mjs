@@ -216,10 +216,14 @@ test('same-capture Dot2 stale totals, checkpoint and handoff count are independe
 test('real newly repaired Dot2 latest pointer agrees with completed capture feed',async()=>{
  const d=JSON.parse(await readFile('research/latest/dot-2.json','utf8'));
  const f=JSON.parse(await readFile('research/feeds/latest.json','utf8'));
- if(d.capture_request_path!==f.request_path){
-  // Live jobs may commit a newer feed while an older legitimate GPT review
-  // is still pending; that must be handled by the separate view instead.
+ if(d.capture_request_path!==f.request_path
+   ||d.status==='CAPTURE_PENDING_DATA_GAP'
+   ||d.feed_is_current_request===false){
+  // GitHub Actions can commit a completed source feed AFTER Dot2's GPT
+  // wake: request paths can match while the earlier GPT journal truthfully
+  // still says CAPTURE_PENDING. The feed is NOT another GPT review.
   assert.notEqual(d.evidence_path,f.evidence_path);
+  assert.equal(d.orders_created,0);
   return;
  }
  assert.equal(d.evidence_path,f.evidence_path);
