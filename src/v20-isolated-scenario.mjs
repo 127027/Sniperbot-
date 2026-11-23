@@ -2,14 +2,17 @@
 // This is NOT an empirical October backtest, GPT invocation, authenticated risk issuer,
 // or Windows paper client. Every market quote and decision here must be SYNTHETIC.
 import {replayCausalResearch} from './v19-causal-replay-research.mjs';
-import {DEFAULT_POLICY} from './core.mjs';
+import {DEFAULT_POLICY,CHAINS} from './core.mjs';
 
 const ms=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value)
   &&Number.isFinite(Date.parse(value))?Date.parse(value):null;
 const round=n=>Math.round((n+Number.EPSILON)*1e8)/1e8;
 const finitePositive=n=>typeof n==='number'&&Number.isFinite(n)&&n>0;
-const key=e=>e.chain+':'+e.contract+':'+e.pool;
+const key=e=>e.chain+':'+(e.chain==='solana'?e.contract:e.contract.toLowerCase())+':'+(e.chain==='solana'?e.pool:e.pool.toLowerCase());
 const tokenKey=e=>e.chain+':'+(e.chain==='solana'?e.contract:e.contract.toLowerCase());
+const validIdentity=e=>CHAINS.has(e?.chain)
+  &&typeof e.contract==='string'&&/^[a-zA-Z0-9._-]{9,180}$/.test(e.contract)
+  &&typeof e.pool==='string'&&/^[a-zA-Z0-9._-]{9,180}$/.test(e.pool);
 const assert=condition=>{if(!condition)throw Error('INVALID_SYNTHETIC_SCENARIO_INPUT')};
 
 export function runV20IsolatedScenario({
@@ -37,7 +40,7 @@ export function runV20IsolatedScenario({
   const invalidQuotes=[];
   const eligibleObservations=[];
   for(const [index,e] of observations.entries()){
-    if(e?.synthetic_fixture!==true||e?.event_kind!=='SYNTHETIC_QUOTE'
+    if(!validIdentity(e)||e?.synthetic_fixture!==true||e?.event_kind!=='SYNTHETIC_QUOTE'
       ||!finitePositive(e.price_test_usdc)||!finitePositive(e.liquidity_test_usdc)
       ||typeof e.source_provider!=='string'||!/^[a-zA-Z0-9._-]{3,80}$/.test(e.source_provider)){
       invalidQuotes.push({index,reason:'UNSUPPORTED_NON_SYNTHETIC_OR_INVALID_QUOTE'});
@@ -52,15 +55,6 @@ export function runV20IsolatedScenario({
   for(const [index,p] of plans.entries()){
     const time=ms(p?.at_utc),precommit=ms(p?.precommitted_at_utc);
     const id=p?.plan_id;
-    const valid=p?.synthetic_fixture===true&&p?.plan_kind==='FIXED_TEST_PLAN'
-      &&typeof id==='string'&&/^[a-zA-Z0-9_-]{8,100}$/.test(id)
-      &&!planIds.has(id)&&time!==null&&time>=start&&time<end
-      &&(time-start)%3600000===0
-      &&precommit!==null&&precommit<=begin
-      &&['BUY','SELL','HOLD'].includes(p?.action)
-      &&typeof p?.chain==='string'&&typeof p?.contract==='string'
-      &&typeof p?.pool==='string'&&p.contract.length>8&&p.pool.length>8
-      &&p?.force_no_fill!==undefined?false:true;
     // Avoid accepting arbitrary outcome-driving directives in a test plan:
     // "force_no_fill" is the sole permitted injected execution failure.
     const approved=(p?.synthetic_fixture===true&&p?.plan_kind==='FIXED_TEST_PLAN'
@@ -68,8 +62,7 @@ export function runV20IsolatedScenario({
       &&!planIds.has(id)&&time!==null&&time>=start&&time<end
       &&(time-start)%3600000===0&&precommit!==null&&precommit<=begin
       &&['BUY','SELL','HOLD'].includes(p?.action)
-      &&typeof p?.chain==='string'&&typeof p?.contract==='string'
-      &&typeof p?.pool==='string'&&p.contract.length>8&&p.pool.length>8
+      &&validIdentity(p)
       &&(p.force_no_fill===undefined||p.force_no_fill===true)
       &&!Object.hasOwn(p,'reported_gain_pct')&&!Object.hasOwn(p,'future_winner_label')
       &&!Object.hasOwn(p,'post_event_rank'));
@@ -129,7 +122,7 @@ export function runV20IsolatedScenario({
       cash=round(cash-stake_per_coin_test_usdc);
       positions.set(k,{quantity,cost:stake_per_coin_test_usdc,
         source_plan_id:planId,entry_price_test_usdc:executionPrice,opened_at_utc:at,
-        token_key:k.split(':').slice(0,2).join(':')});
+        token_key:tokenKey({chain:k.split(':')[0],contract:k.split(':')[1]})});
       buys++;
     }else{
       if(!position)return {status:'NO_FILL',reason:'POSITION_NOT_FOUND'};
