@@ -24,7 +24,7 @@ export const isPendingDot2ForensicPointer=pointer=>{
    &&pointer?.orders_created===0&&pointer?.paper_fills_claimed===0
    &&pointer?.backtest_executed===false
    &&typeof pointer?.concurrent_provider_workflow_run_id==='string'
-   &&/^\\d{5,20}$/.test(pointer.concurrent_provider_workflow_run_id))
+   &&/^[0-9]{5,20}$/.test(pointer.concurrent_provider_workflow_run_id))
   &&pendingDot2Forensic.test(pointer?.forensic_audit_path??'')
   &&pointer?.journal_path==null
   &&pointer?.authentic_gpt_review_receipt!==true;
