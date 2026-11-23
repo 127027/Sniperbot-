@@ -1,5 +1,11 @@
 # R29 Cleanroom – verbindliche Arbeitsanweisungen für neue Chats und Coding-Agenten
 
+## NEUSTER TECHNISCHER NACHTRAG 23.11.2026, 18:35 UTC – 802/802 GRÜN, KEIN QA-04
+
+**ZUERST LESEN:** [Dokumentierte kausale Replay-/Dot2-Pending-Reparatur](docs/R29_V20_CAUSAL_REPLAY_AND_DOT2_PENDING_CI_20261123.md) (von `AGENTS.md` aus: `docs/R29_V20_CAUSAL_REPLAY_AND_DOT2_PENDING_CI_20261123.md`).
+GitHub [Source-only CI #45239801393](https://github.com/127027/Sniperbot-/actions/runs/45239801393): **802/802 PASS, 0 FAIL, 0 Orderwrites**, `NOT_READY_BLOCKED_BY_ORIGINAL_EVIDENCE`; **963 Research-Pools** (keine weltweite Marktdeckung), **13/60** echte Nicht-Backtest-Originalabnahmen, acht Blocker. Späte historische Captures werden nicht rückwirkend als damals verfügbare Replay-Daten genutzt; Zeitstempel sind UTC-strikt und Gewinner-/Oracle-Felder quarantänisiert. Aktueller Dot2-Pending-Forensikstatus und `gpt_execution_identity:'UNVERIFIED'` werden SHA-geprüft, nicht als echte GPT-Authentifizierung ausgegeben. Kein tatsächlicher QA-04-Backtest, keine Orders/Windows-Kontoänderungen, keine Dots angehalten.
+
+
 ## VERBINDLICHER NEUER STAND: 48 EINZELRESTAUFGABEN + ECHTE ORIGINAL-SHA-PREISDEDUP (22.11.2026)
 
 **Neuster Nutzerauftrag:** Umbau vollständig abschließen, ALLE unerledigten Aufgaben auflisten, **erst NACH** vollständiger Originalabnahme den Backtest ausführen. **Exakte unvollständige Aufgaben-IDs als 48-Zeilen-Originalmatrix**, geordnet nach Gruppen und Original-Abnahmesätzen: `docs/V19_48_ORIGINAL_RESTBAUSTELLEN_VOR_BACKTEST_20261122.md` und maschinenlesbar `research/audits/2026-11-22/r29-original-48-not-accepted-worklist.json`. Es sind 47 Nicht-Backtest-Aufgaben + `QA-04` der finale Backtest. **13/60 Nicht-Backtest-PASS (21,67 %)**, 45 PARTIAL + zwei ausdrücklich OPEN (`D3-04` authentifizierter Risikopublisher, `D3-05` Onchain-Sellability). Insgesamt 13/61 PASS, 46 PARTIAL, 2 OPEN. Das ältere **96,72 %** beschreibt nur technisch bearbeitet, **NICHT fertig.** Keine PASS-Promotion und kein Backtest.
