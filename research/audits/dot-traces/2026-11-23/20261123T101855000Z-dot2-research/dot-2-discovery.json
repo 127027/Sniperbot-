@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "kind": "DOT2_FORENSIC_RESEARCH_WAKE",
+  "role": "dot-2-discovery",
+  "run_id": "20261123T101855000Z-dot2-research",
+  "actual_execution_at_utc": "2026-11-23T10:18:55Z",
+  "gpt_run_identity": "UNVERIFIED",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "status": "CAPTURE_CONFIRMED_PRIOR_REQUEST_NEW_CAPTURE_PENDING_DATA_GAP",
+  "source": {
+    "run_id": "45145191120",
+    "request_path": "research/requests/2026-11-23/20261123T091344000Z-dot2-research.json",
+    "request_blob_sha": "c3e22994c193992a39b6a61f8caa9af031dde428",
+    "evidence_path": "research/feeds/2026-11-23/45145191120/evidence.json",
+    "evidence_blob_sha": "2f5b017bdb3d58fa6752ab0777158f884c466c9d",
+    "feed_latest_blob_sha": "4ce339f45cf8f1d869f294e18502993f94c12578",
+    "checkpoint_path": "research/state/checkpoints/45145191120.json",
+    "checkpoint_blob_sha": "49e45cfa8bfa64f65be3be92aa2db70315cf74b5",
+    "handoff_path": "research/feeds/2026-11-23/45145191120/dot2-to-dot3-handoff.json",
+    "handoff_blob_sha": "4bdd4e779aa5bc84e120c3233063db36af576bff",
+    "raw_path": "research/feeds/2026-11-23/45145191120/gecko-solana-page5.raw.json",
+    "raw_sha256_reported": "d53fb831fba777e223d2f284fbe6183bdb5d35392d4da09188db4a42f6c56b9d",
+    "raw_bytes_sha_independently_verified": false,
+    "source_capture_at_utc": "2026-11-23T09:14:19.839Z",
+    "completed_at_utc": "2026-11-23T09:14:20.642Z",
+    "provider_quote_asof_utc": null,
+    "source_published_at_utc": null,
+    "source_available_at_utc": "2026-11-23T09:14:20.642Z",
+    "chain": "solana",
+    "page": 5,
+    "http_status": 200,
+    "gecko_rows": 20,
+    "accepted_full_identity": 20,
+    "rejected_rows": 0,
+    "dex_rechecks": 6,
+    "indicative_two_domain_quotes": 1,
+    "price_disagreements": 3,
+    "missing_gecko_comparison": 2,
+    "first_dot2_total": 424,
+    "memory_total": 819
+  },
+  "scope": {
+    "reviewed_chain_pages": [
+      "solana:5"
+    ],
+    "not_scanned_chains": [
+      "base",
+      "ethereum",
+      "bsc",
+      "robinhood",
+      "cronos"
+    ],
+    "page_offset_gaps": "unobserved pages remain; no full coverage",
+    "pool_contract_identity": "see immutable handoff; no symbol-only guesses",
+    "hot": 4,
+    "fair": 1,
+    "repair": 1,
+    "deferred_new": 16,
+    "repair_backlog": 24
+  },
+  "provider_budget": {
+    "path": "research/state/provider-budget.json",
+    "blob_sha": "a3666be03b0eaa0fa662f4fe2ab0083887964e1f",
+    "last_http_status": 200,
+    "cooldown_until_utc": null,
+    "consecutive_429": 0,
+    "gecko_starts_per_rolling_minute": 4,
+    "new_pools_per_rolling_minute": 3,
+    "pacing_seconds": 15.1
+  },
+  "decision": {
+    "action": "REQUEST_ONE_BOUNDED_CAPTURE",
+    "why": "Previous 09:13 request completed with matching evidence/checkpoint/handoff; six-chain backlog and deferred HOT/FAIR/REPAIR remain. One page only to respect shared budget.",
+    "alternatives_considered": [
+      "No capture: rejected because backlog persists and cooldown absent at last recorded checkpoint",
+      "Six-chain full sweep: rejected due to one-page per-wake budget",
+      "Immediate trading: prohibited due to unverified issuer, quote-time, sellability, client"
+    ],
+    "request_path": "research/requests/2026-11-23/20261123T101855000Z-dot2-research.json",
+    "maximum_gecko_pages": 1,
+    "maximum_dex_pairs": 6,
+    "not_a_completed_capture": true
+  },
+  "gaps": [
+    "No independent authenticated GPT execution receipt",
+    "Raw byte SHA not recomputed in this wake",
+    "No upstream provider quote as-of time",
+    "No global six-chain coverage",
+    "D3-04 issuer and D3-05 chain sellability OPEN",
+    "No Windows client authorization",
+    "Holdout labels not matured"
+  ],
+  "orders": 0,
+  "fills": 0,
+  "backtest": false,
+  "follow_up": "Check exact new request completion and raw bytes SHA, checkpoint/handoff consistency; inspect remaining pages and deferred HOT/FAIR/REPAIR at next wake",
+  "desired_correction": "Preserve source-run atomicity; do not copy previous stats into new request."
+}
