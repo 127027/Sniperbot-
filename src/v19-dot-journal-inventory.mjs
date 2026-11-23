@@ -10,6 +10,12 @@ const pat=/^research\/journal\/(dot-[1-5])\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]+\.j
 const forensic=/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-5-control\.json$/;
 const pendingDot2Forensic=/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-2-discovery\.json$/;
 const roleForensics=/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-[1-5]-(?:tempo|discovery|risk|strategy|control)\.json$/;
+export const isPendingDot2ForensicPointer=pointer=>
+  ['CAPTURE_PENDING_DATA_GAP','CAPTURE_PENDING_GPT_RECEIPT_UNVERIFIED_DATA_GAP']
+    .includes(pointer?.status)
+  &&pendingDot2Forensic.test(pointer?.forensic_audit_path??'')
+  &&pointer?.journal_path==null
+  &&pointer?.authentic_gpt_review_receipt!==true;
 export const validRoleJournalPath=(role,path)=>
   typeof path==='string'&&(
     path.match(pat)?.[1]===role
@@ -37,10 +43,7 @@ export function auditLiveFiveDotJournalInventory({
   const pointer=latestByRole[id];
   // An in-flight Dot2 GPT wake may truthfully create a SHA-pinned forensic
   // review but no completed canonical journal yet. Never invent one.
-  const pendingDot2=id==='dot-2'
-    &&pointer?.status==='CAPTURE_PENDING_DATA_GAP'
-    &&pendingDot2Forensic.test(pointer?.forensic_audit_path??'')
-    &&(pointer?.journal_path===undefined||pointer?.journal_path===null);
+  const pendingDot2=id==='dot-2'&&isPendingDot2ForensicPointer(pointer);
   let forensicRawSha=null;
   const issues=[];
   const issue=(code,detail)=>issues.push({code,detail});
@@ -73,8 +76,10 @@ export function auditLiveFiveDotJournalInventory({
     if(trace!==null){
      const executed=iso(trace.actual_execution_utc??trace.executed_at_utc
        ??trace.actual_execution_at_utc??trace.at_utc);
-     if(trace.schema!==1||trace.role!=='dot-2-discovery'
-       ||trace.gpt_run_identity!=='UNVERIFIED'
+     const identityClaims=[trace.gpt_run_identity,trace.gpt_execution_identity]
+      .filter(x=>x!==undefined);
+    if(trace.schema!==1||trace.role!=='dot-2-discovery'
+       ||identityClaims.length===0||identityClaims.some(x=>x!=='UNVERIFIED')
        ||executed===null||executed>at||updated!==null&&executed>updated
        ||trace.orders_written>0||trace.backtest_executed===true)
       issue('DOT2_PENDING_FORENSIC_SEMANTICS_UNTRUSTED',
