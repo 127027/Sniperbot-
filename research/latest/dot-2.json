@@ -2,12 +2,12 @@
   "schema": 1,
   "dot": "dot-2",
   "mode": "PAPER_RESEARCH_ONLY",
-  "status": "CAPTURE_CONFIRMED_DATA_GAP_RISK_UNVERIFIED",
-  "updated_at_utc": "2026-11-23T00:13:23.579Z",
-  "journal_path": "research/journal/dot-2/2026-11-23/20261123T001246394Z-source-confirmed.json",
-  "journal_blob_sha": "e9d565eac44d0be7695ca1359461e7f8adc5c766",
-  "capture_request_path": "research/requests/2026-11-23/20261123T001246394Z-dot2-20261123T001246394Z-dot2-research.json",
-  "feed_is_current_request": true,
+  "status": "CAPTURE_PENDING_DATA_GAP",
+  "updated_at_utc": "2026-11-23T01:13:21.632Z",
+  "journal_path": "research/journal/dot-2/2026-11-23/20261123T011303895Z-dot2-research.json",
+  "journal_blob_sha": "d055d0a67314e9dd0069dd7d692abe943040e47f",
+  "capture_request_path": "research/requests/2026-11-23/20261123T011303895Z-dot2-20261123T011303895Z-dot2-research.json",
+  "feed_is_current_request": false,
   "source_run_id": "45087434649",
   "captured_at_utc": "2026-11-23T00:12:56.872Z",
   "source_chain": "bsc",
@@ -29,19 +29,23 @@
   "pending_queue_path": "research/state/market-memory.json",
   "errors": [
     {
+      "code": "CAPTURE_PENDING",
+      "detail": "New request committed, feed still points to previous source 45087434649. Existing market stats/checkpoint/handoff counts remain explicitly previous capture, not new results."
+    },
+    {
       "code": "DATA_GAP_RISK_UNVERIFIED",
-      "detail": "No independent issuer, sellability, quote as-of or client authorization."
+      "detail": "Independent issuer, quote as-of, sellability and client authorization absent."
     }
   ],
   "trading_ready": false,
   "orders_created": 0,
   "capture_request_commit_sha": "8b8953c49ed28fc01cd435e775d2d9d5ee02b7ef",
-  "new_pool_count_this_wake": 20,
-  "full_contract_candidates_this_wake": 20,
+  "new_pool_count_this_wake": 0,
+  "full_contract_candidates_this_wake": 0,
   "paper_fills_claimed": 0,
   "backtest_executed": false,
-  "forensic_audit_path": "research/audits/dot-traces/2026-11-23/20261123T001246394Z-dot2-research/dot-2-discovery.json",
-  "forensic_audit_blob_sha": "33af2eaa1eef0a5858b3c36fb463295511e17584",
+  "forensic_audit_path": "research/audits/dot-traces/2026-11-23/20261123T011303895Z-dot2-research/dot-2-discovery.json",
+  "forensic_audit_blob_sha": "6f5f0874a749a20516c83f2244f07a81454582a3",
   "prior_capture_market_memory_stats": {
     "total_discovered": 664,
     "total_observation_batches": 132,
@@ -53,7 +57,7 @@
   },
   "prior_capture_checkpoint_path": "research/state/checkpoints/45081908321.json",
   "capture_state_reconciled_at_utc": "2026-11-23T00:13:23.579Z",
-  "capture_state_origin": "SOURCE_CAPTURE_REQUEST_EVIDENCE_CHECKPOINT_MATCHED_NOT_AUTHENTICATED_GPT_REVIEW",
+  "capture_state_origin": "PREVIOUS_CAPTURE_ONLY_NEW_REQUEST_PENDING",
   "handoff_counts": {
     "observations": 20,
     "unique_pools": 20,
@@ -62,5 +66,7 @@
     "risk_review_candidates": 20,
     "trade_eligible": 0
   },
-  "authentic_gpt_review_receipt": false
+  "authentic_gpt_review_receipt": false,
+  "previous_capture_source_run_id": "45087434649",
+  "previous_capture_stats_are_not_current_request": true
 }
