@@ -31,7 +31,8 @@ if(requested?.schema!==1
  ||requested.historical_date!=='2026-10-12'
  ||!Number.isInteger(hour)||hour<0||hour>23
  ||requested.max_public_http_requests!==8
- ||requested.pacing_interval_ms!==6500
+ ||!Number.isInteger(requested.pacing_interval_ms)
+ ||requested.pacing_interval_ms<6500||requested.pacing_interval_ms>30000
  ||requested.read_only!==true
  ||requested.no_winner_oracle_seed!==true
  ||requested.no_historical_asof_claim!==true
@@ -96,7 +97,7 @@ for(const q of plan.requests){
  // Official Gecko documentation also describes approximately 10/min.
  // Use slower conservative cap instead of exhaustively retrying 429s.
  if(!haltForRateLimit&&q!==plan.requests.at(-1))
-  await new Promise(resolve=>setTimeout(resolve,6500));
+  await new Promise(resolve=>setTimeout(resolve,requested.pacing_interval_ms));
 }
 const summary=summarizeV24GeckoHourlySlice({plan,observations:out});
 const report={...summary,source_commit:commit,workflow_run_id:run,
