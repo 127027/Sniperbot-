@@ -32,11 +32,21 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
  const state=newState(paperPolicy),initial=state.cash,events=[],sums={dataGap:0,available:0,fullReviews:0,buys:0,sells:0};
  let ledger=state,lastReview=null,sequence=0,currentTarget=targetPer24h,cadenceState=null;
  const history=new Map(),lastRealizedLoss=new Map();
+ // A past quote is allowed as a BUY momentum baseline ONLY if it passed
+ // the shared time/identity/two-source/price/liquidity/risk gate at its
+ // ORIGINAL capture time. Otherwise an invalid historical price, malformed
+ // pool URL or arbitrarily divergent source could create a false new BUY.
+ // Unverified history remains separately visible as RESEARCH context.
+ const eligibleMomentumHistory=snapshots.filter(s=>{
+   const captured=ms(s?.archived_at_utc);
+   return captured!==null&&gate(s,captured,paperPolicy)===null;
+ });
  // Research features may use ALL older, genuinely available market history.
  // The common BUY kernel still limits its MOMENTUM BASELINE to two hours, and
  // the actual purchase/exit requires an entirely separate fresh Dot3 quote.
  const initialHistory=buildAsOfLookback({
-  snapshots,asOfUtc:iso(firstScanAtStart?start-1:start)
+  snapshots:eligibleMomentumHistory,
+  asOfUtc:iso(firstScanAtStart?start-1:start)
  });
  // At midnight the latest pre-00:00 quote may also be the fresh executable
  // quote. Compare it with an EARLIER prior quote instead of itself, otherwise
@@ -86,7 +96,9 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    const fresh=new Map();
    for(const s of valid)fresh.set(marketKey(s.coin),s);
    const featureHistory=buildAsOfLookback({snapshots,asOfUtc:at});
-   const marketLookback=new Map(featureHistory.markets.map(x=>[x.key,x]));
+   const validatedMomentumFeatures=buildAsOfLookback({
+     snapshots:eligibleMomentumHistory,asOfUtc:at});
+   const marketLookback=new Map(validatedMomentumFeatures.markets.map(x=>[x.key,x]));
    const gapRecovery=planDataGapRecovery({asOfUtc:at,activityObservations});
    const step={at_utc:at,full_review:due,target_per_24h:currentTarget,cadence_reason:cadence.reason,
      measured_page_activity:measured,
