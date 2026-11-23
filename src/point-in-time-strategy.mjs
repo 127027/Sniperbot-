@@ -38,10 +38,15 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
  const initialHistory=buildAsOfLookback({
   snapshots,asOfUtc:iso(firstScanAtStart?start-1:start)
  });
- // Opt-in midnight scan: its momentum baseline must strictly predate 00:00.
- // Legacy :35 diagnostic replays stay available for unchanged comparisons.
- for(const h of initialHistory.markets)
-   history.set(h.key,{price:h.latest_price_usdc,at_utc:h.latest_observed_at_utc});
+ // At midnight the latest pre-00:00 quote may also be the fresh executable
+ // quote. Compare it with an EARLIER prior quote instead of itself, otherwise
+ // the first scan systematically suppresses legitimate pre-existing momentum.
+ // Both observations must have been available before this virtual tick.
+ for(const h of initialHistory.markets){
+   const hasPrior=firstScanAtStart&&h.previous_observed_at_utc!==null;
+   history.set(h.key,{price:hasPrior?h.previous_price_usdc:h.latest_price_usdc,
+     at_utc:hasPrior?h.previous_observed_at_utc:h.latest_observed_at_utc});
+ }
 
  // Input MUST be independently collected and available at its own timestamp.
  // Opt-in firstScanAtStart provides 00:00 decision; default remains the
