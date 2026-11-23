@@ -82,6 +82,26 @@ export function analyzePinnedOriginalPoolOwnerBalanceDeltas({
    swap_versus_transfer_classification_verified:false
   });
  }
+ // Unlike retrospective USD OHLCV, the original transaction metadata
+ // contains historical native SOL account balance before/after this ONE
+ // transaction. This is neither the program's virtual reserves nor a
+ // two-way swap quote: fees/rent/other instructions are not fully decoded.
+ const keys=tx.transaction.message.accountKeys;
+ const poolIndex=keys.findIndex(k=>
+  (typeof k==='string'?k:k?.pubkey)===target.pool);
+ if(poolIndex<0||!Array.isArray(tx.meta.preBalances)
+   ||!Array.isArray(tx.meta.postBalances)
+   ||tx.meta.preBalances.length!==keys.length
+   ||tx.meta.postBalances.length!==keys.length)
+  throw Error('POOL_NATIVE_LAMPORT_ACCOUNT_METADATA_MISSING');
+ const preLamports=tx.meta.preBalances[poolIndex];
+ const postLamports=tx.meta.postBalances[poolIndex];
+ if(!Number.isSafeInteger(preLamports)||preLamports<0
+   ||!Number.isSafeInteger(postLamports)||postLamports<0)
+  throw Error('INVALID_OR_NONINTEGER_ORIGINAL_POOL_NATIVE_SOL_BALANCE');
+ const nativeChange=BigInt(postLamports)-BigInt(preLamports);
+ const tokenIn=valid.length===1&&valid[0].token_account_movement_direction
+   ==='INCOMING_MINT_TOKENS';
  const scan=asOfMillis(target.scan_at_utc);
  return {schema:1,kind:'R29_V19_ORIGINAL_OCT12_POOL_OWNER_TOKEN_ACCOUNT_DELTA',
   original_rpc_source_run_id:sourceRunId,source_sha256:pin.sha256,
@@ -94,6 +114,15 @@ export function analyzePinnedOriginalPoolOwnerBalanceDeltas({
   seconds_from_reported_block_time_to_scan:(scan-tx.blockTime*1000)/1000,
   proven_pool_owner_mint_token_balance_change_accounts:valid.length,
   pool_owned_token_delta_rows:valid,
+  pool_native_sol_account_index:poolIndex,
+  observed_pool_native_sol_pre_lamports:String(preLamports),
+  observed_pool_native_sol_post_lamports:String(postLamports),
+  observed_pool_native_sol_signed_delta_lamports:nativeChange.toString(),
+  observed_token_in_and_native_sol_out_pattern:tokenIn&&nativeChange<0n,
+  native_sol_balance_change_does_not_prove_direct_swap_execution:true,
+  observed_native_sol_balance_not_virtual_amm_reserve:true,
+  exact_pool_state_at_scanner_tick_not_fully_reconstructed:true,
+  verified_50_usdc_executable_exit_quote:null,
   historic_solana_tx_metadata_fetched_today_not_at_october_scan:true,
   availability_to_original_2026_10_12_dot_at_scan_verified:false,
   original_pool_pair_reserves_in_both_assets_verified:false,
