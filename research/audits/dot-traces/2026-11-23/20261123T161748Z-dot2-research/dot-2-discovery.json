@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "role": "dot-2-discovery",
+  "run_id": "20261123T161748Z-dot2-research",
+  "actual_execution_at_utc": "2026-11-23T16:17:48Z",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "gpt_run_identity": "UNVERIFIED",
+  "authentic_gpt_review_receipt": false,
+  "mode": "PAPER_RESEARCH_ONLY",
+  "status": "CAPTURE_PENDING_DATA_GAP",
+  "input_refs": [
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "f68ee13406076ffc0ce2398b313cadb049cf2d7a"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45203520340/evidence.json",
+      "blob_sha": "5bbd6901756ac4693f58e59c0fbc58eab54ca4c4"
+    },
+    {
+      "path": "research/state/checkpoints/45203520340.json",
+      "blob_sha": "d9edb07a37be5f3c5b6b9041ab8cedd962e95b2c"
+    },
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "31e3c2f42ab28e84198ae1ca01b76d2c0a19fcd7"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "44020c850465b44f4490a4c62db22bff1893e8de"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "blob_sha": "3eabf8d9a37e769f6151974bb0dd8c1297d9055b"
+    }
+  ],
+  "prior_capture": {
+    "run_id": "45203520340",
+    "request_path": "research/requests/2026-11-23/20261123T151627Z-dot2-research.json",
+    "evidence_path": "research/feeds/2026-11-23/45203520340/evidence.json",
+    "completed_at_utc": "2026-11-23T15:17:23.898Z",
+    "chain": "solana",
+    "page": 1,
+    "http_status": 200,
+    "raw_path": "research/feeds/2026-11-23/45203520340/gecko-solana-page1.raw.json",
+    "raw_sha256": "1fe1930648735d396df847295587203a2aa1e8dffd5fee32d180e4d748dab43b",
+    "raw_bytes": 40007,
+    "source_url": "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?include=base_token,quote_token&page=1",
+    "pool_contract_identities": 20,
+    "dex_rechecks": 6,
+    "independent_upstream_quote_time_verified": false,
+    "deferred_new_candidates": 16,
+    "checkpoint_stats": {
+      "total_discovered": 920,
+      "first_dot2_detected_count": 525,
+      "contracts_complete": 920
+    },
+    "original_byte_sha_verified_by_capture_audit": true,
+    "independently_verified_by_this_gpt": false
+  },
+  "action": "CREATE_ONE_BOUNDED_DISCOVERY_REQUEST",
+  "request_path": "research/requests/2026-11-23/20261123T161748Z-dot2-research.json",
+  "request_commit_sha": "f0e90ed2f9a15ec8468648ff8ed0a30bca06b5f3",
+  "why": "Previous request completed with bounded HTTP200 and 20 Solana identities; maintain fair six-chain coverage while respecting provider budget and no duplicated in-flight capture.",
+  "alternatives_considered": [
+    "Do not request if 429/503 cooldown or duplicate is found at execution",
+    "Do not schedule six simultaneous chains with one-page budget",
+    "Do not convert archived capture into GPT review or trade"
+  ],
+  "not_examined": [
+    "Other five chains not newly captured in prior run",
+    "All unrequested pages and offset gaps remain unknown",
+    "No older/trending pool API in prior capture",
+    "No verified issuer, chain sellability or executable quote"
+  ],
+  "provider_budget": {
+    "gecko_last_status": 200,
+    "gecko_cooldown_until_utc": null,
+    "gecko_recent_starts_at_snapshot": 1,
+    "limits": "4 provider starts/min; 3 NEW_POOLS/min; 15.1s pacing; Retry-After mandatory",
+    "next_http_status": "UNKNOWN"
+  },
+  "missing_evidence": [
+    "New request HTTP completion",
+    "External GPT run receipt",
+    "Independent quote as-of",
+    "D3-04 independent issuer",
+    "D3-05 sellability",
+    "Global market coverage"
+  ],
+  "follow_up": "Match new request_path and evidence_path; validate original raw bytes and completion; reconcile same-run checkpoint, stats and handoff before CAS.",
+  "orders_created": 0,
+  "paper_fills_claimed": 0,
+  "backtest_executed": false
+}
