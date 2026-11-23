@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "role": "dot-5-control",
+  "run_id": "dot5-20261123T1552Z-research",
+  "gpt_execution_receipt": "UNVERIFIED",
+  "actual_review_window_utc": "2026-11-23T15:52Z",
+  "status": "DATA_GAP_NO_TRADE",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "observed_head_sha": "8f5986d24be3d0fa15eb2a107dfe8680aaf61cbc",
+  "sources": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "31e3c2f42ab28e84198ae1ca01b76d2c0a19fcd7"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "f68ee13406076ffc0ce2398b313cadb049cf2d7a"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "44020c850465b44f4490a4c62db22bff1893e8de"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "research/latest/dot-1.json",
+      "blob_sha": "4bfa8c3cb178b8ac3d2a10445737ec406492f82f"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "blob_sha": "3eabf8d9a37e769f6151974bb0dd8c1297d9055b"
+    },
+    {
+      "path": "research/latest/dot-3.json",
+      "blob_sha": "07b659d4db2f49f7eaab508994bd75ae02e678aa"
+    },
+    {
+      "path": "research/latest/dot-4.json",
+      "blob_sha": "88d26c0239f05b6632aa1b9c611f79e9d093d15d"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45203520340/dot2-to-dot3-handoff.json",
+      "blob_sha": "bb31997bc32a5abf99ea00158364a213aa4afd6d"
+    }
+  ],
+  "latest_capture": {
+    "run_id": "45203520340",
+    "captured_at_utc": "2026-11-23T15:17:23.898Z",
+    "persisted_pools": 920,
+    "first_dot2_detected": 525,
+    "observations": 192,
+    "gecko_http_200": 1,
+    "dex_checks": 6,
+    "trade_eligible": 0,
+    "client_fills": 0,
+    "global_coverage_proven": false
+  },
+  "provider": {
+    "gecko_last_http": 200,
+    "gecko_consecutive_429": 0,
+    "gecko_cooldown": null,
+    "rolling_window_full_audit": "NOT_REPLAYED"
+  },
+  "acceptance": {
+    "pass": 13,
+    "partial": 46,
+    "open": 2,
+    "non_backtest_pass": 13,
+    "non_backtest_required": 60,
+    "gate": "NOT_READY_UNVERIFIED_NEW_RELEASE"
+  },
+  "findings": [
+    {
+      "event_id": "DOT5-20261123-01",
+      "code": "DOT2_LATEST_CAPTURE_PENDING_AFTER_COMPLETION",
+      "earliest_pipeline_step": "Dot2 latest pointer publication after HTTP completion",
+      "source_path": "research/latest/dot-2.json",
+      "source_capture": "research/feeds/latest.json",
+      "impact": "Dot2 pointer reports CAPTURE_PENDING while completed run 45203520340 has 920 pools/525 first captures; downstream may consume stale statistics",
+      "fix": "After source completion reconcile source_run_id, evidence_path, market_memory_stats, checkpoint_path, handoff_counts.full_contracts via CAS; preserve prior_capture fields",
+      "regression": "Test request_path/evidence_path plus four stats against feed/latest and reject stale values"
+    },
+    {
+      "event_id": "DOT5-20261123-02",
+      "code": "RISK_ISSUER_AND_SELLABILITY_NOT_VERIFIED",
+      "earliest_pipeline_step": "Dot3 independent risk provenance",
+      "source_path": "research/latest/dot-3.json",
+      "impact": "No PAPER_ELIGIBLE or executable quote",
+      "fix": "Obtain independently authenticated issuer and empirical chain-specific sellability plus quote as-of",
+      "regression": "Fail closed on missing issuer/sellability and upstream quote time"
+    },
+    {
+      "event_id": "DOT5-20261123-03",
+      "code": "DOT3_DOT4_SOURCE_LAG",
+      "earliest_pipeline_step": "Dot3 risk handoff consumption",
+      "source_path": "research/latest/dot-3.json",
+      "impact": "Dot3 and Dot4 latest pointers reference 45070668194 versus feed 45203520340; no current cross-role review proven",
+      "fix": "Perform source-pinned research-only review without orders",
+      "regression": "Verify role latest source_run_id matches reviewed handoff, otherwise label lag explicitly"
+    }
+  ],
+  "scope": {
+    "chains": "latest Solana page1; other chain coverage not independently audited in this wake",
+    "pools": "20 current complete identities in handoff; not independently validated against raw bytes per pool",
+    "pages": "one current Gecko page; global page fairness UNKNOWN",
+    "dot1_to_dot4": "latest pointer checks performed; all underlying forensic journals not exhaustively enumerated"
+  },
+  "holdout": {
+    "end_utc": "2026-11-25T06:54:05.033Z",
+    "matured": false,
+    "precision": null,
+    "recall": null,
+    "missed_profit": null
+  },
+  "historical_october": {
+    "original_asof": "DATA_GAP",
+    "oracle_65": "POST_EVENT_ONLY_NOT_USED",
+    "backtest_requested": false
+  },
+  "alternatives": [
+    "Trigger backtest: rejected due to unmet 60/60 and external gates",
+    "Publish paper orders: rejected due to missing Dot3/client evidence",
+    "Continue bounded research and reconcile pointers: selected"
+  ],
+  "next_action": "Reconcile Dot2 latest to completed capture; inspect original raw byte SHA and Dot1-4 forensic journals; obtain independent Dot3 and Windows evidence; keep scheduled research enabled",
+  "orders_written": 0,
+  "client_fills_claimed": 0
+}
