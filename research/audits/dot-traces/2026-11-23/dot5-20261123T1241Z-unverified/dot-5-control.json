@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "role": "dot-5-control",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "actual_review_time_utc": "2026-11-23T12:41:39Z",
+  "execution_origin": "CHATGPT_AUTOMATION_CONTEXT_UNVERIFIED",
+  "authentic_gpt_receipt": "UNVERIFIED",
+  "status": "DATA_GAP_NO_TRADE",
+  "scope": "GLOBAL",
+  "what_was_done": "Read mandatory branch files, current Dot1-Dot5 pointers, Dot2 feed evidence and provider budget. Compared pending Dot2 pointer with newer completed feed and checked archived source-integrity report.",
+  "why_this_action": "Current source evidence outranks stale Dot pointers; release criteria and external safety evidence remain incomplete.",
+  "alternatives_considered": [
+    "Promote latest feed as Dot2 GPT receipt: rejected; HTTP workflow is not GPT execution",
+    "Trigger QA-04: rejected; original acceptance and independent risk/holdout gates missing"
+  ],
+  "inputs": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "8b1a63f01fae4bb3ccfb4b431cee9d2d93db3b00"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "0122a80e3c6efec81389af5b1544200b6995303e"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "blob_sha": "ca3baee5afa17b1d6b6df4f376e8d09c2ab6c6a1"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45172666153/evidence.json",
+      "blob_sha": "92a86ec4c10a739db1961c4817f6212d61e1c726"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "62293fde73b4ee9bf6294703a7d44e8c72b9ad61"
+    }
+  ],
+  "findings": [
+    {
+      "event_id": "DOT5-20261123-01",
+      "error_code": "DOT2_LATEST_COMPLETION_LAG",
+      "earliest_pipeline_step": "Dot2 latest pointer reconciliation after successful independent HTTP capture",
+      "affected_file": "research/latest/dot-2.json",
+      "source_path": "research/feeds/latest.json",
+      "source_run_id": "45172666153",
+      "impact": "Dot2 latest still CAPTURE_PENDING for request at 12:15:37Z while HTTP evidence at 12:16:13Z has completed; 879 total pools, 484 first Dot2 discoveries in state checkpoint. Must not count as GPT review.",
+      "correction": "Reconcile same request_path with feed latest, preserving prior_capture fields; compare total_discovered, first_dot2_detected_count, checkpoint_path and handoff full_contracts; CAS update.",
+      "regression_test": "Fixture pending Dot2 latest + newer completed matching feed: assert reconciliation only when request/evidence and all stats/checkpoint/handoff match; no GPT receipt or order created."
+    },
+    {
+      "event_id": "DOT5-20261123-02",
+      "error_code": "SOURCE_ORIGIN_NOT_INDEPENDENTLY_ATTESTED",
+      "earliest_pipeline_step": "Provider capture provenance",
+      "source_run_id": "45172666153",
+      "affected_file": "research/feeds/2026-11-23/45172666153/evidence.json",
+      "impact": "7 raw-byte hashes self-verified in report but git blob independent reference and original provider capture timestamp not independently attested; no quote-time or sellability release.",
+      "correction": "Independent origin/byte verification and issuer/chain risk attestations required.",
+      "regression_test": "Reject self-reported SHA/time alone as external authorization."
+    }
+  ],
+  "market": {
+    "total_discovered": 879,
+    "first_dot2_detected_count": 484,
+    "global_coverage_verified": false,
+    "latest_http_run": "45172666153",
+    "gecko_http_status": 200,
+    "provider_cooldown_until_utc": null
+  },
+  "acceptance": {
+    "pass": 13,
+    "partial": 46,
+    "open": 2,
+    "not_backtest_pass": 13,
+    "not_backtest_required": 60,
+    "source": "prior acceptance; not re-certified in this wake"
+  },
+  "risk": {
+    "D3_04": "OPEN",
+    "D3_05": "OPEN",
+    "independent_windows_client_receipts": "UNVERIFIED",
+    "holdout_end_utc": "2026-11-25T06:54:05.033Z",
+    "holdout_matured": false,
+    "october_neutral_asof": "DATA_GAP"
+  },
+  "outcomes": {
+    "orders_written": 0,
+    "client_fills_verified": 0,
+    "backtest_triggered": false,
+    "precision": null,
+    "recall": null,
+    "missed_profit": null
+  },
+  "limitations": [
+    "Did not independently verify every Dot1-Dot4 trace event or raw file byte; full audit NOT complete",
+    "No independently authenticated GPT execution receipt",
+    "No Windows client access",
+    "No independent release-gate PASS"
+  ],
+  "follow_up": "Verify latest completed capture against Dot2 pointer; enumerate all Dot1-Dot4 forensic journals and immutable SHAs; retain no-trade and no-backtest."
+}
