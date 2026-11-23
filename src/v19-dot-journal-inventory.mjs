@@ -99,7 +99,8 @@ export function auditLiveFiveDotJournalInventory({
    // this never authenticates a GPT execution or an external data provider.
    const exactRoleKindless=id==='dot-1'
      &&journal.schema===1&&journal.role==='dot-1-tempo'
-     &&iso(journal.gpt_execution_at_utc)!==null
+     &&(iso(journal.gpt_execution_at_utc)!==null
+       ||iso(journal.actual_gpt_execution_utc)!==null)
      &&journal.execution_origin==='GPT_SELF_REPORTED'
      &&journal.status==='DATA_GAP'
      &&(
