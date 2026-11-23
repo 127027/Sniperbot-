@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "role": "dot-5-control",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "execution_utc": "2026-11-23T11:44:26Z",
+  "execution_time_basis": "automation supplied current local timestamp 2026-11-23 06:44:26 America/Toronto; exact tool completion time not independently verified",
+  "gpt_run_id": "UNVERIFIED",
+  "gpt_execution_receipt": "UNVERIFIED",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "observed_head_sha": "e31c6a2ea5905b4b549df071c3834d1f09a2459a",
+  "decision": "DATA_GAP_NO_TRADE",
+  "inputs": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "f41b71a6eb35291bc5329958f619e2fd10ed4d3c"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "b496a605d0151c9ceda50c85674ce03739747e1a"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "8f8c211df74e40d5568df8b006d0c3590f1e47ce"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45163438714/evidence.json",
+      "blob_sha": "4efdcd0596e181f3967d1030e32cbc5682aec2f1"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45163438714/dot2-to-dot3-handoff.json",
+      "blob_sha": "22a507b957b0f79dc57f243d1dba404dfface825"
+    }
+  ],
+  "checks": {
+    "source_capture_run": "45163438714",
+    "source_capture_utc": "2026-11-23T11:15:03.093Z",
+    "chain": "ethereum",
+    "page": 1,
+    "complete_pool_contracts": 20,
+    "gecko_http_status": 200,
+    "dex_rechecks": 6,
+    "independent_quote_matches": 2,
+    "persisted_pools": 859,
+    "first_dot2_detected": 464,
+    "observation_batches": 180,
+    "gecko_rolling_last_http": 200,
+    "gecko_429_consecutive": 0,
+    "orders_authorized": 0,
+    "client_fills": 0,
+    "latest_ci_run": "45167127257",
+    "latest_ci_status": "success",
+    "ci_head_sha": "e31c6a2ea5905b4b549df071c3834d1f09a2459a",
+    "ci_test_count": "NOT_VERIFIED",
+    "original_acceptance": {
+      "pass": 13,
+      "partial": 46,
+      "open": 2,
+      "non_backtest_pass": 13,
+      "non_backtest_required": 60
+    },
+    "holdout_end_utc": "2026-11-25T06:54:05.033Z"
+  },
+  "dot_journals": {
+    "dot1": "research/latest/dot-1.json at 11:06:28Z; older capture 45155025108",
+    "dot2": "research/latest/dot-2.json pending request 11:14:36Z, despite completed feed 45163438714 at 11:15:03Z",
+    "dot3": "research/latest/dot-3.json at 2026-11-22T21:21:22Z, source 45070668194",
+    "dot4": "research/latest/dot-4.json at 2026-11-22T21:33:43Z, source 45070668194",
+    "dot5": "research/latest/dot-5.json at 10:44:11Z, source 45155025108"
+  },
+  "root_causes": [
+    {
+      "event_id": "45163438714",
+      "error_code": "DOT2_LATEST_PENDING_AFTER_COMPLETED_CAPTURE",
+      "earliest_pipeline_step": "Dot2 latest pointer reconciliation after successful GitHub HTTP capture",
+      "source_path": "research/feeds/latest.json",
+      "affected_path": "research/latest/dot-2.json",
+      "impact": "latest Dot2 status and source_run_id remain pending/null despite completed bounded capture; downstream Dot3/4 source remains older",
+      "correction": "CAS reconcile latest Dot2 pointer to completed source run and current market stats only after verifying evidence raw SHA and completion gate; preserve prior_capture fields",
+      "regression_test": "Given pending Dot2 latest and matching completed feed, assert new source_run_id, market_memory_stats.total_discovered=859, first_dot2_detected_count=464, checkpoint_path=research/state/checkpoints/45163438714.json, handoff_counts.full_contracts=20; preserve prior_capture; reject mismatched request_path/evidence_path."
+    },
+    {
+      "event_id": "45163438714",
+      "error_code": "UPSTREAM_PROVIDER_QUOTE_ASOF_UNKNOWN",
+      "earliest_pipeline_step": "Gecko/Dex provider quote timestamp provenance",
+      "source_path": "research/feeds/2026-11-23/45163438714/dot2-to-dot3-handoff.json",
+      "affected_path": "research/feeds/2026-11-23/45163438714/dot2-to-dot3-handoff.json",
+      "impact": "provider_quote_asof_utc=null; HTTP200 and matching identities cannot authorize sellability or paper execution",
+      "correction": "Require independently sourced provider quote as-of and Dot3 issuer/onchain proofs",
+      "regression_test": "Reject PAPER_ELIGIBLE if provider_quote_asof_utc=null or D3-04/D3-05 missing."
+    }
+  ],
+  "unverified": {
+    "all_dot1_dot4_forensic_journals_full_byte_audit": "NOT_COMPLETED_THIS_WAKE",
+    "raw_http_sha_rehash": "NOT_COMPLETED_THIS_WAKE",
+    "all_61_individual_criteria": "NOT_INDEPENDENTLY_REVERIFIED_THIS_WAKE",
+    "five_gpt_receipts": "UNVERIFIED",
+    "windows_client": "UNVERIFIED",
+    "october_original_neutral_asof": "DATA_GAP",
+    "oracle65": "POST_EVENT_ONLY_NOT_READ_AS_INPUT",
+    "precision": null,
+    "recall": null,
+    "missed_profit": null
+  },
+  "alternatives": [
+    "Do not infer market coverage from 20 Ethereum page1 pools",
+    "Do not promote 13 PASS based on new HTTP200",
+    "Do not trigger QA-04 or publish BUY/SELL"
+  ],
+  "follow_up": "Verify raw bytes SHA and completion gate, reconcile Dot2 latest with CAS, independently inspect Dot3/4 journals and all original gates; holdout cannot mature before 2026-11-25T06:54:05Z",
+  "no_orders": true,
+  "no_backtest": true
+}
