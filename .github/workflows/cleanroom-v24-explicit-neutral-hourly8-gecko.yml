@@ -1,0 +1,61 @@
+name: R29 V2.4 Neutral One Hour Eight Mint Gecko Research
+on:
+  push:
+    branches:
+      - codex/r29-cleanroom-paper-20261121
+    paths:
+      - 'research/gecko-neutral-hourly-requests/**'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: r29-v24-neutral-gecko-hourly-source
+  cancel-in-progress: false
+jobs:
+  exact-eight-neutral-mint-source:
+    if: ${{ github.ref == 'refs/heads/codex/r29-cleanroom-paper-20261121' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      R29_MODE: PAPER
+      R29_ENABLE_LIVE: ''
+    steps:
+      - name: Exact request commit checkout no persistent credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assert all data-provenance and no-trade regressions
+        run: npm test
+      - name: Require original QA04 release gate to remain evidence-based
+        run: node scripts/v19-verify-100pct-before-backtest.mjs
+      - name: Retrieve exact SHA-pinned neutral 11 and 12 October frame archive
+        uses: actions/download-artifact@v4
+        with:
+          name: r29-real-43day-fresh5minute-candidates-no-fills-v2
+          repository: 127027/Sniperbot-
+          run-id: '44048309420'
+          github-token: ${{ github.token }}
+          path: probe-artifacts/neutral-source-v2
+      - name: Exactly 8 keyless public Gecko reads paced to conservative 10 per minute
+        run: node scripts/v24-gecko-neutral-hourly-eight.mjs
+      - name: Verify no real or paper client signal changes
+        if: ${{ always() }}
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain -- signals)"
+      - name: Upload original HTTP bytes and nontradable neutral identity report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-v24-neutral-hourly-eight-${{ github.run_id }}
+          path: |
+            probe-artifacts/v24-neutral-gecko-hour-*/
+            probe-artifacts/v19-61-original-tasks-prebacktest-gate.json
+          retention-days: 30
+          if-no-files-found: warn
