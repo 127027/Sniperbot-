@@ -110,3 +110,19 @@ test('seven source receipts produce postrun neutral pool identity coverage, neve
  assert.equal(result.historical_replay_or_live_trade_authorized,false);
  assert.equal(result.winner_reference_oracle_accessed,false);
 });
+
+test('all seven HTTP200 empty provider arrays mean 192 unresolved identities, not 192 nonexistent pools',()=>{
+ const plan=makeV23NeutralBatches({retrospective:retro()});
+ const assessments=plan.requests.map(b=>assessV23DexBatch({
+  batch:b,receipt:receipt(b,[])}));
+ assert.ok(assessments.every(x=>
+  x.status==='HTTP200_NO_EXACT_MINT_POOL_MATCH_COVERAGE_UNKNOWN'));
+ const summary=summarizeV23NeutralBatchFindings({plan,assessments});
+ assert.equal(summary.provider_http200,7);
+ assert.equal(summary.provider_http200_without_matching_pools,7);
+ assert.equal(summary.provider_http_data_gap,0);
+ assert.equal(summary.unmatched_neutral_mints,192);
+ assert.equal(summary.unmatched_mints_have_unknown_pool_status,true);
+ assert.equal(summary.current_provider_empty_response_not_proof_pool_never_existed,true);
+ assert.equal(summary.historical_original_discovery_evidence_added,0);
+});
