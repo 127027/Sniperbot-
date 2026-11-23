@@ -30,6 +30,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Static syntax proof for 176-mint research runner and pure reconciler
+        run: |
+          set -euo pipefail
+          node --check scripts/v25-recover-remaining-176-neutral-mints.mjs
+          node --check src/v25-neutral-remaining-176-research.mjs
       - name: Regression and protected-paper-state tests
         shell: bash
         run: |
