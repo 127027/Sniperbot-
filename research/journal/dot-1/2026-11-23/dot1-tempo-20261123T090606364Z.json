@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "role": "dot-1-tempo",
+  "run_id": "dot1-tempo-20261123T090606364Z",
+  "real_gpt_execution_utc": "2026-11-23T09:06:06.364Z",
+  "virtual_historical_time": null,
+  "execution_origin": "GPT_SELF_REPORTED",
+  "independently_attested_gpt_execution": false,
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "status": "DATA_GAP",
+  "source_branch": "codex/r29-cleanroom-paper-20261121",
+  "source_run_id": "45137531562",
+  "source_capture_utc": "2026-11-23T08:18:23.571Z",
+  "input_refs": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "e2b5c1eb7d31bad70da392bd3493cbb00367b433"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "63eff336bef6f82edfbfa5a0ef7e42c54fa219f1"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "593fdd6d5f1e3aef44a3441a7b1012f2d22f2955"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45137531562/evidence.json",
+      "blob_sha": "19ad1e11684e27986356f9fd6bc0090fdf754264"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45137531562/v19-operating-measurements.json",
+      "blob_sha": "f71674ecc5f6d103db5722583610e408e786b14a"
+    },
+    {
+      "path": "research/observations/2026-11-23/45137531562-activity-pages.json",
+      "blob_sha": "9a636cff8eb2f4315ea94dad4ce66626083d5633"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45137531562/page-coverage-report.json",
+      "blob_sha": "491da95511ee909dd1c5f69dbd4a76e43638dcc6"
+    }
+  ],
+  "market": {
+    "chains": [
+      "solana",
+      "base",
+      "ethereum",
+      "bsc",
+      "robinhood",
+      "cronos"
+    ],
+    "latest_gecko_chain": "cronos",
+    "latest_gecko_page": 5,
+    "gecko_url": "https://api.geckoterminal.com/api/v2/networks/cro/new_pools?include=base_token,quote_token&page=5",
+    "gecko_raw_path": "research/feeds/2026-11-23/45137531562/gecko-cronos-page5.raw.json",
+    "gecko_raw_sha256": "42f8104a18754db6b114ef6672fc4f0ecf6716179ef7f71c3ad577246befa4da",
+    "gecko_http_status": 200,
+    "gecko_valid_pools": 0,
+    "gecko_raw_bytes": 25,
+    "gecko_same_raw_sha_as_prior_cronos_pages": true,
+    "persisted_pools_previous": 799,
+    "persisted_pools_now": 799,
+    "first_dot2_previous": 404,
+    "first_dot2_now": 404,
+    "observation_batches_previous": 164,
+    "observation_batches_now": 168,
+    "dex_base_rechecks": 6,
+    "dex_exact_matched": 6,
+    "dex_indicative_complete": 0,
+    "dex_status": "MISSING_GECKO_COMPARISON_PRICE",
+    "same_pool_provider_asof_hourly_deltas_verified": 0,
+    "comparable_page_pairs": 0,
+    "comparable_panel_complete": false,
+    "media_velocity_verified": false,
+    "missing_current_gecko_pages": [
+      "solana",
+      "base",
+      "ethereum",
+      "bsc",
+      "robinhood"
+    ],
+    "media_data": "No independently verified new media velocity in inspected capture",
+    "new_provider_429": 0,
+    "provider_http200": 7,
+    "provider_cooldown": null,
+    "orders": 0,
+    "client_fills": 0
+  },
+  "recommendation": {
+    "target_per_24h": 4,
+    "alternatives_rejected": [
+      8,
+      12,
+      24
+    ],
+    "reason": "No new valid Cronos pools on page 5; repeated empty response SHA across pages, 6 Base DEX rechecks without independent Gecko comparison price, no source-asof matched hourly price/volume/liquidity changes and no independently verified news velocity. 799 persisted pools unchanged; deterministic report proposes 12 without sufficient verified acceleration. Missing data cannot establish calm. Preserve provisional 4, quiet_checks=0.",
+    "consecutive_quiet_checks": 0,
+    "reevaluate": "At next scheduled wake after a new source-pinned comparable same-pool multi-chain capture or independently verified media acceleration; escalate immediately if strong evidence appears, downshift only after hysteresis and confirmed quiet."
+  },
+  "not_checked": [
+    "No independent live provider calls made by Dot1",
+    "No exhaustive six-chain market sweep",
+    "No independent issuer or onchain sellability",
+    "No local Windows paper account",
+    "No historical October 29h backtest",
+    "No verified media velocity or independent GPT automation receipt"
+  ],
+  "trade_authorized": false,
+  "orders_created": 0
+}
