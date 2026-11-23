@@ -9,7 +9,7 @@ import {R29_PINNED_NEUTRAL_OCT_SOURCE as original,
  auditRetrospectiveNeutral24HourlySource}
  from '../src/v19-retrospective-neutral-source-overlay.mjs';
 import {planV24GeckoHourlySlice,interpretV24GeckoHourlyResponse,
- summarizeV24GeckoHourlySlice}
+ deferV24AfterRateLimit,summarizeV24GeckoHourlySlice}
  from '../src/v24-gecko-neutral-hourly-queue.mjs';
 import {fingerprintProtectedFiles,assertProtectedFilesUnchanged}
  from '../src/v19-replay-isolation.mjs';
@@ -52,12 +52,22 @@ if(sha(prior)!==original.day_11_sha256||sha(trading)!==original.day_12_sha256)
 const retro=auditRetrospectiveNeutral24HourlySource({
  priorDay:JSON.parse(prior),tradingDay:JSON.parse(trading),
  artifactDownloadedAtUtc:new Date().toISOString()});
-const plan=planV24GeckoHourlySlice({retrospective:retro,hour});
+const plan=planV24GeckoHourlySlice({retrospective:retro,hour,
+ rowIndexes:requested.row_indexes??null});
 const dir='probe-artifacts/v24-neutral-gecko-hour-'+String(hour).padStart(2,'0')+'-'+run;
 await mkdir(dir,{recursive:true});
 await writeFile(dir+'/source-plan.json',JSON.stringify(plan,null,2)+'\n',{flag:'wx'});
 const out=[];
+let haltForRateLimit=false;
 for(const q of plan.requests){
+ if(haltForRateLimit){
+  const deferred=deferV24AfterRateLimit({query:q});
+  out.push(deferred);
+  console.log('R29_V24_DEFERRED_AFTER_429',JSON.stringify({
+   hour,source_row:q.row_index,mint:q.mint,
+   provider_request_performed:false,orders:0}));
+  continue;
+ }
  let http_status=0,raw_text='';
  try{
   const r=await fetch(q.url,{method:'GET',
@@ -76,6 +86,7 @@ for(const q of plan.requests){
  await writeFile(dir+'/gecko-'+q.row_index+'.raw.json',raw_text,{flag:'wx'});
  const assessed=interpretV24GeckoHourlyResponse({query:q,receipt});
  out.push(assessed);
+ if(http_status===429||http_status===503)haltForRateLimit=true;
  console.log('R29_V24_NEUTRAL_SOURCE_RESPONSE',JSON.stringify({
   historical_hour:hour,source_row:q.row_index,
   mint:q.mint,http_status,status:assessed.status,
@@ -84,7 +95,8 @@ for(const q of plan.requests){
   original_october_asof_discovery:false,orders:0}));
  // Official Gecko documentation also describes approximately 10/min.
  // Use slower conservative cap instead of exhaustively retrying 429s.
- if(q.row_index<7)await new Promise(resolve=>setTimeout(resolve,6500));
+ if(!haltForRateLimit&&q!==plan.requests.at(-1))
+  await new Promise(resolve=>setTimeout(resolve,6500));
 }
 const summary=summarizeV24GeckoHourlySlice({plan,observations:out});
 const report={...summary,source_commit:commit,workflow_run_id:run,
@@ -94,7 +106,10 @@ const report={...summary,source_commit:commit,workflow_run_id:run,
 await writeFile(dir+'/audit.json',JSON.stringify(report,null,2)+'\n',{flag:'wx'});
 assertProtectedFilesUnchanged(before,await fingerprintProtectedFiles(protectedFiles));
 console.log('R29_V24_NEUTRAL_HOURLY_COMPLETE',JSON.stringify({
- hour,read_only_queries:8,http200:report.http200,
+ hour,read_only_queries:report.public_provider_requests,
+ originally_requested_mints:plan.sample_mints,
+ deferred_requests:report.unattempted_due_to_provider_rate_limit,
+ http200:report.http200,
  current_identified_mints:report.currently_identifiable_mints,
  current_pool_links:report.currently_identifiable_pool_links,
  unresolved_mints:report.unknown_current_identity_mints,
