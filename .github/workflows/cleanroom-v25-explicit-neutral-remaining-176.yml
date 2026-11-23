@@ -1,0 +1,68 @@
+name: R29 V2.5 Explicit Remaining 176 Neutral Solana Mint Research
+on:
+  push:
+    branches:
+      - codex/r29-cleanroom-paper-20261121
+    paths:
+      - 'research/neutral-remaining-requests/**'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: r29-v25-neutral-remaining-176-single-provider-run
+  cancel-in-progress: false
+jobs:
+  exact-remaining-neutral-176:
+    if: ${{ github.ref == 'refs/heads/codex/r29-cleanroom-paper-20261121' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    env:
+      R29_MODE: PAPER
+      R29_ENABLE_LIVE: ''
+    steps:
+      - name: Checkout exact single research request commit without any write credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Node 22 no API keys, paid provider tokens or wallets
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Regression and protected-paper-state tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm test
+      - name: Original formal QA04 evidence remains authoritative
+        run: node scripts/v19-verify-100pct-before-backtest.mjs
+      - name: Download original SHA-pinned neutral October 11 and October 12 archive
+        uses: actions/download-artifact@v4
+        with:
+          name: r29-real-43day-fresh5minute-candidates-no-fills-v2
+          repository: 127027/Sniperbot-
+          run-id: '44048309420'
+          github-token: ${{ github.token }}
+          path: probe-artifacts/neutral-source-v2
+      - name: Recover exactly remaining 176 neutral mints with conservative provider pacing and checkpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/v25-recover-remaining-176-neutral-mints.mjs
+      - name: Verify protected signals, orders and receipts not mutated
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain -- signals/index.json signals/orders signals/receipts)"
+      - name: Archive raw SHA-verified HTTP responses, source manifest and hourly checkpoints
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-v25-neutral-remaining-176-${{ github.run_id }}
+          path: |
+            probe-artifacts/v25-neutral-176-*/
+            probe-artifacts/v19-61-original-tasks-prebacktest-gate.json
+          retention-days: 30
+          if-no-files-found: warn
