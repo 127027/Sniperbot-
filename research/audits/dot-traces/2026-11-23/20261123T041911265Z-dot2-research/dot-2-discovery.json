@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "role": "dot-2-discovery",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "run_id": "20261123T041911265Z-dot2-research",
+  "executed_at_utc": "2026-11-23T04:19:20.313Z",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "authentic_gpt_execution_receipt": "UNVERIFIED",
+  "status": "CAPTURE_PENDING_DATA_GAP",
+  "input_refs": [
+    {
+      "path": "docs/R29_FIVE_DOT_FORENSIC_BACKTEST_PROTOCOL_20261122.md",
+      "blob_sha": "3f7ba1977cb0df637fd3c7486897aa11780bea97"
+    },
+    {
+      "path": "docs/R29_NEXT_CHAT_HANDOFF.md",
+      "blob_sha": "47b826d5972e49e5091f3a0ed984bac3cb64ebc2"
+    },
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "f0e92f0f929a32698125b5906e08a567b8cbcaa7"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "c5a211b9407dac737440b901bdfab21ddba6eb98"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "2b5b8d36db1516cbacb941a176076bd134d27197"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "blob_sha": "b607c41eb008e36cff33614ad877dbabd1848bc3"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45104744515/evidence.json",
+      "blob_sha": "1f9211454df9886c8e446a56f769a344833cf3f6"
+    },
+    {
+      "path": "research/state/checkpoints/45104744515.json",
+      "blob_sha": "37f1562d7cd816c1ab8baa9d961dca8f5d5ccf69"
+    }
+  ],
+  "source_capture": {
+    "run_id": "45104744515",
+    "captured_at_utc": "2026-11-23T03:14:09.925Z",
+    "chain": "solana",
+    "page": 1,
+    "source_raw_path": "research/feeds/2026-11-23/45104744515/gecko-solana-page1.raw.json",
+    "source_raw_sha256": "2e1641ae4fdf15e64d5b4985f62739010cc790cdcb6a957ef736916ae057b3e1",
+    "http_status": 200,
+    "complete_contracts": 20,
+    "global_coverage": false
+  },
+  "action": {
+    "what_was_done": "Read pinned source-state, provider budget, prior capture evidence and checkpoint; committed exactly one new bounded discovery request.",
+    "why_this_action": "Hourly six-chain rotating research with no active persisted 429 cooldown and no duplicate request in this hour.",
+    "alternatives_considered": [
+      "Do not issue request if cooldown or duplicate present",
+      "Never request all six provider pages with one-page budget"
+    ],
+    "request_path": "research/requests/2026-11-23/20261123T041911265Z-dot2-research.json",
+    "request_commit_sha": "c14d67f32602750bc8ca14d671a495fdfe20d00e"
+  },
+  "coverage": {
+    "requested_chains": [
+      "solana",
+      "base",
+      "ethereum",
+      "bsc",
+      "robinhood",
+      "cronos"
+    ],
+    "new_chain_page_http_completed_this_review": 0,
+    "previous_source_chain_page": "solana:1",
+    "not_checked_this_review": [
+      "all new chain pages",
+      "new media posts",
+      "new prices",
+      "new sellability"
+    ],
+    "pending_queue_preserved": true,
+    "hot_fair_repair_from_prior_capture": {
+      "hot": 4,
+      "fair": 1,
+      "repair": 1,
+      "deferred_new": 16
+    }
+  },
+  "gaps": [
+    "New request has no matched completion evidence at review time",
+    "No independent risk issuer, chain sellability or authenticated GPT review receipt",
+    "No global market coverage"
+  ],
+  "decision": "WATCH_DATA_GAP",
+  "orders_created": 0,
+  "paper_fills": 0,
+  "backtest_executed": false,
+  "next": "Verify exact request/evidence path, completion gate, original response bytes and checkpoint before source-state promotion."
+}
