@@ -1,10 +1,22 @@
 # R29 – V2.3/V2.4: Neutrale Oktober-Mint-Discovery, Quellenausfälle und adaptiver API-Retry
 
-**Stand:** 23. November 2026, UTC. **Repo:** `127027/Sniperbot-`, **nur** `codex/r29-cleanroom-paper-20261121`. **Modus:** Research-only, null Trade-Orders, null Echtgeld, null Windows-Paper-Client-Änderung.
+**Stand:** 23. November 2026, 20:43 UTC. **Repo:** `127027/Sniperbot-`, **nur** `codex/r29-cleanroom-paper-20261121`. **Modus:** Research-only, null Trade-Orders, null Echtgeld, null Windows-Paper-Client-Änderung.
 
 ## Nutzerziel
 
 Am 12.10.2026 um **00:00 UTC** sollen die fünf Dots alle bis dahin **tatsächlich verfügbar gewesenen** Marktinformationen inklusive älterer Historie berücksichtigen dürfen, dann in stündlichen Wakes Informationen ergänzen. Dot1 adaptiert 4/8/12/24 Vollreviews. Daten die erst im November 2026 erhoben wurden dürfen **nicht** zu Oktober-Originalwissen erklärt werden; die 65 später identifizierten Gewinner dürfen **nie** den Kandidaten-Scanner starten. Die fünf Stunden ab 11.10. 19:00 UTC sind ein Arbeitsvorlauf und keine Beschränkung der Markthistorie.
+
+## Aktuell verifizierter Endstand der zwei neutralen Stunden (20:43 UTC)
+
+**Das 429-Resume hat für beide Stunden tatsächlich funktioniert!**
+
+- Originalprobe 02:00: [#45261003896](https://github.com/127027/Sniperbot-/actions/runs/45261003896), 5/8 aktuelle Mint+Pool-Identitäten, 3 HTTP429. Gezielt NUR Zeilen `[5,6,7]` mit 20.000 ms Drosselung erneut gelesen: [#45261696018](https://github.com/127027/Sniperbot-/actions/runs/45261696018), 3/3 HTTP200, **damit 8/8 Mints mit je exaktem Pool belegt**.
+- Originalprobe 18:00: [#45261044088](https://github.com/127027/Sniperbot-/actions/runs/45261044088), 5/8 aktuell exakte Mint+Pool-Zuordnungen, 3 HTTP429. Gezielt NUR Zeilen `[5,6,7]` mit 20.000 ms Drosselung erneut gelesen: [#45262076422](https://github.com/127027/Sniperbot-/actions/runs/45262076422), 3/3 HTTP200, **damit 8/8 Mints mit je exaktem Pool belegt**.
+- **Gesamt tatsächlich nachträglich identifiziert: 16 von 192 NEUTRALEN Solana-Mints**, jeweils eine heutige exakte Poolzuordnung. **Weitere 176 Mints aus den übrigen 22 Stundenstichproben sind in diesem Gecko-Hourly-Pfad NOCH NICHT ABGEFRAGT**. Das ist keine 16/65 Gewinnerquote, keine Marktgesamtabdeckung und keine Oktober-Originalverfügbarkeit.
+- Alle **22** öffentlichen Gecko-HTTP-Abfragen im vierfachen Test: **16 HTTP200** mit exakten Mint+Pool-Belegen und **6 HTTP429** in den Erstläufen; die sechs wurden später erfolgreich nachgefragt, ohne die ersten zehn erneut zu verbrauchen.
+- Jüngste erfolgreiche vollständige Software-CI: **[871/871 Tests, 0 FAIL, keine Orderwrites](https://github.com/127027/Sniperbot-/actions/runs/45261523593)**. Beide gezielten Resume-Läufe ebenfalls **871/871 PASS**.
+- Maschinenlesbare Übergabe mit den vier originalen GitHub-Run-IDs und dem echten Abdeckungsstand: `research/audits/2026-11-23/r29-v24-two-neutral-scan-hours-source-progress.json`.
+- **Kein echter historischer BUY, SELL, GPT-Entscheid oder Client-Fill bewiesen.** Das Original-Gate bleibt bei 13/60, nicht bei 16/60; die sechzehn sind **zusätzliche heutige Quell-Identitäten**, keine formal abgenommenen Originalanforderungen.
 
 ## 1. Gegenprobe zur Erklärung "keine Coins vorhanden"
 
@@ -31,7 +43,7 @@ Jeder **explizit autorisierte** Quellendurchlauf liest eine von **24** retrospek
 Tatsächlich ausgeführte zwei Acht-Mint-Durchläufe:
 - [**02:00 Uhr, #45261003896**](https://github.com/127027/Sniperbot-/actions/runs/45261003896): **8** API-Abfragen, **5 HTTP200 + 5 exakte heutige Mint+Pool-Treffer**, **3 HTTP429**.
 - [**18:00 Uhr, #45261044088**](https://github.com/127027/Sniperbot-/actions/runs/45261044088): **8** API-Abfragen, **5 HTTP200 + 5 exakte heutige Mint+Pool-Treffer**, **3 HTTP429**.
-- Gesamt **10 von 16 heute exakte Poolidentitäten**, übrige **6 wegen 429 UNBEKANNT**, nicht als historisch nicht vorhanden eingestuft.
+- **Zwischenstand direkt nach den Erstläufen:** 10 von 16 mit exakter heutiger Poolidentität, 6 wegen 429 zunächst UNBEKANNT. **Nach den zwei erfolgreichen Slow-Resume-Läufen: 16/16 heutige Identitäten bestätigt.**
 - Die offenen 22 übrigen neutralen Acht-Mint-Stundenproben sind **nicht ausgeführt** und die Gesamtdeckung aller 192 ist **nicht** bewiesen.
 
 Die vier früheren Gecko-Kontrollabfragen sind teilweise **dieselben beiden** Mints wie in den Acht-Mint-Proben und dürfen **nicht zusätzlich als neue unterschiedliche Coins gezählt werden**.
@@ -55,6 +67,6 @@ Keine der nachträglichen Abfragen belegt die **originale Oktober-Dot2-Providerl
 
 ## Nächste Arbeit
 
-- Drei 429-unterbrochene Zeilen je getesteter Stunde über ausdrücklich dokumentierte, ratebegrenzte `row_indexes`-Wiederaufnahme auflösen, Rohbytes und SHA-256 erhalten; keine wiederholten erfolgreichen Anfragen.
+- **ERLEDIGT:** Drei 429-unterbrochene Zeilen je getesteter Stunde über `row_indexes:[5,6,7]` mit 20-Sekunden-Pacing nachgeladen; exakte Antwortbytes/SHA behalten und keinerlei erneute Abfrage der zuvor fünf bestätigten Mints.
 - Übrige 22 Stunden **in unabhängigen, gedrosselten Schritten** aus dem neutralen Stichprobenarchiv untersuchen; Persistenz der Quellengaps und klare `UNKNOWN`-Bedeutung beibehalten.
 - Für original historische Erkennbarkeit **neutralen Onchain-Eventstrom, zeitlich belegte Publikation und unabhängige handelbare Quotes** konstruieren. November-Gecko-Pools nie rückwirkend als Oktober-Asofrecherche freigeben.
