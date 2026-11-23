@@ -2,10 +2,10 @@
   "schema": 1,
   "dot": "dot-2",
   "mode": "PAPER_RESEARCH_ONLY",
-  "status": "SOURCE_CAPTURE_COMPLETED_GPT_RECEIPT_UNVERIFIED_DATA_GAP",
-  "updated_at_utc": "2026-11-23T17:14:54.933Z",
-  "capture_request_path": "research/requests/2026-11-23/20261123T171358550Z-dot2-research.json",
-  "feed_is_current_request": true,
+  "status": "CAPTURE_PENDING_GPT_RECEIPT_UNVERIFIED_DATA_GAP",
+  "updated_at_utc": "2026-11-23T18:11:36Z",
+  "capture_request_path": "research/requests/2026-11-23/20261123T181136Z-dot2-research.json",
+  "feed_is_current_request": false,
   "source_run_id": "45225394417",
   "captured_at_utc": "2026-11-23T17:14:11.006Z",
   "source_chain": "ethereum",
@@ -26,23 +26,27 @@
   "pending_queue_path": "research/state/market-memory.json",
   "errors": [
     {
-      "code": "DATA_GAP_RISK_UNVERIFIED",
-      "detail": "No independent issuer, upstream quote time or chain sellability proof"
+      "code": "CAPTURE_PENDING",
+      "detail": "New request has no matched HTTP completion yet; source stats remain from prior run 45225394417"
     },
     {
       "code": "GPT_EXECUTION_RECEIPT_UNVERIFIED",
-      "detail": "Provider HTTP completion is not a GPT full-review receipt"
+      "detail": "Audit is self-reported; not independently authenticated"
+    },
+    {
+      "code": "DATA_GAP_RISK_UNVERIFIED",
+      "detail": "Independent issuer, upstream quote time and chain sellability not proven"
     }
   ],
   "trading_ready": false,
   "orders_created": 0,
-  "capture_request_commit_sha": "f0e90ed2f9a15ec8468648ff8ed0a30bca06b5f3",
-  "new_pool_count_this_wake": 3,
-  "full_contract_candidates_this_wake": 20,
+  "capture_request_commit_sha": "c588a01b3d7e416f56bd6285b8f148a55723e367",
+  "new_pool_count_this_wake": 0,
+  "full_contract_candidates_this_wake": 0,
   "paper_fills_claimed": 0,
   "backtest_executed": false,
-  "forensic_audit_path": "research/audits/dot-traces/2026-11-23/20261123T171358550Z-dot2-research/dot-2-discovery.json",
-  "forensic_audit_blob_sha": "ac839650aa347dbc82c138b386a12ec1a7a76c43",
+  "forensic_audit_path": "research/audits/dot-traces/2026-11-23/20261123T181136Z-dot2-research/dot-2-discovery.json",
+  "forensic_audit_blob_sha": "ca756bf72f39670dd469d815e09db7d18b156166",
   "prior_capture_market_memory_stats": {
     "total_discovered": 940,
     "total_observation_batches": 195,
@@ -60,7 +64,7 @@
     "trade_eligible": 0
   },
   "authentic_gpt_review_receipt": false,
-  "previous_capture_source_run_id": "45104744515",
+  "previous_capture_source_run_id": "45225394417",
   "previous_capture_stats_are_not_current_request": true,
   "prior_capture_source_run_id": "45215107047",
   "capture_reconciliation_journal_path": "research/audits/dot-traces/2026-11-23/20261123T161748Z-dot2-source-completion/dot-2-discovery.json",
@@ -70,6 +74,6 @@
     "observations": 20,
     "trade_eligible": 0
   },
-  "journal_blob_sha": "ac839650aa347dbc82c138b386a12ec1a7a76c43",
+  "journal_blob_sha": "ca756bf72f39670dd469d815e09db7d18b156166",
   "prior_capture_evidence_path": "research/feeds/2026-11-23/45192931339/evidence.json"
 }
