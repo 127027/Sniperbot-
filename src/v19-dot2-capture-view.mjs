@@ -22,6 +22,12 @@ export function resolveDot2CaptureView({gptPointer,feedPointer,asOfUtc}={}){
   &&typeof feedPointer?.request_path==='string'
   &&requestPath.test(feedPointer.request_path)
   &&gptPointer?.dot==='dot-2';
+ const deferredSharedProviderWake=gptPointer?.status===
+   'RESEARCH_WAKE_CAPTURE_DEFERRED_CONCURRENT_PROVIDER_DATA_GAP'
+   &&gptPointer?.capture_request_path==null
+   &&gptPointer?.orders_created===0
+   &&gptPointer?.paper_fills_claimed===0
+   &&gptPointer?.backtest_executed===false;
  const newer=sourceValid&&(prevAt===null||feedAt>prevAt);
  const effectivePath=newer?feedPointer.evidence_path:
   typeof gptPointer?.evidence_path==='string'?gptPointer.evidence_path:null;
@@ -38,6 +44,11 @@ export function resolveDot2CaptureView({gptPointer,feedPointer,asOfUtc}={}){
   latest_feed_source_at_utc:sourceValid?feedPointer.captured_at_utc:null,
   latest_feed_evidence_path:sourceValid?feedPointer.evidence_path:null,
   latest_feed_run_id:sourceValid?match[2]:null,
+  current_wake_new_provider_request_created:deferredSharedProviderWake?false:null,
+  concurrent_provider_research_deferred_without_capture:deferredSharedProviderWake,
+  prior_feed_reused_during_deferred_wake:deferredSharedProviderWake
+    &&sourceValid&&gptPointer?.evidence_path===feedPointer.evidence_path,
+  deferred_state_does_not_validate_a_gpt_review:true,
   feed_matches_last_gpt_request:sourceValid
     ?gptPointer.capture_request_path===feedPointer.request_path:null,
   effective_research_capture_at_utc:effectiveAt,
