@@ -17,7 +17,7 @@ const picked=action=>({
  reason:action.reason??null,
  provenance:'OFFLINE_MODEL_OUTPUT_NOT_INDEPENDENT_GPT_OR_CLIENT_FILL'
 });
-export function compare24HourlyScansAfterReplay({replay,oracle}={}){
+export function compare24HourlyScansAfterReplay({replay,oracle,retrospectiveNeutral=null}={}){
  const r=replay?.requested_backtest??replay;
  if(r?.schema!==1||r.kind!=='R29_V18_ON_DEMAND_FIVE_ROLE_SHADOW_BACKTEST'
    ||r.date!=='2026-10-12'||r.mode!=='EXPLICIT_FIXED_24_HOURLY_DIAGNOSTIC'
@@ -64,6 +64,50 @@ export function compare24HourlyScansAfterReplay({replay,oracle}={}){
     :'PROVISIONAL_UNAUTHENTICATED_OCTOBER_INPUT',
    verified_real_gpt_reviews_this_scan:0,verified_windows_paper_fills_this_scan:0};
  });
+ // Attach archived Solana research ONLY to an already completed 24-scan
+ // decision report. It cannot modify the replay, the watched coins, or the
+ // BUY/SELL state, and it is never input to backtestOnRequest.
+ let retrospective=null;
+ if(retrospectiveNeutral!==null){
+   if(retrospectiveNeutral?.kind!=='R29_V19_POSTRUN_RETROSPECTIVE_NEUTRAL_24_HOURS'
+     ||retrospectiveNeutral.date!==r.date
+     ||retrospectiveNeutral.archive_released_after_historical_test!==true
+     ||retrospectiveNeutral.original_provider_delivered_during_october_independently_verified!==false
+     ||retrospectiveNeutral.never_eligible_to_seed_historical_discovery!==true
+     ||retrospectiveNeutral.never_eligible_for_entry_or_exit_quotes!==true
+     ||!Array.isArray(retrospectiveNeutral.per_hour)
+     ||retrospectiveNeutral.per_hour.length!==24)
+     throw Error('RETROSPECTIVE_SOURCE_CANNOT_ENTER_MODEL_TRADES');
+   for(let i=0;i<24;i++){
+     const source=retrospectiveNeutral.per_hour[i],row=rows[i];
+     if(source.scan!==row.scan||source.at_utc!==row.scan_at_utc
+       ||source.quote_and_sellability_status!=='NOT_VERIFIED_NOT_A_TRADE_DECISION'
+       ||!Array.isArray(source.postrun_neutral_mint_sample))
+       throw Error('RETROSPECTIVE_HOURLY_JOIN_TIME_MISMATCH');
+     row.post_decision_retrospective_source={
+       mint_occurrences_last_five_minutes:
+         source.retrospective_last_5min_mint_occurrences,
+       feature_rows_last_five_minutes:source.retrospective_last_5min_feature_rows,
+       selected_research_mints:source.postrun_neutral_mint_sample,
+       not_an_executable_quote:true,no_original_october_delivery_proof:true
+     };
+   }
+   retrospective={
+     source_chain_scope:retrospectiveNeutral.source_chain_scope,
+     source_artifact_id:retrospectiveNeutral.source_artifact_id,
+     source_actions_run_id:retrospectiveNeutral.source_actions_run_id,
+     source_revision:retrospectiveNeutral.source_revision,
+     retrospective_mint_occurrences_in_24_last5min_windows:
+       retrospectiveNeutral.retrospective_mint_occurrences_in_24_last5min_windows,
+     retrospective_feature_rows_in_24_last5min_windows:
+       retrospectiveNeutral.retrospective_feature_rows_in_24_last5min_windows,
+     distinct_sample_mints:retrospectiveNeutral.distinct_sample_mints,
+     claimed_age_field_disagrees_with_recomputed_observation_age_count:
+       retrospectiveNeutral.claimed_age_field_disagrees_with_recomputed_observation_age_count,
+     usable_historical_entry_exit_quote_count:0,
+     source_release_after_test:true,joined_only_after_decisions:true
+   };
+ }
  const evaluated=oracle.entries.map(e=>{
   const chain=canonicalChain(e.reported_chain),k=e.pool&&chain
    ?chain+':'+(chain==='solana'?e.pool:e.pool.toLowerCase()):null;
@@ -85,6 +129,7 @@ export function compare24HourlyScansAfterReplay({replay,oracle}={}){
   decision_end_exclusive_utc:r.end_utc,
   first_scan_at_utc:rows[0].scan_at_utc,last_scan_at_utc:rows[23].scan_at_utc,
   scan_count:24,scans:rows,
+  post_decision_retrospective_neutral_research:retrospective,
   source_status:r.status,observations_supplied:r.source_input_count,
   observations_accepted:r.accepted_input_count,
   original_october_capture_claims:r.role_audit.dot2_discovery?.original_capture_claims??0,
