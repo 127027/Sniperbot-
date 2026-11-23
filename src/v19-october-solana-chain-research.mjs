@@ -15,8 +15,8 @@ const iso=t=>new Date(t).toISOString();
 const START=asOfMillis('2026-10-11T19:00:00.000Z');
 const END=asOfMillis('2026-10-13T00:00:00.000Z');
 const RPC='https://api.mainnet.solana.com';
-const PAGE_LIMIT=100;
-export const MAX_CHAIN_HISTORY_PAGES_PER_POOL=4;
+const PAGE_LIMIT=1000;
+export const MAX_CHAIN_HISTORY_PAGES_PER_POOL=10;
 export const MAX_CHAIN_TRANSACTION_DETAILS_PER_POOL=2;
 
 export const R29_OCT12_CHAIN_RESEARCH_TARGETS=Object.freeze([
