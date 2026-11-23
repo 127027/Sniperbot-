@@ -22,5 +22,5 @@ const result=assessDot4PaperDecision({
  allowSyntheticForRegression:false
 });
 console.log(JSON.stringify({schema:1,kind:'R29_V18_DOT4_READONLY_RESULT',time_mode:data.time_mode,
- as_of_utc:data.as_of_utc,decision:result,
+ as_of_utc:data.as_of_utc,kernel_invocation_mode:data.time_mode,decision:result,
  issuer_verified:false,trade_authorized:false,orders_written:0},null,2));
