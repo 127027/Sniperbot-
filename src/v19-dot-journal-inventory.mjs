@@ -10,12 +10,25 @@ const pat=/^research\/journal\/(dot-[1-5])\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]+\.j
 const forensic=/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-5-control\.json$/;
 const pendingDot2Forensic=/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-2-discovery\.json$/;
 const roleForensics=/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-[1-5]-(?:tempo|discovery|risk|strategy|control)\.json$/;
-export const isPendingDot2ForensicPointer=pointer=>
-  ['CAPTURE_PENDING_DATA_GAP','CAPTURE_PENDING_GPT_RECEIPT_UNVERIFIED_DATA_GAP']
-    .includes(pointer?.status)
+// A Dot2 research wake may explicitly defer a NEW provider request while
+// another bounded source job is using the same unknown shared rate quota.
+// Its pointer reuses the PREVIOUS feed; this is not another capture or GPT
+// receipt. Treat a SHA-pinned forensic trace as PENDING, not as a fabricated
+// canonical journal, only if the deferral states zero trade privileges.
+export const isPendingDot2ForensicPointer=pointer=>{
+ const deferred=pointer?.status===
+   'RESEARCH_WAKE_CAPTURE_DEFERRED_CONCURRENT_PROVIDER_DATA_GAP';
+ const conventional=['CAPTURE_PENDING_DATA_GAP',
+   'CAPTURE_PENDING_GPT_RECEIPT_UNVERIFIED_DATA_GAP'].includes(pointer?.status);
+ return (conventional||deferred&&pointer?.capture_request_path==null
+   &&pointer?.orders_created===0&&pointer?.paper_fills_claimed===0
+   &&pointer?.backtest_executed===false
+   &&typeof pointer?.concurrent_provider_workflow_run_id==='string'
+   &&/^\\d{5,20}$/.test(pointer.concurrent_provider_workflow_run_id))
   &&pendingDot2Forensic.test(pointer?.forensic_audit_path??'')
   &&pointer?.journal_path==null
   &&pointer?.authentic_gpt_review_receipt!==true;
+};
 export const validRoleJournalPath=(role,path)=>
   typeof path==='string'&&(
     path.match(pat)?.[1]===role
@@ -64,6 +77,14 @@ export function auditLiveFiveDotJournalInventory({
    }
   }
   if(pendingDot2){
+   // Keep old provider feed and the deferral wake strictly separate.
+   // It is legitimate for evidence_path to match the previous feed even
+   // though no new provider request or original GPT source happened.
+   if(pointer?.status==='RESEARCH_WAKE_CAPTURE_DEFERRED_CONCURRENT_PROVIDER_DATA_GAP'
+      &&(pointer?.capture_request_path!==null
+        ||pointer?.orders_created!==0||pointer?.paper_fills_claimed!==0))
+     issue('DOT2_CONCURRENT_DEFERRED_RESEARCH_INVARIANT_BROKEN',
+       'Deferral must not be represented as a new capture or paper trade');
    const forensicPath=pointer.forensic_audit_path;
    const body=rawJournalsByPath[forensicPath];
    if(typeof body!=='string')
