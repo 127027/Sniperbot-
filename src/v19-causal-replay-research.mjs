@@ -4,7 +4,7 @@ const ms = (v) => typeof v === 'string' && Number.isFinite(Date.parse(v)) ? Date
 const validId = (x) => typeof x === 'string' && x.length > 8;
 export function validateCausalEvent(e) {
  if (!e || typeof e !== 'object') return 'INVALID_EVENT';
- if (!validId(e.chain) || !validId(e.pool) || !validId(e.contract)) return 'IDENTITY_UNKNOWN';
+ if (typeof e.chain !== 'string' || !e.chain.trim() || !validId(e.pool) || !validId(e.contract)) return 'IDENTITY_UNKNOWN';
  if (ms(e.available_at_utc) === null || ms(e.published_at_utc) === null || ms(e.captured_at_utc) === null) return 'SOURCE_TIME_UNKNOWN';
  if (ms(e.published_at_utc) > ms(e.available_at_utc) || ms(e.available_at_utc) > ms(e.captured_at_utc)) return 'SOURCE_TIME_CONTRADICTION';
  if (e.source_origin_verified !== true || e.original_bytes_verified !== true) return 'SOURCE_UNVERIFIED';
