@@ -57,6 +57,11 @@ jobs:
           set -euo pipefail
           npm run diagnose:v20 | tee probe-artifacts/v20-no-original-market-input.log
           npm run diagnose:v20:synthetic | tee probe-artifacts/v20-synthetic-math-only.log
+      - name: Verify V2.2 full prior-market knowledge at midnight and automatic first 24 review cadence (synthetic only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run diagnose:v22:knowledge | tee probe-artifacts/v22-midnight-knowledge-synthetic-only.log
       - name: Verify October original Git-blob chain and quarantine post-event winners
         shell: bash
         run: |
@@ -143,6 +148,7 @@ jobs:
             probe-artifacts/v21-october-evidence-inventory.log
             probe-artifacts/v21-five-dot-git-inventory.log
             probe-artifacts/v21-five-dot-handoff-audit.log
+            probe-artifacts/v22-midnight-knowledge-synthetic-only.log
             probe-artifacts/v19-node-ci-receipt.json
             probe-artifacts/v19-qa04-*.json
             probe-artifacts/v19-six-offline-final-readiness.json
