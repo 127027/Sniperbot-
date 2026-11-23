@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "role": "dot-2-discovery",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "actual_review_at_utc": "2026-11-23T03:14:12.766Z",
+  "run_id": "dot2-automation11-20261123T031412766Z",
+  "gpt_execution_receipt": "UNVERIFIED",
+  "status": "CAPTURE_PENDING_DATA_GAP",
+  "new_request_path": "research/requests/2026-11-23/20261123T031355353Z-dot2-automation11.json",
+  "new_request_commit_sha": "90cc339c8c545996d508acd1d24f6b9b6717ba06",
+  "source_capture_run_id": "45099104735",
+  "source_capture_request_path": "research/requests/2026-11-23/20261123T021457888Z-dot2-research.json",
+  "source_capture_completed_at_utc": "2026-11-23T02:15:09.219Z",
+  "source_evidence_path": "research/feeds/2026-11-23/45099104735/evidence.json",
+  "source_evidence_blob_sha": "aae57d5bd7b8026bc3e7e5e96f5002629cb196c3",
+  "source_handoff_path": "research/feeds/2026-11-23/45099104735/dot2-to-dot3-handoff.json",
+  "source_handoff_blob_sha": "65e1eb2be4270f9ace2b0be4278e2c8f128fedc3",
+  "source_checkpoint_path": "research/state/checkpoints/45099104735.json",
+  "source_checkpoint_blob_sha": "33f965c43c767ca4f9eaef803afcce4a5c0fc770",
+  "source_feed_pointer_blob_sha": "3316376458a05f8ca195774c962c121ab4160a55",
+  "source_state_blob_sha": "c306d8d11cc55b5c677f099484c00cc0c7799a8a",
+  "source_memory_stats": {
+    "total_discovered": 707,
+    "total_observation_batches": 144,
+    "contracts_complete": 707,
+    "unresolved_identity_conflicts": 0,
+    "first_dot2_detected_count": 312,
+    "archive_reconstructed_count": 0,
+    "as_of_utc": "2026-11-23T02:15:09.219Z"
+  },
+  "source_handoff_counts": {
+    "observations": 17,
+    "unique_pools": 17,
+    "full_contracts": 17,
+    "independently_quote_matched": 1,
+    "risk_review_candidates": 17,
+    "trade_eligible": 0
+  },
+  "source_coverage": {
+    "chain": "cronos",
+    "page": 1,
+    "gecko_http_status": 200,
+    "gecko_rows": 17,
+    "gecko_complete_contracts": 17,
+    "dex_attempts": 6,
+    "other_chains_not_covered": [
+      "solana",
+      "base",
+      "ethereum",
+      "bsc",
+      "robinhood"
+    ],
+    "gecko_raw_path": "research/feeds/2026-11-23/45099104735/gecko-cronos-page1.raw.json",
+    "gecko_raw_sha256": "0c4069f03b3cc858af977c093c96876c62f394cc252a31ee88e0dfbf872e1500",
+    "provider_quote_asof_utc": null
+  },
+  "provider_budget": {
+    "gecko_last_http_status": 200,
+    "gecko_cooldown_until_utc": null,
+    "provider_budget_blob_sha": "f16ce1c6b828903a1fec1ed1766dbb080201faa6"
+  },
+  "research_decision": "WATCH_DATA_GAP",
+  "why": "One bounded request allowed: previous capture completed and no provider cooldown; new request has not yet completed. Preserve all 13 deferred new Cronos pool keys and 20 deferred Robinhood repair pool keys in source feed; no winner-seed or global coverage claim.",
+  "alternatives_considered": [
+    "Do not send duplicate request while previous one pending",
+    "Do not exceed 1 Gecko + 6 DEX",
+    "Do not turn HTTP capture into authenticated GPT review"
+  ],
+  "missing_evidence": [
+    "New request completion gate and raw byte SHA",
+    "Independent issuer risk and chain sellability",
+    "Provider quote as-of and client receipt",
+    "Independent GPT execution attestation"
+  ],
+  "orders_created": 0,
+  "paper_fills": 0,
+  "backtest_executed": false,
+  "follow_up": "Recheck feed/latest exact request/evidence match, completion gate, raw bytes and 8-hour bucket audit before reconciling next source run.",
+  "kind": "DOT2_FORENSIC_TRACE",
+  "activity": "SOURCE_PINNED_REVIEW_AND_ONE_CAPTURE_REQUEST",
+  "what_was_done": "Read current branch policy, feed, provider budget, state, holdout; inspected Cronos page1 capture and exact handoff; submitted one new bounded request.",
+  "what_was_not_done": "No direct provider requests, no other five chain page captures, no orders or backtest.",
+  "first_detected_new_pools_from_source": 17,
+  "actually_new_pools_this_wake": null
+}
