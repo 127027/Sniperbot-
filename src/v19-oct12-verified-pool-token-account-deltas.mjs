@@ -134,3 +134,60 @@ export function analyzePinnedOriginalPoolOwnerBalanceDeltas({
   historical_five_dot_gpt_review_receipt_verified:false,
   historical_paper_fill_receipt_verified:false,trade_authorized:false};
 }
+
+/**
+ * Reconcile two source transactions in the SAME slot using two independent
+ * ACCOUNT balance tracks (native SOL and pool-owned mint). The source block
+ * timestamp has only second resolution and is insufficient to order txs.
+ *
+ * An exact post->pre match is a real accounting continuity clue; it is NOT
+ * a proof of no invisible intermediates, full virtual AMM reserves, a
+ * historically available price or a swap route.
+ */
+export function comparePoolTwoAssetAccountContinuity({earlier,later}={}){
+ const mismatch=code=>({schema:1,
+  kind:'R29_V19_TWO_ASSET_ACCOUNT_STATE_CONTINUITY_RESEARCH_ONLY',
+  matched:false,code,verified_full_pool_reserves:false,
+  verified_trade_execution:false,verified_historical_quote:false,
+  can_authorize_dot3:false});
+ if(!earlier||!later
+   ||earlier.kind!=='R29_V19_ORIGINAL_OCT12_POOL_OWNER_TOKEN_ACCOUNT_DELTA'
+   ||later.kind!=='R29_V19_ORIGINAL_OCT12_POOL_OWNER_TOKEN_ACCOUNT_DELTA'
+   ||earlier.source_sha256===later.source_sha256
+   ||earlier.pool!==later.pool||earlier.mint!==later.mint
+   ||earlier.slot!==later.slot
+   ||earlier.rpc_reported_block_time_utc!==later.rpc_reported_block_time_utc
+   ||!Array.isArray(earlier.pool_owned_token_delta_rows)
+   ||!Array.isArray(later.pool_owned_token_delta_rows)
+   ||earlier.pool_owned_token_delta_rows.length!==1
+   ||later.pool_owned_token_delta_rows.length!==1)
+  return mismatch('NON_IDENTICAL_SLOT_POOL_OR_SOURCE');
+ const a=earlier.pool_owned_token_delta_rows[0],
+   z=later.pool_owned_token_delta_rows[0];
+ if(a.account_index!==z.account_index
+   ||a.token_mint!==z.token_mint||a.decimals!==z.decimals
+   ||earlier.pool_native_sol_account_index!==later.pool_native_sol_account_index)
+  return mismatch('DIFFERENT_ACCOUNT_INDEX_OR_ASSET');
+ if(!/^(0|[1-9]\d*)$/.test(earlier.observed_pool_native_sol_post_lamports||'')
+   ||!/^(0|[1-9]\d*)$/.test(later.observed_pool_native_sol_pre_lamports||'')
+   ||!/^(0|[1-9]\d*)$/.test(a.post_raw_mint_token_balance||'')
+   ||!/^(0|[1-9]\d*)$/.test(z.pre_raw_mint_token_balance||''))
+  return mismatch('NON_INTEGER_ACCOUNT_BALANCES');
+ const nativeMatches=earlier.observed_pool_native_sol_post_lamports
+   ===later.observed_pool_native_sol_pre_lamports;
+ const mintMatches=a.post_raw_mint_token_balance
+   ===z.pre_raw_mint_token_balance;
+ return {schema:1,kind:'R29_V19_TWO_ASSET_ACCOUNT_STATE_CONTINUITY_RESEARCH_ONLY',
+  matched:nativeMatches&&mintMatches,code:nativeMatches&&mintMatches
+   ?'SAME_SLOT_EXACT_NATIVE_SOL_AND_MINT_ACCOUNT_POST_PRE_LINK'
+   :'ONE_OR_BOTH_ASSET_ACCOUNT_STATES_DIFFER',
+  pool:earlier.pool,mint:earlier.mint,slot:earlier.slot,
+  block_time_utc:earlier.rpc_reported_block_time_utc,
+  previous_source_sha256:earlier.source_sha256,
+  next_source_sha256:later.source_sha256,
+  identical_native_sol_account_state:nativeMatches,
+  identical_owned_mint_token_account_state:mintMatches,
+  does_not_prove_no_intervening_zero_effect_transactions:true,
+  verified_full_pool_reserves:false,verified_trade_execution:false,
+  verified_historical_quote:false,can_authorize_dot3:false};
+}
