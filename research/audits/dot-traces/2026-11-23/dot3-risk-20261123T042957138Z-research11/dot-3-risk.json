@@ -1,0 +1,403 @@
+{
+  "schema": 1,
+  "role": "dot-3-risk",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "executed_at_utc": "2026-11-23T04:29:57.138Z",
+  "run_id": "dot3-risk-20261123T042957138Z-research11",
+  "gpt_execution_identity": "UNVERIFIED",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "inputs": [
+    {
+      "path": "research/feeds/2026-11-23/45111126096/dot2-to-dot3-handoff.json",
+      "git_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "as_of_utc": "2026-11-23T04:19:21.554Z"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45111126096/dot3-next-evidence-rechecks.json",
+      "git_blob_sha": "4f976270e4a5f4840e6232bb1836ef9e88bd308e",
+      "as_of_utc": "2026-11-23T04:19:21.554Z"
+    }
+  ],
+  "activity": "SOURCE_PINNED_RISK_RECHECK",
+  "what_was_done": "Reviewed six queued Base pools from persisted Dot2 handoff and compared archived GeckoTerminal/DexScreener quote/liquidity evidence; no fresh provider requests.",
+  "why_this_action": "Highest priority risk recheck queue; fail closed on missing provider quote timestamps and independent sellability.",
+  "alternatives_considered": [
+    "Issue provisional paper approval based on two web domains: rejected, provider as-of and upstream independence unknown",
+    "Treat HTTP capture time as quote time: rejected",
+    "Attempt live provider API: deferred to existing shared budgeted capture workflow"
+  ],
+  "reviewed_pools": [
+    {
+      "chain": "base",
+      "pool": "0x16d6533f309e08b02ec0777ac49621bb1351a2be",
+      "pool_kind": null,
+      "contract": "0xffaa5b5ab330d7cf8237db9a06e67f07e97dabf4",
+      "symbol": "BLESS",
+      "status": "DATA_GAP",
+      "decision_reason": "MISSING_INDEPENDENT_RISK_ISSUER_AND_SELLABILITY",
+      "dot2_handoff_path": "research/feeds/2026-11-23/45111126096/dot2-to-dot3-handoff.json",
+      "dot2_handoff_git_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot2_capture_utc": "2026-11-23T04:19:21.099Z",
+      "sources": [
+        {
+          "provider": "GECKOTERMINAL",
+          "url": "https://www.geckoterminal.com/base/pools/0x16d6533f309e08b02ec0777ac49621bb1351a2be",
+          "price_usd": 0.00000489372905160262,
+          "liquidity_usd": 58609.8756,
+          "http_captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "source_archive_blob_sha": null,
+          "upstream_independence_verified": false
+        },
+        {
+          "provider": "DEXSCREENER",
+          "url": "https://dexscreener.com/base/0x16d6533f309e08b02ec0777ac49621bb1351a2be",
+          "price_usd": 0.000004904,
+          "liquidity_usd": 58859.66,
+          "http_captured_at_utc": "2026-11-23T04:19:21.392Z",
+          "provider_quote_asof_utc": null,
+          "source_archive_blob_sha": null,
+          "upstream_independence_verified": false
+        }
+      ],
+      "price_disagreement_pct": 0.20965977612332903,
+      "price_drift_limit_pct": 3,
+      "minimum_liquidity_each_source_usd": 5000,
+      "security": {
+        "honeypot": "UNKNOWN",
+        "tax": "UNKNOWN",
+        "blacklist": "UNKNOWN",
+        "token_rights": "UNKNOWN",
+        "sell_routing": "UNKNOWN",
+        "fees": "UNKNOWN",
+        "empirical_sellability": "UNKNOWN",
+        "independent_risk_issuer": "UNKNOWN"
+      },
+      "missing_evidence": [
+        "SECURITY_ATTESTATION",
+        "SELLABILITY_ATTESTATION",
+        "PROVIDER_QUOTE_ASOF",
+        "PROVIDER_UPSTREAM_INDEPENDENCE_NOT_VERIFIED",
+        "INDEPENDENT_PROVIDER_QUOTE_TIME_NOT_VERIFIED",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "deadline_utc": "2026-11-23T04:29:21.554Z",
+      "follow_up": "RECAPTURE_WITH_PROVIDER_ASOF_AND_INDEPENDENT_CHAIN_SECURITY_PROOFS; DO_NOT TRADE",
+      "paper_eligible": false
+    },
+    {
+      "chain": "base",
+      "pool": "0x813c32d1dc723122175b5802cc4a5fedfa48d0f3a5445e0f6056f87a1b3e6adb",
+      "pool_kind": "UNISWAP_V4_POOL_ID",
+      "contract": "0x408362a405d6d72c9b6e3993dde7a01cbd51ee57",
+      "symbol": "NOTF",
+      "status": "DATA_GAP",
+      "decision_reason": "MISSING_INDEPENDENT_RISK_ISSUER_AND_SELLABILITY",
+      "dot2_handoff_path": "research/feeds/2026-11-23/45111126096/dot2-to-dot3-handoff.json",
+      "dot2_handoff_git_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot2_capture_utc": "2026-11-23T04:19:21.099Z",
+      "sources": [
+        {
+          "provider": "GECKOTERMINAL",
+          "url": "https://www.geckoterminal.com/base/pools/0x813c32d1dc723122175b5802cc4a5fedfa48d0f3a5445e0f6056f87a1b3e6adb",
+          "price_usd": 0.0969559501378301,
+          "liquidity_usd": 713732.1191,
+          "http_captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "source_archive_blob_sha": null,
+          "upstream_independence_verified": false
+        },
+        {
+          "provider": "DEXSCREENER",
+          "url": "https://dexscreener.com/base/0x813c32d1dc723122175b5802cc4a5fedfa48d0f3a5445e0f6056f87a1b3e6adb",
+          "price_usd": 0.09681,
+          "liquidity_usd": 712590.69,
+          "http_captured_at_utc": "2026-11-23T04:19:21.294Z",
+          "provider_quote_asof_utc": null,
+          "source_archive_blob_sha": null,
+          "upstream_independence_verified": false
+        }
+      ],
+      "price_disagreement_pct": 0.15064580513375309,
+      "price_drift_limit_pct": 3,
+      "minimum_liquidity_each_source_usd": 5000,
+      "security": {
+        "honeypot": "UNKNOWN",
+        "tax": "UNKNOWN",
+        "blacklist": "UNKNOWN",
+        "token_rights": "UNKNOWN",
+        "sell_routing": "UNKNOWN",
+        "fees": "UNKNOWN",
+        "empirical_sellability": "UNKNOWN",
+        "independent_risk_issuer": "UNKNOWN"
+      },
+      "missing_evidence": [
+        "SECURITY_ATTESTATION",
+        "SELLABILITY_ATTESTATION",
+        "PROVIDER_QUOTE_ASOF",
+        "PROVIDER_UPSTREAM_INDEPENDENCE_NOT_VERIFIED",
+        "INDEPENDENT_PROVIDER_QUOTE_TIME_NOT_VERIFIED",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "deadline_utc": "2026-11-23T04:29:21.554Z",
+      "follow_up": "RECAPTURE_WITH_PROVIDER_ASOF_AND_INDEPENDENT_CHAIN_SECURITY_PROOFS; DO_NOT TRADE",
+      "paper_eligible": false
+    },
+    {
+      "chain": "base",
+      "pool": "0xb1b7e3d2aea608cd2a2e736785cdfd438a2447cb",
+      "pool_kind": null,
+      "contract": "0xd5ce838275dcf766abc19fd306a22a3644ded6fd",
+      "symbol": "REBOOT",
+      "status": "DATA_GAP",
+      "decision_reason": "MISSING_INDEPENDENT_RISK_ISSUER_AND_SELLABILITY",
+      "dot2_handoff_path": "research/feeds/2026-11-23/45111126096/dot2-to-dot3-handoff.json",
+      "dot2_handoff_git_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot2_capture_utc": "2026-11-23T04:19:21.099Z",
+      "sources": [
+        {
+          "provider": "GECKOTERMINAL",
+          "url": "https://www.geckoterminal.com/base/pools/0xb1b7e3d2aea608cd2a2e736785cdfd438a2447cb",
+          "price_usd": 0.0000115105530266362,
+          "liquidity_usd": 155355.3889,
+          "http_captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "source_archive_blob_sha": null,
+          "upstream_independence_verified": false
+        },
+        {
+          "provider": "DEXSCREENER",
+          "url": "https://dexscreener.com/base/0xb1b7e3d2aea608cd2a2e736785cdfd438a2447cb",
+          "price_usd": 0.00001168,
+          "liquidity_usd": 156660.03,
+          "http_captured_at_utc": "2026-11-23T04:19:21.355Z",
+          "provider_quote_asof_utc": null,
+          "source_archive_blob_sha": null,
+          "upstream_independence_verified": false
+        }
+      ],
+      "price_disagreement_pct": 1.4613448257932966,
+      "price_drift_limit_pct": 3,
+      "minimum_liquidity_each_source_usd": 5000,
+      "security": {
+        "honeypot": "UNKNOWN",
+        "tax": "UNKNOWN",
+        "blacklist": "UNKNOWN",
+        "token_rights": "UNKNOWN",
+        "sell_routing": "UNKNOWN",
+        "fees": "UNKNOWN",
+        "empirical_sellability": "UNKNOWN",
+        "independent_risk_issuer": "UNKNOWN"
+      },
+      "missing_evidence": [
+        "SECURITY_ATTESTATION",
+        "SELLABILITY_ATTESTATION",
+        "PROVIDER_QUOTE_ASOF",
+        "PROVIDER_UPSTREAM_INDEPENDENCE_NOT_VERIFIED",
+        "INDEPENDENT_PROVIDER_QUOTE_TIME_NOT_VERIFIED",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "deadline_utc": "2026-11-23T04:29:21.554Z",
+      "follow_up": "RECAPTURE_WITH_PROVIDER_ASOF_AND_INDEPENDENT_CHAIN_SECURITY_PROOFS; DO_NOT TRADE",
+      "paper_eligible": false
+    },
+    {
+      "chain": "base",
+      "pool": "0xfc551cfa6fc43cdf4074d048f7175aff202d8044",
+      "pool_kind": null,
+      "contract": "0xc2858192ea2a286ed8ca7683bf7a1bdadaa23d7f",
+      "symbol": "MEOW",
+      "status": "DATA_GAP",
+      "decision_reason": "MISSING_INDEPENDENT_RISK_ISSUER_AND_SELLABILITY",
+      "dot2_handoff_path": "research/feeds/2026-11-23/45111126096/dot2-to-dot3-handoff.json",
+      "dot2_handoff_git_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot2_capture_utc": "2026-11-23T04:19:21.099Z",
+      "sources": [
+        {
+          "provider": "GECKOTERMINAL",
+          "url": "https://www.geckoterminal.com/base/pools/0xfc551cfa6fc43cdf4074d048f7175aff202d8044",
+          "price_usd": 0.00000139201743289763,
+          "liquidity_usd": 13726.7224,
+          "http_captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "source_archive_blob_sha": null,
+          "upstream_independence_verified": false
+        },
+        {
+          "provider": "DEXSCREENER",
+          "url": "https://dexscreener.com/base/0xfc551cfa6fc43cdf4074d048f7175aff202d8044",
+          "price_usd": 0.000001389,
+          "liquidity_usd": 13736.12,
+          "http_captured_at_utc": "2026-11-23T04:19:21.539Z",
+          "provider_quote_asof_utc": null,
+          "source_archive_blob_sha": null,
+          "upstream_independence_verified": false
+        }
+      ],
+      "price_disagreement_pct": 0.217002084340479,
+      "price_drift_limit_pct": 3,
+      "minimum_liquidity_each_source_usd": 5000,
+      "security": {
+        "honeypot": "UNKNOWN",
+        "tax": "UNKNOWN",
+        "blacklist": "UNKNOWN",
+        "token_rights": "UNKNOWN",
+        "sell_routing": "UNKNOWN",
+        "fees": "UNKNOWN",
+        "empirical_sellability": "UNKNOWN",
+        "independent_risk_issuer": "UNKNOWN"
+      },
+      "missing_evidence": [
+        "SECURITY_ATTESTATION",
+        "SELLABILITY_ATTESTATION",
+        "PROVIDER_QUOTE_ASOF",
+        "PROVIDER_UPSTREAM_INDEPENDENCE_NOT_VERIFIED",
+        "INDEPENDENT_PROVIDER_QUOTE_TIME_NOT_VERIFIED",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "deadline_utc": "2026-11-23T04:29:21.554Z",
+      "follow_up": "RECAPTURE_WITH_PROVIDER_ASOF_AND_INDEPENDENT_CHAIN_SECURITY_PROOFS; DO_NOT TRADE",
+      "paper_eligible": false
+    },
+    {
+      "chain": "base",
+      "pool": "0x0053a63d142fecf4d0c77cf64c8ddcd15f9cf129",
+      "pool_kind": null,
+      "contract": "0x8b018cd38d14a8a070ec86f995bcea40e7a9a890",
+      "symbol": "1KTO100M",
+      "status": "WATCH",
+      "decision_reason": "INDICATIVE_LIQUIDITY_BELOW_5000_USD_AND_UNVERIFIED_SECURITY",
+      "dot2_handoff_path": "research/feeds/2026-11-23/45111126096/dot2-to-dot3-handoff.json",
+      "dot2_handoff_git_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot2_capture_utc": "2026-11-23T04:19:21.099Z",
+      "sources": [
+        {
+          "provider": "GECKOTERMINAL",
+          "url": "https://www.geckoterminal.com/base/pools/0x0053a63d142fecf4d0c77cf64c8ddcd15f9cf129",
+          "price_usd": 7.32122078035321e-15,
+          "liquidity_usd": 0.00006923832997,
+          "http_captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "source_archive_blob_sha": null,
+          "upstream_independence_verified": false
+        }
+      ],
+      "price_disagreement_pct": null,
+      "price_drift_limit_pct": 3,
+      "minimum_liquidity_each_source_usd": 5000,
+      "security": {
+        "honeypot": "UNKNOWN",
+        "tax": "UNKNOWN",
+        "blacklist": "UNKNOWN",
+        "token_rights": "UNKNOWN",
+        "sell_routing": "UNKNOWN",
+        "fees": "UNKNOWN",
+        "empirical_sellability": "UNKNOWN",
+        "independent_risk_issuer": "UNKNOWN"
+      },
+      "missing_evidence": [
+        "INDEPENDENT_EXACT_POOL_PRICE_AND_LIQUIDITY",
+        "LOW_LIQUIDITY_CONFIRMATION",
+        "SECURITY_ATTESTATION",
+        "SELLABILITY_ATTESTATION",
+        "PROVIDER_QUOTE_ASOF",
+        "PROVIDER_UPSTREAM_INDEPENDENCE_NOT_VERIFIED",
+        "INDEPENDENT_PROVIDER_QUOTE_TIME_NOT_VERIFIED",
+        "INDEPENDENT_CURRENT_QUOTES",
+        "LIQUIDITY_DEPTH_RECHECK",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "deadline_utc": "2026-11-23T04:29:21.554Z",
+      "follow_up": "RECAPTURE_WITH_PROVIDER_ASOF_AND_INDEPENDENT_CHAIN_SECURITY_PROOFS; DO_NOT TRADE",
+      "paper_eligible": false
+    },
+    {
+      "chain": "base",
+      "pool": "0x0ed32867e438e92b0a41eba110c131fabbcee8105006cc9861b8f0f7d3b463b8",
+      "pool_kind": "UNISWAP_V4_POOL_ID",
+      "contract": "0xb2000000000000000000007c1cc9538f0fb3bc1e",
+      "symbol": "CPL",
+      "status": "WATCH",
+      "decision_reason": "INDICATIVE_LIQUIDITY_BELOW_5000_USD_AND_UNVERIFIED_SECURITY",
+      "dot2_handoff_path": "research/feeds/2026-11-23/45111126096/dot2-to-dot3-handoff.json",
+      "dot2_handoff_git_blob_sha": "41bdd730cea0353fa7ca8cc6a2a0fcab140498dc",
+      "dot2_capture_utc": "2026-11-23T04:19:21.099Z",
+      "sources": [
+        {
+          "provider": "GECKOTERMINAL",
+          "url": "https://www.geckoterminal.com/base/pools/0x0ed32867e438e92b0a41eba110c131fabbcee8105006cc9861b8f0f7d3b463b8",
+          "price_usd": 0.0000046367304686235,
+          "liquidity_usd": 4431.711,
+          "http_captured_at_utc": "2026-11-23T04:19:21.099Z",
+          "provider_quote_asof_utc": null,
+          "source_archive_blob_sha": null,
+          "upstream_independence_verified": false
+        }
+      ],
+      "price_disagreement_pct": null,
+      "price_drift_limit_pct": 3,
+      "minimum_liquidity_each_source_usd": 5000,
+      "security": {
+        "honeypot": "UNKNOWN",
+        "tax": "UNKNOWN",
+        "blacklist": "UNKNOWN",
+        "token_rights": "UNKNOWN",
+        "sell_routing": "UNKNOWN",
+        "fees": "UNKNOWN",
+        "empirical_sellability": "UNKNOWN",
+        "independent_risk_issuer": "UNKNOWN"
+      },
+      "missing_evidence": [
+        "INDEPENDENT_EXACT_POOL_PRICE_AND_LIQUIDITY",
+        "LOW_LIQUIDITY_CONFIRMATION",
+        "SECURITY_ATTESTATION",
+        "SELLABILITY_ATTESTATION",
+        "PROVIDER_QUOTE_ASOF",
+        "PROVIDER_UPSTREAM_INDEPENDENCE_NOT_VERIFIED",
+        "INDEPENDENT_PROVIDER_QUOTE_TIME_NOT_VERIFIED",
+        "INDEPENDENT_CURRENT_QUOTES",
+        "LIQUIDITY_DEPTH_RECHECK",
+        "INDEPENDENT_UPSTREAM_CORROBORATION",
+        "INDEPENDENT_SOURCE_ARCHIVE",
+        "SECURITY_AND_SELLABILITY_ATTESTATIONS",
+        "VERIFIED_PROVIDER_QUOTE_TIMES"
+      ],
+      "deadline_utc": "2026-11-23T04:29:21.554Z",
+      "follow_up": "RECAPTURE_WITH_PROVIDER_ASOF_AND_INDEPENDENT_CHAIN_SECURITY_PROOFS; DO_NOT TRADE",
+      "paper_eligible": false
+    }
+  ],
+  "unreviewed_backlog_count": 13,
+  "provider_http_requests_this_review": 0,
+  "http_429_this_review": 0,
+  "source_capture_time_not_provider_quote_time": true,
+  "issuer_authentication_verified": false,
+  "sellability_verified": false,
+  "paper_eligible_count": 0,
+  "orders_created": 0,
+  "fills_created": 0,
+  "backtest_started": false,
+  "follow_up": "Next budgeted Dot2 capture plus external independent issuer and empirical chain sellability evidence; reassess after fresh quote timestamps.",
+  "corrections_requested": [
+    "D3-04 independently authenticated issuer",
+    "D3-05 chain-specific empirical sellability",
+    "provider published quote-as-of timestamps",
+    "distinct upstream provenance and original raw response verification"
+  ]
+}
