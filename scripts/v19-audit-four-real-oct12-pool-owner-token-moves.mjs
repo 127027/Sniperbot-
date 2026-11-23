@@ -8,7 +8,8 @@ import {createHash} from 'node:crypto';
 import {resolve,join} from 'node:path';
 import {homedir} from 'node:os';
 import {R29_PINNED_FOUR_OCT12_TRANSACTION_SOURCE_DIGESTS as pins,
- analyzePinnedOriginalPoolOwnerBalanceDeltas}
+ analyzePinnedOriginalPoolOwnerBalanceDeltas,
+ comparePoolTwoAssetAccountContinuity}
  from '../src/v19-oct12-verified-pool-token-account-deltas.mjs';
 import {fingerprintProtectedFiles,assertProtectedFilesUnchanged}
  from '../src/v19-replay-isolation.mjs';
@@ -46,18 +47,31 @@ if(records.length!==4||records.some((x,i)=>
  ||x.proven_pool_owner_mint_token_balance_change_accounts!==1
  ||x.pool_owned_token_delta_rows.length!==1
  ||x.pool_owned_token_delta_rows[0].token_account_movement_direction!=='INCOMING_MINT_TOKENS'
+ ||x.observed_token_in_and_native_sol_out_pattern!==true
+ ||x.verified_50_usdc_executable_exit_quote!==null
+ ||x.observed_native_sol_balance_not_virtual_amm_reserve!==true
  ||x.historical_five_dot_gpt_review_receipt_verified!==false
  ||x.dot3_issuer_or_sellability_authorization!==false
  ||x.trade_authorized!==false))
  throw Error('ORIGINAL_POOL_ACCOUNT_BALANCE_RESEARCH_INCONSISTENT');
+const arianaSameSlot=comparePoolTwoAssetAccountContinuity({
+ earlier:records[3],later:records[2]});
+const tankNotSameSlot=comparePoolTwoAssetAccountContinuity({
+ earlier:records[0],later:records[1]});
+if(arianaSameSlot.matched!==true||tankNotSameSlot.matched!==false)
+ throw Error('ORIGINAL_TWO_ASSET_POOL_BALANCE_CONTINUITY_CHANGED');
 const aggregate=records.reduce((acc,x)=>{
  const k=x.coin_label;
  if(!acc[k])acc[k]={scan:x.target_scan,
   token_movement_count:0,observed_incoming_raw_token_units:'0',
+  native_pool_lamport_outflow:'0',
   earliest_block_time_utc:x.rpc_reported_block_time_utc,
   latest_block_time_utc:x.rpc_reported_block_time_utc,
   raw_token_decimals:x.pool_owned_token_delta_rows[0].decimals};
  acc[k].token_movement_count++;
+ acc[k].native_pool_lamport_outflow=(
+  BigInt(acc[k].native_pool_lamport_outflow)-
+  BigInt(x.observed_pool_native_sol_signed_delta_lamports)).toString();
  acc[k].observed_incoming_raw_token_units=(
   BigInt(acc[k].observed_incoming_raw_token_units)+
   BigInt(x.pool_owned_token_delta_rows[0].absolute_delta_raw_mint_tokens)).toString();
@@ -74,6 +88,10 @@ const report={schema:1,kind:'R29_V19_ORIGINAL_OCT12_POOL_OWNER_MINT_BALANCE_RESE
  four_tx_pre_scan_blocktimes_original_rpc_verified:true,
  four_token_owner_account_deltas_exactly_matched:true,
  exact_pool_owner_token_move_record_count:records.length,
+ observed_two_sided_account_changes_in_all_four_original_txs:true,
+ ariana_same_slot_native_sol_and_mint_account_continuity:arianaSameSlot,
+ tank_different_slot_is_not_direct_continuity:tankNotSameSlot,
+ observations_do_not_fully_reconstruct_virtual_pool_reserves:true,
  minted_original_quote_around_50usdc_verified:false,
  original_asof_provider_available_before_scan:false,
  tax_or_honeypot_sellability_verified:false,
@@ -93,15 +111,22 @@ const lines=[
  'post-event recherchierte Chain-Metadaten. Alle vier enthalten eine',
  'Tokenkontobewegung mit der exakten Pooladresse als Eigentümer.',
  '',
- '| Coin | Scan UTC | Zeitstempel vor Scan | Eingehende rohe Mint-Einheiten | Präzision |',
- '|---|---|---|---:|---:|',
+ '| Coin | Scan UTC | Zeitstempel vor Scan | Token-Eingang (Rohmenge) | SOL-Konto vorher → nachher (Lamports) |',
+ '|---|---|---|---:|---|',
  ...records.map(x=> '| '+x.coin_label+' | '+String(x.target_scan-1).padStart(2,'0')+
  ':00 | '+x.rpc_reported_block_time_utc+' ('+
  x.seconds_from_reported_block_time_to_scan+'s vorher) | '+
  x.pool_owned_token_delta_rows[0].absolute_delta_raw_mint_tokens+' | '+
- x.pool_owned_token_delta_rows[0].decimals+' |'),
+ x.observed_pool_native_sol_pre_lamports+' → '+
+ x.observed_pool_native_sol_post_lamports+' |'),
  '',
- '**Originaler vollständiger Pool-Reservezustand beider Assets: NICHT BEWIESEN.**',
+ 'ARIANA: dieselbe Slot-Sekunde; Kontostand vorheriger TX = Anfangskontostand nächster TX für SOL und Mint: '+
+ (arianaSameSlot.matched?'JA':'NEIN'),
+ 'TANK: die zwei geprüften Transaktionen liegen in verschiedenen Slots, daher KEIN direkter Nachweis nahtloser Zustandsfolge.',
+ 'Native SOL-Abflüsse TANK in Lamports: '+aggregate.TANK.native_pool_lamport_outflow,
+ 'Native SOL-Abflüsse ARIANA in Lamports: '+aggregate.ARIANA.native_pool_lamport_outflow,
+ '',
+  '**Originaler vollständiger Pool-Reservezustand beider Assets: NICHT BEWIESEN.**',
  '**Historisches 50-USDC-BUY-/SELL-Angebot/Slippage: NICHT BEWIESEN.**',
  '**Sellbarkeit, Freeze, Blacklist, Tax: NICHT BEWIESEN.**',
  '**GPT im Oktober und Windows-Paper-Fills: NICHT BEWIESEN.**',
@@ -115,6 +140,8 @@ await writeFile(dir+'/bericht-de.md',lines.join('\n')+'\n',{flag:'wx'});
 assertProtectedFilesUnchanged(original,await fingerprintProtectedFiles(protect));
 console.log('R29_FOUR_REAL_OCT12_POOL_OWNER_MOVEMENTS_COMPLETE',JSON.stringify({
  count:records.length,per_coin:aggregate,
+ ariana_same_slot_2asset_balance_continuity:arianaSameSlot.matched,
+ observed_all_four_pool_token_in_native_sol_out:true,
  original_october_bidirectional_50usdc_quotes:0,
  independent_sellability:0,original_gpt_reviews:0,
  original_client_fills:0,order_writes:0}));
