@@ -51,6 +51,12 @@ jobs:
           set -euo pipefail
           mkdir -p probe-artifacts
           npm test 2>&1 | tee probe-artifacts/v19-node-tests.tap
+      - name: Run V2.0 source-gap and synthetic-only unit diagnostics (not historical QA-04)
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run diagnose:v20 | tee probe-artifacts/v20-no-original-market-input.log
+          npm run diagnose:v20:synthetic | tee probe-artifacts/v20-synthetic-math-only.log
       # Formal 29h Backtest CLIs are deliberately excluded from routine CI.
       # User requested all remaining prep work EXCEPT the Backtest.
       # They remain available ONLY through explicitly approved
@@ -117,6 +123,8 @@ jobs:
           name: r29-v19-node-tests-${{ github.run_id }}
           path: |
             probe-artifacts/v19-node-tests.tap
+            probe-artifacts/v20-no-original-market-input.log
+            probe-artifacts/v20-synthetic-math-only.log
             probe-artifacts/v19-node-ci-receipt.json
             probe-artifacts/v19-qa04-*.json
             probe-artifacts/v19-six-offline-final-readiness.json
