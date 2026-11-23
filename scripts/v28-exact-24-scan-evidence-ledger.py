@@ -169,10 +169,12 @@ def main():
  if os.environ.get('GITHUB_REF')!='refs/heads/codex/r29-cleanroom-paper-20261121' or \
     not re.fullmatch('[0-9a-f]{40}',os.environ.get('GITHUB_SHA','')):
   raise ValueError('V28_NOT_A_GUARDED_CLEANROOM_RESEARCH_RUN')
- req='research/24-scan-ledger-requests/2026-11-23/r29-user-exact-24-scan-buy-hold-sell-ledger.json'
  changed=subprocess.check_output(['git','diff-tree','--no-commit-id','--name-only','-r',
      os.environ['GITHUB_SHA']],text=True).strip().splitlines()
- if changed!=[req]:raise ValueError('V28_NOT_EXPLICIT_SINGLE_REQUEST_COMMIT')
+ if len(changed)!=1 or not re.fullmatch(
+   'research/24-scan-ledger-requests/2026-11-23/[A-Za-z0-9_-]+[.]json',changed[0]):
+  raise ValueError('V28_NOT_EXPLICIT_SINGLE_REQUEST_COMMIT')
+ req=changed[0]
  q=json.loads(Path(req).read_text())
  if q.get('kind')!='R29_V28_EXPLICIT_24_SCAN_BUY_HOLD_SELL_LEDGER' or \
     q.get('schema')!=1 or q.get('read_only') is not True or \
