@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "role": "dot-1-tempo",
+  "run_id": "dot1-automation11-20261123T190444Z",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "actual_gpt_execution_utc": "2026-11-23T19:04:44Z",
+  "actual_gpt_execution_utc_basis": "automation runtime timestamp; not independent execution receipt",
+  "virtual_historical_time": null,
+  "status": "DATA_GAP",
+  "source_capture_run_id": "45235801160",
+  "source_capture_at_utc": "2026-11-23T18:12:07.870Z",
+  "source_branch": "codex/r29-cleanroom-paper-20261121",
+  "source_inputs": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "067a82a3fa777073d7e2ff3d70ee35ad247fa695"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "af16330bf4a4a2045ef5869efc80795ca9292fb3"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45235801160/evidence.json",
+      "blob_sha": "cb4fa3614bcca4dfaee88e91a4e588e9902604c9"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45235801160/gecko-bsc-page1.raw.json",
+      "raw_sha256": "42766744267044e0df9639328e11db5ce9c9fdd4c6304c93260e3b81b1534dc4",
+      "source_url": "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?page=1",
+      "source_url_note": "API endpoint pattern, not independently checked from request receipt"
+    }
+  ],
+  "chains": [
+    "solana",
+    "base",
+    "ethereum",
+    "bsc",
+    "robinhood",
+    "cronos"
+  ],
+  "chains_with_new_gecko_page": [
+    "bsc"
+  ],
+  "chains_without_new_gecko_page": [
+    "solana",
+    "base",
+    "ethereum",
+    "robinhood",
+    "cronos"
+  ],
+  "observed_pools_current_page": 20,
+  "individual_pool_reviews_performed": 0,
+  "scope_identity": "GLOBAL; individual pool identity UNKNOWN for unreviewed pools",
+  "persisted_pools_previous": 943,
+  "persisted_pools_now": 963,
+  "first_dot2_previous": 548,
+  "first_dot2_now": 568,
+  "observation_batches_previous": 198,
+  "observation_batches_now": 201,
+  "dex_rechecks": 6,
+  "indicative_two_domain_matches": 1,
+  "deferred_new_pools": 16,
+  "provider_http200": 7,
+  "provider_http429": 0,
+  "gecko_cooldown_active": false,
+  "verified_same_pool_hourly_price_volume_liquidity_deltas": 0,
+  "verified_media_acceleration": false,
+  "media_review_status": "NOT_VERIFIED",
+  "recommendation_reviews_per_24h": 4,
+  "rejected_alternatives": [
+    8,
+    12,
+    24
+  ],
+  "reason": "20 BSC new-pool observations are a bounded page sample, not proof of market acceleration; no independently time-stamped same-pool hourly deltas or verified media surge across six chains. Deterministic 12 proposal insufficiently evidenced. Missing chains are COVERAGE_ALARM not quiet.",
+  "consecutive_proven_quiet_checks": 0,
+  "next_review": "next existing hourly research wake, reassess on source-pinned activity evidence",
+  "verified_gpt_reviews_in_http_capture": 0,
+  "independent_gpt_execution_receipt": false,
+  "orders_written": 0,
+  "paper_fills": 0,
+  "backtest_started": false,
+  "not_checked": [
+    "new provider requests",
+    "five missing chain pages in this capture",
+    "independent upstream quote timestamps",
+    "authenticated GPT execution receipt",
+    "chain sellability",
+    "independent risk issuer",
+    "full media time-series"
+  ],
+  "historical_evidence_unchanged": true
+}
