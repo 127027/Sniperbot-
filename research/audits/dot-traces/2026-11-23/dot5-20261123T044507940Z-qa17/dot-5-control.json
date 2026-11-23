@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "kind": "R29_DOT5_FORENSIC_RESEARCH_ONLY",
+  "actual_execution_utc": "2026-11-23T04:45:07.940Z",
+  "gpt_run_identity": "UNVERIFIED_EXTERNAL_AUTOMATION_RECEIPT",
+  "repository": "127027/Sniperbot-",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "source_head_sha": "a0b4fcee8e5d86a12967bc4093de6defa0a1160a",
+  "sources": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "0bded7d2368ca3a245092e710d66cd39e31b195b"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "4d25f62525bc5d04928a13b9918fbf8d88cff211"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "2c2efbaa92a37b3b897ff9c9211e7d5196e2b2ff"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "blob_sha": "47b3ea22cafdc7f08e1797a350ba2ef216cbc2e1"
+    },
+    {
+      "path": "research/latest/dot-3.json",
+      "blob_sha": "07b659d4db2f49f7eaab508994bd75ae02e678aa"
+    },
+    {
+      "path": "research/latest/dot-4.json",
+      "blob_sha": "88d26c0239f05b6632aa1b9c611f79e9d093d15d"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    }
+  ],
+  "current_capture": {
+    "run_id": "45111126096",
+    "capture_utc": "2026-11-23T04:19:21.554Z",
+    "chain": "base",
+    "page": 1,
+    "raw_pools": 19,
+    "full_contracts": 19,
+    "dex_exact_matches": 6,
+    "indicative_quotes": 4,
+    "market_total_pools": 746,
+    "first_dot2_detected": 351,
+    "observation_batches": 152,
+    "checkpoint_path": "research/state/checkpoints/45111126096.json",
+    "source_capture_completion_gate": "UNVERIFIED_INDEPENDENTLY"
+  },
+  "eight_hour_bucket_audit": {
+    "window_start_utc": "2026-11-22T22:00:00Z",
+    "window_end_exclusive_utc": "2026-11-23T06:00:00Z",
+    "observed_workflow_success_runs": [
+      45076917554,
+      45081908321,
+      45087434649,
+      45093291950,
+      45099104735,
+      45104744515,
+      45111126096
+    ],
+    "workflow_success_count": 7,
+    "original_raw_sha_and_completion_verified_count": null,
+    "missing_future_bucket": "2026-11-23T05:00:00Z",
+    "observed_429_count": null,
+    "unobserved_requests": null,
+    "conclusion": "PARTIAL_SEVEN_WORKFLOW_SUCCESSES_NOT_SEVEN_PROVEN_BOUNDED_HTTP_CAPTURES"
+  },
+  "dot3": {
+    "source_run_id": "45070668194",
+    "reviewed": 6,
+    "eligible": 0
+  },
+  "dot4": {
+    "source_run_id": "45070668194",
+    "published_orders": 0,
+    "authentic_gpt_receipt": "UNVERIFIED"
+  },
+  "signals_index_orders": 0,
+  "client_receipt_inventory": "NOT_ENUMERATED",
+  "verified_client_fills": null,
+  "acceptance": {
+    "pass": 13,
+    "partial": 46,
+    "open": 2,
+    "non_backtest_pass": 13,
+    "non_backtest_required": 60,
+    "release": "BLOCKED"
+  },
+  "holdout": {
+    "end_utc": "2026-11-25T06:54:05.033Z",
+    "matured": false,
+    "precision": null,
+    "recall": null,
+    "missed_profit": null
+  },
+  "root_causes": [
+    {
+      "event_id": "DOT5-20261123-04-SOURCE-LAG",
+      "error_code": "DOT3_DOT4_SOURCE_LAG",
+      "earliest_fault": "Dot3 handoff consumption not demonstrably caught up with Dot2 current feed",
+      "affected_paths": [
+        "research/latest/dot-3.json",
+        "research/latest/dot-4.json"
+      ],
+      "impact": "Current Base page1 pool cohort has no documented risk/strategy review",
+      "fix": "Add source-run age/queue acknowledgement and fair recheck progression without relaxing risk gates",
+      "regression_test": "Feed run 45111126096 must either appear in Dot3 consumed-source evidence or explicitly remain pending; Dot4 must never mark it reviewed absent Dot3 evidence",
+      "code_change_applied": false
+    }
+  ],
+  "research_review": {
+    "status": "DATA_GAP_NO_TRADE",
+    "reason": "Issuer, sellability, provider quote-asof, authentic GPT and client evidence incomplete",
+    "alternatives": [
+      "force trade rejected",
+      "advance PASS rejected",
+      "preserve research and queue recheck selected"
+    ],
+    "chains_pages_examined": [
+      "base:1 current",
+      "Dot3/4 prior source 45070668194"
+    ],
+    "not_examined": "All immutable historical Dot1-4 journals and all client receipt directories not exhaustively enumerated; provider raw bytes not independently rehashed",
+    "follow_up": "Verify original raw SHA and completion gates for all 8 hourly buckets, reconcile Dot3/4 source lag and CI",
+    "historical_oracle_used_as_input": false
+  },
+  "backtest_triggered": false,
+  "orders_written": false,
+  "client_balances_changed": false
+}
