@@ -2,14 +2,15 @@
 // This is a time-gated REPLAY data view, not a second trading strategy.
 import {classifyAsOfEvidence,asOfMillis} from './v19-asof-evidence.mjs';
 import {buildAsOfLookback} from './v19-asof-lookback.mjs';
+import {inspectPredecisionKnowledge} from './v22-predecision-market-knowledge.mjs';
 
 const day=x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)
  &&Number.isFinite(Date.parse(x+'T00:00:00.000Z'))?Date.parse(x+'T00:00:00.000Z'):null;
 const iso=x=>new Date(x).toISOString();
-export function build29HourAsOfTimeline({date,snapshots=[],warmupHours=5,
+export function build29HourAsOfTimeline({date,snapshots=[],marketKnowledgeEvents=[],warmupHours=5,
  firstScanAtStart=false}={}){
  const start=day(date);
- if(start===null||!Array.isArray(snapshots)||!Number.isInteger(warmupHours)
+ if(start===null||!Array.isArray(snapshots)||!Array.isArray(marketKnowledgeEvents)||!Number.isInteger(warmupHours)
     ||warmupHours<1||warmupHours>48||typeof firstScanAtStart!=='boolean')
     throw Error('INVALID_V19_WINDOW');
  const end=start+86400000,begin=start-warmupHours*3600000;
@@ -21,6 +22,8 @@ export function build29HourAsOfTimeline({date,snapshots=[],warmupHours=5,
    const tick=begin+i*3600000+(firstScanAtStart?0:35*60000);
    const at=iso(tick);
    const lookback=buildAsOfLookback({snapshots,asOfUtc:at});
+   const knowledge=inspectPredecisionKnowledge({
+     asOfUtc:at,snapshots,marketKnowledgeEvents,warmupStartUtc:iso(begin)});
    // The trading gate has a separate 10-minute quote age limit. A historical
    // feature older than this limit remains useful, not EXECUTION_ELIGIBLE.
    let fresh=0,retro=0,oracle=0,notYetAvailable=0,invalid=0;
@@ -38,6 +41,9 @@ export function build29HourAsOfTimeline({date,snapshots=[],warmupHours=5,
    const warmup=tick<start;
    ticks.push({at_utc:at,phase:warmup?'WARMUP_RESEARCH_NO_TRADING':'PAPER_DECISION_WINDOW',
      past_only_history_observations:lookback.observation_count,
+     predecision_market_knowledge_count:knowledge.available_knowledge_markets,
+     predecision_market_events_known:knowledge.available_knowledge_events,
+     markets_known_before_warmup:knowledge.markets_with_pre_warmup_knowledge,
      past_only_markets:lookback.market_count,
      fresh_source_snapshots: fresh,
      retro_data_for_research_only:retro,
@@ -53,6 +59,7 @@ export function build29HourAsOfTimeline({date,snapshots=[],warmupHours=5,
    first_scan_at_start_enabled:firstScanAtStart,
    begin_utc:iso(begin),decision_start_utc:iso(start),end_utc:iso(end),
    hourly_ticks:ticks.length,ticks,
+   full_preexisting_history_not_limited_to_warmup:true,
    requires_separate_dot4_replay:true,
    no_future_inputs_promoted:true,orders_written:0,
    disclaimer:'Replay timeline labels do not imply historical GPT tasks or actual provider availability proof.'};
