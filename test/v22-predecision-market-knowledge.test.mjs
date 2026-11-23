@@ -169,3 +169,15 @@ test('late indexed discoveries cannot retrospectively accelerate an earlier scan
  assert.equal(r.role_audit.dot4_strategy.timeline[1].target_per_24h,4);
  assert.equal(r.role_audit.dot4_strategy.timeline[0].predecision_market_knowledge.available_knowledge_events,0);
 });
+
+test('a September event captured just before midnight is NOT counted as known before October warmup',()=>{
+ const late=quote('2026-09-01T01:00:00.000Z',1);
+ late.archived_at_utc='2026-10-11T23:59:00.000Z';
+ late.available_at_utc=late.archived_at_utc;
+ const r=inspectPredecisionKnowledge({asOfUtc:start,
+  warmupStartUtc:'2026-10-11T19:00:00.000Z',snapshots:[late]});
+ assert.equal(r.past_quote_feature_observations,1);
+ assert.equal(r.available_knowledge_markets,1);
+ assert.equal(r.markets_with_pre_warmup_knowledge,0);
+ assert.equal(r.orders_published,0);
+});
