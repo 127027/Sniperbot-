@@ -100,3 +100,21 @@ test('self-declared independent GPT proof flags do not authorize original QA04',
  assert.equal(result.actual_five_gpt_october_journals_independently_authenticated,0);
  assert.equal(result.no_quotes_or_orders_created,true);
 });
+
+test('new Dot2 GPT-receipt-unverified pending status is not promoted after exact HTTP completion',()=>{
+ const a=data();
+ a.latestByRole['dot-2'].updated_at_utc='2026-11-23T11:14:36.000Z';
+ a.latestByRole['dot-2'].status='CAPTURE_PENDING_GPT_RECEIPT_UNVERIFIED_DATA_GAP';
+ a.latestByRole['dot-2'].capture_request_path=
+   'research/requests/2026-11-23/20261123T111436000Z-dot2-research.json';
+ a.feedPointer={schema:1,kind:'LATEST_DOT2_PUBLIC_CAPTURE_POINTER',
+   mode:'PAPER_RESEARCH_ONLY',
+   request_path:a.latestByRole['dot-2'].capture_request_path,
+   evidence_path:'research/feeds/2026-11-23/45163438714/evidence.json',
+   captured_at_utc:'2026-11-23T11:15:03.093Z'};
+ const result=auditFiveDotNextBacktestForensicFreshness(a);
+ assert.ok(result.roles[1].issues.includes(
+   'SAME_REQUEST_SOURCE_CAPTURE_COMPLETE_BUT_GPT_REVIEW_STILL_PENDING'));
+ assert.equal(result.actual_five_gpt_october_journals_independently_authenticated,0);
+ assert.equal(result.next_historical_qa04_release_authorized,false);
+});
