@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "role": "dot-5-control",
+  "run_id": "dot5-20261123T014512Z-qa14",
+  "executed_at_utc": "2026-11-23T01:45:12Z",
+  "execution_time_source": "automation runtime",
+  "gpt_execution_identity": "UNVERIFIED_INDEPENDENTLY",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "status": "DATA_GAP_NO_TRADE",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "repo_head_at_read": "b775ae7950a845184e6fb9ac8bc2d160a7583950",
+  "source_blob_shas": {
+    "docs/R29_NEXT_CHAT_HANDOFF.md": "47b826d5972e49e5091f3a0ed984bac3cb64ebc2",
+    "docs/V19_46_PARTIAL_ACCEPTANCE_AND_NEXT_BACKTEST_PLAN_20261122.md": "8becade5b6ff5e91017c0a0836741d7aa77e09bd",
+    "AGENTS.md": "aa90a74d66bdb5059af5e22c7f14185d176b952a",
+    "research/state/latest.json": "120dcdc6ed220bd2c191d8c9b6dd4d4b2c517944",
+    "research/feeds/latest.json": "c7b1c13d24c4c93b7a29fd16380395029f035170",
+    "research/state/provider-budget.json": "310e2f90814642e045f6010b9f8ee4c43a114ff1",
+    "research/state/prospective-holdout-freeze.json": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d",
+    "docs/R29_FIVE_DOT_FORENSIC_BACKTEST_PROTOCOL_20261122.md": "3f7ba1977cb0df637fd3c7486897aa11780bea97",
+    "research/latest/dot-2.json": "17fade163a7f24287a3400f7dadcaae93231c413",
+    "research/latest/dot-3.json": "07b659d4db2f49f7eaab508994bd75ae02e678aa",
+    "research/latest/dot-4.json": "88d26c0239f05b6632aa1b9c611f79e9d093d15d",
+    "signals/index.json": "8f360a172e95adfda2d30105dd3fc7639497367d",
+    "research/feeds/2026-11-23/45093291950/evidence.json": "a2e244e3a8c86cc7869e68e2d6aa7b8351d78a8f"
+  },
+  "capture": {
+    "run_id": "45093291950",
+    "completed_at_utc": "2026-11-23T01:13:20.580Z",
+    "source_chain": "robinhood",
+    "page": 1,
+    "raw_pools": 20,
+    "full_contracts": 20,
+    "dex_exact_matched": 6,
+    "indicative_two_domain": 2,
+    "independent_quote_asof_verified": 0,
+    "provider_http": 200,
+    "market_memory_total": 704,
+    "first_dot2_detected": 295,
+    "checkpoint_path": "research/state/checkpoints/45093291950.json",
+    "source_url": "https://github.com/127027/Sniperbot-/actions/runs/45093291950",
+    "global_coverage": false
+  },
+  "eight_hour_audit": {
+    "bucket_utc": "2026-11-23T01:00:00Z/2026-11-23T02:00:00Z",
+    "observed_capture_runs_since_22_utc": [
+      "45076917554",
+      "45081908321",
+      "45087434649",
+      "45093291950"
+    ],
+    "successful_action_runs_observed": 4,
+    "raw_sha_and_completion_gate_independently_revalidated_for_all": false,
+    "eight_successful_captures_proven": false,
+    "missing_buckets_not_assumed_failed": true
+  },
+  "acceptance": {
+    "pass": 13,
+    "partial": 46,
+    "open": 2,
+    "non_backtest_pass": 13,
+    "non_backtest_required": 60,
+    "release": "NOT_READY_BLOCKED_BY_ORIGINAL_EVIDENCE"
+  },
+  "risk": {
+    "D3_04": "OPEN_INDEPENDENT_ISSUER",
+    "D3_05": "OPEN_ONCHAIN_SELLABILITY",
+    "client_receipts": "OFFLINE_OR_UNCONFIRMED",
+    "published_orders": 0,
+    "signals_index_orders": 0
+  },
+  "holdout": {
+    "end_utc": "2026-11-25T06:54:05.033Z",
+    "matured": false,
+    "precision": null,
+    "recall": null,
+    "missed_profit": null,
+    "october_asof": "DATA_GAP"
+  },
+  "errors": [
+    {
+      "event_id": "45093291950",
+      "code": "DOT2_LATEST_SOURCE_STATS_STALE",
+      "earliest_step": "Dot2 latest publication",
+      "source_path": "research/latest/dot-2.json",
+      "impact": "Latest Dot2 still reports previous run 45087434649 and 684 pools although feed has 45093291950 and 704; previous capture fields are explicitly labeled; new request pending state must be reconciled",
+      "proposed_fix": "Reconcile Dot2 latest only after completion, with CAS and preserve prior_capture fields",
+      "regression_test": "Assert matching request/evidence plus total_discovered=704, first_dot2_detected_count=295, checkpoint=45093291950, full_contracts=20"
+    },
+    {
+      "event_id": "45093291950",
+      "code": "MISSING_INDEPENDENT_PROVIDER_QUOTE_ASOF",
+      "earliest_step": "Dot2 source/Dot3 risk",
+      "source_path": "research/feeds/2026-11-23/45093291950/evidence.json",
+      "impact": "Indicative two-domain matches cannot establish independent quote time or sellability",
+      "proposed_fix": "Obtain independent dated original quote and issuer/sellability attestations",
+      "regression_test": "Reject HTTP200-only quote and absent issuer as PAPER_ELIGIBLE"
+    }
+  ],
+  "scope": {
+    "chains_checked": [
+      "robinhood",
+      "base",
+      "bsc"
+    ],
+    "all_pool_journals_exhaustively_verified": false,
+    "all_client_receipt_directories_enumerated": false,
+    "not_inspected": "Full raw byte-by-byte audit of every Dot1-4 journal and every pool; no independent GPT platform receipt"
+  },
+  "alternatives": [
+    "No-trade research-only selected",
+    "BUY/SELL rejected due to original release gates",
+    "Historical replay rejected due to missing neutral as-of data"
+  ],
+  "provider_budget": {
+    "gecko_last_http": 200,
+    "consecutive_429": 0,
+    "rolling_starts_per_min": 4,
+    "new_pools_per_min": 3,
+    "pacing_seconds": 15.1
+  },
+  "actions": {
+    "github_orders_written": 0,
+    "backtest_triggered": false,
+    "codefix_applied": false,
+    "reason": "No safe code change without reproducing tests; audit-only correction candidate"
+  },
+  "follow_up": "Compare next Dot2 latest with 45093291950 and verify eight-hour raw SHA and completion gates independently; obtain D3-04/05 and holdout labels."
+}
