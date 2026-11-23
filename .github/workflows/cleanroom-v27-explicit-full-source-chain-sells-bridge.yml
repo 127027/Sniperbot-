@@ -1,0 +1,85 @@
+name: R29 V2.7 SHA-Pinned Full Source And Real October Chain Sell Bridge
+on:
+  push:
+    branches:
+      - codex/r29-cleanroom-paper-20261121
+    paths:
+      - 'research/full-chain-bridge-requests/**'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: r29-v27-full-original-neutral-chain-readonly
+  cancel-in-progress: false
+jobs:
+  three-independent-original-source-archives:
+    if: ${{ github.ref == 'refs/heads/codex/r29-cleanroom-paper-20261121' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      R29_MODE: PAPER
+      R29_ENABLE_LIVE: ''
+    steps:
+      - name: Checkout immutable user-request commit without write credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Python 3.12 offline forensic evidence only
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax, invariant, negative regression and no-orders checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/v27-bridge-neutral-raw-features-to-original-solana-sells.py
+          python test/v27-feature-chain-evidence-bridge.test.py
+      - name: Retrieve pinned two full October source days and 24 snapshots
+        uses: actions/download-artifact@v4
+        with:
+          name: r29-v26-full-oct12-raw-neutral-source-45272055484
+          repository: 127027/Sniperbot-
+          run-id: '45272055484'
+          github-token: ${{ github.token }}
+          path: probe-artifacts/v27-v26
+      - name: Retrieve original four sell instructions with independent raw transaction SHAs
+        uses: actions/download-artifact@v4
+        with:
+          name: r29-original-oct12-sellv2v3-45166769490
+          repository: 127027/Sniperbot-
+          run-id: '45166769490'
+          github-token: ${{ github.token }}
+          path: probe-artifacts/v27-sells
+      - name: Retrieve four original blockchain RPC response bytes
+        uses: actions/download-artifact@v4
+        with:
+          name: r29-oct12-v1-four-transaction-research-45135625789
+          repository: 127027/Sniperbot-
+          run-id: '45135625789'
+          github-token: ${{ github.token }}
+          path: probe-artifacts/v27-original-tx
+      - name: Join all historical feature mints to two real pool identities and four exact blockchain sells
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/v27-bridge-neutral-raw-features-to-original-solana-sells.py \
+            probe-artifacts/v27-v26 \
+            probe-artifacts/v27-sells \
+            probe-artifacts/v27-original-tx \
+            "probe-artifacts/v27-source-chain-bridge-${{ github.run_id }}"
+      - name: Verify no client files or signal path were modified
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain -- signals runner)"
+      - name: Preserve signed-byte evidence audit and all missing buy-sell safety gates
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-v27-three-source-neutral-onchain-bridge-${{ github.run_id }}
+          path: probe-artifacts/v27-source-chain-bridge-*/
+          retention-days: 30
+          if-no-files-found: warn
