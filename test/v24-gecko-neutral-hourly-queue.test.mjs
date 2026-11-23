@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {planV24GeckoHourlySlice,interpretV24GeckoHourlyResponse,
- summarizeV24GeckoHourlySlice} from '../src/v24-gecko-neutral-hourly-queue.mjs';
+ deferV24AfterRateLimit,summarizeV24GeckoHourlySlice} from '../src/v24-gecko-neutral-hourly-queue.mjs';
 const alphabet='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 const mint=i=>'A'.repeat(30)+alphabet[Math.floor(i/58)]+alphabet[i%58];
 const retro=()=>({
@@ -86,4 +86,33 @@ test('eight safe research receipts yield bounded coverage and zero historically 
  assert.equal(result.original_october_market_population_complete,false);
  assert.equal(result.historical_50_usdc_buy_sell_quote_count,0);
  assert.equal(result.actual_paper_orders,0);
+});
+
+test('after 429, unfetched rows remain explicitly DEFERRED rather than fake HTTP receipts',()=>{
+ const plan=planV24GeckoHourlySlice({retrospective:retro(),hour:2});
+ const answers=plan.requests.map((q,i)=>i<5
+  ?interpretV24GeckoHourlyResponse({query:q,receipt:receipt(q,{data:[]})})
+  :deferV24AfterRateLimit({query:q}));
+ const r=summarizeV24GeckoHourlySlice({plan,observations:answers});
+ assert.equal(r.public_provider_requests,5);
+ assert.equal(r.unattempted_due_to_provider_rate_limit,3);
+ assert.equal(r.provider_backpressure_requires_followup,true);
+ assert.equal(r.unknown_current_identity_mints,8);
+ assert.equal(r.actual_paper_orders,0);
+});
+test('only missing row indices are called on resume, no duplicate previous five provider requests',()=>{
+ const p=planV24GeckoHourlySlice({retrospective:retro(),hour:2,
+  rowIndexes:[5,6,7]});
+ assert.equal(p.http_requests_budget,3);
+ assert.deepEqual(p.requests.map(x=>x.row_index),[5,6,7]);
+ assert.equal(p.sample_mints,3);
+ const x=p.requests.map(q=>interpretV24GeckoHourlyResponse({
+  query:q,receipt:receipt(q,{data:[]})}));
+ const r=summarizeV24GeckoHourlySlice({plan:p,observations:x});
+ assert.equal(r.public_provider_requests,3);
+ assert.equal(r.pending_not_requested_in_this_resume,5);
+ assert.equal(r.original_hour_sample_mints,8);
+ assert.throws(()=>planV24GeckoHourlySlice({
+  retrospective:retro(),hour:2,rowIndexes:[5,5,6]}),
+  /INVALID_NEUTRAL_HOURLY_RESUME_ROWS/);
 });
