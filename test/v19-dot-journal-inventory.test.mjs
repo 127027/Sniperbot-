@@ -170,7 +170,14 @@ test('five current role pointers pin original journal OR explicitly pending Dot2
    const doc=JSON.parse(raw);
    assert.equal(doc.role,'dot-2-discovery');
    assert.equal(doc.gpt_run_identity??doc.gpt_execution_identity,'UNVERIFIED');
-   assert.ok(['CAPTURE_PENDING_DATA_GAP','CAPTURE_PENDING_GPT_RECEIPT_UNVERIFIED_DATA_GAP'].includes(pointer.status));
+   assert.ok(['CAPTURE_PENDING_DATA_GAP','CAPTURE_PENDING_GPT_RECEIPT_UNVERIFIED_DATA_GAP',
+    'RESEARCH_WAKE_CAPTURE_DEFERRED_CONCURRENT_PROVIDER_DATA_GAP'].includes(pointer.status));
+   if(pointer.status==='RESEARCH_WAKE_CAPTURE_DEFERRED_CONCURRENT_PROVIDER_DATA_GAP'){
+     assert.equal(pointer.capture_request_path,null);
+     assert.equal(pointer.orders_created,0);
+     assert.equal(pointer.paper_fills_claimed,0);
+     assert.equal(pointer.backtest_executed,false);
+   }
    continue;
   }
   assert.equal(validRoleJournalPath(role,pointer.journal_path),true);
@@ -228,6 +235,20 @@ test('same-capture Dot2 stale totals, checkpoint and handoff count are independe
 test('real newly repaired Dot2 latest pointer agrees with completed capture feed',async()=>{
  const d=JSON.parse(await readFile('research/latest/dot-2.json','utf8'));
  const f=JSON.parse(await readFile('research/feeds/latest.json','utf8'));
+ if(d.status==='RESEARCH_WAKE_CAPTURE_DEFERRED_CONCURRENT_PROVIDER_DATA_GAP'){
+  // Dot2 deliberately made no NEW source request because provider budget
+  // was potentially shared with the V2.5 research-only job. Reusing the
+  // earlier feed is correct and not a new GPT review.
+  assert.equal(isPendingDot2ForensicPointer(d),true);
+  assert.equal(d.capture_request_path,null);
+  assert.equal(d.evidence_path,f.evidence_path);
+  assert.equal(d.checkpoint_path,f.memory_checkpoint_path);
+  assert.equal(d.market_memory_stats.total_discovered,f.memory_stats.total_discovered);
+  assert.equal(d.full_contract_candidates,f.handoff_counts.full_contracts);
+  assert.equal(d.authentic_gpt_review_receipt,false);
+  assert.equal(d.orders_created,0);
+  return;
+ }
  if(d.capture_request_path!==f.request_path
    ||d.status==='CAPTURE_PENDING_DATA_GAP'
    ||d.feed_is_current_request===false){
@@ -336,4 +357,33 @@ test('Dot1/5 native schema requires zero paper fills and no backtest; cannot sel
  const result=auditLiveFiveDotJournalInventory(p);
  assert.ok(result.roles[4].problems.some(x=>x.code==='JOURNAL_SCHEMA_MISSING'));
  assert.equal(result.verified_live_gpt_runs,0);
+});
+
+test('deferred shared-provider Dot2 wake pins forensic SHA without inventing a capture or fill',()=>{
+ const p=build(),d=p.latestByRole['dot-2'];
+ const raw=JSON.stringify({schema:1,role:'dot-2-discovery',
+  at_utc:'2026-11-22T21:40:00.000Z',
+  gpt_run_identity:'UNVERIFIED',
+  status:'DATA_GAP_CAPTURE_DEFERRED_CONCURRENT_PROVIDER_RESEARCH',
+  orders_written:0,backtest_executed:false});
+ const trace='research/audits/dot-traces/2026-11-22/20261122T2140Z-dot2-deferral/dot-2-discovery.json';
+ const old=d.journal_path;
+ delete d.journal_path;
+ d.status='RESEARCH_WAKE_CAPTURE_DEFERRED_CONCURRENT_PROVIDER_DATA_GAP';
+ d.capture_request_path=null;
+ d.orders_created=0;d.paper_fills_claimed=0;d.backtest_executed=false;
+ d.concurrent_provider_workflow_run_id='45266204458';
+ d.forensic_audit_path=trace;
+ d.journal_blob_sha=h(raw);d.forensic_audit_blob_sha=h(raw);
+ p.rawJournalsByPath[trace]=raw;delete p.rawJournalsByPath[old];
+ assert.equal(isPendingDot2ForensicPointer(d),true);
+ const report=auditLiveFiveDotJournalInventory(p);
+ const row=report.roles.find(x=>x.role==='dot-2');
+ assert.equal(row.immutable_bytes_match,true);
+ assert.equal(row.pending_gpt_research_trace_not_a_completed_journal,true);
+ assert.equal(row.genuine_gpt_review_independently_authenticated,false);
+ assert.equal(report.verified_live_gpt_runs,0);
+ assert.equal(report.verified_client_fills,0);
+ const corrupted={...d,orders_created:1};
+ assert.equal(isPendingDot2ForensicPointer(corrupted),false);
 });
