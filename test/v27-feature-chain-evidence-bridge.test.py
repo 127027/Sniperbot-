@@ -21,7 +21,7 @@ class BridgeUnitTests(unittest.TestCase):
   rows=[source(t['scan'],t['mint'],'2026-10-12T01:58:40.470Z',
       '2026-10-12T01:59:40.907Z',2)]
   f=m.research_feature_at_scan([frame(t['scan'],rows)],t)
-  self.assertEqual(f['first_feature_lead_ms_before_scan'],794?0:794?0:0)
+  self.assertEqual(f['first_feature_lead_ms_before_scan'],79530)
  def test_future_feature_fails_closed(self):
   t=m.TARGETS[0]
   rows=[source(t['scan'],t['mint'],t['scan'],t['scan'],1)]
