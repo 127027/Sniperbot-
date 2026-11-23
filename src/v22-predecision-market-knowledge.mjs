@@ -33,7 +33,7 @@ export function inspectPredecisionKnowledge({
  };
  let acceptableEvents=0,earlyEvents=0,newSinceWarmup=0;
  const recentDiscoveryPools=new Set();
- const add=(k,source,at,eventType)=> {
+ const add=(k,source,at,eventType,knownBeforeWarmup=null)=> {
    const m=markets.get(k)||{market_key:k,sources:new Set(),kinds:new Set(),
      first_known_at_utc:at,last_known_at_utc:at,knowledge_event_count:0,
      before_warmup_knowledge:false};
@@ -41,7 +41,9 @@ export function inspectPredecisionKnowledge({
    if(Date.parse(at)<Date.parse(m.first_known_at_utc))m.first_known_at_utc=at;
    if(Date.parse(at)>Date.parse(m.last_known_at_utc))m.last_known_at_utc=at;
    m.knowledge_event_count++;
-   if(warmup!==null&&Date.parse(at)<warmup)m.before_warmup_knowledge=true;
+   if(warmup!==null&&(knownBeforeWarmup===true
+     ||(knownBeforeWarmup===null&&Date.parse(at)<warmup)))
+     m.before_warmup_knowledge=true;
    markets.set(k,m);
  };
  for(const s of marketKnowledgeEvents){
@@ -96,9 +98,8 @@ export function inspectPredecisionKnowledge({
  }
  for(const m of lookback.markets){
    // The original lookback key is chain:contract:pool.
-   add(m.key,'PAST_QUOTE_FEATURE',m.latest_observed_at_utc,'HISTORICAL_PRICE_FEATURE');
-   if(beforeWarmupKeys.has(m.key))
-     markets.get(m.key).before_warmup_knowledge=true;
+   add(m.key,'PAST_QUOTE_FEATURE',m.latest_observed_at_utc,
+     'HISTORICAL_PRICE_FEATURE',beforeWarmupKeys.has(m.key));
  }
  const all=[...markets.values()].map(m=>({
    market_key:m.market_key,first_known_at_utc:m.first_known_at_utc,
