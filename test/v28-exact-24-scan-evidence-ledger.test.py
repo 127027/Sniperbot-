@@ -44,7 +44,7 @@ def fake():
    'historical_sale_count':2,
    'paper_buy_and_sell_authorized':False,
    'provider_originally_delivered_feature_to_dot_at_scan':False,
-   'coin_label_for_research_only':name,'mint':'A'*32,'pool':'B'*32})
+   'coin_label_for_research_only':name,'mint':'A'*32,'pool_confirmed_by_original_tx':'B'*32})
  chain={'individual_original_solana_chain_sells_reverified':4,
   'historical_bidirectional_executable_50_usdc_quote_pairs_verified':0,
   'original_qa04_trading_backtest_accepted':False,'results':results}
