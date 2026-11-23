@@ -55,8 +55,8 @@ export function auditRetrospectiveNeutral24HourlySource({
      ||!Array.isArray(frame.last_eight_fresh_neutral_mints)
      ||frame.last_eight_fresh_neutral_mints.length!==8
      ||frame.no_future_outcomes!==true||frame.gpt_model_calls!==0
-     ||frame.independent_sellable_buy_sell_quotes!==0
-     ||frame.paper_trades!==0
+     ||frame.independent_sellable_buy_sell_quotes!==false
+     ||frame.paper_trades!==null
      ||frame.neutral_fresh_mints_within_5min<8)
      throw Error('INVALID_RETRO_NEUTRAL_FRAME_'+h);
    const samples=[];
