@@ -8,26 +8,33 @@ import {makeV23NeutralBatches} from './v23-oct12-neutral-mint-batches.mjs';
 const sha=x=>createHash('sha256').update(x,'utf8').digest('hex');
 const END=asOfMillis('2026-10-13T00:00:00.000Z');
 const URL='https://api.geckoterminal.com/api/v2/networks/solana/tokens/';
-export function planV24GeckoHourlySlice({retrospective,hour}={}){
+export function planV24GeckoHourlySlice({retrospective,hour,rowIndexes=null}={}){
  if(!Number.isInteger(hour)||hour<0||hour>23)
   throw Error('INVALID_NEUTRAL_HOURLY_SLICE_INDEX');
  const plan=makeV23NeutralBatches({retrospective});
- const rows=plan.neutral_rows.slice(hour*8,(hour+1)*8);
+ const available=plan.neutral_rows.slice(hour*8,(hour+1)*8);
+ const indices=rowIndexes===null?Array.from({length:8},(_,i)=>i):rowIndexes;
+ if(!Array.isArray(indices)||!indices.length||indices.length>8
+  ||indices.some((n,i)=>!Number.isInteger(n)||n<0||n>7
+    ||(i>0&&n<=indices[i-1])))
+  throw Error('INVALID_NEUTRAL_HOURLY_RESUME_ROWS');
+ const rows=indices.map(index=>available[index]);
  const requests=rows.map((r,i)=>({
   sample_hour_index:hour,
-  row_index:i,source_observation_utc:r.retrospective_observed_at_utc,
+  row_index:indices[i],source_observation_utc:r.retrospective_observed_at_utc,
   scan_at_utc:r.retrospective_scan_at_utc,mint:r.mint,
   url:URL+r.mint+'/pools?include=base_token,quote_token',
   source_class:'POST_EVENT_NEUTRAL_RESEARCH_ONLY',
   no_historical_knowledge_promotion:true
  }));
- if(rows.length!==8||new Set(rows.map(r=>r.mint)).size!==8||
+ if(rows.length!==indices.length||new Set(rows.map(r=>r.mint)).size!==indices.length||
   requests.some(r=>!tokenValid('solana',r.mint)))
   throw Error('UNEXPECTED_NEUTRAL_HOURLY_8_SAMPLE');
  return {schema:1,kind:'R29_V24_EIGHT_NEUTRAL_MINT_GECKO_HOURLY_RESEARCH',
   historical_date:'2026-10-12',historical_hour_index:hour,
   scans_in_universe:24,full_population_mints:192,
-  sample_mints:8,http_requests_budget:8,
+  hour_total_sample_mints:8,sample_mints:indices.length,
+  row_indexes_selected:indices,http_requests_budget:indices.length,
   provider_request_limit_per_minute:10,
   requests,all_provider_reads_postevent:true,
   original_october_discovery_proven:false,
@@ -84,23 +91,44 @@ export function interpretV24GeckoHourlyResponse({query,receipt}={}){
   reported_provider_rows:data.data.length,
   rejected_no_exact_included_mint:missingExactMint};
 }
+export function deferV24AfterRateLimit({query}={}){
+ if(!query||!tokenValid('solana',query.mint)
+  ||query.url!==URL+query.mint+'/pools?include=base_token,quote_token')
+  throw Error('INVALID_V24_DEFERRED_QUERY');
+ return {mint:query.mint,historical_hour_index:query.sample_hour_index,
+  captured_at_utc:null,http_status:null,raw_sha256:null,return_pools:[],
+  status:'DEFERRED_AFTER_PUBLIC_RATE_LIMIT',
+  historical_provider_delivery_proven:false,historical_quote_valid:false,
+  historical_pool_discoverability_verified:false,
+  original_sellability_verified:false,trade_authorized:false};
+}
 export function summarizeV24GeckoHourlySlice({plan,observations}={}){
  if(plan?.kind!=='R29_V24_EIGHT_NEUTRAL_MINT_GECKO_HOURLY_RESEARCH'
-  ||!Array.isArray(observations)||observations.length!==8
+  ||!Array.isArray(observations)||observations.length!==plan.requests.length
   ||observations.some((x,i)=>x?.mint!==plan.requests[i].mint
    ||x?.historical_hour_index!==plan.historical_hour_index
    ||x.historical_provider_delivery_proven!==false
    ||x.trade_authorized!==false))
   throw Error('INVALID_V24_EIGHT_NEUTRAL_PROVIDER_RESULTS');
  const covered=observations.filter(x=>x.return_pools.length>0),pools=covered.flatMap(x=>x.return_pools);
+ const attempts=observations.filter(x=>x.http_status!==null);
+ const deferred=observations.filter(x=>x.status==='DEFERRED_AFTER_PUBLIC_RATE_LIMIT');
  return {schema:1,kind:'R29_V24_NEUTRAL_HOURLY_MINT_TO_POOL_COVERAGE_REPORT',
   historical_hour_index:plan.historical_hour_index,
-  neutral_sampled_mints:8,public_provider_requests:8,
+  neutral_sampled_mints:plan.sample_mints,
+  original_hour_sample_mints:8,
+  source_rows_requested:plan.row_indexes_selected,
+  provider_request_budget:plan.http_requests_budget,
+  public_provider_requests:attempts.length,
+  unattempted_due_to_provider_rate_limit:deferred.length,
+  pending_not_requested_in_this_resume:8-plan.sample_mints,
   http200:observations.filter(x=>x.http_status===200).length,
   provider_error_or_rate_limit_count:observations.filter(x=>x.http_status!==200).length,
   currently_identifiable_mints:covered.length,
   currently_identifiable_pool_links:pools.length,
-  unknown_current_identity_mints:8-covered.length,
+  unknown_current_identity_mints:plan.sample_mints-covered.length,
+  data_gap_includes_unattempted_requests:true,
+  provider_backpressure_requires_followup:deferred.length>0,
   per_mint:observations,
   identities_from_neutral_archive_not_oracle:true,
   actual_october_provider_delivery_verified:false,
