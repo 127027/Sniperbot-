@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "kind": "DOT2_FORENSIC_RESEARCH_WAKE",
+  "role": "dot-2-discovery",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "executed_at_utc": "2026-11-23T15:16:27Z",
+  "gpt_run_identity": "UNVERIFIED",
+  "authentic_gpt_execution_receipt": false,
+  "status": "CAPTURE_PENDING_DATA_GAP",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "source_inputs": [
+    {
+      "path": "docs/R29_FIVE_DOT_FORENSIC_BACKTEST_PROTOCOL_20261122.md",
+      "git_blob_sha": "3f7ba1977cb0df637fd3c7486897aa11780bea97"
+    },
+    {
+      "path": "docs/R29_NEXT_CHAT_HANDOFF.md",
+      "git_blob_sha": "2201974845894f347dcc5a2c4ccc37db5c7fc3bc"
+    },
+    {
+      "path": "docs/V19_46_PARTIAL_ACCEPTANCE_AND_NEXT_BACKTEST_PLAN_20261122.md",
+      "git_blob_sha": "8becade5b6ff5e91017c0a0836741d7aa77e09bd"
+    },
+    {
+      "path": "AGENTS.md",
+      "git_blob_sha": "aa90a74d66bdb5059af5e22c7f14185d176b952a"
+    },
+    {
+      "path": "research/state/latest.json",
+      "git_blob_sha": "0d2b5fae39cac960a3183bef40357ef7ef0d693c"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "git_blob_sha": "f2959dd581956d8ef585bc1cabe9d9ca422f6f3e"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "git_blob_sha": "d3b5995dfcec953144f730faed4ca30c7b264340"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "git_blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "git_blob_sha": "aa383f1de31bfd548a8396ab7773f2ed6270506e"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45192931339/evidence.json",
+      "git_blob_sha": "16fc2cdcd1d812271d57e084642206fe2733fa6b"
+    },
+    {
+      "path": "research/state/checkpoints/45192931339.json",
+      "git_blob_sha": "52d9fabf6b4152ce59756d8b286a44df7e235998"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45192931339/dot2-to-dot3-handoff.json",
+      "git_blob_sha": "abe8b39883bc4b6b13e6ae12faddc4e234bd18f1"
+    }
+  ],
+  "prior_source": {
+    "run_id": "45192931339",
+    "request_path": "research/requests/2026-11-23/20261123T141853000Z-dot2-research.json",
+    "evidence_path": "research/feeds/2026-11-23/45192931339/evidence.json",
+    "checkpoint_path": "research/state/checkpoints/45192931339.json",
+    "handoff_path": "research/feeds/2026-11-23/45192931339/dot2-to-dot3-handoff.json",
+    "completed_at_utc": "2026-11-23T14:19:26.543Z",
+    "chain": "cronos",
+    "page": 1,
+    "provider": "GECKOTERMINAL",
+    "http_status": 200,
+    "raw_path": "research/feeds/2026-11-23/45192931339/gecko-cronos-page1.raw.json",
+    "reported_raw_sha256": "0ca913b4069fbdddc9ee40dd167e48c6f34ce92c89c6eae742e3c132e4ba7e8a",
+    "raw_bytes_sha256_independently_recomputed": false,
+    "found": 11,
+    "rejected": 0,
+    "complete_contracts": 11,
+    "unique_new_memory_pools": 1,
+    "first_dot2_detections_added": 1,
+    "dex_rechecks": 6,
+    "indicative_two_provider_quote_matches": 1,
+    "provider_quote_asof_verified": false,
+    "source_available_at_utc": "2026-11-23T14:19:26.543Z",
+    "published_at_utc": "UNKNOWN",
+    "pool_kind": "UNKNOWN",
+    "market_memory_stats": {
+      "total_discovered": 900,
+      "first_dot2_detected_count": 505,
+      "total_observation_batches": 189,
+      "contracts_complete": 900
+    },
+    "handoff_counts": {
+      "observations": 11,
+      "full_contracts": 11,
+      "trade_eligible": 0
+    }
+  },
+  "chain_page_cursors": {
+    "solana": 6,
+    "base": 6,
+    "ethereum": 5,
+    "bsc": 6,
+    "robinhood": 6,
+    "cronos": 6
+  },
+  "not_scanned_this_prior_capture": [
+    "solana",
+    "base",
+    "ethereum",
+    "bsc",
+    "robinhood"
+  ],
+  "deferred_new_candidates": 7,
+  "deferred_repair_candidates": 19,
+  "new_request_path": "research/requests/2026-11-23/20261123T151627Z-dot2-research.json",
+  "new_request_commit_sha": "73709f2cbe19f17cd4311196bc093a4ffb31479e",
+  "new_capture_completion": "NOT_VERIFIED",
+  "decision": "WATCH_DATA_GAP",
+  "reason": "Previous bounded Cronos page1 completed and all other chain pages remain incomplete; one limited request is warranted, but source quote times, risk issuer and sellability are not verified",
+  "alternatives": [
+    "No request: leaves six-chain coverage backlog unaddressed",
+    "Multi-page or parallel request: rejected due to provider budget and no global coverage proof",
+    "Order publication: prohibited"
+  ],
+  "rate_limit": {
+    "last_gecko_http_status": 200,
+    "consecutive_429": 0,
+    "cooldown_until_utc": null,
+    "provider_budget_asof_utc": "2026-11-23T14:19:26.524Z",
+    "retry_after": "NONE_IN_LAST_PERSISTED_BUDGET",
+    "next_http_must_recheck_budget": true
+  },
+  "unresolved": [
+    "Independent raw-byte SHA recomputation not performed",
+    "Source upstream quote timestamp absent",
+    "D3-04 independent issuer and D3-05 sellability unverified",
+    "All-chain/global market coverage unproven",
+    "New request completion pending",
+    "No independently authenticated GPT automation receipt",
+    "Eight historical hourly buckets not re-audited this wake"
+  ],
+  "follow_up": "On next wake verify request_path, evidence_path, completion gate, raw bytes SHA, handoff and checkpoint same-run coherence before updating source stats; preserve previous values separately",
+  "orders_created": 0,
+  "paper_fills_claimed": 0,
+  "backtest_executed": false,
+  "trade_authorized": false
+}
