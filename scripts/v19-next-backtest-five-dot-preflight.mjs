@@ -5,7 +5,7 @@
 import {execFileSync} from 'node:child_process';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {auditLiveFiveDotJournalInventory,LIVE_DOT_IDS,validRoleJournalPath}
+import {auditLiveFiveDotJournalInventory,LIVE_DOT_IDS,validRoleJournalPath,isPendingDot2ForensicPointer}
  from '../src/v19-dot-journal-inventory.mjs';
 import {auditFiveDotNextBacktestForensicFreshness}
  from '../src/v19-next-backtest-five-dot-freshness.mjs';
@@ -59,10 +59,7 @@ for(const role of LIVE_DOT_IDS){
   try{rawJournalsByPath[path]=await readFile(path,'utf8')}
   catch(e){if(e.code!=='ENOENT')throw e}
  }
- if(role==='dot-2'&&pointer?.status==='CAPTURE_PENDING_DATA_GAP'
-   &&typeof pointer.forensic_audit_path==='string'
-   &&/^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-2-discovery\.json$/
-     .test(pointer.forensic_audit_path)){
+ if(role==='dot-2'&&isPendingDot2ForensicPointer(pointer)){
   try{rawJournalsByPath[pointer.forensic_audit_path]=
    await readFile(pointer.forensic_audit_path,'utf8')}
   catch(e){if(e.code!=='ENOENT')throw e}
