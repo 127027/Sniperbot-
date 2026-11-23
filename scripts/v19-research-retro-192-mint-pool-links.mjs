@@ -103,7 +103,7 @@ const receipt={schema:1,kind:'R29_V19_RETRO_MINT_POOL_BOUNDED_CAPTURE_RECEIPT',
  no_buy_sell_orders:true,no_wallet_or_paper_client_mutation:true,
  historical_source_independence_proven:false,
  historical_execution_quotes_verified:0,
- 65_winner_oracle_was_not_opened:true,
+ winner_oracle_65_was_not_opened:true,
  data_integrity_verified:'RAW_BYTES_SHA256_FOR_ALL_RESPONSES_NOT_HISTORICAL_PRICE_AUTHENTICATION'};
 await writeFile(target+'/result-mint-to-pool.json',
  JSON.stringify(report,null,2)+'\n',{flag:'wx'});
