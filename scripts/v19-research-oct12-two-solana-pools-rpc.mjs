@@ -2,7 +2,7 @@
 // Two exact naturally discovered neutral October 2026 SOL pools ONLY.
 // The public node may refuse historical reads, rate-limit or omit history:
 // record source gaps rather than forge any pass. NO order submission APIs.
-// 8 maximum getSignaturesForAddress pages + 4 getTransaction = 12 RPC calls.
+// 20 maximum 1000-row getSignaturesForAddress pages + 4 getTransaction = 24 RPC calls.
 import {execFileSync} from 'node:child_process';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
@@ -33,7 +33,7 @@ const bytes=await readFile(requestFiles[0]),request=JSON.parse(bytes);
 if(request?.schema!==1
  ||request.kind!=='R29_V19_POSTRUN_OCT12_TWO_POOL_ONCHAIN_AUDIT'
  ||request.date!=='2026-10-12'
- ||request.pools_to_research!==2||request.max_rpc_calls!==12
+ ||request.pools_to_research!==2||request.max_rpc_calls!==24
  ||request.read_only!==true||request.no_winner_oracle_seed!==true
  ||request.no_orders_or_simulations!==true
  ||request.no_historical_quote_fabrication!==true
@@ -65,7 +65,7 @@ const targetDir='probe-artifacts/r29-oct12-chain-'+run;
 await mkdir(targetDir,{recursive:true});
 let used=0,errors=0;
 async function rpc(request,id){
- if(used>=12)throw Error('R29_RPC_READ_BUDGET_EXCEEDED');
+ if(used>=24)throw Error('R29_RPC_READ_BUDGET_EXCEEDED');
  used++;
  const start=new Date().toISOString(),endpoint='https://api.mainnet.solana.com';
  let http_status=0,raw_text='';
@@ -108,7 +108,7 @@ for(const target of targets){
   pages.push(entry.receipt);
   const result=entry.parsed.response;
   if(entry.parsed.kind!=='RPC_OK'||!Array.isArray(result))break;
-  if(result.length===0||result.length<100)break;
+  if(result.length===0||result.length<1000)break;
   if(result.some(x=>!x?.signature||!Number.isSafeInteger(x.blockTime)))break;
   if(result.some(x=>x.blockTime*1000<=Date.parse('2026-10-11T19:00:00.000Z')))
    break;
@@ -134,7 +134,7 @@ const result={schema:1,kind:'R29_V19_READONLY_TWO_SOLANA_POOL_ONCHAIN_SOURCE_RES
  github_action_run_id:run,source_commit:commit,request_path:requestFiles[0],
  request_sha256:sha(bytes),
  historical_window:'2026-10-11T19:00:00Z..2026-10-13T00:00:00Z_EXCLUSIVE',
- source_http_post_requests:used,maximum_source_http_post_requests:12,
+ source_http_post_requests:used,maximum_source_http_post_requests:24,
  source_http_or_rpc_errors:errors,
  results:report,
  currently_verified_chain_transactions:
@@ -162,7 +162,7 @@ const lines=[
  'Diese Recherche fand am 23.11.2026 statt – spätere RPC-Antwort ist kein',
  'Oktober-Provider-Quote-/Sellability-Beleg.',
  '',
- 'Maximal 12 RPC-Aufrufe, tatsächlich: '+used,
+ 'Maximal 24 RPC-Aufrufe, tatsächlich: '+used,
  'Fehlende, ungültige, begrenzte HTTP/RPC-Antworten: '+errors,
  'Verifizierte Erfolgstransaktionen vor den jeweiligen Stundenscans: '+
   result.currently_verified_chain_transactions,
