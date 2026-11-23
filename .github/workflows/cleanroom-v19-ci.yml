@@ -57,6 +57,11 @@ jobs:
           set -euo pipefail
           npm run diagnose:v20 | tee probe-artifacts/v20-no-original-market-input.log
           npm run diagnose:v20:synthetic | tee probe-artifacts/v20-synthetic-math-only.log
+      - name: Verify October original Git-blob chain and quarantine post-event winners
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/v21-october-evidence-audit.mjs | tee probe-artifacts/v21-october-evidence-inventory.log
       # Formal 29h Backtest CLIs are deliberately excluded from routine CI.
       # User requested all remaining prep work EXCEPT the Backtest.
       # They remain available ONLY through explicitly approved
@@ -125,6 +130,7 @@ jobs:
             probe-artifacts/v19-node-tests.tap
             probe-artifacts/v20-no-original-market-input.log
             probe-artifacts/v20-synthetic-math-only.log
+            probe-artifacts/v21-october-evidence-inventory.log
             probe-artifacts/v19-node-ci-receipt.json
             probe-artifacts/v19-qa04-*.json
             probe-artifacts/v19-six-offline-final-readiness.json
