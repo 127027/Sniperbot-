@@ -70,6 +70,7 @@ export function evaluatePostrunDexMintPools({neutralMintRows,providerPages}={}){
  const expected=makeCurrentDexTokenBatches(neutralMintRows);
  const all=new Map();
  let success=0,failed=0,rejected=0,totalMatches=0;
+ const failedMintLookups=new Set();
  const proof=[];
  for(let i=0;i<7;i++){
   const p=providerPages[i],batch=expected[i];
@@ -91,10 +92,12 @@ export function evaluatePostrunDexMintPools({neutralMintRows,providerPages}={}){
    response_raw_sha256:p.sha256,raw_bytes:Buffer.byteLength(p.raw_text,'utf8'),
    historical_original_provider_capture:false};
   proof.push(receipt);
-  if(p.http_status!==200){failed++;continue;}
+  if(p.http_status!==200){failed++;for(const m of batch.mints)failedMintLookups.add(m);continue;}
   let response;
-  try{response=JSON.parse(p.raw_text)}catch{failed++;receipt.parse_error=true;continue;}
-  if(!Array.isArray(response)){failed++;receipt.schema_error=true;continue;}
+  try{response=JSON.parse(p.raw_text)}catch{failed++;receipt.parse_error=true;
+   for(const m of batch.mints)failedMintLookups.add(m);continue;}
+  if(!Array.isArray(response)){failed++;receipt.schema_error=true;
+   for(const m of batch.mints)failedMintLookups.add(m);continue;}
   success++;
   const batchSet=new Set(batch.mints);
   for(const pair of response){
@@ -148,7 +151,7 @@ export function evaluatePostrunDexMintPools({neutralMintRows,providerPages}={}){
    source_observed_at_utc:sample.observed_at_utc,
    current_provider_token_pairs:classifications,
    current_provider_pool_pair_count:classifications.length,
-   historical_pool_identity_status:failed>0
+   historical_pool_identity_status:failedMintLookups.has(sample.mint)
      ?'PARTIAL_SOURCE_CAPTURE_CANNOT_DECLARE_ABSENT'
      :classifications.length===0
        ?'NO_POOL_REPORTED_IN_CURRENT_PROVIDER_RESPONSE_NOT_HISTORIC_ABSENCE'
