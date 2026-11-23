@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "role": "dot-5-control",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "actual_review_time_utc": "2026-11-23T09:42:19Z",
+  "run_identity": "dot5-20261123T0942Z-control-unverified",
+  "independent_gpt_receipt": "UNVERIFIED",
+  "status": "DATA_GAP_NO_TRADE",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "source_blobs": {
+    "docs/R29_FIVE_DOT_FORENSIC_BACKTEST_PROTOCOL_20261122.md": "3f7ba1977cb0df637fd3c7486897aa11780bea97",
+    "docs/R29_NEXT_CHAT_HANDOFF.md": "5cdf8e502054d1689f357d4528fe8b12e6aa1f46",
+    "research/state/latest.json": "72a6c675d0cd45e3115a37f8a87fa152b0467cee",
+    "research/feeds/latest.json": "4ce339f45cf8f1d869f294e18502993f94c12578",
+    "research/state/provider-budget.json": "a3666be03b0eaa0fa662f4fe2ab0083887964e1f",
+    "research/state/prospective-holdout-freeze.json": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d",
+    "research/latest/dot-1.json": "06ab2feed11a2177c9ede0a1f3c30206771cf33d",
+    "research/latest/dot-2.json": "30a13eda8ad8540d054fe5ae496bbc1112052da2",
+    "research/latest/dot-3.json": "07b659d4db2f49f7eaab508994bd75ae02e678aa",
+    "research/latest/dot-4.json": "88d26c0239f05b6632aa1b9c611f79e9d093d15d"
+  },
+  "observed": {
+    "latest_http_capture_run": "45145191120",
+    "captured_at_utc": "2026-11-23T09:14:20.642Z",
+    "chain": "solana",
+    "page": 5,
+    "gecko_http": 200,
+    "pools": 819,
+    "first_dot2": 424,
+    "source_global_coverage": false,
+    "gecko_recent_429": 0,
+    "orders": 0,
+    "client_fills": 0,
+    "acceptance": {
+      "pass": 13,
+      "partial": 46,
+      "open": 2
+    },
+    "holdout_end_utc": "2026-11-25T06:54:05.033Z"
+  },
+  "findings": [
+    {
+      "code": "DOT2_LATEST_CAPTURE_PENDING_AFTER_COMPLETION",
+      "earliest_stage": "Dot2 latest pointer reconciliation",
+      "event_id": "45145191120",
+      "affected_path": "research/latest/dot-2.json",
+      "source_path": "research/feeds/latest.json",
+      "impact": "Dot2 latest still reports CAPTURE_PENDING and null source_run_id despite completed feed capture; prior_capture must remain separate",
+      "fix": "CAS update Dot2 latest only after independently checking request/evidence and memory/handoff stats; never infer GPT receipt",
+      "regression": "Verify request_path and evidence_path plus total_discovered=819, first_dot2_detected_count=424, checkpoint and handoff full_contracts against feed; assert stale flags until reconciled"
+    },
+    {
+      "code": "DOT3_DOT4_SOURCE_LAG",
+      "earliest_stage": "Dot3 source handoff",
+      "event_id": "45070668194",
+      "affected_path": "research/latest/dot-3.json",
+      "source_path": "research/feeds/latest.json",
+      "impact": "Dot3 and Dot4 research source is from prior day, not current 45145191120",
+      "fix": "Run independent research-only reviews on current source without risk promotion",
+      "regression": "Reject PAPER_ELIGIBLE if source_run_id or independent issuer/sellability proof absent"
+    },
+    {
+      "code": "RELEASE_NOT_READY",
+      "earliest_stage": "original acceptance",
+      "affected_path": "src/v19-original-acceptance-release-gate.mjs",
+      "impact": "29h replay blocked",
+      "fix": "Obtain original October as-of neutral sources, D3-04 issuer, D3-05 chain sellability, authentic GPT and Windows client receipts, matured neutral holdout",
+      "regression": "--require-ready must reject incomplete external gates"
+    }
+  ],
+  "unverified": [
+    "Full all-event source byte verification not performed in this wake",
+    "All original 61 task-by-task independent acceptance not re-executed",
+    "Eight-hour final audit not re-run",
+    "Independent GPT/Windows receipts unavailable"
+  ],
+  "alternatives": [
+    "Backtest rejected because original gate incomplete",
+    "No buy/sell or order writes",
+    "No oracle preselection"
+  ],
+  "next_action": "Research-only monitoring; reconcile latest source metadata; keep original 13/46/2 unchanged",
+  "backtest_executed": false
+}
