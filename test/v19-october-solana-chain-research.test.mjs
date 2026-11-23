@@ -114,3 +114,19 @@ test('future tx, missing pool account or null response cannot create false posit
   receipt:receipt(request,null)});
  assert.equal(c.status,'RPC_RETURNED_NULL_TRANSACTION_DATA_GAP');
 });
+
+test('bounded 1000-signature pages preserve the precise before cursor and never query orders',()=>{
+ const first=makeSolanaChainHistoryRpc({target,index:0});
+ assert.equal(first.method,'getSignaturesForAddress');
+ assert.equal(first.params[1].limit,1000);
+ assert.equal(first.params[1].commitment,'finalized');
+ const second=makeSolanaChainHistoryRpc({target,index:9,before:sig('5')});
+ assert.equal(second.params[1].before,sig('5'));
+ assert.equal(second.params[1].limit,1000);
+ assert.throws(()=>makeSolanaChainHistoryRpc({target,index:10,before:sig('5')}),
+  /UNAUTHORIZED/);
+ const trans=makeSolanaChainTransactionRpc({target,signature:sig('6')});
+ assert.equal(trans.method,'getTransaction');
+ assert.equal(trans.params[1].maxSupportedTransactionVersion,0);
+ assert.equal(trans.params[1].commitment,'finalized');
+});
