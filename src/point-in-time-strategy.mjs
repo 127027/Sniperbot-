@@ -86,6 +86,7 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    const fresh=new Map();
    for(const s of valid)fresh.set(marketKey(s.coin),s);
    const featureHistory=buildAsOfLookback({snapshots,asOfUtc:at});
+   const marketLookback=new Map(featureHistory.markets.map(x=>[x.key,x]));
    const gapRecovery=planDataGapRecovery({asOfUtc:at,activityObservations});
    const step={at_utc:at,full_review:due,target_per_24h:currentTarget,cadence_reason:cadence.reason,
      measured_page_activity:measured,
@@ -121,7 +122,25 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    if(due){
      for(const [key,candidate] of fresh.entries()){
        if(ledger.positions[key])continue;
-       const prev=history.get(key);
+       let prev=history.get(key)??null;
+       const lookback=marketLookback.get(key);
+       // New pools can have TWO or more real pre-scan observations since
+       // the previous hourly wake. The prior feature must be earlier than
+       // the current quote, not merely last hour's scanner cache.
+       // Requiring last-hour presence would systematically suppress new BUY
+       // opportunities exactly at 01:00, 02:00, ... in fast-moving memecoins.
+       if(lookback){
+         const candidateAt=ms(candidate.observed_at_utc);
+         const latestAt=ms(lookback.latest_observed_at_utc);
+         const featurePrior=latestAt<candidateAt
+           ?{at_utc:lookback.latest_observed_at_utc,price:lookback.latest_price_usdc}
+           :lookback.previous_observed_at_utc!==null
+             ?{at_utc:lookback.previous_observed_at_utc,price:lookback.previous_price_usdc}
+             :null;
+         if(featurePrior&&ms(featurePrior.at_utc)<candidateAt&&
+           (!prev||ms(featurePrior.at_utc)>ms(prev.at_utc)))
+           prev=featurePrior;
+       }
        const price=candidate.quotes.reduce((sum,q)=>sum+q.price_usdc,0)/candidate.quotes.length;
        const decision=decideUnifiedMarket({asOfUtc:at,observedAtUtc:candidate.observed_at_utc,
          observedPriceUsd:price,priorAtUtc:prev?.at_utc||null,priorPriceUsd:prev?.price??null,
