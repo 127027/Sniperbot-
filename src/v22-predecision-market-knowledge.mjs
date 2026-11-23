@@ -22,6 +22,11 @@ export function inspectPredecisionKnowledge({
    ||!Array.isArray(snapshots)||!Array.isArray(marketKnowledgeEvents))
   throw Error('INVALID_R29_PREDECISION_KNOWLEDGE_INPUT');
  const lookback=buildAsOfLookback({snapshots,asOfUtc});
+ // Capture availability matters: an old *event date* does not mean a
+ // market was already known before warmup if its source arrived later.
+ const warmupLookback=warmup===null?null:buildAsOfLookback({
+   snapshots,asOfUtc:warmupStartUtc});
+ const beforeWarmupKeys=new Set(warmupLookback?.markets.map(m=>m.key)||[]);
  const markets=new Map(),excluded={
    invalid_identity_or_type:0,invalid_source_or_time:0,
    future_or_not_yet_available:0,retrospective:0,oracle_or_future_label:0
@@ -92,7 +97,7 @@ export function inspectPredecisionKnowledge({
  for(const m of lookback.markets){
    // The original lookback key is chain:contract:pool.
    add(m.key,'PAST_QUOTE_FEATURE',m.latest_observed_at_utc,'HISTORICAL_PRICE_FEATURE');
-   if(warmup!==null&&asOfMillis(m.first_observed_at_utc)<warmup)
+   if(beforeWarmupKeys.has(m.key))
      markets.get(m.key).before_warmup_knowledge=true;
  }
  const all=[...markets.values()].map(m=>({
