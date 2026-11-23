@@ -62,7 +62,7 @@ export function makeSolanaChainTransactionRpc({target,signature,index=0}={}){
   throw Error('UNAUTHORIZED_SOLANA_CHAIN_TRANSACTION_REQUEST');
  return {jsonrpc:'2.0',id:index+1,method:'getTransaction',
   params:[signature,{encoding:'jsonParsed',
-   commitment:'finalized',maxSupportedTransactionVersion:0}]};
+   commitment:'finalized',maxSupportedTransactionVersion:1}]};
 }
 export function auditSolanaRpcEnvelope({request,receipt}={}){
  const when=asOfMillis(receipt?.captured_at_utc);
