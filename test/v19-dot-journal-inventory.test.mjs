@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
-import {auditLiveFiveDotJournalInventory,LIVE_DOT_IDS,validRoleJournalPath}
+import {auditLiveFiveDotJournalInventory,LIVE_DOT_IDS,validRoleJournalPath,isPendingDot2ForensicPointer}
  from '../src/v19-dot-journal-inventory.mjs';
 
 const at='2026-11-22T22:00:00.000Z';
@@ -161,8 +161,7 @@ test('current read-only inventory exposes merged Dot2 data without silently decl
 test('five current role pointers pin original journal OR explicitly pending Dot2 forensic Git bytes',async()=>{
  for(const role of LIVE_DOT_IDS){
   const pointer=JSON.parse(await readFile('research/latest/'+role+'.json','utf8'));
-  if(role==='dot-2'&&pointer.status==='CAPTURE_PENDING_DATA_GAP'
-    &&pointer.journal_path==null){
+  if(role==='dot-2'&&isPendingDot2ForensicPointer(pointer)){
    assert.match(pointer.forensic_audit_path,
      /^research\/audits\/dot-traces\/\d{4}-\d{2}-\d{2}\/[A-Za-z0-9_-]{8,120}\/dot-2-discovery\.json$/);
    const raw=await readFile(pointer.forensic_audit_path,'utf8');
@@ -170,8 +169,8 @@ test('five current role pointers pin original journal OR explicitly pending Dot2
    assert.equal(h(raw),pointer.journal_blob_sha);
    const doc=JSON.parse(raw);
    assert.equal(doc.role,'dot-2-discovery');
-   assert.equal(doc.gpt_run_identity,'UNVERIFIED');
-   assert.equal(pointer.status,'CAPTURE_PENDING_DATA_GAP');
+   assert.equal(doc.gpt_run_identity??doc.gpt_execution_identity,'UNVERIFIED');
+   assert.ok(['CAPTURE_PENDING_DATA_GAP','CAPTURE_PENDING_GPT_RECEIPT_UNVERIFIED_DATA_GAP'].includes(pointer.status));
    continue;
   }
   assert.equal(validRoleJournalPath(role,pointer.journal_path),true);
@@ -276,4 +275,18 @@ test('Dot2 pending forensic audit is Git-hashed but NEVER counted as a completed
  assert.ok(bad.issues.some(x=>x.role==='dot-2'
    &&x.code==='DOT2_PENDING_FORENSIC_GIT_BLOB_MISMATCH'));
  assert.equal(bad.verified_live_gpt_runs,0);
+});
+
+test('explicit Dot2 capture pending without authenticated GPT receipt is not a completed journal',()=>{
+ const p=build(),d=p.latestByRole['dot-2'];
+ d.status='CAPTURE_PENDING_GPT_RECEIPT_UNVERIFIED_DATA_GAP';
+ d.journal_path=null;
+ d.authentic_gpt_review_receipt=false;
+ d.forensic_audit_path='research/audits/dot-traces/2026-11-23/20261123T181136Z-dot2-research/dot-2-discovery.json';
+ assert.equal(isPendingDot2ForensicPointer(d),true);
+ d.authentic_gpt_review_receipt=true;
+ assert.equal(isPendingDot2ForensicPointer(d),false);
+ d.authentic_gpt_review_receipt=false;
+ d.status='COMPLETED';
+ assert.equal(isPendingDot2ForensicPointer(d),false);
 });
