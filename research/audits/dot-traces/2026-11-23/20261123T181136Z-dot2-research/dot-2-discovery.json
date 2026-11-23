@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "role": "dot-2-discovery",
+  "run_id": "20261123T181136Z-dot2-research",
+  "actual_execution_at_utc": "2026-11-23T18:11:36Z",
+  "gpt_execution_identity": "UNVERIFIED",
+  "execution_origin": "GPT_SELF_REPORTED",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "status": "CAPTURE_PENDING_DATA_GAP",
+  "source_as_of_utc": "2026-11-23T17:14:11.006Z",
+  "source_run_id": "45225394417",
+  "source_request_path": "research/requests/2026-11-23/20261123T171358550Z-dot2-research.json",
+  "source_request_blob_sha": "c38ee439267acd8d92ebb735eebda8c42f1e4b11",
+  "source_evidence_path": "research/feeds/2026-11-23/45225394417/evidence.json",
+  "source_feed_latest_blob_sha": "7398ac7bd6c6b8742f211a27f7012dffb8abbf42",
+  "source_state_latest_blob_sha": "ff3c1ea00adf8028cb1e866a6b3bd0153a029618",
+  "source_provider_budget_blob_sha": "13622fb30c666657214f05f6eb29255cbdb19914",
+  "new_request_path": "research/requests/2026-11-23/20261123T181136Z-dot2-research.json",
+  "new_request_commit_sha": "c588a01b3d7e416f56bd6285b8f148a55723e367",
+  "scope": {
+    "chains": [
+      "solana",
+      "base",
+      "ethereum",
+      "bsc",
+      "robinhood",
+      "cronos"
+    ],
+    "previous_completed_chain": "ethereum",
+    "previous_completed_page": 5,
+    "new_chain_page": "UNKNOWN_UNTIL_PROVIDER_COMPLETION"
+  },
+  "what_was_done": "Read cleanroom protocol, handoff, original acceptance plan, AGENTS, state/latest, feed/latest, provider-budget, holdout and previous Dot2 latest. Created exactly one bounded research request. No HTTP call made by GPT. No candidate contract reviewed as newly observed.",
+  "why_this_action": "Prior request is complete and the last persisted provider budget reports no cooldown; the six-chain cursor backlog and HOT/FAIR/REPAIR data gaps warrant one bounded source request.",
+  "alternatives_considered": [
+    "No request: would prolong source coverage gaps",
+    "Six simultaneous page requests: rejected due to one-request-per-wake budget",
+    "Trade or backtest: forbidden"
+  ],
+  "source_capture": {
+    "run_id": "45225394417",
+    "captured_at_utc": "2026-11-23T17:14:11.006Z",
+    "published_at_utc": "UNKNOWN",
+    "available_at_utc": "2026-11-23T17:14:11.006Z_OR_LATER",
+    "http_status": "200_REPORTED_IN_PERSISTED_PROVIDER_BUDGET",
+    "raw_bytes_sha256": "a8141ce8fb3c9550b714ef4e7fd68b9152595991d459a65ae248f8cd48f9fb55",
+    "raw_bytes_independently_rehashed": false,
+    "complete_pool_identities": 20,
+    "new_memory_pools": 3,
+    "first_dot2_detected_total": 548,
+    "market_memory_total": 943,
+    "dex_rechecks": 6,
+    "other_chains_not_captured": [
+      "solana",
+      "base",
+      "bsc",
+      "robinhood",
+      "cronos"
+    ]
+  },
+  "provider": {
+    "gecko_recent_starts_last_persisted": 1,
+    "gecko_last_status": 200,
+    "cooldown_until_utc": null,
+    "provider_budget_as_of_utc": "2026-11-23T17:14:10.991Z",
+    "new_http_status": "PENDING",
+    "new_retry_after": "UNKNOWN"
+  },
+  "data_gaps": [
+    "No new HTTP completion yet",
+    "No authenticated GPT full-review execution receipt",
+    "No independent upstream quote timestamp",
+    "No independent Dot3 issuer or chain sellability",
+    "Unvisited chain/pages and deferred candidates",
+    "No verified full contract+pool for any newly requested candidate"
+  ],
+  "follow_up": "At next real wake compare exact request/evidence/checkpoint/handoff and raw-byte SHA, then atomically reconcile same-run statistics; do not backdate GPT review.",
+  "orders_created": 0,
+  "paper_fills_claimed": 0,
+  "backtest_executed": false
+}
