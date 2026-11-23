@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "kind": "R29_DOT2_FORENSIC_RESEARCH_TRACE",
+  "role": "dot-2-discovery",
+  "run_id": "20261123T171358550Z-dot2-research",
+  "at_utc": "2026-11-23T17:14:16.764Z",
+  "execution_origin": "GPT_RESEARCH_WAKE",
+  "gpt_run_identity": "UNVERIFIED",
+  "authentic_gpt_full_review_receipt": false,
+  "phase": "LIVE_PROSPECTIVE_RESEARCH",
+  "action": "REQUEST_ONE_BOUNDED_CAPTURE",
+  "status": "CAPTURE_PENDING_DATA_GAP",
+  "scope": {
+    "kind": "GLOBAL",
+    "chains": [
+      "solana",
+      "base",
+      "ethereum",
+      "bsc",
+      "robinhood",
+      "cronos"
+    ],
+    "selected_chain_page": "UNKNOWN_UNTIL_PROVIDER_COMPLETION"
+  },
+  "what_was_done": "Read forensic protocol, handoff, original acceptance, AGENTS, provider budget, feed/state pointers and holdout freeze; checked GitHub workflow runs: latest 45215107047 completed success; created exactly one bounded research request.",
+  "why_this_action": "Previous Base page1 completed, rotation and deferred HOT/FAIR/REPAIR candidates require fresh bounded sampling; prior 16:19 UTC budget no active 429; do not assume full coverage.",
+  "alternatives_considered": [
+    "No request if duplicate in-flight/cooldown; checked existing GitHub runs and none in progress at review",
+    "Six simultaneous chain pages rejected because request cap one Gecko page",
+    "Trading and historical backtest prohibited"
+  ],
+  "input_refs": [
+    {
+      "path": "docs/R29_FIVE_DOT_FORENSIC_BACKTEST_PROTOCOL_20261122.md",
+      "git_blob_sha": "3f7ba1977cb0df637fd3c7486897aa11780bea97"
+    },
+    {
+      "path": "docs/R29_NEXT_CHAT_HANDOFF.md",
+      "git_blob_sha": "2201974845894f347dcc5a2c4ccc37db5c7fc3bc"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "git_blob_sha": "1ea1e2bcf1b241f5a1cbc6e1d88a8d4775ef33ec",
+      "captured_at_utc": "2026-11-23T16:19:17.166Z"
+    },
+    {
+      "path": "research/state/latest.json",
+      "git_blob_sha": "30eb64785d61cee047443078cb7840a0a916c059"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "git_blob_sha": "0ee61717bd34449a769e1d50660b64ef88406faa"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "git_blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45215107047/evidence.json",
+      "git_blob_sha": "dfb1aa3834b8fa372abdac1931e6513476431ca1"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45215107047/dot2-to-dot3-handoff.json",
+      "git_blob_sha": "18d52523ccf54f2dd829a8505ace81072e77dff7"
+    },
+    {
+      "path": "research/requests/2026-11-23/20261123T171358550Z-dot2-research.json",
+      "git_blob_sha": "c38ee439267acd8d92ebb735eebda8c42f1e4b11"
+    }
+  ],
+  "source_capture": {
+    "prior_run_id": "45215107047",
+    "source_chain": "base",
+    "page": 1,
+    "completed_at_utc": "2026-11-23T16:19:17.166Z",
+    "http_status": 200,
+    "complete_pool_contract_identities": 20,
+    "market_memory_total": 940,
+    "first_dot2_detected_total": 545,
+    "raw_sha256": "6150a0aec34019a22e05911cca0b9012f5d9e45e5f505340863aff4f7a731341",
+    "raw_bytes_independently_rehashed_by_gpt": false,
+    "provider_quote_asof_independently_verified": false
+  },
+  "new_capture": {
+    "request_path": "research/requests/2026-11-23/20261123T171358550Z-dot2-research.json",
+    "max_gecko_pages": 1,
+    "max_dex_rechecks": 6,
+    "http_status": "UNKNOWN",
+    "completion_gate": "PENDING",
+    "chain": "UNKNOWN",
+    "page": "UNKNOWN",
+    "raw_sha256": "UNKNOWN",
+    "captured_at_utc": null
+  },
+  "not_examined": [
+    "All remaining six-chain pages beyond one bounded next request",
+    "16 deferred Base candidates and 34 repair-eligible pools not individually resolved",
+    "Independent quote timestamp, issuer and sellability evidence",
+    "October oracle winners never used as live candidates"
+  ],
+  "missing_evidence": [
+    "New HTTP completion evidence and byte SHA",
+    "New source checkpoint and handoff from same request",
+    "Independent upstream quote as-of time",
+    "D3-04 and D3-05"
+  ],
+  "provider_budget": {
+    "last_observed_at_utc": "2026-11-23T16:19:17.153Z",
+    "last_gecko_http_status": 200,
+    "cooldown_until_utc": null,
+    "live_budget_at_request_time": "NOT_INDEPENDENTLY_VERIFIED",
+    "respect_429_503_retry_after": true
+  },
+  "follow_up": "At next real GPT wake reconcile exact request/evidence, byte SHA, checkpoint, handoff, then atomically update source stats; do not count provider completion as GPT review.",
+  "correction_requested": "Preserve prior capture stats separately until exact request/evidence match",
+  "orders_created": 0,
+  "paper_fills_claimed": 0,
+  "backtest_executed": false
+}
