@@ -71,7 +71,7 @@ class Real24ScanReport(unittest.TestCase):
    m.join_24(*xs)
  def test_forged_live_paper_fill_is_rejected(self):
   xs=list(fake());xs[0]['scans'][9]['verified_windows_paper_fills_this_scan']=1
-  with self.assertRaisesRegex(ValueError,'ORIGINAL_DATA_GAP_CHANGED'):
+  with self.assertRaisesRegex(ValueError,'FROZEN_ACTUAL_DATA_GAP_CHANGED'):
    m.join_24(*xs)
  def test_watching_coin_is_not_a_hold(self):
   xs=list(fake())
@@ -101,7 +101,7 @@ class Real24ScanReport(unittest.TestCase):
  def test_fake_original_quote_is_blocked(self):
   xs=list(fake())
   xs[0]['scans'][1]['valid_model_input_pools']=1
-  with self.assertRaisesRegex(ValueError,'ORIGINAL_DATA_GAP_CHANGED'):
+  with self.assertRaisesRegex(ValueError,'FROZEN_ACTUAL_DATA_GAP_CHANGED'):
    m.join_24(*xs)
  def test_wrong_other_trader_eligibility_is_rejected(self):
   xs=list(fake())
