@@ -33,7 +33,7 @@ Archivierter GitHub-Capture: `research/feeds/2026-11-23/45246727202/`, originale
 
 - [Source-only CI #45251153506](https://github.com/127027/Sniperbot-/actions/runs/45251153506): **835/835 PASS** und tatsächliche Auswertung der 19 Kandidaten; keine ORDER-Veröffentlichung.
 - [Source-only CI #45251456838](https://github.com/127027/Sniperbot-/actions/runs/45251456838): **838/838 PASS**, einschließlich Dot4-UTC- und Live/As-of-Paritätsfix.
-- Spätere Kommandozeilen-/Abschlusstests müssen vor einer Erhöhung dieser bestätigten Testzahl tatsächlich in CI grün werden.
+- [Abschließender Source-only CI #45251611462](https://github.com/127027/Sniperbot-/actions/runs/45251611462): **840/840 PASS, 0 FAIL**, inklusive realem Git-Handoff-Audit und CLI-/UTC-Modustests; `TEST_ONLY_NO_SIGNAL_WRITE 0`. [Paper-only CI #45251611496](https://github.com/127027/Sniperbot-/actions/runs/45251611496) ebenfalls erfolgreich. Das formelle Original-Gate bleibt `NOT_READY_BLOCKED_BY_ORIGINAL_EVIDENCE` mit 13/60 und acht Beweisblöcken.
 
 ## 4. Nächster fachlicher Schritt
 
