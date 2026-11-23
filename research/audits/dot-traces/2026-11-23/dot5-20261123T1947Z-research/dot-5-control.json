@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "role": "dot-5-control",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "run_id": "dot5-20261123T1947Z-research",
+  "actual_execution_utc": "2026-11-23T19:47:15Z",
+  "gpt_execution_identity": "UNVERIFIED",
+  "independent_gpt_execution_receipt": false,
+  "phase": "PROSPECTIVE_RESEARCH",
+  "action": "DATA_GAP_NO_TRADE",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "observed_head_sha": "5704b98252d74406c5d7371fe7f53a0b7e3261d6",
+  "input_refs": [
+    {
+      "path": "AGENTS.md",
+      "blob_sha": "e8718df7fdc1e342579c2c20324db8b08d6a3ff2"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "67e01b6c215ee8ba4f486d159da1b2b1e006aa3d",
+      "captured_at_utc": "2026-11-23T19:13:54.580Z"
+    },
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "744e238fdfb40ff378fc4e1afd8bb2fb9896bba2"
+    },
+    {
+      "path": "research/latest/dot-2.json",
+      "blob_sha": "6500a4c98208121f03ec4eb75cc7ae718e9004cf"
+    },
+    {
+      "path": "research/latest/dot-3.json",
+      "blob_sha": "07b659d4db2f49f7eaab508994bd75ae02e678aa"
+    },
+    {
+      "path": "research/latest/dot-4.json",
+      "blob_sha": "88d26c0239f05b6632aa1b9c611f79e9d093d15d"
+    },
+    {
+      "path": "research/latest/dot-5.json",
+      "blob_sha": "27e169e2bb1a585d3819c849dc980d59928b36ca"
+    }
+  ],
+  "scope": {
+    "chains": [
+      "robinhood"
+    ],
+    "pages": [
+      6
+    ],
+    "pool_count": 19,
+    "exact_pool_individual_audit": "NOT_PERFORMED",
+    "dot1_dot4_full_journal_audit": "NOT_PERFORMED"
+  },
+  "what_was_done": "Read branch handoff, protocol, acceptance, latest feed/state/provider, Dot1-Dot4 latest pointers and CI metadata; compared feed completion to Dot2 latest, Dot3/4 stale sources and Dot5 older market counts. Verified previous Dot5 journal blob SHA.",
+  "why_this_action": "Current feed completion supersedes older Dot pointers. No original external risk issuer, sellability, independently confirmed GPT/client receipt, or October original as-of source; QA04 release must remain blocked.",
+  "alternatives_considered": [
+    "Promote 840 green tests to original acceptance: rejected, tests are not external trust evidence",
+    "Reuse stale capture as quote: rejected, age exceeds 10m",
+    "Launch October QA04: rejected, gate blocked"
+  ],
+  "findings": [
+    {
+      "event_id": "DOT5-20261123-1947-001",
+      "error_code": "DOT2_LATEST_SOURCE_STATS_STALE",
+      "earliest_pipeline_step": "Dot2 completion to research/latest/dot-2.json pointer reconciliation",
+      "source_path": "research/feeds/latest.json",
+      "affected_path": "research/latest/dot-2.json",
+      "observed": "feed run 45246727202 982 total,587 first; dot2 latest previous run 45235801160 963 total,568 first; dot2 explicitly says feed_is_current_request=false",
+      "impact": "Latest Dot2 pointer not synchronized with completed capture; should not count as fresh GPT review",
+      "correction": "Reconcile only after matching request/evidence/checkpoint/handoff and raw SHAs; preserve prior_capture separately",
+      "regression_test": "Assert run id, total_discovered, first_dot2_detected_count, checkpoint_path and handoff_counts.full_contracts against feed/latest, reject mismatches"
+    },
+    {
+      "event_id": "DOT5-20261123-1947-002",
+      "error_code": "DOT3_DOT4_SOURCE_LAG",
+      "earliest_pipeline_step": "Dot3/4 handoff consumption",
+      "source_path": "research/latest/dot-3.json",
+      "affected_path": "research/latest/dot-4.json",
+      "observed": "Dot3/4 still reference 45070668194 while feed points 45246727202",
+      "impact": "No up-to-date independent risk/strategy review",
+      "correction": "New source-pinned Dot3/4 research review only; never auto-authorize orders",
+      "regression_test": "Reject mismatched source_run_id and stale upstream quote"
+    }
+  ],
+  "market": {
+    "persisted_pools": 982,
+    "first_dot2_detected_count": 587,
+    "latest_handoff": 19,
+    "dot3_preview_watch": 18,
+    "dot3_preview_data_gap": 1,
+    "paper_eligible": 0,
+    "global_coverage_verified": false
+  },
+  "ci": {
+    "run_id": 45251611462,
+    "status": "success",
+    "reported_tests_pass": 840,
+    "reported_fail": 0,
+    "orders_written": 0,
+    "head_sha": "d41ad027c9c46aefd614cc09d18f19d96ba45356",
+    "branch_head_after_docs": "5704b98252d74406c5d7371fe7f53a0b7e3261d6"
+  },
+  "acceptance": {
+    "original_total": 61,
+    "pass": 13,
+    "partial": 46,
+    "open": 2,
+    "non_backtest_pass": 13,
+    "non_backtest_required": 60,
+    "release": "BLOCKED"
+  },
+  "missing_evidence": [
+    "D3-04 independent risk issuer",
+    "D3-05 chain sellability",
+    "independent provider quote as-of",
+    "original October 29h neutral as-of",
+    "five independently authenticated GPT receipts",
+    "Windows paper client receipts",
+    "mature November holdout labels after 2026-11-25T06:54:05Z",
+    "complete original acceptance"
+  ],
+  "metrics": {
+    "precision": null,
+    "recall": null,
+    "missed_profit": null,
+    "verified_client_fills": 0,
+    "verified_gpt_reviews": "UNKNOWN",
+    "provider_429_this_review": "NOT_REQUERIED",
+    "provider_limits": "4 starts/min, 3 NEW_POOLS/min, 15.1s pacing"
+  },
+  "backtest_triggered": false,
+  "orders_written": false,
+  "follow_up": "Continue hourly source-only checks; recheck completed feed and independent gates; do not promote acceptance without original evidence."
+}
