@@ -120,3 +120,52 @@ test('old research knowledge alone never becomes an executable quote or BUY',()=
  assert.equal(r.model_replay_summary.buys,0);
  assert.equal(r.model_ending_cash_test_usdc,5000);
 });
+
+test('Dot1 may jump immediately from 4 to 24 on the first midnight scan with 80+ prior discoveries',()=>{
+ const events=Array.from({length:82},(_,i)=>known(
+   '2026-10-11T23:59:00.000Z',
+   {chain:'base',
+    contract:'0x'+(i+1).toString(16).padStart(40,'0'),
+    pool:'0x'+(i+101).toString(16).padStart(40,'0')},
+   {event_type:'POOL_DISCOVERY'}));
+ const r=backtestOnRequest({date,manifest:manifest(events),
+   firstScanAtStart:true});
+ const t0=r.role_audit.dot4_strategy.timeline[0];
+ assert.equal(t0.target_per_24h,24);
+ assert.equal(t0.full_review,true);
+ assert.equal(t0.asof_discovery_pools_last_60m,82);
+ assert.equal(t0.cadence_input_source,'PAST_ONLY_DISCOVERY_EVENTS');
+ assert.equal(t0.eligible_snapshots,0);
+ assert.equal(t0.actions.length,0);
+ assert.equal(r.role_audit.dot4_strategy.timeline[1].target_per_24h,24,
+   'No market-wide quiet proof exists to justify downshifting');
+ assert.equal(r.confirmed_paper_fills,0);
+ assert.equal(r.historical_gpt_dot_runs,0);
+});
+test('first scan supports intermediate 8 and 12 model-review budgets from new available pool evidence',()=>{
+ for(const [count,target] of [[14,8],[40,12]]){
+  const events=Array.from({length:count},(_,i)=>known(
+   '2026-10-11T23:50:00.000Z',
+   {chain:'base',contract:'0x'+(i+1).toString(16).padStart(40,'0'),
+    pool:'0x'+(i+101).toString(16).padStart(40,'0')},
+   {event_type:'POOL_DISCOVERY'}));
+  const r=backtestOnRequest({date,manifest:manifest(events),firstScanAtStart:true});
+  assert.equal(r.role_audit.dot4_strategy.timeline[0].target_per_24h,target);
+  assert.equal(r.role_audit.dot4_strategy.timeline[0].asof_discovery_pools_last_60m,count);
+  assert.equal(r.role_audit.dot2_discovery.first_scan_preexisting_knowledge_events,count);
+  assert.equal(r.model_replay_summary.buys,0);
+ }
+});
+test('late indexed discoveries cannot retrospectively accelerate an earlier scan',()=>{
+ const arr=Array.from({length:85},(_,i)=>known(
+  '2026-10-11T23:45:00.000Z',
+  {chain:'base',contract:'0x'+(i+1).toString(16).padStart(40,'0'),
+    pool:'0x'+(i+101).toString(16).padStart(40,'0')},
+  {event_type:'POOL_DISCOVERY',
+   archived_at_utc:'2026-10-12T01:01:00.000Z',
+   available_at_utc:'2026-10-12T01:01:00.000Z'}));
+ const r=backtestOnRequest({date,manifest:manifest(arr),firstScanAtStart:true});
+ assert.equal(r.role_audit.dot4_strategy.timeline[0].target_per_24h,4);
+ assert.equal(r.role_audit.dot4_strategy.timeline[1].target_per_24h,4);
+ assert.equal(r.role_audit.dot4_strategy.timeline[0].predecision_market_knowledge.available_knowledge_events,0);
+});
