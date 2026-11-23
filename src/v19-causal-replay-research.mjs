@@ -1,5 +1,7 @@
 // R29 strictly causal offline replay. Research-only: never writes orders or balances.
 // Events are immutable observations; timestamps must be independently evidenced.
+// A captured historical response is never observable before its actual capture time.
+// Source claimed availability alone cannot move evidence backwards in the replay.
 const ms = (v) => typeof v === 'string' && Number.isFinite(Date.parse(v)) ? Date.parse(v) : null;
 const validId = (x) => typeof x === 'string' && x.length > 8;
 export function validateCausalEvent(e) {
@@ -20,17 +22,20 @@ export function replayCausalResearch({events=[],start_utc='2026-10-12T00:00:00.0
   const reason=validateCausalEvent(event);
   if(reason) quarantined.push({index,reason});
   else if(ms(event.available_at_utc)>=end) quarantined.push({index,reason:'AFTER_TEST_WINDOW'});
+  else if(ms(event.captured_at_utc)>=end) quarantined.push({index,reason:'CAPTURE_AFTER_TEST_WINDOW'});
   else accepted.push({...event,_input_index:index});
  }
- accepted.sort((a,b)=>ms(a.available_at_utc)-ms(b.available_at_utc)||a._input_index-b._input_index);
+ // A causal simulation must use the actual independently evidenced capture clock,
+ // not an earlier historical price event or a provider-declared available time.
+ accepted.sort((a,b)=>ms(a.captured_at_utc)-ms(b.captured_at_utc)||a._input_index-b._input_index);
  const ticks=[];let cursor=0;
  for(let at=start;at<end;at+=step_minutes*60000){
   const newly_available=[];
-  while(cursor<accepted.length && ms(accepted[cursor].available_at_utc)<=at) {
+  while(cursor<accepted.length && ms(accepted[cursor].captured_at_utc)<=at) {
    const e=accepted[cursor++];
-   newly_available.push({input_index:e._input_index,chain:e.chain,pool:e.pool,contract:e.contract,available_at_utc:e.available_at_utc});
+   newly_available.push({input_index:e._input_index,chain:e.chain,pool:e.pool,contract:e.contract,available_at_utc:e.available_at_utc,captured_at_utc:e.captured_at_utc,source_blob_sha:e.source_blob_sha});
   }
   ticks.push({virtual_time_utc:new Date(at).toISOString(),newly_available,decision:'NO_TRADE',reason:'RESEARCH_ONLY_NO_AUTHENTICATED_ISSUER_SELLABILITY_OR_CLIENT',paper_fills:0});
  }
- return {schema:1,mode:'OFFLINE_CAUSAL_DIAGNOSTIC_ONLY',start_utc:new Date(start).toISOString(),end_utc:new Date(end).toISOString(),ticks,quarantined,accepted_source_count:accepted.length,unused_before_end:accepted.length-cursor,orders_created:0,client_fills_claimed:0,backtest_success_claimed:false,limitations:['No verified historical October market universe supplied by this function','NO_TRADE is not a profitable backtest','No paper fills or execution simulation','Does not infer source availability from OHLCV timestamps']};
+ return {schema:1,mode:'OFFLINE_CAUSAL_DIAGNOSTIC_ONLY',start_utc:new Date(start).toISOString(),end_utc:new Date(end).toISOString(),ticks,quarantined,accepted_source_count:accepted.length,unused_before_end:accepted.length-cursor,orders_created:0,client_fills_claimed:0,backtest_success_claimed:false,limitations:['No verified historical October market universe supplied by this function','NO_TRADE is not a profitable backtest','No paper fills or execution simulation','Does not infer source availability from OHLCV timestamps','Uses capture time, never retroactively provider-claimed availability, for every replay tick']};
 }
