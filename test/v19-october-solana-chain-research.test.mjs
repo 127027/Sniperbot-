@@ -127,6 +127,19 @@ test('bounded 1000-signature pages preserve the precise before cursor and never 
   /UNAUTHORIZED/);
  const trans=makeSolanaChainTransactionRpc({target,signature:sig('6')});
  assert.equal(trans.method,'getTransaction');
- assert.equal(trans.params[1].maxSupportedTransactionVersion,0);
+ assert.equal(trans.params[1].maxSupportedTransactionVersion,1);
  assert.equal(trans.params[1].commitment,'finalized');
+});
+
+test('real Oct23 2026 Solana public node -32015 needs transaction V1, not fabricated transaction failure',()=>{
+ const trans=makeSolanaChainTransactionRpc({target,signature:sig('5')});
+ assert.equal(trans.params[1].maxSupportedTransactionVersion,1);
+ const response={jsonrpc:'2.0',id:1,error:{code:-32015,message:
+  'Transaction version (1) is not supported by the requesting client.'}};
+ const raw_text=JSON.stringify(response);
+ const r=receipt(trans,null);
+ const oldVersionError=auditSolanaRpcEnvelope({request:trans,receipt:{
+  ...r,raw_text,raw_sha256:createHash('sha256').update(raw_text).digest('hex')}});
+ assert.equal(oldVersionError.kind,'RPC_METHOD_ERROR_DATA_GAP');
+ assert.equal(oldVersionError.error_code,-32015);
 });
