@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "kind": "R29_V19_DOT5_FORENSIC_QA",
+  "mode": "PUBLIC_RESEARCH_PAPER_ONLY",
+  "run_id": "dot5-20261123T024301Z-qa15",
+  "executed_at_utc": "2026-11-23T02:43:01Z",
+  "gpt_execution_identity": "UNVERIFIED_INDEPENDENT_AUTOMATION_RECEIPT",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "repo_head_at_read": "36f3284041b66d99edac8db84abd90ead553a85e",
+  "input_blob_sha": {
+    "research/feeds/latest.json": "3316376458a05f8ca195774c962c121ab4160a55",
+    "research/state/latest.json": "c306d8d11cc55b5c677f099484c00cc0c7799a8a",
+    "research/latest/dot-2.json": "2fa08b56e68f7830f6ded9737a5c48495001ec7c",
+    "research/latest/dot-3.json": "07b659d4db2f49f7eaab508994bd75ae02e678aa",
+    "research/latest/dot-4.json": "88d26c0239f05b6632aa1b9c611f79e9d093d15d",
+    "research/latest/dot-5.json": "864415023ba1f7002288249d988f321e912a6d0f",
+    "research/state/provider-budget.json": "f16ce1c6b828903a1fec1ed1766dbb080201faa6",
+    "research/state/prospective-holdout-freeze.json": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d",
+    "research/feeds/2026-11-23/45099104735/evidence.json": "aae57d5bd7b8026bc3e7e5e96f5002629cb196c3",
+    "research/feeds/2026-11-23/45099104735/dot2-to-dot3-handoff.json": "65e1eb2be4270f9ace2b0be4278e2c8f128fedc3"
+  },
+  "latest_capture": {
+    "run_id": "45099104735",
+    "completed_at_utc": "2026-11-23T02:15:09.219Z",
+    "chain": "cronos",
+    "page": 1,
+    "raw_contract_complete": 17,
+    "first_dot2_total": 312,
+    "market_pools_total": 707,
+    "observation_batches": 144,
+    "handoff_full_contracts": 17,
+    "handoff_indicative_quote_matches": 1,
+    "provider_last_http": 200,
+    "gecko_429_cooldown": null,
+    "coverage": "BOUNDED_NOT_GLOBAL",
+    "workflow_conclusion": "success"
+  },
+  "eight_hour_audit": {
+    "window_utc": [
+      "2026-11-22T22:00:00Z",
+      "2026-11-23T06:00:00Z"
+    ],
+    "completed_capture_run_ids_seen": [
+      "45076917554",
+      "45081908321",
+      "45087434649",
+      "45093291950",
+      "45099104735"
+    ],
+    "verified_original_raw_sha_and_completion_gate_for_all": false,
+    "proven_eight_successes": false,
+    "remaining_future_buckets": 3,
+    "source": "GitHub Actions branch runs, evidence and feed pointers",
+    "note": "Five successful GitHub workflow conclusions observed, not yet five independently byte-verified bounded captures; 429 counts over all eight buckets UNKNOWN."
+  },
+  "acceptance": {
+    "total": 61,
+    "pass": 13,
+    "partial": 46,
+    "open": 2,
+    "non_backtest_pass": 13,
+    "non_backtest_required": 60,
+    "release": "NOT_READY_BLOCKED_BY_ORIGINAL_EVIDENCE",
+    "blocking": [
+      "D3-04 independent issuer",
+      "D3-05 empirical sellability",
+      "provider quote-asof",
+      "independent five GPT receipts",
+      "Windows client receipts",
+      "mature holdout",
+      "October neutral as-of source"
+    ]
+  },
+  "findings": [
+    {
+      "event_id": "dot5-qa15-001",
+      "code": "DOT2_LATEST_SOURCE_STATS_STALE",
+      "earliest_pipeline_stage": "DOT2_LATEST_POINTER",
+      "source_path": "research/latest/dot-2.json",
+      "compare_path": "research/feeds/latest.json",
+      "detail": "Dot2 latest points to 45093291950 and 704/295; feed latest points to 45099104735 and state 707/312; dot2 latest is explicitly CAPTURE_PENDING, not a verified completed-current wake. Prior capture fields must remain separate.",
+      "impact": "Downstream freshness and handoff audit can misattribute newest feed",
+      "correction": "On next Dot2 wake reconcile new feed using full stats/checkpoint/handoff guard; preserve prior_capture; no order authorization",
+      "regression_test": "Inject same request/evidence with stale total_discovered, first_dot2_detected_count, checkpoint_path and full_contracts; require each stale reason code and zero orders."
+    },
+    {
+      "event_id": "dot5-qa15-002",
+      "code": "DOT3_DOT4_SOURCE_LAG",
+      "earliest_pipeline_stage": "DOT3_RISK_RECHECK",
+      "source_path": "research/latest/dot-3.json",
+      "detail": "Dot3 and Dot4 latest remain on 45070668194, not latest 45099104735. No issuer or sellability authorization.",
+      "impact": "New Cronos pools not independently risk-reviewed",
+      "correction": "Source-pinned research-only risk recheck of latest handoff, fail closed",
+      "regression_test": "Reject any eligible claim when risk source_run_id differs from current handoff or issuer/sellability evidence absent."
+    }
+  ],
+  "trading": {
+    "signals_index_orders": 0,
+    "published_buy": 0,
+    "published_sell": 0,
+    "client_receipts": "NOT_FULLY_ENUMERATED",
+    "client_status": "OFFLINE_OR_UNCONFIRMED",
+    "fills_verified": 0,
+    "orders_written_by_this_run": 0
+  },
+  "review": {
+    "actual_gpt_full_reviews_independently_authenticated": "UNKNOWN",
+    "performed_market_research_review": "SOURCE_PINNED_QA_ONLY",
+    "pools_individually_forensically_verified": 0,
+    "unreviewed_reason": "No complete raw byte inventory and no authenticated issuer/sellability; do not infer pool-level trading readiness.",
+    "alternatives": [
+      "No trade and preserve immutable source evidence",
+      "Deferred risk review after source reconciliation"
+    ],
+    "precision": null,
+    "recall": null,
+    "missed_profit": null
+  },
+  "holdout": {
+    "end_utc": "2026-11-25T06:54:05.033Z",
+    "matured": false
+  },
+  "october_29h": {
+    "status": "DATA_GAP_NO_NEUTRAL_ASOF_SOURCES",
+    "backtest_started": false,
+    "oracle_used_as_seed": false
+  },
+  "limitations": [
+    "No complete immutable journal tree enumeration in this wake",
+    "Raw bytes not independently recomputed against all provider SHA256",
+    "No authenticated GPT run receipt or Windows client evidence",
+    "No latest CI regression for current HEAD independently inspected"
+  ],
+  "next_action": "Continue hourly source-pinned QA; validate five completed bounded captures with original raw SHA and completion gates, investigate Dot2 latest lag; no backtest until independent release gate READY."
+}
