@@ -121,3 +121,39 @@ test('00:00 can place isolated MODEL buy using two pre-midnight observations, ne
  assert.equal(r.confirmed_paper_orders,0);
  assert.equal(r.confirmed_paper_fills,0);
 });
+
+test('at 01:00 the bot may SELL an existing model lot and BUY a newly discovered coin with two prior observations',()=>{
+ const newCoin={chain:'base',contract:'0x'+'c'.repeat(40),
+  pool:'0x'+'d'.repeat(40),symbol:'NEW_0100'};
+ const oldCoin=coin;
+ const historical=(when,price,c)=>{
+  const s=synth(0,price);
+  s.coin=c;s.observed_at_utc=when;s.archived_at_utc=when;
+  s.discovery.observed_at_utc=when;s.risk.observed_at_utc=when;
+  s.quotes=s.quotes.map((q,i)=>({...q,...c,observed_at:when,
+   source_published_at_utc:when,
+   source_url:i===0?'https://dexscreener.com/base/'+c.pool:
+     'https://www.geckoterminal.com/base/pools/'+c.pool}));
+  return s;
+ };
+ const samples=[
+  historical('2026-10-11T23:40:00.000Z',1,oldCoin),
+  historical('2026-10-11T23:59:00.000Z',1.12,oldCoin),
+  historical('2026-10-12T00:30:00.000Z',1,newCoin),
+  historical('2026-10-12T00:59:00.000Z',1.12,newCoin),
+  historical('2026-10-12T00:59:10.000Z',1.50,oldCoin)
+ ];
+ const r=backtestOnRequest({date,manifest:input(samples),
+  firstScanAtStart:true,forceHourlyDiagnostic:true});
+ const t0=r.role_audit.dot4_strategy.timeline[0];
+ const t1=r.role_audit.dot4_strategy.timeline[1];
+ assert.equal(t0.at_utc,'2026-10-12T00:00:00.000Z');
+ assert.equal(t1.at_utc,'2026-10-12T01:00:00.000Z');
+ assert.ok(t0.actions.some(a=>a.action==='BUY'&&a.coin.symbol==='SYNTH'));
+ assert.ok(t1.actions.some(a=>a.action==='SELL'&&a.coin.symbol==='SYNTH'));
+ assert.ok(t1.actions.some(a=>a.action==='BUY'&&a.coin.symbol==='NEW_0100'));
+ assert.equal(r.model_replay_summary.buys,2);
+ assert.equal(r.model_replay_summary.sells,1);
+ assert.equal(r.historical_proven_trades,0);
+ assert.equal(r.confirmed_paper_fills,0);
+});
