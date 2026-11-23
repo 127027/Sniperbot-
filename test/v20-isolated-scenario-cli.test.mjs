@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 
 const execute=(args=[])=>{
- const process=spawnSync(process.execPath,
+ const child=spawnSync(process.execPath,
    ['scripts/v20-isolated-scenario-diagnostic.mjs',...args],
    {encoding:'utf8',timeout:10000});
- assert.equal(process.status,0,process.stderr);
- const line=process.stdout.trim();
+ assert.equal(child.status,0,child.stderr);
+ const line=child.stdout.trim();
  assert.ok(line.startsWith('R29_V20_OFFLINE_DIAGNOSTIC '));
  return JSON.parse(line.slice('R29_V20_OFFLINE_DIAGNOSTIC '.length));
 };
