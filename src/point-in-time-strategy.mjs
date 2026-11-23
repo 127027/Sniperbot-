@@ -112,6 +112,9 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
      status:'NO_TRADE',actions:[]};
    if(!fresh.size){sums.dataGap++;step.status='DATA_GAP_NO_FRESH_QUOTES';events.push(step);continue;}
    sums.available++;
+   // A sold position cannot immediately re-BUY on the exact same tick
+   // and recycled price quote. A later source observation/review is required.
+   const soldThisScan=new Set();
    // Open positions are examined hourly; no 6h delay until next full discovery review.
    for(const [key,position] of Object.entries(ledger.positions)){
      const candidate=fresh.get(key);
@@ -124,7 +127,8 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
      try{
        const settled=settlePaper(order,ledger,tick,paperPolicy);ledger=settled.state;
        if(settled.receipt.realized_pnl_test_usdc<0)lastRealizedLoss.set(key,at);
-       sums.sells++;step.status='SELL';step.actions.push({action:'SELL',reason:decision.reason,coin:candidate.coin,at_utc:at,
+       sums.sells++;soldThisScan.add(key);
+       step.status='SELL';step.actions.push({action:'SELL',reason:decision.reason,coin:candidate.coin,at_utc:at,
          simulated_price_usdc:settled.receipt.execution_price_usdc,realized_pnl_test_usdc:settled.receipt.realized_pnl_test_usdc,
          unified_decision_kind:decision.kind,paper_receipt_status:'SYNTHETIC_REPLAY_ONLY'});
      }catch(err){step.actions.push({action:'SELL_REJECTED',code:err instanceof Reject?err.code:'UNEXPECTED_ERROR',reason:decision.reason});}
@@ -133,7 +137,7 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
    // only from earlier records, never from a later daily winner table.
    if(due){
      for(const [key,candidate] of fresh.entries()){
-       if(ledger.positions[key])continue;
+       if(ledger.positions[key]||soldThisScan.has(key))continue;
        let prev=history.get(key)??null;
        const lookback=marketLookback.get(key);
        // New pools can have TWO or more real pre-scan observations since
