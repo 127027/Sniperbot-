@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "kind": "R29_DOT1_TEMPO_RESEARCH_ONLY",
+  "role": "dot-1-tempo",
+  "run_id": "dot1-automation11-20261123T220627147Z",
+  "actual_gpt_execution_utc": "2026-11-23T22:06:27.147Z",
+  "virtual_historical_utc": null,
+  "execution_origin": "GPT_SELF_REPORTED",
+  "independent_gpt_execution_receipt": false,
+  "status": "DATA_GAP",
+  "source_run_id": "45258147195",
+  "source_capture_utc": "2026-11-23T20:19:23.151Z",
+  "input_refs": [
+    {
+      "path": "research/state/latest.json",
+      "blob_sha": "55c12d4e2c8a7ebf897c367463653da603881207",
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/state/latest.json",
+      "captured_at_utc": "2026-11-23T20:19:23.151Z",
+      "read_at_utc": "2026-11-23T22:06:27.147Z"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "blob_sha": "885746fdc33ebe19676b5675376019bc161858e5",
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/feeds/latest.json",
+      "captured_at_utc": "2026-11-23T20:19:23.151Z",
+      "read_at_utc": "2026-11-23T22:06:27.147Z"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "blob_sha": "92428ea46bd32a2f648ada3c35a2b117e93c6572",
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/state/provider-budget.json",
+      "captured_at_utc": "2026-11-23T20:19:23.151Z",
+      "read_at_utc": "2026-11-23T22:06:27.147Z"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45258147195/evidence.json",
+      "blob_sha": "160c7336f8000ed54227feea1e88528e0aeab611",
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/feeds/2026-11-23/45258147195/evidence.json",
+      "captured_at_utc": "2026-11-23T20:19:23.151Z",
+      "read_at_utc": "2026-11-23T22:06:27.147Z"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45258147195/page-coverage-report.json",
+      "blob_sha": "1a3939168f3972e4f6030cad85e6b236c43a650a",
+      "url": "https://github.com/127027/Sniperbot-/blob/codex/r29-cleanroom-paper-20261121/research/feeds/2026-11-23/45258147195/page-coverage-report.json",
+      "captured_at_utc": "2026-11-23T20:19:23.151Z",
+      "read_at_utc": "2026-11-23T22:06:27.147Z"
+    }
+  ],
+  "chains_reviewed_from_existing_coverage": [
+    "solana",
+    "base",
+    "ethereum",
+    "bsc",
+    "robinhood",
+    "cronos"
+  ],
+  "chains_with_new_pool_page_in_latest_capture": [],
+  "latest_attempted_chain": "cronos",
+  "latest_attempted_page": 6,
+  "metrics": {
+    "persisted_pools": 982,
+    "first_dot2_detected": 587,
+    "observation_batches": 207,
+    "latest_new_pools": 0,
+    "dex_rechecks": 6,
+    "indicative_cross_provider_complete": 0,
+    "verified_same_pool_hourly_deltas": 0,
+    "verified_media_acceleration": 0,
+    "gecko_http_status": 200,
+    "gecko_429_consecutive": 0,
+    "gecko_cooldown_until_utc": null,
+    "independently_verified_gpt_reviews_in_http_jobs": 0,
+    "quiet_checks": 0
+  },
+  "cadence_recommendation": 4,
+  "rejected_cadences": [
+    8,
+    12,
+    24
+  ],
+  "reason": "No fresh independently time-aligned same-pool hourly price/volume/liquidity comparisons or timestamped news acceleration; zero new pools in one bounded Cronos page does not prove quiet. 4 is a conservative target, not a count of completed reviews.",
+  "reassess": "Next existing hourly research wake when new Dot2 evidence is persisted; raise directly to 24 if independently verified strong acceleration, reduce only after consecutive proven quiet checks.",
+  "not_checked": [
+    "No new HTTP/provider requests by Dot1",
+    "No full six-chain fresh coverage",
+    "No authenticated GPT execution receipt",
+    "No independent issuer or empirical sellability",
+    "No backtest or order execution"
+  ],
+  "market_identity_for_unresolved": "UNKNOWN",
+  "orders_created": 0,
+  "paper_fills": 0
+}
