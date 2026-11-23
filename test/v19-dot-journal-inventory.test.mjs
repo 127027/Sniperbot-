@@ -290,3 +290,42 @@ test('explicit Dot2 capture pending without authenticated GPT receipt is not a c
  d.status='COMPLETED';
  assert.equal(isPendingDot2ForensicPointer(d),false);
 });
+
+test('real new Dot1 and Dot5 role-native self-reported journals are valid schemas but NOT independently authenticated',async()=>{
+ const p=build();
+ p.asOfUtc='2026-11-23T19:30:00.000Z';
+ for(const role of ['dot-1','dot-5']){
+  const pointer=JSON.parse(await readFile('research/latest/'+role+'.json','utf8'));
+  const raw=await readFile(pointer.journal_path,'utf8');
+  p.latestByRole[role]=pointer;
+  p.rawJournalsByPath[pointer.journal_path]=raw;
+  assert.equal(h(raw),pointer.journal_blob_sha);
+ }
+ const out=auditLiveFiveDotJournalInventory(p);
+ for(const role of ['dot-1','dot-5']){
+  const row=out.roles.find(r=>r.role===role);
+  assert.equal(row.immutable_bytes_match,true);
+  assert.equal(row.genuine_gpt_review_independently_authenticated,false);
+  assert.ok(!row.problems.some(x=>x.code==='JOURNAL_SCHEMA_MISSING'),role);
+ }
+ assert.ok(out.roles[0].problems.some(x=>x.code==='JOURNAL_TIME_CONTRADICTION'),
+  'real Dot1 pointer still predates actual self-reported GPT execution and is not auto-repaired');
+ assert.equal(out.verified_live_gpt_runs,0);
+});
+test('Dot1/5 native schema requires zero paper fills and no backtest; cannot self-promote',()=>{
+ const p=build();
+ const role='dot-5';
+ const path='research/audits/dot-traces/2026-11-22/test-native-control/dot-5-control.json';
+ const raw=JSON.stringify({
+   schema:1,role:'dot-5-control',gpt_execution_identity:'UNVERIFIED',
+   execution_origin:'GPT_SELF_REPORTED',actual_execution_utc:'2026-11-22T21:40:00.000Z',
+   orders_written:0,paper_fills_verified:1,backtest_executed:false
+ });
+ p.latestByRole[role].journal_path=path;
+ p.latestByRole[role].journal_blob_sha=h(raw);
+ p.latestByRole[role].forensic_trace_path=path;
+ p.rawJournalsByPath[path]=raw;
+ const result=auditLiveFiveDotJournalInventory(p);
+ assert.ok(result.roles[4].problems.some(x=>x.code==='JOURNAL_SCHEMA_MISSING'));
+ assert.equal(result.verified_live_gpt_runs,0);
+});
