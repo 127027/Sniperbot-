@@ -2,40 +2,47 @@
   "schema": 1,
   "dot": "dot-2",
   "mode": "PAPER_RESEARCH_ONLY",
-  "status": "CAPTURE_PENDING_DATA_GAP",
-  "updated_at_utc": "2026-11-23T15:16:27Z",
-  "capture_request_path": "research/requests/2026-11-23/20261123T151627Z-dot2-research.json",
-  "feed_is_current_request": false,
-  "source_run_id": null,
-  "captured_at_utc": null,
-  "source_chain": null,
-  "source_page": null,
-  "evidence_path": null,
-  "handoff_path": null,
-  "full_contract_candidates": null,
+  "status": "SOURCE_CAPTURE_COMPLETED_GPT_RECEIPT_UNVERIFIED_DATA_GAP",
+  "updated_at_utc": "2026-11-23T16:19:17.166Z",
+  "capture_request_path": "research/requests/2026-11-23/20261123T161748Z-dot2-research.json",
+  "feed_is_current_request": true,
+  "source_run_id": "45215107047",
+  "captured_at_utc": "2026-11-23T16:19:17.166Z",
+  "source_chain": "base",
+  "source_page": 1,
+  "evidence_path": "research/feeds/2026-11-23/45215107047/evidence.json",
+  "handoff_path": "research/feeds/2026-11-23/45215107047/dot2-to-dot3-handoff.json",
+  "full_contract_candidates": 20,
   "market_memory_path": "research/state/market-memory.json",
-  "market_memory_stats": null,
-  "checkpoint_path": null,
+  "market_memory_stats": {
+    "total_discovered": 940,
+    "total_observation_batches": 195,
+    "contracts_complete": 940,
+    "unresolved_identity_conflicts": 0,
+    "first_dot2_detected_count": 545,
+    "archive_reconstructed_count": 0
+  },
+  "checkpoint_path": "research/state/checkpoints/45215107047.json",
   "pending_queue_path": "research/state/market-memory.json",
   "errors": [
     {
-      "code": "CAPTURE_PENDING",
-      "detail": "15:16 UTC request has no verified HTTP completion at journal creation"
+      "code": "DATA_GAP_RISK_UNVERIFIED",
+      "detail": "No independent issuer, upstream quote time or chain sellability proof"
     },
     {
-      "code": "DATA_GAP_RISK_UNVERIFIED",
-      "detail": "Independent issuer, upstream quote as-of and sellability missing"
+      "code": "GPT_EXECUTION_RECEIPT_UNVERIFIED",
+      "detail": "Provider HTTP completion is not a GPT full-review receipt"
     }
   ],
   "trading_ready": false,
   "orders_created": 0,
-  "capture_request_commit_sha": "73709f2cbe19f17cd4311196bc093a4ffb31479e",
-  "new_pool_count_this_wake": 0,
-  "full_contract_candidates_this_wake": 0,
+  "capture_request_commit_sha": "f0e90ed2f9a15ec8468648ff8ed0a30bca06b5f3",
+  "new_pool_count_this_wake": 20,
+  "full_contract_candidates_this_wake": 20,
   "paper_fills_claimed": 0,
   "backtest_executed": false,
-  "forensic_audit_path": "research/audits/dot-traces/2026-11-23/20261123T151627Z-dot2-research/dot-2-discovery.json",
-  "forensic_audit_blob_sha": "f31d06c57e461855288252c94b175fb7e389c464",
+  "forensic_audit_path": "research/audits/dot-traces/2026-11-23/20261123T161748Z-dot2-research/dot-2-discovery.json",
+  "forensic_audit_blob_sha": "42170ca1c6c85236531ed082109fb5fc44788dbf",
   "prior_capture_market_memory_stats": {
     "total_discovered": 900,
     "total_observation_batches": 189,
@@ -47,18 +54,22 @@
   "prior_capture_checkpoint_path": "research/state/checkpoints/45192931339.json",
   "capture_state_reconciled_at_utc": "2026-11-23T04:20:00.723Z",
   "capture_state_origin": "PENDING_NEW_REQUEST_PRIOR_CAPTURE_PRESERVED_SEPARATELY",
-  "handoff_counts": null,
+  "handoff_counts": {
+    "full_contracts": 20,
+    "observations": 20,
+    "trade_eligible": 0
+  },
   "authentic_gpt_review_receipt": false,
   "previous_capture_source_run_id": "45104744515",
   "previous_capture_stats_are_not_current_request": true,
   "prior_capture_source_run_id": "45192931339",
-  "capture_reconciliation_journal_path": "research/journal/dot-2/2026-11-23/20261123T041911265Z-dot2-research-source-reconciliation.json",
-  "capture_reconciliation_journal_blob_sha": "fae9908b5bc09c4cfce3efd145682a139e6901bf",
+  "capture_reconciliation_journal_path": "research/audits/dot-traces/2026-11-23/20261123T161748Z-dot2-source-completion/dot-2-discovery.json",
+  "capture_reconciliation_journal_blob_sha": "1a14e8e114d0cfe18d410def1cb1e0d37b0f2292",
   "prior_capture_handoff_counts": {
     "full_contracts": 11,
     "observations": 11,
     "trade_eligible": 0
   },
-  "journal_blob_sha": "f31d06c57e461855288252c94b175fb7e389c464",
+  "journal_blob_sha": "42170ca1c6c85236531ed082109fb5fc44788dbf",
   "prior_capture_evidence_path": "research/feeds/2026-11-23/45192931339/evidence.json"
 }
