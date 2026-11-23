@@ -52,17 +52,19 @@ export function inspectPredecisionKnowledge({
    if(!chain||!tokenValid(chain,s.contract)||!poolValid(chain,s.pool,s.pool_kind)){
      excluded.invalid_identity_or_type++;continue;
    }
-   if(s.source_class==='ORIGINAL_CAPTURE'&&(!sha(s.source_archive_sha)
+   const sourceClass=s.source_class??(s.provenance==='CONTEMPORANEOUS_RECORD'
+     ?'ORIGINAL_CAPTURE':s.provenance==='SYNTHETIC_TEST'?'SYNTHETIC_TEST':null);
+   if(sourceClass==='ORIGINAL_CAPTURE'&&(!sha(s.source_archive_sha)
      ||s.provenance!=='CONTEMPORANEOUS_RECORD')){
      excluded.invalid_source_or_time++;continue;
    }
-   if(s.source_class==='SYNTHETIC_TEST'&&s.provenance!=='SYNTHETIC_TEST'){
+   if(sourceClass==='SYNTHETIC_TEST'&&s.provenance!=='SYNTHETIC_TEST'){
      excluded.invalid_source_or_time++;continue;
    }
    // Event time can be much older than the five-hour warmup; the archived
    // bytes and available time MUST nevertheless precede this virtual tick.
    const verdict=classifyAsOfEvidence({
-     source_class:s.source_class,provenance:s.provenance,
+     source_class:sourceClass,provenance:s.provenance,
      event_at_utc:s.event_at_utc,
      archived_at_utc:s.archived_at_utc,
      available_at_utc:s.available_at_utc
@@ -87,6 +89,8 @@ export function inspectPredecisionKnowledge({
  for(const m of lookback.markets){
    // The original lookback key is chain:contract:pool.
    add(m.key,'PAST_QUOTE_FEATURE',m.latest_observed_at_utc,'HISTORICAL_PRICE_FEATURE');
+   if(warmup!==null&&asOfMillis(m.first_observed_at_utc)<warmup)
+     markets.get(m.key).before_warmup_knowledge=true;
  }
  const all=[...markets.values()].map(m=>({
    market_key:m.market_key,first_known_at_utc:m.first_known_at_utc,
