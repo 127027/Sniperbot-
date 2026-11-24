@@ -10,13 +10,14 @@ import {buildAsOfLookback} from './v19-asof-lookback.mjs';
 import {inspectPredecisionKnowledge} from './v22-predecision-market-knowledge.mjs';
 import {planDataGapRecovery} from './v19-coverage-recovery.mjs';
 import {measureDot1Activity} from './v19-market-activity.mjs';
+import {normalizeV29ResearchCandidateFrames,researchPreviewAt} from './v29-retro-research-bridge.mjs';
 
 const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 const ms=value=>typeof value==='string'&&ISO.test(value)&&Number.isFinite(Date.parse(value))?Date.parse(value):null;
 const iso=value=>new Date(value).toISOString();
 import {checkUnifiedEvidence as gate,makeReplayCheckOrder as policyOrder} from './v18-shared-evidence-gate.mjs';
 export function replaySignalDecisions({date,snapshots=[],activityObservations=[],activityPageCaptures=[],marketKnowledgeEvents=[],targetPer24h=4,forceHourlyReview=false,params={},paperPolicy=DEFAULT_POLICY,
- firstScanAtStart=false}){
+ firstScanAtStart=false,researchOnlyCandidateFrames=[]}){
  if(typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date+'T00:00:00Z')))
    throw Error('INVALID_DATE');
  if(![4,8,12,24].includes(targetPer24h))throw Error('INVALID_TARGET');
@@ -30,6 +31,7 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
   ||!Number.isFinite(paperPolicy.startingBalance)||paperPolicy.startingBalance<paperPolicy.entryAmount
   ||!Number.isInteger(paperPolicy.maxPositions)||paperPolicy.maxPositions<1)
   throw Error('INVALID_SHARED_REPLAY_PAPER_POLICY');
+ const researchOnlyByTick=normalizeV29ResearchCandidateFrames(researchOnlyCandidateFrames);
  const state=newState(paperPolicy),initial=state.cash,events=[],sums={dataGap:0,available:0,fullReviews:0,buys:0,sells:0};
  let ledger=state,lastReview=null,sequence=0,currentTarget=targetPer24h,cadenceState=null;
  const history=new Map(),lastRealizedLoss=new Map();
@@ -118,7 +120,10 @@ export function replaySignalDecisions({date,snapshots=[],activityObservations=[]
      snapshots:eligibleMomentumHistory,asOfUtc:at});
    const marketLookback=new Map(validatedMomentumFeatures.markets.map(x=>[x.key,x]));
    const gapRecovery=planDataGapRecovery({asOfUtc:at,activityObservations});
+   const researchOnlyReview=researchPreviewAt(researchOnlyByTick,at);
    const step={at_utc:at,full_review:due,target_per_24h:currentTarget,cadence_reason:cadence.reason,
+     dot2_research_only_candidate_review:researchOnlyReview,
+     research_candidates_never_promoted_to_executable_snapshot:true,
      measured_page_activity:measured,
      cadence_quiet_confirmations:cadenceState?.quiet_confirmations??0,
      asof_discovery_pools_last_60m:discovered,
