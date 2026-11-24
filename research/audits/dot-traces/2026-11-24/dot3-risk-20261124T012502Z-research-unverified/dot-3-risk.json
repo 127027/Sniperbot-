@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "kind": "R29_DOT_FORENSIC_RESEARCH_TRACE",
+  "role": "dot-3-risk",
+  "run_id": "dot3-risk-20261124T012502Z-research-unverified",
+  "gpt_run_identity": "UNVERIFIED",
+  "executed_at_utc": "2026-11-24T01:25:02Z",
+  "time_basis": "provided actual wake timestamp, not historical replay",
+  "mode": "PUBLIC_RESEARCH_ONLY",
+  "inputs": [
+    {
+      "path": "docs/R29_FIVE_DOT_FORENSIC_BACKTEST_PROTOCOL_20261122.md",
+      "git_blob_sha": "3f7ba1977cb0df637fd3c7486897aa11780bea97"
+    },
+    {
+      "path": "docs/R29_NEXT_CHAT_HANDOFF.md",
+      "git_blob_sha": "77238cb23435093b48fc9b634a9d1674d5fccff9"
+    },
+    {
+      "path": "docs/V19_46_PARTIAL_ACCEPTANCE_AND_NEXT_BACKTEST_PLAN_20261122.md",
+      "git_blob_sha": "8becade5b6ff5e91017c0a0836741d7aa77e09bd"
+    },
+    {
+      "path": "AGENTS.md",
+      "git_blob_sha": "83a197c5d3dbd80f7f64e0600da70f1ff59b51bd"
+    },
+    {
+      "path": "research/state/latest.json",
+      "git_blob_sha": "55c12d4e2c8a7ebf897c367463653da603881207"
+    },
+    {
+      "path": "research/feeds/latest.json",
+      "git_blob_sha": "885746fdc33ebe19676b5675376019bc161858e5"
+    },
+    {
+      "path": "research/state/provider-budget.json",
+      "git_blob_sha": "92428ea46bd32a2f648ada3c35a2b117e93c6572"
+    },
+    {
+      "path": "research/state/prospective-holdout-freeze.json",
+      "git_blob_sha": "93b0ba39c91d5724a3317b3588b93f0b9b5c8a7d"
+    },
+    {
+      "path": "src/v19-honeypot-risk-research.mjs",
+      "git_blob_sha": "36b12b8c916186726c13567cb9db4165b4f06227"
+    },
+    {
+      "path": "research/feeds/2026-11-22/45066522539/honeypot-research-evidence.json",
+      "git_blob_sha": "35062eb09b1533f000d4741f0b9c3cfec46ae26c"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45258147195/dot2-to-dot3-handoff.json",
+      "git_blob_sha": "ad3546c300ca2539a3fdc9cd4fc44684c319be8e"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45258147195/dot3-next-evidence-rechecks.json",
+      "git_blob_sha": "7d793a29c8ecbf2c178b9004129a95370c9f2dda"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45258147195/dot3-research-risk-status-preview.json",
+      "git_blob_sha": "89995dc77a26a732795240f12a5834d815c89025"
+    },
+    {
+      "path": "research/feeds/2026-11-23/45258147195/evidence.json",
+      "git_blob_sha": "160c7336f8000ed54227feea1e88528e0aeab611"
+    }
+  ],
+  "source_capture_utc": "2026-11-23T20:19:23.151Z",
+  "source_published_utc": null,
+  "source_available_utc": null,
+  "source_chain": "cronos",
+  "source_page": 6,
+  "reviewed_candidates": [],
+  "candidate_count": 0,
+  "counts": {
+    "WATCH": 0,
+    "DATA_GAP": 0,
+    "REJECTED": 0,
+    "PAPER_ELIGIBLE": 0
+  },
+  "market_memory": {
+    "pools": 982,
+    "first_dot2_detected": 587
+  },
+  "status": "DATA_GAP",
+  "reason": "No fresh handoff or selected rechecks; capture age exceeds five hours. Empty queue is not market coverage.",
+  "alternatives": [
+    "Repeat stale Base checks: rejected because no fresh evidence",
+    "Direct provider calls: not performed to preserve shared budget and avoid duplicate research"
+  ],
+  "missing": [
+    "fresh Dot2 capture",
+    "independent quote timestamps and upstreams",
+    "D3-04 independent issuer",
+    "D3-05 empirical sellability"
+  ],
+  "historical_research": "V2.8 documents four third-party sells, zero validated historical executable quotes; raw transaction bytes not revalidated this wake",
+  "provider_budget": {
+    "last_gecko_http": 200,
+    "last_gecko_cooldown": null,
+    "new_requests": 0,
+    "new_429": 0
+  },
+  "follow_up": {
+    "retry": "next regular research wake",
+    "deadline_utc": "2026-11-24T02:25:02Z",
+    "requested_correction": "Fresh budgeted Dot2 capture and exact pool handoff; do not repeat 192-mint research; obtain independent issuer, historical buy and complete AMM state."
+  },
+  "holdout_end_utc": "2026-11-25T06:54:05.033Z",
+  "authenticated_gpt_reviews": 0,
+  "orders_created": 0,
+  "actual_paper_fills": 0,
+  "trade_authorized": false,
+  "backtest_executed": false,
+  "automation_changed": false
+}
