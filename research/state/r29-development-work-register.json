@@ -54,11 +54,20 @@
     {
       "id": "R29-W03",
       "priority": "P1",
-      "status": "OPEN",
+      "status": "IN_PROGRESS",
       "title": "Decode existing six historical transactions and reconstruct feasible historical quote inputs",
       "acceptance": "Use run 45351015863 raw receipts; identify mint/pool/flow/fees and complementary evidence; explicit missing fields; no invented price; no hidden candidate truncation.",
       "depends_on": [],
-      "claim": null,
+      "claim": {
+        "owner": "chat-w03-w04-risk-and-decision-20261124",
+        "input_commit": "2c69f3b0709400db0578995401c53de19e5f28d8",
+        "expected_evidence": "Bounded mint initialization/authority history and first shared decision review using verified reserve and FX inputs; isolated model ledger tests only",
+        "paths": [
+          "src/r29-historical-mint-risk.mjs",
+          "src/r29-historical-review-ledger.mjs",
+          "scripts/r29-w04-first-review.mjs"
+        ]
+      },
       "last_evidence": {
         "source_run": 45351015863,
         "economic_flow_run": 45384807888,
@@ -90,14 +99,23 @@
     {
       "id": "R29-W04",
       "priority": "P1",
-      "status": "OPEN",
+      "status": "IN_PROGRESS",
       "title": "Vertical slice: causal historical GPT review and isolated model ledger",
       "acceptance": "One suitable candidate through common strategy, valid as-of inputs, genuine current review documented, model action or reasoned no trade; no client writes.",
       "depends_on": [
         "R29-W01",
         "R29-W03"
       ],
-      "claim": null,
+      "claim": {
+        "owner": "chat-w03-w04-risk-and-decision-20261124",
+        "input_commit": "2c69f3b0709400db0578995401c53de19e5f28d8",
+        "expected_evidence": "Bounded mint initialization/authority history and first shared decision review using verified reserve and FX inputs; isolated model ledger tests only",
+        "paths": [
+          "src/r29-historical-mint-risk.mjs",
+          "src/r29-historical-review-ledger.mjs",
+          "scripts/r29-w04-first-review.mjs"
+        ]
+      },
       "last_evidence": null
     },
     {
