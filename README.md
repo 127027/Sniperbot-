@@ -1,6 +1,6 @@
 # R29 Cleanroom V0.2 — unabhängiger GitHub-Signalhub + eigene Paper-Clients
 
-> **R29 V1.9 – START FÜR NEUE CHATS UND AGENTEN:** [AGENTS.md](AGENTS.md) → [aktuelle GitHub-Übergabe](docs/R29_NEXT_CHAT_HANDOFF.md) → [V1.9-Fortschritt (x/61)](docs/V19_IMPLEMENTATION_PROGRESS.md) → [61-Punkte-Baustellenplan](docs/V19_BAUSTELLEN_5DOTS_29H_BACKTEST_AUDIT.md). **Diese Dokumente vor Änderungen live aus dem Cleanroom-Branch lesen.** Die frühere V0.2-Beschreibung unten dokumentiert die Grundstruktur, nicht den aktuellen V1.9-Abnahmestand. Alle fünf Dots sind bis zur gesonderten Freigabe **pausiert**, nur On-Demand-Replay und keine echten Paper-Orders.
+> **ZUERST LESEN — R29 STOP THE LOOP (24.11.2026):** [Verbindliche Ursachenanalyse und Arbeitsreihenfolge](docs/R29_START_HERE_STOP_THE_LOOP.md) → [zentrales Aufgabenregister](research/state/r29-development-work-register.json) → [AGENTS.md](AGENTS.md). Keine Wiederholung abgeschlossener Aufgaben. Aktuelle Dot-Zustände live prüfen, nicht aus alten README-Texten ableiten. Keine Orders oder Echtgeld durch diese Dokumentation.
 
 
 **PAPER ONLY.** Vollständig neu geschriebener Bot-Code auf Branch `codex/r29-cleanroom-paper-20261121` im Repo `127027/Sniperbot-`. Der alte Bot, sein Guthaben von 4.999,01 TEST-USDC, main und die alten Workflows bleiben unberührt. Keine Wallet, keine DEX-Trades, keine Echtgeldfunktion, keine externen Markt-/OpenAI-APIs im lokalen Client.

@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "kind": "R29_CANONICAL_DEVELOPMENT_WORK_REGISTER",
+  "branch": "codex/r29-cleanroom-paper-20261121",
+  "baseline_commit": "d015d8a22c812cee5ba94fce7d2da48f65780315",
+  "baseline_runs": [
+    45266204458,
+    45272055484,
+    45283823647,
+    45345154849,
+    45348562128,
+    45351015863
+  ],
+  "original_nonbacktest_acceptance": {
+    "pass": 13,
+    "total": 60,
+    "pct": 21.67,
+    "source": "research/audits/2026-11-22/r29-v19-offline-61-task-reconciliation.json",
+    "is_frozen": true
+  },
+  "coordination": {
+    "protocol": "documented_claim_cas",
+    "runtime_guard_implemented": false,
+    "claim_requires_current_head": true,
+    "duplicate_same_input_run_forbidden": true
+  },
+  "tasks": [
+    {
+      "id": "R29-W01",
+      "priority": "P0",
+      "status": "OPEN",
+      "title": "Separate historical research simulation from formal product release; positive evidence verifier",
+      "acceptance": "Contract and isolated tests demonstrate valid positive path, reject missing/tampered evidence, keep production gates fail-closed; no orders.",
+      "depends_on": [],
+      "claim": null,
+      "last_evidence": null
+    },
+    {
+      "id": "R29-W02",
+      "priority": "P0",
+      "status": "OPEN",
+      "title": "Evidence-based original task reconciliation and enforce duplicate-work coordination",
+      "acceptance": "Original 61 ids retained; PASS derived from verified evidence; two competing claims cannot both succeed; no duplicate run on same input without documented fix.",
+      "depends_on": [],
+      "claim": null,
+      "last_evidence": null
+    },
+    {
+      "id": "R29-W03",
+      "priority": "P1",
+      "status": "OPEN",
+      "title": "Decode existing six historical transactions and reconstruct feasible historical quote inputs",
+      "acceptance": "Use run 45351015863 raw receipts; identify mint/pool/flow/fees and complementary evidence; explicit missing fields; no invented price; no hidden candidate truncation.",
+      "depends_on": [],
+      "claim": null,
+      "last_evidence": null
+    },
+    {
+      "id": "R29-W04",
+      "priority": "P1",
+      "status": "OPEN",
+      "title": "Vertical slice: causal historical GPT review and isolated model ledger",
+      "acceptance": "One suitable candidate through common strategy, valid as-of inputs, genuine current review documented, model action or reasoned no trade; no client writes.",
+      "depends_on": [
+        "R29-W01",
+        "R29-W03"
+      ],
+      "claim": null,
+      "last_evidence": null
+    },
+    {
+      "id": "R29-W05",
+      "priority": "P2",
+      "status": "BLOCKED",
+      "title": "24-hour research backtest with new valid input, compare to frozen V2.10",
+      "acceptance": "24-hour ledger with actions, time, fees, PnL and gaps; no fabricated trades; explicit separation from QA-04.",
+      "depends_on": [
+        "R29-W01",
+        "R29-W03",
+        "R29-W04"
+      ],
+      "claim": null,
+      "last_evidence": null
+    },
+    {
+      "id": "R29-W06",
+      "priority": "P2",
+      "status": "BLOCKED",
+      "title": "Independent holdout and prospective five-role GPT/Windows paper acceptance",
+      "acceptance": "Independent prospective evidence, no live orders, original release criteria verified.",
+      "depends_on": [
+        "R29-W05"
+      ],
+      "claim": null,
+      "last_evidence": null
+    }
+  ],
+  "next_task": "R29-W01",
+  "historical_retest_with_same_empty_trade_inputs": "DO_NOT_REPEAT"
+}
