@@ -64,7 +64,7 @@ if(events.length!==24||screens!==61
  ||report.model_replay_summary.sells!==0
  ||report.model_replay_summary.dataGap!==24
  ||report.confirmed_paper_orders!==0||report.confirmed_paper_fills!==0
- ||report.historical_gpt_dot_runs!==0||report.model_open_positions.length!==0
+ ||report.historical_gpt_dot_runs!==0||report.model_open_positions!==0
  ||report.model_ending_cash_test_usdc!==5000)
  throw Error('V29_INTEGRATED_STRATEGY_MISREPORTED_TRADE_OR_SOURCE');
 const rows=events.map((e,i)=>{
