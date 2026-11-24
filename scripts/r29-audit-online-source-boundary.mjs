@@ -1,0 +1,10 @@
+import {readFile,mkdir,writeFile} from 'node:fs/promises';import {marketReviewBoundary,verifyReplayObservation} from '../src/r29-market-source-boundary.mjs';
+const root='research/feeds/2026-11-23/45246727202/evidence.json',feed=JSON.parse(await readFile(root,'utf8'));
+const receipts=await Promise.all(feed.api_evidence.map(async receipt=>({receipt,raw:await readFile(receipt.body_path),scanStartedUtc:feed.requested_at_utc})));
+const original=marketReviewBoundary({mode:'LIVE_PAPER',scanId:'archived-capture-original-clock',tickUtc:feed.captured_completed_at_utc,onlineReceipts:receipts,requiredProviders:['GECKOTERMINAL','DEXSCREENER']});
+const current=new Date().toISOString(),stale=marketReviewBoundary({mode:'LIVE_PAPER',scanId:'actual-audit-now',tickUtc:current,onlineReceipts:receipts.map(r=>({...r,scanStartedUtc:new Date(Date.parse(current)-600000).toISOString()})),requiredProviders:['GECKOTERMINAL','DEXSCREENER']});
+const q=JSON.parse(await readFile('research/audits/2026-11-24/r29-w03-50usdc-model-quotes.json','utf8')),fx=q.fx,raw=await readFile(q.original_fx_raw_path);
+const replay=verifyReplayObservation({raw,expectedSha256:q.receipt.source_sha256,eventAtUtc:fx.candle_end_utc,modeledAvailableAtUtc:fx.modeled_available_at_utc,virtualTickUtc:q.tick_utc});
+if(original.current_observation_count!==7||stale.current_observation_count!==0||replay.status!=='RECONSTRUCTED_ASOF_OBSERVATION')throw Error('UNEXPECTED_ACTUAL_BOUNDARY_RESULT');
+const report={kind:'R29_ACTUAL_SOURCE_BOUNDARY_AUDIT',original_feed:root,original_capture:original,current_audit:stale,replay_fx:replay,external_market_calls:0,actual_dot_invocations:0,valid_backtest_scans:0,orders:0};
+await mkdir('probe-artifacts/r29-online-boundary',{recursive:true});await writeFile('probe-artifacts/r29-online-boundary/report.json',JSON.stringify(report,null,2)+'\n');console.log('R29_SOURCE_BOUNDARY_RESULT',JSON.stringify(report));

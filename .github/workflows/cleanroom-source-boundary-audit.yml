@@ -1,0 +1,25 @@
+name: R29 online and replay source boundary audit
+on:
+  push:
+    branches: [codex/r29-cleanroom-paper-20261121]
+    paths: ['research/source-boundary-audit-requests/**']
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test test/r29-market-source-boundary.test.mjs
+      - run: node scripts/r29-audit-online-source-boundary.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r29-online-boundary-audit
+          path: probe-artifacts/r29-online-boundary/
+          retention-days: 30
