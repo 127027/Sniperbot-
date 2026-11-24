@@ -1,0 +1,51 @@
+name: R29 user requested historical start and 24 input frames
+on:
+  push:
+    branches: [codex/r29-cleanroom-paper-20261121]
+    paths: ['research/user-backtest-start-requests/**']
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: r29-user-backtest-start
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Verify explicit request
+        run: |
+          python - <<'PY'
+          import os,json,subprocess
+          from pathlib import Path
+          paths=subprocess.check_output(['git','diff-tree','--no-commit-id','--name-only','-r',os.environ['GITHUB_SHA']],text=True).splitlines()
+          assert len(paths)==1 and paths[0].startswith('research/user-backtest-start-requests/')
+          q=json.loads(Path(paths[0]).read_text())
+          assert q=={'kind':'R29_USER_BACKTEST_START','day_utc':'2026-10-12','scans':24,'paper_only':True,'no_live_orders':True}
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          name: r29-v4-october-all-launches-prefundamental-48h-neutral
+          run-id: '44265274289'
+          github-token: ${{ github.token }}
+          path: /tmp/r29-v42-original
+      - name: Prepare and verify separately partitioned historical inputs
+        run: python scripts/r29-stage-user-backtest-frames.py /tmp/r29-v42-original research/replay-vault/2026-10-12
+      - name: Persist input frames (not a completed trading backtest)
+        run: |
+          test -z "$(git status --porcelain -- signals runner)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f research/replay-vault/2026-10-12
+          git commit -m "R29 preserve 24 distinct historical candidate frames and blocked start report"
+          git push origin HEAD:refs/heads/codex/r29-cleanroom-paper-20261121
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-user-backtest-start
+          path: research/replay-vault/2026-10-12/manifest.json
+          retention-days: 30
