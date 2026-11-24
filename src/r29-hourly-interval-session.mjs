@@ -45,10 +45,12 @@ export function commitIntervalDecision({session:s,preparation,roleReviews,decisi
  // candidate. The historical risk/quote verifier still decides whether a model fill is permitted.
  for(const d of decisions||[]){
   if(d.action==='BUY'){
+   if(d.entryInput?.strategyPolicy!=='GPT_RESEARCH_V1')throw Error('GPT_RESEARCH_POLICY_REQUIRED');
    const c=preparation.candidates.find(c=>c.mint===d.mint);
    if(!digest(c?.entry_input_sha256)||sha(d.entryInput)!==c.entry_input_sha256)throw Error('ENTRY_INPUT_NOT_BOUND_TO_PREPARATION');
   }
   if(d.action==='SELL'){
+   if(d.exitInput?.strategyPolicy!=='GPT_RESEARCH_V1')throw Error('GPT_RESEARCH_POLICY_REQUIRED');
    const c=preparation.candidates.find(c=>c.mint===d.mint);
    if(!digest(c?.exit_input_sha256)||sha(d.exitInput)!==c.exit_input_sha256)throw Error('EXIT_INPUT_NOT_BOUND_TO_PREPARATION');
   }

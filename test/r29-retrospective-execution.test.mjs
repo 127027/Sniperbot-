@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {evaluateRetrospectiveEntry,applyRetrospectiveEntry,applyRetrospectiveExit,emptyRetrospectiveLedger,latestObservedCurve,settleRetrospectivePending} from '../src/r29-retrospective-execution.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';import {evaluateRetrospectiveEntry,evaluateRetrospectiveExit,applyRetrospectiveEntry,applyRetrospectiveExit,emptyRetrospectiveLedger,latestObservedCurve,settleRetrospectivePending} from '../src/r29-retrospective-execution.mjs';
 const tickUtc='2026-10-12T01:00:00Z',mint='fixture-mint',pool='fixture-pool';
 const p={virtual_sol:'33000000000',virtual_token:'960000000000000',real_sol:'3000000000',real_token:'680000000000000'};
 const earlier={receipt_id:1,slot:1,mint,pool,signature:'sell',block_time_utc:'2026-10-12T00:55:00Z',source_sha256:'a'.repeat(64),post:{...p,virtual_sol:'30000000000',virtual_token:'1000000000000000'},side:'SELL',event_flow_verified:true};
@@ -35,4 +35,20 @@ test('near-empty independent real liquidity cannot be replaced by hypothetical o
 test('same-second terminal selection needs exact linked vault/reserve transitions',()=>{
  const v={token_offset:'1',sol_offset:'1'},a={...earlier,slot:5,block_time_utc:later.block_time_utc,pre:p,post:{...p,real_sol:'100'},vault:{...v,token_pre:'4',token_post:'3',sol_pre:'4',sol_post:'3'}},b={...later,slot:5,pre:a.post,post:{...p,real_sol:'29'},vault:{...v,token_pre:'3',token_post:'2',sol_pre:'3',sol_post:'2'}};
  assert.equal(latestObservedCurve([b,a]).signature,b.signature);assert.equal(latestObservedCurve([a,{...b,pre:p}]),null);
+});
+
+// The legacy rules are an explicit comparator, not mandatory strategy in GPT mode.
+test('GPT research BUY can disagree with fixed momentum, while risk remains mandatory',()=>{
+ const slow={...earlier,post:{...p,virtual_sol:'32900000000'}},x={...input,states:[slow,later],strategyPolicy:'GPT_RESEARCH_V1'};
+ const review={mint,pool,tick_utc:tickUtc,action:'BUY',reason:'Fixture catalyst',counterargument:'Fixture downside',invalidation:'Fixture failed thesis',review_id:'fixture-gpt',input_sha256:evaluateRetrospectiveEntry(x).input_sha256};
+ const e=evaluateRetrospectiveEntry({...x,gptReview:review});assert.equal(e.diagnostic_signal.action,'WATCH');assert.equal(e.model_signal_eligible,true);
+ const bad={...x,riskInput:{...x.riskInput,archiveExhausted:false}};assert.equal(evaluateRetrospectiveEntry({...bad,gptReview:{...review,input_sha256:evaluateRetrospectiveEntry(bad).input_sha256}}).model_signal_eligible,false);
+});
+test('GPT research exit may sell inside old threshold, missing review cannot sell',()=>{
+ const pos={mint,pool,entered_at_utc:'2026-10-12T00:50:00Z',token_raw:'1000000000000',entry_price_usdc:0.0000000035,cost_micro:'50000000'};
+ const state={...later,fees:pair.fee_observation};const x={position:pos,state,fx,tickUtc,strategyPolicy:'GPT_RESEARCH_V1'};
+ const no=evaluateRetrospectiveExit(x);assert.equal(no.signal.action,'DATA_GAP');
+ const r={mint,pool,tick_utc:tickUtc,action:'SELL',reason:'Fixture invalidated',counterargument:'Possible recovery',invalidation:'Thesis failed',review_id:'fixture-sell',input_sha256:no.input_sha256};
+ const ledger={...emptyRetrospectiveLedger(),positions:{[mint]:pos}};
+ assert.equal(applyRetrospectiveExit(ledger,{mint,state,fx,tickUtc,strategyPolicy:'GPT_RESEARCH_V1',gptReview:r}).ledger.pending[mint].action,'SELL');
 });

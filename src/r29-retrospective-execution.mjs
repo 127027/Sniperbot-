@@ -1,6 +1,7 @@
 // A bounded retrospective model policy, deliberately independent of live order authorization.
 import {modelHistoricalCurve} from './r29-historical-curve-model.mjs';
 import {decideUnifiedMarket} from './unified-decision-v18.mjs';
+import {GPT_RESEARCH_POLICY,checkResearchDecision,decisionHash} from './r29-gpt-research-policy.mjs';
 import {compareReserveContinuity} from './r29-reserve-continuity.mjs';
 import {createHash} from 'node:crypto';
 const t=s=>Date.parse(s),u=x=>{if(typeof x!=='string'||!/^(0|[1-9]\d*)$/.test(x))throw Error('INVALID_AMOUNT');return BigInt(x);};
@@ -37,7 +38,8 @@ export function latestObservedCurve(states){
  while(true){const prev=same.filter(a=>!seen.has(a.signature)&&compareReserveContinuity(a,current));if(prev.length>1)return null;if(!prev.length)break;current=prev[0];seen.add(current.signature);}
  return seen.size===same.length?terminal:null;
 }
-export function evaluateRetrospectiveEntry({pair,states,fx,tickUtc,riskInput,gptReview}={}){
+export function evaluateRetrospectiveEntry({pair,states,fx,tickUtc,riskInput,gptReview,strategyPolicy='LEGACY_COMPARATOR'}={}){
+ if(!['LEGACY_COMPARATOR',GPT_RESEARCH_POLICY].includes(strategyPolicy))throw Error('UNKNOWN_STRATEGY_POLICY');
  const risk=assessHistoricalModelRisk({...riskInput,mint:pair.mint,pool:pair.pool,states,tickUtc});
  if(states.some(s=>!Number.isFinite(t(s.block_time_utc))||t(s.block_time_utc)+60000>=t(tickUtc)))throw Error('FUTURE_STATE_IN_DECISION_INPUT');
  const quote=modelHistoricalCurve({pair,fx,tickUtc});
@@ -45,7 +47,7 @@ export function evaluateRetrospectiveEntry({pair,states,fx,tickUtc,riskInput,gpt
  const last=states.find(s=>s.receipt_id===pair.later&&s.mint===pair.mint&&s.pool===pair.pool&&s.event_flow_verified===true);
  if(!first||!last||last.source_sha256!==pair.source_sha256||last.block_time_utc!==pair.source_time||JSON.stringify(last.post)!==JSON.stringify(pair.asof_event_state)||t(first.block_time_utc)+60000>=t(tickUtc)||t(last.block_time_utc)+60000>=t(tickUtc))throw Error('PAIR_NOT_CORROBORATED');
  const price=s=>Number(s.virtual_sol)/Number(s.virtual_token)/1000*fx.close_usdc_per_sol;
- const signal=decideUnifiedMarket({asOfUtc:tickUtc,observedAtUtc:last.block_time_utc,observedPriceUsd:price(last.post),priorAtUtc:first.block_time_utc,priorPriceUsd:price(first.post),fullReviewDue:true});
+ const diagnosticSignal=decideUnifiedMarket({asOfUtc:tickUtc,observedAtUtc:last.block_time_utc,observedPriceUsd:price(last.post),priorAtUtc:first.block_time_utc,priorPriceUsd:price(first.post),fullReviewDue:true});
  const reasons=[...risk.reasons];
  // A hypothetical buyer's own cash must not be counted as independent exit liquidity.
  if(u(last.post.real_sol)<u(quote.immediate_exit_after_own_buy.gross_lamports))reasons.push('INSUFFICIENT_PRE_ENTRY_REAL_SOL_EXIT_LIQUIDITY');
@@ -53,11 +55,14 @@ export function evaluateRetrospectiveEntry({pair,states,fx,tickUtc,riskInput,gpt
  if(!newest||newest.signature!==last.signature)reasons.push('LATEST_OBSERVED_POOL_STATE_AMBIGUOUS_OR_MISMATCH');
  if(quote.reserve_age_seconds>300)reasons.push('RESERVE_OBSERVATION_OLDER_THAN_5_MIN');
  if(u(quote.entry.price_impact_bps)>500n)reasons.push('MODEL_PRICE_IMPACT_OVER_5_PERCENT');
- if(signal.action!=='BUY')reasons.push('SHARED_SIGNAL_NOT_BUY');
+ if(strategyPolicy==='LEGACY_COMPARATOR'&&diagnosticSignal.action!=='BUY')reasons.push('SHARED_SIGNAL_NOT_BUY');
  // Current review may be a manually recorded GPT assessment, never a fake October receipt.
  const inputHash=createHash('sha256').update(JSON.stringify({pair,states,fx,tickUtc,risk})).digest('hex');
+ const strategy=strategyPolicy===GPT_RESEARCH_POLICY?checkResearchDecision({review:gptReview,inputSha256:inputHash,mint:pair.mint,pool:pair.pool,tickUtc}):null;
+ const signal=strategy??diagnosticSignal;
+ if(strategyPolicy===GPT_RESEARCH_POLICY&&(!strategy.valid||strategy.action!=='BUY'))reasons.push('GPT_STRATEGY_NOT_BUY');
  if(!gptReview||gptReview.input_sha256!==inputHash||gptReview.mint!==pair.mint||gptReview.tick_utc!==tickUtc||gptReview.action!=='BUY'||typeof gptReview.reason!=='string'||!gptReview.reason.trim())reasons.push('NO_MATCHING_CURRENT_GPT_BUY_REVIEW');
- return {kind:'R29_RETROSPECTIVE_MODEL_ENTRY_EVALUATION',mint:pair.mint,pool:pair.pool,tick_utc:tickUtc,input_sha256:inputHash,signal,risk,quote,reasons,model_signal_eligible:reasons.length===0,model_fill_eligible:false,scope:'ISOLATED_RESEARCH_SIMULATION_ONLY',live_order_authorized:false,client_writes_authorized:false,orders:0};
+ return {kind:'R29_RETROSPECTIVE_MODEL_ENTRY_EVALUATION',mint:pair.mint,pool:pair.pool,tick_utc:tickUtc,input_sha256:inputHash,signal,diagnostic_signal:diagnosticSignal,strategy_policy:strategyPolicy,risk,quote,reasons,model_signal_eligible:reasons.length===0,model_fill_eligible:false,scope:'ISOLATED_RESEARCH_SIMULATION_ONLY',live_order_authorized:false,client_writes_authorized:false,orders:0};
 }
 export const emptyRetrospectiveLedger=()=>({kind:'R29_RETROSPECTIVE_RESEARCH_LEDGER',cash_micro:'5000000000',positions:{},pending:{},events:[],realized_pnl_micro:'0',orders:0});
 function eventState(state,mint,tickUtc){
@@ -77,7 +82,8 @@ export function applyRetrospectiveEntry(state,input){
  }
  next.events.push(event);return {ledger:next,evaluation:e};
 }
-export function evaluateRetrospectiveExit({position,state,fx,tickUtc}={}){
+export function evaluateRetrospectiveExit({position,state,fx,tickUtc,gptReview,strategyPolicy='LEGACY_COMPARATOR'}={}){
+ if(!['LEGACY_COMPARATOR',GPT_RESEARCH_POLICY].includes(strategyPolicy))throw Error('UNKNOWN_STRATEGY_POLICY');
  if(!position||position.mint!==state.mint||position.pool!==state.pool||!state.event_flow_verified||t(state.block_time_utc)+60000>=t(tickUtc)||t(tickUtc)-t(state.block_time_utc)>300000||t(state.block_time_utc)<=t(position.entered_at_utc)||!Number.isFinite(t(fx.modeled_available_at_utc))||t(fx.modeled_available_at_utc)>=t(tickUtc)||t(tickUtc)-t(fx.modeled_available_at_utc)>600000||fx.pair!=='SOL-USDC')throw Error('INVALID_LATER_EXIT_OBSERVATION');
  const x=u(state.post.virtual_sol),y=u(state.post.virtual_token),amount=u(position.token_raw),real=u(state.post.real_sol);
  if(!x||!y||!amount)throw Error('INVALID_EXIT_RESERVES');
@@ -89,8 +95,10 @@ export function evaluateRetrospectiveExit({position,state,fx,tickUtc}={}){
  if(gross<=fee)throw Error('NONPOSITIVE_EXIT');
  const received=(gross-fee)*u(fx.low_micro_usdc_per_sol)/L;
  const effective=Number(received)/Number(amount);
- const signal=decideUnifiedMarket({asOfUtc:tickUtc,observedAtUtc:state.block_time_utc,observedPriceUsd:effective,position:{entryPrice:position.entry_price_usdc}});
- return {mint:position.mint,pool:position.pool,tick_utc:tickUtc,received_micro:String(received),token_raw:String(amount),signal,source_sha256:state.source_sha256,scope:'RETROSPECTIVE_LATER_OBSERVED_CURVE_ONLY',exact_execution_proven:false,orders:0};
+ const diagnosticSignal=decideUnifiedMarket({asOfUtc:tickUtc,observedAtUtc:state.block_time_utc,observedPriceUsd:effective,position:{entryPrice:position.entry_price_usdc}});
+ const inputHash=decisionHash({position,state,fx,tickUtc});
+ const signal=strategyPolicy===GPT_RESEARCH_POLICY?checkResearchDecision({review:gptReview,inputSha256:inputHash,mint:position.mint,pool:position.pool,tickUtc,positionOpen:true}):diagnosticSignal;
+ return {mint:position.mint,pool:position.pool,tick_utc:tickUtc,input_sha256:inputHash,strategy_policy:strategyPolicy,diagnostic_signal:diagnosticSignal,received_micro:String(received),token_raw:String(amount),signal,source_sha256:state.source_sha256,scope:'RETROSPECTIVE_LATER_OBSERVED_CURVE_ONLY',exact_execution_proven:false,orders:0};
 }
 export function applyRetrospectiveExit(ledger,input){
  const position=ledger.positions[input.mint];if(!position)throw Error('NO_POSITION');

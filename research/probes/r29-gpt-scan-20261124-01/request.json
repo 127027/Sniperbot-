@@ -1,0 +1,101 @@
+{
+  "kind": "R29_FIVE_DOT_LIVE_RESEARCH_PROBE",
+  "probe_id": "r29-gpt-scan-20261124-01",
+  "mode": "LIVE_PAPER_RESEARCH_ONLY",
+  "base_commit": "4306f12d0a1d6977bf066e0b9add67ec54d6124e",
+  "portfolio": {
+    "cash_test_usdc": 5000,
+    "entry_test_usdc": 50,
+    "positions": [],
+    "pending": []
+  },
+  "no_orders": true,
+  "no_wallet_or_client_changes": true,
+  "scope": "bounded independent broad market research, fresh new launches and older active coins; explicitly list gaps; no winners seed",
+  "roles": {
+    "1": {
+      "name": "TEMPO",
+      "requires": [],
+      "output": "market trends, catalysts, news, search scope"
+    },
+    "2": {
+      "name": "DISCOVERY",
+      "requires": [],
+      "output": "independently search for current candidates, exact identities and why interesting; include losers/rejected"
+    },
+    "3": {
+      "name": "RISK",
+      "requires": [
+        2
+      ],
+      "output": "verify all shortlisted identities, liquidity, fees, token risks, missing evidence"
+    },
+    "4": {
+      "name": "STRATEGY",
+      "requires": [
+        1,
+        2,
+        3
+      ],
+      "output": "individual independent GPT portfolio decisions; rank alternatives, 1/3/6h conditional thesis, risk and cost, no fixed momentum threshold"
+    },
+    "5": {
+      "name": "QA",
+      "requires": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "output": "verify actual handoffs, question omissions and thesis, final quality assessment"
+    }
+  },
+  "journal_schema": {
+    "kind": "R29_GPT_RESEARCH_PROBE_ROLE",
+    "probe_id": "r29-gpt-scan-20261124-01",
+    "role": "integer 1..5",
+    "started_at_utc": "actual UTC",
+    "completed_at_utc": "actual UTC",
+    "sources": [
+      {
+        "url": "actual fetched public URL",
+        "observed_at_utc": "actual UTC",
+        "finding": "specific source finding",
+        "verification": "DIRECT_WEB_RESEARCH_UNATTESTED or RAW_CAPTURE_VERIFIED"
+      }
+    ],
+    "dependencies": [
+      {
+        "role": "integer",
+        "path": "immutable dot-N.json",
+        "blob_sha": "actual git blob SHA"
+      }
+    ],
+    "analysis": "role-specific meaningful analysis, limits and alternatives",
+    "candidates": [
+      {
+        "chain": "canonical",
+        "contract": "exact",
+        "pool": "exact or explicit null",
+        "name": "observed name",
+        "reason": "why shortlisted or rejected"
+      }
+    ],
+    "decisions": [
+      {
+        "chain": "canonical",
+        "contract": "exact",
+        "pool": "exact or explicit null",
+        "action": "BUY/HOLD/SELL/WATCH/NO_TRADE/DATA_GAP",
+        "reason": "concrete",
+        "counterargument": "concrete",
+        "invalidation": "concrete",
+        "amount_test_usdc": "50 only for proposed BUY; otherwise 0",
+        "execution": "SHADOW_ONLY"
+      }
+    ],
+    "status": "COMPLETED_RESEARCH or DATA_GAP",
+    "orders": 0
+  },
+  "note": "Do not fake source access or independent GPT attestation. On dependency unavailable, do own online work but do not claim complete joint handoff; no overwrite completed role. Use no forced buy and no trading orders."
+}
