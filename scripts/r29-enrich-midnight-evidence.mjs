@@ -11,16 +11,47 @@ const req=JSON.parse(git('show',process.env.GITHUB_SHA+':'+paths[0]));if(req.kin
 const root='research/preparation/enrichment/'+run,vault='research/replay-vault/source-receipts/'+run,statePath='research/state/r29-preparation-queue.json';
 await mkdir(root,{recursive:true});await mkdir(vault,{recursive:true});
 let queue=await read(statePath);
-async function persist(msg,files){await writeFile(statePath,JSON.stringify(queue,null,2)+'\n');git('add','-f',statePath,...files);git('commit','-m',msg);git('push','origin','HEAD:refs/heads/'+branch);}
-const p='research/preparation/decision-input/',manifest=await read(p+'manifest.json'),packet=JSON.parse(gunzipSync(await checked(p+'all-candidates.json.gz',manifest.packet_sha256)));
-const am=await read('research/preparation/archive-v42/manifest.json'),launchPath='source-audit/all-launches/2026-10-11.jsonl.gz',launchMeta=am.files.find(x=>x.path===launchPath);
-const launches=new Map(gunzipSync(await checked('research/preparation/archive-v42/'+launchPath,launchMeta.sha256)).toString('utf8').trim().split('\n').map(s=>{const r=JSON.parse(s);return [r.mint,r];}));
-const excluded=manifest.prior_quote_mints;
-const pri=prioritizeEvidence(packet.candidates,launches,{tickUtc,excluded});
-if(pri.rows.length!==manifest.evidence_jobs)throw Error('QUEUE_COUNT_MISMATCH');
-const ranked=root+'/ranked-evidence-queue.json.gz';await writeFile(ranked,gzipSync(JSON.stringify(pri.rows)));
-const target=pri.pilot,selection={kind:'R29_EVIDENCE_PRIORITY_BATCH',tick_utc:tickUtc,total_jobs:pri.rows.length,pilot_count:pri.eligible_pilot_count,pilot:target,source_packet_sha256:manifest.packet_sha256,ranked_queue_sha256:sha(await readFile(ranked)),ranking_is_not_buy_signal:true,full_market_coverage:false};
-await writeFile(root+'/selection.json',JSON.stringify(selection,null,2)+'\n');await persist('R29 persist priority queue and independent pilot selection',[root]);
+async function persist(msg,files){
+ await writeFile(statePath,JSON.stringify(queue,null,2)+'\n');git('add','-f',statePath,...files);
+ try{git('diff','--cached','--quiet');return;}catch(e){if(e.status!==1)throw e;}
+ git('commit','-m',msg);
+ for(let i=0;i<4;i++){
+  const local=git('rev-parse','HEAD'),parent=git('rev-parse','HEAD^');
+  try{git('push','origin','HEAD:refs/heads/'+branch);return;}catch(e){
+   git('fetch','origin','refs/heads/'+branch);
+   const remote=git('rev-parse','FETCH_HEAD');
+   if(remote===local)return;
+   if(remote!==parent){
+    git('merge-base','--is-ancestor',parent,remote);
+    const own=new Set(git('diff','--name-only',parent,local).split('\n'));
+    const changed=git('diff','--name-only',parent,remote).split('\n');
+    if(changed.some(p=>own.has(p)||p===statePath))throw Error('CONCURRENT_EVIDENCE_CHANGE_STOP_NO_FORCE');
+    git('rebase','--onto',remote,parent);
+   }
+   if(i===3)throw e;
+   await new Promise(r=>setTimeout(r,2500*(i+1)));
+  }
+ }
+}
+const p='research/preparation/decision-input/',manifest=await read(p+'manifest.json');
+let selection,target;
+if(req.resume_selection_run===45450122787){
+ const old='research/preparation/enrichment/45450122787/';
+ selection=await read(old+'selection.json');
+ if(selection.source_packet_sha256!==manifest.packet_sha256||selection.total_jobs!==manifest.evidence_jobs)throw Error('RESUME_INPUT_CHANGED');
+ await checked(old+'ranked-evidence-queue.json.gz',selection.ranked_queue_sha256);
+ target=selection.pilot;selection={...selection,reused_selection_run:45450122787};
+ await writeFile(root+'/selection.json',JSON.stringify(selection,null,2)+'\n');await persist('R29 resume durable pilot selection without reranking',[root]);
+}else{
+ const packet=JSON.parse(gunzipSync(await checked(p+'all-candidates.json.gz',manifest.packet_sha256)));
+ const am=await read('research/preparation/archive-v42/manifest.json'),launchPath='source-audit/all-launches/2026-10-11.jsonl.gz',launchMeta=am.files.find(x=>x.path===launchPath);
+ const launches=new Map(gunzipSync(await checked('research/preparation/archive-v42/'+launchPath,launchMeta.sha256)).toString('utf8').trim().split('\n').map(s=>{const r=JSON.parse(s);return [r.mint,r];}));
+ const pri=prioritizeEvidence(packet.candidates,launches,{tickUtc,excluded:manifest.prior_quote_mints});
+ if(pri.rows.length!==manifest.evidence_jobs)throw Error('QUEUE_COUNT_MISMATCH');
+ const ranked=root+'/ranked-evidence-queue.json.gz';await writeFile(ranked,gzipSync(JSON.stringify(pri.rows)));
+ target=pri.pilot;selection={kind:'R29_EVIDENCE_PRIORITY_BATCH',tick_utc:tickUtc,total_jobs:pri.rows.length,pilot_count:pri.eligible_pilot_count,pilot:target,source_packet_sha256:manifest.packet_sha256,ranked_queue_sha256:sha(await readFile(ranked)),ranking_is_not_buy_signal:true,full_market_coverage:false};
+ await writeFile(root+'/selection.json',JSON.stringify(selection,null,2)+'\n');await persist('R29 persist priority queue and independent pilot selection',[root]);
+}
 console.log('R29_ENRICH_SELECTION',JSON.stringify(selection));
 let calls=0,halt=false;const receipts=[];
 async function rpc(method,params){
