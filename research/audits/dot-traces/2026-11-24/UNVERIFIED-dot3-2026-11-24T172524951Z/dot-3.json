@@ -1,0 +1,60 @@
+{
+  "role": 3,
+  "execution_identity": "UNVERIFIED",
+  "recorded_at_utc": "2026-11-24T17:25:24.951Z",
+  "probe_duplicate": false,
+  "probe_existing": true,
+  "inputs": [
+    {
+      "path": "research/probes/r29-gpt-scan-20261124-01/dot-3.json",
+      "sha": "742486d8d4194257c2c78ca96fda4cc345624aac"
+    },
+    {
+      "path": "research/probes/r29-gpt-scan-20261124-01/dot-2.json",
+      "sha": "b7263363ee0d54160a9f99273b8af7bb4e131705"
+    },
+    {
+      "path": "research/probes/r29-gpt-scan-20261124-01/request.json",
+      "sha": "515f5443d662d5c8ad887b3b7eb6a50f74fc962b"
+    },
+    {
+      "path": "research/state/r29-development-work-register.json",
+      "sha": "1049f0e3b9e2a69c6434e8f550bb65363db33ee5"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://thecryptoguardian.com/token-security-check/bsc/0xf22dee3117c836ef2a5728a00afc00d34f5112e2/",
+      "observed_at_utc": null,
+      "recorded_at_utc": "2026-11-24T17:25:24.951Z",
+      "verification": "DIRECT_WEB_RESEARCH_UNATTESTED",
+      "finding": "Third-party fork simulation at block 135425727 reports 10.13 USDT round trip returning 91.4%, 4% each tax, renounced owner, 96.4% LP locked per GoPlus. Exact full pool, block timestamp, raw simulation and 50 USDC quote absent."
+    },
+    {
+      "url": "https://dexscreener.com/solana/6ereizeu8huuljpmmftarpv5xyrbhdxgqtyxvvkmd2zj",
+      "finding": "Different CHUCHU mint prefix 4sTZW vs 6nQC; excluded as identity mismatch.",
+      "observed_at_utc": null
+    }
+  ],
+  "decisions": [
+    {
+      "chain": "bsc",
+      "contract": "0xf22dee3117c836ef2a5728a00afc00d34f5112e2",
+      "pool": null,
+      "action": "DATA_GAP",
+      "reason": "Reported round trip loss 8.6%, not independent verified issuer or exact-size quote; prioritize block/pool verification."
+    },
+    {
+      "chain": "solana",
+      "contract": "6nQCcuXypcAjncXK7gzvJcdwvqitgJRdG3k1no4Jpump",
+      "pool": null,
+      "action": "DATA_GAP",
+      "reason": "Search result different mint; no usable quote."
+    }
+  ],
+  "limitations": "Other seven candidates not freshly rechecked in this wake; previous probe remains immutable. No raw transport receipt or exact web retrieval clock. No provider API calls; 429 state not freshly verified.",
+  "followup": "Next permitted wake verify exact JENSEN pool, block time, independent quote and remaining candidates; no duplicate probe.",
+  "orders": 0,
+  "fills": 0,
+  "status": "DATA_GAP"
+}
