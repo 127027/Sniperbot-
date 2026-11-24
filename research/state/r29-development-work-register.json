@@ -103,18 +103,7 @@
         "R29-W01",
         "R29-W03"
       ],
-      "claim": {
-        "owner": "chat-w04-neutral-pilot-20261124",
-        "claimed_at_utc": "2026-11-24T19:55:00Z",
-        "lease_expires_utc": "2026-11-24T20:55:00Z",
-        "input_commit": "abf48daf6d8f1eebf2207665c458c3498bae06c7",
-        "expected_evidence": "Reuse archived ranked evidence; avoid resolved mints; prioritize sustained two-sided activity and higher reported reserve without treating it as verified liquidity; bounded next capture",
-        "paths": [
-          "src/r29-evidence-enrichment.mjs",
-          "scripts/r29-enrich-midnight-evidence.mjs",
-          "test/r29-evidence-enrichment.test.mjs"
-        ]
-      },
+      "claim": null,
       "last_evidence": {
         "run": 45389862438,
         "commit": "002f61e3b6654683b282a44106d87114a6339084",
@@ -130,7 +119,7 @@
         "real_historical_model_fills": 0,
         "actual_october_gpt_runs": 0,
         "reason": "No positive directional edge in three short pre-midnight observations. No forced buy. Ledger currently only synthetic test execution; requires verified retrospective execution path before actual modeled fills.",
-        "next": "Run distinct bounded evidence capture using existing workflow, verify actual result before any further capture. Broader sustained high-activity candidates require paginated, staged history beyond eight RPCs. No full scan yet.",
+        "next": "Do not repeat the three resolved pilot mints. PUMPFUN_MAYHEM virtual reserve is not real exit liquidity; next prioritize sustained non-Mayhem activity and resumable full-history work, with per-run source cap and verified reused receipts.",
         "next_hour_run": 45392964707,
         "next_hour_tick": "2026-10-12T02:00:00.000Z",
         "next_hour_report": "research/audits/2026-11-24/r29-w04-0200-generalized-scan.json",
@@ -490,6 +479,23 @@
           "excludes_both_reviewed_mints": true,
           "reported_reserve_not_risk_clearance": true,
           "ci": "pending"
+        },
+        "latest_actual_capture": {
+          "run": 45475312106,
+          "review": "research/preparation/enrichment/45475312106/current-chat-review.json",
+          "mint": "64Gx8nQMUdiadR1Qpq61ZL8U8xe73opv1Q13EgiWpump",
+          "rpc_calls": 7,
+          "decoded_mint_signatures": 6,
+          "decoded_swap_states": 5,
+          "trade_inputs_ready": 0,
+          "action": "NO_TRADE",
+          "real_sol_lamports": "1",
+          "ci": {
+            "run": 45475280633,
+            "tests": 960,
+            "pass": 960,
+            "fail": 0
+          }
         }
       }
     },
@@ -741,12 +747,12 @@
       "actual_run": 45450391897,
       "ranked": 2836,
       "feasibility_candidates": 133,
-      "reviewed_new": 2,
-      "remaining_unreviewed": 2834,
+      "reviewed_new": 3,
+      "remaining_unreviewed": 2833,
       "trade_inputs_ready": 0,
       "review": "research/preparation/enrichment/45450391897/current-chat-review.json",
-      "latest_run": 45452592950,
-      "latest_review": "research/preparation/enrichment/45452592950/current-chat-review.json",
+      "latest_run": 45475312106,
+      "latest_review": "research/preparation/enrichment/45475312106/current-chat-review.json",
       "decoder_audit": "research/audits/2026-11-24/r29-pinned-v3-creation-redecode.json"
     }
   }
