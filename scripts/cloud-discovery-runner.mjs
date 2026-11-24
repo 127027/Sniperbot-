@@ -1,3 +1,4 @@
+import {loadPinnedCaptureRequest} from '../src/r29-pinned-capture-request.mjs';
 // ONE triggered capture per dot2 request. No orders, no secrets, no paid market APIs.
 // Produces immutable raw public API response + validated evidence for future Dots.
 import {readFile,writeFile,mkdir,readdir} from 'node:fs/promises';
@@ -51,13 +52,11 @@ import {selectObservationArchivePaths,parseResearchJsonWithLegacyTrailer}
 
 const b='codex/r29-cleanroom-paper-20261121';
 if(process.env.GITHUB_REF&&process.env.GITHUB_REF!=='refs/heads/'+b)throw Error('WRONG_BRANCH');
-const sha=process.env.GITHUB_SHA;
-if(!sha||!/^[0-9a-f]{40}$/.test(sha))throw Error('MISSING_COMMIT_SHA');
-const changed=execFileSync('git',['diff-tree','--no-commit-id','--name-only','-r',sha],{encoding:'utf8'})
- .trim().split(/\r?\n/).filter(x=>/^research\/requests\/20\d{2}-\d{2}-\d{2}\/[A-Za-z0-9_-]+\.json$/.test(x));
-if(changed.length!==1)throw Error('EXPECTED_ONE_REQUEST_FILE');
-const path=changed[0];
-const request=validateCaptureRequest(JSON.parse(await readFile(path,'utf8')));
+const pinnedRequest=loadPinnedCaptureRequest({requestCommit:process.env.GITHUB_SHA});
+const sha=pinnedRequest.request_commit;
+const path=pinnedRequest.path;
+const request=validateCaptureRequest(pinnedRequest.request);
+console.log('R29_CAPTURE_STATE_RESUME',JSON.stringify({request_commit:sha,state_commit:pinnedRequest.state_commit}));
 const runId=process.env.GITHUB_RUN_ID;
 if(!/^\d+$/.test(runId||''))throw Error('MISSING_RUN_ID');
 const root='research/feeds/'+new Date(request.created_at_utc).toISOString().slice(0,10)+'/'+runId;

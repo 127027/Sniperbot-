@@ -18,9 +18,13 @@ jobs:
       - name: Checkout isolated cleanroom branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
-          fetch-depth: 2
+          ref: codex/r29-cleanroom-paper-20261121
+          fetch-depth: 0
           persist-credentials: true
+      - name: Verify original request is an ancestor of the latest capture state
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" HEAD
+          echo "Request commit: $GITHUB_SHA; latest state: $(git rev-parse HEAD)"
       - name: Setup Node 22
         uses: actions/setup-node@v4
         with:
