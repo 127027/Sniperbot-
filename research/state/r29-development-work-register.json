@@ -96,23 +96,14 @@
     {
       "id": "R29-W04",
       "priority": "P1",
-      "status": "IN_PROGRESS",
+      "status": "OPEN",
       "title": "Vertical slice: causal historical GPT review and isolated model ledger",
       "acceptance": "One suitable candidate through common strategy, valid as-of inputs, genuine current review documented, model action or reasoned no trade; no client writes.",
       "depends_on": [
         "R29-W01",
         "R29-W03"
       ],
-      "claim": {
-        "owner": "chat-w04-recover-v42-archive-20261124",
-        "input_commit": "e9e4f587dc323f3646a800785c1cd5165c6c8b8a",
-        "expected_evidence": "Actual old artifact import and immutable pre-midnight archive in GitHub, full untruncated first candidate index, zero market requests",
-        "paths": [
-          "scripts/r29-import-v42-preparation.py",
-          "research/preparation/archive-v42/",
-          "docs/R29_V42_ARCHIVE_REUSE.md"
-        ]
-      },
+      "claim": null,
       "last_evidence": {
         "run": 45389862438,
         "commit": "002f61e3b6654683b282a44106d87114a6339084",
@@ -128,7 +119,7 @@
         "real_historical_model_fills": 0,
         "actual_october_gpt_runs": 0,
         "reason": "No positive directional edge in three short pre-midnight observations. No forced buy. Ledger currently only synthetic test execution; requires verified retrospective execution path before actual modeled fills.",
-        "next": "Reuse verified Ethereum blocks 26172283–26172582 (22:44:59–23:44:59 UTC). No re-fetch of four successful requests. Chainticks date partition 404 and PublicNode eth_getLogs 403 recorded; do not blindly retry those endpoints. Try independently documented public Ethereum historical logs provider using exact verified block range and conservative 900s finality; retain raw bytes and hash, no winner seeds. Need artifact-backed cache read and cross-run reservation persistence before automated repeated execution; current queue state persisted by connector after each authorized run. Source coverage still incomplete. Expand other chains and news/social; never start first scan without preparation.",
+        "next": "Do not repeat V4.2 import, old market downloads or 00–02 diagnostics. Use permanent source-audit files and midnight-candidates.json; build union with 3 earlier V2.10 candidates by mint, preserve older 848 stale candidates for historical knowledge, require as-of refresh for current decisions. Prioritize missing quote/risk for fresh candidates, archive-backed full swap/price data (old Shrine source and existing 60-day sources), historical source inventory and persistent sequential worker. Feature-decision archives are audits not full raw feature values. Recover full feature columns only if needed and not already archived; enforce pinned source date/known-time. Keep virtual clock frozen until actual preparation, no winner list, no forced trades.",
         "next_hour_run": 45392964707,
         "next_hour_tick": "2026-10-12T02:00:00.000Z",
         "next_hour_report": "research/audits/2026-11-24/r29-w04-0200-generalized-scan.json",
@@ -221,7 +212,22 @@
             "2026-11-24T12:35:55.5909084Z # pass 925",
             "2026-11-24T12:35:55.5909384Z # fail 0"
           ]
-        }
+        },
+        "archive_import_run": 45396712451,
+        "archive_import_commit": "5e1e617b00ec78df8cd2bf368466c8c03782b79c",
+        "archive_manifest": "research/preparation/archive-v42/manifest.json",
+        "archive_files": 29,
+        "archive_bytes": 54940362,
+        "preparation_launch_identities": 351726,
+        "preparation_feature_audits": 939433,
+        "preparation_hourly_frames": 168,
+        "preparation_candidate_checkpoint_pairs": 140101,
+        "midnight_original_candidates": 860,
+        "midnight_strict_finality_candidates": 849,
+        "midnight_stale_candidates": 848,
+        "midnight_finality_deferred": 11,
+        "external_market_requests_for_import": 0,
+        "prepared_trade_inputs": 0
       }
     },
     {
@@ -272,11 +278,11 @@
   ],
   "next_task": "R29-W04",
   "historical_retest_with_same_empty_trade_inputs": "DO_NOT_REPEAT",
-  "next_task_reason": "Preparation queue implemented; first neutral Ethereum source probe partially succeeded; next use verified block range with alternative legitimate source. Virtual clock remains frozen.",
+  "next_task_reason": "Old V4.2 seven-day archive permanently imported; need archive-backed candidate preparation/quote enrichment and sequential durable acquisition rather than rediscovery.",
   "predecision_preparation": {
     "virtual_first_decision_utc": "2026-10-12T00:00:00.000Z",
     "physical_research_time_limit": null,
-    "state": "PREPARATION_INCOMPLETE",
+    "state": "PREPARATION_INCOMPLETE_ARCHIVE_RECOVERED",
     "audit_run": 45394211275,
     "prior_diagnostics_not_valid_scans": true,
     "pending_jobs": [
@@ -356,6 +362,16 @@
       "last_run": 45395031687,
       "successful_requests": 4,
       "unresolved_requests": 2
+    },
+    "v42_archive": {
+      "commit": "5e1e617b00ec78df8cd2bf368466c8c03782b79c",
+      "run": 45396712451,
+      "manifest": "research/preparation/archive-v42/manifest.json",
+      "launch_identities": 351726,
+      "feature_audit_rows": 939433,
+      "midnight_candidates": 849,
+      "stale_candidates": 848,
+      "trade_inputs_ready": 0
     }
   }
 }
