@@ -20,7 +20,7 @@ export function reservePreparationRequest(state,request,nowUtc){
 }
 export function recordPreparationReceipt(state,key,{raw,httpStatus,retryAfter=null,nowUtc,usable=false,artifactPath}){
  const at=ms(nowUtc),old=state.requests[key];
- if(old?.status!=='IN_FLIGHT'||!Number.isFinite(at)||at<ms(old.started_at_utc)||typeof raw!=='string'||!artifactPath)throw Error('UNRESERVED_RECEIPT');
+ if(old?.status!=='IN_FLIGHT'||!Number.isFinite(at)||at<ms(old.started_at_utc)||(typeof raw!=='string'&&!Buffer.isBuffer(raw))||!artifactPath)throw Error('UNRESERVED_RECEIPT');
  const next=structuredClone(state),r=next.requests[key],p=next.providers[r.request.provider];
  const receipt={http_status:httpStatus,retry_after:retryAfter,received_at_utc:nowUtc,sha256:hash(raw),artifact_path:artifactPath,usable};
  r.previous_receipts.push(receipt);
