@@ -1,0 +1,25 @@
+name: R29 hourly interval causal visibility comparison
+on:
+  push:
+    branches: [codex/r29-cleanroom-paper-20261121]
+    paths: ['research/interval-comparison-requests/**']
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test test/r29-hourly-interval-session.test.mjs
+      - run: node scripts/r29-compare-interval-visibility.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r29-interval-comparison
+          path: probe-artifacts/r29-interval-comparison/
+          retention-days: 30
