@@ -15,8 +15,9 @@ class TestV29CleanResearch(unittest.TestCase):
   tick=m.BASE
   rows=[sample(M,tick-300),sample(N,tick-30)]
   scans=m.build_24_scan_research(rows)
-  self.assertEqual(scans[0]['cumulative_distinct_mints_retro'],1)
+  self.assertEqual(scans[0]['cumulative_distinct_mints_retro'],2)
   self.assertEqual(scans[0]['screen_pass_with_unknown_executable_quotes'],1)
+  self.assertEqual(scans[0]['rejected_research_by_reason']['NOT_FINALIZED_BEFORE_SCAN'],1)
   self.assertEqual(scans[0]['top_research_candidates_not_orders'][0]['mint'],M)
   self.assertFalse(scans[0]['top_research_candidates_not_orders'][0]['allowed_live_or_backtest_order'])
  def test_missing_issuer_pool_quote_prevents_any_real_buy(self):
