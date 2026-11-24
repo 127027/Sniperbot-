@@ -54,20 +54,11 @@
     {
       "id": "R29-W03",
       "priority": "P1",
-      "status": "IN_PROGRESS",
+      "status": "OPEN",
       "title": "Decode existing six historical transactions and reconstruct feasible historical quote inputs",
       "acceptance": "Use run 45351015863 raw receipts; identify mint/pool/flow/fees and complementary evidence; explicit missing fields; no invented price; no hidden candidate truncation.",
       "depends_on": [],
-      "claim": {
-        "owner": "chat-w03-w04-risk-and-decision-20261124",
-        "input_commit": "2c69f3b0709400db0578995401c53de19e5f28d8",
-        "expected_evidence": "Bounded mint initialization/authority history and first shared decision review using verified reserve and FX inputs; isolated model ledger tests only",
-        "paths": [
-          "src/r29-historical-mint-risk.mjs",
-          "src/r29-historical-review-ledger.mjs",
-          "scripts/r29-w04-first-review.mjs"
-        ]
-      },
+      "claim": null,
       "last_evidence": {
         "source_run": 45351015863,
         "economic_flow_run": 45384807888,
@@ -81,7 +72,7 @@
         "provider_calls": 0,
         "result_path": "research/audits/2026-11-24/r29-w03-reserve-continuity.json",
         "scope": "Exact original Pump TradeEvents, instruction-specific pool IDs, raw token/native vault deltas, virtual/real curve reserve transitions and fee observations; all six states correlated. Three pairs show exact account/curve continuity between transactions, not a guarantee of continuity to scan time. Initial incorrect equality check replaced with constant vault offsets and verified deltas.",
-        "next": "Never repeat reserve decoding or historical FX request. Three actual indicative model quotes now available, each 50 TEST-USDC with entry price impact 139/132/136 bps and illustrative immediate exit 48.288796 USDC. Need causal mint authority/Token-2022 extensions/transfer-hook and fee configuration, check bounded latest pool-state uncertainty, no authentic quote promotion. Select new signatures from persisted archived page only if necessary, no re-fetch. W04 can now assess these three using a current GPT review explicitly limited to known as-of inputs; if unknown risk remains, reasoned no trade, never claim original GPT execution. Integrate isolated model ledger after sufficient evidence.",
+        "next": "Do not query UDEX's 9 already archived pre-midnight transactions again. Distinguish historical mint revocation evidence from verified exact account state/transfer restrictions. Develop general retrospective model-risk contract and new candidates at subsequent ticks. Do not require original historical GPT journals or Windows receipts for historical model.",
         "model_run": 45388727848,
         "model_commit": "b438f4d43f46b5585620feb9695aec46c6757cb3",
         "ci_run": 45388712599,
@@ -93,30 +84,43 @@
         "model_report": "research/audits/2026-11-24/r29-w03-50usdc-model-quotes.json",
         "indicative_models": 3,
         "external_requests_this_phase": 2,
-        "failed_source_run": 45388592069
+        "failed_source_run": 45388592069,
+        "mint_history_run": 45389862438,
+        "mint_history_report": "research/audits/2026-11-24/r29-w04-first-shared-review-and-mint-history.json",
+        "udex_mint_initialization_verified": true,
+        "udex_mint_authority_revocation_observed": true,
+        "udex_selected_prescan_signatures_decoded": 9,
+        "new_rpc_calls": 7
       }
     },
     {
       "id": "R29-W04",
       "priority": "P1",
-      "status": "IN_PROGRESS",
+      "status": "OPEN",
       "title": "Vertical slice: causal historical GPT review and isolated model ledger",
       "acceptance": "One suitable candidate through common strategy, valid as-of inputs, genuine current review documented, model action or reasoned no trade; no client writes.",
       "depends_on": [
         "R29-W01",
         "R29-W03"
       ],
-      "claim": {
-        "owner": "chat-w03-w04-risk-and-decision-20261124",
-        "input_commit": "2c69f3b0709400db0578995401c53de19e5f28d8",
-        "expected_evidence": "Bounded mint initialization/authority history and first shared decision review using verified reserve and FX inputs; isolated model ledger tests only",
-        "paths": [
-          "src/r29-historical-mint-risk.mjs",
-          "src/r29-historical-review-ledger.mjs",
-          "scripts/r29-w04-first-review.mjs"
-        ]
-      },
-      "last_evidence": null
+      "claim": null,
+      "last_evidence": {
+        "run": 45389862438,
+        "commit": "002f61e3b6654683b282a44106d87114a6339084",
+        "review_count": 3,
+        "shared_kernel_actions": [
+          "WATCH",
+          "WATCH",
+          "WATCH"
+        ],
+        "current_chat_gpt_review_count": 1,
+        "current_chat_review_path": "research/audits/2026-11-24/r29-w04-current-chat-gpt-review-0000.json",
+        "isolated_ledger_synthetic_buy_hold_sell_passed": true,
+        "real_historical_model_fills": 0,
+        "actual_october_gpt_runs": 0,
+        "reason": "No positive directional edge in three short pre-midnight observations. No forced buy. Ledger currently only synthetic test execution; requires verified retrospective execution path before actual modeled fills.",
+        "next": "Implement non-synthetic retrospective execution contract, then advance from 00:00 to 01:00 and subsequent novel candidates with pre-tick data. Do not repeat midnight WATCH review, no arbitrary lowering of 5% threshold to manufacture a trade. GPT independent reasoned decisions should not be confused with deterministic shared kernel."
+      }
     },
     {
       "id": "R29-W05",
@@ -164,7 +168,7 @@
       }
     }
   ],
-  "next_task": "R29-W03",
+  "next_task": "R29-W04",
   "historical_retest_with_same_empty_trade_inputs": "DO_NOT_REPEAT",
-  "next_task_reason": "Historical FX and 50-USDC curve model solved for first 3 pools; remaining historical risk and temporal execution uncertainty, W04 actual GPT decision path. Do not rerun any existing FX or reserve work."
+  "next_task_reason": "Midnight initial actual-data review completed; generalize historical execution contract and advance chronological scans, while W03 fills risk/quote data gaps. No repeated first-tick audits."
 }
