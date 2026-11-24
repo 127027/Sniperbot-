@@ -1,6 +1,7 @@
 // A bounded retrospective model policy, deliberately independent of live order authorization.
 import {modelHistoricalCurve} from './r29-historical-curve-model.mjs';
 import {decideUnifiedMarket} from './unified-decision-v18.mjs';
+import {compareReserveContinuity} from './r29-reserve-continuity.mjs';
 import {createHash} from 'node:crypto';
 const t=s=>Date.parse(s),u=x=>{if(typeof x!=='string'||!/^(0|[1-9]\d*)$/.test(x))throw Error('INVALID_AMOUNT');return BigInt(x);};
 const L=1000000000n,B=10000n,ceil=(x,y)=>(x+y-1n)/y;
@@ -20,6 +21,22 @@ export function assessHistoricalModelRisk({mint,pool,rows,expectedSignatures,arc
  if(!market.some(x=>x.side==='BUY')||!market.some(x=>x.side==='SELL'))reasons.push('BIDIRECTIONAL_THIRD_PARTY_ACTIVITY_NOT_OBSERVED');
  return {mint,pool,tick_utc:tickUtc,status:reasons.length?'UNKNOWN':'BOUNDED_HISTORICAL_MODEL_RISK_ACCEPTED',reasons,source_signatures:relevant.map(x=>x.signature),assumptions:['SUCCESSFUL_PARSED_MINT_ADDRESS_HISTORY','NO_UNSUPPORTED_MINT_CONTROL_OBSERVED','THIRD_PARTY_SWAPS_ARE_NOT_OUR_OWN_SELLABILITY_PROOF'],historical_account_bytes_verified:false,actual_sellability_proven:false,live_order_authorized:false};
 }
+// Same-slot observations must be ordered by verified reserve/vault transitions,
+// not by array order or fabricated sub-second timestamps.
+export function latestObservedCurve(states){
+ const verified=states.filter(s=>s.event_flow_verified===true);
+ if(!verified.length)return null;
+ const latestTime=Math.max(...verified.map(s=>t(s.block_time_utc)));
+ const tied=verified.filter(s=>t(s.block_time_utc)===latestTime);
+ const maxSlot=Math.max(...tied.map(s=>s.slot));
+ const same=tied.filter(s=>s.slot===maxSlot);
+ if(same.length===1)return same[0];
+ const terminals=same.filter(a=>!same.some(b=>a!==b&&compareReserveContinuity(a,b)));
+ if(terminals.length!==1)return null;
+ const terminal=terminals[0],seen=new Set([terminal.signature]);let current=terminal;
+ while(true){const prev=same.filter(a=>!seen.has(a.signature)&&compareReserveContinuity(a,current));if(prev.length>1)return null;if(!prev.length)break;current=prev[0];seen.add(current.signature);}
+ return seen.size===same.length?terminal:null;
+}
 export function evaluateRetrospectiveEntry({pair,states,fx,tickUtc,riskInput,gptReview}={}){
  const risk=assessHistoricalModelRisk({...riskInput,mint:pair.mint,pool:pair.pool,states,tickUtc});
  const quote=modelHistoricalCurve({pair,fx,tickUtc});
@@ -29,6 +46,10 @@ export function evaluateRetrospectiveEntry({pair,states,fx,tickUtc,riskInput,gpt
  const price=s=>Number(s.virtual_sol)/Number(s.virtual_token)/1000*fx.close_usdc_per_sol;
  const signal=decideUnifiedMarket({asOfUtc:tickUtc,observedAtUtc:last.block_time_utc,observedPriceUsd:price(last.post),priorAtUtc:first.block_time_utc,priorPriceUsd:price(first.post),fullReviewDue:true});
  const reasons=[...risk.reasons];
+ // A hypothetical buyer's own cash must not be counted as independent exit liquidity.
+ if(u(last.post.real_sol)<u(quote.immediate_exit_after_own_buy.gross_lamports))reasons.push('INSUFFICIENT_PRE_ENTRY_REAL_SOL_EXIT_LIQUIDITY');
+ const newest=latestObservedCurve(states.filter(s=>s.mint===pair.mint&&s.pool===pair.pool));
+ if(!newest||newest.signature!==last.signature)reasons.push('LATEST_OBSERVED_POOL_STATE_AMBIGUOUS_OR_MISMATCH');
  if(quote.reserve_age_seconds>300)reasons.push('RESERVE_OBSERVATION_OLDER_THAN_5_MIN');
  if(u(quote.entry.price_impact_bps)>500n)reasons.push('MODEL_PRICE_IMPACT_OVER_5_PERCENT');
  if(signal.action!=='BUY')reasons.push('SHARED_SIGNAL_NOT_BUY');

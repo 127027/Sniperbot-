@@ -1,8 +1,8 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {evaluateRetrospectiveEntry,applyRetrospectiveEntry,applyRetrospectiveExit,emptyRetrospectiveLedger} from '../src/r29-retrospective-execution.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';import {evaluateRetrospectiveEntry,applyRetrospectiveEntry,applyRetrospectiveExit,emptyRetrospectiveLedger,latestObservedCurve} from '../src/r29-retrospective-execution.mjs';
 const tickUtc='2026-10-12T01:00:00Z',mint='fixture-mint',pool='fixture-pool';
 const p={virtual_sol:'33000000000',virtual_token:'960000000000000',real_sol:'3000000000',real_token:'680000000000000'};
-const earlier={receipt_id:1,mint,pool,signature:'sell',block_time_utc:'2026-10-12T00:55:00Z',source_sha256:'a'.repeat(64),post:{...p,virtual_sol:'30000000000',virtual_token:'1000000000000000'},side:'SELL',event_flow_verified:true};
-const later={receipt_id:2,mint,pool,signature:'buy',block_time_utc:'2026-10-12T00:58:00Z',source_sha256:'b'.repeat(64),post:p,side:'BUY',event_flow_verified:true};
+const earlier={receipt_id:1,slot:1,mint,pool,signature:'sell',block_time_utc:'2026-10-12T00:55:00Z',source_sha256:'a'.repeat(64),post:{...p,virtual_sol:'30000000000',virtual_token:'1000000000000000'},side:'SELL',event_flow_verified:true};
+const later={receipt_id:2,slot:2,mint,pool,signature:'buy',block_time_utc:'2026-10-12T00:58:00Z',source_sha256:'b'.repeat(64),post:p,side:'BUY',event_flow_verified:true};
 const pair={mint,pool,earlier:1,later:2,source_time:later.block_time_utc,source_signature:'buy',source_sha256:later.source_sha256,asof_event_state:p,fee_observation:{protocol_bps:'95',creator_bps:'30'}};
 const fx={pair:'SOL-USDC',modeled_available_at_utc:'2026-10-12T00:59:00Z',close_usdc_per_sol:111,high_micro_usdc_per_sol:'111000000',low_micro_usdc_per_sol:'111000000',source_sha256:'c'.repeat(64)};
 const rows=[{mint,signature:'init',block_time_utc:'2026-10-12T00:53:00Z',controls:[{type:'initializeMint2',info:{mint,decimals:6,mintAuthority:'auth'}},{type:'setAuthority',info:{mint,authority:'auth',authorityType:'mintTokens',newAuthority:null}}],unknown:[]},... [earlier,later].map(s=>({mint,signature:s.signature,block_time_utc:s.block_time_utc,controls:[],unknown:[]}))];
@@ -11,3 +11,13 @@ const review=x=>({mint,tick_utc:tickUtc,action:'BUY',reason:'Synthetic regressio
 test('positive retrospective model path with explicit risk, shared BUY and matching current review; later independent sell',()=>{const x={...input,gptReview:review(input)};const a=applyRetrospectiveEntry(emptyRetrospectiveLedger(),x);assert.equal(a.evaluation.model_fill_eligible,true);assert.equal(a.ledger.events[0].execution,'RETROSPECTIVE_MODEL_FILL');assert.ok(a.ledger.positions[mint]);assert.equal(a.ledger.orders,0);const b=applyRetrospectiveExit(a.ledger,{mint,tickUtc:'2026-10-12T02:00:00Z',state:{...later,block_time_utc:'2026-10-12T01:58:00Z',post:{...p,virtual_sol:'50000000000',virtual_token:'700000000000000',real_sol:'20000000000'},fees:pair.fee_observation},fx:{...fx,modeled_available_at_utc:'2026-10-12T01:59:00Z'}});assert.equal(b.ledger.events[1].action,'SELL');assert.ok(BigInt(b.ledger.realized_pnl_micro)>0n);assert.deepEqual(b.ledger.positions,{});});
 test('unknown risk, absent or changed review blocks entry, without fixed false on valid input',()=>{assert.equal(evaluateRetrospectiveEntry(input).model_fill_eligible,false);const x={...input,riskInput:{...input.riskInput,archiveExhausted:false}};assert.equal(evaluateRetrospectiveEntry({...x,gptReview:review(x)}).model_fill_eligible,false);assert.equal(evaluateRetrospectiveEntry({...input,gptReview:{...review(input),input_sha256:'0'.repeat(64)}}).model_fill_eligible,false);});
 test('future control and unsupported mint instruction fail closed',()=>{for(const rs of [[...rows.slice(0,2),{...rows[2],block_time_utc:tickUtc}],[{...rows[0],controls:[...rows[0].controls,{type:'initializeTransferHook',info:{mint}}]},...rows.slice(1)]]){const x={...input,riskInput:{...input.riskInput,rows:rs}};assert.equal(evaluateRetrospectiveEntry({...x,gptReview:review(x)}).model_fill_eligible,false);}});
+
+test('near-empty independent real liquidity cannot be replaced by hypothetical own buy',()=>{
+ const p2={...p,real_sol:'29'},x={...input,pair:{...pair,asof_event_state:p2},states:[earlier,{...later,post:p2}]};
+ const e=evaluateRetrospectiveEntry({...x,gptReview:review(x)});
+ assert.equal(e.model_fill_eligible,false);assert.ok(e.reasons.includes('INSUFFICIENT_PRE_ENTRY_REAL_SOL_EXIT_LIQUIDITY'));
+});
+test('same-second terminal selection needs exact linked vault/reserve transitions',()=>{
+ const v={token_offset:'1',sol_offset:'1'},a={...earlier,slot:5,block_time_utc:later.block_time_utc,pre:p,post:{...p,real_sol:'100'},vault:{...v,token_pre:'4',token_post:'3',sol_pre:'4',sol_post:'3'}},b={...later,slot:5,pre:a.post,post:{...p,real_sol:'29'},vault:{...v,token_pre:'3',token_post:'2',sol_pre:'3',sol_post:'2'}};
+ assert.equal(latestObservedCurve([b,a]).signature,b.signature);assert.equal(latestObservedCurve([a,{...b,pre:p}]),null);
+});

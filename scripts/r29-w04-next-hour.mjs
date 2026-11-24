@@ -4,7 +4,7 @@ import {decodePumpReserveEvent} from '../src/r29-pump-reserve-event.mjs';
 import {correlateReserveState,compareReserveContinuity} from '../src/r29-reserve-continuity.mjs';
 import {inspectHistoricalMintTransaction} from '../src/r29-historical-mint-risk.mjs';
 import {parseBinanceHistoricalFx} from '../src/r29-historical-curve-model.mjs';
-import {evaluateRetrospectiveEntry} from '../src/r29-retrospective-execution.mjs';
+import {evaluateRetrospectiveEntry,latestObservedCurve} from '../src/r29-retrospective-execution.mjs';
 const run=process.env.GITHUB_RUN_ID,hash=x=>createHash('sha256').update(x).digest('hex'),tickUtc='2026-10-12T01:00:00.000Z',tick=Date.parse(tickUtc)/1000;
 const changes=execFileSync('git',['diff-tree','--no-commit-id','--name-only','-r',process.env.GITHUB_SHA],{encoding:'utf8'}).trim().split('\n');
 if(process.env.GITHUB_REF!=='refs/heads/codex/r29-cleanroom-paper-20261121'||changes.length!==1||!changes[0].startsWith('research/w04-next-hour-requests/2026-11-24/'))throw Error('EXPLICIT_REQUEST_REQUIRED');
@@ -33,7 +33,7 @@ for(let i=0;i<5&&!halt;i++)for(const target of targets){
 }
 for(const target of targets){
  const ordered=target.states.sort((a,b)=>t(b.block_time_utc)-t(a.block_time_utc)||b.slot-a.slot);function t(x){return Date.parse(x);}
- const last=ordered[0],first=last&&ordered.filter(s=>s.pool===last.pool&&t(s.block_time_utc)<t(last.block_time_utc)).at(-1);
+ const last=latestObservedCurve(ordered),first=last&&ordered.filter(s=>s.pool===last.pool&&t(s.block_time_utc)<t(last.block_time_utc)).at(-1);
  const report={mint:target.mint,expected_prescan_signatures:target.expected.length,selected_count:target.selected.length,archive_exhausted:target.complete,page_receipt:target.page_receipt,states:target.states,mint_rows:target.mintRows,expected_signatures:target.expected.map(s=>s.signature),errors:target.errors,evaluation:null};
  if(last&&first&&fx){const pair={mint:target.mint,pool:last.pool,earlier:first.receipt_id,later:last.receipt_id,source_time:last.block_time_utc,source_signature:last.signature,source_sha256:last.source_sha256,asof_event_state:last.post,fee_observation:last.fees,adjacent_continuity:compareReserveContinuity(first,last)};
   try{const input={pair,states:target.states,fx,tickUtc,riskInput:{rows:target.mintRows,expectedSignatures:report.expected_signatures,archiveExhausted:target.complete}};report.evaluation=evaluateRetrospectiveEntry(input);report.review_input=input;}catch(e){report.errors.push({stage:'MODEL',reason:e.message});}}
