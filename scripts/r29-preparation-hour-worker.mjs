@@ -1,12 +1,17 @@
 import {readFile,writeFile,mkdir,stat,rm} from 'node:fs/promises';import {createWriteStream,createReadStream} from 'node:fs';import {createHash} from 'node:crypto';import {execFileSync} from 'node:child_process';import {pipeline} from 'node:stream/promises';import {Readable,Transform} from 'node:stream';
 import {gzipSync} from 'node:zlib';
 import {reservePreparationRequest,recordPreparationReceipt} from '../src/r29-preparation-queue.mjs';import {projectArchiveStream,combinePreparationCandidates} from '../src/r29-preparation-hour.mjs';
+import {selectPreparationHours} from '../src/r29-preparation-plan.mjs';
 const branch='codex/r29-cleanroom-paper-20261121',statePath='research/state/r29-preparation-queue.json',root='research/preparation/hourly-source',cutoffUtc='2026-10-12T00:00:00Z';
 const now=()=>new Date().toISOString(),hash=b=>createHash('sha256').update(b).digest('hex'),git=(...args)=>execFileSync('git',args,{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
 const changed=git('diff-tree','--no-commit-id','--name-only','-r',process.env.GITHUB_SHA).split('\n');if(process.env.GITHUB_REF!=='refs/heads/'+branch||changed.length!==1||!changed[0].startsWith('research/preparation-hour-requests/'))throw Error('EXPLICIT_REQUEST_REQUIRED');
-const req=JSON.parse(git('show',process.env.GITHUB_SHA+':'+changed[0]));if(req.kind!=='R29_PREPARATION_HOURLY_CAPTURE'||req.no_orders!==true||!Array.isArray(req.hours)||req.hours.length<1||req.hours.length>2||new Set(req.hours).size!==req.hours.length||req.hours.some(h=>!/^2026-10-(?:0[5-9]|1[01])T(?:[01]\d|2[0-3]):00:00Z$/.test(h)))throw Error('INVALID_REQUEST');
+const req=JSON.parse(git('show',process.env.GITHUB_SHA+':'+changed[0]));
+if(req.no_orders!==true||!['R29_PREPARATION_HOURLY_CAPTURE','R29_PREPARATION_PLAN_BATCH'].includes(req.kind))throw Error('INVALID_REQUEST');
+if(req.kind==='R29_PREPARATION_PLAN_BATCH'&&(!Number.isInteger(req.max_hours)||req.max_hours<1||req.max_hours>3))throw Error('INVALID_BATCH');
 if(git('show','HEAD:'+changed[0])!==git('show',process.env.GITHUB_SHA+':'+changed[0]))throw Error('REQUEST_BYTES_CHANGED');
 let queue=JSON.parse(await readFile(statePath,'utf8'));
+if(req.kind==='R29_PREPARATION_PLAN_BATCH'){const plan=JSON.parse(await readFile('research/state/r29-preparation-hour-plan.json','utf8'));req.hours=selectPreparationHours(plan,queue,now(),{maxHours:req.max_hours}).selected;}
+if(!Array.isArray(req.hours)||req.hours.length>3||new Set(req.hours).size!==req.hours.length||req.hours.some(h=>!/^2026-10-(?:0[5-9]|1[01])T(?:[01]\d|2[0-3]):00:00Z$/.test(h)))throw Error('INVALID_HOURS');
 async function persist(message,paths){await writeFile(statePath,JSON.stringify(queue,null,2)+'\n');git('add','-f',statePath,...paths);git('commit','-m',message);git('push','origin','HEAD:refs/heads/'+branch);}
 const legacy=JSON.parse(await readFile('research/preparation/archive-v42/midnight-candidates.json','utf8')),earlier=JSON.parse(await readFile('research/audits/2026-11-24/r29-prepared-midnight-audit.json','utf8'));
 for(const hourUtc of req.hours){
