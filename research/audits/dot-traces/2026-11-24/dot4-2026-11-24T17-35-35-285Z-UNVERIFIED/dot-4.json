@@ -1,0 +1,116 @@
+{
+  "role": 4,
+  "mode": "LIVE_PAPER_RESEARCH_ONLY",
+  "recorded_at_utc": "2026-11-24T17:35:35.285Z",
+  "run_identity": "UNVERIFIED",
+  "status": "DATA_GAP",
+  "probe_already_completed": true,
+  "dependencies": [
+    {
+      "path": "research/probes/r29-gpt-scan-20261124-01/request.json",
+      "blob_sha": "515f5443d662d5c8ad887b3b7eb6a50f74fc962b"
+    },
+    {
+      "path": "research/probes/r29-gpt-scan-20261124-01/dot-1.json",
+      "blob_sha": "ec1a34c99b249f0a4fd4bf16447dca14423cbb56"
+    },
+    {
+      "path": "research/probes/r29-gpt-scan-20261124-01/dot-2.json",
+      "blob_sha": "b7263363ee0d54160a9f99273b8af7bb4e131705"
+    },
+    {
+      "path": "research/probes/r29-gpt-scan-20261124-01/dot-3.json",
+      "blob_sha": "742486d8d4194257c2c78ca96fda4cc345624aac"
+    },
+    {
+      "path": "research/probes/r29-gpt-scan-20261124-01/dot-4.json",
+      "blob_sha": "87d05b6d915a0f3a467bf62861c6329f420a31ba"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://dexscreener.com/solana/b34nxkzcgsjb9chlushprpxle3wfswyet8cqkzzmpump",
+      "finding": "mark .002974, liquidity 183K, 5m +1.57%, 1h -2.23%, 6h -5.35%, 24h +121%, 1h buy/sell volume each 25K",
+      "observed_at_utc": null,
+      "verification": "DIRECT_WEB_RESEARCH_UNATTESTED"
+    },
+    {
+      "url": "https://www.sasapad.fun/top/new-ethereum-meme-coins/",
+      "published_at_utc": "2026-11-24T17:12:00Z",
+      "finding": "10 ranking rows",
+      "observed_at_utc": null,
+      "verification": "DIRECT_WEB_RESEARCH_UNATTESTED"
+    },
+    {
+      "url": "https://www.sasapad.fun/top/new-solana-meme-coins/",
+      "published_at_utc": "2026-11-24T17:27:00Z",
+      "finding": "39 ranking rows",
+      "observed_at_utc": null,
+      "verification": "DIRECT_WEB_RESEARCH_UNATTESTED"
+    },
+    {
+      "url": "https://sasapad.fun/x/eth/0x6a176167e46a99889e763617d05c2f54cb42bd6f/",
+      "finding": "PEPIUS 144.1K liquidity, 2.7M volume, top 10 wallets reported 100%, repeated large sales",
+      "observed_at_utc": null,
+      "verification": "DIRECT_WEB_RESEARCH_UNATTESTED"
+    },
+    {
+      "url": "https://sasapad.fun/x/solana/5LDowscYVD3a6ZS4m8gCqG5nU16eLTwRXhciFi1bpump/",
+      "finding": "DONJENSEN 99.8K liquidity, +5300% reported, 19.5% below peak, 211723 reported trades",
+      "observed_at_utc": null,
+      "verification": "DIRECT_WEB_RESEARCH_UNATTESTED"
+    }
+  ],
+  "decisions": [
+    {
+      "name": "FIONA",
+      "chain": "solana",
+      "contract": "B34nXKzCgsJb9ChLuSHPRpXLE3WFSWyeT8Cqkzzmpump",
+      "pool": "DjbLtX1HRGZZrJgJ7CwTX6SN3D7tBLiytkGwomBUwTVB",
+      "action": "WATCH",
+      "reason": "Displayed mark 5.62% below prior peer mark .003151; timestamps not synchronized; hourly momentum now negative, balanced volume",
+      "counterargument": "positive 5m and substantial liquidity",
+      "invalidation": "renewed sustained buy imbalance and verified quote/risk could restore shadow entry thesis; liquidity loss invalidates",
+      "conditional": "1h rebound possible if buy flow strengthens; 3/6h no reliable forecast",
+      "execution": "SHADOW_ONLY",
+      "amount_test_usdc": 0,
+      "costs": "UNKNOWN; no executable 50 USDC two-way quote",
+      "forecast_1_3_6h": "insufficient synchronized evidence"
+    },
+    {
+      "name": "PEPIUS",
+      "chain": "ethereum",
+      "contract": "0x6a176167e46a99889e763617d05c2f54cb42bd6f",
+      "pool": null,
+      "action": "NO_TRADE",
+      "reason": "reported extreme holder concentration and repeated large sales near peak",
+      "counterargument": "buy count and volume strong; pool wallets may distort concentration",
+      "invalidation": "independent holder classification and exact pool/quote required",
+      "execution": "SHADOW_ONLY",
+      "amount_test_usdc": 0,
+      "costs": "UNKNOWN; no executable 50 USDC two-way quote",
+      "forecast_1_3_6h": "insufficient synchronized evidence"
+    },
+    {
+      "name": "DONJENSEN",
+      "chain": "solana",
+      "contract": "5LDowscYVD3a6ZS4m8gCqG5nU16eLTwRXhciFi1bpump",
+      "pool": null,
+      "action": "WATCH",
+      "reason": "strong attention but extreme prior gain and drawdown; trade count anomalously high",
+      "counterargument": "reported liquidity and buy count",
+      "invalidation": "independent pool and organic flow confirmation, no further liquidity deterioration",
+      "execution": "SHADOW_ONLY",
+      "amount_test_usdc": 0,
+      "costs": "UNKNOWN; no executable 50 USDC two-way quote",
+      "forecast_1_3_6h": "insufficient synchronized evidence"
+    }
+  ],
+  "followup": "Dot3 verify PEPIUS and DONJENSEN exact pool, holder/control, sellability, costs and quote time. Ranking rows not individually assessed. Prior probe portfolio empty; current portfolio not independently verified. No current full review claimed.",
+  "orders": 0,
+  "fills": 0,
+  "backtests": 0,
+  "provider_api_calls": 0,
+  "provider_429": "not observed in public web reads; shared budget not independently checked",
+  "independent_gpt_attestation": false
+}
