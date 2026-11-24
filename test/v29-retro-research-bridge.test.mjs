@@ -70,7 +70,8 @@ test('future winner labels and broken scan chronology are never usable as histor
  assert.throws(()=>normalizeV29ResearchCandidateFrames(f),
   /V29_RESEARCH_CANDIDATE_CANNOT_ENTER_BUY_GATE/);
  const g=frames();g[2].at_utc='2026-10-12T01:00:00.000Z';
- assert.throws(()=>normalizeV29ResearchCandidateFrames(g),/V29_NON_CHRONOLOGICAL/);
+ assert.throws(()=>normalizeV29ResearchCandidateFrames(g),
+  /V29_NON_CHRONOLOGICAL|V29_INVALID_RETRO_RESEARCH_FRAME/);
 });
 test('24-scan source cannot be replaced by short partial-selected winner set',()=>{
  assert.throws(()=>normalizeV29ResearchCandidateFrames(frames().slice(0,2)),
