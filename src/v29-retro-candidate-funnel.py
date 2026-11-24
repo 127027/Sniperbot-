@@ -102,6 +102,7 @@ def build_24_scan_research(records,topn=5):
    safe.append(cleaned)
  safe.sort(key=lambda x:(x["t"],x["mint"]))
  cursor=0;last={};frames=[]
+ finalized_cursor=0;finalized_last={}
  for i in range(24):
   tick=BASE+i*3600
   # Assimilation of retrospective records STRICTLY before the clock tick.
@@ -110,9 +111,20 @@ def build_24_scan_research(records,topn=5):
    r=safe[cursor]
    last[r["mint"]]=r
    cursor+=1
+  # Track finalized observations independently: an unfinalized newer row
+  # must not hide an already available observation for the same mint.
+  while finalized_cursor<len(safe) and safe[finalized_cursor]["t"]<tick-60:
+   r=safe[finalized_cursor]
+   finalized_last[r["mint"]]=r
+   finalized_cursor+=1
   eligible=[r for r in last.values() if tick-600<=r["t"]<tick]
-  stats=Counter();ranked=[]
-  for r in eligible:
+  stats=Counter();ranked=[];fallback_count=0
+  for observed in eligible:
+   r=finalized_last.get(observed["mint"])
+   if r is None or r["t"]<tick-600:
+    stats["NOT_FINALIZED_BEFORE_SCAN"]+=1
+    continue
+   if r["t"]!=observed["t"]:fallback_count+=1
    c=candidate(r,tick)
    if c["screen_reasons"]:
     for reason in c["screen_reasons"]:stats[reason]+=1
@@ -124,6 +136,7 @@ def build_24_scan_research(records,topn=5):
     "source_event_rows_known_retro":cursor,
     "cumulative_distinct_mints_retro":len(last),
     "fresh_distinct_mints_in_last_10m_retro":len(eligible),
+    "finalized_fallback_mints":fallback_count,
     "screen_pass_with_unknown_executable_quotes":len(ranked),
     "rejected_research_by_reason":dict(sorted(stats.items())),
     "top_research_candidates_not_orders":ranked[:topn],

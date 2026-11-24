@@ -78,4 +78,25 @@ class TestV29CleanResearch(unittest.TestCase):
   f=m.build_24_scan_research([a,b],topn=2)[0]
   self.assertEqual(f['screen_pass_with_unknown_executable_quotes'],2)
   self.assertEqual(f['top_research_candidates_not_orders'][0]['mint'],N)
+ def test_pending_row_cannot_shadow_fresh_finalized_row(self):
+  tick=m.BASE
+  rows=[sample(M,tick-300),sample(M,tick-30,flag_creator_sold=True)]
+  f=m.build_24_scan_research(rows)[0]
+  self.assertEqual(f['screen_pass_with_unknown_executable_quotes'],1)
+  self.assertEqual(f['finalized_fallback_mints'],1)
+  self.assertEqual(f['top_research_candidates_not_orders'][0]['feature_at_utc'],m.ts(tick-300))
+  self.assertFalse(f['top_research_candidates_not_orders'][0]['allowed_live_or_backtest_order'])
+ def test_pending_row_cannot_hide_finalized_danger_or_resurrect_stale_row(self):
+  tick=m.BASE
+  f=m.build_24_scan_research([sample(M,tick-120,flag_creator_sold=True),
+   sample(M,tick-20),sample(N,tick-601),sample(N,tick-15)])[0]
+  self.assertEqual(f['screen_pass_with_unknown_executable_quotes'],0)
+  self.assertEqual(f['finalized_fallback_mints'],1)
+  self.assertEqual(f['rejected_research_by_reason']['ASOF_FLAG_CREATOR_SOLD'],1)
+  self.assertEqual(f['rejected_research_by_reason']['NOT_FINALIZED_BEFORE_SCAN'],1)
+ def test_exact_finality_boundary_remains_excluded(self):
+  tick=m.BASE
+  f=m.build_24_scan_research([sample(M,tick-60),sample(N,tick-61)])[0]
+  self.assertEqual(f['screen_pass_with_unknown_executable_quotes'],1)
+  self.assertEqual(f['top_research_candidates_not_orders'][0]['mint'],N)
 if __name__=='__main__':unittest.main()
