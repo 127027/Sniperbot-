@@ -1,5 +1,5 @@
 import {readFile,writeFile,mkdir} from 'node:fs/promises';import {gunzipSync,gzipSync} from 'node:zlib';import {createHash} from 'node:crypto';import {execFileSync} from 'node:child_process';
-import {prioritizeEvidence,selectSustainedEvidencePilot} from '../src/r29-evidence-enrichment.mjs';
+import {prioritizeEvidence,selectSustainedEvidencePilot,selectNextLiquidityEvidencePilot} from '../src/r29-evidence-enrichment.mjs';
 import {reservePreparationRequest,recordPreparationReceipt} from '../src/r29-preparation-queue.mjs';
 import {inspectHistoricalMintTransaction} from '../src/r29-historical-mint-risk.mjs';
 import {decodeHistoricalSwapFlow} from '../src/r29-historical-swap-flow.mjs';import {decodePumpReserveEvent} from '../src/r29-pump-reserve-event.mjs';import {correlateReserveState,compareReserveContinuity} from '../src/r29-reserve-continuity.mjs';import {latestObservedCurve,evaluateRetrospectiveEntry} from '../src/r29-retrospective-execution.mjs';import {parseBinanceHistoricalFx} from '../src/r29-historical-curve-model.mjs';
@@ -35,7 +35,17 @@ async function persist(msg,files){
 }
 const p='research/preparation/decision-input/',manifest=await read(p+'manifest.json');
 let selection,target;
-if(req.sustained_selection===true){
+if(req.next_liquidity_selection===true){
+ const old='research/preparation/enrichment/45450122787/',prev=await read(old+'selection.json');
+ if(prev.source_packet_sha256!==manifest.packet_sha256||prev.total_jobs!==manifest.evidence_jobs)throw Error('RESUME_INPUT_CHANGED');
+ const rows=JSON.parse(gunzipSync(await checked(old+'ranked-evidence-queue.json.gz',prev.ranked_queue_sha256)));
+ const reviewed=await Promise.all([45450391897,45452592950].map(id=>read('research/preparation/enrichment/'+id+'/current-chat-review.json')));
+ const excluded=[...new Set([...manifest.prior_quote_mints,...reviewed.map(r=>r.mint)])];
+ const x=selectNextLiquidityEvidencePilot(rows,{excluded});
+ target=x.pilot;
+ selection={...prev,pilot:target,pilot_count:x.eligible_pilot_count,reused_selection_run:45450122787,selection_mode:'FRESH_LIQUIDITY_PROXY_BOUNDED_HISTORY',excluded_mints:excluded,ranking_is_not_buy_signal:true,reported_reserve_is_not_verified_liquidity:true};
+ await writeFile(root+'/selection.json',JSON.stringify(selection,null,2)+'\n');await persist('R29 select next distinct liquidity-priority evidence candidate',[root]);
+}else if(req.sustained_selection===true){
  const old='research/preparation/enrichment/45450122787/',prev=await read(old+'selection.json');
  if(prev.source_packet_sha256!==manifest.packet_sha256||prev.total_jobs!==manifest.evidence_jobs)throw Error('RESUME_INPUT_CHANGED');
  const rows=JSON.parse(gunzipSync(await checked(old+'ranked-evidence-queue.json.gz',prev.ranked_queue_sha256)));

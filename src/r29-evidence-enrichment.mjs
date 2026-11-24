@@ -43,3 +43,20 @@ export function selectSustainedEvidencePilot(rows,{excluded=[],minSwaps=4,maxSwa
  candidates.sort((a,b)=>(b.reported_mark_change_pct!==null&&b.reported_mark_change_pct>0.1?1:0)-(a.reported_mark_change_pct!==null&&a.reported_mark_change_pct>0.1?1:0)||b.priority_score-a.priority_score||a.mint.localeCompare(b.mint));
  return {pilot:candidates[0]??null,eligible_pilot_count:candidates.length};
 }
+
+// Prioritize research of less depleted, actively traded candidates, not buys.
+// Reported virtual reserve is a noisy ordering proxy; never use as real liquidity.
+// Keep the bounded RPC pilot constraint and preserve all unresolved ranked rows.
+export function selectNextLiquidityEvidencePilot(rows,{excluded=[],minSwaps=4,maxSwaps=7}={}){
+ const skip=new Set(excluded),candidates=[];
+ for(const r of rows){
+  if(skip.has(r.mint)||r.previously_reviewed||!Number.isFinite(r.launch_age_seconds)||r.launch_age_seconds>1800)continue;
+  for(const p of r.pools){
+   if(!p.two_sided||!p.sol_quote_reported||!p.pump_curve_reported||!p.latest_signature||!Number.isFinite(p.age_seconds)||p.age_seconds>300||p.age_seconds<60||p.activity<3||p.observed_swaps_60m<minSwaps||p.observed_swaps_60m>maxSwaps)continue;
+   candidates.push({mint:r.mint,launch_age_seconds:r.launch_age_seconds,...p});
+  }
+ }
+ const value=x=>Number.isFinite(x.latest_reported_reserve)?x.latest_reported_reserve:-Infinity;
+ candidates.sort((a,b)=>value(b)-value(a)||b.activity-a.activity||b.priority_score-a.priority_score||a.mint.localeCompare(b.mint)||a.pool.localeCompare(b.pool));
+ return {pilot:candidates[0]??null,eligible_pilot_count:candidates.length,ranking_is_not_buy_signal:true,reported_reserve_is_not_verified_liquidity:true};
+}
