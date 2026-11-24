@@ -96,23 +96,14 @@
     {
       "id": "R29-W04",
       "priority": "P1",
-      "status": "IN_PROGRESS",
+      "status": "OPEN",
       "title": "Vertical slice: causal historical GPT review and isolated model ledger",
       "acceptance": "One suitable candidate through common strategy, valid as-of inputs, genuine current review documented, model action or reasoned no trade; no client writes.",
       "depends_on": [
         "R29-W01",
         "R29-W03"
       ],
-      "claim": {
-        "owner": "chat-w04-shrine-hourly-preparation-20261124",
-        "input_commit": "5c863c82a62145f5b3e6040f680580fd31d0b80e",
-        "expected_evidence": "Reuse old source frames, durable sequential hour capture, union midnight candidates and new source pool activity",
-        "paths": [
-          "scripts/r29-preparation-hour-worker.mjs",
-          "src/r29-preparation-hour.mjs",
-          "research/preparation/hourly-source/"
-        ]
-      },
+      "claim": null,
       "last_evidence": {
         "run": 45389862438,
         "commit": "002f61e3b6654683b282a44106d87114a6339084",
@@ -128,7 +119,7 @@
         "real_historical_model_fills": 0,
         "actual_october_gpt_runs": 0,
         "reason": "No positive directional edge in three short pre-midnight observations. No forced buy. Ledger currently only synthetic test execution; requires verified retrospective execution path before actual modeled fills.",
-        "next": "Do not repeat V4.2 import, old market downloads or 00–02 diagnostics. Use permanent source-audit files and midnight-candidates.json; build union with 3 earlier V2.10 candidates by mint, preserve older 848 stale candidates for historical knowledge, require as-of refresh for current decisions. Prioritize missing quote/risk for fresh candidates, archive-backed full swap/price data (old Shrine source and existing 60-day sources), historical source inventory and persistent sequential worker. Feature-decision archives are audits not full raw feature values. Recover full feature columns only if needed and not already archived; enforce pinned source date/known-time. Keep virtual clock frozen until actual preparation, no winner list, no forced trades.",
+        "next": "Do not repeat successful 21:00 hour or V4.2 imports. Resume 23:00 and 22:00 only once persisted deadlines permit, with corrected stream parser, preserve separate attempts. Build cumulative multi-hour merge and source identity quality audit (41,238 INVALID_MINT, absent txIndex fallback, ambiguous ties), no automatic order authorization. Recover old 60-day daily source frames without re-downloading where useful; add durable date/hour plan and autonomous continuation rather than manual hour-by-hour requests. Keep all pool-minute data and explicit archive provenance; raw compressed hour bytes not stored (projection is lossy). Use source data to enrich pre-midnight candidate quotes/risk, other chain/news coverage remains partial. Virtual first scan frozen.",
         "next_hour_run": 45392964707,
         "next_hour_tick": "2026-10-12T02:00:00.000Z",
         "next_hour_report": "research/audits/2026-11-24/r29-w04-0200-generalized-scan.json",
@@ -236,7 +227,47 @@
         "midnight_stale_candidates": 848,
         "midnight_finality_deferred": 11,
         "external_market_requests_for_import": 0,
-        "prepared_trade_inputs": 0
+        "prepared_trade_inputs": 0,
+        "shrine_stream_capture_run": 45399154990,
+        "shrine_stream_capture_commit": "3ba01c9543779899f7ef60f2373aa4a97da54653",
+        "shrine_stream_manifest": "research/preparation/hourly-source/2026-10-11-21/attempt-1/manifest.json",
+        "source_hour": "2026-10-11T21:00:00Z",
+        "source_archive_sha256": "d5e47976ff19b55e88b70eda77f70b3c44443158689a86e0958d3b7b13807c63",
+        "source_bytes": 276343708,
+        "accepted_swap_observations": 1309531,
+        "invalid_mints": 41238,
+        "other_actions": 19368,
+        "minute_observations": 65312,
+        "pools": 9786,
+        "per_hour_candidate_union": 9237,
+        "overlap_with_legacy": 157,
+        "prior_index_union": 852,
+        "stream_capture_ci": {
+          "run": 45399139969,
+          "tests": 929,
+          "pass": 929,
+          "fail": 0
+        },
+        "queue_state": [
+          {
+            "url": "https://replay.shrine.trade/pump/2026/10/11/23.jsonl.zst",
+            "status": "PENDING",
+            "retry_not_before_utc": "2026-11-24T13:03:43.246Z",
+            "attempts": 1
+          },
+          {
+            "url": "https://replay.shrine.trade/pump/2026/10/11/22.jsonl.zst",
+            "status": "PENDING",
+            "retry_not_before_utc": "2026-11-24T13:05:21.673Z",
+            "attempts": 1
+          },
+          {
+            "url": "https://replay.shrine.trade/pump/2026/10/11/21.jsonl.zst",
+            "status": "CAPTURED",
+            "retry_not_before_utc": null,
+            "attempts": 1
+          }
+        ]
       }
     },
     {
@@ -287,11 +318,11 @@
   ],
   "next_task": "R29-W04",
   "historical_retest_with_same_empty_trade_inputs": "DO_NOT_REPEAT",
-  "next_task_reason": "Old V4.2 seven-day archive permanently imported; need archive-backed candidate preparation/quote enrichment and sequential durable acquisition rather than rediscovery.",
+  "next_task_reason": "Actual new historical bulk source data captured, persistent checkpoints proven; next missing hours + cumulative preparation queue and decision input verification.",
   "predecision_preparation": {
     "virtual_first_decision_utc": "2026-10-12T00:00:00.000Z",
     "physical_research_time_limit": null,
-    "state": "PREPARATION_INCOMPLETE_ARCHIVE_RECOVERED",
+    "state": "PREPARATION_INCOMPLETE_BULK_SOURCE_CAPTURED",
     "audit_run": 45394211275,
     "prior_diagnostics_not_valid_scans": true,
     "pending_jobs": [
@@ -380,6 +411,16 @@
       "feature_audit_rows": 939433,
       "midnight_candidates": 849,
       "stale_candidates": 848,
+      "trade_inputs_ready": 0
+    },
+    "shrine_archive": {
+      "run": 45399154990,
+      "commit": "3ba01c9543779899f7ef60f2373aa4a97da54653",
+      "manifest": "research/preparation/hourly-source/2026-10-11-21/attempt-1/manifest.json",
+      "accepted_swap_observations": 1309531,
+      "minute_observations": 65312,
+      "pool_count": 9786,
+      "raw_archive_persisted": false,
       "trade_inputs_ready": 0
     }
   }
