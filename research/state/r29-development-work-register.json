@@ -96,23 +96,14 @@
     {
       "id": "R29-W04",
       "priority": "P1",
-      "status": "IN_PROGRESS",
+      "status": "OPEN",
       "title": "Vertical slice: causal historical GPT review and isolated model ledger",
       "acceptance": "One suitable candidate through common strategy, valid as-of inputs, genuine current review documented, model action or reasoned no trade; no client writes.",
       "depends_on": [
         "R29-W01",
         "R29-W03"
       ],
-      "claim": {
-        "owner": "chat-w04-scan02-execution-contract-20261124",
-        "input_commit": "40553e7ee56f532336f1f9862871ad2ec6cc9967",
-        "expected_evidence": "New 01:00 candidate capture and non-synthetic retrospective model gate with positive/negative tests, no old midnight requests",
-        "paths": [
-          "src/r29-retrospective-execution.mjs",
-          "scripts/r29-w04-next-hour.mjs",
-          "test/r29-retrospective-execution.test.mjs"
-        ]
-      },
+      "claim": null,
       "last_evidence": {
         "run": 45389862438,
         "commit": "002f61e3b6654683b282a44106d87114a6339084",
@@ -122,13 +113,35 @@
           "WATCH",
           "WATCH"
         ],
-        "current_chat_gpt_review_count": 1,
+        "current_chat_gpt_review_count": 2,
         "current_chat_review_path": "research/audits/2026-11-24/r29-w04-current-chat-gpt-review-0000.json",
         "isolated_ledger_synthetic_buy_hold_sell_passed": true,
         "real_historical_model_fills": 0,
         "actual_october_gpt_runs": 0,
         "reason": "No positive directional edge in three short pre-midnight observations. No forced buy. Ledger currently only synthetic test execution; requires verified retrospective execution path before actual modeled fills.",
-        "next": "Implement non-synthetic retrospective execution contract, then advance from 00:00 to 01:00 and subsequent novel candidates with pre-tick data. Do not repeat midnight WATCH review, no arbitrary lowering of 5% threshold to manufacture a trade. GPT independent reasoned decisions should not be confused with deterministic shared kernel."
+        "next": "Advance to 02:00 and onward with new candidates. Do not repeat 00:00/01:00 acquisition or same-slot decode. Existing selected signature pages and raw files are retained; use new signatures only for targeted material evidence, not 68 unrelated requests. Generalize next-hour runner (remove hard-coded 01:00) and prioritize data acquisition across chronological ticks; separate complete history requirement from verified reconstruction of bounded risk without weakening live gates. Fix outstanding two truncated candidates in 18:00 exporter; verify latest CI before using new liquidity guard.",
+        "next_hour_run": 45390768835,
+        "next_hour_tick": "2026-10-12T01:00:00.000Z",
+        "next_hour_report": "research/audits/2026-11-24/r29-w04-0100-next-hour.json",
+        "current_chat_0100_review": "research/audits/2026-11-24/r29-w04-current-chat-gpt-review-0100.json",
+        "retrospective_execution_commit": "b873bd314adb22acd953736dea95f2bf2e3f8ca4",
+        "positive_model_buy_sell_fixture_verified": true,
+        "liquidity_and_slot_order_fix_commit": "f77946fdf099e11e92ae73ccdbb6991e9ee410c8",
+        "liquidity_fix_ci": {
+          "run": 45390902222,
+          "status": "completed",
+          "conclusion": "success",
+          "counts": [
+            "2026-11-24T12:10:26.4935459Z # tests 918",
+            "2026-11-24T12:10:26.4935768Z # pass 918",
+            "2026-11-24T12:10:26.4935913Z # fail 0"
+          ]
+        },
+        "new_rpc_calls": 12,
+        "fx_calls": 1,
+        "skulls_real_sol_lamports": 29,
+        "new_model_fills": 0,
+        "scope": "Non-synthetic research ledger gate and later-state sell path now exist, positive fixture tested; actual 01:00 candidates evaluated separately: SKULLS NO_TRADE, CC DATA_GAP. No real or historical model fill."
       }
     },
     {
@@ -179,5 +192,5 @@
   ],
   "next_task": "R29-W04",
   "historical_retest_with_same_empty_trade_inputs": "DO_NOT_REPEAT",
-  "next_task_reason": "Midnight initial actual-data review completed; generalize historical execution contract and advance chronological scans, while W03 fills risk/quote data gaps. No repeated first-tick audits."
+  "next_task_reason": "Positive retrospective simulation path implemented; 01:00 completed; next 02:00 onwards using generalized chronological runner and material as-of risk evidence."
 }
