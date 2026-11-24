@@ -28,11 +28,22 @@
     {
       "id": "R29-W01",
       "priority": "P0",
-      "status": "OPEN",
+      "status": "IN_PROGRESS",
       "title": "Separate historical research simulation from formal product release; positive evidence verifier",
       "acceptance": "Contract and isolated tests demonstrate valid positive path, reject missing/tampered evidence, keep production gates fail-closed; no orders.",
       "depends_on": [],
-      "claim": null,
+      "claim": {
+        "owner": "chat-w01-hourly-resume-20261124",
+        "claimed_at_utc": "2026-11-24T08:47:00Z",
+        "lease_expires_at_utc": "2026-11-24T10:47:00Z",
+        "input_commit": "d35143366d08820591647dfc92f3cc218a2d5ffb",
+        "expected_evidence": "separate historical review readiness plus fail-closed production; verified inputs, positive and negative tests",
+        "paths": [
+          "src/r29-historical-research-readiness.mjs",
+          "test/r29-historical-research-readiness.test.mjs",
+          "docs/R29_HISTORICAL_RESEARCH_CONTRACT.md"
+        ]
+      },
       "last_evidence": null
     },
     {
@@ -92,6 +103,27 @@
         "R29-W05"
       ],
       "claim": null,
+      "last_evidence": null
+    },
+    {
+      "id": "R29-W07",
+      "priority": "P0",
+      "status": "IN_PROGRESS",
+      "title": "Hourly persistent data catch-up: fix stale workflow checkout, test state continuity",
+      "acceptance": "Each queued capture checks out latest branch state after prior capture, preserves immutable request bytes, never bypasses cooldown; 24 planned hourly ticks and adaptive GPT reviews separate; end-to-end verification still required.",
+      "depends_on": [],
+      "claim": {
+        "owner": "chat-w01-hourly-resume-20261124",
+        "claimed_at_utc": "2026-11-24T08:47:00Z",
+        "lease_expires_at_utc": "2026-11-24T10:47:00Z",
+        "input_commit": "d35143366d08820591647dfc92f3cc218a2d5ffb",
+        "expected_evidence": "workflow latest-state checkout regression and documented resume behavior",
+        "paths": [
+          ".github/workflows/cleanroom-dot2-capture.yml",
+          "scripts/cloud-discovery-runner.mjs",
+          "test/r29-hourly-capture-checkout.test.mjs"
+        ]
+      },
       "last_evidence": null
     }
   ],
