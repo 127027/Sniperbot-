@@ -28,23 +28,18 @@
     {
       "id": "R29-W01",
       "priority": "P0",
-      "status": "IN_PROGRESS",
+      "status": "OPEN",
       "title": "Separate historical research simulation from formal product release; positive evidence verifier",
       "acceptance": "Contract and isolated tests demonstrate valid positive path, reject missing/tampered evidence, keep production gates fail-closed; no orders.",
       "depends_on": [],
-      "claim": {
-        "owner": "chat-w01-hourly-resume-20261124",
-        "claimed_at_utc": "2026-11-24T08:47:00Z",
-        "lease_expires_at_utc": "2026-11-24T10:47:00Z",
-        "input_commit": "d35143366d08820591647dfc92f3cc218a2d5ffb",
-        "expected_evidence": "separate historical review readiness plus fail-closed production; verified inputs, positive and negative tests",
-        "paths": [
-          "src/r29-historical-research-readiness.mjs",
-          "test/r29-historical-research-readiness.test.mjs",
-          "docs/R29_HISTORICAL_RESEARCH_CONTRACT.md"
-        ]
-      },
-      "last_evidence": null
+      "claim": null,
+      "last_evidence": {
+        "commit": "0dccb7c62116783f4f5a73e26b8201c8b19a91fb",
+        "verified_ci_run": 45360632953,
+        "tests_passed": 893,
+        "scope": "Positive isolated historical review readiness with SHA and virtual finality, no original GPT/Windows prerequisite. Production QA-04 unchanged; still requires independent positive product verifiers and executable model input path.",
+        "next": "W03 supplies historical pool/quote/risk evidence; then W01 finish model execution contract and W04 genuine current GPT review. Do not repeat the completed review-gate implementation."
+      }
     },
     {
       "id": "R29-W02",
@@ -108,25 +103,24 @@
     {
       "id": "R29-W07",
       "priority": "P0",
-      "status": "IN_PROGRESS",
+      "status": "OPEN",
       "title": "Hourly persistent data catch-up: fix stale workflow checkout, test state continuity",
       "acceptance": "Each queued capture checks out latest branch state after prior capture, preserves immutable request bytes, never bypasses cooldown; 24 planned hourly ticks and adaptive GPT reviews separate; end-to-end verification still required.",
       "depends_on": [],
-      "claim": {
-        "owner": "chat-w01-hourly-resume-20261124",
-        "claimed_at_utc": "2026-11-24T08:47:00Z",
-        "lease_expires_at_utc": "2026-11-24T10:47:00Z",
-        "input_commit": "d35143366d08820591647dfc92f3cc218a2d5ffb",
-        "expected_evidence": "workflow latest-state checkout regression and documented resume behavior",
-        "paths": [
-          ".github/workflows/cleanroom-dot2-capture.yml",
-          "scripts/cloud-discovery-runner.mjs",
-          "test/r29-hourly-capture-checkout.test.mjs"
-        ]
-      },
-      "last_evidence": null
+      "claim": null,
+      "last_evidence": {
+        "checkout_fix_commit": "0dccb7c62116783f4f5a73e26b8201c8b19a91fb",
+        "verified_checkout_ci": 45360632953,
+        "slot_ledger_commit": "bf8cab95206d655c9f2f041e009f55fceb262f76",
+        "slot_ci_run": 45360797815,
+        "slot_ci_status": "completed",
+        "slot_ci_conclusion": "success",
+        "scope": "Latest branch checkout, immutable trigger request, 24 hourly slot ledger integrated into Dot2 capture runner; no extra provider calls or actual Dot changes.",
+        "next": "Verify actual next authorized hourly capture, implement missing-slot trigger reconciliation/dedup and complete end-to-end continuity; no repeated old dataset or additional provider calls merely for tests."
+      }
     }
   ],
-  "next_task": "R29-W01",
-  "historical_retest_with_same_empty_trade_inputs": "DO_NOT_REPEAT"
+  "next_task": "R29-W03",
+  "historical_retest_with_same_empty_trade_inputs": "DO_NOT_REPEAT",
+  "next_task_reason": "W01 review path implemented, W03 historical quote/chain data needed for model execution; W02 coordination and W07 E2E work can proceed without duplicate ownership."
 }
