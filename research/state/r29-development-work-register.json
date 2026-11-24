@@ -96,23 +96,14 @@
     {
       "id": "R29-W04",
       "priority": "P1",
-      "status": "IN_PROGRESS",
+      "status": "OPEN",
       "title": "Vertical slice: causal historical GPT review and isolated model ledger",
       "acceptance": "One suitable candidate through common strategy, valid as-of inputs, genuine current review documented, model action or reasoned no trade; no client writes.",
       "depends_on": [
         "R29-W01",
         "R29-W03"
       ],
-      "claim": {
-        "owner": "chat-w04-preparation-queue-evm-20261124",
-        "input_commit": "936159cdeddd94911a3f6449f54e3fa226e39286",
-        "expected_evidence": "Persistent preparation request queue, no duplicate successful request, retry-after; neutral EVM source probe before midnight",
-        "paths": [
-          "src/r29-preparation-queue.mjs",
-          "scripts/r29-preparation-source-probe.mjs",
-          "research/state/r29-preparation-queue.json"
-        ]
-      },
+      "claim": null,
       "last_evidence": {
         "run": 45389862438,
         "commit": "002f61e3b6654683b282a44106d87114a6339084",
@@ -128,7 +119,7 @@
         "real_historical_model_fills": 0,
         "actual_october_gpt_runs": 0,
         "reason": "No positive directional edge in three short pre-midnight observations. No forced buy. Ledger currently only synthetic test execution; requires verified retrospective execution path before actual modeled fills.",
-        "next": "Do not advance to 03:00. Build/resume actual predecision source acquisition with persistent queue and cooldown, no fixed warmup limit, no repeat of existing successful RPC or FX receipts. Prioritize missing scope source inventory, archived multi-chain discovery and pre-midnight feature/risk/quote coverage; existing Solana feature archive is partial. Verify scope and actual evidence before allowing prepared session; integrate real five-role reviews and single ledger with pending settlement into runner. User wants BUY decisions possible at midnight, not forced winner selection. Full global coverage cannot be claimed. Existing 00–02 diagnostics retained, do not rerun them merely for another status report.",
+        "next": "Reuse verified Ethereum blocks 26172283–26172582 (22:44:59–23:44:59 UTC). No re-fetch of four successful requests. Chainticks date partition 404 and PublicNode eth_getLogs 403 recorded; do not blindly retry those endpoints. Try independently documented public Ethereum historical logs provider using exact verified block range and conservative 900s finality; retain raw bytes and hash, no winner seeds. Need artifact-backed cache read and cross-run reservation persistence before automated repeated execution; current queue state persisted by connector after each authorized run. Source coverage still incomplete. Expand other chains and news/social; never start first scan without preparation.",
         "next_hour_run": 45392964707,
         "next_hour_tick": "2026-10-12T02:00:00.000Z",
         "next_hour_report": "research/audits/2026-11-24/r29-w04-0200-generalized-scan.json",
@@ -194,6 +185,33 @@
             "2026-11-24T12:30:53.1681536Z # pass 922",
             "2026-11-24T12:30:53.1681706Z # fail 0"
           ]
+        },
+        "preparation_queue_commit": "a9a68d839dca13e1817f3d84e371b7625ca83b89",
+        "preparation_source_run": 45395031687,
+        "preparation_queue_path": "research/state/r29-preparation-queue.json",
+        "preparation_source_report": "research/audits/2026-11-24/r29-preparation-neutral-evm-source.json",
+        "source_probe_calls": 6,
+        "source_probe_successes": 4,
+        "source_probe_failure_statuses": [
+          404,
+          403
+        ],
+        "ethereum_verified_block_range": {
+          "start_block": 26172283,
+          "end_block": 26172582,
+          "start_time_utc": "2026-10-11T22:44:59.000Z",
+          "end_time_utc": "2026-10-11T23:44:59.000Z",
+          "modeled_finality_buffer_seconds": 900
+        },
+        "queue_ci": {
+          "run": 45395017029,
+          "status": "completed",
+          "conclusion": "success",
+          "counts": [
+            "2026-11-24T12:35:55.5908117Z # tests 925",
+            "2026-11-24T12:35:55.5909084Z # pass 925",
+            "2026-11-24T12:35:55.5909384Z # fail 0"
+          ]
         }
       }
     },
@@ -245,7 +263,7 @@
   ],
   "next_task": "R29-W04",
   "historical_retest_with_same_empty_trade_inputs": "DO_NOT_REPEAT",
-  "next_task_reason": "User clarified predecision readiness is P0 before any later tick. Shift from hour-by-hour capture to pre-warm preparation and shared portfolio. No valid scan started.",
+  "next_task_reason": "Preparation queue implemented; first neutral Ethereum source probe partially succeeded; next use verified block range with alternative legitimate source. Virtual clock remains frozen.",
   "predecision_preparation": {
     "virtual_first_decision_utc": "2026-10-12T00:00:00.000Z",
     "physical_research_time_limit": null,
@@ -323,6 +341,12 @@
         "reason": "INDICATIVE_QUOTE_AND_UNRESOLVED_RISK"
       }
     ],
-    "source_scope_provisional": true
+    "source_scope_provisional": true,
+    "source_queue": {
+      "path": "research/state/r29-preparation-queue.json",
+      "last_run": 45395031687,
+      "successful_requests": 4,
+      "unresolved_requests": 2
+    }
   }
 }
