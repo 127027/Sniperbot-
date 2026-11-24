@@ -54,11 +54,20 @@
     {
       "id": "R29-W03",
       "priority": "P1",
-      "status": "OPEN",
+      "status": "IN_PROGRESS",
       "title": "Decode existing six historical transactions and reconstruct feasible historical quote inputs",
       "acceptance": "Use run 45351015863 raw receipts; identify mint/pool/flow/fees and complementary evidence; explicit missing fields; no invented price; no hidden candidate truncation.",
       "depends_on": [],
-      "claim": null,
+      "claim": {
+        "owner": "chat-w03-model-fx-20261124",
+        "input_commit": "3ccc90e95bf08f98cf0b4fc33d48530b04910843",
+        "expected_evidence": "Historical SOL-USDC candle, explicit 50 USDC curve model with size impact and fee/risk uncertainty, real offline report",
+        "paths": [
+          "src/r29-historical-curve-model.mjs",
+          "scripts/r29-w03-model-quotes.mjs",
+          "test/r29-historical-curve-model.test.mjs"
+        ]
+      },
       "last_evidence": {
         "source_run": 45351015863,
         "economic_flow_run": 45384807888,
