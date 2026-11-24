@@ -32,6 +32,7 @@ export function correlateReserveState({raw,decoded}={}){
  return {signature:decoded.signature,mint:decoded.mint,pool:s.pool,receipt_id:decoded.receipt_id,slot:tx.slot,block_time_utc:decoded.block_time_utc,side:decoded.side,source_sha256:decoded.source_sha256,pre:map(pre),post:map(post),vault:{token_pre:ta.toString(),token_post:tb.toString(),sol_pre:sa.toString(),sol_post:sb.toString(),token_offset:(tb-post.real_token).toString(),sol_offset:(sb-post.real_sol).toString()},fees:{protocol_bps:e.fee_basis_points,creator_bps:e.creator_fee_basis_points,protocol_fee_lamports:e.fee,creator_fee_lamports:e.creator_fee,buyback_share_bps:e.buyback_fee_basis_points,network_fee_lamports:String(m.fee)},event_flow_verified:true,asof_tick_quote_verified:false,orders_authorized:0};
 }
 export function compareReserveContinuity(first,second){
+ if(!first?.post||!second?.pre||!first?.vault||!second?.vault)return false;
  if(first.mint!==second.mint||first.pool!==second.pool||first.slot>second.slot||first.signature===second.signature||Date.parse(first.block_time_utc)>Date.parse(second.block_time_utc))return false;
  return ['virtual_sol','virtual_token','real_sol','real_token'].every(k=>first.post[k]===second.pre[k])&&first.vault.token_post===second.vault.token_pre&&first.vault.sol_post===second.vault.sol_pre&&first.vault.token_offset===second.vault.token_offset&&first.vault.sol_offset===second.vault.sol_offset;
 }
