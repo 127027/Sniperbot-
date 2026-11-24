@@ -1,0 +1,39 @@
+name: R29 W04 first shared historical decision and bounded mint risk
+on:
+  push:
+    branches: [codex/r29-cleanroom-paper-20261121]
+    paths: ['research/w04-first-review-requests/**']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: r29-w04-first-review
+  cancel-in-progress: false
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test test/r29-historical-model-ledger.test.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: r29-v210-comparison-and-chain-45351015863
+          run-id: '45351015863'
+          github-token: ${{ github.token }}
+          path: probe-artifacts/w04-original
+      - run: node scripts/r29-w04-first-review.mjs
+      - if: always()
+        run: test -z "$(git status --porcelain -- signals runner)"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-w04-first-review-${{ github.run_id }}
+          path: probe-artifacts/w04-first-*/
+          retention-days: 30
