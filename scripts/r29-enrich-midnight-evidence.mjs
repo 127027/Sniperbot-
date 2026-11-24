@@ -1,6 +1,6 @@
 import {readFile,writeFile,mkdir} from 'node:fs/promises';import {gunzipSync,gzipSync} from 'node:zlib';import {createHash} from 'node:crypto';import {execFileSync} from 'node:child_process';
-import {prioritizeEvidence,selectSustainedEvidencePilot,selectNextLiquidityEvidencePilot} from '../src/r29-evidence-enrichment.mjs';
-import {reservePreparationRequest,recordPreparationReceipt} from '../src/r29-preparation-queue.mjs';
+import {prioritizeEvidence,selectSustainedEvidencePilot,selectNextLiquidityEvidencePilot,selectActiveHistoryPilot,planStagedHistory} from '../src/r29-evidence-enrichment.mjs';
+import {reservePreparationRequest,recordPreparationReceipt,preparationRequestKey} from '../src/r29-preparation-queue.mjs';
 import {inspectHistoricalMintTransaction} from '../src/r29-historical-mint-risk.mjs';
 import {decodeHistoricalSwapFlow} from '../src/r29-historical-swap-flow.mjs';import {decodePumpReserveEvent} from '../src/r29-pump-reserve-event.mjs';import {correlateReserveState,compareReserveContinuity} from '../src/r29-reserve-continuity.mjs';import {latestObservedCurve,evaluateRetrospectiveEntry} from '../src/r29-retrospective-execution.mjs';import {parseBinanceHistoricalFx} from '../src/r29-historical-curve-model.mjs';
 const read=async p=>JSON.parse(await readFile(p,'utf8')),sha=b=>createHash('sha256').update(b).digest('hex'),checked=async(p,h)=>{const b=await readFile(p);if(sha(b)!==h)throw Error('SHA_MISMATCH '+p);return b;};
@@ -35,7 +35,22 @@ async function persist(msg,files){
 }
 const p='research/preparation/decision-input/',manifest=await read(p+'manifest.json');
 let selection,target;
-if(req.next_liquidity_selection===true){
+if(req.active_history_selection===true||req.resume_active_run!==undefined){
+ const old='research/preparation/enrichment/45450122787/',prev=await read(old+'selection.json');
+ if(prev.source_packet_sha256!==manifest.packet_sha256||prev.total_jobs!==manifest.evidence_jobs)throw Error('RESUME_INPUT_CHANGED');
+ const rows=JSON.parse(gunzipSync(await checked(old+'ranked-evidence-queue.json.gz',prev.ranked_queue_sha256)));
+ const reviewed=await Promise.all([45450391897,45452592950,45475312106].map(id=>read('research/preparation/enrichment/'+id+'/current-chat-review.json')));
+ const excluded=[...new Set([...manifest.prior_quote_mints,...reviewed.map(r=>r.mint)])];
+ const x=selectActiveHistoryPilot(rows,{excluded});
+ if(req.resume_active_run!==undefined){
+  if(!Number.isSafeInteger(req.resume_active_run)||req.resume_active_run<=0)throw Error('INVALID_RESUME_RUN');
+  const last=await read('research/preparation/enrichment/'+req.resume_active_run+'/selection.json');
+  if(last.selection_mode!=='STAGED_ACTIVE_HISTORY'||last.source_packet_sha256!==manifest.packet_sha256||last.ranked_queue_sha256!==prev.ranked_queue_sha256||!last.pilot||excluded.includes(last.pilot.mint))throw Error('INVALID_STAGED_RESUME');
+  target=last.pilot;
+ }else target=x.pilot;
+ selection={...prev,pilot:target,pilot_count:x.eligible_pilot_count,reused_selection_run:45450122787,selection_mode:'STAGED_ACTIVE_HISTORY',excluded_mints:excluded,ranking_is_not_buy_signal:true,reported_turnover_is_not_verified_liquidity:true,resumed_run:req.resume_active_run??null};
+ await writeFile(root+'/selection.json',JSON.stringify(selection,null,2)+'\n');await persist('R29 choose or resume active candidate history',[root]);
+}else if(req.next_liquidity_selection===true){
  const old='research/preparation/enrichment/45450122787/',prev=await read(old+'selection.json');
  if(prev.source_packet_sha256!==manifest.packet_sha256||prev.total_jobs!==manifest.evidence_jobs)throw Error('RESUME_INPUT_CHANGED');
  const rows=JSON.parse(gunzipSync(await checked(old+'ranked-evidence-queue.json.gz',prev.ranked_queue_sha256)));
@@ -75,7 +90,7 @@ let calls=0,halt=false;const receipts=[];
 async function rpc(method,params){
  const body={jsonrpc:'2.0',id:1,method,params},request={provider:'SOLANA_RPC',url:'https://api.mainnet.solana.com',body},gate=reservePreparationRequest(queue,request,new Date().toISOString());
  if(!gate.allowed){
-  if(gate.reason==='ALREADY_CAPTURED'){const r=queue.requests[gate.key].receipt,raw=(await checked(r.artifact_path,r.sha256)).toString('utf8');return {raw,receipt:r,result:JSON.parse(raw).result};}
+  if(gate.reason==='ALREADY_CAPTURED'){const r=queue.requests[gate.key].receipt,raw=(await checked(r.artifact_path,r.sha256)).toString('utf8');receipts.push({key:gate.key,method,http_status:r.http_status,sha256:r.sha256,artifact_path:r.artifact_path,usable:r.usable,reused:true});return {raw,receipt:r,result:JSON.parse(raw).result};}
   console.log('R29_ENRICH_SKIP',gate.reason);return null;
  }
  if(halt||calls>=req.max_rpc)return null;
@@ -98,7 +113,13 @@ if(target){
  const unique=[...new Map(eligible.map(x=>[x.signature,x])).values()].sort((a,b)=>a.blockTime-b.blockTime||a.slot-b.slot);
  const complete=!!page&&arr.length<1000&&arr.every(s=>Number.isInteger(s.blockTime));
  result.archive_exhausted_as_reported=complete;result.expected_prescan_signatures=unique.map(s=>s.signature);
- const selected=unique.length<=7?unique:[unique[0],...unique.slice(-6)];
+ let selected;
+ if(selection.selection_mode==='STAGED_ACTIVE_HISTORY'){
+  const txKey=signature=>preparationRequestKey({provider:'SOLANA_RPC',url:'https://api.mainnet.solana.com',body:{jsonrpc:'2.0',id:1,method:'getTransaction',params:[signature,{encoding:'jsonParsed',commitment:'finalized',maxSupportedTransactionVersion:1}]}});
+  const known=unique.filter(x=>queue.requests[txKey(x.signature)]?.status==='CAPTURED').map(x=>x.signature);
+  const plan=planStagedHistory(unique.map(x=>x.signature),known,{budget:Math.max(0,req.max_rpc-calls)});
+  const bySig=new Map(unique.map(x=>[x.signature,x]));selected=plan.selected.map(x=>bySig.get(x));result.history_plan=plan;
+ }else selected=unique.length<=7?unique:[unique[0],...unique.slice(-6)];
  result.unfetched_signatures=unique.filter(s=>!selected.includes(s)).map(s=>s.signature);
  const spec=await read('research/reference/r29-pump-trade-event-idl-20261008.json');
  for(const s of selected){
@@ -113,5 +134,5 @@ if(target){
   try{const input={pair,states:result.states,fx,tickUtc,riskInput:{rows:result.decoded_mint_rows,expectedSignatures:result.expected_prescan_signatures,archiveExhausted:complete},strategyPolicy:'GPT_RESEARCH_V1'};result.evaluation=evaluateRetrospectiveEntry(input);result.review_input=input;result.model_trade_inputs_verified=result.evaluation.reasons.filter(r=>!['GPT_STRATEGY_NOT_BUY','NO_MATCHING_CURRENT_GPT_BUY_REVIEW'].includes(r)).length===0?1:0;}catch(e){result.errors.push({stage:'MODEL',reason:e.message});}
  }
 }
-result.rpc_calls=calls;result.provider_stopped=halt;
+result.rpc_calls=calls;result.provider_stopped=halt;result.unresolved_history_signatures=result.expected_prescan_signatures.filter(x=>!result.decoded_mint_rows.some(r=>r.signature===x));
 const dest=root+'/result.json';await writeFile(dest,JSON.stringify(result,null,2)+'\n');await persist('R29 persist targeted candidate model evidence and unresolved jobs',[dest]);console.log('R29_ENRICH_RESULT',JSON.stringify({selection:result.selection,expected:result.expected_prescan_signatures.length,decoded:result.decoded_mint_rows.length,states:result.states.length,archive_exhausted:result.archive_exhausted_as_reported,errors:result.errors,evaluation:result.evaluation,model_trade_inputs_verified:result.model_trade_inputs_verified,rpc_calls:calls,provider_stopped:halt,orders:0}));

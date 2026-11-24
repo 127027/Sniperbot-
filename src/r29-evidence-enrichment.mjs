@@ -60,3 +60,26 @@ export function selectNextLiquidityEvidencePilot(rows,{excluded=[],minSwaps=4,ma
  candidates.sort((a,b)=>value(b)-value(a)||b.activity-a.activity||b.priority_score-a.priority_score||a.mint.localeCompare(b.mint)||a.pool.localeCompare(b.pool));
  return {pilot:candidates[0]??null,eligible_pilot_count:candidates.length,ranking_is_not_buy_signal:true,reported_reserve_is_not_verified_liquidity:true};
 }
+
+// Higher-activity research lane. Reported turnover is a source clue, not
+// verified liquidity or a buy signal. No upper history-length cutoff.
+export function selectActiveHistoryPilot(rows,{excluded=[]}={}){
+ const skip=new Set(excluded),candidates=[];
+ for(const r of rows){
+  if(skip.has(r.mint)||r.previously_reviewed||!Number.isFinite(r.launch_age_seconds)||r.launch_age_seconds>3600)continue;
+  for(const p of r.pools){
+   if(!p.two_sided||!p.sol_quote_reported||!p.pump_curve_reported||!p.latest_signature||!Array.isArray(p.protocols)||p.protocols.some(x=>/mayhem/i.test(x))||!Number.isFinite(p.age_seconds)||p.age_seconds<60||p.age_seconds>300||p.activity<5||p.observed_swaps_60m<8||!Number.isFinite(p.reported_quote_turnover)||p.reported_quote_turnover<=0)continue;
+   candidates.push({mint:r.mint,launch_age_seconds:r.launch_age_seconds,...p});
+  }
+ }
+ candidates.sort((a,b)=>b.reported_quote_turnover-a.reported_quote_turnover||b.activity-a.activity||b.priority_score-a.priority_score||a.mint.localeCompare(b.mint)||a.pool.localeCompare(b.pool));
+ return {pilot:candidates[0]??null,eligible_pilot_count:candidates.length,ranking_is_not_buy_signal:true,reported_turnover_is_not_verified_liquidity:true};
+}
+// Process all already captured receipts and at most budget new signatures.
+// Include first and last observations early; later stages fill the middle.
+export function planStagedHistory(signatures,captured,{budget=7}={}){
+ if(!Array.isArray(signatures)||!Array.isArray(captured)||!Number.isInteger(budget)||budget<0||new Set(signatures).size!==signatures.length||signatures.some(x=>typeof x!=='string'||!x))throw Error('INVALID_HISTORY_PLAN');
+ const have=new Set(captured),priority=[...new Set([...signatures.slice(0,1),...signatures.slice(1).reverse()])];
+ const existing=signatures.filter(x=>have.has(x)),missing=priority.filter(x=>!have.has(x)),newRequests=missing.slice(0,budget);
+ return {existing,newRequests,remaining:missing.slice(budget),selected:[...existing,...newRequests],complete:missing.length===0};
+}
