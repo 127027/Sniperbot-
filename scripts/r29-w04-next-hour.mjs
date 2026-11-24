@@ -5,11 +5,21 @@ import {correlateReserveState,compareReserveContinuity} from '../src/r29-reserve
 import {inspectHistoricalMintTransaction} from '../src/r29-historical-mint-risk.mjs';
 import {parseBinanceHistoricalFx} from '../src/r29-historical-curve-model.mjs';
 import {evaluateRetrospectiveEntry,latestObservedCurve} from '../src/r29-retrospective-execution.mjs';
-const run=process.env.GITHUB_RUN_ID,hash=x=>createHash('sha256').update(x).digest('hex'),tickUtc='2026-10-12T01:00:00.000Z',tick=Date.parse(tickUtc)/1000;
+const run=process.env.GITHUB_RUN_ID,hash=x=>createHash('sha256').update(x).digest('hex');
 const changes=execFileSync('git',['diff-tree','--no-commit-id','--name-only','-r',process.env.GITHUB_SHA],{encoding:'utf8'}).trim().split('\n');
 if(process.env.GITHUB_REF!=='refs/heads/codex/r29-cleanroom-paper-20261121'||changes.length!==1||!changes[0].startsWith('research/w04-next-hour-requests/2026-11-24/'))throw Error('EXPLICIT_REQUEST_REQUIRED');
-const q=JSON.parse(await readFile(changes[0],'utf8'));if(q.kind!=='R29_W04_NEXT_HOUR_MODEL_RESEARCH'||q.tick_utc!==tickUtc||q.max_rpc_calls!==12||q.no_orders!==true)throw Error('INVALID_REQUEST');
-const source=JSON.parse(await readFile('research/audits/2026-11-24/r29-v210-actual-comparison-and-midnight-chain.json','utf8'));const frame=source.rows[1];if(frame.utc!==tickUtc||frame.new_mints.length!==2||frame.truncated!==0)throw Error('FRAME_MISMATCH');
+const q=JSON.parse(await readFile(changes[0],'utf8'));if(q.kind!=='R29_W04_NEXT_HOUR_MODEL_RESEARCH'||!/^2026-10-12T(?:0[2-9]|1[0-9]|2[0-3]):00:00\.000Z$/.test(q.tick_utc)||q.max_rpc_calls!==12||q.no_orders!==true)throw Error('INVALID_REQUEST');
+const tickUtc=q.tick_utc,tick=Date.parse(tickUtc)/1000,hour=new Date(tickUtc).getUTCHours();
+const register=JSON.parse(await readFile('research/state/r29-development-work-register.json','utf8'));
+const last=register.tasks.find(x=>x.id==='R29-W04').last_evidence.next_hour_tick;
+if(Date.parse(tickUtc)!==Date.parse(last)+3600000)throw Error('SCAN_CURSOR_MISMATCH');
+const source=JSON.parse(await readFile('research/audits/2026-11-24/r29-v210-actual-comparison-and-midnight-chain.json','utf8'));const frame=source.rows[hour];if(frame.utc!==tickUtc||!Array.isArray(frame.new_mints))throw Error('FRAME_MISMATCH');
+const previousMints=new Set(source.rows.slice(0,hour).flatMap(x=>x.new_mints));
+const deferred=[],fresh=frame.new_mints.filter(m=>{if(previousMints.has(m)){deferred.push({mint:m,status:'DATA_GAP_PRIOR_ARCHIVE_REUSE_REQUIRED'});return false;}return true;});
+const maxTargets=Math.min(fresh.length,6),targetsToFetch=fresh.slice(0,maxTargets);
+for(const mint of fresh.slice(maxTargets))deferred.push({mint,status:'DATA_GAP_CAPTURE_BUDGET_PENDING'});
+if(frame.truncated)deferred.push({status:'DATA_GAP_UNEXPORTED_CANDIDATES',count:frame.truncated});
+const detailLimit=maxTargets?Math.floor((12-maxTargets)/maxTargets):0;
 const spec=JSON.parse(await readFile('research/reference/r29-pump-trade-event-idl-20261008.json','utf8'));
 const out='probe-artifacts/w04-next-hour-'+run;await mkdir(out,{recursive:true});
 let calls=0,halt=false;const receipts=[];
@@ -23,8 +33,8 @@ async function rpc(method,params){
 let fx=null,fxError=null,fxRaw=null,fxReceipt=null;
 try{const end=tick*1000,url='https://data-api.binance.vision/api/v3/klines?symbol=SOLUSDC&interval=1m&startTime='+(end-600000)+'&endTime='+(end-1)+'&limit=10';const resp=await fetch(url,{signal:AbortSignal.timeout(12000)});fxRaw=await resp.text();await writeFile(out+'/fx-raw.json',fxRaw);fxReceipt={url,http_status:resp.status,sha256:hash(fxRaw),retry_after:resp.headers.get('retry-after')};if(!resp.ok)throw Error('FX_HTTP_'+resp.status);fx=parseBinanceHistoricalFx({raw:fxRaw,expectedSha256:fxReceipt.sha256,tickUtc});console.log('R29_NEXT_FX',JSON.stringify({fx,receipt:fxReceipt,raw:fxRaw}));}catch(e){fxError=e.message;}
 const targets=[];
-for(const mint of frame.new_mints){const p=await rpc('getSignaturesForAddress',[mint,{limit:1000,commitment:'finalized'}]);const arr=Array.isArray(p?.result)?p.result:[];const eligible=arr.filter(x=>x.err===null&&Number.isInteger(x.blockTime)&&x.blockTime<tick-60);const unique=[...new Map(eligible.map(x=>[x.signature,x])).values()].sort((a,b)=>b.blockTime-a.blockTime||b.slot-a.slot);const complete=!!p&&arr.length<1000&&arr.every(x=>Number.isInteger(x.blockTime));const selected=unique.length<=5?unique:[...unique.slice(0,4),unique.at(-1)];targets.push({mint,page_receipt:p?.receipt??null,expected:unique,selected,complete,states:[],mintRows:[],errors:[]});}
-for(let i=0;i<5&&!halt;i++)for(const target of targets){
+for(const mint of targetsToFetch){const p=await rpc('getSignaturesForAddress',[mint,{limit:1000,commitment:'finalized'}]);const arr=Array.isArray(p?.result)?p.result:[];const eligible=arr.filter(x=>x.err===null&&Number.isInteger(x.blockTime)&&x.blockTime<tick-60);const unique=[...new Map(eligible.map(x=>[x.signature,x])).values()].sort((a,b)=>b.blockTime-a.blockTime||b.slot-a.slot);const complete=!!p&&arr.length<1000&&arr.every(x=>Number.isInteger(x.blockTime));const selected=unique.length<=detailLimit?unique:[...unique.slice(0,Math.max(0,detailLimit-1)),unique.at(-1)];targets.push({mint,page_receipt:p?.receipt??null,expected:unique,selected,complete,states:[],mintRows:[],errors:[]});}
+for(let i=0;i<detailLimit&&!halt;i++)for(const target of targets){
  const s=target.selected[i];if(!s||halt)continue;
  const p=await rpc('getTransaction',[s.signature,{encoding:'jsonParsed',commitment:'finalized',maxSupportedTransactionVersion:1}]);
  if(!p?.result){target.errors.push({signature:s.signature,reason:'RPC_UNAVAILABLE'});continue;}
@@ -39,5 +49,5 @@ for(const target of targets){
   try{const input={pair,states:target.states,fx,tickUtc,riskInput:{rows:target.mintRows,expectedSignatures:report.expected_signatures,archiveExhausted:target.complete}};report.evaluation=evaluateRetrospectiveEntry(input);report.review_input=input;}catch(e){report.errors.push({stage:'MODEL',reason:e.message});}}
  console.log('R29_NEXT_CANDIDATE',JSON.stringify(report));target.report=report;
 }
-const report={kind:'R29_W04_NEXT_HOUR_MODEL_RESEARCH',tick_utc:tickUtc,source_run:45351015863,fx,fx_error:fxError,fx_receipt:fxReceipt,rows:targets.map(x=>x.report),rpc_calls:calls,fx_calls:1,halted:halt,receipts,actual_gpt_reviews:0,orders:0};
+const report={kind:'R29_W04_NEXT_HOUR_MODEL_RESEARCH',tick_utc:tickUtc,source_run:45351015863,fx,fx_error:fxError,fx_receipt:fxReceipt,rows:targets.map(x=>x.report),deferred,frame_candidate_count:frame.new_mints.length,unexported_count:frame.truncated,rpc_calls:calls,fx_calls:1,halted:halt,receipts,actual_gpt_reviews:0,orders:0};
 await writeFile(out+'/next-hour.json',JSON.stringify(report,null,2)+'\n');console.log('R29_NEXT_RESULT',JSON.stringify({...report,rows:undefined,receipts:undefined}));

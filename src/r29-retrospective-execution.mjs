@@ -39,6 +39,7 @@ export function latestObservedCurve(states){
 }
 export function evaluateRetrospectiveEntry({pair,states,fx,tickUtc,riskInput,gptReview}={}){
  const risk=assessHistoricalModelRisk({...riskInput,mint:pair.mint,pool:pair.pool,states,tickUtc});
+ if(states.some(s=>!Number.isFinite(t(s.block_time_utc))||t(s.block_time_utc)+60000>=t(tickUtc)))throw Error('FUTURE_STATE_IN_DECISION_INPUT');
  const quote=modelHistoricalCurve({pair,fx,tickUtc});
  const first=states.find(s=>s.receipt_id===pair.earlier&&s.mint===pair.mint&&s.pool===pair.pool&&s.event_flow_verified===true);
  const last=states.find(s=>s.receipt_id===pair.later&&s.mint===pair.mint&&s.pool===pair.pool&&s.event_flow_verified===true);
@@ -56,22 +57,23 @@ export function evaluateRetrospectiveEntry({pair,states,fx,tickUtc,riskInput,gpt
  // Current review may be a manually recorded GPT assessment, never a fake October receipt.
  const inputHash=createHash('sha256').update(JSON.stringify({pair,states,fx,tickUtc,risk})).digest('hex');
  if(!gptReview||gptReview.input_sha256!==inputHash||gptReview.mint!==pair.mint||gptReview.tick_utc!==tickUtc||gptReview.action!=='BUY'||typeof gptReview.reason!=='string'||!gptReview.reason.trim())reasons.push('NO_MATCHING_CURRENT_GPT_BUY_REVIEW');
- return {kind:'R29_RETROSPECTIVE_MODEL_ENTRY_EVALUATION',mint:pair.mint,pool:pair.pool,tick_utc:tickUtc,input_sha256:inputHash,signal,risk,quote,reasons,model_fill_eligible:reasons.length===0,scope:'ISOLATED_RESEARCH_SIMULATION_ONLY',live_order_authorized:false,client_writes_authorized:false,orders:0};
+ return {kind:'R29_RETROSPECTIVE_MODEL_ENTRY_EVALUATION',mint:pair.mint,pool:pair.pool,tick_utc:tickUtc,input_sha256:inputHash,signal,risk,quote,reasons,model_signal_eligible:reasons.length===0,model_fill_eligible:false,scope:'ISOLATED_RESEARCH_SIMULATION_ONLY',live_order_authorized:false,client_writes_authorized:false,orders:0};
 }
-export const emptyRetrospectiveLedger=()=>({kind:'R29_RETROSPECTIVE_RESEARCH_LEDGER',cash_micro:'5000000000',positions:{},events:[],realized_pnl_micro:'0',orders:0});
+export const emptyRetrospectiveLedger=()=>({kind:'R29_RETROSPECTIVE_RESEARCH_LEDGER',cash_micro:'5000000000',positions:{},pending:{},events:[],realized_pnl_micro:'0',orders:0});
 function eventState(state,mint,tickUtc){
  if(state?.kind!=='R29_RETROSPECTIVE_RESEARCH_LEDGER'||!Number.isFinite(t(tickUtc))||state.events.some(e=>e.mint===mint&&e.tick_utc===tickUtc)||state.events.some(e=>t(e.tick_utc)>t(tickUtc)))throw Error('INVALID_OR_DUPLICATE_LEDGER_EVENT');
  return structuredClone(state);
 }
+// Signals and fills are separate events. No execution at the earlier signal quote.
 export function applyRetrospectiveEntry(state,input){
  const e=evaluateRetrospectiveEntry(input),next=eventState(state,e.mint,e.tick_utc);
- const event={mint:e.mint,tick_utc:e.tick_utc,action:e.model_fill_eligible?'BUY':e.signal.action==='BUY'?'DATA_GAP':e.signal.action,execution:'NO_FILL',reasons:e.reasons,input_sha256:e.input_sha256};
- if(e.model_fill_eligible){
-  const q=e.quote.entry,cost=u(q.spent_micro_usdc),amount=u(q.token_output_raw);
-  if(next.positions[e.mint]||cost<=0n||cost>50000000n||u(next.cash_micro)<cost)throw Error('INVALID_POSITION_OR_CASH');
-  next.cash_micro=String(u(next.cash_micro)-cost);
-  next.positions[e.mint]={mint:e.mint,pool:e.pool,entered_at_utc:e.tick_utc,cost_micro:String(cost),token_raw:String(amount),entry_price_usdc:Number(cost)/Number(amount),entry_source_sha256:e.quote.source_sha256};
-  Object.assign(event,{execution:'RETROSPECTIVE_MODEL_FILL',cost_micro:String(cost),token_raw:String(amount),assumptions:e.risk.assumptions});
+ const event={mint:e.mint,tick_utc:e.tick_utc,action:e.model_signal_eligible?'BUY':e.signal.action==='BUY'?'DATA_GAP':e.signal.action,execution:'NO_FILL',reasons:e.reasons,input_sha256:e.input_sha256};
+ if(e.model_signal_eligible){
+  if(next.positions[e.mint]||next.pending[e.mint])throw Error('POSITION_OR_PENDING_EXISTS');
+  const reserved=Object.values(next.pending).filter(p=>p.action==='BUY').length*50000000;
+  if(u(next.cash_micro)<50000000n+BigInt(reserved))throw Error('INSUFFICIENT_UNRESERVED_CASH');
+  next.pending[e.mint]={action:'BUY',pool:e.pool,signal_at_utc:e.tick_utc,input_sha256:e.input_sha256};
+  event.execution='PENDING_NEXT_VERIFIED_MODEL_OBSERVATION';
  }
  next.events.push(event);return {ledger:next,evaluation:e};
 }
@@ -95,9 +97,44 @@ export function applyRetrospectiveExit(ledger,input){
  const e=evaluateRetrospectiveExit({...input,position}),next=eventState(ledger,input.mint,input.tickUtc);
  const event={mint:input.mint,tick_utc:input.tickUtc,action:e.signal.action,execution:'NO_FILL',reason:e.signal.reason,source_sha256:e.source_sha256};
  if(e.signal.action==='SELL'){
-  const received=u(e.received_micro),pnl=received-u(position.cost_micro);
-  next.cash_micro=String(u(next.cash_micro)+received);next.realized_pnl_micro=String(BigInt(next.realized_pnl_micro)+pnl);delete next.positions[input.mint];
-  Object.assign(event,{execution:'RETROSPECTIVE_MODEL_FILL',received_micro:String(received),pnl_micro:String(pnl)});
+  if(next.pending[input.mint])throw Error('PENDING_ORDER_EXISTS');
+  next.pending[input.mint]={action:'SELL',pool:position.pool,signal_at_utc:input.tickUtc,source_sha256:e.source_sha256};
+  event.execution='PENDING_NEXT_VERIFIED_MODEL_OBSERVATION';
  }
  next.events.push(event);return {ledger:next,evaluation:e};
+}
+// Fill only on the first eligible supplied later observation. Coverage is an explicit
+// model assumption, not proof of exact historic market-wide execution.
+export function settleRetrospectivePending(ledger,{mint,tickUtc,observations,fx,riskInput}={}){
+ const p=ledger.pending?.[mint];if(!p)throw Error('NO_PENDING_SIGNAL');
+ const next=eventState(ledger,mint,tickUtc),now=t(tickUtc),signal=t(p.signal_at_utc);
+ if(!Number.isFinite(signal)||now<=signal||!Array.isArray(observations)||observations.some(s=>!Number.isFinite(t(s.block_time_utc))||t(s.block_time_utc)+60000>=now))throw Error('INVALID_OR_FUTURE_FILL_INPUT');
+ const candidates=observations.filter(s=>s.mint===mint&&s.pool===p.pool&&s.event_flow_verified===true&&t(s.block_time_utc)>signal).sort((a,b)=>t(a.block_time_utc)-t(b.block_time_utc)||a.slot-b.slot);
+ const ev={mint,tick_utc:tickUtc,action:p.action,execution:'NO_FILL',signal_at_utc:p.signal_at_utc,scope:'FIRST_VERIFIED_SUPPLIED_OBSERVATION_NOT_PROVEN_FIRST_MARKET_QUOTE',orders:0};
+ function block(reason,terminal=false){ev.reason=reason;if(terminal){delete next.pending[mint];ev.execution='MODEL_SIGNAL_EXPIRED_OR_REJECTED';}next.events.push(ev);return {ledger:next,event:ev};}
+ if(!candidates.length)return block('NO_POST_SIGNAL_OBSERVATION',now-signal>600000&&p.action==='BUY');
+ const s=candidates[0],at=t(s.block_time_utc);
+ if(candidates.filter(a=>t(a.block_time_utc)===at&&a.slot===s.slot).length!==1)return block('AMBIGUOUS_FIRST_POST_SIGNAL_STATE');
+ // Never skip a supplied first observation to select a more favorable later quote.
+ if(now-at>300000)return block('FIRST_OBSERVATION_TOO_OLD',p.action==='BUY');
+ if(p.action==='BUY'&&at-signal>600000)return block('ENTRY_SIGNAL_EXPIRED',true);
+ if(!Number.isFinite(t(fx?.modeled_available_at_utc))||t(fx.modeled_available_at_utc)>=at||at-t(fx.modeled_available_at_utc)>600000||fx.pair!=='SOL-USDC')return block('FX_NOT_AVAILABLE_BEFORE_FILL_OBSERVATION');
+ if(p.action==='BUY'){
+  const risk=assessHistoricalModelRisk({...riskInput,mint,pool:p.pool,states:observations,tickUtc});
+  if(risk.status!=='BOUNDED_HISTORICAL_MODEL_RISK_ACCEPTED')return block('RISK_RECHECK_FAILED',true);
+  const pair={mint,pool:p.pool,source_time:s.block_time_utc,source_signature:s.signature,source_sha256:s.source_sha256,asof_event_state:s.post,fee_observation:s.fees};
+  let quote;try{quote=modelHistoricalCurve({pair,fx,tickUtc});}catch{return block('MODEL_QUOTE_UNAVAILABLE',true);}
+  if(u(s.post.real_sol)<u(quote.immediate_exit_after_own_buy.gross_lamports)||u(quote.entry.price_impact_bps)>500n)return block('EXIT_LIQUIDITY_OR_IMPACT_RECHECK_FAILED',true);
+  const cost=u(quote.entry.spent_micro_usdc),amount=u(quote.entry.token_output_raw);
+  if(next.positions[mint]||cost<=0n||cost>50000000n||u(next.cash_micro)<cost)throw Error('INVALID_POSITION_OR_CASH');
+  next.cash_micro=String(u(next.cash_micro)-cost);next.positions[mint]={mint,pool:p.pool,entered_at_utc:tickUtc,cost_micro:String(cost),token_raw:String(amount),entry_price_usdc:Number(cost)/Number(amount),entry_source_sha256:s.source_sha256};
+  Object.assign(ev,{execution:'RETROSPECTIVE_MODEL_FILL',cost_micro:String(cost),token_raw:String(amount),source_sha256:s.source_sha256,observed_at_utc:s.block_time_utc,exact_execution_proven:false});
+ }else{
+  const pos=next.positions[mint];if(!pos)throw Error('NO_POSITION');
+  let e;try{e=evaluateRetrospectiveExit({position:pos,state:s,fx,tickUtc});}catch{return block('LATER_EXIT_QUOTE_UNAVAILABLE');}
+  const received=u(e.received_micro),pnl=received-u(pos.cost_micro);
+  next.cash_micro=String(u(next.cash_micro)+received);next.realized_pnl_micro=String(BigInt(next.realized_pnl_micro)+pnl);delete next.positions[mint];
+  Object.assign(ev,{execution:'RETROSPECTIVE_MODEL_FILL',received_micro:String(received),pnl_micro:String(pnl),source_sha256:s.source_sha256,observed_at_utc:s.block_time_utc,exact_execution_proven:false});
+ }
+ delete next.pending[mint];next.events.push(ev);return {ledger:next,event:ev};
 }
