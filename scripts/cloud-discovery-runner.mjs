@@ -1,3 +1,4 @@
+import {hourlyCaptureDay,startHourlyCapture,finishHourlyCapture,summarizeHourlyCaptureDay} from '../src/r29-hourly-capture-ledger.mjs';
 import {loadPinnedCaptureRequest} from '../src/r29-pinned-capture-request.mjs';
 // ONE triggered capture per dot2 request. No orders, no secrets, no paid market APIs.
 // Produces immutable raw public API response + validated evidence for future Dots.
@@ -62,6 +63,15 @@ if(!/^\d+$/.test(runId||''))throw Error('MISSING_RUN_ID');
 const root='research/feeds/'+new Date(request.created_at_utc).toISOString().slice(0,10)+'/'+runId;
 await mkdir(root,{recursive:true});
 const now=()=>new Date().toISOString();
+const captureDay=new Date(request.created_at_utc).toISOString().slice(0,10);
+const hourlyLedgerPath='research/state/hourly-capture-days/'+captureDay+'.json';
+await mkdir('research/state/hourly-capture-days',{recursive:true});
+let hourlyLedger;
+try{hourlyLedger=JSON.parse(await readFile(hourlyLedgerPath,'utf8'));}
+catch(e){if(e.code!=='ENOENT')throw e;hourlyLedger=hourlyCaptureDay(captureDay);}
+hourlyLedger=startHourlyCapture(hourlyLedger,{requestedAtUtc:new Date(request.created_at_utc).toISOString(),startedAtUtc:now(),runId,requestCommit:sha,stateCommit:pinnedRequest.state_commit});
+await writeFile(hourlyLedgerPath,JSON.stringify(hourlyLedger,null,2)+'\n','utf8');
+
 const fetches=[],dexChecks=[],fallback=[],rechecked=[],artifacts=[];
 let lastGeckoStartedMs=null;
 let runGeckoRetryAtUtc=null;
@@ -1100,6 +1110,11 @@ const completionVerdict=assessCaptureCompletion({
 });
 const completionVerdictPath=root+'/capture-completion-verdict.json';
 await writeFile(completionVerdictPath,JSON.stringify(completionVerdict,null,2)+'\n','utf8');
+hourlyLedger=finishHourlyCapture(hourlyLedger,{runId,completedAtUtc:now(),sampleVerdict:completionVerdict,evidencePath:completionVerdictPath});
+await writeFile(hourlyLedgerPath,JSON.stringify(hourlyLedger,null,2)+'\n','utf8');
+const hourlySummaryPath=root+'/hourly-capture-day-summary.json';
+await writeFile(hourlySummaryPath,JSON.stringify(summarizeHourlyCaptureDay(hourlyLedger,now()),null,2)+'\n','utf8');
+
 console.log('DOT2_CAPTURE_COMPLETION',JSON.stringify({
  status:completionVerdict.status,
  requested_chains:completionVerdict.requested_chain_count,
