@@ -66,3 +66,20 @@ test('historical comparison cannot accept unverified review artifact bytes',()=>
  assert.throws(()=>commitSealedHour(s,{preparation:prep(0),reviews:r}),/SIX_REVIEW_ARTIFACTS_REQUIRED/);
  assert.throws(()=>commitSealedHour(s,{preparation:prep(0),reviews:r,artifacts:Array.from({length:6},()=>({sha256:r.SINGLE_GPT.singleReview.journal_sha256,utf8:'{}'}))}),/REVIEW_ARTIFACT_BYTES_MISMATCH/);
 });
+
+test('historical review artifact positive path checks real bytes and dependency hashes',()=>{
+ const m={...manifest,scope:'HISTORICAL_RESEARCH'},s=openSealedComparison({comparisonId:'artifact-positive-fixture',manifest:m,expectedManifestSha256:hash(m),preparation:prep(0)}).state;
+ const r=reviews(s,0),artifacts=[],newHashes=new Map();
+ function seal(ref){
+  const old=ref.journal_sha256;
+  if(Array.isArray(ref.dependency_sha256s))ref.dependency_sha256s=ref.dependency_sha256s.map(x=>newHashes.get(x)??x);
+  const {journal_sha256,...body}=ref,utf8=JSON.stringify(body),sha256=hash(body);
+  ref.journal_sha256=sha256;newHashes.set(old,sha256);artifacts.push({sha256,utf8});
+ }
+ seal(r.SINGLE_GPT.singleReview);for(const ref of r.FIVE_DOTS.roleReviews)seal(ref);
+ const next=commitSealedHour(s,{preparation:prep(0),reviews:r,artifacts});
+ assert.equal(next.comparison.pending_hour.index,1);
+ assert.equal(sealedSummary(next).real_backtest_verified,false);
+ const bad=structuredClone(artifacts);bad[0].utf8+=' ';
+ assert.throws(()=>commitSealedHour(s,{preparation:prep(0),reviews:r,artifacts:bad}),/REVIEW_ARTIFACT_BYTES_MISMATCH/);
+});
