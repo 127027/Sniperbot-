@@ -54,20 +54,11 @@
     {
       "id": "R29-W03",
       "priority": "P1",
-      "status": "IN_PROGRESS",
+      "status": "OPEN",
       "title": "Decode existing six historical transactions and reconstruct feasible historical quote inputs",
       "acceptance": "Use run 45351015863 raw receipts; identify mint/pool/flow/fees and complementary evidence; explicit missing fields; no invented price; no hidden candidate truncation.",
       "depends_on": [],
-      "claim": {
-        "owner": "chat-w03-model-fx-20261124",
-        "input_commit": "3ccc90e95bf08f98cf0b4fc33d48530b04910843",
-        "expected_evidence": "Historical SOL-USDC candle, explicit 50 USDC curve model with size impact and fee/risk uncertainty, real offline report",
-        "paths": [
-          "src/r29-historical-curve-model.mjs",
-          "scripts/r29-w03-model-quotes.mjs",
-          "test/r29-historical-curve-model.test.mjs"
-        ]
-      },
+      "claim": null,
       "last_evidence": {
         "source_run": 45351015863,
         "economic_flow_run": 45384807888,
@@ -81,7 +72,19 @@
         "provider_calls": 0,
         "result_path": "research/audits/2026-11-24/r29-w03-reserve-continuity.json",
         "scope": "Exact original Pump TradeEvents, instruction-specific pool IDs, raw token/native vault deltas, virtual/real curve reserve transitions and fee observations; all six states correlated. Three pairs show exact account/curve continuity between transactions, not a guarantee of continuity to scan time. Initial incorrect equality check replaced with constant vault offsets and verified deltas.",
-        "next": "Do not decode the six transactions again. W03 next: use these three final reserve states to implement an explicitly approximate two-way historical curve model for 50 TEST-USDC using actual pre-tick SOL/USDC conversion, size-dependent fees and token risk checks; missing data stays unknown. Verify finality and source continuity up to virtual tick or label bounded uncertainty. No original-provider/Windows prerequisite for research, no live/paper publishing. For complementary source details use only new signatures already planned if needed; do not re-fetch existing nine receipts. W04 follows when valid model inputs available."
+        "next": "Never repeat reserve decoding or historical FX request. Three actual indicative model quotes now available, each 50 TEST-USDC with entry price impact 139/132/136 bps and illustrative immediate exit 48.288796 USDC. Need causal mint authority/Token-2022 extensions/transfer-hook and fee configuration, check bounded latest pool-state uncertainty, no authentic quote promotion. Select new signatures from persisted archived page only if necessary, no re-fetch. W04 can now assess these three using a current GPT review explicitly limited to known as-of inputs; if unknown risk remains, reasoned no trade, never claim original GPT execution. Integrate isolated model ledger after sufficient evidence.",
+        "model_run": 45388727848,
+        "model_commit": "b438f4d43f46b5585620feb9695aec46c6757cb3",
+        "ci_run": 45388712599,
+        "ci_tests_passed": 910,
+        "fx_source": "BINANCE_SPOT_SOLUSDC_1M",
+        "fx_close": 111.27,
+        "fx_sha256": "6003341dba4440823318e159660f29999a683d92f0b0820b1f8b33399c9b72ff",
+        "fx_raw_path": "research/audits/2026-11-24/r29-w03-binance-solusdc-1m-original.json",
+        "model_report": "research/audits/2026-11-24/r29-w03-50usdc-model-quotes.json",
+        "indicative_models": 3,
+        "external_requests_this_phase": 2,
+        "failed_source_run": 45388592069
       }
     },
     {
@@ -145,5 +148,5 @@
   ],
   "next_task": "R29-W03",
   "historical_retest_with_same_empty_trade_inputs": "DO_NOT_REPEAT",
-  "next_task_reason": "Curve reserve inputs recovered; need historical FX, model slippage/fee and risk/continuity adapter. No old source re-run."
+  "next_task_reason": "Historical FX and 50-USDC curve model solved for first 3 pools; remaining historical risk and temporal execution uncertainty, W04 actual GPT decision path. Do not rerun any existing FX or reserve work."
 }
