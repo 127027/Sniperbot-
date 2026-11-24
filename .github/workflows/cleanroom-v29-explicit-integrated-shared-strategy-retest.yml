@@ -1,0 +1,70 @@
+name: R29 V2.9 Actual Shared Strategy 24 Scan Candidate Retest
+on:
+  push:
+    branches:
+      - codex/r29-cleanroom-paper-20261121
+    paths:
+      - 'research/v29-integrated-retest-requests/**'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: r29-v29-integrated-shared-strategy-proof
+  cancel-in-progress: false
+jobs:
+  actual-backtest-code-research-candidates:
+    if: ${{ github.ref == 'refs/heads/codex/r29-cleanroom-paper-20261121' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      R29_MODE: PAPER
+      R29_ENABLE_LIVE: ''
+    steps:
+      - name: Exact single request commit checkout without write credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: New research-to-shared-strategy source and no-fake-trade safety tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/v29-integrated-oct12-24scan-strategy-retest.mjs
+          node --test test/v29-retro-research-bridge.test.mjs
+      - name: Existing complete repository unit regression tests and paper execution isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm test
+      - name: Download exact 259851 real source-feature data screening, never 65 winner list
+        uses: actions/download-artifact@v4
+        with:
+          name: r29-v29-24hour-feature-candidates-45344389914
+          repository: 127027/Sniperbot-
+          run-id: '45344389914'
+          github-token: ${{ github.token }}
+          path: probe-artifacts/v29-original-retro-source
+      - name: Rerun shared R29 Dot2-Dot3-Dot4 24-scan strategy with screened real retro research only
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/v29-integrated-oct12-24scan-strategy-retest.mjs
+      - name: Verify no client signal, Windows state or order file modifications
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain -- signals runner)"
+      - name: Preserve full per-scan source/risk/order gates, Markdown and JSON
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-v29-integrated-shared-strategy-${{ github.run_id }}
+          path: probe-artifacts/v29-integrated-strategy-*/
+          retention-days: 30
+          if-no-files-found: warn
