@@ -1,0 +1,42 @@
+name: R29 W03 archived transaction economic flows
+on:
+  push:
+    branches: [codex/r29-cleanroom-paper-20261121]
+    paths: ['research/w03-archive-requests/**']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: r29-w03-archive-flow
+  cancel-in-progress: false
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      R29_MODE: PAPER
+      R29_ENABLE_LIVE: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test test/r29-historical-swap-flow.test.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: r29-v210-comparison-and-chain-45351015863
+          run-id: '45351015863'
+          github-token: ${{ github.token }}
+          path: probe-artifacts/w03-original
+      - run: node scripts/r29-w03-decode-archived-swaps.mjs
+      - if: always()
+        run: test -z "$(git status --porcelain -- signals runner)"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-w03-economic-flows-${{ github.run_id }}
+          path: probe-artifacts/w03-flow-*/
+          retention-days: 30
