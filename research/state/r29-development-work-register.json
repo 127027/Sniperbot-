@@ -96,23 +96,14 @@
     {
       "id": "R29-W04",
       "priority": "P1",
-      "status": "IN_PROGRESS",
+      "status": "OPEN",
       "title": "Vertical slice: causal historical GPT review and isolated model ledger",
       "acceptance": "One suitable candidate through common strategy, valid as-of inputs, genuine current review documented, model action or reasoned no trade; no client writes.",
       "depends_on": [
         "R29-W01",
         "R29-W03"
       ],
-      "claim": {
-        "owner": "chat-w04-cumulative-hour-plan",
-        "input_commit": "65aa56c83fd1fcc756ba6493e98209c074c103d4",
-        "expected_evidence": "Plan-driven missing-hour acquisition, cumulative verified source inventory, actual 22/23h capture and audit",
-        "paths": [
-          "src/r29-preparation-plan.mjs",
-          "scripts/r29-preparation-hour-worker.mjs",
-          "research/preparation/cumulative/"
-        ]
-      },
+      "claim": null,
       "last_evidence": {
         "run": 45389862438,
         "commit": "002f61e3b6654683b282a44106d87114a6339084",
@@ -128,7 +119,7 @@
         "real_historical_model_fills": 0,
         "actual_october_gpt_runs": 0,
         "reason": "No positive directional edge in three short pre-midnight observations. No forced buy. Ledger currently only synthetic test execution; requires verified retrospective execution path before actual modeled fills.",
-        "next": "Do not repeat successful 21:00 hour or V4.2 imports. Resume 23:00 and 22:00 only once persisted deadlines permit, with corrected stream parser, preserve separate attempts. Build cumulative multi-hour merge and source identity quality audit (41,238 INVALID_MINT, absent txIndex fallback, ambiguous ties), no automatic order authorization. Recover old 60-day daily source frames without re-downloading where useful; add durable date/hour plan and autonomous continuation rather than manual hour-by-hour requests. Keep all pool-minute data and explicit archive provenance; raw compressed hour bytes not stored (projection is lossy). Use source data to enrich pre-midnight candidate quotes/risk, other chain/news coverage remains partial. Virtual first scan frozen.",
+        "next": "Do NOT repeat successful 21–23h captures or rebuild identical index without a defect. Before more bulk downloads, implement verified index -> preparation evidence bridge: separate historical knowledge inventory from actionable research cohort; preserve all 17,312 mints, screen all with causal price/liquidity/activity data and explicitly queue 1,307 recent two-sided leads without assuming they are eligible BUYs. Investigate sample invalid mint identities and missing txIndex, ambiguous same-time pool observations, quote units/protocol, source-specific freshness, and provenance. Use existing verified RPC/FX receipts and archive source signatures for prioritized quote/risk evidence; do not require a full mint-address transaction download for every inactive token or falsely mark unknown as rejected. Current gate accepts caller-provided hashes/statuses and has no cumulative integration; independent verification required. Fixed shared 5% momentum/TP/SL rules not true independent GPT decisions; five actual role reviews still missing. Autonomous repeated batch launch is not yet implemented; current plan chooses next missing hours within an explicitly initiated run, three-hour initial scope complete. Extend only according to data gaps and storage budget; additional chain/news/social sources needed. No valid first scan yet.",
         "next_hour_run": 45392964707,
         "next_hour_tick": "2026-10-12T02:00:00.000Z",
         "next_hour_report": "research/audits/2026-11-24/r29-w04-0200-generalized-scan.json",
@@ -276,7 +267,23 @@
             "retry_not_before_utc": null,
             "attempts": 1
           }
-        ]
+        ],
+        "cumulative_plan_commit": "c658e6625eaa19acb67fc591d044f04fab200cbb",
+        "cumulative_index_commit": "e96a15b4a417785fa0e37c8e3bb9e691a7d93e4e",
+        "cumulative_run": 45407259096,
+        "cumulative_manifest": "research/preparation/cumulative/manifest.json",
+        "cumulative_accepted_observations": 3820240,
+        "cumulative_minute_observations": 186702,
+        "cumulative_mints": 17312,
+        "cumulative_pool_keys": 18895,
+        "recent_two_sided_mints": 1307,
+        "initial_three_hour_plan_complete": true,
+        "ci": {
+          "run": 45407241371,
+          "tests": 932,
+          "pass": 932,
+          "fail": 0
+        }
       }
     },
     {
@@ -327,11 +334,11 @@
   ],
   "next_task": "R29-W04",
   "historical_retest_with_same_empty_trade_inputs": "DO_NOT_REPEAT",
-  "next_task_reason": "Actual new historical bulk source data captured, persistent checkpoints proven; next missing hours + cumulative preparation queue and decision input verification.",
+  "next_task_reason": "Three-hour cumulative index verified; prioritize actual strategy-ready inputs and evidence quality instead of unbounded collection or restarting diagnostics.",
   "predecision_preparation": {
     "virtual_first_decision_utc": "2026-10-12T00:00:00.000Z",
     "physical_research_time_limit": null,
-    "state": "PREPARATION_INCOMPLETE_BULK_SOURCE_CAPTURED",
+    "state": "PREPARATION_INCOMPLETE_CUMULATIVE_INDEX_VERIFIED",
     "audit_run": 45394211275,
     "prior_diagnostics_not_valid_scans": true,
     "pending_jobs": [
@@ -430,6 +437,16 @@
       "minute_observations": 65312,
       "pool_count": 9786,
       "raw_archive_persisted": false,
+      "trade_inputs_ready": 0
+    },
+    "cumulative": {
+      "commit": "e96a15b4a417785fa0e37c8e3bb9e691a7d93e4e",
+      "run": 45407259096,
+      "manifest": "research/preparation/cumulative/manifest.json",
+      "hours": 3,
+      "observations": 3820240,
+      "mints": 17312,
+      "recent_two_sided": 1307,
       "trade_inputs_ready": 0
     }
   }
