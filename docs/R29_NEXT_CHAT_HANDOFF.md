@@ -1,7 +1,0 @@
-# R29 — aktuelle Übergabe, KEIN neuer Diagnosebericht
-
-**Als Erstes:** [R29 STOP THE LOOP](R29_START_HERE_STOP_THE_LOOP.md) und [zentrales Arbeitsregister](../research/state/r29-development-work-register.json). Diese ersetzen alte, widersprüchliche nächste Schritte. Neue Chats beginnen mit R29-W01 oder einer anderen freien Aufgabe laut Register, nicht mit erneuter V2.10-Auswertung. Aktuelle Baseline: 88 Screenings, 24 Strategietakte, 6 historische TX-Metadaten, 0 Modell-BUY/HOLD/SELL, 13/60 formale Abnahmen. Beleg: [Run 45351015863](https://github.com/127027/Sniperbot-/actions/runs/45351015863). Sechs unbedingte Blocker und festes allow_backtest_run:false im Release-Gate sowie eingefrorener Abnahmezähler sind konkrete Wurzelfehler; nicht durch Weglassen von Sicherheitsprüfungen lösen.
-
-[Unveränderte vollständige chronologische Vorgeschichte](https://github.com/127027/Sniperbot-/blob/d015d8a22c812cee5ba94fce7d2da48f65780315/docs/R29_NEXT_CHAT_HANDOFF.md). Alle Originalreports und Audits bleiben bestehen. Nur neue Nachweise im zentralen Register aktualisieren; keinen weiteren 177k-Zeichen-Handoff aufbauen. Keine Dot- oder Kontoänderung durch diese Dokumentation.
-
-Nur Branch `codex/r29-cleanroom-paper-20261121`. Die 61 Originalkriterien bleiben erhalten; keine Echtgeldtransaktionen. Historischer Research und stündliche Datenerfassung: [W01/W07 Vertrag](R29_HISTORICAL_RESEARCH_CONTRACT.md).

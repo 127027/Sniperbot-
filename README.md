@@ -1,37 +1,10 @@
-# R29 Cleanroom V0.2 — unabhängiger GitHub-Signalhub + eigene Paper-Clients
-
-> **ZUERST LESEN — R29 STOP THE LOOP (24.11.2026):** [Verbindliche Ursachenanalyse und Arbeitsreihenfolge](docs/R29_START_HERE_STOP_THE_LOOP.md) → [zentrales Aufgabenregister](research/state/r29-development-work-register.json) → [AGENTS.md](AGENTS.md). Keine Wiederholung abgeschlossener Aufgaben. Aktuelle Dot-Zustände live prüfen, nicht aus alten README-Texten ableiten. Keine Orders oder Echtgeld durch diese Dokumentation.
-
-
-**PAPER ONLY.** Vollständig neu geschriebener Bot-Code auf Branch `codex/r29-cleanroom-paper-20261121` im Repo `127027/Sniperbot-`. Der alte Bot, sein Guthaben von 4.999,01 TEST-USDC, main und die alten Workflows bleiben unberührt. Keine Wallet, keine DEX-Trades, keine Echtgeldfunktion, keine externen Markt-/OpenAI-APIs im lokalen Client.
-
-## Wichtige Trennung
-Die fünf unabhängigen Cloud-Dots recherchieren und erstellen Signale, **selbst wenn alle Endgeräte ausgeschaltet sind**. Der lokale Windows-/Laptop-Client liest ausschließlich GitHub und führt bei rechtzeitiger Zustellung virtuelle Orders aus. Jedem Client gehören ein eigenes Paper-Konto mit 5.000 TEST-USDC Startkapital, 50 TEST-USDC pro BUY und eine eigene eindeutige Client-ID. Er schreibt Receipts nach `receipts/<client-id>/<order-id>.json`.
-
-**Keine gemeinsame Cloud-Wallet!** Mehrere Rechner führen dieselben Signale in ihren jeweils eigenen getrennten Ledgern aus. Ein später gestartetes Gerät führt abgelaufene Orders nicht nachträglich aus. Android-/iOS-App ist noch nicht gebaut.
-
-Die 5-Dot-Aufgaben, das GitHub-Cloud-Journal, die adaptive 4/8/12/24 Reviewfrequenz und das genaue Order-Format stehen in [docs/DOT_PIPELINE.md](docs/DOT_PIPELINE.md).
-
-## Windows-Installation in einem NEUEN Verzeichnis
-
-1. Node.js 20+ und Git installieren.
-2. `git clone --single-branch -b codex/r29-cleanroom-paper-20261121 https://github.com/127027/Sniperbot-.git R29-CleanPaper`
-3. `cd R29-CleanPaper`; `npm test`.
-4. Für Receipts einen auf das Repo begrenzten Fine-Grained-GitHub-PAT mit Contents read/write erstellen. Niemals öffentlich teilen.
-5. PowerShell: `./scripts/Start-CleanPaper.ps1`. Token im verdeckten Prompt eingeben.
-6. Dashboard: http://127.0.0.1:8765 . Kontostand und lokale Positionen in `%USERPROFILE%\.r29-cleanpaper\state.json`.
-
-## Handelsschutz
-- Nur GitHub-Signale und ausschließlich virtuelle Paper-Fills. Keine echten Käufe/Verkäufe.
-- Jede Order: Dot-4-Autorität, Dot-2+Dot-3-Kette, Chain/Contract/Pool, zwei passende Pool-Preisquellen, Risikolimits und Laufzeit.
-- `FRESH_WEB`: Quellen höchstens 90 Sekunden alt.
-- `INDICATIVE_WEB_ONLY`: zwei unterschiedliche öffentliche HTTPS-Webdomains mit höchstens zehn Minuten alten Daten, ausdrücklich **nur hypothetische Modellpreise**; keine geprüfte DEX-Quote.
-- Jede Order muss beim Client spätestens fünf Minuten nach Erzeugung gültig sein. 0.75% Modellgebühr, 0.40% Modellspread plus Liquiditätseinfluss.
-- Local `PAPER_FILLED` belegt eine virtuell verbuchte Transaktion, niemals reale Sellability oder Profitabilität.
-
-Optionaler autorisierter Cloud-Publisher: `npm run publish -- <order.json>` (nur mit GitHub Token außerhalb des Codes). Die ChatGPT-Dots können entsprechende Schritte unmittelbar über den GitHub-Connector durchführen. Kein synthetischer Demotrade wird in den echten GitHub-Signalindex aufgenommen.
-
-## Status
-Die neuen Code-/Protokolltests prüfen nur den technischen Weg. Eine aktivierte Cloud-Automation ist noch kein Beweis einer tatsächlich abgeschlossenen Analyse. Ein echter BUY und späterer SELL, jeweils mit Client-`PAPER_FILLED`, sind die offene Produktiv-Paper-Abnahme. Siehe [docs/STATUS.md](docs/STATUS.md).
-
-Historische Referenzen (nicht operative Arbeitsreihenfolge): [docs/R29_NEXT_CHAT_HANDOFF.md](docs/R29_NEXT_CHAT_HANDOFF.md), [docs/V19_IMPLEMENTATION_PROGRESS.md](docs/V19_IMPLEMENTATION_PROGRESS.md).
+# R30 – Stündliche Memecoin-Recherche (Neustart)
+Ein gemeinsamer Scan je voller Stunde. Keine alten R29-Programme, Auftragsketten, Backtest-Gates oder alten Daten als aktuelle Marktwerte verwenden. GitHub ist nur gemeinsames Gedächtnis. Ziel: dieselbe praktisch nutzbare Marktanalyse wie ein normaler GPT-Chat, nur mit fünf ergänzenden Recherchen.
+## Ablauf
+Stundenintervall endet zum nächsten vollen UTC-Stundenwechsel. Dot 1 :05 Markt/Narrative/alte Positionen; Dot 2 :15 neue Coins und übersehene Chancen; Dot 3 :25 Risiken und Ausstieg; Dot 4 :35 eigene Research-Analyse und vollständiger Entwurf; Dot 5 :00 der Folgestunde unabhängig prüfen, zusammenführen und konkrete Liste veröffentlichen. Fehlende Peer-Berichte dürfen das eigene Recherchieren nicht verhindern. Keine Garantie einer vollen Stunde Modelllaufzeit oder pünktlichen Fertigstellung.
+## Einzige Pflicht vor der Recherche
+Lies README.md, baseline.json beim ersten Scan und den letzten echten Bericht unter reports/ (wenn vorhanden). Kein alter Branch. Aktuelles öffentliches Web durchsuchen, nicht auf historische Vollständigkeit, Chain-Rekonstruktion oder Softwaretests warten. Prüfe alle bisherigen Kaufideen und bestätigten Positionen zuerst, dann neue und ältere aktive Coins, ungewöhnliche Aktivität, News und Meme-Katalysatoren. Vergleiche aktuelle Beobachtungen mit früheren belegten Beobachtungen. Gleiche Symbole nicht verwechseln; Chain, Contract/Pool und Quellen angeben. Keine erfundenen Preise, Zeitstempel oder Gewinne. Quellenlücken transparent.
+## Konkretes Ergebnis
+Tabelle: Coin, Chain/Contract/Pool (unbekannt explizit), Aktion BUY/HOLD/SELL/WATCH/NO_TRADE/DATA_GAP, vorgeschlagener Eurobetrag, aktueller beobachteter Preis/Marktkapitalisierung/Liquidität sofern belegt, Preisänderung seit letztem Scan sofern vergleichbar, kurze These, Risiko und Ausstiegsbedingung. BUY/SELL bei Ausführung ungeklärt ausdrücklich RESEARCH_ONLY, keine Order. Keine erzwungenen Käufe. 5000 fiktive EUR Startbudget, mindestens 50 je neuem Kaufvorschlag, maximal verfügbares Planbudget. Vorherige Empfehlungen nicht als bestätigte Positionen ausgeben. Fiktive Zielallokationen fortführen, frei werdende Nominalbeträge nur als Planbudget behandeln, nicht als tatsächliche Verkaufserlöse. Einmalig initialisieren, nicht jede Stunde erneut 5000 verteilen. Unbekannte tatsächliche Bestände und Preise als UNKNOWN. Nur belegte, ausdrücklich als simuliert gekennzeichnete Preisbeobachtungen erlauben Modell-PnL; nie Windows-Fills behaupten. Keine Echtgeld-/Wallet-/Order-/Client-Änderungen, keine zusätzlichen Anbieter-/OpenAI-API-Schlüssel. Respektiere Providerlimits. Kein automatischer Handel.
+## Gemeinsames Gedächtnis
+UTC Zielstunde YYYY-MM-DD/HH, z.B. 22:00 CET = 21:00 UTC am 24.11.2026. Rollen 1–4 speichern append-only unter reports/YYYY-MM-DD/HH/dot-N-<tatsächlicher UTC-Zeitstempel>.json, Dot 5 in derselben Zielstunde final-<tatsächlicher UTC-Zeitstempel>.json. Rollenziel vor Stundenwechsel = nächste volle UTC-Stunde; Dot 5 = gerade begonnene UTC-Stunde. Bei Laufverzögerung Ziel und tatsächliche Zeit separat dokumentieren; keine Rückdatierung. Vor dem Schreiben aktuelle Branch-SHA lesen; nur eigene neue Datei committen und CAS/fast-forward nutzen. Bei Konflikt frisch lesen und ohne Überschreiben neu versuchen. Bei Schreibproblemen konkrete Liste im Chat ausgeben, nicht als gespeichert melden. Dot 5 liest vorhandene Rollenergebnisse und den letzten früheren Finalbericht, führt alle Positionen/Kaufideen fort und dokumentiert fehlende Rollen. Finalbericht enthält vollständige Zielallokation + geplantes freies Budget, bisherige Empfehlungen, neue Aktionen, Quellen-URLs, tatsächliche Beobachtungszeiten soweit bekannt und Vergleichsgrenzen. Kein Selbstbericht als unabhängiger Modell- oder Fillnachweis. 
