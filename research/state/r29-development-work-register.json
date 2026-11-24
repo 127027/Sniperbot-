@@ -96,14 +96,23 @@
     {
       "id": "R29-W04",
       "priority": "P1",
-      "status": "OPEN",
+      "status": "IN_PROGRESS",
       "title": "Vertical slice: causal historical GPT review and isolated model ledger",
       "acceptance": "One suitable candidate through common strategy, valid as-of inputs, genuine current review documented, model action or reasoned no trade; no client writes.",
       "depends_on": [
         "R29-W01",
         "R29-W03"
       ],
-      "claim": null,
+      "claim": {
+        "owner": "chat-w04-scan02-execution-contract-20261124",
+        "input_commit": "40553e7ee56f532336f1f9862871ad2ec6cc9967",
+        "expected_evidence": "New 01:00 candidate capture and non-synthetic retrospective model gate with positive/negative tests, no old midnight requests",
+        "paths": [
+          "src/r29-retrospective-execution.mjs",
+          "scripts/r29-w04-next-hour.mjs",
+          "test/r29-retrospective-execution.test.mjs"
+        ]
+      },
       "last_evidence": {
         "run": 45389862438,
         "commit": "002f61e3b6654683b282a44106d87114a6339084",
