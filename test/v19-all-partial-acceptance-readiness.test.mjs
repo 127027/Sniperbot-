@@ -38,7 +38,7 @@ test('all 46 PARTIAL original acceptance tasks individually evaluated, never pro
  assert.equal(report.fully_accepted_tasks_not_inflated,true);
  assert.equal(report.no_paper_orders_published,true);
 });
-test('new real API data does not retroactively establish historic October 29h or an immature Nov holdout',async()=>{
+test('new API data cannot establish October source truth; November validation maturity is computed from actual UTC cutoffs',async()=>{
  const r=auditAllPartialOriginalAcceptance(await load());
  const actual=await read(r.current_live_capture.evidence_path);
  assert.equal(r.current_live_capture.raw_receipt_count,actual.api_evidence.length);
@@ -47,8 +47,11 @@ test('new real API data does not retroactively establish historic October 29h or
   actual.api_evidence.filter(x=>[200,429].includes(x.http_status)).length);
  assert.equal(r.current_live_capture.external_origin_capture_timestamp_independently_proven,false);
  assert.equal(r.historical_original_october_29h_universe_verified,false);
- assert.equal(r.precommitted_holdout.validation_window_elapsed,false);
- assert.equal(r.precommitted_holdout.holdout_window_elapsed,false);
+ const now=Date.parse(r.as_of_utc);
+ assert.equal(r.precommitted_holdout.validation_window_elapsed,
+  now>=Date.parse(r.precommitted_holdout.validation_end_utc));
+ assert.equal(r.precommitted_holdout.holdout_window_elapsed,
+  now>=Date.parse(r.precommitted_holdout.holdout_end_utc));
  assert.equal(r.precommitted_holdout.outcome_denominator_verified,false);
  assert.equal(r.next_backtest_mode,
   'OCTOBER_ORIGINAL_DATA_GAP_SEPARATE_FROM_PROSPECTIVE_NOVEMBER_HOLDOUT');
