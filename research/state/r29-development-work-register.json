@@ -54,11 +54,23 @@
     {
       "id": "R29-W03",
       "priority": "P1",
-      "status": "OPEN",
+      "status": "IN_PROGRESS",
       "title": "Decode existing six historical transactions and reconstruct feasible historical quote inputs",
       "acceptance": "Use run 45351015863 raw receipts; identify mint/pool/flow/fees and complementary evidence; explicit missing fields; no invented price; no hidden candidate truncation.",
       "depends_on": [],
-      "claim": null,
+      "claim": {
+        "owner": "chat-w03-archive-decode-20261124",
+        "claimed_at_utc": "2026-11-24T11:28:00Z",
+        "lease_expires_at_utc": "2026-11-24T13:28:00Z",
+        "input_commit": "47893ccee8a6abc7584364990f6cd0a878f29579",
+        "expected_evidence": "SHA-pinned six archived transaction economic flows, observed SOL/token ratios, complementary signature plan and concrete model quote missing fields",
+        "paths": [
+          "src/r29-historical-swap-flow.mjs",
+          "scripts/r29-w03-decode-archived-swaps.mjs",
+          "test/r29-historical-swap-flow.test.mjs",
+          ".github/workflows/cleanroom-w03-archived-swap-flow.yml"
+        ]
+      },
       "last_evidence": null
     },
     {
