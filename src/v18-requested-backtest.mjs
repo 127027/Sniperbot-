@@ -27,7 +27,8 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
     ||(source.activity_page_captures!==undefined&&!Array.isArray(source.activity_page_captures))
     ||(source.market_knowledge_events!==undefined&&!Array.isArray(source.market_knowledge_events))
     ||(source.claimed_gpt_journals!==undefined&&!Array.isArray(source.claimed_gpt_journals))
-    ||(source.dot3_risk_handoffs!==undefined&&!Array.isArray(source.dot3_risk_handoffs)))
+    ||(source.dot3_risk_handoffs!==undefined&&!Array.isArray(source.dot3_risk_handoffs))
+    ||(source.research_only_candidate_frames!==undefined&&!Array.isArray(source.research_only_candidate_frames)))
    throw Error('UNTRUSTED_OR_HINDSIGHT_UNIVERSE');
  const paperBudget=resolveSharedPaperPolicy(paperBudgetSettings);
  const sources=source.snapshots;
@@ -54,7 +55,8 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
   activityObservations:source.activity_observations,
   activityPageCaptures:source.activity_page_captures||[],marketKnowledgeEvents,
   forceHourlyReview:forceHourlyDiagnostic,targetPer24h:forceHourlyDiagnostic?24:4,
-  paperPolicy:paperBudget.policy,firstScanAtStart});
+  paperPolicy:paperBudget.policy,firstScanAtStart,
+  researchOnlyCandidateFrames:source.research_only_candidate_frames||[]});
  const executionProvenance=auditFiveDotExecution({
    events:result.events,asOfUtc:new Date(end).toISOString(),
    mode:'HISTORICAL_ASOF',
@@ -89,6 +91,11 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
    observed_page_activity_is_not_all_market_coverage:true,
    simulation_not_autonomous_gpt:true},
   dot2_discovery:{accepted_input_snapshots:accepted.length,original_capture_claims:original.length,
+   retro_feature_screened_at_each_scan:result.events.map(e=>({
+     at_utc:e.at_utc,screen_pass_count:e.dot2_research_only_candidate_review?.research_screen_pass_count??0,
+     representative_mints:e.dot2_research_only_candidate_review?.representatives?.map(x=>x.mint)??[],
+     order_authorized:false})),
+   retro_research_is_not_historical_original_provider_capture:true,
    first_scan_preexisting_knowledge_markets:initialKnowledge.available_knowledge_markets,
    first_scan_preexisting_knowledge_events:initialKnowledge.available_knowledge_events,
    known_before_five_hour_warmup:initialKnowledge.markets_with_pre_warmup_knowledge,
@@ -99,6 +106,8 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
    all_discovery_original_sources_independently_verified:false,
    known_original_full_market_universe:false},
   dot3_risk:{snapshots_claiming_eligible:accepted.filter(s=>s.risk?.status==='ELIGIBLE').length,
+   retro_screen_passes_awaiting_original_buy_sell_quote:result.events.reduce((sum,e)=>sum+(e.dot2_research_only_candidate_review?.research_screen_pass_count??0),0),
+   no_risk_authorization_from_postevent_features:true,
    approved_independent_dot3_evidence_proven:false,
    actual_dot3_paper_approvals:0,
    common_risk_status_engine:'R29_V19_DOT3_RISK_STATE',
@@ -131,6 +140,8 @@ export function backtestOnRequest({date,manifest=null,forceHourlyDiagnostic=fals
   source_input_kind:source.kind,common_signal_engine:'UNIFIED_V18_SIGNAL_V1',
    same_signal_engine_for_live_and_backtest:true,
    source_input_count:sources.length,
+   retro_candidate_research_only_pass_occurrences:result.events.reduce((sum,e)=>sum+(e.dot2_research_only_candidate_review?.research_screen_pass_count??0),0),
+   retro_candidates_not_historical_trade_authorization:true,
    market_knowledge_event_input_count:marketKnowledgeEvents.length,
    first_scan_prior_knowledge_summary:{
      known_markets:initialKnowledge.available_knowledge_markets,
