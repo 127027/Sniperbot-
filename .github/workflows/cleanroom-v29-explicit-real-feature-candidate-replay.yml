@@ -1,0 +1,72 @@
+name: R29 V2.9 Real Feature Candidate Funnel and 24 Scan Retest
+on:
+  push:
+    branches:
+      - codex/r29-cleanroom-paper-20261121
+    paths:
+      - 'research/replay-v29-requests/**'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: r29-v29-24h-pinned-feature-retro-screen
+  cancel-in-progress: false
+jobs:
+  original-feature-research-pipeline:
+    if: ${{ github.ref == 'refs/heads/codex/r29-cleanroom-paper-20261121' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    env:
+      R29_MODE: PAPER
+      R29_ENABLE_LIVE: ''
+    steps:
+      - name: Checkout exact one-request research commit, no GitHub writer credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Static syntax check and independent future-leak / BUY gate regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile src/v29-retro-candidate-funnel.py scripts/v29-bridge-retro-features-to-24-scanner-reviews.py
+          python test/v29-retro-candidate-funnel.test.py
+      - name: Install isolated open source Parquet reader
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'pyarrow==21.0.0'
+      - name: Retrieve SHA-pinned full Oct 11 and Oct 12 neutral original source verification
+        uses: actions/download-artifact@v4
+        with:
+          name: r29-v26-full-oct12-raw-neutral-source-45272055484
+          repository: 127027/Sniperbot-
+          run-id: '45272055484'
+          github-token: ${{ github.token }}
+          path: probe-artifacts/v29-v26-pinned-original
+      - name: Run actual 259851 source-feature screening across all 24 historical research scans
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/v29-bridge-retro-features-to-24-scanner-reviews.py \
+            probe-artifacts/v29-v26-pinned-original \
+            "probe-artifacts/v29-real-feature-candidate-24h-${{ github.run_id }}"
+      - name: Confirm never wrote any client trades
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain -- signals runner)"
+      - name: Archive all 24 researcher scans as Markdown JSON and CSV
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: r29-v29-24hour-feature-candidates-${{ github.run_id }}
+          path: probe-artifacts/v29-real-feature-candidate-24h-*/
+          if-no-files-found: warn
+          retention-days: 30
