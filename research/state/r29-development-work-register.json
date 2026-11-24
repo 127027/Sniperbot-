@@ -96,14 +96,23 @@
     {
       "id": "R29-W04",
       "priority": "P1",
-      "status": "OPEN",
+      "status": "IN_PROGRESS",
       "title": "Vertical slice: causal historical GPT review and isolated model ledger",
       "acceptance": "One suitable candidate through common strategy, valid as-of inputs, genuine current review documented, model action or reasoned no trade; no client writes.",
       "depends_on": [
         "R29-W01",
         "R29-W03"
       ],
-      "claim": null,
+      "claim": {
+        "owner": "chat-w04-preparation-queue-evm-20261124",
+        "input_commit": "936159cdeddd94911a3f6449f54e3fa226e39286",
+        "expected_evidence": "Persistent preparation request queue, no duplicate successful request, retry-after; neutral EVM source probe before midnight",
+        "paths": [
+          "src/r29-preparation-queue.mjs",
+          "scripts/r29-preparation-source-probe.mjs",
+          "research/state/r29-preparation-queue.json"
+        ]
+      },
       "last_evidence": {
         "run": 45389862438,
         "commit": "002f61e3b6654683b282a44106d87114a6339084",
