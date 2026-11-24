@@ -103,7 +103,18 @@
         "R29-W01",
         "R29-W03"
       ],
-      "claim": null,
+      "claim": {
+        "owner": "chat-w04-neutral-pilot-20261124",
+        "claimed_at_utc": "2026-11-24T19:55:00Z",
+        "lease_expires_utc": "2026-11-24T20:55:00Z",
+        "input_commit": "abf48daf6d8f1eebf2207665c458c3498bae06c7",
+        "expected_evidence": "Reuse archived ranked evidence; avoid resolved mints; prioritize sustained two-sided activity and higher reported reserve without treating it as verified liquidity; bounded next capture",
+        "paths": [
+          "src/r29-evidence-enrichment.mjs",
+          "scripts/r29-enrich-midnight-evidence.mjs",
+          "test/r29-evidence-enrichment.test.mjs"
+        ]
+      },
       "last_evidence": {
         "run": 45389862438,
         "commit": "002f61e3b6654683b282a44106d87114a6339084",
@@ -535,7 +546,7 @@
         "scope": "Added positive artifact-byte test and positive/negative archive preflight tests; readiness can advance when data conditions hold but never treats reports as actual run evidence. CI pending.",
         "source_head": "75ecca0c9db87cb60aa754fc5acd9dfad15e83d7",
         "contract": "docs/R29_SINGLE_GPT_VS_FIVE_DOTS_20261124.md",
-        "next": "Check CI, then supply actual historical source packets and independently executed review artifacts. Existing archive has zero verified trade inputs and 2836 evidence jobs.",
+        "next": "Historical data work W04 must supply actual inputs; no empty comparison. Existing paired controller verified in synthetic tests.",
         "ci": {
           "run": 45474067552,
           "tests": 952,
@@ -546,6 +557,14 @@
           "run": 45474469566,
           "other_run": 45474469582,
           "failed": 1
+        },
+        "ci_latest": {
+          "run": 45474982904,
+          "other_run": 45474983038,
+          "commit": "abf48daf6d8f1eebf2207665c458c3498bae06c7",
+          "tests": 959,
+          "pass": 959,
+          "fail": 0
         }
       }
     }
