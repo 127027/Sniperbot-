@@ -52,3 +52,17 @@ export function modelHistoricalCurve({pair,fx,tickUtc,amountMicro='50000000',net
  const fmt=o=>Object.fromEntries(Object.entries(o).map(([k,v])=>[k,String(v)]));
  return {kind:'R29_HISTORICAL_CURVE_INDICATIVE_MODEL',mint:pair.mint,pool:pair.pool,tick_utc:tickUtc,reserve_observed_at_utc:pair.source_time,reserve_age_seconds:(tick-at)/1000,source_signature:pair.source_signature,source_sha256:pair.source_sha256,fx_source_sha256:fx.source_sha256,budget_micro_usdc:String(budget),entry:fmt({curve_input_lamports:curveIn,token_output_raw:tokens,token_decimals:6,network_fee_lamports:net,total_spent_lamports:spent,spent_micro_usdc:spentMicro,price_impact_bps:impactBps,...Object.fromEntries(Object.entries(entryFees).map(([k,v])=>[k+'_fee_lamports',v]))}),immediate_exit_after_own_buy:fmt({gross_lamports:grossExit,net_lamports:exitLamports,received_micro_usdc:receivedMicro,network_fee_lamports:net,...Object.fromEntries(Object.entries(exitFees).map(([k,v])=>[k+'_fee_lamports',v]))}),roundtrip_model_cost_micro_usdc:String(cost),observed_protocol_bps:String(protocol),observed_creator_bps:String(creator),assumed_extra_fee_buffer_bps:String(buffer),model_status:'INDICATIVE_ONLY',risk_status:'UNKNOWN_TOKEN_AUTHORITIES_AND_TRANSFER_RULES',pool_state_at_tick_proven:false,fee_schedule_at_size_proven:false,exact_executable_quote:false,model_trade_authorized:false,live_order_authorized:false,actual_gpt_decision:false,orders:0};
 }
+
+// Alternative public historical market-data endpoint. Preserve hash of original response.
+export function parseBinanceHistoricalFx({raw,expectedSha256,tickUtc}={}){
+ if(typeof raw!=='string'||hash(raw)!==expectedSha256)throw Error('FX_HASH_MISMATCH');
+ const rows=JSON.parse(raw);
+ if(!Array.isArray(rows)||rows.length>10)throw Error('INVALID_BINANCE_KLINES');
+ const dec=x=>typeof x==='string'&&/^\d+(?:\.\d+)?$/.test(x)&&Number.isFinite(Number(x));
+ const normalized=rows.map(r=>{
+  if(!Array.isArray(r)||r.length!==12||!Number.isSafeInteger(r[0])||r[0]%60000!==0||r[6]!==r[0]+59999||!r.slice(1,6).every(dec)||!Number.isInteger(r[8])||r[8]<0)throw Error('INVALID_BINANCE_KLINE');
+  return [r[0]/1000,Number(r[3]),Number(r[2]),Number(r[1]),Number(r[4]),r[8]>0?Number(r[5]):0];
+ });
+ const n=JSON.stringify(normalized);
+ return {...parseHistoricalFx({raw:n,expectedSha256:hash(n),tickUtc}),source:'BINANCE_SPOT_SOLUSDC_1M',source_sha256:expectedSha256,normalized_sha256:hash(n)};
+}

@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';import {parseHistoricalFx,modelHistoricalCurve} from '../src/r29-historical-curve-model.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';import {parseHistoricalFx,parseBinanceHistoricalFx,modelHistoricalCurve} from '../src/r29-historical-curve-model.mjs';
 const tickUtc='2026-10-12T00:00:00.000Z',tick=Date.parse(tickUtc)/1000;
 const sha=s=>createHash('sha256').update(s).digest('hex');
 function fx(rows=[[tick-180,150,151,150.2,150.5,20],[tick-60,999,999,999,999,1]]){const raw=JSON.stringify(rows);return parseHistoricalFx({raw,expectedSha256:sha(raw),tickUtc});}
@@ -7,3 +7,11 @@ test('FX excludes unfinished and boundary candles, uses no future',()=>{assert.e
 test('50 USDC inclusive fees; positive size, integer rounding, costly immediate exit and no order',()=>{const r=modelHistoricalCurve({pair,fx:fx(),tickUtc});assert.ok(BigInt(r.entry.spent_micro_usdc)<=50000000n);assert.ok(BigInt(r.entry.token_output_raw)>0n);assert.ok(BigInt(r.entry.price_impact_bps)>0n);assert.ok(BigInt(r.roundtrip_model_cost_micro_usdc)>0n);assert.equal(r.model_trade_authorized,false);assert.equal(r.orders,0);});
 test('stale/future data, insufficient reserve and unsupported budget rejected',()=>{assert.throws(()=>modelHistoricalCurve({pair:{...pair,source_time:tickUtc},fx:fx(),tickUtc}),/STALE/);assert.throws(()=>modelHistoricalCurve({pair:{...pair,asof_event_state:{...pair.asof_event_state,real_token:'1'}},fx:fx(),tickUtc}),/RESERVE/);assert.throws(()=>modelHistoricalCurve({pair,fx:fx(),tickUtc,amountMicro:'100'}),/POLICY/);});
 test('duplicate or corrupt candle cannot be accepted',()=>{assert.throws(()=>fx([[tick-180,150,151,150,150,1],[tick-180,150,151,150,150,1]]),/INVALID_CANDLE/);assert.throws(()=>fx([[tick-180,151,150,150,151,1]]),/INVALID_CANDLE/);});
+
+test('Binance raw hash retained and candle close validated; no future leakage',()=>{
+ const k=(t,p)=>[t*1000,String(p),String(p+1),String(p-1),String(p),'12',t*1000+59999,'100',2,'1','2','0'];
+ const raw=JSON.stringify([k(tick-180,150),k(tick-60,999)]);
+ const r=parseBinanceHistoricalFx({raw,expectedSha256:sha(raw),tickUtc});
+ assert.equal(r.close_usdc_per_sol,150);assert.equal(r.source_sha256,sha(raw));assert.equal(r.source,'BINANCE_SPOT_SOLUSDC_1M');
+ const broken=k(tick-180,150);broken[6]+=1;const bad=JSON.stringify([broken]);assert.throws(()=>parseBinanceHistoricalFx({raw:bad,expectedSha256:sha(bad),tickUtc}),/INVALID_BINANCE/);
+});
