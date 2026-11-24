@@ -1,0 +1,11 @@
+# R29 W03 – historical reserve reconstruction (24.11.2026)
+
+Actual delta from W03: [economic flow decode #45384807888](https://github.com/127027/Sniperbot-/actions/runs/45384807888) (3 correlated owner-flow rows), [Pump event decode #45385060288](https://github.com/127027/Sniperbot-/actions/runs/45385060288) (6/6 event structures and instruction-linked pools), [reserve continuity #45385336884](https://github.com/127027/Sniperbot-/actions/runs/45385336884) (6/6 raw token/native delta and reserve event corroborations, 3 exact continuous pairs, 0 rejected). All use the nine preexisting original raw RPC receipts from run 45351015863 with SHA checks. Zero additional market RPCs and zero orders. Public Pump IDL as of 8 Oct 2026, commit 2293f9a66c654e9fe82dc5e8f4618538f24bb35f, stored under research/reference. The original test incorrectly assumed vault total equals real tradeable reserve; the observed difference is 206900000000000 raw tokens for all six transactions, and fixed native balance offsets per pool. Verify actual transfers, constant offsets and reserve transition instead. First continuity run #45385264276 failed on an incomplete-operand test before archive execution; guard fixed in db1d8e8, successful repeat completed all decode steps. No provider limits consumed.
+
+| Mint prefix | Last source event UTC | Virtual SOL | Real SOL | Observed protocol + creator fee |
+|---|---|---:|---:|---:|
+| DyxRTvjpx | 23:58:56 | 31.848294582 | 1.848294582 | 95 + 30 bps |
+| DpThJ5k2 | 23:58:10 | 33.473957998 | 3.473957998 | 95 + 30 bps |
+| HjSHammin | 23:56:05 | 32.628387339 | 2.628387339 | 95 + 30 bps |
+
+Last observed state, not a verified exact quote at midnight. Model fee schedules can vary by size/state; the buyback field is not an independent extra full 50% trade fee. No 50-USDC executable quote or historical GPT trade claimed. Next work is historical SOL/USDC FX with no lookahead, conservative curve buy/sell sizing and risk checks, followed by the isolated GPT/model ledger. No repetition of prior decoding. Full evidence: [reserve continuity](../research/audits/2026-11-24/r29-w03-reserve-continuity.json). Canonical register updated; formal 61-item acceptance unchanged, do not present green software tests as acceptance increase.

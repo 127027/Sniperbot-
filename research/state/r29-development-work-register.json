@@ -54,24 +54,26 @@
     {
       "id": "R29-W03",
       "priority": "P1",
-      "status": "IN_PROGRESS",
+      "status": "OPEN",
       "title": "Decode existing six historical transactions and reconstruct feasible historical quote inputs",
       "acceptance": "Use run 45351015863 raw receipts; identify mint/pool/flow/fees and complementary evidence; explicit missing fields; no invented price; no hidden candidate truncation.",
       "depends_on": [],
-      "claim": {
-        "owner": "chat-w03-archive-decode-20261124",
-        "claimed_at_utc": "2026-11-24T11:28:00Z",
-        "lease_expires_at_utc": "2026-11-24T13:28:00Z",
-        "input_commit": "47893ccee8a6abc7584364990f6cd0a878f29579",
-        "expected_evidence": "SHA-pinned six archived transaction economic flows, observed SOL/token ratios, complementary signature plan and concrete model quote missing fields",
-        "paths": [
-          "src/r29-historical-swap-flow.mjs",
-          "scripts/r29-w03-decode-archived-swaps.mjs",
-          "test/r29-historical-swap-flow.test.mjs",
-          ".github/workflows/cleanroom-w03-archived-swap-flow.yml"
-        ]
-      },
-      "last_evidence": null
+      "claim": null,
+      "last_evidence": {
+        "source_run": 45351015863,
+        "economic_flow_run": 45384807888,
+        "reserve_decode_run": 45385060288,
+        "continuity_run": 45385336884,
+        "workflow_status": "completed",
+        "workflow_conclusion": "success",
+        "verified_states": 6,
+        "verified_continuous_pairs": 3,
+        "verified_pools": 3,
+        "provider_calls": 0,
+        "result_path": "research/audits/2026-11-24/r29-w03-reserve-continuity.json",
+        "scope": "Exact original Pump TradeEvents, instruction-specific pool IDs, raw token/native vault deltas, virtual/real curve reserve transitions and fee observations; all six states correlated. Three pairs show exact account/curve continuity between transactions, not a guarantee of continuity to scan time. Initial incorrect equality check replaced with constant vault offsets and verified deltas.",
+        "next": "Do not decode the six transactions again. W03 next: use these three final reserve states to implement an explicitly approximate two-way historical curve model for 50 TEST-USDC using actual pre-tick SOL/USDC conversion, size-dependent fees and token risk checks; missing data stays unknown. Verify finality and source continuity up to virtual tick or label bounded uncertainty. No original-provider/Windows prerequisite for research, no live/paper publishing. For complementary source details use only new signatures already planned if needed; do not re-fetch existing nine receipts. W04 follows when valid model inputs available."
+      }
     },
     {
       "id": "R29-W04",
@@ -134,5 +136,5 @@
   ],
   "next_task": "R29-W03",
   "historical_retest_with_same_empty_trade_inputs": "DO_NOT_REPEAT",
-  "next_task_reason": "W01 review path implemented, W03 historical quote/chain data needed for model execution; W02 coordination and W07 E2E work can proceed without duplicate ownership."
+  "next_task_reason": "Curve reserve inputs recovered; need historical FX, model slippage/fee and risk/continuity adapter. No old source re-run."
 }
