@@ -1,0 +1,29 @@
+// Research priority, NOT a buy rule. All candidates retained, even if unsupported.
+export function prioritizeEvidence(candidates,launches,{tickUtc,excluded=[]}={}){
+ const tick=Date.parse(tickUtc),seen=new Set(excluded),rows=[];
+ if(!Number.isFinite(tick))throw Error('INVALID_TICK');
+ for(const c of candidates){
+  if(!c.priority.startsWith('RECENT'))continue;
+  const launch=launches.get(c.mint)||null;
+  if(launch&&Date.parse(launch.source_event_at_utc)+60000>=tick)throw Error('FUTURE_LAUNCH');
+  const pools=c.pools.map(p=>{
+   const w=p.windows.m10,prior=p.windows.m60;
+   const activity=w.reported_buys+w.reported_sells,turnover=w.reported_quote_buy_volume+w.reported_quote_sell_volume;
+   const two=w.reported_buys>0&&w.reported_sells>0;
+   const age=(tick-Date.parse(p.latest_observed_at))/1000;
+   const sol=p.quote_mint==='So11111111111111111111111111111111111111112';
+   const pump=p.protocols.some(x=>/pump/i.test(x)&&!/swap|amm/i.test(x));
+   const change=Number.isFinite(w.observed_mark_change_pct)?w.observed_mark_change_pct:null;
+   const score=Math.log1p(activity)*2+(two?2:0)+(change===null?0:Math.max(-1,Math.min(2,change/10)))+(sol&&Number.isFinite(turnover)?Math.log1p(turnover):0);
+   return {pool:p.pool,quote_mint:p.quote_mint,protocols:p.protocols,activity,two_sided:two,observed_swaps_60m:prior.reported_buys+prior.reported_sells,age_seconds:age,reported_quote_turnover:turnover,reported_mark_change_pct:change,latest_signature:p.latest_signature,latest_reported_reserve:p.latest_reported_reserve,sol_quote_reported:sol,pump_curve_reported:pump,priority_score:score};
+  }).sort((a,b)=>b.priority_score-a.priority_score||a.pool.localeCompare(b.pool));
+  rows.push({mint:c.mint,priority:c.priority,pools,launch_at_utc:launch?.source_event_at_utc??null,launch_age_seconds:launch?(tick-Date.parse(launch.source_event_at_utc))/1000:null,previously_reviewed:seen.has(c.mint),status:'PENDING_EVIDENCE',priority_score:pools[0]?.priority_score??-1});
+ }
+ rows.sort((a,b)=>b.priority_score-a.priority_score||a.mint.localeCompare(b.mint));
+ // Feasibility pilot: choose recent launch with two-sided activity and a small
+ // observed history, to maximize ability to reconstruct full mint controls in
+ // a bounded batch. This is not the top expected-return candidate.
+ const suitable=rows.flatMap(r=>r.previously_reviewed||r.launch_age_seconds===null||r.launch_age_seconds>1800?[]:r.pools.filter(p=>p.two_sided&&p.age_seconds<=300&&p.sol_quote_reported&&p.pump_curve_reported&&p.latest_signature&&p.observed_swaps_60m>=2).map(p=>({mint:r.mint,launch_age_seconds:r.launch_age_seconds,...p})));
+ suitable.sort((a,b)=>a.observed_swaps_60m-b.observed_swaps_60m||b.priority_score-a.priority_score||a.mint.localeCompare(b.mint));
+ return {rows,eligible_pilot_count:suitable.length,pilot:suitable[0]??null};
+}
