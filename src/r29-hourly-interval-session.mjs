@@ -8,8 +8,8 @@ const sha=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const valid=x=>Number.isFinite(x);
 const digest=x=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x);
 const roles=['TEMPO','DISCOVERY','RISK','STRATEGY','QA'];
-export function openIntervalSession({preparation,sessionId}={}){
- const {session,preflight}=beginPreparedSession({preparation,sessionId});
+export function openIntervalSession({preparation,sessionId,reviewMode}={}){
+ const {session,preflight}=beginPreparedSession({preparation,sessionId,reviewMode});
  if(!session)return {session:null,preflight};
  const at=ms(session.start_utc);
  return {preflight,session:{...session,kind:'R29_INTERVAL_RESEARCH_SESSION',end_exclusive_utc:iso(at+DAY),interval_start_utc:iso(at),interval_end_utc:iso(at+H),cursor_utc:iso(at),initial_preparation:structuredClone(preparation),interval_history:[],checkpoints:[],coverage_gaps:[],review_count:0}};
@@ -36,10 +36,10 @@ export function intervalDecisionInput(s,preparation){
  if(s.scan_history.length&&at<=ms(s.scan_history.at(-1).tick_utc))throw Error('DUPLICATE_OR_BACKDATED_REVIEW');
  // Keep the original source scope immutable; a review cannot silently drop providers.
  if(JSON.stringify([...preparation.requiredSources].sort())!==JSON.stringify([...s.initial_preparation.requiredSources].sort()))throw Error('SOURCE_SCOPE_SHRINK');
- const payload={tick_utc:preparation.tickUtc,preparation_sha256:p.preparation_sha256,candidates:structuredClone(preparation.candidates),portfolio:structuredClone(s.ledger),required_decision_mints:[...new Set([...preparation.candidates.map(c=>c.mint),...Object.keys(s.ledger.positions),...Object.keys(s.ledger.pending)])].sort()};
+ const payload={...(s.review_mode?{arm:s.review_mode,session_id:s.session_id}:{}),tick_utc:preparation.tickUtc,preparation_sha256:p.preparation_sha256,candidates:structuredClone(preparation.candidates),portfolio:structuredClone(s.ledger),required_decision_mints:[...new Set([...preparation.candidates.map(c=>c.mint),...Object.keys(s.ledger.positions),...Object.keys(s.ledger.pending)])].sort()};
  return {...payload,input_sha256:sha(payload)};
 }
-export function commitIntervalDecision({session:s,preparation,roleReviews,decisions}={}){
+export function commitIntervalDecision({session:s,preparation,roleReviews,singleReview,decisions}={}){
  const input=intervalDecisionInput(s,preparation);
  // Bind actual decision evidence bytes, not just mint and timestamp, to the frozen
  // candidate. The historical risk/quote verifier still decides whether a model fill is permitted.
@@ -57,7 +57,7 @@ export function commitIntervalDecision({session:s,preparation,roleReviews,decisi
  }
  // The prior full-review coordinator shares exactly this hash schema and ledger.
  const compat={...structuredClone(s),kind:'R29_PREPARED_RESEARCH_SESSION',next_tick_utc:preparation.tickUtc};
- const updated=commitPreparedScan({session:compat,preparation,roleReviews,decisions});
+ const updated=commitPreparedScan({session:compat,preparation,roleReviews,singleReview,decisions});
  return {...s,ledger:updated.ledger,scan_history:updated.scan_history,cursor_utc:iso(ms(input.tick_utc)),review_count:s.review_count+1};
 }
 export function settleIntervalSignal(s,input){
