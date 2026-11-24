@@ -24,6 +24,7 @@ for(const hourUtc of req.hours){
   usable=true;
  }catch(e){error=String(e.message||e);}
  const manifest={kind:'R29_HOURLY_SOURCE_RECEIPT',hour_utc:hourUtc,url,http_status:httpStatus,retry_after:retryAfter,archive_sha256,archive_bytes,stream_complete,full_raw_archive_persisted:false,derived_data_only:true,usable,error,error_body,source_is_retro_archive_not_live_capture:true,valid_first_scan_started:false,orders:0};
+ if(projection)Object.assign(manifest,{counts:projection.counts,invalid_reasons:projection.invalid_reasons,schema_type_sample:projection.schema_type_sample});
  if(usable){
   const minutes=projection.minute_observations;delete projection.minute_observations;
   const minutePath=dir+'/pool-minute-observations.jsonl.gz',minuteBytes=gzipSync(minutes.map(m=>JSON.stringify(m)).join('\n')+'\n');if(minuteBytes.length>90_000_000)throw Error('PROJECTION_FILE_LIMIT');

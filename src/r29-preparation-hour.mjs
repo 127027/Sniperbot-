@@ -12,19 +12,30 @@ export function createHourProjection({hourUtc,cutoffUtc}){
  const start=Date.parse(hourUtc),cutoff=Date.parse(cutoffUtc);
  if(!Number.isFinite(start)||start%3600000||cutoff!==Date.parse('2026-10-12T00:00:00Z')||start+3600000>cutoff)throw Error('INVALID_PREPARATION_HOUR');
  const end=start+3600000,seen=new Set(),pools=new Map(),minutes=new Map(),counts={lines:0,invalid:0,duplicate:0,after_cutoff:0,outside_hour:0,accepted:0,other_actions:0,missing_identity:0};
- let first=null,last=null;
+ let first=null,last=null;const reasons={},schema={};const reason=k=>{counts.invalid++;reasons[k]=(reasons[k]||0)+1;};
  function add(e){
-  counts.lines++;const at=time(e?.localTimestamp),event=time(e?.timestamp);
-  if(!Number.isFinite(at)||!Number.isFinite(event)||event>at+60000){counts.invalid++;return;}
+  counts.lines++;
+  if(counts.lines<=256&&e&&typeof e==='object')for(const k of ['action','timestamp','localTimestamp','mint','pool','quoteMint','signature','txIndex','block','price','quoteAmount','quoteInPool','tokensInPool']){
+   const typ=e[k]===null?'null':typeof e[k];const key=k+':'+typ;schema[key]=(schema[key]||0)+1;
+  }
+  const at=time(e?.localTimestamp),event=time(e?.timestamp);
+  if(!Number.isFinite(at)||!Number.isFinite(event)||event>at+60000){reason('INVALID_CLOCK');return;}
   if(Math.max(at,event)+60000>=cutoff){counts.after_cutoff++;return;}
   if(at<start||at>=end){counts.outside_hour++;return;}
   if(!['buy','sell'].includes(e.action)){counts.other_actions++;return;}
-  if(!addr(e.mint)||!addr(e.pool)||!addr(e.quoteMint)||typeof e.signature!=='string'||!e.signature||!Number.isInteger(e.txIndex)){counts.invalid++;counts.missing_identity++;return;}
-  const id=JSON.stringify([e.signature,e.pool,e.mint,e.action,e.txIndex]);
+  if(!addr(e.mint)){counts.missing_identity++;reason('INVALID_MINT');return;}
+  if(!addr(e.pool)){counts.missing_identity++;reason('INVALID_POOL');return;}
+  if(typeof e.signature!=='string'||!e.signature){counts.missing_identity++;reason('MISSING_SIGNATURE');return;}
+  // Legacy source allows absent txIndex. Keep reported economic fields in fallback
+  // identity, explicitly mark weaker dedup evidence; never claim exact chain order.
+  const quoteMint=addr(e.quoteMint)?e.quoteMint:'UNKNOWN';
+  if(!Number.isInteger(e.txIndex))counts.missing_tx_index=(counts.missing_tx_index||0)+1;
+  if(quoteMint==='UNKNOWN')counts.unknown_quote=(counts.unknown_quote||0)+1;
+  const id=JSON.stringify([e.signature,e.pool,e.mint,e.action,e.txIndex??null,e.block??null,...(!Number.isInteger(e.txIndex)?[e.tokenAmount??null,e.quoteAmount??null,e.price??null]:[])]);
   if(seen.has(id)){counts.duplicate++;return;}seen.add(id);
   counts.accepted++;first=first===null?at:Math.min(first,at);last=last===null?at:Math.max(last,at);
-  const k=e.mint+':'+e.pool+':'+e.quoteMint;
-  const p=pools.get(k)||{chain:'solana',mint:e.mint,pool:e.pool,quote_mint:e.quoteMint,protocols:new Set(),buys:0,sells:0,buyers:new Set(),sellers:new Set(),first:null,last:null,first_price:null,last_price:null,last_reserve:null,last_tokens:null,latest_event:null};
+  const k=e.mint+':'+e.pool+':'+quoteMint;
+  const p=pools.get(k)||{chain:'solana',mint:e.mint,pool:e.pool,quote_mint:quoteMint,protocols:new Set(),buys:0,sells:0,buyers:new Set(),sellers:new Set(),first:null,last:null,first_price:null,last_price:null,last_reserve:null,last_tokens:null,latest_event:null};
   if(typeof e.protocol==='string')p.protocols.add(e.protocol);
   if(e.action==='buy')p.buys++;else p.sells++;
   for(const a of Array.isArray(e.tradersInvolved)?e.tradersInvolved:[])if(addr(a))(e.action==='buy'?p.buyers:p.sellers).add(a);
@@ -33,7 +44,7 @@ export function createHourProjection({hourUtc,cutoffUtc}){
   if(p.last===null||at>p.last||(at===p.last&&id>p.latest_event)){p.last=at;p.last_price=price;p.last_reserve=num(e.quoteInPool);p.last_tokens=num(e.tokensInPool);p.latest_event=id;}
   pools.set(k,p);
   const minute=Math.floor(at/60000)*60000,mk=k+':'+minute;
-  const m=minutes.get(mk)||{mint:e.mint,pool:e.pool,quote_mint:e.quoteMint,minute_utc:iso(minute),buys:0,sells:0,quote_buy_volume_reported:0,quote_sell_volume_reported:0,quote_amount_missing:0,first_at:null,last_at:null,open:null,close:null,high:null,low:null,last_reserve:null,last_tokens:null,last_signature:null,order_tie:false};
+  const m=minutes.get(mk)||{mint:e.mint,pool:e.pool,quote_mint:quoteMint,minute_utc:iso(minute),buys:0,sells:0,quote_buy_volume_reported:0,quote_sell_volume_reported:0,quote_amount_missing:0,first_at:null,last_at:null,open:null,close:null,high:null,low:null,last_reserve:null,last_tokens:null,last_signature:null,order_tie:false};
   if(e.action==='buy')m.buys++;else m.sells++;
   const amount=num(e.quoteAmount);if(amount===null)m.quote_amount_missing++;else m[e.action==='buy'?'quote_buy_volume_reported':'quote_sell_volume_reported']+=amount;
   if(price!==null){m.high=m.high===null?price:Math.max(m.high,price);m.low=m.low===null?price:Math.min(m.low,price);}
@@ -41,7 +52,7 @@ export function createHourProjection({hourUtc,cutoffUtc}){
   if(m.last_at===null||at>m.last_at){m.last_at=at;m.close=price;m.last_reserve=num(e.quoteInPool);m.last_tokens=num(e.tokensInPool);m.last_signature=e.signature;}else if(at===m.last_at)m.order_tie=true;
   minutes.set(mk,m);
  }
- function report(){return {kind:'R29_PREPARATION_ARCHIVE_HOUR_PROJECTION',hour_utc:hourUtc,cutoff_utc:cutoffUtc,counts,first_capture_utc:first===null?null:iso(first),last_capture_utc:last===null?null:iso(last),pools:[...pools.values()].map(p=>({chain:p.chain,mint:p.mint,pool:p.pool,quote_mint:p.quote_mint,protocols:[...p.protocols].sort(),buys:p.buys,sells:p.sells,unique_buyers:p.buyers.size,unique_sellers:p.sellers.size,first_capture_utc:iso(p.first),last_capture_utc:iso(p.last),first_price_reported:p.first_price,last_price_reported:p.last_price,last_quote_reserve_reported:p.last_reserve,last_token_reserve_reported:p.last_tokens,latest_event_key:p.latest_event,source_units_and_executable_quote_verified:false,risk_status:'UNKNOWN'})).sort((a,b)=>(a.mint+':'+a.pool+':'+a.quote_mint).localeCompare(b.mint+':'+b.pool+':'+b.quote_mint)),minute_observations:[...minutes.values()].map(m=>({...m,first_capture_utc:iso(m.first_at),last_capture_utc:iso(m.last_at)})),global_coverage_proven:false,orders:0};}
+ function report(){return {kind:'R29_PREPARATION_ARCHIVE_HOUR_PROJECTION',hour_utc:hourUtc,cutoff_utc:cutoffUtc,counts,invalid_reasons:reasons,schema_type_sample:schema,first_capture_utc:first===null?null:iso(first),last_capture_utc:last===null?null:iso(last),pools:[...pools.values()].map(p=>({chain:p.chain,mint:p.mint,pool:p.pool,quote_mint:p.quote_mint,protocols:[...p.protocols].sort(),buys:p.buys,sells:p.sells,unique_buyers:p.buyers.size,unique_sellers:p.sellers.size,first_capture_utc:iso(p.first),last_capture_utc:iso(p.last),first_price_reported:p.first_price,last_price_reported:p.last_price,last_quote_reserve_reported:p.last_reserve,last_token_reserve_reported:p.last_tokens,latest_event_key:p.latest_event,source_units_and_executable_quote_verified:false,risk_status:'UNKNOWN'})).sort((a,b)=>(a.mint+':'+a.pool+':'+a.quote_mint).localeCompare(b.mint+':'+b.pool+':'+b.quote_mint)),minute_observations:[...minutes.values()].map(m=>({...m,first_capture_utc:iso(m.first_at),last_capture_utc:iso(m.last_at)})),global_coverage_proven:false,orders:0};}
  return {add,invalidLine(){counts.lines++;counts.invalid++;},report};
 }
 export async function projectArchive(file,options){
