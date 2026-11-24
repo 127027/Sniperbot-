@@ -6,6 +6,8 @@ Stand: 24.11.2026. Nutzerauftrag: Nach zwei Tagen wiederholter Berichte und Prü
 
 **Nutzerdatei 24.11.2026 bestätigt verbindlichen Ablauf:** [R29 Backtest-Vertrag ohne Gewinner-Orakel](R29_USER_BACKTEST_METHOD_20261124.md). Die 65 rückblickenden Meldungen bleiben ausschließlich nachgelagerte Referenz; insbesondere Signal und Fill trennen: frühestens an der nächsten belegten späteren Modellbeobachtung, nicht rückwirkend aus dem Signalzustand. 
 
+**Vorrangige Nutzerkorrektur 24.11., 13:29 CET:** [Vorbereitung vor Scan 1](R29_PREDECISION_FIRST_SCAN_CONTRACT.md). 00:00 ist erste Entscheidung, nicht Start der Datenbeschaffung. Frühere 00–02 Läufe sind Diagnosen, nicht gültiger Backtest. Vor weiteren Scans Vorbereitung und gemeinsames Portfolio herstellen.
+
 ## 1. Was der Nutzer tatsächlich erreichen will
 
 Ein einziges gemeinsames Entscheidungssystem für historischen Backtest und spätere 24/7-Paper-Nutzung; fünf Rollen (Tempo, Discovery, Risiko, Strategie, Kontrolle). GPT beurteilt eigenständig BUY/HOLD/SELL, nutzt sämtliche bis zum simulierten Zeitpunkt belastbar verfügbaren Daten und entscheidet adaptiv über 4/8/12/24 Vollreviews; stündliche Kontrolle vorhandener Positionen. Keine erzwungenen Käufe. Testtag 12.10.2026 00:00 bis 13.10.2026 00:00 UTC, Vorwissen auch vor dem 5h-Warmup, 5.000 TEST-USDC isoliertes Startkapital, 50 TEST-USDC je Kauf. Alle 24 Stunden mit Namen/Mint/Pool, Entscheidungen und Zeit, Preis, Gebühren, PnL, Datenlücken dokumentieren. Die 65 nachträglich bekannten Gewinner niemals als Input. Der bekannte Entwicklungstag ist kein unabhängiger Holdout. Weitere unbekannte Tage erst nach lauffähiger Methode. Kein zusätzlicher bezahlter Markt-/OpenAI-API-Dienst ohne Freigabe.

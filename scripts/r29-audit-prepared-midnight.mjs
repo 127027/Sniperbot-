@@ -1,0 +1,15 @@
+import {readFile,mkdir,writeFile} from 'node:fs/promises';import {createHash} from 'node:crypto';import {inspectPreparedMarket,beginPreparedSession} from '../src/r29-prepared-session.mjs';
+const read=async p=>JSON.parse(await readFile(p,'utf8')),hash=b=>createHash('sha256').update(b).digest('hex');
+const archive=await readFile('probe-artifacts/prepared/v29-real-feature-candidate-24h-45348562128/24-scans.json');
+const expected='64b035eb63c0e0460fa71498bfbadd4295f7f8b7d573393721ce7c6dbfae265b';
+if(hash(archive)!==expected)throw Error('FROZEN_FEATURE_ARCHIVE_CHANGED');
+const frame=JSON.parse(archive).scans[0],tickUtc=frame.at_utc;
+if(tickUtc!=='2026-10-12T00:00:00.000Z')throw Error('WRONG_FIRST_TICK');
+const q=await read('research/audits/2026-11-24/r29-w03-50usdc-model-quotes.json'),r=await read('research/audits/2026-11-24/r29-w04-first-shared-review-and-mint-history.json');
+const requiredSources=['solana','ethereum','bnb','base','arbitrum','polygon','avalanche','cronos','robinhood','historical_news_and_social'];
+const candidates=frame.top_research_candidates_not_orders.map(c=>{const model=q.rows.find(x=>x.mint===c.mint),review=r.reviews.find(x=>x.mint===c.mint);
+ return {mint:c.mint,knowledge_at_utc:new Date(Date.parse(c.feature_at_utc)+60000).toISOString(),evidence_sha256:expected,status:'UNKNOWN',reason:!model?'NO_MODEL_QUOTE':!review?'NO_SHARED_REVIEW':'INDICATIVE_QUOTE_AND_UNRESOLVED_RISK',model_quote_present:!!model,shared_review_present:!!review};});
+const preparation={tickUtc,requiredSources,coverage:[{source:'solana',status:'PARTIAL_FEATURE_ARCHIVE_ONLY',evidence_sha256:expected,knowledge_at_utc:'2026-10-11T23:59:00.000Z'}],candidates,screenedCount:frame.screen_pass_with_unknown_executable_quotes,unexportedCount:frame.truncated_screen_pass_candidates,preparedBeforeDecision:false,sourceScope:'declared cross-chain research scope; exact source inventory still to verify'};
+const result=beginPreparedSession({preparation,sessionId:'r29-oct12-preparation'});
+const report={kind:'R29_ACTUAL_PREPARED_MIDNIGHT_AUDIT',tick_utc:tickUtc,archive_sha256:expected,pre_tick_event_rows:frame.source_event_rows_known_retro,pre_tick_distinct_mints:frame.cumulative_distinct_mints_retro,fresh_distinct_mints:frame.fresh_distinct_mints_in_last_10m_retro,screened_candidates:candidates.length,indicative_models:candidates.filter(c=>c.model_quote_present).length,prepared_model_inputs:0,preparation,preflight:result.preflight,session_started:!!result.session,market_api_calls:0,orders:0};
+const out='probe-artifacts/prepared-audit';await mkdir(out,{recursive:true});await writeFile(out+'/audit.json',JSON.stringify(report,null,2)+'\n');console.log('R29_PREPARED_AUDIT',JSON.stringify(report));
