@@ -55,7 +55,14 @@ test('different choices do not force equal portfolios or different source data',
 });
 test('manifest, market-input and checkpoint tampering are blocked',()=>{
  const s=open();const p=prep(0);p.coverage[0].evidence_sha256='b'.repeat(64);assert.throws(()=>sealedInputs(s,p),/PREPARATION_MISMATCH/);
- const r=reviews(s,0);r.SINGLE_GPT.decisions[0].entryInput.fx.close_usdc_per_sol=112;assert.throws(()=>commitSealedHour(s,{preparation:prep(0),reviews:r}),/ENTRY_INPUT_NOT_BOUND/);
+ const r=structuredClone(reviews(s,0));r.SINGLE_GPT.decisions[0].entryInput.fx.close_usdc_per_sol=112;assert.throws(()=>commitSealedHour(s,{preparation:prep(0),reviews:r}),/ENTRY_INPUT_NOT_BOUND/);
  const a=commit(open(),0);assert.throws(()=>dispatchSealedObservation(a,{...buyFill,fx:fx2}),/OBSERVATION_MISMATCH/);
  const cp=sealCheckpoint(a);cp.state.comparison.arms.SINGLE_GPT.ledger.cash_micro='999';assert.throws(()=>resumeSealedComparison(cp,cp.sha256),/CHECKPOINT_DIGEST_MISMATCH/);
+});
+
+test('historical comparison cannot accept unverified review artifact bytes',()=>{
+ const m={...manifest,scope:'HISTORICAL_RESEARCH'},s=openSealedComparison({comparisonId:'historical-proof-fixture',manifest:m,expectedManifestSha256:hash(m),preparation:prep(0)}).state;
+ const r=reviews(s,0);
+ assert.throws(()=>commitSealedHour(s,{preparation:prep(0),reviews:r}),/SIX_REVIEW_ARTIFACTS_REQUIRED/);
+ assert.throws(()=>commitSealedHour(s,{preparation:prep(0),reviews:r,artifacts:Array.from({length:6},()=>({sha256:r.SINGLE_GPT.singleReview.journal_sha256,utf8:'{}'}))}),/REVIEW_ARTIFACT_BYTES_MISMATCH/);
 });

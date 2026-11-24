@@ -530,28 +530,22 @@
         "R29-W03",
         "R29-W04"
       ],
-      "claim": {
-        "owner": "chat-w08-ci-repair-20261124",
-        "claimed_at_utc": "2026-11-24T19:52:00Z",
-        "lease_expires_utc": "2026-11-24T20:52:00Z",
-        "input_commit": "7866e2c1b3c6af1518fa710c28581e06acca65ed",
-        "expected_evidence": "Fix test mutation, add journal-byte binding and historical readiness audit",
-        "paths": [
-          "test/r29-sealed-comparison.test.mjs",
-          "src/r29-sealed-comparison.mjs",
-          "src/r29-ab-readiness.mjs"
-        ]
-      },
+      "claim": null,
       "last_evidence": {
-        "scope": "Verified initial CI 952/952; added sealed paired market manifest and exact paired observation dispatcher, independent market input vs GPT-review binding, checkpoint digest and BUY/HOLD/SELL synthetic parity/divergence tests. New CI pending. No source or GPT authentication, actual historical input still blocked.",
-        "source_head": "0f13044c3c196d82a46a90baa6955cd4ae9481c7",
+        "scope": "Fixed failed negative test by deep cloning its shared fixture; historical sealed reviews now require six exact UTF-8 journal artifacts with checked digests and content. Archive preflight recorded; no new market inputs or historical scans. CI pending.",
+        "source_head": "a6e88ef8a8b2db6f4f6e2a7a149104c62401c702",
         "contract": "docs/R29_SINGLE_GPT_VS_FIVE_DOTS_20261124.md",
-        "next": "Verify new CI; connect authenticated historical preparation/observation manifest and real review artifacts, no source coverage assumptions. Actual data blocked before scan 1; do not repeat empty backtest.",
+        "next": "Verify repair CI and positive artifact path; connect independently verified historical market evidence, genuine review runs and actual source coverage. Do not mark blocked scan as completed.",
         "ci": {
           "run": 45474067552,
           "tests": 952,
           "pass": 952,
           "fail": 0
+        },
+        "failed_ci": {
+          "run": 45474469566,
+          "other_run": 45474469582,
+          "failed": 1
         }
       }
     }

@@ -35,10 +35,11 @@ export function openSealedComparison({comparisonId,manifest,expectedManifestSha2
 }
 // Return only current per-arm input, not the manifest of later market frames.
 export function sealedInputs(s,preparation){const f=guard(s);checkPreparation(f,preparation);return comparisonInputs(s.comparison,preparation);}
-export function commitSealedHour(s,{preparation,reviews}={}){
+export function commitSealedHour(s,{preparation,reviews,artifacts}={}){
  const f=guard(s);checkPreparation(f,preparation);
  if(f.coverage_status!=='DECLARED_SCOPE_VERIFIED')throw Error('SEALED_FRAME_DATA_GAP');
  if(inspectPreparedMarket(preparation).status!=='READY_FOR_DECLARED_SCOPE')throw Error('SEALED_PREPARATION_INCOMPLETE');
+ if(s.manifest.scope==='HISTORICAL_RESEARCH')verifyReviewArtifacts(reviews,artifacts);
  return {...s,comparison:commitComparisonHour({comparison:s.comparison,preparation,reviews})};
 }
 export function dispatchSealedObservation(s,input){
@@ -69,3 +70,19 @@ export function resumeSealedComparison(checkpoint,expectedSha256){
  guard(checkpoint.state);return structuredClone(checkpoint.state);
 }
 export function sealedSummary(s){guard(s);return {...comparisonSummary(s.comparison),scope:s.manifest.scope,market_manifest_sha256:s.comparison.market_manifest_sha256,dispatched_observations:s.dispatch_log.length,upstream_source_authentication_verified:false,actual_gpt_identity_verified:false,real_backtest_verified:false};}
+
+// Exact UTF-8 artifact verification, not authentication of the model or provider.
+function verifyReviewArtifacts(reviews,artifacts){
+ const refs=[reviews?.SINGLE_GPT?.singleReview,...(reviews?.FIVE_DOTS?.roleReviews??[])];
+ if(refs.length!==6||refs.some(r=>!r)||!Array.isArray(artifacts)||artifacts.length!==6)throw Error('SIX_REVIEW_ARTIFACTS_REQUIRED');
+ const seen=new Set();
+ for(const r of refs){
+  const a=artifacts.find(x=>x?.sha256===r.journal_sha256);
+  if(!a||typeof a.utf8!=='string'||createHash('sha256').update(a.utf8,'utf8').digest('hex')!==r.journal_sha256||seen.has(a.sha256))throw Error('REVIEW_ARTIFACT_BYTES_MISMATCH');
+  seen.add(a.sha256);
+  let body;try{body=JSON.parse(a.utf8);}catch{throw Error('INVALID_REVIEW_ARTIFACT_JSON');}
+  const {journal_sha256,...expected}=r;
+  if(comparisonDigest(body)!==comparisonDigest(expected))throw Error('REVIEW_ARTIFACT_CONTENT_MISMATCH');
+ }
+}
+export {verifyReviewArtifacts};
