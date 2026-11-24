@@ -14,6 +14,8 @@ Stand: 24.11.2026. Nutzerauftrag: Nach zwei Tagen wiederholter Berichte und Prü
 
 **Neue freigegebene GPT-Scan-Methodik:** [Gemeinsame GPT-Investmentrecherche](R29_GPT_SCAN_CONTRACT.md). Online-Recherche pro Rolle; GPT-Strategie statt starrer V18-Entscheidungsvorgabe im isolierten Research; aktuelle Probe r29-gpt-scan-20261124-01.
 
+**Nutzerfreigabe 24.11.2026 – Architekturvergleich:** [Ein GPT gegen fünf Dots, 24 vollständige Reviews je Arm](R29_SINGLE_GPT_VS_FIVE_DOTS_20261124.md). Zwei isolierte Research-Portfolios und identische historische Evidenz/Execution-Policy; keine Änderung der produktiven adaptiven Frequenz oder Release-Gates. W08 im Arbeitsregister verfolgen; kein leerer Wiederholungsbacktest.
+
 ## 1. Was der Nutzer tatsächlich erreichen will
 
 Ein einziges gemeinsames Entscheidungssystem für historischen Backtest und spätere 24/7-Paper-Nutzung; fünf Rollen (Tempo, Discovery, Risiko, Strategie, Kontrolle). GPT beurteilt eigenständig BUY/HOLD/SELL, nutzt sämtliche bis zum simulierten Zeitpunkt belastbar verfügbaren Daten und entscheidet adaptiv über 4/8/12/24 Vollreviews; stündliche Kontrolle vorhandener Positionen. Keine erzwungenen Käufe. Testtag 12.10.2026 00:00 bis 13.10.2026 00:00 UTC, Vorwissen auch vor dem 5h-Warmup, 5.000 TEST-USDC isoliertes Startkapital, 50 TEST-USDC je Kauf. Alle 24 Stunden mit Namen/Mint/Pool, Entscheidungen und Zeit, Preis, Gebühren, PnL, Datenlücken dokumentieren. Die 65 nachträglich bekannten Gewinner niemals als Input. Der bekannte Entwicklungstag ist kein unabhängiger Holdout. Weitere unbekannte Tage erst nach lauffähiger Methode. Kein zusätzlicher bezahlter Markt-/OpenAI-API-Dienst ohne Freigabe.

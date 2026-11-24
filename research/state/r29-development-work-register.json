@@ -518,6 +518,25 @@
         "scope": "Latest branch checkout, immutable trigger request, 24 hourly slot ledger integrated into Dot2 capture runner; no extra provider calls or actual Dot changes.",
         "next": "Verify actual next authorized hourly capture, implement missing-slot trigger reconciliation/dedup and complete end-to-end continuity; no repeated old dataset or additional provider calls merely for tests."
       }
+    },
+    {
+      "id": "R29-W08",
+      "priority": "P1",
+      "status": "OPEN",
+      "title": "A/B comparison single GPT vs five Dots: 24 full portfolio research scans each",
+      "acceptance": "Separate research adapters and ledgers with same sealed evidence and execution policy; positive/negative tests; real 24h journals per arm only after valid historical inputs; holdout and operational feasibility before selection; no orders.",
+      "depends_on": [
+        "R29-W01",
+        "R29-W03",
+        "R29-W04"
+      ],
+      "claim": null,
+      "last_evidence": {
+        "scope": "User-approved methodology and static code/contract inspection; no implementation, tests, or backtest in this step.",
+        "source_head": "cbab7b7d701c28cc8cebdac023d6e5d53f5c5e24",
+        "contract": "docs/R29_SINGLE_GPT_VS_FIVE_DOTS_20261124.md",
+        "next": "Implement isolated SINGLE_GPT adapter and paired controller without bypassing common validation or impersonating five role runs. Synthetic parity and negative tests before actual pilot; preserve existing W05 block."
+      }
     }
   ],
   "next_task": "R29-W04",
