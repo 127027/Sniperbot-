@@ -96,23 +96,14 @@
     {
       "id": "R29-W04",
       "priority": "P1",
-      "status": "IN_PROGRESS",
+      "status": "OPEN",
       "title": "Vertical slice: causal historical GPT review and isolated model ledger",
       "acceptance": "One suitable candidate through common strategy, valid as-of inputs, genuine current review documented, model action or reasoned no trade; no client writes.",
       "depends_on": [
         "R29-W01",
         "R29-W03"
       ],
-      "claim": {
-        "owner": "chat-w04-sustained-evidence-pilot",
-        "input_commit": "80c97d3840bbd675ecc22a952e43d906069f13f9",
-        "expected_evidence": "Reuse rank, independent sustained activity candidate, bounded raw capture; no repeat of two-swap pilot",
-        "paths": [
-          "scripts/r29-enrich-midnight-evidence.mjs",
-          "src/r29-evidence-enrichment.mjs",
-          "research/preparation/enrichment/"
-        ]
-      },
+      "claim": null,
       "last_evidence": {
         "run": 45389862438,
         "commit": "002f61e3b6654683b282a44106d87114a6339084",
@@ -128,7 +119,7 @@
         "real_historical_model_fills": 0,
         "actual_october_gpt_runs": 0,
         "reason": "No positive directional edge in three short pre-midnight observations. No forced buy. Ledger currently only synthetic test execution; requires verified retrospective execution path before actual modeled fills.",
-        "next": "Do not repeat selected mint 5mySss5...pump or rerank existing 2,836 queue. Actual completed 2-signature pre-midnight history and current-chat NO_TRADE due same buyer entire unwind two seconds after launch. Preserve candidate as resolved research exclusion at midnight, not executable quote or five-role scan; revisit on new evidence. 2,835 other active candidates unresolved. Next reuse ranked queue, batch prioritize genuine sustained two-sided activity rather than minimal 2-trade history; support date-pinned SellV3 instruction variant and creation+buy reserve correlation by corroborated raw bytes (do not fabricate accounts). Existing Oct8 pinned IDL lacks sell_v3. Use old source receipts to test decoder without re-fetch; no forced trades. Concurrent branch write retry implemented disjoint paths only; never force. Persist per-candidate evidence status, expand batch throughput and sealed intraday source adapter; 24-frame preflight already done, no repeat. Backtest approved but preparation incomplete; no valid scan yet. Original live gates unchanged.",
+        "next": "Do not repeat the two resolved midnight candidates or old rank build. Actual date-pinned IDL already had all v3 variants; corrected extracted subset, retained fee accounting, historical ix aliases and separate creation-post evidence. 6/6 identified swaps now corroborated (4 transitions + 2 creation post states), no new downloads for re-decode. Audit's slot-only sort leaves same-slot continuity false; fix audit via verified transition graph (Cornell BUY -> SellV3 -> SellV2 matching vault balances), do not claim full continuity yet. Cornell7 NO_TRADE due real reserve 0.009876545 SOL vs modeled gross exit ~0.441726518 SOL. Ranking feasibility 4–7 swaps still selects weak/dead launches; do not keep choosing low-history pilots. Next prioritize verified liquidity, genuinely sustained active high-interest candidates, batch history using existing ranked queue and bulk source signatures; avoid individual low-value diagnostics and repeated preflight. Need broader historical input and actual five-role reviews; no valid full scan or fill yet. Keep paper-only and original live gates.",
         "next_hour_run": 45392964707,
         "next_hour_tick": "2026-10-12T02:00:00.000Z",
         "next_hour_report": "research/audits/2026-11-24/r29-w04-0200-generalized-scan.json",
@@ -288,10 +279,14 @@
         "recent_two_sided_mints": 1307,
         "initial_three_hour_plan_complete": true,
         "ci": {
-          "run": 45450106505,
-          "tests": 947,
-          "pass": 947,
-          "fail": 0
+          "run": 45453074228,
+          "status": "completed",
+          "conclusion": "success",
+          "counts": [
+            "2026-11-24T17:51:23.3631677Z # tests 948",
+            "2026-11-24T17:51:23.3631982Z # pass 948",
+            "2026-11-24T17:51:23.3632130Z # fail 0"
+          ]
         },
         "predecision_packet_code": "ed9dc170690d49d61eaff148c118278d87940b5a",
         "predecision_packet_commit": "3d30a9ace93fa3c9f25830e04706a90eac5356d7",
@@ -462,7 +457,21 @@
         "complete_pre_tick_mint_history_count": 1,
         "actual_current_chat_no_trade": 1,
         "prepared_executable_inputs": 0,
-        "remaining_unreviewed_active_candidates": 2835
+        "remaining_unreviewed_active_candidates": 2834,
+        "sustained_pilot_run": 45452592950,
+        "sustained_pilot_result": "research/preparation/enrichment/45452592950/result.json",
+        "sustained_pilot_review": "research/preparation/enrichment/45452592950/current-chat-review.json",
+        "sustained_pilot_eligible": 18,
+        "sustained_new_rpc_calls": 7,
+        "sustained_successful_receipts": 7,
+        "sustained_pre_tick_mint_transactions": 6,
+        "pinned_v3_fix_commit": "166934bd9bbf1c31c1a70489cccc555728d3ef33",
+        "pinned_v3_audit_run": 45453094300,
+        "pinned_v3_audit": "research/audits/2026-11-24/r29-pinned-v3-creation-redecode.json",
+        "actual_redecoded_swap_transitions": 4,
+        "actual_creation_post_states": 2,
+        "unresolved_identified_swap_decodes": 0,
+        "actual_current_chat_new_no_trade_total": 2
       }
     },
     {
@@ -513,7 +522,7 @@
   ],
   "next_task": "R29-W04",
   "historical_retest_with_same_empty_trade_inputs": "DO_NOT_REPEAT",
-  "next_task_reason": "Actual complete new mint history, source receipt checkpoint recovery and grounded NO_TRADE; prioritize sustained candidates and unsupported instruction variants, not repeat preflight.",
+  "next_task_reason": "Actual raw data decoded across new and old candidates; prioritize genuinely active/liquid cohort and complete time-ordered execution evidence instead of low-history pilots.",
   "predecision_preparation": {
     "virtual_first_decision_utc": "2026-10-12T00:00:00.000Z",
     "physical_research_time_limit": null,
@@ -675,10 +684,13 @@
       "actual_run": 45450391897,
       "ranked": 2836,
       "feasibility_candidates": 133,
-      "reviewed_new": 1,
-      "remaining_unreviewed": 2835,
+      "reviewed_new": 2,
+      "remaining_unreviewed": 2834,
       "trade_inputs_ready": 0,
-      "review": "research/preparation/enrichment/45450391897/current-chat-review.json"
+      "review": "research/preparation/enrichment/45450391897/current-chat-review.json",
+      "latest_run": 45452592950,
+      "latest_review": "research/preparation/enrichment/45452592950/current-chat-review.json",
+      "decoder_audit": "research/audits/2026-11-24/r29-pinned-v3-creation-redecode.json"
     }
   }
 }
