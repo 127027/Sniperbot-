@@ -8,6 +8,13 @@ const sha=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const valid=x=>Number.isFinite(x);
 const digest=x=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x);
 const roles=['TEMPO','DISCOVERY','RISK','STRATEGY','QA'];
+// Common market input excludes the individual GPT review, which is separately
+// bound by the arm journal and the existing strategy-policy verifier.
+export function comparisonMarketInputHash(input){const {gptReview,...market}=input;return sha(market);}
+function boundExecution(s,c,input,kind){
+ if(s.review_mode)return digest(c?.[kind+'_market_sha256'])&&comparisonMarketInputHash(input)===c[kind+'_market_sha256'];
+ return digest(c?.[kind+'_input_sha256'])&&sha(input)===c[kind+'_input_sha256'];
+}
 export function openIntervalSession({preparation,sessionId,reviewMode}={}){
  const {session,preflight}=beginPreparedSession({preparation,sessionId,reviewMode});
  if(!session)return {session:null,preflight};
@@ -47,12 +54,12 @@ export function commitIntervalDecision({session:s,preparation,roleReviews,single
   if(d.action==='BUY'){
    if(d.entryInput?.strategyPolicy!=='GPT_RESEARCH_V1')throw Error('GPT_RESEARCH_POLICY_REQUIRED');
    const c=preparation.candidates.find(c=>c.mint===d.mint);
-   if(!digest(c?.entry_input_sha256)||sha(d.entryInput)!==c.entry_input_sha256)throw Error('ENTRY_INPUT_NOT_BOUND_TO_PREPARATION');
+   if(!boundExecution(s,c,d.entryInput,'entry'))throw Error('ENTRY_INPUT_NOT_BOUND_TO_PREPARATION');
   }
   if(d.action==='SELL'){
    if(d.exitInput?.strategyPolicy!=='GPT_RESEARCH_V1')throw Error('GPT_RESEARCH_POLICY_REQUIRED');
    const c=preparation.candidates.find(c=>c.mint===d.mint);
-   if(!digest(c?.exit_input_sha256)||sha(d.exitInput)!==c.exit_input_sha256)throw Error('EXIT_INPUT_NOT_BOUND_TO_PREPARATION');
+   if(!boundExecution(s,c,d.exitInput,'exit'))throw Error('EXIT_INPUT_NOT_BOUND_TO_PREPARATION');
   }
  }
  // The prior full-review coordinator shares exactly this hash schema and ledger.

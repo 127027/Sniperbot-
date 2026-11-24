@@ -1,4 +1,4 @@
-// Isolated comparison only: no scheduler, network, client or order publication.
+// Low-level isolated comparison primitives: use r29-sealed-comparison.mjs for a sealed paired run. No scheduler, network, client or order publication.
 import {createHash} from 'node:crypto';
 import {openIntervalSession,intervalDecisionInput,commitIntervalDecision,settleIntervalSignal,closeWorkInterval} from './r29-hourly-interval-session.mjs';
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
