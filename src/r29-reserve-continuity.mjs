@@ -25,7 +25,7 @@ export function correlateReserveState({raw,decoded}={}){
  // Pinned TRADE_V3.md: protocol fee minus buyback and creator fee retained in vault.
  // Do not absorb unknown rent changes or extra flows into this equality.
  const retained=v3?num(e.fee)-num(e.buyback_fee)+num(e.creator_fee):0n;
- if(v3&&(e.ix_name!==s.name||e.fee_recipient!==ZERO||num(e.buyback_fee)>num(e.fee)))throw Error('V3_FEE_EVENT_MISMATCH');
+ if(v3&&(![s.name,({buy_v3:'buy',buy_exact_quote_in_v3:'buy_exact_quote_in',sell_v3:'sell'})[s.name]].includes(e.ix_name)||e.fee_recipient!==ZERO||num(e.buyback_fee)>num(e.fee)))throw Error('V3_FEE_EVENT_MISMATCH');
  if(tb-ta!==-sign*token||sb-sa!==sign*sol+retained||num(e.quote_amount)!==sol||num(e.virtual_quote_reserves)!==num(e.virtual_sol_reserves)||num(e.real_quote_reserves)!==num(e.real_sol_reserves))throw Error('ACCOUNT_EVENT_DELTA_MISMATCH');
  const all=[...(msg.instructions||[]),...(m.innerInstructions||[]).flatMap(x=>x.instructions||[])];
  const transfers=all.filter(i=>i.programId===a.programId&&['transfer','transferChecked'].includes(i.parsed?.type)).filter(i=>{const p=i.parsed.info;return (e.is_buy?p.source===s.token_account&&p.destination!==s.token_account&&p.authority===s.pool:p.destination===s.token_account&&p.source!==s.token_account)&&(p.mint===undefined||p.mint===e.mint)&&num(p.tokenAmount?.amount??p.amount)===token;});
