@@ -1,5 +1,5 @@
 import {readFile,writeFile,mkdir} from 'node:fs/promises';import {gunzipSync,gzipSync} from 'node:zlib';import {createHash} from 'node:crypto';import {execFileSync} from 'node:child_process';
-import {prioritizeEvidence} from '../src/r29-evidence-enrichment.mjs';
+import {prioritizeEvidence,selectSustainedEvidencePilot} from '../src/r29-evidence-enrichment.mjs';
 import {reservePreparationRequest,recordPreparationReceipt} from '../src/r29-preparation-queue.mjs';
 import {inspectHistoricalMintTransaction} from '../src/r29-historical-mint-risk.mjs';
 import {decodeHistoricalSwapFlow} from '../src/r29-historical-swap-flow.mjs';import {decodePumpReserveEvent} from '../src/r29-pump-reserve-event.mjs';import {correlateReserveState,compareReserveContinuity} from '../src/r29-reserve-continuity.mjs';import {latestObservedCurve,evaluateRetrospectiveEntry} from '../src/r29-retrospective-execution.mjs';import {parseBinanceHistoricalFx} from '../src/r29-historical-curve-model.mjs';
@@ -35,7 +35,15 @@ async function persist(msg,files){
 }
 const p='research/preparation/decision-input/',manifest=await read(p+'manifest.json');
 let selection,target;
-if(req.resume_selection_run===45450122787){
+if(req.sustained_selection===true){
+ const old='research/preparation/enrichment/45450122787/',prev=await read(old+'selection.json');
+ if(prev.source_packet_sha256!==manifest.packet_sha256||prev.total_jobs!==manifest.evidence_jobs)throw Error('RESUME_INPUT_CHANGED');
+ const rows=JSON.parse(gunzipSync(await checked(old+'ranked-evidence-queue.json.gz',prev.ranked_queue_sha256)));
+ const resolved=await read('research/preparation/enrichment/45450391897/current-chat-review.json');
+ const x=selectSustainedEvidencePilot(rows,{excluded:[resolved.mint,...manifest.prior_quote_mints]});
+ target=x.pilot;selection={...prev,pilot:target,pilot_count:x.eligible_pilot_count,reused_selection_run:45450122787,selection_mode:'SUSTAINED_BOUNDED_HISTORY',excluded_mints:[resolved.mint,...manifest.prior_quote_mints]};
+ await writeFile(root+'/selection.json',JSON.stringify(selection,null,2)+'\n');await persist('R29 select sustained activity candidate from saved rank',[root]);
+}else if(req.resume_selection_run===45450122787){
  const old='research/preparation/enrichment/45450122787/';
  selection=await read(old+'selection.json');
  if(selection.source_packet_sha256!==manifest.packet_sha256||selection.total_jobs!==manifest.evidence_jobs)throw Error('RESUME_INPUT_CHANGED');

@@ -27,3 +27,19 @@ export function prioritizeEvidence(candidates,launches,{tickUtc,excluded=[]}={})
  suitable.sort((a,b)=>a.observed_swaps_60m-b.observed_swaps_60m||b.priority_score-a.priority_score||a.mint.localeCompare(b.mint));
  return {rows,eligible_pilot_count:suitable.length,pilot:suitable[0]??null};
 }
+
+// Reuse the saved rank without treating the research priority as an entry signal.
+// A bounded complete-history pilot favors activity on both sides and sustained
+// observed swaps, but is explicitly not a market-wide top investment selection.
+export function selectSustainedEvidencePilot(rows,{excluded=[],minSwaps=4,maxSwaps=7}={}){
+ const skip=new Set(excluded),candidates=[];
+ for(const r of rows){
+  if(skip.has(r.mint)||r.previously_reviewed||!Number.isFinite(r.launch_age_seconds)||r.launch_age_seconds>1800)continue;
+  for(const p of r.pools){
+   if(!p.two_sided||!p.sol_quote_reported||!p.pump_curve_reported||!p.latest_signature||p.age_seconds>300||p.activity<3||p.observed_swaps_60m<minSwaps||p.observed_swaps_60m>maxSwaps)continue;
+   candidates.push({mint:r.mint,launch_age_seconds:r.launch_age_seconds,...p});
+  }
+ }
+ candidates.sort((a,b)=>(b.reported_mark_change_pct!==null&&b.reported_mark_change_pct>0?1:0)-(a.reported_mark_change_pct!==null&&a.reported_mark_change_pct>0?1:0)||b.priority_score-a.priority_score||a.mint.localeCompare(b.mint));
+ return {pilot:candidates[0]??null,eligible_pilot_count:candidates.length};
+}
