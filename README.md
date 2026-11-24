@@ -33,3 +33,5 @@ Optionaler autorisierter Cloud-Publisher: `npm run publish -- <order.json>` (nur
 
 ## Status
 Die neuen Code-/Protokolltests prüfen nur den technischen Weg. Eine aktivierte Cloud-Automation ist noch kein Beweis einer tatsächlich abgeschlossenen Analyse. Ein echter BUY und späterer SELL, jeweils mit Client-`PAPER_FILLED`, sind die offene Produktiv-Paper-Abnahme. Siehe [docs/STATUS.md](docs/STATUS.md).
+
+Historische Referenzen (nicht operative Arbeitsreihenfolge): [docs/R29_NEXT_CHAT_HANDOFF.md](docs/R29_NEXT_CHAT_HANDOFF.md), [docs/V19_IMPLEMENTATION_PROGRESS.md](docs/V19_IMPLEMENTATION_PROGRESS.md).
