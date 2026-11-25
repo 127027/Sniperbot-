@@ -1,3 +1,7 @@
+# R30 – Stündliche Memecoin-Recherche
+
+**Aktive Arbeitsanweisung:** [R30_RUNBOOK.md](R30_RUNBOOK.md). Diese kurze V2-Anweisung hat Vorrang. 500 EUR Startkapital, 50 EUR je Kauf. Das frühere Verfahren steht unten als Historie; bei Widerspruch gilt V2.
+
 # R30 – Stündliche Memecoin-Recherche (Neustart)
 Ein gemeinsamer Scan je voller Stunde. Keine alten R29-Programme, Auftragsketten, Backtest-Gates oder alten Daten als aktuelle Marktwerte verwenden. GitHub ist nur gemeinsames Gedächtnis. Ziel: dieselbe praktisch nutzbare Marktanalyse wie ein normaler GPT-Chat, nur mit fünf ergänzenden Recherchen.
 ## Ablauf
