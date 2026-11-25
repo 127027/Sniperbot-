@@ -4,7 +4,7 @@ APK=r31/android/out/R31-Paper-Android.apk
 PKG=com.r31.paperbot
 adb wait-for-device
 adb shell input keyevent 82
-adb install "$APK"
+adb install -g "$APK"
 adb shell am start -W -n "$PKG/.MainActivity"
 # Check actual UI, not simply successful am start. WebView accessibility tree contains rendered text.
 for i in $(seq 1 20); do
@@ -49,14 +49,26 @@ adb shell input keyevent 26
 sleep 8
 adb shell dumpsys activity services "$PKG" > /tmp/r31-services-locked.txt
 grep -q 'PaperSyncService' /tmp/r31-services-locked.txt
-adb shell input keyevent 26
+adb shell input keyevent KEYCODE_WAKEUP
+adb shell wm dismiss-keyguard
 adb shell input keyevent 82
 adb shell am force-stop "$PKG"
 adb shell am start -W -n "$PKG/.MainActivity"
-sleep 4
-adb shell uiautomator dump /sdcard/r31-restart.xml
-adb pull /sdcard/r31-restart.xml /tmp/r31-restart.xml
-grep -q 'Lokales Konto ' /tmp/r31-restart.xml
+# Wait for actual accessibility tree after cold start; never treat am start alone as success.
+for i in $(seq 1 20); do
+  adb shell rm -f /sdcard/r31-restart.xml
+  rm -f /tmp/r31-restart.xml
+  adb shell uiautomator dump /sdcard/r31-restart.xml >/dev/null 2>&1 || true
+  adb pull /sdcard/r31-restart.xml /tmp/r31-restart.xml >/dev/null 2>&1 || true
+  if grep -q 'Lokales Konto ' /tmp/r31-restart.xml 2>/dev/null; then break; fi
+  sleep 3
+done
+if ! grep -q 'Lokales Konto ' /tmp/r31-restart.xml; then
+  adb shell dumpsys activity activities > /tmp/r31-restart-activities.txt
+  adb logcat -d -t 500 > /tmp/r31-restart-logcat.txt
+  echo 'Restart UI did not show local account' >&2
+  exit 1
+fi
 python3 - <<'PY'
 import re
 a=open('/tmp/r31-initial.xml').read();b=open('/tmp/r31-restart.xml').read()
