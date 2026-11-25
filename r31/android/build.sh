@@ -19,5 +19,6 @@ javac -encoding UTF-8 -source 8 -target 8 -classpath "$PLATFORM" -d "$OUT/classe
 keytool -genkeypair -keystore "$OUT/test-signing.jks" -storepass android -keypass android -alias r31paper -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=R31 Paper Test" >/dev/null 2>&1
 "$BT/apksigner" sign --ks "$OUT/test-signing.jks" --ks-pass pass:android --key-pass pass:android --out "$OUT/R31-Paper-Android.apk" "$OUT/aligned.apk"
 "$BT/apksigner" verify --verbose "$OUT/R31-Paper-Android.apk"
-"$BT/aapt2" dump badging "$OUT/R31-Paper-Android.apk" | head -12
-sha256sum "$OUT/R31-Paper-Android.apk" > "$OUT/SHA256SUMS.txt"
+"$BT/aapt2" dump badging "$OUT/R31-Paper-Android.apk" > "$OUT/badging.txt"
+head -12 "$OUT/badging.txt"
+(cd "$OUT" && sha256sum R31-Paper-Android.apk > SHA256SUMS.txt)
