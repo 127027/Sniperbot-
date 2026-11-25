@@ -1,3 +1,5 @@
+# R47 priority: r47/OPPORTUNITY_FIRST.md overrides provisional strategy suppression; regular wire/price safeguards remain.
+
 # R46 – verbindlicher Soll-Ablauf (Nutzerfreigabe 25.11.2026)
 PAPER_ONLY. 24 stündliche Zielzyklen, keine zusätzliche Markt-API, keine Echtgeldaktion. Fünf Dots arbeiten als ein GPT-Trading-Analyst. Diese Spezifikation ersetzt widersprechende alte Strategie-/Rollenregeln, nicht Sicherheits-, Preis-, Kapital-, CAS- und Zeitregeln. Einmaliger R41 Reset ist abgeschlossen; 500 EUR Referenzstart, 50 EUR je neuer Position, bestehende lokale Konten unverändert.
 ## Ablauf
