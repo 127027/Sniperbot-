@@ -1,0 +1,102 @@
+{
+  "schema": "R30_DOT_REPORT_V2",
+  "mode": "PAPER_ONLY",
+  "dot": 1,
+  "role": "market",
+  "target_utc": "2026-11-25T19:00:00Z",
+  "run_context_utc": "2026-11-25T18:25:47Z",
+  "completed_at_utc": null,
+  "executor": "MANUAL_CHAT_RECOVERY",
+  "autonomous_dot_run": false,
+  "final_path": "reports/2026-11-25/17/final.json",
+  "final_blob_sha": "f3a7f72571f0846668c9453127a83cf38d5d9903",
+  "r31_sequence": 6,
+  "coverage": {
+    "required": 2,
+    "checked": 2,
+    "fresh_quotes": 0,
+    "new_coins": 0
+  },
+  "peer_assessment": "Dot2 report e2480c101624a8a176079e635ee306139b0bd7d2 also flags conflicting/stale evidence. Search-result observations only; no verified fresh quote.",
+  "quote_tracking": [
+    {
+      "coin": "BASKET",
+      "chain": "Solana",
+      "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+      "pool_address": "CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+      "attempts": [
+        {
+          "source_url": "https://www.solanaterminal.com/solana/token/basket/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+          "quote_time_utc": null,
+          "price_usd": 0.000299,
+          "result": "UNDATED_INTRADAY"
+        },
+        {
+          "source_url": "https://solanaterminal.com/solana/token/basket/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+          "quote_time_utc": null,
+          "price_usd": 0.001727,
+          "result": "CONFLICTING_UNDATED_INTRADAY"
+        },
+        {
+          "source_url": "https://dextrading.com/tokens/solana/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+          "quote_time_utc": "2026-11-25T09:01:00Z",
+          "price_usd": 0.000877,
+          "result": "STALE"
+        }
+      ],
+      "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Exact-contract search results disagree substantially; no reliable contemporaneous market observation supports a new action.",
+      "chosen_quote": null,
+      "disposition": "DATA_GAP",
+      "strategy": "WATCH"
+    },
+    {
+      "coin": "PERRO",
+      "chain": "Solana",
+      "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+      "pool_address": "4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+      "attempts": [
+        {
+          "source_url": "https://solanaterminal.com/solana/token/perro/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+          "quote_time_utc": null,
+          "price_usd": 0.000228,
+          "result": "UNDATED_INTRADAY"
+        },
+        {
+          "source_url": "https://dextrading.com/tokens/solana/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+          "quote_time_utc": "2026-11-25T01:38:00Z",
+          "price_usd": 0.00003441,
+          "result": "STALE"
+        },
+        {
+          "source_url": "https://www.solanatracker.io/tokens/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+          "quote_time_utc": "2026-11-25T02:01:00Z",
+          "price_usd": 0.0001324,
+          "result": "STALE"
+        }
+      ],
+      "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Prior model position requires exit review, but conflicting or stale search results do not authorize a fresh SELL. No new entry.",
+      "chosen_quote": null,
+      "disposition": "DATA_GAP",
+      "strategy": "WATCH"
+    }
+  ],
+  "decisions": [
+    {
+      "coin": "BASKET",
+      "chain": "Solana",
+      "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+      "action": "DATA_GAP",
+      "strategy": "WATCH",
+      "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Exact-contract search results disagree substantially; no reliable contemporaneous market observation supports a new action."
+    },
+    {
+      "coin": "PERRO",
+      "chain": "Solana",
+      "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+      "action": "DATA_GAP",
+      "strategy": "WATCH",
+      "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Prior model position requires exit review, but conflicting or stale search results do not authorize a fresh SELL. No new entry."
+    }
+  ],
+  "notes": "Manual recovery before target hour; not an autonomous Dot1 success. No ledger or signal changes."
+}
