@@ -1,3 +1,6 @@
+# R34 – tägliche Lernanalyse (Nutzerauftrag 25.11.2026)
+Dot4 führt zusätzlich zur laufenden Strategiearbeit die abgeschlossenen 24h-Auswertungen gemäß r34/DAILY_LEARNING.md durch. Erste Bearbeitung 25.11. 21:35 MEZ, danach täglich im bestehenden Lauf bzw. Fortsetzung bei offenen Quellenpaketen. Keine neue Automation. Live-Bericht zuerst sichern. Alle auffindbaren >100%-Gewinner, zeitgerechter Vergleich mit damaligen Quellen und tatsächlichen Trades, getrennt von rückblickendem Wissen. Keine rückwirkenden Käufe, keine erzwungenen Einstiege und keine ungeprüfte Regeländerung.
+
 # R34 – GitHub-Zuverlässigkeit und verbindlicher Kurzstart (25.11.2026)
 Vorrang bei der technischen Ausführung, alle bisherigen Handels-/Risikoregeln bleiben. Am 11:05-MEZ-Abschluss fand Dot5 keine GitHub-Tools (leere Suchliste), um 11:09 scheiterte auch Dot1; direkter Chat-Connector funktioniert. Ursache der Toolbereitstellung unbekannt; keine nachgewiesene Authentifizierungsstörung. Keine Änderung an OAuth, Konten, API-Schlüsseln, Apps oder Signalformat.
 ## Startprüfung
