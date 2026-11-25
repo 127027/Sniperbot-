@@ -62,3 +62,16 @@ test('strict producer input rejects account data, duplicate ranks, absent risk, 
  const coins=Array.from({length:500},(_,i)=>({coin:'C'+i,contract:'C'+i,chain:'Solana',intent:'LONG'}));
  assert.throws(()=>prepareStrategy({universe:{...initial,coins},reviews:[a],target_utc:time(day,8),published_at_utc:time(day,8),expires_at_utc:time(day,8,15)}),/WIRE_COVERAGE_LIMIT/);
 });
+
+test('user exact lifecycle: five fresh entries for three scans then exit; device joins between scans',()=>{
+ const reviewAll=(h,kind)=>Array.from({length:5},(_,i)=>r('F'+i,kind,day,h,kind==='ENTRY_ALLOWED'?i+1:undefined));
+ let p=plan(null,day,9,reviewAll(9,'ENTRY_ALLOWED')),phone=apply(account('phone',50000,day,8),p,day,9).account;
+ let colleague=account('colleague',50000,day,10); // joined at publication boundary, next fresh scan is 11
+ assert.equal(phone.ledger.cash_eur,250);
+ p=plan(p,day,10,reviewAll(10,'ENTRY_ALLOWED'));phone=apply(phone,p,day,10).account;
+ colleague=apply(colleague,p,day,10).account;assert.equal(colleague.ledger.positions.length,0);
+ p=plan(p,day,11,reviewAll(11,'ENTRY_ALLOWED'));phone=apply(phone,p,day,11).account;colleague=apply(colleague,p,day,11).account;
+ assert.equal(phone.ledger.trades.length,5);assert.equal(colleague.ledger.trades.length,5);assert.equal(colleague.ledger.cash_eur,250);
+ p=plan(p,day,12,reviewAll(12,'EXIT'));phone=apply(phone,p,day,12).account;colleague=apply(colleague,p,day,12).account;
+ assert.equal(phone.ledger.positions.length,0);assert.equal(colleague.ledger.positions.length,0);assert.equal(phone.ledger.trades.length,10);assert.equal(colleague.ledger.trades.length,10);
+});

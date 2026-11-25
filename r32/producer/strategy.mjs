@@ -3,8 +3,8 @@ import {identity} from '../../r31/broadcast.mjs';
 import {preparePublication} from '../../r31/publisher.mjs';
 export const ACTION=Object.freeze({ENTRY_ALLOWED:'BUY',HOLD_ONLY:'HOLD',EXIT:'SELL',WATCH:'WATCH',NO_TRADE:'NO_TRADE',DATA_GAP:'DATA_GAP'});
 const keys=new Set(['coin','chain','contract','disposition','entry_rank','price_eur','observed_at_utc','source_url','reason','risk']);
-export function compileReviews(reviews){
- if(!Array.isArray(reviews)||reviews.length>500)throw Error('INVALID_REVIEW_COUNT');
+export function compileReviews(reviews,{maxRecords=500}={}){
+ if(!Array.isArray(reviews)||reviews.length>maxRecords)throw Error('INVALID_REVIEW_COUNT');
  const seen=new Set(),ranks=new Set();
  const entries=[],rest=[];
  for(const d of reviews){

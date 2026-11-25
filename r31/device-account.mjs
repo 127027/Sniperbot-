@@ -20,8 +20,8 @@ export function fundAccount(a,{id,kind,amount_cents},now){
  return {...a,ledger:{...a.ledger,cash_eur:cash/100},funding_events:[...a.funding_events,{id,kind,amount_cents,at_utc:now}],last_summary:null};
 }
 function cursor(s,sha){return {sequence:s.sequence,blob_sha:sha,target_utc:s.target_utc}}
-export function applyBroadcast(account,{signal:s,blob_sha:sha,now}){
- validateBroadcast(s);validateControls(account.controls);
+export function applyBroadcast(account,{signal:s,blob_sha:sha,now},{allowV2=false}={}){
+ validateBroadcast(s,{allowV2});validateControls(account.controls);
  if(!/^[a-f0-9]{40}$/.test(sha??'')||!stamp(now))throw Error('INVALID_RECEIPT');
  const old=account.cursor;
  if(old&&s.sequence===old.sequence){if(sha!==old.blob_sha)throw Error('SIGNAL_FORK');return {account,status:'ALREADY_PROCESSED',events:[]}}
@@ -47,8 +47,9 @@ export function applyBroadcast(account,{signal:s,blob_sha:sha,now}){
   decisions.push(d);
  }
  // Devices can own different coins. No instruction does NOT mean sell.
- for(const p of account.ledger.positions)if(!decisions.some(d=>identity(d)===identity(p)))decisions.push({coin:p.coin,chain:p.chain,contract:p.contract,action:'DATA_GAP',reason:'No current broadcast decision for this local position'});
- const r=settlePaperCycle({ledger:account.ledger,controls:account.controls,cycle:{target_utc:s.target_utc,control_revision:account.controls.revision,decisions},now});
+ const decided=new Set(decisions.map(identity));
+ for(const p of account.ledger.positions)if(!decided.has(identity(p)))decisions.push({coin:p.coin,chain:p.chain,contract:p.contract,action:'DATA_GAP',reason:'No current broadcast decision for this local position'});
+ const r=settlePaperCycle({ledger:account.ledger,controls:account.controls,cycle:{target_utc:s.target_utc,control_revision:account.controls.revision,decisions},now,maxDecisions:s.schema==='r32.broadcast.v2'?100000:500});
  const events=[...r.events,...ignored],gap=old?Math.max(0,s.sequence-old.sequence-1):0;
  const flows=account.funding_events.reduce((n,e)=>n+(e.kind==='PAPER_DEPOSIT'?e.amount_cents:-e.amount_cents),money(account.ledger.initial_cash_eur));
  const point={at_utc:now,sequence:s.sequence,pnl_eur:Number.isFinite(r.summary.net_liquidation_value_eur)?(money(r.summary.net_liquidation_value_eur)-flows)/100:null};

@@ -25,14 +25,14 @@ function quote(d,now) {
  if(typeof d.reason!=='string'||!d.reason.trim())return 'REASON_REQUIRED';
  return null;
 }
-export function settlePaperCycle({ledger,controls,cycle,now}) {
+export function settlePaperCycle({ledger,controls,cycle,now,maxDecisions=500}) {
  validateLedger(ledger);validateControls(controls);
- if(!stamp(now)||!cycle||!stamp(cycle.target_utc)||!Array.isArray(cycle.decisions)||cycle.decisions.length>500||cycle.control_revision!==controls.revision)throw Error('INVALID_CYCLE_OR_STALE_CONTROLS');
+ if(!stamp(now)||!cycle||!stamp(cycle.target_utc)||!Array.isArray(cycle.decisions)||cycle.decisions.length>maxDecisions||cycle.control_revision!==controls.revision)throw Error('INVALID_CYCLE_OR_STALE_CONTROLS');
  if(new Date(cycle.target_utc).toISOString().slice(14)!=='00:00.000Z'||Date.parse(cycle.target_utc)>Date.parse(now)||Date.parse(now)-Date.parse(cycle.target_utc)>15*60_000)throw Error('INVALID_TARGET_TIME');
  if(ledger.last_target_utc!==null&&Date.parse(cycle.target_utc)<=Date.parse(ledger.last_target_utc))throw Error('DUPLICATE_OR_OLD_CYCLE');
- const seen=new Set();for(const d of cycle.decisions){if(!['BUY','SELL','HOLD','WATCH','NO_TRADE','DATA_GAP'].includes(d.action))throw Error('INVALID_ACTION');const k=key(d);if(seen.has(k))throw Error('DUPLICATE_DECISION');seen.add(k);}
+ const seen=new Set(),byKey=new Map();for(const d of cycle.decisions){if(!['BUY','SELL','HOLD','WATCH','NO_TRADE','DATA_GAP'].includes(d.action))throw Error('INVALID_ACTION');const k=key(d);if(seen.has(k))throw Error('DUPLICATE_DECISION');seen.add(k);byKey.set(k,d);}
  // Require an explicit decision for all positions, including DATA_GAP.
- for(const p of ledger.positions){const d=cycle.decisions.find(d=>key(d)===key(p));if(!d||!['SELL','HOLD','DATA_GAP'].includes(d.action))throw Error('POSITION_REVIEW_REQUIRED')}
+ for(const p of ledger.positions){const d=byKey.get(key(p));if(!d||!['SELL','HOLD','DATA_GAP'].includes(d.action))throw Error('POSITION_REVIEW_REQUIRED')}
  const out=structuredClone(ledger),events=[];
  const reject=(d,reason)=>events.push({coin:d.coin,chain:d.chain,contract:d.contract,action:d.action,status:'BLOCKED',reason});
  const buy=(d)=>{
@@ -60,7 +60,7 @@ export function settlePaperCycle({ledger,controls,cycle,now}) {
  for(const d of cycle.decisions.filter(x=>x.action==='SELL'))sell(d);
  for(const d of cycle.decisions.filter(x=>x.action==='BUY'))buy(d);
  let unknown=0,marked=0,open=0;
- for(const p of out.positions){const d=cycle.decisions.find(d=>key(d)===key(p));const basis=cent(p.cost_basis_eur);open+=basis;if(!d||d.action==='DATA_GAP'||quote(d,now)){p.net_liquidation_eur=null;p.unrealized_pnl_eur=null;unknown++;continue}const net=moneyRound(moneyRound(p.quantity*d.price_eur*100)*0.99);p.net_liquidation_eur=eur(net);p.unrealized_pnl_eur=eur(net-basis);p.mark_price_eur=d.price_eur;p.mark_observed_at_utc=d.observed_at_utc;marked+=net;}
+ for(const p of out.positions){const d=byKey.get(key(p));const basis=cent(p.cost_basis_eur);open+=basis;if(!d||d.action==='DATA_GAP'||quote(d,now)){p.net_liquidation_eur=null;p.unrealized_pnl_eur=null;unknown++;continue}const net=moneyRound(moneyRound(p.quantity*d.price_eur*100)*0.99);p.net_liquidation_eur=eur(net);p.unrealized_pnl_eur=eur(net-basis);p.mark_price_eur=d.price_eur;p.mark_observed_at_utc=d.observed_at_utc;marked+=net;}
  out.trades.push(...events.filter(e=>e.status==='MODEL_BOOKED'));out.last_target_utc=cycle.target_utc;
  return {ledger:out,events,summary:{cash_eur:out.cash_eur,open_cost_eur:eur(open),realized_pnl_eur:out.realized_pnl_eur,unrealized_pnl_eur:unknown?null:eur(marked-open),net_liquidation_value_eur:unknown?null:out.cash_eur+eur(marked),unknown_mark_count:unknown},control_revision:controls.revision};
 }

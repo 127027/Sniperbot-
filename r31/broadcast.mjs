@@ -6,8 +6,8 @@ export function identity(d){
  return d.chain.toLowerCase()+':'+(/^(ethereum|base|bsc|bnb chain|arbitrum|polygon|optimism|avalanche)$/i.test(d.chain)?d.contract.toLowerCase():d.contract);
 }
 const only=(x,keys)=>x&&typeof x==='object'&&!Array.isArray(x)&&Object.keys(x).every(k=>keys.includes(k));
-export function validateBroadcast(s){
- if(!only(s,['schema','mode','sequence','target_utc','published_at_utc','expires_at_utc','decisions','previous_blob_sha'])||s.schema!=='r31.broadcast.v1'||s.mode!=='PAPER_ONLY'||!Number.isSafeInteger(s.sequence)||s.sequence<1||!canonical(s.target_utc)||s.target_utc.slice(14)!=='00:00.000Z'||!canonical(s.published_at_utc)||!canonical(s.expires_at_utc)||!Array.isArray(s.decisions)||s.decisions.length>500)throw Error('INVALID_BROADCAST');
+export function validateBroadcast(s,{allowV2=false}={}){
+ if(!only(s,['schema','mode','sequence','target_utc','published_at_utc','expires_at_utc','decisions','previous_blob_sha'])||!(s.schema==='r31.broadcast.v1'||(allowV2&&s.schema==='r32.broadcast.v2'))||s.mode!=='PAPER_ONLY'||!Number.isSafeInteger(s.sequence)||s.sequence<1||!canonical(s.target_utc)||s.target_utc.slice(14)!=='00:00.000Z'||!canonical(s.published_at_utc)||!canonical(s.expires_at_utc)||!Array.isArray(s.decisions)||s.decisions.length>(s.schema==='r32.broadcast.v2'?100000:500))throw Error('INVALID_BROADCAST');
  const t=Date.parse(s.target_utc),p=Date.parse(s.published_at_utc),e=Date.parse(s.expires_at_utc);
  if(p<t||p>t+10*60000||e<=p||e>t+15*60000)throw Error('INVALID_SIGNAL_WINDOW');
  if(s.sequence===1?s.previous_blob_sha!==null:!/^[a-f0-9]{40}$/.test(s.previous_blob_sha??''))throw Error('INVALID_PREVIOUS_SIGNAL');
