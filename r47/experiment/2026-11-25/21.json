@@ -1,0 +1,89 @@
+{
+  "schema": "r47.experiment.hour.v1",
+  "mode": "PAPER_EXPERIMENT_ONLY",
+  "target_hour_utc": "2026-11-25T21:00:00Z",
+  "actual_decision_at_utc": "2026-11-25T21:08:41.976Z",
+  "origin": "R48_INLINE_MANUAL_RECOVERY",
+  "autonomous": false,
+  "engine_blob_sha": "bdd5dea9bea7931215adb8b180875e13f77bd624",
+  "execution_method": "Explicit single-entry transition checked against stored R47 reference algorithm; no actual swap; source snapshot after hour start used only at actual decision time, not backdated.",
+  "rows": [
+    {
+      "coin": "AiDiglet",
+      "chain": "solana",
+      "contract": "9QT8K685Hrae4k11dhGXirdtpfAaimExtyfwt8cPpump",
+      "strategy": "BUY",
+      "reason": "Manual recovery: dated ranking $0.000281, +46.1%, liquidity $61.6k, volume $871.5k, versus undated detail $0.000271, reported 15665 buys vs 12384 sells, no tax or mint and top 10 wallets 29%. Speculative continuation, not independently safe.",
+      "source_url": "https://sasapad.fun/x/solana/9QT8K685Hrae4k11dhGXirdtpfAaimExtyfwt8cPpump/",
+      "ranking_url": "https://sasapad.fun/top/solana-meme-coin-gainers/",
+      "source_observed_at_utc": "2026-11-25T21:07:00Z",
+      "timestamp_kind": "PAGE_UPDATE_NOT_SWAP",
+      "identity_link_verified": true,
+      "price_usd": 0.000281,
+      "liquidity_usd": 61600,
+      "hard_risk": false,
+      "risk_check": "SOURCE_REPORTED_NO_HARD_BLOCK"
+    },
+    {
+      "coin": "LENDR",
+      "chain": "solana",
+      "contract": "AGazYig7A8Co6ZapAPterBRLitdiP6AAaWiPH8jWLend",
+      "strategy": "NO_ACTION",
+      "reason": "Price fell from stored 0.000626 to 0.000567; exact detail access failed, do not chase.",
+      "source_url": "https://sasapad.fun/top/solana-meme-coin-gainers/",
+      "source_observed_at_utc": "2026-11-25T21:07:00Z",
+      "timestamp_kind": "PAGE_UPDATE_NOT_SWAP",
+      "identity_link_verified": false,
+      "price_usd": 0.000567,
+      "liquidity_usd": 55500
+    }
+  ],
+  "result": {
+    "ledger": {
+      "mode": "PAPER_EXPERIMENT_ONLY",
+      "cash_cents": 45000,
+      "positions": [
+        {
+          "key": "solana:9QT8K685Hrae4k11dhGXirdtpfAaimExtyfwt8cPpump",
+          "coin": "AiDiglet",
+          "chain": "solana",
+          "contract": "9QT8K685Hrae4k11dhGXirdtpfAaimExtyfwt8cPpump",
+          "stake_cents": 5000,
+          "notional_cents": 4950,
+          "entry_price_usd": 0.000281,
+          "source_url": "https://sasapad.fun/x/solana/9QT8K685Hrae4k11dhGXirdtpfAaimExtyfwt8cPpump/",
+          "source_observed_at_utc": "2026-11-25T21:07:00Z",
+          "entered_at": "2026-11-25T21:08:41.976Z",
+          "mark_cents": 4900
+        }
+      ],
+      "trades": [
+        {
+          "coin": "AiDiglet",
+          "action": "BUY",
+          "status": "EXPERIMENT_BOOKED",
+          "stake_cents": 5000,
+          "price_usd": 0.000281,
+          "source_url": "https://sasapad.fun/x/solana/9QT8K685Hrae4k11dhGXirdtpfAaimExtyfwt8cPpump/",
+          "source_observed_at_utc": "2026-11-25T21:07:00Z"
+        }
+      ],
+      "last_target": "2026-11-25T21:08:41.976Z"
+    },
+    "events": [
+      {
+        "coin": "AiDiglet",
+        "action": "BUY",
+        "status": "EXPERIMENT_BOOKED",
+        "stake_cents": 5000,
+        "price_usd": 0.000281,
+        "source_url": "https://sasapad.fun/x/solana/9QT8K685Hrae4k11dhGXirdtpfAaimExtyfwt8cPpump/",
+        "source_observed_at_utc": "2026-11-25T21:07:00Z"
+      }
+    ],
+    "net_cents": 49900,
+    "unknown_marks": 0
+  },
+  "model": "Nominal EUR stake using USD price ratios constant FX; 1% entry and exit, no real fills or slippage.",
+  "regular_ledger_unchanged": true
+}
