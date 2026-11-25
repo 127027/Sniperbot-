@@ -1,3 +1,5 @@
+# R49 architecture priority: r49/SOLL_24_7.md supersedes scheduling/research lifecycle and R48 one-time recovery; all existing execution safeguards remain.
+
 # R47 priority: r47/OPPORTUNITY_FIRST.md overrides provisional strategy suppression; regular wire/price safeguards remain.
 
 # R46 – verbindlicher Soll-Ablauf (Nutzerfreigabe 25.11.2026)
