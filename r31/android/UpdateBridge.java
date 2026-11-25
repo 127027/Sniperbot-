@@ -16,7 +16,7 @@ import javax.net.ssl.HttpsURLConnection;
 import org.json.*;
 public final class UpdateBridge {
  private final Activity a; private final AtomicBoolean busy=new AtomicBoolean(false);
- private volatile String state="R40 · Bereit";
+ private volatile String state="R41 · Bereit";
  UpdateBridge(Activity a){this.a=a;}
  @JavascriptInterface public String status(){return state;}
  private static final String BASE="https://raw.githubusercontent.com/127027/Sniperbot-/";
