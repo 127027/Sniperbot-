@@ -7,6 +7,7 @@ permissions:
 jobs:
   tests:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
@@ -17,6 +18,8 @@ jobs:
           node-version: '22'
       - run: node --check r31/server.mjs
       - run: node --check r31/web/app.js
+      - run: node --check r31/launcher.mjs
+      - run: node --check r31/updater.mjs
       - run: node --check r31/device-server.mjs
       - run: node --check r31/device-web/app.js
       - run: node --test r31/policy.test.mjs r31/paper-engine.test.mjs r31/device-account.test.mjs r31/publisher.test.mjs r31/telemetry.test.mjs r31/basic-cycle.test.mjs r31/hourly-fallback.test.mjs r31/updater.test.mjs
