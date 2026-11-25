@@ -15,3 +15,5 @@ Dot2 speichert tatsächliche Kandidaten und Quelle im Rollenbericht vor Indexpfl
 
 # R37 direct chain routes
 Dot1/2 must open individual New/Gainers tables instead of stopping at stale daily archive. Follow actual page links to other chain lists (Solana, Robinhood, Base, BNB, Ethereum, Arc). A dated snapshot before target can identify candidates but may not authorize a trade. Search engine and direct open can return inconsistent versions; log each source timestamp; for historical replay reject post-cutoff versions, never combine rows across snapshots. Click token links to resolve exact identity, even if price pending. If two names match but contracts differ retain both separately.
+
+R44: reopen Solana Gainers and Robinhood New at close; public pages observed labeled 20:04 UTC, source link identities retrievable. Snapshot update is not verified swap time.

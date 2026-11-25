@@ -1,3 +1,5 @@
+# R44 addition: r44/IDENTITY_AND_CLOSE.md; compare both indexes before counting new identities.
+
 # R39 lifecycle: r39/TRADE_LIFECYCLE.md governs permanent SELL archive and re-entry.
 
 # R38 – stepwise Marktgedächtnis (Vorrang vor widersprüchlichen älteren Discovery-Regeln)
