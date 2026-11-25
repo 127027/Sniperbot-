@@ -1,0 +1,2 @@
+# Dot 1: Markt, Medien, Quellen und neue Chains
+Optionaler Fortsetzungsstand in checkpoint.json: actual_updated_utc, Quellen-URLs, überprüfte Berichtpfade/Blob-SHAs, offene Recherchefragen und nächster Arbeitsschritt. Nur tatsächliche neue Arbeit speichern; eigene Rolle schreibt allein. Originalberichte bleiben in reports/. Keine Kontodaten, keine Signale, keine API-Schlüssel. Keine periodische Zusatzaufgabe.

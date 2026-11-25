@@ -1,3 +1,6 @@
+# R34 Betriebspräzisierung – 1 bis 5 Geräte und mehrjährige Forschung
+Lies r34/LONG_TERM.md. Fünf vorhandene Dots bleiben stündlich aktiv; keine neuen Aufgaben. Keine garantierte Dauerrechenzeit. Forschung ist nicht auf heute bekannte Chains/Coins beschränkt: zukünftige Token, neue Plattformen, Medienereignisse und reaktivierte alte Memes mit Originalquelle im bestehenden Rollenbericht dokumentieren. Unbekannte Identitätsformate zunächst UNRESOLVED. Optional je Dot r34/dots/N/checkpoint.json nur bei neuem Fortsetzungsstand, keine redundante Berichtkopie. Dot2 allein pflegt den gemeinsamen Index. Signalformat, Kapital, bisherige Arbeitszeit und Sicherheitsgrenzen unverändert. Maximal fünf Endgeräte ist Auslegungsziel, keine künstliche Nutzerregistrierung. 
+
 # R34 – Verbindlicher autonomer Kreislauf (25.11.2026)
 Dieser Abschnitt ergänzt die bisherigen R32-Kurs- und Signalregeln; keine Umgehung frischer Preise, keine neuen APIs, keine Änderung am v1-Feed oder an Endgeräten. 
 ## Langzeitgedächtnis
