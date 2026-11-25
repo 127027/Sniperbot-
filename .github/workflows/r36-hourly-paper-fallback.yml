@@ -1,0 +1,39 @@
+name: R36 hourly paper fallback
+on:
+  schedule:
+    - cron: '7 * * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/r36-hourly-paper-fallback.yml'
+permissions:
+  contents: read
+concurrency:
+  group: r36-hourly-paper-fallback
+  cancel-in-progress: false
+jobs:
+  replay:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 52240929f684d40b5bb56e6df63513f15fb429b0
+          persist-credentials: false
+      - run: node --test r31/hourly-fallback.test.mjs
+  fallback:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 52240929f684d40b5bb56e6df63513f15fb429b0
+          persist-credentials: false
+      - name: Publish only a missing PAPER_ONLY data-gap closing inside actual :07–:10 window
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node r31/run-hourly-fallback.mjs
