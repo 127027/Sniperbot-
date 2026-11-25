@@ -20,8 +20,11 @@ export function fundAccount(a,{id,kind,amount_cents},now){
  return {...a,ledger:{...a.ledger,cash_eur:cash/100},funding_events:[...a.funding_events,{id,kind,amount_cents,at_utc:now}],last_summary:null};
 }
 function cursor(s,sha){return {sequence:s.sequence,blob_sha:sha,target_utc:s.target_utc}}
-export function applyBroadcast(account,{signal:s,blob_sha:sha,now},{allowV2=false}={}){
- validateBroadcast(s,{allowV2});validateControls(account.controls);
+export function applyBroadcast(account,receipt,{allowV2=false}={}){validateBroadcast(receipt.signal,{allowV2});return applyValidated(account,receipt)}
+// Only for a local projection derived from already verified original intent bytes.
+export function applyLocalProjection(account,receipt){validateLocalProjection(receipt.signal);return applyValidated(account,receipt)}
+function applyValidated(account,{signal:s,blob_sha:sha,now}){
+ validateControls(account.controls);
  if(!/^[a-f0-9]{40}$/.test(sha??'')||!stamp(now))throw Error('INVALID_RECEIPT');
  const old=account.cursor;
  if(old&&s.sequence===old.sequence){if(sha!==old.blob_sha)throw Error('SIGNAL_FORK');return {account,status:'ALREADY_PROCESSED',events:[]}}

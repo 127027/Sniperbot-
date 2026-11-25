@@ -6,7 +6,10 @@ export function identity(d){
  return d.chain.toLowerCase()+':'+(/^(ethereum|base|bsc|bnb chain|arbitrum|polygon|optimism|avalanche)$/i.test(d.chain)?d.contract.toLowerCase():d.contract);
 }
 const only=(x,keys)=>x&&typeof x==='object'&&!Array.isArray(x)&&Object.keys(x).every(k=>keys.includes(k));
-export function validateBroadcast(s,{allowV2=false}={}){
+export function validateBroadcast(s,{allowV2=false}={}){return validateSignal(s,allowV2,10*60000)}
+// Local projection only. Incoming wire messages still use validateBroadcast.
+export function validateLocalProjection(s){return validateSignal(s,false,15*60000)}
+function validateSignal(s,allowV2,publicationLimit){
  if(!only(s,['schema','mode','sequence','target_utc','published_at_utc','expires_at_utc','decisions','previous_blob_sha'])||!(s.schema==='r31.broadcast.v1'||(allowV2&&s.schema==='r32.broadcast.v2'))||s.mode!=='PAPER_ONLY'||!Number.isSafeInteger(s.sequence)||s.sequence<1||!canonical(s.target_utc)||s.target_utc.slice(14)!=='00:00.000Z'||!canonical(s.published_at_utc)||!canonical(s.expires_at_utc)||!Array.isArray(s.decisions)||s.decisions.length>(s.schema==='r32.broadcast.v2'?100000:500))throw Error('INVALID_BROADCAST');
  const t=Date.parse(s.target_utc),p=Date.parse(s.published_at_utc),e=Date.parse(s.expires_at_utc);
  if(p<t||p>t+publicationLimit||e<=p||e>t+15*60000)throw Error('INVALID_SIGNAL_WINDOW');
