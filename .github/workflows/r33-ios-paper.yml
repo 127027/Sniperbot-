@@ -1,0 +1,54 @@
+name: R33 iOS Paper simulator
+on:
+  push:
+    branches: [codex/r33-ios-paper]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  simulator:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test r31/policy.test.mjs r31/paper-engine.test.mjs r31/device-account.test.mjs r31/publisher.test.mjs r31/telemetry.test.mjs
+      - name: Generate shared engine and Xcode project
+        run: |
+          node r33/ios/tools/bundle-engine.mjs
+          node --check r33/ios/App/Resources/engine.js
+          python3 r33/ios/tools/icon.py
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          cd r33/ios
+          xcodegen generate
+      - name: Choose available iPhone simulator
+        id: sim
+        run: |
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; print(next(x["udid"] for k in sorted(d,reverse=True) for x in d[k] if "iPhone" in x["name"]))')
+          echo "device=$DEVICE" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$DEVICE" || true
+          xcrun simctl bootstatus "$DEVICE" -b
+      - name: Compile and run native tests
+        run: |
+          cd r33/ios
+          set -o pipefail
+          xcodebuild -project R33Paper.xcodeproj -scheme R33Paper -destination 'platform=iOS Simulator,id=${{ steps.sim.outputs.device }}' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO -parallel-testing-enabled NO test | tee /tmp/r33-xcode.log
+      - name: Launch native app and capture screen
+        run: |
+          APP=r33/ios/DerivedData/Build/Products/Debug-iphonesimulator/R33Paper.app
+          xcrun simctl install '${{ steps.sim.outputs.device }}' "$APP"
+          xcrun simctl launch '${{ steps.sim.outputs.device }}' com.r33.paperbot
+          sleep 4
+          xcrun simctl io '${{ steps.sim.outputs.device }}' screenshot /tmp/R33-iPhone.png
+          ditto -c -k --keepParent "$APP" /tmp/R33-iOS-simulator.zip
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: R33-iOS-simulator-NOT-device-installable
+          path: |
+            /tmp/r33-xcode.log
+            /tmp/R33-iPhone.png
+            /tmp/R33-iOS-simulator.zip
+          if-no-files-found: warn

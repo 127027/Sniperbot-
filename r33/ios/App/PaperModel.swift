@@ -5,7 +5,7 @@ import UIKit
 
 @MainActor final class PaperModel: ObservableObject {
     static let shared = PaperModel()
-    static let refreshID = "com.r33.paperbot.refresh"
+    nonisolated static let refreshID = "com.r33.paperbot.refresh"
     @Published private(set) var view: Object = [:]
     @Published private(set) var perf: Object = [:]
     @Published private(set) var status = "Noch nicht geprüft"
@@ -29,7 +29,7 @@ import UIKit
             engine = e; store = s
             if let a = try s.load() { account = a; try transact("view") }
             else { try transact("create") }
-        } catch { error = "Lokaler Speicher gesperrt: " + error.localizedDescription; engine = nil }
+        } catch { self.error = "Lokaler Speicher gesperrt: " + error.localizedDescription; engine = nil }
     }
     var ready: Bool { engine != nil && account != nil }
     private func transact(_ op: String, _ input: Object? = nil) throws {
@@ -37,7 +37,7 @@ import UIKit
         let r = try e.call(op, account: account, input: input)
         guard let a = r["account"] as? Object, let v = r["view"] as? Object else { throw PaperError.failure("ENGINE_RESPONSE") }
         // Single main-actor writer; publish only after atomic disk write succeeds.
-        if op != "view" { try s.save(a) }
+        if op != "view" && (r["status"] as? String != "ALREADY_PROCESSED") { try s.save(a) }
         account = a; view = v; perf = r["performance"] as? Object ?? [:]
         if let st = r["status"] as? String { status = st }
     }
