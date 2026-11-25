@@ -5,7 +5,7 @@ import {join,resolve,dirname} from 'node:path';
 import {homedir} from 'node:os';
 import {verifyStage,recoverOwnedLock} from './updater.mjs';
 const account=resolve(process.env.R31_ACCOUNT_DIR||join(homedir(),'.r31-paper-device'));let root=join(account,'updates');
-const original={root:resolve(dirname(fileURLToPath(import.meta.url)),'..'),version:42};
+const original={root:resolve(dirname(fileURLToPath(import.meta.url)),'..'),version:43};
 await mkdir(root,{recursive:true,mode:0o700});root=await realpath(root);const pointer=join(root,'active.json');
 let current=original,child=null,pending=null,stopping=false;
 try{const saved=JSON.parse(await readFile(pointer,'utf8'));if(typeof saved.root!=='string'||dirname(resolve(saved.root))!==root||!Number.isSafeInteger(saved.version)||saved.version<original.version)throw Error('INVALID_POINTER');await verifyStage(saved.root,saved.version);current=saved}catch(e){if(e.code!=='ENOENT')console.error('Update pointer ignored:',e.message)}

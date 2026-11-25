@@ -16,7 +16,7 @@ import javax.net.ssl.HttpsURLConnection;
 import org.json.*;
 public final class UpdateBridge {
  private final Activity a; private final AtomicBoolean busy=new AtomicBoolean(false);
- private volatile String state="R42 · Bereit";
+ private volatile String state="R43 · Bereit";
  UpdateBridge(Activity a){this.a=a;}
  @JavascriptInterface public String status(){return state;}
  private static final String BASE="https://raw.githubusercontent.com/127027/Sniperbot-/";
@@ -33,6 +33,7 @@ public final class UpdateBridge {
   JSONObject d=m.optJSONObject("android");if(d==null){state="Keine Android-Version freigegeben";return;}
   PackageManager pm=a.getPackageManager();int flags=Build.VERSION.SDK_INT>=28?PackageManager.GET_SIGNING_CERTIFICATES:PackageManager.GET_SIGNATURES;
   PackageInfo current=pm.getPackageInfo(a.getPackageName(),flags);long v=d.getLong("version_code");if(v<=version(current)){state="Android ist aktuell";return;}
+  String pin=d.optString("certificate_sha256","");if(!pin.matches("[a-f0-9]{64}")||signatures(current)==null||signatures(current).length!=1||!sha(signatures(current)[0].toByteArray()).equals(pin)){state="Update nicht kompatibel · installierter Signaturschlüssel weicht ab";return;}
   String commit=d.getString("commit"),path=d.getString("path"),hash=d.getString("sha256");int size=d.getInt("bytes");
   if(!commit.matches("[a-f0-9]{40}")||!path.matches("r40/artifacts/[A-Za-z0-9_-]+[.]apk")||!hash.matches("[a-f0-9]{64}")||size<1||size>32*1024*1024)throw new IOException("INVALID_APK_METADATA");
   state="Lädt und prüft APK …";byte[] bytes=get(BASE+commit+"/"+path,size);if(bytes.length!=size||!sha(bytes).equals(hash))throw new IOException("HASH_MISMATCH");

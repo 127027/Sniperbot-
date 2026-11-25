@@ -4,3 +4,5 @@ Android: same app package only, download fixed commit APK path, verify size SHA2
 Release intentionally not published yet; fixed manifest not created on main until approved test build and signing. Initial bootstrap required. No secrets committed. Tests cover manifest/path/hash/version; actual restart and physical Android installation still require integration check.
 
 R41: explicit NO_RELEASE_AVAILABLE manifest is published on main; no Android package approved, no signature bypass. UI displays clean paper epoch and correct release number. Existing R40 installation continues to read the reset ledger without reinstalling.
+
+R43: [persistent signing and release procedure](R43_SIGNING.md).

@@ -16,6 +16,7 @@ javac -encoding UTF-8 -source 8 -target 8 -classpath "$PLATFORM" -d "$OUT/classe
 "$BT/d8" --min-api 26 --lib "$PLATFORM" --output "$OUT/dex" $(find "$OUT/classes" -name '*.class')
 (cd "$OUT/dex" && zip -q "$OUT/base.apk" classes.dex)
 "$BT/zipalign" -f 4 "$OUT/base.apk" "$OUT/aligned.apk"
+if [ "${R43_RELEASE:-0}" = 1 ] && [ -z "${R40_SIGNING_KEYSTORE:-}" ]; then echo "Release signing key missing"; exit 1; fi
 if [ -n "${R40_SIGNING_KEYSTORE:-}" ]; then
   : "${R40_SIGNING_STORE_PASS:?missing store password}" "${R40_SIGNING_KEY_PASS:?missing key password}" "${R40_SIGNING_ALIAS:?missing alias}"
   SIGN="$R40_SIGNING_KEYSTORE"; STORE="$R40_SIGNING_STORE_PASS"; KEY="$R40_SIGNING_KEY_PASS"; ALIAS="$R40_SIGNING_ALIAS"
