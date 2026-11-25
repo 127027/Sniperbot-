@@ -50,7 +50,9 @@ export function applyBroadcast(account,{signal:s,blob_sha:sha,now}){
  for(const p of account.ledger.positions)if(!decisions.some(d=>identity(d)===identity(p)))decisions.push({coin:p.coin,chain:p.chain,contract:p.contract,action:'DATA_GAP',reason:'No current broadcast decision for this local position'});
  const r=settlePaperCycle({ledger:account.ledger,controls:account.controls,cycle:{target_utc:s.target_utc,control_revision:account.controls.revision,decisions},now});
  const events=[...r.events,...ignored],gap=old?Math.max(0,s.sequence-old.sequence-1):0;
- return {account:{...account,ledger:r.ledger,cursor:cursor(s,sha),last_summary:r.summary,cycles:[...account.cycles,{sequence:s.sequence,target_utc:s.target_utc,status:'PROCESSED',gap,events}]},status:'PROCESSED',events};
+ const flows=account.funding_events.reduce((n,e)=>n+(e.kind==='PAPER_DEPOSIT'?e.amount_cents:-e.amount_cents),money(account.ledger.initial_cash_eur));
+ const point={at_utc:now,sequence:s.sequence,pnl_eur:Number.isFinite(r.summary.net_liquidation_value_eur)?(money(r.summary.net_liquidation_value_eur)-flows)/100:null};
+ return {account:{...account,ledger:r.ledger,cursor:cursor(s,sha),last_summary:r.summary,performance_history:[...(account.performance_history??[]),point].slice(-8760),cycles:[...account.cycles,{sequence:s.sequence,target_utc:s.target_utc,status:'PROCESSED',gap,events}]},status:'PROCESSED',events};
 }
 export function accountView(a){
  const cap=capacity(a.controls,a.ledger),s=a.last_summary;
@@ -59,5 +61,5 @@ export function accountView(a){
  const open=cap.open_cost_cents;
  const net=unknown?null:(cap.cash_cents+marked)/100;
  const deposits=a.funding_events.reduce((n,e)=>n+(e.kind==='PAPER_DEPOSIT'?e.amount_cents:-e.amount_cents),money(a.ledger.initial_cash_eur));
- return {account_id:a.account_id,joined_at_utc:a.joined_at_utc,controls:a.controls,ledger:a.ledger,capacity:cap,cursor:a.cursor,last_cycle:a.cycles.at(-1)??null,summary:{cash_eur:a.ledger.cash_eur,open_cost_eur:open/100,net_liquidation_value_eur:net,realized_pnl_eur:a.ledger.realized_pnl_eur,unrealized_pnl_eur:unknown?null:(marked-open)/100,total_pnl_eur:net===null?null:(money(net)-deposits)/100,unknown_mark_count:unknown},funding_events:a.funding_events};
+ return {account_id:a.account_id,joined_at_utc:a.joined_at_utc,controls:a.controls,ledger:a.ledger,capacity:cap,cursor:a.cursor,last_cycle:a.cycles.at(-1)??null,summary:{cash_eur:a.ledger.cash_eur,open_cost_eur:open/100,net_liquidation_value_eur:net,realized_pnl_eur:a.ledger.realized_pnl_eur,unrealized_pnl_eur:unknown?null:(marked-open)/100,total_pnl_eur:net===null?null:(money(net)-deposits)/100,unknown_mark_count:unknown},funding_events:a.funding_events,performance_history:a.performance_history??[]};
 }
