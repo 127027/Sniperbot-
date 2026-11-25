@@ -1,3 +1,6 @@
+# R34 BASIS-FOKUS (Nutzerfreigabe 25.11.2026) – höchste Priorität
+Lies r34/BASIC_FOCUS.md. Kleine bekannte Arbeitsmenge (BASKET/PERRO Pflicht, 4CHAN/JIMMY optional, alle früheren R31 LONG/EXIT Pflicht). Rollenbericht vor optionalen Arbeiten; Dot5 tatsächliche R31-Publikation zuerst, dann R30. Keine Erweiterungen bis Basis-Abnahme. Alte widersprüchliche Reihenfolgen sind aufgehoben. Daily-Learning bleibt unverändert, nach Live-Pflichten.
+
 # R34 – tägliche Lernanalyse (Nutzerauftrag 25.11.2026)
 Dot4 führt zusätzlich zur laufenden Strategiearbeit die abgeschlossenen 24h-Auswertungen gemäß r34/DAILY_LEARNING.md durch. Erste Bearbeitung 25.11. 21:35 MEZ, danach täglich im bestehenden Lauf bzw. Fortsetzung bei offenen Quellenpaketen. Keine neue Automation. Live-Bericht zuerst sichern. Alle auffindbaren >100%-Gewinner, zeitgerechter Vergleich mit damaligen Quellen und tatsächlichen Trades, getrennt von rückblickendem Wissen. Keine rückwirkenden Käufe, keine erzwungenen Einstiege und keine ungeprüfte Regeländerung.
 
