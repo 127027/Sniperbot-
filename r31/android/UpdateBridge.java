@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.net.ssl.HttpsURLConnection;
 import org.json.*;
-final class UpdateBridge {
+public final class UpdateBridge {
  private final Activity a; private final AtomicBoolean busy=new AtomicBoolean(false);
  private volatile String state="R40 · Bereit";
  UpdateBridge(Activity a){this.a=a;}
