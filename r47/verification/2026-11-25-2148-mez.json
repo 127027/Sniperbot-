@@ -1,0 +1,72 @@
+{
+  "schema": "r47.verification.v1",
+  "mode": "PAPER_ONLY",
+  "as_of_user_reported_local": "2026-11-25T21:48:00+01:00",
+  "experiment_module_blob_sha": "bdd5dea9bea7931215adb8b180875e13f77bd624",
+  "local_git_hash_object_matches": true,
+  "node_version": "22.16.0",
+  "runtime_before_r47_seconds": [
+    40.946,
+    46.343,
+    41.867,
+    46.028,
+    60.786
+  ],
+  "r47_prompts_verified": 5,
+  "new_completed_r47_runs_observed": 0,
+  "tests": [
+    {
+      "target_mez": "21:00",
+      "case": "strict cutoff no eligible buy",
+      "buys": 0,
+      "cash_eur": 500
+    },
+    {
+      "target_mez": "21:00",
+      "case": "negative control future snapshots",
+      "blocked": 3
+    },
+    {
+      "target_mez": "21:10",
+      "case": "SuperELON unknown risk",
+      "blocked": 1,
+      "cash_eur": 500
+    },
+    {
+      "target_mez": "21:34",
+      "case": "stored retrospective snapshot and source-reported risk flags",
+      "buys": 3,
+      "cash_eur": 350,
+      "net_model_eur": 497
+    },
+    {
+      "target_mez": "22:00",
+      "case": "sensitivity only, same unrefreshed 21:34 data",
+      "buys": 3,
+      "cash_eur": 350,
+      "net_model_eur": 497,
+      "not_prediction": true
+    },
+    {
+      "target_mez": "22:20",
+      "case": "stale data negative control",
+      "blocked": 3
+    },
+    {
+      "case": "synthetic next-hour lifecycle",
+      "sells": 1,
+      "local_holds": 2
+    },
+    {
+      "case": "known hard risk, duplicate cycle, duplicate identity, initial-state integrity",
+      "passed": true
+    }
+  ],
+  "assertions_passed": true,
+  "limitations": [
+    "No new autonomous R47 run observed. R47 does not extend runtime or guarantee intra-hour repeated execution.",
+    "Retrospective source observations and risk flags were taken from stored fixture, not independently validated as contemporaneous or safe. No live or device trades.",
+    "Top-50 priority queue not implemented or authorized in this test. Registry and live pointers unchanged by this verification."
+  ],
+  "next_acceptance": "Dot5 22:05 MEZ for 22:00 target; first full R47 preparation cycle targets 23:00 MEZ."
+}
