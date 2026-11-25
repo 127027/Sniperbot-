@@ -9,7 +9,7 @@ if [ ! -x "$BT/aapt2" ]; then sdkmanager "build-tools;35.0.0"; fi
 OUT="$PWD/r31/android/out"
 mkdir -p "$OUT/assets" "$OUT/classes" "$OUT/dex"
 cp r31/android/index.html r31/android/app.js r31/android/mobile-runtime.mjs r31/android/mobile-feed.mjs r31/android/worker.html r31/android/worker.mjs "$OUT/assets/"
-cp r31/web/style.css r31/policy.mjs r31/paper-engine.mjs r31/broadcast.mjs "$OUT/assets/"
+cp r31/telemetry.mjs r31/performance.mjs r31/web/style.css r31/policy.mjs r31/paper-engine.mjs r31/broadcast.mjs "$OUT/assets/"
 sed "s/import {randomUUID} from 'node:crypto';/const randomUUID=()=>crypto.randomUUID();/" r31/device-account.mjs > "$OUT/assets/device-account.mjs"
 "$BT/aapt2" link --manifest r31/android/AndroidManifest.xml -I "$PLATFORM" -A "$OUT/assets" -o "$OUT/base.apk"
 javac -encoding UTF-8 -source 8 -target 8 -classpath "$PLATFORM" -d "$OUT/classes" r31/android/MainActivity.java r31/android/LocalStore.java r31/android/WebShell.java r31/android/PaperSyncService.java
