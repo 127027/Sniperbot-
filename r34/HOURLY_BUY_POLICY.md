@@ -1,3 +1,6 @@
+# R37 priority: Discovery-first and mandatory candidate handoff
+Read r34/DISCOVERY_HANDOFF.md first. It supersedes contradictory ordering, not risk/price rules.
+
 # R35 – stündlicher offener Memecoin-Scan und BUY als Zielposition
 Nutzerfreigabe 25.11.2026. Diese Regeln ersetzen ausschließlich widersprechende Basis-Fokus-Beschränkungen auf BASKET/PERRO und die automatische Umwandlung positiver Einstiegsthesen in HOLD in allen älteren Dokumenten. Kein neuer Dienst, keine neue API, fünf bestehende Dots, PAPER_ONLY. Keine Kapitalrücksetzung.
 Jede Stunde: gesamten erreichbaren Markt neu untersuchen, alle tatsächlich überzeugenden Kandidaten mit plausibler kurzfristiger +100%-Chance empfehlen (keine Gewinnzusage, kein Kaufzwang, keine künstliche Zahl von Kandidaten). Neu/alt, chainübergreifend, tatsächliche News, neue Pools, Volumen, Liquidität, Nachfrage und Risiken. Exakte Chain+Contract; Solana case-sensitive. Quellen, Zeit, Abdeckung und Lücken dokumentieren.
