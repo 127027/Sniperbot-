@@ -21,7 +21,19 @@ async function inspect(coin,contract,pool,url){
   const matches=[...raw.matchAll(/(?:["'](?:blockTime|timestamp|updatedAt|lastTradeAt|priceUsd|price_usd|tradeTime|lastUpdated|poolAddress|pairAddress|generatedAt)["']\s*[:=]|<time\b|datetime=["']|2026-11-25T\d{2}:\d{2}:\d{2})/gi)].slice(0,14);
   const field_hints=matches.map(m=>raw.slice(Math.max(0,m.index-24),Math.min(raw.length,m.index+140)).replace(/\s+/g,' ').replace(/[\u0000-\u001f]/g,''));
   const trade_hints=[...text.matchAll(/(?:\b\d{1,2}:\d{2}(?::\d{2})?\s*UTC\b|\b\d{1,2}:\d{2}:\d{2}\b)/g)].slice(0,5).map(m=>text.slice(Math.max(0,m.index-50),m.index+110));
-  return {field_hints,trade_hints,coin,url,http:r.status,type,size,exact_contract_present:html.includes(contract),exact_pool_present:html.includes(pool),timestamp_hints:samples,result:'HTML_REACHED_NOT_VERIFIED_QUOTE',started_at_utc:start};
+  // Inspect only contexts of the requested identities, not the global ticker.
+  const decoded=raw.replace(/\\+"/g,'"');
+  const target_hints=[];
+  for(const [name,needle] of [['contract',contract],['pool',pool]]){
+   let from=0,seen=0;
+   while(seen<20){
+    const index=decoded.indexOf(needle,from);if(index<0)break;
+    from=index+needle.length;seen++;
+    const context=decoded.slice(Math.max(0,index-220),Math.min(decoded.length,index+needle.length+380)).replace(/\s+/g,' ').replace(/[\u0000-\u001f]/g,'');
+    if(/price|time|trade|liquidity|pair|pool|volume/i.test(context))target_hints.push({name,context});
+   }
+  }
+  return {target_hints:target_hints.slice(0,12),field_hints,trade_hints,coin,url,http:r.status,type,size,exact_contract_present:html.includes(contract),exact_pool_present:html.includes(pool),timestamp_hints:samples,result:'HTML_REACHED_NOT_VERIFIED_QUOTE',started_at_utc:start};
  }catch(e){return {coin,url,result:'FETCH_FAILED',error:e.cause?.code??e.name,started_at_utc:start}}
 }
 const outcomes=await Promise.all(cases.flatMap(([coin,contract,pool])=>[
