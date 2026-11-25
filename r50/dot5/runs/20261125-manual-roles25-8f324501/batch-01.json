@@ -1,0 +1,60 @@
+{
+  "mode": "PAPER_ONLY",
+  "origin": "MANUAL_CHAT_FUNCTION_TEST_NOT_AUTONOMOUS",
+  "run_id": "20261125-manual-roles25-8f324501",
+  "batch": 1,
+  "market_date": "2026-11-25",
+  "observed_at_utc": null,
+  "observation_note": "Source page times are not swap times. Detail pages without exact quote time marked null. No live execution.",
+  "role": 5,
+  "work": [
+    {
+      "finding": "Manual Dot1 summary inspected; no autonomous R50 peer batches in initial tree per previous read.",
+      "dot1_summary": {
+        "schema": "r50.test.v1",
+        "mode": "PAPER_ONLY",
+        "execution_kind": "MANUAL_INLINE_TEST_NOT_AUTONOMOUS",
+        "batch1_blob_sha": "490629462ea590d03d813c193713867f89c1a346",
+        "criteria": {
+          "two_sequential_research_batches": true,
+          "independent_autonomous_run": false,
+          "continuous_runtime_verified": false
+        },
+        "distinct_exact_identities": 5,
+        "chains": [
+          "solana",
+          "bsc",
+          "base"
+        ],
+        "note": "Second batch readback and commit verified externally by coordinator; no ledger/pointer writes.",
+        "next_queue": [
+          "Independent liquidity and holder validation for five exact identities",
+          "Ethereum and Robinhood new-pool discovery",
+          "Direct social/news catalyst verification"
+        ]
+      },
+      "source": "r50/dot1/runs/20261125-inline-eeb82174/test-summary.json",
+      "sha": "1ec18b441c28f7fd1f1f1ba6aa538d1e2d91f80c"
+    },
+    {
+      "finding": "Existing operational state baseline; do not modify",
+      "regular_target_utc": "2026-11-25T21:00:00Z",
+      "regular_cash": 500,
+      "regular_pointer_sha": "e33617f4cc8257fa140564b917b4815e6c6d7cf9",
+      "broadcast_sequence": 8,
+      "broadcast_pointer_sha": "5a89cf2cd9ca2b16c7430441571261d72d903db9"
+    },
+    {
+      "finding": "Source snapshot counts disagree by time; daily page 16:31 UTC vs ranking 22:11 UTC; do not conflate global coverage with Solana rankings.",
+      "sources": [
+        "https://sasapad.fun/day/2026-11-25/",
+        "https://www.sasapad.fun/top/new-solana-meme-coins/"
+      ]
+    }
+  ],
+  "next_queue": [
+    "Read peers after batch-01 saved",
+    "Independently compare additional sources",
+    "Verify production pointers unchanged"
+  ]
+}
