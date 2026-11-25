@@ -1,14 +1,14 @@
 name: R31 Paper control checks
 on:
   push:
-    branches: [codex/r31-control-center-paper]
+    branches: [codex/r31-control-center-paper, codex/r40-device-updater]
 permissions:
   contents: read
 jobs:
   tests:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
