@@ -1,5 +1,5 @@
 import {createHash} from 'node:crypto';
-import {mkdir,writeFile,readFile,rename,rm,realpath} from 'node:fs/promises';
+import {mkdir,writeFile,readFile,rename,rm,realpath,unlink} from 'node:fs/promises';
 import {join,resolve,relative,isAbsolute} from 'node:path';
 export const RELEASE_URL='https://raw.githubusercontent.com/127027/Sniperbot-/refs/heads/main/r40/releases.json';
 export const REQUIRED=['r31/device-server.mjs','r31/updater.mjs','r31/account-store.mjs','r31/device-account.mjs','r31/paper-engine.mjs','r31/policy.mjs','r31/broadcast.mjs','r31/broadcast-feed.mjs','r31/github.mjs','r31/telemetry.mjs','r31/performance.mjs','r31/device-web/index.html','r31/device-web/app.js','r31/web/style.css','r31/version.json'];
@@ -15,3 +15,6 @@ export async function stageRelease({manifest,current,root,fetcher=fetch}){const 
  await writeFile(join(tmp,'verified.json'),JSON.stringify(m),{flag:'wx',mode:0o600});await rename(tmp,dest);return {root:dest,version:m.version}
  }catch(e){await rm(tmp,{recursive:true,force:true});throw e}}
 export async function verifyStage(root,expected){const actual=await realpath(root);if(actual!==resolve(root))throw Error('UPDATE_PATH_SYMLINK');const m=validateRelease(JSON.parse(await readFile(join(root,'verified.json'),'utf8')));if(m.version!==expected)throw Error('UPDATE_VERSION_MISMATCH');for(const f of m.desktop.files){const p=join(root,f.path);if(await realpath(p)!==resolve(p))throw Error('UPDATE_PATH_SYMLINK');const bytes=await readFile(p);if(bytes.length!==f.bytes||digest(bytes)!==f.sha256)throw Error('UPDATE_HASH_MISMATCH')}return m}
+
+// Only invoked after the supervised child has exited; never remove another writer's lock.
+export async function recoverOwnedLock(account,pid){if(!Number.isSafeInteger(pid)||pid<1)throw Error('INVALID_DEAD_PID');const path=join(account,'writer.lock');let lock;try{lock=JSON.parse(await readFile(path,'utf8'))}catch(e){if(e.code==='ENOENT')return;throw e}if(lock.pid!==pid)throw Error('ACCOUNT_LOCK_NOT_OWNED');try{process.kill(pid,0);throw Error('ACCOUNT_WRITER_STILL_ALIVE')}catch(e){if(e.code!=='ESRCH')throw e}await unlink(path)}
