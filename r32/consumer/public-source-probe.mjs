@@ -16,11 +16,18 @@ async function inspect(coin,contract,pool,url){
   // values describe the same market observation.
   const text=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,' ').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,' ').replace(/<[^>]*>/g,' ').replace(/[\u2066-\u2069\u200e\u200f]/g,'').replace(/\s+/g,' ');
   const samples=[...text.matchAll(/(?:As of|Updated)\s+[^<>]{0,120}?UTC/gi)].slice(0,3).map(x=>x[0]);
-  return {coin,url,http:r.status,type,size,exact_contract_present:html.includes(contract),exact_pool_present:html.includes(pool),timestamp_hints:samples,result:'HTML_REACHED_NOT_VERIFIED_QUOTE',started_at_utc:start};
+  // Bounded diagnostic contexts, not prices approved for settlement.
+  const raw=html.replace(/&quot;/g,'"').replace(/&#34;/g,'"').replace(/&amp;/g,'&');
+  const matches=[...raw.matchAll(/(?:["'](?:blockTime|timestamp|updatedAt|lastTradeAt|priceUsd|price_usd|tradeTime|lastUpdated|poolAddress|pairAddress|generatedAt)["']\s*[:=]|<time\b|datetime=["']|2026-11-25T\d{2}:\d{2}:\d{2})/gi)].slice(0,14);
+  const field_hints=matches.map(m=>raw.slice(Math.max(0,m.index-24),Math.min(raw.length,m.index+140)).replace(/\s+/g,' ').replace(/[\u0000-\u001f]/g,''));
+  const trade_hints=[...text.matchAll(/(?:\b\d{1,2}:\d{2}(?::\d{2})?\s*UTC\b|\b\d{1,2}:\d{2}:\d{2}\b)/g)].slice(0,5).map(m=>text.slice(Math.max(0,m.index-50),m.index+110));
+  return {field_hints,trade_hints,coin,url,http:r.status,type,size,exact_contract_present:html.includes(contract),exact_pool_present:html.includes(pool),timestamp_hints:samples,result:'HTML_REACHED_NOT_VERIFIED_QUOTE',started_at_utc:start};
  }catch(e){return {coin,url,result:'FETCH_FAILED',error:e.cause?.code??e.name,started_at_utc:start}}
 }
 const outcomes=await Promise.all(cases.flatMap(([coin,contract,pool])=>[
  inspect(coin,contract,pool,'https://dextrading.com/tokens/solana/'+contract),
- inspect(coin,contract,pool,'https://sasapad.fun/x/solana/'+contract+'/')
+ inspect(coin,contract,pool,'https://sasapad.fun/x/solana/'+contract+'/'),
+ inspect(coin,contract,pool,'https://www.dexalerts.io/token/solana/'+contract),
+ ...(coin==='PERRO'?[inspect(coin,contract,pool,'https://pumpscan.io/token/'+contract)]:[])
 ]));
 console.log(JSON.stringify({mode:'DIAGNOSTIC_ONLY',outcomes},null,2));
