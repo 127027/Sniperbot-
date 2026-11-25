@@ -1,4 +1,4 @@
-name: R36 hourly paper fallback
+name: R46 hourly paper fallback
 on:
   schedule:
     - cron: '7 * * * *'
@@ -19,9 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 52240929f684d40b5bb56e6df63513f15fb429b0
+          ref: 06f145c912524c026080f8f4dc4b899939f1cf7c
           persist-credentials: false
-      - run: node --test r31/hourly-fallback.test.mjs
+      - run: node --test r31/hourly-fallback.test.mjs r31/r46-strategy.test.mjs
   fallback:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 52240929f684d40b5bb56e6df63513f15fb429b0
+          ref: 06f145c912524c026080f8f4dc4b899939f1cf7c
           persist-credentials: false
       - name: Publish only a missing PAPER_ONLY data-gap closing inside actual :07–:10 window
         env:
