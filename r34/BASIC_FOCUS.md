@@ -1,3 +1,6 @@
+# Kursversorgung: neuer tatsächlich getesteter öffentlicher Abrufweg
+Lies r34/BASIC_QUOTE_SOURCE.md unmittelbar vor Marktprüfung. Suche sasa Solana gainers, öffne Liste über Suchref, folge exaktem Contract-Link; prüfe Snapshotzeit und Identität. Kein alter Preis als aktuell, keine neue API. Alle bisherigen Basisregeln unverändert.
+
 # R34 BASIS-FOKUS – verbindlich ab 25.11.2026
 Nutzer: erst die vorhandene kleine Signalkette zuverlässig machen. KEINE neue Discovery-Ausweitung, Katalogmigration, App-/Protokolländerung, Risikoregeländerung oder neue Lernaufgabe. Bestehende tägliche 24h-Lernanalyse bleibt dokumentiert; reguläre Signalpflicht hat Vorrang.
 ## Konkrete Fehler
