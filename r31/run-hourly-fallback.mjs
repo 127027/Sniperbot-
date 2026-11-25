@@ -19,7 +19,7 @@ async function run(){try{guard()}catch{console.log('Skipped: outside actual :07â
  const reports=(await Promise.all([1,2,3,4].map(async role=>{try{const x=await file(a.sha,stem+'dot-'+role+'.json');if(Date.parse(x.data.target_utc)!==t0||x.data.mode!=='PAPER_ONLY'||x.data.role!==role&&x.data.dot!==role)return null;return {...x,role}}catch(e){if(e.status===404)return null;throw e}}))).filter(Boolean);
  const result=fallbackPlan({previous:{signal:ps.data,blob_sha:ps.sha},universe:u.data,priorFinal:pf.data,reports,target,published:new Date().toISOString(),head:a.sha,priorPointer:fp.data});
  const c=await atomic(R31,b,result.plan.files,'R36 fallback '+target);console.log('R31 verified',c,result.plan.pointer.sequence);
- const path=stem+'final.json';const bytes=pack(result.final),sha=blobSha(Buffer.from(bytes));const pointer={...fp.data,target_utc:result.final.target_utc,final_path:path,final_blob_sha:sha,summary:result.final.summary};
+ const path=stem+'final.json';const bytes=pack(result.final),sha=blobSha(Buffer.from(bytes));const pointer={...fp.data,administrative_reset:false,target_utc:result.final.target_utc,final_path:path,final_blob_sha:sha,summary:result.final.summary};
  try{const latest=await head(R30);const p=await file(latest.sha,'latest-final.json');if(p.sha!==fp.sha)throw Error('R30_FINAL_CHANGED');try{await file(latest.sha,path);throw Error('FINAL_EXISTS')}catch(e){if(e.status!==404)throw e}const c2=await atomic(R30,latest,[{path,content:bytes},{path:'latest-final.json',content:pack(pointer)}],'R36 fallback final '+target);console.log('R30 verified',c2)}catch(e){console.error('R31 completed; R30 independent failure',e.message);process.exitCode=1}
 }
 await run();
