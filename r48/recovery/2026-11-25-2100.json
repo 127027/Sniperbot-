@@ -1,0 +1,95 @@
+{
+  "schema": "r48.acceptance.v1",
+  "mode": "PAPER_ONLY",
+  "target_utc": "2026-11-25T21:00:00Z",
+  "autonomous_close": "FAIL",
+  "incident": "Dot5 terminated after first successful read in 11.017s; internal cause unknown, no demonstrated GitHub error.",
+  "manual_recovery": "PASS",
+  "regular_signal": {
+    "schema": "r31.broadcast.pointer.v1",
+    "status": "PUBLISHED",
+    "sequence": 8,
+    "path": "r31/broadcast/signals/0000000008.json",
+    "blob_sha": "84be36eca36f5cb340d89b80c65fb67e2db931d1",
+    "source": "manual inline recovery",
+    "executed_orders": 0
+  },
+  "regular_final": {
+    "path": "reports/2026-11-25/21/final.json",
+    "blob_sha": "f7a50cfef7c6eed6835c5d16386f60b2ecf98f97",
+    "summary": {
+      "cash_eur": 500,
+      "open_cost_eur": 0,
+      "realized_pnl_eur": 0,
+      "unrealized_pnl_eur": 0,
+      "net_liquidation_value_eur": 500,
+      "unknown_mark_count": 0,
+      "initial_cash_eur": 500,
+      "fixed_buy_eur": 50,
+      "max_open_cost_eur": 500,
+      "scan_number": 2,
+      "proposed_new_spend_eur": 0,
+      "booked_new_spend_eur": 0,
+      "total_pnl_eur": 0,
+      "total_pnl_pct": 0
+    },
+    "coverage": {
+      "identities": 59,
+      "buy": 2,
+      "sell": 0,
+      "no_action": 57,
+      "provisional": 13,
+      "not_assessed": 46,
+      "executable": 0
+    }
+  },
+  "experiment": {
+    "schema": "r47.experiment.pointer.v1",
+    "mode": "PAPER_EXPERIMENT_ONLY",
+    "path": "r47/experiment/2026-11-25/21.json",
+    "blob_sha": "89f6b20909bd7d15d88d2e24594587e124eb4999",
+    "target_utc": "2026-11-25T21:08:41.976Z",
+    "ledger": {
+      "mode": "PAPER_EXPERIMENT_ONLY",
+      "cash_cents": 45000,
+      "positions": [
+        {
+          "key": "solana:9QT8K685Hrae4k11dhGXirdtpfAaimExtyfwt8cPpump",
+          "coin": "AiDiglet",
+          "chain": "solana",
+          "contract": "9QT8K685Hrae4k11dhGXirdtpfAaimExtyfwt8cPpump",
+          "stake_cents": 5000,
+          "notional_cents": 4950,
+          "entry_price_usd": 0.000281,
+          "source_url": "https://sasapad.fun/x/solana/9QT8K685Hrae4k11dhGXirdtpfAaimExtyfwt8cPpump/",
+          "source_observed_at_utc": "2026-11-25T21:07:00Z",
+          "entered_at": "2026-11-25T21:08:41.976Z",
+          "mark_cents": 4900
+        }
+      ],
+      "trades": [
+        {
+          "coin": "AiDiglet",
+          "action": "BUY",
+          "status": "EXPERIMENT_BOOKED",
+          "stake_cents": 5000,
+          "price_usd": 0.000281,
+          "source_url": "https://sasapad.fun/x/solana/9QT8K685Hrae4k11dhGXirdtpfAaimExtyfwt8cPpump/",
+          "source_observed_at_utc": "2026-11-25T21:07:00Z"
+        }
+      ],
+      "last_target": "2026-11-25T21:08:41.976Z"
+    },
+    "source": "manual inline recovery, separate indicative portfolio",
+    "booked_buy": 1,
+    "booked_sell": 0
+  },
+  "remaining": [
+    "Autonomous execution not proven; prompt shortened, actual next scheduled run must be checked.",
+    "46 identities not individually assessed, no proven 60-minute run.",
+    "Regular fresh EUR quote missing; no phone trade verified.",
+    "GitHub scheduled fallback run status unavailable through current connector; not proven active."
+  ],
+  "learning_note": "At 21:07 UTC new ranking AiDiglet 0.000281 USD, LENDR 0.000567 USD vs earlier 0.000626. Re-evaluate candidates rather than force historical BUY; market snapshot is not swap quote.",
+  "recorded_at_utc": "2026-11-25T21:09:01.732Z"
+}
