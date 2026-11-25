@@ -30,3 +30,38 @@ test('expired publication and missing position data cannot manufacture a sell',a
  now=at(8,1);a.accept({signal:p.signal,blob_sha:p.pointer.blob_sha});p=plan(p,9,[d('A','SELL',9,2)]);now=at(9,16);assert.equal(a.accept({signal:p.signal,blob_sha:p.pointer.blob_sha}).feed.state,'SKIPPED_OLD_OR_EXPIRED');assert.equal(a.view().ledger.positions.length,1);assert.equal(a.view().summary.net_liquidation_value_eur,null);
  p=plan(p,10,[d('A','SELL',10,2)]);now=at(10,1);a.accept({signal:p.signal,blob_sha:p.pointer.blob_sha});assert.equal(a.view().ledger.positions.length,0);assert.equal(a.view().ledger.cash_eur,98.01);
 });
+
+
+test('R35 BUY BUY HOLD BUY SELL across two devices: immutable global BUY and local HOLD only',async()=>{
+ let now=at(7),current=null;
+ const feed=mobileFeed({fetcher:async(url,opts)=>{
+  assert.equal(opts.method,'GET');
+  const path='r31/broadcast/'+url.split('/r31/broadcast/')[1];
+  const file=current.files.find(f=>f.path===path);assert.ok(file);
+  const bytes=Buffer.from(file.content);return {ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)};
+ }});
+ const open=()=>{const a=mobileRuntime({storage:storage(),feed,now:()=>now});a.fund({id:'deposit',kind:'PAPER_DEPOSIT',amount_cents:50000});a.controls({expected_revision:1,max_invest_cents:50000,stake_cents:5000,allow_new_buys:true});return a};
+ const first=open();let second;
+ const rows=[];
+ for(const [hour,action,price] of [[8,'BUY',1],[9,'BUY',1.2],[10,'HOLD',1.3],[11,'BUY',1.5],[12,'SELL',2],[13,'BUY',1]]){
+  if(hour===10){now=at(9,30);second=open();}
+  current=plan(current,hour,[d('A',action,hour,price)]);
+  const before=JSON.stringify(current.signal),sha=current.pointer.blob_sha;
+  now=at(hour,1);
+  await first.poll();if(second)await second.poll();
+  assert.equal(first.view().feed.state,'PROCESSED');
+  if(second)assert.equal(second.view().feed.state,'PROCESSED');
+  assert.equal(JSON.stringify(current.signal),before);
+  assert.equal(current.signal.decisions[0].action,action);
+  assert.equal(blobSha(Buffer.from(current.files.find(f=>f.path===current.pointer.path).content)),sha);
+  const a=first.view().ledger,b=second?.view().ledger;
+  if(hour<12){assert.equal(a.cash_eur,450);assert.equal(a.positions.length,1);assert.equal(a.trades.length,1)}
+  if(hour===10){assert.equal(b.cash_eur,500);assert.equal(b.positions.length,0);assert.equal(b.trades.length,0)}
+  if(hour===11){assert.equal(b.cash_eur,450);assert.equal(b.positions.length,1);assert.equal(b.trades.length,1)}
+  if(hour===12){assert.equal(a.positions.length,0);assert.equal(b.positions.length,0);assert.equal(a.trades.length,2);assert.equal(b.trades.length,2);assert.equal(a.cash_eur,548.01);assert.equal(b.cash_eur,515.34)}
+  if(hour===13){assert.equal(a.positions.length,1);assert.equal(b.positions.length,1);assert.equal(a.trades.filter(t=>t.action==='BUY').length,2);assert.equal(b.trades.filter(t=>t.action==='BUY').length,2)}
+  rows.push({hour,global:action,first_cash:a.cash_eur,first_positions:a.positions.length,second_cash:b?.cash_eur??null,second_positions:b?.positions.length??null});
+  await first.poll();assert.equal(first.view().feed.state,'ALREADY_PROCESSED');assert.equal(first.view().ledger.trades.length,a.trades.length);
+ }
+ console.log('R35 MIXED CYCLE '+JSON.stringify(rows));
+});
