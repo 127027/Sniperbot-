@@ -1,3 +1,8 @@
+# R34 – Lebenszyklus und Langzeitgedächtnis
+Verbindlicher Rechercheablauf im R30-Branch r34/RUNBOOK.md (auch oben in R30_RUNBOOK.md). Kompakter Coin-Index r34/index.json dient Wiedererkennung und Rotationsrecherche, nicht zur Ausführung; Dot2 einziger Index-Schreiber. Historische Belege bleiben in reports/ und initialem r34/catalog.json. Pflichtprüfung aller früheren R31 BUY/SELL-Identitäten und offenen R30-Modellpositionen je Stunde; zusätzlich neue und reaktivierte Coin-Kandidaten. Keine historischen Preise verwenden, keine Gerätebestände lesen, keine automatisch erzwungenen Käufe. BUY wiederholen bei frischer gültiger Einstiegsthese, HOLD_ONLY nur halten, SELL nur mit frischer Quote, wiederholter Exit für offline Geräte. Bestehender v1-Feed und lokales Kapital unverändert. Keine Katalog-/API-/App-Abhängigkeit für Veröffentlichung. Dot5 :05 nach Zielstunde. V1-Kapazitätsgrenze nicht still umgehen. R34-Audit und offene Grenzen: R30-Branch r34/AUDIT.md.
+
+---
+
 # R32 – Kurskontinuität und erneuter Einstieg (25.11.2026, Nutzerfreigabe)
 Vorrang für Recherche; unveränderte R31-v1-Handelsregeln und R30-Ledger. Kein neuer Dienst, keine API-Schlüssel, kein App-Update.
 1. Pro Stunde zuerst alle offenen R30-Positionen und alle bisherigen R31 LONG/EXIT-Identitäten anhand Chain+vollständigem Contract erfassen, dann neue Chancen. Jeden relevanten früheren Kauf (auch R30-only) ausdrücklich auf Neueinstieg, reines Halten oder Exit prüfen; kein automatisches HOLD, kein historisches BUY wiederholen ohne aktuelle These. R30-Referenzbudget nie R31 beschränken.
