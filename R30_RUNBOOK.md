@@ -1,3 +1,6 @@
+# R35 – aktuelle Nutzerfreigabe (Vorrang)
+Verbindlich: [stündlicher offener Markt-Scan und BUY-Zielposition](r34/HOURLY_BUY_POLICY.md). Frühere Beschränkungen auf BASKET/PERRO bzw. keine neuen Coins sind aufgehoben. Wiederholtes BUY bei weiterhin vertretbarem Neueinstieg; Bestand hält lokal ohne Zusatzkauf. HOLD nur bei explizitem Bestand-only. Alle Sicherheits-, Zeit-, Ledger- und Protokollregeln bleiben.
+
 # R34 BASIS-FOKUS (Nutzerfreigabe 25.11.2026) – höchste Priorität
 Lies r34/BASIC_FOCUS.md. Kleine bekannte Arbeitsmenge (BASKET/PERRO Pflicht, 4CHAN/JIMMY optional, alle früheren R31 LONG/EXIT Pflicht). Rollenbericht vor optionalen Arbeiten; Dot5 tatsächliche R31-Publikation zuerst, dann R30. Keine Erweiterungen bis Basis-Abnahme. Alte widersprüchliche Reihenfolgen sind aufgehoben. Daily-Learning bleibt unverändert, nach Live-Pflichten.
 

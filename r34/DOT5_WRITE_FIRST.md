@@ -1,3 +1,6 @@
+# R35 – aktuelle Nutzerfreigabe (Vorrang)
+Verbindlich: [stündlicher offener Markt-Scan und BUY-Zielposition](HOURLY_BUY_POLICY.md). Frühere Beschränkungen auf BASKET/PERRO bzw. keine neuen Coins sind aufgehoben. Wiederholtes BUY bei weiterhin vertretbarem Neueinstieg; Bestand hält lokal ohne Zusatzkauf. HOLD nur bei explizitem Bestand-only. Alle Sicherheits-, Zeit-, Ledger- und Protokollregeln bleiben.
+
 # R34 Dot5 write first — 25.11.2026, vor 18 MEZ
 17 MEZ Run 094b60b5-df84-832c-bb05-d22c2fba9942 endete nach ca. 8s nach einem erfolgreichen fetch_file. Kein Schreibversuch. 16 MEZ dagegen vollständiges Signal 5 und R30-Final; keine nachgewiesene Netzwerk-/Schreibursache des Abbruchs. Aktive Promptanweisung hat Vorrang. 
 1. Repo 127027/Sniperbot-. R31 branch codex/r31-control-center-paper. fetch(url:"https://api.github.com/repos/127027/Sniperbot-/commits?sha=codex%2Fr31-control-center-paper&per_page=1"). JSON.parse(result.content)[0] => HEAD.sha, HEAD.commit.tree.sha. fetch_file(repository_full_name,ref:HEAD.sha,path) r31/broadcast/latest.json, referenzierter Signalpfad, r31/broadcast/strategy-universe.json. SHA/sequence abgleichen; bei neuer Zielstunde und innerhalb +10min publizieren. Vorhandener Zielslot nicht überschreiben. 

@@ -1,3 +1,6 @@
+# R35 – aktuelle Nutzerfreigabe (Vorrang)
+Verbindlich: [stündlicher offener Markt-Scan und BUY-Zielposition](HOURLY_BUY_POLICY.md). Frühere Beschränkungen auf BASKET/PERRO bzw. keine neuen Coins sind aufgehoben. Wiederholtes BUY bei weiterhin vertretbarem Neueinstieg; Bestand hält lokal ohne Zusatzkauf. HOLD nur bei explizitem Bestand-only. Alle Sicherheits-, Zeit-, Ledger- und Protokollregeln bleiben.
+
 # Aktuelle Priorität: Strategie getrennt vom Ausführungskurs
 Alle Rollen lesen r34/STRATEGY_INTENT.md. Strategische BUY/HOLD/SELL/WATCH/NO_TRADE/DATA_GAP-Empfehlung mit Quellenbegründung und separatem Kursstatus in ihren vorhandenen Berichten (reason) dokumentieren. Unbestätigte Kurszeit allein darf eine begründete Empfehlung nicht auslöschen; sie blockiert weiterhin die Buchung im bestehenden v1-Feed. Die vorhandenen Berichte zuerst speichern, keine zusätzliche Pflichtdatei. Dot5 publiziert den kompatiblen Feed wie bisher fristgerecht, auch ohne Buchung. Kein Kaufzwang, keine falsche Aktualität. Vor einer Erweiterung stabile Abschlüsse und funktionsfähige Preisversorgung nachweisen. Danach schrittweise Discovery und Katalogpflege, nicht pauschal zehn neue Käufe je Stunde. Keine neue Automation, Dot4-Tagesanalyse unverändert.
 
