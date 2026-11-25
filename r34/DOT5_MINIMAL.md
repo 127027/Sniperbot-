@@ -1,3 +1,6 @@
+# Vorrang: Strategie und Ausführung getrennt
+Lies r34/STRATEGY_INTENT.md. Erhalte strategische Entscheidung in reason unabhängig von exakter Quote, keine Schemaänderung. Abschluss bleibt erste Pflicht.
+
 # Dot 5 – kurze verbindliche Abschlussprozedur
 Ursache 14 MEZ: Run 43949406-996c-8333-a889-1f9036b76954, 13:04:10–13:04:35 UTC, Lesen erfolgreich; kein Schreibversuch. Sasa nur gefunden, nicht geöffnet/abgeschlossen. Alle vier Rollenberichte existieren. Kein konkreter GitHub-Schreibfehler und keine gesicherte Ursache der vorzeitigen Modellbeendigung. Alter Prompt enthält nachgestellte alte Reihenfolgen und unnötige Discovery-/Index-Aufgaben; diese werden vollständig entfernt, nicht erneut ergänzt. 
 ## Ablauf
