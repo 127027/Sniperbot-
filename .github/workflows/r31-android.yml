@@ -16,7 +16,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - run: node --test r31/android/mobile.test.mjs
+      - run: node --test r31/android/mobile.test.mjs r31/android/end-to-end.test.mjs
       - run: bash r31/android/build.sh
       - uses: actions/upload-artifact@v4
         with:

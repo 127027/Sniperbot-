@@ -1,0 +1,45 @@
+name: R31 Android device smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/r31-control-center-paper]
+    paths:
+      - 'r31/android/**'
+      - '.github/workflows/r31-android-device.yml'
+permissions:
+  contents: read
+jobs:
+  emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: bash r31/android/build.sh
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: bash r31/android/device-smoke.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-device-smoke-logs
+          path: |
+            /tmp/r31-ui.xml
+            /tmp/r31-restart.xml
+            /tmp/r31-services.txt
+            /tmp/r31-services-locked.txt
+          if-no-files-found: ignore
