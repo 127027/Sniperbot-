@@ -1,3 +1,5 @@
+# R39 lifecycle: r39/TRADE_LIFECYCLE.md governs permanent SELL archive and re-entry.
+
 # R38 – stepwise Marktgedächtnis (Vorrang vor widersprüchlichen älteren Discovery-Regeln)
 Nutzerziel: Jede Stunde wie eine neue GPT-Marktanalyse: Welche Memecoins würde ich JETZT kaufen, halten oder verkaufen? Keine Zwangskäufe. Markt wächst schrittweise, nicht alle Coins pro Stunde. PAPER_ONLY, keine zusätzlichen Markt-APIs/Keys. R35 BUY bleibt global wiederholbar, Besitzprüfung nur Endgerät. R37 Preis- und Publikationsschutz unverändert.
 1. Dot1/2 zuerst aktuelle echte New/Trending/Gainer-Tabellen für verfügbare Chains nach POOL_SOURCE_MAP.md. Neue Kandidaten und alte wiederbelebte Coins erfassen; bei veralteter Quelle Alternative nutzen. Nicht stundenlang bekannte Coins erneut recherchieren. Kein Vollständigkeitsversprechen.

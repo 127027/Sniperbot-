@@ -1,3 +1,5 @@
+# R39 priority: read r39/TRADE_LIFECYCLE.md. Durable EXIT and R38 incremental discovery; no safety override.
+
 # R38 stepwise market registry: read r38/STEPWISE_MARKET.md and r38/pool-registry.json. Discovery-first, incremental expansion; prior safeguards unchanged.
 
 # R37 Discovery-first, 25.11.2026

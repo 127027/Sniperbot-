@@ -1,3 +1,5 @@
+# R39 mandatory before atomic publish: r39/TRADE_LIFECYCLE.md. Prior EXIT fresh full SELL or DATA_GAP [STRATEGY SELL] [EXECUTION PRICE_PENDING]; only new executable BUY changes to LONG; never stale prices.
+
 # R35 – aktuelle Nutzerfreigabe (Vorrang)
 Verbindlich: [stündlicher offener Markt-Scan und BUY-Zielposition](HOURLY_BUY_POLICY.md). Frühere Beschränkungen auf BASKET/PERRO bzw. keine neuen Coins sind aufgehoben. Wiederholtes BUY bei weiterhin vertretbarem Neueinstieg; Bestand hält lokal ohne Zusatzkauf. HOLD nur bei explizitem Bestand-only. Alle Sicherheits-, Zeit-, Ledger- und Protokollregeln bleiben.
 
