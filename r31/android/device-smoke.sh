@@ -14,7 +14,17 @@ for i in $(seq 1 20); do
   sleep 3
 done
 grep -q 'Lokales Konto ' /tmp/r31-ui.xml
-grep -q 'Hintergrund starten' /tmp/r31-ui.xml || true
+grep -q 'Echtgeldhandel' /tmp/r31-ui.xml
+grep -q 'KI-Dots' /tmp/r31-ui.xml
+cp /tmp/r31-ui.xml /tmp/r31-initial.xml
+# Compact phones may require a short scroll to the service control.
+for i in $(seq 1 4); do
+ if grep -q 'Hintergrund starten' /tmp/r31-ui.xml; then break; fi
+ adb shell input swipe 200 750 200 400 350
+ sleep 1
+ adb shell uiautomator dump /sdcard/r31-ui.xml >/dev/null
+ adb pull /sdcard/r31-ui.xml /tmp/r31-ui.xml >/dev/null
+done
 # Verify actual private account created by APK (test-only package inspection via instrumentation not required).
 adb shell pidof "$PKG" >/dev/null
 # Android service startup from visible activity; production package is not debuggable and service is not exported.
@@ -49,7 +59,7 @@ adb pull /sdcard/r31-restart.xml /tmp/r31-restart.xml
 grep -q 'Lokales Konto ' /tmp/r31-restart.xml
 python3 - <<'PY'
 import re
-a=open('/tmp/r31-ui.xml').read();b=open('/tmp/r31-restart.xml').read()
+a=open('/tmp/r31-initial.xml').read();b=open('/tmp/r31-restart.xml').read()
 p=r'Lokales Konto ([a-f0-9]{8})'
 assert re.search(p,a).group(1)==re.search(p,b).group(1), 'account identity changed'
 PY

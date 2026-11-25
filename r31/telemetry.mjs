@@ -34,7 +34,7 @@ export function publicTelemetry({fetcher=fetch,now=()=>Date.now()}={}){
    }
    const {current,previous,started}=peer[i];const latest=current.value??previous.value;
    let state='WARTET';if(current.error)state='ABRUFFEHLER';else if(current.value)state='GESPEICHERT';else if(started.value&&t-ts(started.value.started_at_utc)<=10*MIN)state='START BESTÄTIGT';else if(t-ts(r.scheduled)>10*MIN)state='VERZÖGERT';else if(t>=ts(r.scheduled))state='BERICHT ERWARTET';
-   return {...r,state,last:latest?.completed_at_utc??null,report_target:latest?.target_utc??null,count:current.value?.decisions.length??null,error:current.error??started.error??previous.error,detail:current.value?'GitHub-Rollenbericht vorhanden':started.value?'Start gemeldet '+started.value.started_at_utc+'; Abschluss noch nicht bestätigt':'Kein aktueller Rollenbericht nachgewiesen',decisions:current.value?.decisions??[]};
+   return {...r,state,last:latest?.completed_at_utc??null,report_target:latest?.target_utc??null,count:current.value?.decisions.length??null,error:current.error??started.error??previous.error,detail:current.value?'GitHub-Rollenbericht vorhanden':started.value?'Start gemeldet '+started.value.started_at_utc+'; Abschluss noch nicht bestätigt':'Kein aktueller Rollenbericht nachgewiesen',decisions:latest?.decisions??[]};
   });
   return {checked_at_utc:iso(t),next_decision_utc:s.nextDecision,roles:dots,reference:ref.value,reference_error:ref.error,signal:sig.value,signal_error:sig.error,source:'PUBLIC_GITHUB_READ_ONLY',runtime_visibility:'REPORTS_AND_OPTIONAL_START_MARKERS_ONLY'};
  }
