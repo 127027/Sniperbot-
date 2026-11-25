@@ -1,0 +1,46 @@
+name: R33Paper
+options:
+  bundleIdPrefix: com.r33
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: "0.1"
+targets:
+  R33Paper:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+        excludes: [Info.plist]
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: R33 Paperbot
+        UILaunchScreen: {}
+        UIApplicationSupportsIndirectInputEvents: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UIBackgroundModes: [fetch]
+        BGTaskSchedulerPermittedIdentifiers: [com.r33.paperbot.refresh]
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.r33.paperbot
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+  R33PaperTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests]
+    dependencies:
+      - target: R33Paper
+schemes:
+  R33Paper:
+    build:
+      targets:
+        R33Paper: all
+        R33PaperTests: [test]
+    test:
+      targets: [R33PaperTests]
