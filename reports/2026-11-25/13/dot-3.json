@@ -1,0 +1,100 @@
+{
+  "kind": "R30_HOURLY_ROLE_REPORT",
+  "role": 3,
+  "target_utc": "2026-11-25T13:00:00Z",
+  "run_context_utc": "2026-11-25T12:21:42Z",
+  "completed_at_utc": null,
+  "mode": "PAPER_ONLY",
+  "r31_sequence": 3,
+  "r31_prior_identities": 0,
+  "previous_final_blob_sha": "027dc59e5e02233a8601a1dda878acf12c9f557d",
+  "quote_tracking": [
+    {
+      "coin": "BASKET",
+      "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+      "pool_address": "CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+      "attempts": [
+        {
+          "source_url": "https://dextrading.com/hi/tokens/solana/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+          "quote_time_utc": "2026-11-25T09:23:00Z",
+          "price_usd": 0.0009398,
+          "liquidity_usd": 135900,
+          "result": "STALE",
+          "accessed_at_utc": null
+        },
+        {
+          "source_url": "https://dextrading.com/it/tokens/solana/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+          "quote_time_utc": "2026-11-25T09:18:00Z",
+          "price_usd": 0.0008178,
+          "change_1h_pct": -10.57,
+          "result": "STALE",
+          "accessed_at_utc": null
+        }
+      ],
+      "reason": "Extreme volatility; historical hourly reversal; exit on sustained demand reversal or liquidity deterioration with fresh evidence.",
+      "chain": "Solana",
+      "pool_url": "https://www.geckoterminal.com/solana/pools/CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+      "chosen_quote": null,
+      "disposition": "DATA_GAP"
+    },
+    {
+      "coin": "PERRO",
+      "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+      "pool_address": "4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+      "attempts": [
+        {
+          "source_url": "https://www.solanatracker.io/rugcheck/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+          "quote_time_utc": "2026-11-25T02:03:00Z",
+          "price_usd": 0.0001522,
+          "liquidity_usd": 28400,
+          "result": "STALE",
+          "detail": "Risk 6/10, top ten and bundler holdings flagged",
+          "accessed_at_utc": null
+        },
+        {
+          "source_url": "https://dextrading.com/tokens/solana/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+          "quote_time_utc": "2026-11-25T01:38:00Z",
+          "price_usd": 0.00003441,
+          "liquidity_usd": 11900,
+          "result": "STALE",
+          "accessed_at_utc": null
+        }
+      ],
+      "reason": "Historical thin liquidity and concentration flags; prioritize exit review with fresh quote; no current executable price.",
+      "chain": "Solana",
+      "pool_url": "https://www.geckoterminal.com/solana/pools/4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+      "chosen_quote": null,
+      "disposition": "DATA_GAP"
+    }
+  ],
+  "research_decisions": [
+    {
+      "coin": "BASKET",
+      "chain": "Solana",
+      "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+      "action": "DATA_GAP",
+      "amount_eur": 0,
+      "reason": "Extreme volatility; historical hourly reversal; exit on sustained demand reversal or liquidity deterioration with fresh evidence."
+    },
+    {
+      "coin": "PERRO",
+      "chain": "Solana",
+      "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+      "action": "DATA_GAP",
+      "amount_eur": 0,
+      "reason": "Historical thin liquidity and concentration flags; prioritize exit review with fresh quote; no current executable price."
+    }
+  ],
+  "coverage": {
+    "mandatory": 2,
+    "checked": 2,
+    "fresh_quotes": 0,
+    "data_gap": 2,
+    "optional_not_checked": [
+      "4CHAN",
+      "JIMMY"
+    ],
+    "new_coins": 0
+  },
+  "notes": "Peer 1 and 2 read; stale quotes not re-dated. No ledger or signal writes."
+}
