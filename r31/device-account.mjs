@@ -26,6 +26,7 @@ export function applyBroadcast(account,{signal:s,blob_sha:sha,now}){
  const old=account.cursor;
  if(old&&s.sequence===old.sequence){if(sha!==old.blob_sha)throw Error('SIGNAL_FORK');return {account,status:'ALREADY_PROCESSED',events:[]}}
  if(old&&(s.sequence<old.sequence||Date.parse(s.target_utc)<=Date.parse(old.target_utc)))throw Error('SIGNAL_ROLLBACK');
+ if(old&&s.sequence===old.sequence+1&&s.previous_blob_sha!==old.blob_sha)throw Error('SIGNAL_CHAIN_MISMATCH');
  if(Date.parse(s.published_at_utc)>Date.parse(now))throw Error('FUTURE_SIGNAL');
  // Do not import someone else's positions or replay pre-join/expired entries.
  if(Date.parse(s.published_at_utc)<=Date.parse(account.joined_at_utc)||Date.parse(s.expires_at_utc)<=Date.parse(now)){
@@ -33,7 +34,7 @@ export function applyBroadcast(account,{signal:s,blob_sha:sha,now}){
   const ledger={...account.ledger,positions:account.ledger.positions.map(p=>({...p,net_liquidation_eur:null,unrealized_pnl_eur:null,mark_price_eur:null,mark_observed_at_utc:null}))};
   return {account:{...account,ledger,cursor:cursor(s,sha),last_summary:null,cycles:[...account.cycles,{sequence:s.sequence,target_utc:s.target_utc,status:'SKIPPED_OLD_OR_EXPIRED',events:[],gap:old?Math.max(0,s.sequence-old.sequence-1):0}]},status:'SKIPPED_OLD_OR_EXPIRED',events:[]};
  }
- if(old&&s.sequence===old.sequence+1&&s.previous_blob_sha!==old.blob_sha)throw Error('SIGNAL_CHAIN_MISMATCH');
+
  const holdings=new Map(account.ledger.positions.map(p=>[identity(p),p]));
  const decisions=[],ignored=[];
  for(const d of s.decisions){
