@@ -4,7 +4,7 @@ export const REPO='127027/Sniperbot-';
 export const R30='codex/r30-hourly-research-20261124';
 export const R31='codex/r31-control-center-paper';
 export const CONTROL_PATH='r31/controls.json';
-export function blobSha(bytes){return createHash('sha1').update('blob '+bytes.length+'\\0'.replace('\\0','\0')).update(bytes).digest('hex')}
+export function blobSha(bytes){return createHash('sha1').update('blob '+bytes.length).update(Buffer.from([0])).update(bytes).digest('hex')}
 export function github({token='',fetcher=fetch}={}) {
  const base='https://api.github.com/repos/'+REPO;
  async function request(path,opts={}) {

@@ -10,7 +10,7 @@ const api=github({token:process.env.R31_GITHUB_TOKEN||''});
 const files={'/':['index.html','text/html; charset=utf-8'],'/app.js':['app.js','text/javascript; charset=utf-8'],'/style.css':['style.css','text/css; charset=utf-8']};
 const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",'Referrer-Policy':'no-referrer'};
 function json(res,status,data){res.writeHead(status,{...headers,'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(data));}
-function validToken(s){return typeof s==='string'&&s.length===csrf.length&&timingSafeEqual(Buffer.from(s),Buffer.from(csrf));}
+function validToken(s){return typeof s==='string'&&/^[0-9a-f]{64}$/.test(s)&&timingSafeEqual(Buffer.from(s),Buffer.from(csrf));}
 async function body(req){let bytes=0;const chunks=[];for await(const c of req){bytes+=c.length;if(bytes>4096)throw Error('BODY_TOO_LARGE');chunks.push(c)}return JSON.parse(Buffer.concat(chunks).toString('utf8'));}
 const server=createServer(async(req,res)=>{
  try{
