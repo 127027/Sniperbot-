@@ -1,0 +1,17 @@
+name: R34 catalog tests
+on:
+  push:
+    branches: [codex/r30-hourly-research-20261124]
+    paths: ['r34/catalog.mjs','r34/catalog.test.mjs','.github/workflows/r34-catalog.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test r34/catalog.test.mjs
