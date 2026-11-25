@@ -1,7 +1,9 @@
 // Staged adapter: strategy without a mandatory execution quote, local verified quote injected.
 // No network, no live-feed mutation, no private account transport.
-import {identity,validateBroadcast} from '../../r31/broadcast.mjs';
+import {identity,validateBroadcast} from '../r31/broadcast.mjs';
 const iso=s=>typeof s==='string'&&Number.isFinite(Date.parse(s))&&new Date(s).toISOString()===s;
+import {applyBroadcast} from '../r31/device-account.mjs';
+import {blobSha} from '../r31/github.mjs';
 const actions=new Set(['BUY','HOLD','SELL','WATCH','NO_TRADE','DATA_GAP']);
 const exact=(o,keys)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>keys.includes(k));
 const https=s=>{try{const u=new URL(s);return u.protocol==='https:'&&!u.username&&!u.password}catch{return false}};
@@ -45,4 +47,18 @@ export function resolveLocalExecution({intent,quotes,now}){
  // the transport migration must explicitly support execution through +15min before deployment.
  validateBroadcast(execution);
  return {execution,statuses};
+}
+
+// Verify the original wire bytes and original publication/join time before local projection.
+// This adapter is for isolated staging only; do not mix v1 and intent cursors.
+export function applyIntentBytes(account,{bytes,expected_sha,quotes,now}){
+ if(!Buffer.isBuffer(bytes)||blobSha(bytes)!==expected_sha)throw Error('INTENT_HASH_MISMATCH');
+ const intent=validateIntents(JSON.parse(bytes.toString('utf8')));
+ if(!iso(now)||Date.parse(now)<Date.parse(intent.published_at_utc))throw Error('INTENT_NOT_CURRENT');
+ if(Date.parse(intent.published_at_utc)<=Date.parse(account.joined_at_utc)||Date.parse(intent.expires_at_utc)<=Date.parse(now)){
+  const signal={schema:'r31.broadcast.v1',mode:'PAPER_ONLY',sequence:intent.sequence,target_utc:intent.target_utc,published_at_utc:intent.published_at_utc,expires_at_utc:intent.expires_at_utc,previous_blob_sha:intent.previous_blob_sha,decisions:[]};
+  return {...applyBroadcast(account,{signal,blob_sha:expected_sha,now}),statuses:[]};
+ }
+ const {execution,statuses}=resolveLocalExecution({intent,quotes,now});
+ return {...applyBroadcast(account,{signal:execution,blob_sha:expected_sha,now}),statuses};
 }
