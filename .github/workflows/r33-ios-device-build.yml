@@ -1,0 +1,27 @@
+name: R33 unsigned iOS device build
+on:
+  push:
+    branches: [codex/r33-ios-paper]
+    paths: ['r33/ios/**', '.github/workflows/r33-ios-device-build.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compile:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+      - run: |
+          set -o pipefail
+          bash r33/ios/tools/prepare-release.sh check | tee /tmp/r33-device-build.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: R33-unsigned-device-build-log
+          path: /tmp/r33-device-build.log
+          if-no-files-found: warn

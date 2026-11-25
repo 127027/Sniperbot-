@@ -5,7 +5,7 @@ import UIKit
 
 @MainActor final class PaperModel: ObservableObject {
     static let shared = PaperModel()
-    nonisolated static let refreshID = "com.r33.paperbot.refresh"
+    nonisolated static var refreshID: String { (Bundle.main.bundleIdentifier ?? "com.r33.paperbot") + ".refresh" }
     @Published private(set) var view: Object = [:]
     @Published private(set) var perf: Object = [:]
     @Published private(set) var status = "Noch nicht geprüft"
