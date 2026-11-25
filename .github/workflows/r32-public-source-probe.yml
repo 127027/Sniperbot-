@@ -1,0 +1,19 @@
+name: R32 public HTML source diagnostic
+on:
+  push:
+    branches: [codex/r32-decoupled-paper]
+    paths:
+      - 'r32/consumer/public-source-probe.mjs'
+      - '.github/workflows/r32-public-source-probe.yml'
+permissions:
+  contents: read
+jobs:
+  source-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node r32/consumer/public-source-probe.mjs
