@@ -1,0 +1,98 @@
+{
+  "kind": "R30_ROLE_REPORT",
+  "role": 2,
+  "target_utc": "2026-11-25T19:00:00Z",
+  "run_context_utc": "2026-11-25T18:13:59Z",
+  "completed_at_utc": null,
+  "mode": "PAPER_ONLY",
+  "research_decisions": [
+    {
+      "coin": "BASKET",
+      "chain": "solana",
+      "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+      "action": "DATA_GAP",
+      "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Conflicting undated exact-contract snapshots and concentration risk; no fresh entry or exit thesis.",
+      "amount_eur": 0,
+      "price_usd": null
+    },
+    {
+      "coin": "PERRO",
+      "chain": "solana",
+      "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+      "action": "DATA_GAP",
+      "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Thin historical liquidity and low organic volume warrant exit review, but no fresh evidence to authorize SELL.",
+      "amount_eur": 0,
+      "price_usd": null
+    }
+  ],
+  "quote_tracking": [
+    {
+      "coin": "BASKET",
+      "chain": "solana",
+      "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+      "pool_address": "CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+      "attempts": [
+        {
+          "source_url": "https://x.preview.pump.fun/coin/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f?highlight_callout=95789df4-41e5-4a1e-ab97-e797102b1ab2",
+          "quote_time_utc": null,
+          "price_usd": 0.0002667,
+          "result": "Exact contract, undated snapshot"
+        },
+        {
+          "source_url": "https://frontend-git-dependabot-npm-and-yarn-npm-and-yarn-1e14cbedbc.preview.pump.fun/coin/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f?highlight_callout=25d205b1-9ee2-48b4-b692-accdf5d9d3c4",
+          "quote_time_utc": null,
+          "price_usd": 0.0001519,
+          "result": "Conflicting undated snapshot; top 10 concentration 41.76% in snapshot"
+        }
+      ],
+      "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Conflicting undated exact-contract snapshots and concentration risk; no fresh entry or exit thesis.",
+      "pool_url": "https://www.geckoterminal.com/solana/pools/CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+      "chosen_quote": null,
+      "disposition": "DATA_GAP"
+    },
+    {
+      "coin": "PERRO",
+      "chain": "solana",
+      "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+      "pool_address": "4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+      "attempts": [
+        {
+          "source_url": "https://dextrading.com/tokens/solana/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+          "quote_time_utc": "2026-11-25T01:38:00Z",
+          "price_usd": 0.00003441,
+          "liquidity_usd": 11900,
+          "result": "Historical, stale"
+        },
+        {
+          "source_url": "https://kolspace.io/tokens/sol/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+          "quote_time_utc": null,
+          "price_usd": 0.00015,
+          "liquidity_usd": 27300,
+          "result": "Exact contract and pool confirmed; no absolute quote time"
+        },
+        {
+          "source_url": "https://barb.exchange/tokens/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+          "quote_time_utc": null,
+          "price_usd": 0.000136,
+          "liquidity_usd": 23900,
+          "result": "Undated snapshot; organic volume 37k vs 1.69m total"
+        }
+      ],
+      "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Thin historical liquidity and low organic volume warrant exit review, but no fresh evidence to authorize SELL.",
+      "pool_url": "https://www.geckoterminal.com/solana/pools/4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+      "chosen_quote": null,
+      "disposition": "DATA_GAP"
+    }
+  ],
+  "coverage": {
+    "required_coins": 2,
+    "researched": 2,
+    "fresh_quotes": 0,
+    "r31_sequence": 6,
+    "r31_coins": 0
+  },
+  "notes": [
+    "No new coins, no ledger or broadcast writes. Exact web retrieval time unavailable; no invented timestamps."
+  ],
+  "peer_assessment": "Dot 1, 3, 4 target paths returned HTTP 404."
+}
