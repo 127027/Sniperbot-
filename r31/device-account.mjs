@@ -1,7 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import {createPaperLedger,settlePaperCycle} from './paper-engine.mjs';
 import {validateControls,nextControls,capacity} from './policy.mjs';
-import {identity,validateBroadcast} from './broadcast.mjs';
+import {identity,validateBroadcast,validateLocalProjection} from './broadcast.mjs';
 const stamp=x=>typeof x==='string'&&Number.isFinite(Date.parse(x));
 const cents=x=>Number.isSafeInteger(x)&&x>=0&&x<=100_000_000;
 const money=x=>Math.round(x*100);

@@ -1,8 +1,8 @@
 // Staged adapter: strategy without a mandatory execution quote, local verified quote injected.
 // No network, no live-feed mutation, no private account transport.
-import {identity,validateBroadcast} from '../r31/broadcast.mjs';
+import {identity,validateLocalProjection} from '../r31/broadcast.mjs';
 const iso=s=>typeof s==='string'&&Number.isFinite(Date.parse(s))&&new Date(s).toISOString()===s;
-import {applyBroadcast} from '../r31/device-account.mjs';
+import {applyBroadcast,applyLocalProjection} from '../r31/device-account.mjs';
 import {blobSha} from '../r31/github.mjs';
 const actions=new Set(['BUY','HOLD','SELL','WATCH','NO_TRADE','DATA_GAP']);
 const exact=(o,keys)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>keys.includes(k));
@@ -43,9 +43,8 @@ export function resolveLocalExecution({intent,quotes,now}){
  // Local-only projection at actual execution time. Never upload as a published broadcast.
  // Local receipt identity must be the verified original intent blob, not the projection hash.
  const execution={schema:'r31.broadcast.v1',mode:'PAPER_ONLY',sequence:intent.sequence,target_utc:intent.target_utc,published_at_utc:now,expires_at_utc:intent.expires_at_utc,previous_blob_sha:intent.previous_blob_sha,decisions};
- // V1 restricts publication to +10min. For now only allow local projection in that window;
- // the transport migration must explicitly support execution through +15min before deployment.
- validateBroadcast(execution);
+ // Local-only validation permits execution until the original intent expires; wire v1 stays +10min.
+ validateLocalProjection(execution);
  return {execution,statuses};
 }
 
@@ -59,6 +58,21 @@ export function applyIntentBytes(account,{bytes,expected_sha,quotes,now}){
   const signal={schema:'r31.broadcast.v1',mode:'PAPER_ONLY',sequence:intent.sequence,target_utc:intent.target_utc,published_at_utc:intent.published_at_utc,expires_at_utc:intent.expires_at_utc,previous_blob_sha:intent.previous_blob_sha,decisions:[]};
   return {...applyBroadcast(account,{signal,blob_sha:expected_sha,now}),statuses:[]};
  }
+ const old=account.cursor;
+ if(old&&intent.sequence===old.sequence){
+  if(expected_sha!==old.blob_sha)throw Error('SIGNAL_FORK');
+  return {account,status:'ALREADY_PROCESSED',events:[],statuses:[]};
+ }
+ if(old&&(intent.sequence<old.sequence||Date.parse(intent.target_utc)<=Date.parse(old.target_utc)))throw Error('SIGNAL_ROLLBACK');
+ if(old&&intent.sequence===old.sequence+1&&intent.previous_blob_sha!==old.blob_sha)throw Error('SIGNAL_CHAIN_MISMATCH');
  const {execution,statuses}=resolveLocalExecution({intent,quotes,now});
- return {...applyBroadcast(account,{signal:execution,blob_sha:expected_sha,now}),statuses};
+ const owned=new Set(account.ledger.positions.map(identity));
+ const applicable=statuses.filter(d=>d.intent==='BUY'||(['SELL','HOLD'].includes(d.intent)&&owned.has(identity(d))));
+ // Do not consume the signal merely because all eligible quotes are absent.
+ // Retry within its original window, with fresh local quotes. Mixed batches settle
+ // once when any eligible quote is ready; unresolved members wait for a new signal.
+ if(applicable.some(d=>d.status==='PRICE_PENDING')&&!applicable.some(d=>d.status==='QUOTE_READY')){
+  return {account,status:'PRICE_PENDING_RETRY',events:[],statuses};
+ }
+ return {...applyLocalProjection(account,{signal:execution,blob_sha:expected_sha,now}),statuses};
 }
