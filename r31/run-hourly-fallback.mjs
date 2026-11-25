@@ -1,4 +1,4 @@
-import {fallbackPlan} from './hourly-fallback.mjs';
+import {r46FallbackPlan} from './r46-fallback.mjs';
 import {REPO,R30,R31,blobSha} from './github.mjs';
 const token=process.env.GITHUB_TOKEN;
 const base='https://api.github.com/repos/'+REPO;
@@ -17,9 +17,11 @@ async function run(){try{guard()}catch{console.log('Skipped: outside actual :07â
  if(Date.parse(ps.data.target_utc)>=t0||Date.parse(pf.data.target_utc)>=t0){console.log('Already published or newer target; do not overwrite primary');return}
  const stem='reports/'+target.slice(0,10)+'/'+target.slice(11,13)+'/';
  const reports=(await Promise.all([1,2,3,4].map(async role=>{try{const x=await file(a.sha,stem+'dot-'+role+'.json');if(Date.parse(x.data.target_utc)!==t0||x.data.mode!=='PAPER_ONLY'||x.data.role!==role&&x.data.dot!==role)return null;return {...x,role}}catch(e){if(e.status===404)return null;throw e}}))).filter(Boolean);
- const result=fallbackPlan({previous:{signal:ps.data,blob_sha:ps.sha},universe:u.data,priorFinal:pf.data,reports,target,published:new Date().toISOString(),head:a.sha,priorPointer:fp.data});
+ const [reg,idx]=await Promise.all([file(a.sha,'r38/pool-registry.json'),file(a.sha,'r34/index.json')]);
+ if(!Array.isArray(reg.data.coins)||!Array.isArray(idx.data.coins))throw Error('REGISTRY_SCHEMA');
+ const result=r46FallbackPlan({registry:reg.data.coins,index:idx.data.coins,previous:{signal:ps.data,blob_sha:ps.sha},universe:u.data,priorFinal:pf.data,reports,target,published:new Date().toISOString(),head:a.sha,priorPointer:fp.data});
  const c=await atomic(R31,b,result.plan.files,'R36 fallback '+target);console.log('R31 verified',c,result.plan.pointer.sequence);
- const path=stem+'final.json';const bytes=pack(result.final),sha=blobSha(Buffer.from(bytes));const pointer={...fp.data,administrative_reset:false,target_utc:result.final.target_utc,final_path:path,final_blob_sha:sha,summary:result.final.summary};
- try{const latest=await head(R30);const p=await file(latest.sha,'latest-final.json');if(p.sha!==fp.sha)throw Error('R30_FINAL_CHANGED');try{await file(latest.sha,path);throw Error('FINAL_EXISTS')}catch(e){if(e.status!==404)throw e}const c2=await atomic(R30,latest,[{path,content:bytes},{path:'latest-final.json',content:pack(pointer)}],'R36 fallback final '+target);console.log('R30 verified',c2)}catch(e){console.error('R31 completed; R30 independent failure',e.message);process.exitCode=1}
+ const path=stem+'final.json',sidePath=stem+'r46-signals.json',sideBytes=pack(result.sidecar);result.final.r46_signals={path:sidePath,blob_sha:blobSha(Buffer.from(sideBytes))};const bytes=pack(result.final),sha=blobSha(Buffer.from(bytes));const pointer={...fp.data,administrative_reset:false,target_utc:result.final.target_utc,final_path:path,final_blob_sha:sha,summary:result.final.summary};
+ try{const latest=await head(R30);const p=await file(latest.sha,'latest-final.json');if(p.sha!==fp.sha)throw Error('R30_FINAL_CHANGED');try{await file(latest.sha,path);throw Error('FINAL_EXISTS')}catch(e){if(e.status!==404)throw e}const c2=await atomic(R30,latest,[{path,content:bytes},{path:sidePath,content:sideBytes},{path:'latest-final.json',content:pack(pointer)}],'R36 fallback final '+target);console.log('R30 verified',c2)}catch(e){console.error('R31 completed; R30 independent failure',e.message);process.exitCode=1}
 }
 await run();
