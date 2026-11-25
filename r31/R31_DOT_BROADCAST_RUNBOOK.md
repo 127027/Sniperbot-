@@ -1,3 +1,6 @@
+# Betriebsupdate 25.11.2026 – Vorrang vor alter Abschlussreihenfolge
+Dot5 stündlich :05 geplant; Ziel bleibt vorangegangene volle UTC-Stunde. Tatsächliches Zeitfenster unverändert 0–10 Minuten nach Zielstunde, Ablauf +15 Minuten. R31/R32-Broadcast unabhängig vom R30-Final veröffentlichen, bei knappem Fenster zuerst Broadcast. Fehlende Preise führen zu DATA_GAP, nicht zum Auslassen der gesamten Stunde. Keine rückdatierten Preise, keine Pflichtkäufe, keine Änderung des v1-Schemas. Die :00-Anzeige in installierter v0.3 ist weiterhin Zielstunde, tatsächlicher geplanter Abschluss jetzt :05; UI bei nächstem kompatiblen Update präzisieren. 10:00 MEZ manuell nachgeholt mit Sequenz 2, keine Kauf-/Verkaufsentscheidung. 
+
 # R32 – Aktive Strategie-Regel, Nutzerfreigabe 25.11.2026
 
 **Vorrang für die R31-Broadcast-Entscheidung, nicht für R30-Ledger:** System A (Dots + GitHub) recherchiert und veröffentlicht vollständig kontounabhängig. System B (Handys/Laptops + GitHub GET) besitzt eigene Konten und entscheidet lokal. Keine Rückmeldung von Nutzerpositionen, Kontostand, Budget oder Nutzeranzahl an Dots; keine Anfrage eines Gerätes startet einen Scan. Derselbe bestehende R31-Branch/Pointer, v1-Schema und Sequenz bleiben erhalten.
