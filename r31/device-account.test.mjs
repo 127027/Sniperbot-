@@ -13,3 +13,25 @@ test('funding local, idempotent, withdrawal cash only',()=>{const a=account('a',
 test('separate files, single writer, restart and duplicate prevention',async()=>{const dir=await mkdtemp(join(tmpdir(),'r31-'));let a,c;try{a=await openAccountStore(join(dir,'phone'),{initial:{account_id:'phone',initial_cents:50000,max_invest_cents:50000},now:()=>at(7)});c=await openAccountStore(join(dir,'laptop'),{initial:{account_id:'laptop',initial_cents:25000,max_invest_cents:25000},now:()=>at(7)});await assert.rejects(()=>openAccountStore(join(dir,'phone')),/EEXIST/);await a.mutate(x=>updateAccountControls(x,{expected_revision:1,max_invest_cents:50000,stake_cents:5000,allow_new_buys:true},at(7)));const s=b(1,8,[d('A','BUY',8)]);await a.mutate(x=>apply(x,s,1,8).account);await a.close();a=null;a=await openAccountStore(join(dir,'phone'));assert.equal(a.read().ledger.positions.length,1);assert.equal(apply(a.read(),s,1,8).status,'ALREADY_PROCESSED');assert.equal(c.read().ledger.cash_eur,250);assert.equal(c.read().ledger.positions.length,0)}finally{if(a)await a.close();if(c)await c.close();await rm(dir,{recursive:true,force:true})}});
 test('broadcast cannot contain device/account money or real mode',()=>{const s=b(1,8,[d('A','BUY',8)]);assert.throws(()=>validateBroadcast({...s,account_id:'x'}));assert.throws(()=>validateBroadcast({...s,mode:'LIVE'}));assert.throws(()=>validateBroadcast({...s,decisions:[{...s.decisions[0],amount_cents:5000}]}));});
 test('GitHub pointer hash pinned and GET-only',async()=>{const s=b(1,8,[d('A','BUY',8)]);const pack=x=>{const v=Buffer.from(JSON.stringify(x));return {type:'file',encoding:'base64',content:v.toString('base64'),sha:blobSha(v)}};const f=pack(s),head='a'.repeat(40),path='r31/broadcast/signals/0000000001.json';const p=pack({schema:'r31.broadcast.pointer.v1',status:'PUBLISHED',sequence:1,path,blob_sha:f.sha});const feed=broadcastFeed({fetcher:async(u,o)=>{assert.equal(o.method,undefined);const x=new URL(u);let v;if(x.pathname.endsWith('/commits'))v=[{sha:head}];else{assert.equal(x.searchParams.get('ref'),head);v=x.pathname.endsWith('/latest.json')?p:f}return {ok:true,json:async()=>v}}});assert.equal((await feed.latest()).blob_sha,f.sha)});
+
+test('R35 five consecutive BUY signals hold one stake; late join buys once; SELL then fresh re-entry',()=>{
+ let early=account('early',50000),late=account('late',50000,5000,at(9,5));
+ for(let i=1;i<=5;i++){
+  const hour=7+i,signal=b(i,hour,[d('A','BUY',hour,i)],i===1?null:sha(i-1));
+  early=apply(early,signal,i,hour).account;
+  assert.equal(early.ledger.cash_eur,450);
+  assert.equal(early.ledger.positions.length,1);
+  assert.equal(early.ledger.trades.filter(t=>t.action==='BUY').length,1);
+  assert.equal(early.ledger.positions[0].mark_price_eur,i);
+  if(i>=3){late=apply(late,signal,i,hour).account;assert.equal(late.ledger.cash_eur,450);assert.equal(late.ledger.trades.filter(t=>t.action==='BUY').length,1);}
+ }
+ const sell=b(6,13,[d('A','SELL',13,5)],sha(5));
+ early=apply(early,sell,6,13).account;late=apply(late,sell,6,13).account;
+ assert.equal(early.ledger.positions.length,0);assert.equal(late.ledger.positions.length,0);
+ assert.equal(early.ledger.trades.filter(t=>t.action==='SELL').length,1);
+ const again=b(7,14,[d('A','SELL',14,5)],sha(6));
+ early=apply(early,again,7,14).account;assert.equal(early.ledger.trades.length,2);
+ const reentry=b(8,15,[d('A','BUY',15,2)],sha(7));early=apply(early,reentry,8,15).account;
+ assert.equal(early.ledger.positions.length,1);assert.equal(early.ledger.trades.filter(t=>t.action==='BUY').length,2);
+ assert.equal(apply(early,reentry,8,15).status,'ALREADY_PROCESSED');
+});
