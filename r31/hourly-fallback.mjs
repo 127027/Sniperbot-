@@ -8,6 +8,18 @@ export function fallbackPlan({previous,universe,priorFinal,reports,target,publis
  for(const d of priorFinal.paper_ledger.positions)add(d);
  const required=groups.size;
  for(const report of reports)for(const d of report.data.research_decisions??report.data.decisions??[]){const g=add(d);if(!g)continue;const s=d.reason?.match(/\[STRATEGY (BUY|HOLD|SELL|WATCH|NO_TRADE|DATA_GAP)\]/)?.[1]??(['BUY','HOLD','SELL','WATCH','NO_TRADE'].includes(d.action)?d.action:'DATA_GAP');g.votes.push({role:report.role,strategy:s});}
+ // Preserve discovery even without an executable identity or quote.
+ const discovery_leads=[];
+ for(const report of reports)for(const d of report.data.discovery_leads??[]){
+  if(!d||typeof d.coin!=='string'||!d.coin.trim())continue;
+  const chain=typeof d.chain==='string'?d.chain.trim():null,contract=typeof d.contract==='string'?d.contract.trim():null;
+  const source=typeof d.source_url==='string'?d.source_url:null;
+  const when=d.source_observed_at_utc??null;
+  const format=chain&&contract&&(/^solana$/i.test(chain)?/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(contract):/^(ethereum|base|bsc|bnb chain|robinhood chain|robinhood|arc|arbitrum|polygon|optimism|avalanche)$/i.test(chain)&&/^0x[0-9a-fA-F]{40}$/.test(contract));
+  const eligible=Boolean(format&&source&&source.startsWith('https://')&&when&&Number.isFinite(Date.parse(when))&&Date.parse(when)<=p&&d.identity_status==='VERIFIED_SOURCE_CONTRACT');
+  discovery_leads.push({...d,chain,contract,origin_role:report.role,origin_path:report.path,origin_sha:report.sha,eligible_for_nonexecuting_signal:eligible});
+  if(eligible){const g=add({...d,chain,contract});if(g)g.votes.push({role:report.role,strategy:'WATCH'});}
+ }
  if(required>500)throw Error('REQUIRED_UNIVERSE_EXCEEDS_V1');
  const all=[...groups.values()],decisions=all.slice(0,500).map(({votes,...d})=>{
   const active=[...new Set(votes.map(v=>v.strategy).filter(s=>!['DATA_GAP','WATCH','NO_TRADE'].includes(s)))];
@@ -20,6 +32,6 @@ export function fallbackPlan({previous,universe,priorFinal,reports,target,publis
  ledger.positions=ledger.positions.map(x=>({...x,current_mark_usd:null,current_mark_eur:null,net_liquidation_eur:null,unrealized_pnl_eur:null,unrealized_pnl_pct:null,decision:'DATA_GAP'}));
  const n=ledger.positions.length,summary={...priorFinal.summary,cash_eur:ledger.cash_eur,open_cost_eur:ledger.positions.reduce((s,x)=>s+x.cost_basis_eur,0),realized_pnl_eur:ledger.realized_pnl_eur,unknown_mark_count:n,net_liquidation_value_eur:n?null:ledger.cash_eur,unrealized_pnl_eur:n?null:0,total_pnl_eur:n?null:ledger.cash_eur-ledger.initial_cash_eur,total_pnl_pct:n?null:(ledger.cash_eur/ledger.initial_cash_eur-1)*100,scan_number:priorFinal.summary.scan_number+1,proposed_new_spend_eur:0,booked_new_spend_eur:0};
  const missing=[1,2,3,4].filter(x=>!reports.some(y=>y.role===x));
- const final={...priorFinal,target_utc:target30,completed_at_utc:published,run_context_utc:published,previous_final_path:priorPointer.final_path,previous_final_blob_sha:priorPointer.final_blob_sha,checked_head:head,role_reports:reports.map(({path,sha})=>({path,sha})),missing_roles:missing,peer_assessment:'Deterministic fallback: role indications only, no AI adjudication or executable quotes.',research_decisions:plan.signal.decisions,model_execution_events:[],paper_ledger:ledger,summary,news_and_catalysts:[],quote_tracking:[],notes:'R36 fallback. No new orders. Overflow '+Math.max(0,all.length-500)+'.'};
+ const final={...priorFinal,target_utc:target30,completed_at_utc:published,run_context_utc:published,previous_final_path:priorPointer.final_path,previous_final_blob_sha:priorPointer.final_blob_sha,checked_head:head,role_reports:reports.map(({path,sha})=>({path,sha})),missing_roles:missing,peer_assessment:'Deterministic fallback: role indications only, no AI adjudication or executable quotes.',research_decisions:plan.signal.decisions,discovery_leads,model_execution_events:[],paper_ledger:ledger,summary,news_and_catalysts:[],quote_tracking:[],notes:'R37 fallback. No new orders. Overflow '+Math.max(0,all.length-500)+'.'};
  return {plan,final,missing,overflow:Math.max(0,all.length-500)};
 }
