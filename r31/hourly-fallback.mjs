@@ -23,7 +23,7 @@ export function fallbackPlan({previous,universe,priorFinal,reports,target,publis
  if(required>500)throw Error('REQUIRED_UNIVERSE_EXCEEDS_V1');
  const all=[...groups.values()],decisions=all.slice(0,500).map(({votes,...d})=>{
   const active=[...new Set(votes.map(v=>v.strategy).filter(s=>!['DATA_GAP','WATCH','NO_TRADE'].includes(s)))];
-  const strategy=active.length===1?active[0]:active.length>1?'HOLD':votes.some(v=>v.strategy==='WATCH')?'WATCH':votes.some(v=>v.strategy==='NO_TRADE')?'NO_TRADE':'DATA_GAP';
+  const strategy=universe.coins.some(c=>identity(c)===identity(d)&&c.intent==='EXIT')?'SELL':active.length===1?active[0]:active.length>1?'HOLD':votes.some(v=>v.strategy==='WATCH')?'WATCH':votes.some(v=>v.strategy==='NO_TRADE')?'NO_TRADE':'DATA_GAP';
   return {...d,action:'DATA_GAP',reason:'[STRATEGY '+strategy+'] [EXECUTION PRICE_PENDING] [FALLBACK] Role indications '+JSON.stringify(votes)+'; no independently approved fresh execution quote; not an executable order.'};
  });
  const plan=preparePublication({previous,universe,decisions,target_utc:target,published_at_utc:published,expires_at_utc:new Date(t+900000).toISOString()});

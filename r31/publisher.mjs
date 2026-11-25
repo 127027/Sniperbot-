@@ -10,13 +10,17 @@ export function preparePublication({previous=null,universe,decisions,target_utc,
  const next=new Map();
  for(const c of universe.coins){const k=identity(c);if(next.has(k)||!['LONG','EXIT'].includes(c.intent)||typeof c.coin!=='string')throw Error('INVALID_UNIVERSE');next.set(k,{coin:c.coin,chain:c.chain,contract:c.contract,intent:c.intent})}
  const supplied=new Map();
+ const archivedGap=c=>({coin:c.coin,chain:c.chain,contract:c.contract,action:'DATA_GAP',reason:'[STRATEGY SELL] [EXECUTION PRICE_PENDING] Prior EXIT archive: persistent full exit; no verified fresh quote. Retry in later hours.'});
  for(const d of decisions){const k=identity(d);if(supplied.has(k))throw Error('DUPLICATE_DECISION');supplied.set(k,d);
+ if(d.action==='SELL'&&d.fraction!==undefined&&d.fraction!==1)throw Error('R39_FULL_EXIT_REQUIRED');
  if(d.action==='BUY'||d.action==='SELL')next.set(k,{coin:d.coin,chain:d.chain,contract:d.contract,intent:d.action==='BUY'?'LONG':'EXIT'});
  if(d.action==='HOLD'&&next.get(k)?.intent==='EXIT')throw Error('EXIT_INTENT_NEEDS_REVIEW');
+ // An archived exit is durable until a new executable BUY. Never recycle stale SELL prices.
+ if(next.get(k)?.intent==='EXIT'&&d.action!=='SELL')supplied.set(k,archivedGap(next.get(k)));
  }
  // A previously broadcast BUY may exist on any offline device. Never silently delete it from coverage.
  // Missing observations produce DATA_GAP; the strategy retains LONG/EXIT intent for future reviews.
- for(const [k,c] of next){if(!supplied.has(k))supplied.set(k,{coin:c.coin,chain:c.chain,contract:c.contract,action:'DATA_GAP',reason:'Prior '+c.intent+' intent: fresh review/price missing; do not invent an exit or entry'});}
+ for(const [k,c] of next){if(!supplied.has(k))supplied.set(k,c.intent==='EXIT'?archivedGap(c):{coin:c.coin,chain:c.chain,contract:c.contract,action:'DATA_GAP',reason:'Prior '+c.intent+' intent: fresh review/price missing; do not invent an exit or entry'});}
  const sequence=(previous?.signal.sequence??0)+1;
  const signal=validateBroadcast({schema:'r31.broadcast.v1',mode:'PAPER_ONLY',sequence,target_utc,published_at_utc,expires_at_utc,decisions:[...supplied.values()],previous_blob_sha:previous?.blob_sha??null});
  const signalJson=pack(signal),signalSha=blobSha(Buffer.from(signalJson)),path='r31/broadcast/signals/'+String(sequence).padStart(10,'0')+'.json';
