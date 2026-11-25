@@ -33,7 +33,7 @@ async function inspect(coin,contract,pool,url){
     if(/price|time|trade|liquidity|pair|pool|volume/i.test(context))target_hints.push({name,context});
    }
   }
-  return {target_hints:target_hints.slice(0,12),field_hints,trade_hints,coin,url,http:r.status,type,size,exact_contract_present:html.includes(contract),exact_pool_present:html.includes(pool),timestamp_hints:samples,result:'HTML_REACHED_NOT_VERIFIED_QUOTE',started_at_utc:start};
+  return {target_hints:[...target_hints.filter(x=>x.name==='pool').slice(0,8),...target_hints.filter(x=>x.name==='contract').slice(-6)],field_hints,trade_hints,coin,url,http:r.status,type,size,exact_contract_present:html.includes(contract),exact_pool_present:html.includes(pool),timestamp_hints:samples,result:'HTML_REACHED_NOT_VERIFIED_QUOTE',started_at_utc:start};
  }catch(e){return {coin,url,result:'FETCH_FAILED',error:e.cause?.code??e.name,started_at_utc:start}}
 }
 const outcomes=await Promise.all(cases.flatMap(([coin,contract,pool])=>[
