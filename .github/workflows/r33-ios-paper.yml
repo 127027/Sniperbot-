@@ -19,6 +19,7 @@ jobs:
         run: |
           node r33/ios/tools/bundle-engine.mjs
           node --check r33/ios/App/Resources/engine.js
+          node r33/ios/tools/bundle-smoke.mjs
           python3 r33/ios/tools/icon.py
           brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
           cd r33/ios

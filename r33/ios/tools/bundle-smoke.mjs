@@ -1,0 +1,18 @@
+import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
+import {randomUUID} from 'node:crypto';
+import assert from 'node:assert/strict';
+const ctx=vm.createContext({nativeUUID:randomUUID,nativeURL:s=>{try{const u=new URL(s);return u.protocol==='https:'&&!u.username&&!u.password?JSON.stringify({protocol:u.protocol,username:u.username,password:u.password}):null}catch{return null}}});
+vm.runInContext(await readFile(new URL('../App/Resources/engine.js',import.meta.url),'utf8'),ctx);
+const t=h=>'2026-11-25T'+String(h).padStart(2,'0')+':00:00.000Z';
+const call=(op,a,i,h)=>{const r=JSON.parse(ctx.r33Call(op,a?JSON.stringify(a):'',i?JSON.stringify(i):'',t(h)));assert.ok(!r.error,r.error);return r};
+let a=call('create',null,null,7).account;
+a=call('fund',a,{id:'x',kind:'PAPER_DEPOSIT',amount_cents:50000},7).account;
+a=call('controls',a,{expected_revision:1,max_invest_cents:50000,stake_cents:5000,allow_new_buys:true},7).account;
+const s=(n,h,action,prev)=>({signal:{schema:'r31.broadcast.v1',mode:'PAPER_ONLY',sequence:n,target_utc:t(h),published_at_utc:t(h),expires_at_utc:t(h).replace(':00:00.000Z',':15:00.000Z'),previous_blob_sha:prev,decisions:[{coin:'TEST',chain:'Solana',contract:'test',action,price_eur:1,observed_at_utc:t(h),source_url:'https://example.com/fixture',reason:'synthetic'}]},blob_sha:String(n).repeat(40)});
+const first=call('signal',a,s(1,8,'BUY',null),8);assert.equal(first.view.ledger.cash_eur,450);
+const second=call('signal',first.account,s(2,9,'BUY','1'.repeat(40)),9);assert.equal(second.view.ledger.cash_eur,450);
+const end=call('signal',second.account,s(3,10,'SELL','2'.repeat(40)),10);assert.equal(end.view.ledger.positions.length,0);
+assert.equal(end.performance.exits,1);
+assert.match(JSON.parse(ctx.r33Call('view','{}','','2026-11-25T10:00:00.000Z')).error,/INVALID_LOCAL_ACCOUNT/);
+console.log('R33 bundled engine lifecycle and validation passed');

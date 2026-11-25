@@ -14,6 +14,7 @@ for(const name of modules){
 out+=`const A=modules['device-account.mjs'];const P=modules['performance.mjs'];
 globalThis.r33Call=(op,raw,input,now)=>{try{
  const a=raw?JSON.parse(raw):null,i=input?JSON.parse(input):null;let next=a,status=null;
+ if(op!=='create'&&a?.schema!=='r31.device.account.v1')throw Error('INVALID_LOCAL_ACCOUNT');
  switch(op){case 'create':next=A.createAccount({now});break;case 'view':break;case 'fund':next=A.fundAccount(a,i,now);break;case 'controls':next=A.updateAccountControls(a,i,now);break;case 'signal':{const r=A.applyBroadcast(a,{...i,now});next=r.account;status=r.status;break;}default:throw Error('UNKNOWN_OP')}
  const view=A.accountView(next);return JSON.stringify({account:next,view,performance:P.performance(view),status});
 }catch(e){return JSON.stringify({error:String(e.message||e)})}};\n`;
