@@ -1,0 +1,109 @@
+name: R43 signed Android release
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: "Reviewed immutable commit on codex/r40-device-updater"
+        required: true
+        type: string
+      publish:
+        description: "Publish verified Android update to main (otherwise build only)"
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: read
+concurrency:
+  group: r43-android-release
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require reviewed updater source
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          [[ "$SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          git merge-base --is-ancestor "$SOURCE_SHA" origin/codex/r40-device-updater
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: node --test r31/android/mobile.test.mjs r31/android/end-to-end.test.mjs r31/telemetry.test.mjs
+      - name: Build with persistent private signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.R43_ANDROID_KEYSTORE_B64 }}
+          R40_SIGNING_STORE_PASS: ${{ secrets.R43_ANDROID_STORE_PASS }}
+          R40_SIGNING_KEY_PASS: ${{ secrets.R43_ANDROID_KEY_PASS }}
+          R40_SIGNING_ALIAS: ${{ secrets.R43_ANDROID_ALIAS }}
+          R43_CERT_SHA256: ${{ vars.R43_ANDROID_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          : "${KEYSTORE_B64:?Configure persistent signing secret first}"
+          umask 077
+          export R40_SIGNING_KEYSTORE="$RUNNER_TEMP/r43-release.jks"
+          trap 'rm -f "$R40_SIGNING_KEYSTORE"' EXIT
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > "$R40_SIGNING_KEYSTORE"
+          unset KEYSTORE_B64
+          bash r31/android/release-android.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: R43-Signed-Android
+          path: |
+            r31/android/out/R31-Paper-Android.apk
+            r31/android/out/release-metadata.json
+          if-no-files-found: error
+          retention-days: 30
+  publish:
+    if: ${{ inputs.publish }}
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/download-artifact@v4
+        with:
+          name: R43-Signed-Android
+          path: ${{ runner.temp }}/signed-android
+      - name: Validate and publish immutable APK + manifest
+        env:
+          CERT_PIN: ${{ vars.R43_ANDROID_CERT_SHA256 }}
+          ARTIFACT_DIR: ${{ runner.temp }}/signed-android
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          git config user.name "Sniperbot release"
+          git config user.email "actions@users.noreply.github.com"
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync,mkdirSync,existsSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const dir=process.env.ARTIFACT_DIR,m=JSON.parse(readFileSync(dir+'/release-metadata.json')),apk=readFileSync(dir+'/R31-Paper-Android.apk'),p=JSON.parse(readFileSync('r40/releases.json'));
+          if(p.schema!=='r40.release.v1'||p.mode!=='PAPER_ONLY'||m.mode!=='PAPER_ONLY'||m.package!=='com.r31.paperbot'||!Number.isSafeInteger(m.version_code)||m.version_code<43||m.version_code<=(p.android?.version_code??0)||!/^([a-f0-9]{64})$/.test(process.env.CERT_PIN)||m.certificate_sha256!==process.env.CERT_PIN||m.sha256!==createHash('sha256').update(apk).digest('hex')||m.bytes!==apk.length||apk.length>32*1024*1024)throw Error('INVALID_RELEASE');
+          if(p.android&&p.android.certificate_sha256!==m.certificate_sha256)throw Error('SIGNING_KEY_ROTATION_NOT_ALLOWED');
+          const path='r40/artifacts/R'+m.version_code+'-Android.apk';if(existsSync(path))throw Error('ARTIFACT_ALREADY_EXISTS');
+          mkdirSync('r40/artifacts',{recursive:true});writeFileSync(path,apk);writeFileSync('/tmp/r43-meta.json',JSON.stringify({...m,path,source_sha:process.env.SOURCE_SHA}));
+          NODE
+          git add r40/artifacts/
+          git commit -m "Publish signed Android APK"
+          export APK_COMMIT="$(git rev-parse HEAD)"
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const p=JSON.parse(readFileSync('r40/releases.json')),m=JSON.parse(readFileSync('/tmp/r43-meta.json'));
+          p.android={...m,commit:process.env.APK_COMMIT};p.status='ANDROID_RELEASE_AVAILABLE';p.note='Only approved signed Android package; existing installations must match signer.';writeFileSync('r40/releases.json',JSON.stringify(p,null,2)+'\n');
+          NODE
+          git add r40/releases.json
+          git commit -m "Enable verified Android update"
+          git push origin HEAD:main
