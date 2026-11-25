@@ -1,0 +1,20 @@
+name: R31 Paper control checks
+on:
+  push:
+    branches: [codex/r31-control-center-paper]
+permissions:
+  contents: read
+jobs:
+  tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check r31/server.mjs
+      - run: node --check r31/web/app.js
+      - run: node --test r31/policy.test.mjs
