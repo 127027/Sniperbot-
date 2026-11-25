@@ -1,0 +1,819 @@
+{
+  "previous": {
+    "signal": {
+      "schema": "r31.broadcast.v1",
+      "mode": "PAPER_ONLY",
+      "sequence": 6,
+      "target_utc": "2026-11-25T17:00:00.000Z",
+      "published_at_utc": "2026-11-25T17:03:35.902Z",
+      "expires_at_utc": "2026-11-25T17:15:00.000Z",
+      "decisions": [
+        {
+          "coin": "BASKET",
+          "chain": "Solana",
+          "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+          "action": "DATA_GAP",
+          "reason": "[STRATEGY HOLD] [EXECUTION PRICE_PENDING] Dot1/3 report historical buy-count advantage but 47% drawdown from peak; existing only, exit on sustained selling or liquidity loss. Sasa snapshot 15:09 UTC stale; exact token page undated. No fresh quote."
+        },
+        {
+          "coin": "PERRO",
+          "chain": "Solana",
+          "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+          "action": "DATA_GAP",
+          "reason": "[STRATEGY HOLD] [EXECUTION PRICE_PENDING] Dot1/3 historical buy-count advantage, thin liquidity and conflicting snapshots; existing only, exit on confirmed demand reversal or liquidity loss. No fresh quote. Dot2/4 missing."
+        }
+      ],
+      "previous_blob_sha": "e160929df12d77a3b41430c7443127288cab2bc6"
+    },
+    "blob_sha": "930587d0bfa198ed4ae8286c5ad64fb6c44997d5"
+  },
+  "universe": {
+    "schema": "r31.strategy.universe.v1",
+    "sequence": 6,
+    "last_signal_blob_sha": "930587d0bfa198ed4ae8286c5ad64fb6c44997d5",
+    "coins": []
+  },
+  "priorFinal": {
+    "kind": "R30_HOURLY_FINAL_REPORT",
+    "target_utc": "2026-11-25T17:00:00Z",
+    "completed_at_utc": "2026-11-25T17:03:56.264Z",
+    "previous_final_path": "reports/2026-11-25/15/final.json",
+    "previous_final_blob_sha": "4e9e2623d63da8ccd061e4a235b50c0682b4f321",
+    "checked_head": "ccea0055a946d4ff0fd7e886dc85968f16bd9af5",
+    "role_reports": [
+      {
+        "path": "reports/2026-11-25/17/dot-1.json",
+        "sha": "3b6d14dc2fa2730657345bb12d13f90468dc41f4"
+      },
+      {
+        "path": "reports/2026-11-25/17/dot-3.json",
+        "sha": "8df60979afc7fd7a484da83e5c3e7917cae759c6"
+      }
+    ],
+    "missing_roles": [
+      2,
+      4
+    ],
+    "peer_assessment": "Dot1/3 favor provisional HOLD for both; historical buy-count advantage, BASKET drawdown and PERRO thin liquidity. No fresh execution quote. Dot2/4 missing at initial assessment.",
+    "research_decisions": [
+      {
+        "coin": "BASKET",
+        "chain": "Solana",
+        "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+        "action": "DATA_GAP",
+        "reason": "[STRATEGY HOLD] [EXECUTION PRICE_PENDING] Dot1/3 report historical buy-count advantage but 47% drawdown from peak; existing only, exit on sustained selling or liquidity loss. Sasa snapshot 15:09 UTC stale; exact token page undated. No fresh quote.",
+        "amount_eur": 0,
+        "price_usd": null,
+        "price_eur": null
+      },
+      {
+        "coin": "PERRO",
+        "chain": "Solana",
+        "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+        "action": "DATA_GAP",
+        "reason": "[STRATEGY HOLD] [EXECUTION PRICE_PENDING] Dot1/3 historical buy-count advantage, thin liquidity and conflicting snapshots; existing only, exit on confirmed demand reversal or liquidity loss. No fresh quote. Dot2/4 missing.",
+        "amount_eur": 0,
+        "price_usd": null,
+        "price_eur": null
+      }
+    ],
+    "model_execution_events": [],
+    "paper_ledger": {
+      "kind": "R30_VIRTUAL_EUR_PAPER_LEDGER_V1",
+      "currency": "EUR",
+      "initial_cash_eur": 500,
+      "cash_eur": 400,
+      "max_open_cost_eur": 500,
+      "min_buy_eur": 50,
+      "model_friction_per_side_pct": 1,
+      "positions": [
+        {
+          "coin": "BASKET",
+          "chain": "Solana",
+          "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+          "pool_url": "https://dexscreener.com/solana/cixcofspwhnywjsodxxxvld6um5fh7w8mfpl9mpqpqtx",
+          "price_usd": 0.0005088,
+          "liquidity_usd": 101000,
+          "change_1h_pct": 85.66,
+          "change_vs_previous_final_pct": null,
+          "action": "BUY",
+          "reason": "Strong hourly and 5m net buy flow despite 15% drop vs peer; single LP and launch volatility",
+          "amount_eur": 50,
+          "source_observation_utc": "2026-11-25T06:59:57.584Z",
+          "source_quote_time": null,
+          "invalidation": "Exit on sustained demand reversal or liquidity deterioration; no exit for unowned tokens",
+          "execution": "INDICATIVE_MODEL",
+          "side": "BUY",
+          "cost_basis_eur": 50,
+          "fee_eur": 0.5,
+          "price_eur": 0.0004641065401806075,
+          "quantity": 106656.54481132077,
+          "fx_usd_per_eur": 1.0963,
+          "fx_date": "2026-11-24",
+          "fx_source": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.em.html",
+          "booked_at_utc": "2026-11-25T06:59:57.584Z",
+          "net_liquidation_eur": null,
+          "unrealized_pnl_eur": null,
+          "unrealized_pnl_pct": null,
+          "last_known_mark_usd": 0.0005088,
+          "last_known_mark_utc": "2026-11-25T06:59:57.584Z",
+          "current_mark_usd": null,
+          "current_mark_eur": null,
+          "decision": "DATA_GAP"
+        },
+        {
+          "coin": "PERRO",
+          "chain": "Solana",
+          "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+          "pool_url": "https://dexscreener.com/solana/4s1epxdedd7ty1utj7frou3sasxug98os7hcptneu8wh",
+          "price_usd": 0.000276,
+          "liquidity_usd": 40000,
+          "change_1h_pct": 58.02,
+          "change_vs_previous_final_pct": null,
+          "action": "BUY",
+          "reason": "Positive hourly and 5m flow; already +881%, thin liquidity and token extensions risk",
+          "amount_eur": 50,
+          "source_observation_utc": "2026-11-25T06:59:57.584Z",
+          "source_quote_time": null,
+          "invalidation": "Exit on sustained demand reversal or liquidity deterioration; no exit for unowned tokens",
+          "execution": "INDICATIVE_MODEL",
+          "side": "BUY",
+          "cost_basis_eur": 50,
+          "fee_eur": 0.5,
+          "price_eur": 0.0002517559062300465,
+          "quantity": 196619.02173913046,
+          "fx_usd_per_eur": 1.0963,
+          "fx_date": "2026-11-24",
+          "fx_source": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.em.html",
+          "booked_at_utc": "2026-11-25T06:59:57.584Z",
+          "net_liquidation_eur": null,
+          "unrealized_pnl_eur": null,
+          "unrealized_pnl_pct": null,
+          "last_known_mark_usd": 0.000276,
+          "last_known_mark_utc": "2026-11-25T06:59:57.584Z",
+          "current_mark_usd": null,
+          "current_mark_eur": null,
+          "decision": "DATA_GAP"
+        }
+      ],
+      "trades": [
+        {
+          "coin": "BASKET",
+          "chain": "Solana",
+          "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+          "pool_url": "https://dexscreener.com/solana/cixcofspwhnywjsodxxxvld6um5fh7w8mfpl9mpqpqtx",
+          "price_usd": 0.0005088,
+          "liquidity_usd": 101000,
+          "change_1h_pct": 85.66,
+          "change_vs_previous_final_pct": null,
+          "action": "BUY",
+          "reason": "Strong hourly and 5m net buy flow despite 15% drop vs peer; single LP and launch volatility",
+          "amount_eur": 50,
+          "source_observation_utc": "2026-11-25T06:59:57.584Z",
+          "source_quote_time": null,
+          "invalidation": "Exit on sustained demand reversal or liquidity deterioration; no exit for unowned tokens",
+          "execution": "INDICATIVE_MODEL",
+          "side": "BUY",
+          "cost_basis_eur": 50,
+          "fee_eur": 0.5,
+          "price_eur": 0.0004641065401806075,
+          "quantity": 106656.54481132077,
+          "fx_usd_per_eur": 1.0963,
+          "fx_date": "2026-11-24",
+          "fx_source": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.em.html",
+          "booked_at_utc": "2026-11-25T06:59:57.584Z",
+          "net_liquidation_eur": 49,
+          "unrealized_pnl_eur": -1,
+          "unrealized_pnl_pct": -2
+        },
+        {
+          "coin": "PERRO",
+          "chain": "Solana",
+          "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+          "pool_url": "https://dexscreener.com/solana/4s1epxdedd7ty1utj7frou3sasxug98os7hcptneu8wh",
+          "price_usd": 0.000276,
+          "liquidity_usd": 40000,
+          "change_1h_pct": 58.02,
+          "change_vs_previous_final_pct": null,
+          "action": "BUY",
+          "reason": "Positive hourly and 5m flow; already +881%, thin liquidity and token extensions risk",
+          "amount_eur": 50,
+          "source_observation_utc": "2026-11-25T06:59:57.584Z",
+          "source_quote_time": null,
+          "invalidation": "Exit on sustained demand reversal or liquidity deterioration; no exit for unowned tokens",
+          "execution": "INDICATIVE_MODEL",
+          "side": "BUY",
+          "cost_basis_eur": 50,
+          "fee_eur": 0.5,
+          "price_eur": 0.0002517559062300465,
+          "quantity": 196619.02173913046,
+          "fx_usd_per_eur": 1.0963,
+          "fx_date": "2026-11-24",
+          "fx_source": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.em.html",
+          "booked_at_utc": "2026-11-25T06:59:57.584Z",
+          "net_liquidation_eur": 49,
+          "unrealized_pnl_eur": -1,
+          "unrealized_pnl_pct": -2
+        }
+      ],
+      "realized_pnl_eur": 0,
+      "last_completed_target_utc": "2026-11-25T17:00:00Z",
+      "mode": "INDICATIVE_PUBLIC_PRICE_MODEL_ONLY",
+      "actual_windows_ledger_connected": false,
+      "real_orders": 0,
+      "fixed_buy_eur": 50,
+      "capital_policy": "FIXED_50_EUR_PER_BUY_MAX_500_EUR_OPEN_COST_NO_LEVERAGE",
+      "initialization_note": "User changed starting capital before first modeled trade; do not reinitialize once a final report exists."
+    },
+    "summary": {
+      "cash_eur": 400,
+      "open_cost_eur": 100,
+      "realized_pnl_eur": 0,
+      "unrealized_pnl_eur": null,
+      "net_liquidation_value_eur": null,
+      "unknown_mark_count": 2,
+      "initial_cash_eur": 500,
+      "fixed_buy_eur": 50,
+      "max_open_cost_eur": 500,
+      "scan_number": 15,
+      "proposed_new_spend_eur": 0,
+      "booked_new_spend_eur": 0,
+      "total_pnl_eur": null,
+      "total_pnl_pct": null
+    },
+    "news_and_catalysts": [],
+    "notes": "R31 sequence 6 published and verified; no fresh marks or trades. No new coins. Missing 16 UTC final not backfilled. Peer sources only, no independent fresh quote.",
+    "run_context_utc": "2026-11-25T17:03:21Z",
+    "quote_tracking": [
+      {
+        "coin": "BASKET",
+        "chain": "Solana",
+        "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+        "pool_address": "CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+        "pool_url": "https://dexscreener.com/solana/CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+        "attempts": [
+          {
+            "source_url": "https://sasapad.fun/top/solana-meme-coin-gainers/",
+            "accessed_at_utc": null,
+            "result": "STALE_SNAPSHOT",
+            "quote_time_utc": "2026-11-25T15:09:00Z",
+            "price_usd": 0.0012,
+            "liquidity_usd": 153900,
+            "peer_report": "reports/2026-11-25/17/dot-1.json"
+          },
+          {
+            "source_url": "https://sasapad.fun/x/solana/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f/",
+            "accessed_at_utc": null,
+            "result": "IDENTITY_CONFIRMED_UNDATED",
+            "quote_time_utc": null,
+            "price_usd": 0.00111,
+            "liquidity_usd": 147700,
+            "peer_report": "reports/2026-11-25/17/dot-1.json"
+          },
+          {
+            "source_url": "https://dexscreener.com/solana/CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+            "accessed_at_utc": null,
+            "result": "URL not accessible via web tool",
+            "quote_time_utc": null,
+            "peer_report": "reports/2026-11-25/17/dot-1.json"
+          },
+          {
+            "source_url": "https://www.sasapad.fun/top/solana-meme-coin-gainers/",
+            "accessed_at_utc": null,
+            "result": "STALE_SNAPSHOT",
+            "quote_time_utc": "2026-11-25T14:40:00Z",
+            "price_usd": 0.00115,
+            "liquidity_usd": 149700,
+            "peer_report": "reports/2026-11-25/17/dot-3.json"
+          },
+          {
+            "source_url": "https://sasapad.fun/x/solana/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f/",
+            "accessed_at_utc": null,
+            "result": "IDENTITY_CONFIRMED_UNDATED",
+            "quote_time_utc": null,
+            "price_usd": 0.00111,
+            "liquidity_usd": 147700,
+            "peer_report": "reports/2026-11-25/17/dot-3.json"
+          }
+        ],
+        "chosen_quote": null,
+        "disposition": "DATA_GAP",
+        "reason": "[STRATEGY HOLD] [EXECUTION PRICE_PENDING] Dot1/3 report historical buy-count advantage but 47% drawdown from peak; existing only, exit on sustained selling or liquidity loss. Sasa snapshot 15:09 UTC stale; exact token page undated. No fresh quote.",
+        "strategy": "HOLD"
+      },
+      {
+        "coin": "PERRO",
+        "chain": "Solana",
+        "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+        "pool_address": "4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+        "pool_url": "https://dexscreener.com/solana/4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+        "attempts": [
+          {
+            "source_url": "https://sasapad.fun/top/solana-meme-coin-gainers/",
+            "accessed_at_utc": null,
+            "result": "STALE_SNAPSHOT",
+            "quote_time_utc": "2026-11-25T15:09:00Z",
+            "price_usd": 0.000302,
+            "liquidity_usd": 42800,
+            "peer_report": "reports/2026-11-25/17/dot-1.json"
+          },
+          {
+            "source_url": "https://sasapad.fun/x/solana/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump/",
+            "accessed_at_utc": null,
+            "result": "IDENTITY_CONFIRMED_UNDATED",
+            "quote_time_utc": null,
+            "price_usd": 0.000254,
+            "liquidity_usd": 39000,
+            "peer_report": "reports/2026-11-25/17/dot-1.json"
+          },
+          {
+            "source_url": "https://dexscreener.com/solana/4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+            "accessed_at_utc": null,
+            "result": "URL not accessible via web tool",
+            "quote_time_utc": null,
+            "peer_report": "reports/2026-11-25/17/dot-1.json"
+          },
+          {
+            "source_url": "https://www.sasapad.fun/top/solana-meme-coin-gainers/",
+            "accessed_at_utc": null,
+            "result": "STALE_SNAPSHOT",
+            "quote_time_utc": "2026-11-25T14:40:00Z",
+            "price_usd": 0.000248,
+            "liquidity_usd": 38300,
+            "peer_report": "reports/2026-11-25/17/dot-3.json"
+          },
+          {
+            "source_url": "https://sasapad.fun/x/solana/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump/",
+            "accessed_at_utc": null,
+            "result": "IDENTITY_CONFIRMED_UNDATED",
+            "quote_time_utc": null,
+            "price_usd": 0.000254,
+            "liquidity_usd": 39000,
+            "peer_report": "reports/2026-11-25/17/dot-3.json"
+          }
+        ],
+        "chosen_quote": null,
+        "disposition": "DATA_GAP",
+        "reason": "[STRATEGY HOLD] [EXECUTION PRICE_PENDING] Dot1/3 historical buy-count advantage, thin liquidity and conflicting snapshots; existing only, exit on confirmed demand reversal or liquidity loss. No fresh quote. Dot2/4 missing.",
+        "strategy": "HOLD"
+      }
+    ]
+  },
+  "reports": [
+    {
+      "role": 1,
+      "path": "reports/2026-11-25/19/dot-1.json",
+      "sha": "45a42ca6952362c274732c9ff7153c9859bef3b0",
+      "data": {
+        "schema": "R30_DOT_REPORT_V2",
+        "mode": "PAPER_ONLY",
+        "dot": 1,
+        "role": "market",
+        "target_utc": "2026-11-25T19:00:00Z",
+        "run_context_utc": "2026-11-25T18:25:47Z",
+        "completed_at_utc": null,
+        "executor": "MANUAL_CHAT_RECOVERY",
+        "autonomous_dot_run": false,
+        "final_path": "reports/2026-11-25/17/final.json",
+        "final_blob_sha": "f3a7f72571f0846668c9453127a83cf38d5d9903",
+        "r31_sequence": 6,
+        "coverage": {
+          "required": 2,
+          "checked": 2,
+          "fresh_quotes": 0,
+          "new_coins": 0
+        },
+        "peer_assessment": "Dot2 report e2480c101624a8a176079e635ee306139b0bd7d2 also flags conflicting/stale evidence. Search-result observations only; no verified fresh quote.",
+        "quote_tracking": [
+          {
+            "coin": "BASKET",
+            "chain": "Solana",
+            "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+            "pool_address": "CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+            "attempts": [
+              {
+                "source_url": "https://www.solanaterminal.com/solana/token/basket/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+                "quote_time_utc": null,
+                "price_usd": 0.000299,
+                "result": "UNDATED_INTRADAY"
+              },
+              {
+                "source_url": "https://solanaterminal.com/solana/token/basket/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+                "quote_time_utc": null,
+                "price_usd": 0.001727,
+                "result": "CONFLICTING_UNDATED_INTRADAY"
+              },
+              {
+                "source_url": "https://dextrading.com/tokens/solana/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+                "quote_time_utc": "2026-11-25T09:01:00Z",
+                "price_usd": 0.000877,
+                "result": "STALE"
+              }
+            ],
+            "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Exact-contract search results disagree substantially; no reliable contemporaneous market observation supports a new action.",
+            "chosen_quote": null,
+            "disposition": "DATA_GAP",
+            "strategy": "WATCH"
+          },
+          {
+            "coin": "PERRO",
+            "chain": "Solana",
+            "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+            "pool_address": "4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+            "attempts": [
+              {
+                "source_url": "https://solanaterminal.com/solana/token/perro/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+                "quote_time_utc": null,
+                "price_usd": 0.000228,
+                "result": "UNDATED_INTRADAY"
+              },
+              {
+                "source_url": "https://dextrading.com/tokens/solana/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+                "quote_time_utc": "2026-11-25T01:38:00Z",
+                "price_usd": 0.00003441,
+                "result": "STALE"
+              },
+              {
+                "source_url": "https://www.solanatracker.io/tokens/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+                "quote_time_utc": "2026-11-25T02:01:00Z",
+                "price_usd": 0.0001324,
+                "result": "STALE"
+              }
+            ],
+            "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Prior model position requires exit review, but conflicting or stale search results do not authorize a fresh SELL. No new entry.",
+            "chosen_quote": null,
+            "disposition": "DATA_GAP",
+            "strategy": "WATCH"
+          }
+        ],
+        "decisions": [
+          {
+            "coin": "BASKET",
+            "chain": "Solana",
+            "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+            "action": "DATA_GAP",
+            "strategy": "WATCH",
+            "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Exact-contract search results disagree substantially; no reliable contemporaneous market observation supports a new action."
+          },
+          {
+            "coin": "PERRO",
+            "chain": "Solana",
+            "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+            "action": "DATA_GAP",
+            "strategy": "WATCH",
+            "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Prior model position requires exit review, but conflicting or stale search results do not authorize a fresh SELL. No new entry."
+          }
+        ],
+        "notes": "Manual recovery before target hour; not an autonomous Dot1 success. No ledger or signal changes."
+      }
+    },
+    {
+      "role": 2,
+      "path": "reports/2026-11-25/19/dot-2.json",
+      "sha": "e2480c101624a8a176079e635ee306139b0bd7d2",
+      "data": {
+        "kind": "R30_ROLE_REPORT",
+        "role": 2,
+        "target_utc": "2026-11-25T19:00:00Z",
+        "run_context_utc": "2026-11-25T18:13:59Z",
+        "completed_at_utc": null,
+        "mode": "PAPER_ONLY",
+        "research_decisions": [
+          {
+            "coin": "BASKET",
+            "chain": "solana",
+            "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+            "action": "DATA_GAP",
+            "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Conflicting undated exact-contract snapshots and concentration risk; no fresh entry or exit thesis.",
+            "amount_eur": 0,
+            "price_usd": null
+          },
+          {
+            "coin": "PERRO",
+            "chain": "solana",
+            "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+            "action": "DATA_GAP",
+            "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Thin historical liquidity and low organic volume warrant exit review, but no fresh evidence to authorize SELL.",
+            "amount_eur": 0,
+            "price_usd": null
+          }
+        ],
+        "quote_tracking": [
+          {
+            "coin": "BASKET",
+            "chain": "solana",
+            "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+            "pool_address": "CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+            "attempts": [
+              {
+                "source_url": "https://x.preview.pump.fun/coin/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f?highlight_callout=95789df4-41e5-4a1e-ab97-e797102b1ab2",
+                "quote_time_utc": null,
+                "price_usd": 0.0002667,
+                "result": "Exact contract, undated snapshot"
+              },
+              {
+                "source_url": "https://frontend-git-dependabot-npm-and-yarn-npm-and-yarn-1e14cbedbc.preview.pump.fun/coin/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f?highlight_callout=25d205b1-9ee2-48b4-b692-accdf5d9d3c4",
+                "quote_time_utc": null,
+                "price_usd": 0.0001519,
+                "result": "Conflicting undated snapshot; top 10 concentration 41.76% in snapshot"
+              }
+            ],
+            "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Conflicting undated exact-contract snapshots and concentration risk; no fresh entry or exit thesis.",
+            "pool_url": "https://www.geckoterminal.com/solana/pools/CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+            "chosen_quote": null,
+            "disposition": "DATA_GAP"
+          },
+          {
+            "coin": "PERRO",
+            "chain": "solana",
+            "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+            "pool_address": "4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+            "attempts": [
+              {
+                "source_url": "https://dextrading.com/tokens/solana/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+                "quote_time_utc": "2026-11-25T01:38:00Z",
+                "price_usd": 0.00003441,
+                "liquidity_usd": 11900,
+                "result": "Historical, stale"
+              },
+              {
+                "source_url": "https://kolspace.io/tokens/sol/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+                "quote_time_utc": null,
+                "price_usd": 0.00015,
+                "liquidity_usd": 27300,
+                "result": "Exact contract and pool confirmed; no absolute quote time"
+              },
+              {
+                "source_url": "https://barb.exchange/tokens/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+                "quote_time_utc": null,
+                "price_usd": 0.000136,
+                "liquidity_usd": 23900,
+                "result": "Undated snapshot; organic volume 37k vs 1.69m total"
+              }
+            ],
+            "reason": "[STRATEGY WATCH] [EXECUTION PRICE_PENDING] Thin historical liquidity and low organic volume warrant exit review, but no fresh evidence to authorize SELL.",
+            "pool_url": "https://www.geckoterminal.com/solana/pools/4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+            "chosen_quote": null,
+            "disposition": "DATA_GAP"
+          }
+        ],
+        "coverage": {
+          "required_coins": 2,
+          "researched": 2,
+          "fresh_quotes": 0,
+          "r31_sequence": 6,
+          "r31_coins": 0
+        },
+        "notes": [
+          "No new coins, no ledger or broadcast writes. Exact web retrieval time unavailable; no invented timestamps."
+        ],
+        "peer_assessment": "Dot 1, 3, 4 target paths returned HTTP 404."
+      }
+    },
+    {
+      "role": 3,
+      "path": "reports/2026-11-25/19/dot-3.json",
+      "sha": "aa52ab8569cdf030f4fb50699a28a8ea18397468",
+      "data": {
+        "kind": "R30_ROLE_REPORT",
+        "role": 3,
+        "target_utc": "2026-11-25T19:00:00Z",
+        "run_context_utc": "2026-11-25T18:24:54Z",
+        "completed_at_utc": null,
+        "mode": "PAPER_ONLY",
+        "previous_final_path": "reports/2026-11-25/17/final.json",
+        "previous_final_blob_sha": "f3a7f72571f0846668c9453127a83cf38d5d9903",
+        "research_decisions": [
+          {
+            "coin": "BASKET",
+            "chain": "solana",
+            "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+            "action": "DATA_GAP",
+            "reason": "[STRATEGY SELL] [EXECUTION PRICE_PENDING] Snapshot down 37% versus prior 16:50 UTC 0.00118; detail 60% below peak, three reported sales at 18:04/18:13 totaling 10900 USD; positive 24h buy counts 41724 vs 30340 and possible rebound are counterarguments. Prioritize full exit on confirmed continued selling; no new entry.",
+            "amount_eur": 0,
+            "price_usd": null,
+            "price_eur": null
+          },
+          {
+            "coin": "PERRO",
+            "chain": "solana",
+            "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+            "action": "DATA_GAP",
+            "reason": "[STRATEGY SELL] [EXECUTION PRICE_PENDING] Snapshot below model entry 0.000276 by 39.9%; thin liquidity and peer organic-volume concern. Counterargument 32647 buys vs 26156 sells over 24h and undated detail higher than snapshot. Prioritize exit on confirmed weakness, no new entry.",
+            "amount_eur": 0,
+            "price_usd": null,
+            "price_eur": null
+          }
+        ],
+        "quote_tracking": [
+          {
+            "coin": "BASKET",
+            "chain": "solana",
+            "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+            "pool_address": "CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+            "pool_url": "https://www.geckoterminal.com/solana/pools/CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+            "attempts": [
+              {
+                "source_url": "https://www.geckoterminal.com/solana/pools/CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+                "accessed_at_utc": null,
+                "result": "URL is not accessible via this tool",
+                "quote_time_utc": null
+              },
+              {
+                "source_url": "https://www.sasapad.fun/top/solana-meme-coin-gainers/",
+                "accessed_at_utc": null,
+                "result": "Opened snapshot; exact contract confirmed by following row link; stale at target and pool not independently confirmed",
+                "quote_time_utc": "2026-11-25T18:13:00Z",
+                "price_usd": 0.000743,
+                "liquidity_usd": 123100
+              },
+              {
+                "source_url": "https://sasapad.fun/x/solana/3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f/",
+                "accessed_at_utc": null,
+                "result": "Exact contract confirmed in FAQ; undated detail, not execution quote",
+                "quote_time_utc": null,
+                "price_usd": 0.000834,
+                "liquidity_usd": 130300
+              }
+            ],
+            "chosen_quote": null,
+            "disposition": "DATA_GAP",
+            "strategy": "EXIT",
+            "reason": "[STRATEGY SELL] [EXECUTION PRICE_PENDING] Snapshot down 37% versus prior 16:50 UTC 0.00118; detail 60% below peak, three reported sales at 18:04/18:13 totaling 10900 USD; positive 24h buy counts 41724 vs 30340 and possible rebound are counterarguments. Prioritize full exit on confirmed continued selling; no new entry."
+          },
+          {
+            "coin": "PERRO",
+            "chain": "solana",
+            "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+            "pool_address": "4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+            "pool_url": "https://www.geckoterminal.com/solana/pools/4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+            "attempts": [
+              {
+                "source_url": "https://www.geckoterminal.com/solana/pools/4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+                "accessed_at_utc": null,
+                "result": "URL is not accessible via this tool",
+                "quote_time_utc": null
+              },
+              {
+                "source_url": "https://www.sasapad.fun/top/solana-meme-coin-gainers/",
+                "accessed_at_utc": null,
+                "result": "Opened snapshot; exact contract confirmed by following row link; stale at target and pool not independently confirmed",
+                "quote_time_utc": "2026-11-25T18:13:00Z",
+                "price_usd": 0.000166,
+                "liquidity_usd": 32000
+              },
+              {
+                "source_url": "https://sasapad.fun/x/solana/4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump/",
+                "accessed_at_utc": null,
+                "result": "Exact contract confirmed in FAQ; undated detail, not execution quote",
+                "quote_time_utc": null,
+                "price_usd": 0.000175,
+                "liquidity_usd": 32900
+              }
+            ],
+            "chosen_quote": null,
+            "disposition": "DATA_GAP",
+            "strategy": "EXIT",
+            "reason": "[STRATEGY SELL] [EXECUTION PRICE_PENDING] Snapshot below model entry 0.000276 by 39.9%; thin liquidity and peer organic-volume concern. Counterargument 32647 buys vs 26156 sells over 24h and undated detail higher than snapshot. Prioritize exit on confirmed weakness, no new entry."
+          }
+        ],
+        "coverage": {
+          "required_coins": 2,
+          "researched": 2,
+          "fresh_quotes": 0,
+          "r31_sequence": 6,
+          "r31_coins": 0,
+          "new_coins": 0
+        },
+        "peer_assessment": "Dot2 read SHA e2480c101624a8a176079e635ee306139b0bd7d2: WATCH both; Dot3 favors exit review based on independently opened newer snapshot and dated BASKET large sales. Dot1 404; Dot4 NOT_FOUND: Error code: NOT_FOUND; Error: GitHub API error 404: {\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/repos/contents#get-repository-content\",\"status\":\"404\"}",
+        "notes": [
+          "Exact web access timestamps unavailable; run context not quote or completion time.",
+          "No new coins, ledger or broadcast writes. Snapshot 47 minutes before target; refresh needed by Dot5."
+        ]
+      }
+    },
+    {
+      "role": 4,
+      "path": "reports/2026-11-25/19/dot-4.json",
+      "sha": "54d725d0c3ee0d4c0812f0d26f540a7e7219a029",
+      "data": {
+        "kind": "R30_ROLE_REPORT",
+        "role": 4,
+        "target_utc": "2026-11-25T19:00:00Z",
+        "run_context_utc": "2026-11-25T18:32:26Z",
+        "completed_at_utc": null,
+        "mode": "PAPER_ONLY",
+        "research_decisions": [
+          {
+            "coin": "BASKET",
+            "chain": "solana",
+            "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+            "action": "DATA_GAP",
+            "reason": "[STRATEGY SELL] [EXECUTION PRICE_PENDING] Peer3 reports 37% decline and large sells; positive buy counts and possible rebound counter this. Prioritize exit review, no new entry. Conditional thesis based on peer evidence, not an executable order.",
+            "amount_eur": 0,
+            "price_usd": null
+          },
+          {
+            "coin": "PERRO",
+            "chain": "solana",
+            "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+            "action": "DATA_GAP",
+            "reason": "[STRATEGY SELL] [EXECUTION PRICE_PENDING] Peer3 reports weak price and thin liquidity; peer1 undated higher quote suggests possible rebound. Prioritize exit review, no new entry. Conditional thesis based on peer evidence, not an executable order.",
+            "amount_eur": 0,
+            "price_usd": null
+          }
+        ],
+        "quote_tracking": [
+          {
+            "coin": "BASKET",
+            "chain": "solana",
+            "contract": "3Tg6YnNrfPdFfsY14MaNsDMWLseAyrUDS3myJtbaJN6f",
+            "pool_address": "CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+            "pool_url": "https://www.geckoterminal.com/solana/pools/CixcofsPwHnYWjsoDxXxvLd6uM5fH7w8MFPL9mpQpqtX",
+            "attempts": [
+              {
+                "source_url": "https://sasapad.fun/top/solana-meme-coin-gainers/",
+                "quote_time_utc": "2026-11-25T11:57:00Z",
+                "price_usd": null,
+                "result": "Own search returned stale ticker-only snapshot; exact identity not confirmed. Exact-contract searches did not yield usable fresh quotes."
+              },
+              {
+                "source_url": "https://www.sasapad.fun/top/solana-meme-coin-gainers/",
+                "quote_time_utc": "2026-11-25T18:13:00Z",
+                "price_usd": 0.000743,
+                "liquidity_usd": 123100,
+                "result": "Peer3 reported snapshot, not independently reproduced; stale at target."
+              }
+            ],
+            "chosen_quote": null,
+            "disposition": "DATA_GAP",
+            "reason": "[STRATEGY SELL] [EXECUTION PRICE_PENDING] Peer3 reports 37% decline and large sells; positive buy counts and possible rebound counter this. Prioritize exit review, no new entry. Conditional thesis based on peer evidence, not an executable order."
+          },
+          {
+            "coin": "PERRO",
+            "chain": "solana",
+            "contract": "4Di56UJzpnb7E4D7aLXFf7aLF5TrpJYv9Q3mR398pump",
+            "pool_address": "4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+            "pool_url": "https://www.geckoterminal.com/solana/pools/4s1epXdedd7TY1UtJ7frou3saSxuG98os7HcPtNEu8WH",
+            "attempts": [
+              {
+                "source_url": "https://sasapad.fun/top/solana-meme-coin-gainers/",
+                "quote_time_utc": "2026-11-25T11:57:00Z",
+                "price_usd": null,
+                "result": "Own search returned stale ticker-only snapshot; exact identity not confirmed. Exact-contract searches did not yield usable fresh quotes."
+              },
+              {
+                "source_url": "https://www.sasapad.fun/top/solana-meme-coin-gainers/",
+                "quote_time_utc": "2026-11-25T18:13:00Z",
+                "price_usd": 0.000166,
+                "liquidity_usd": 32000,
+                "result": "Peer3 reported snapshot, not independently reproduced; stale at target."
+              }
+            ],
+            "chosen_quote": null,
+            "disposition": "DATA_GAP",
+            "reason": "[STRATEGY SELL] [EXECUTION PRICE_PENDING] Peer3 reports weak price and thin liquidity; peer1 undated higher quote suggests possible rebound. Prioritize exit review, no new entry. Conditional thesis based on peer evidence, not an executable order."
+          }
+        ],
+        "coverage": {
+          "required_coins": 2,
+          "researched": 2,
+          "fresh_quotes": 0,
+          "r31_sequence": 6,
+          "r31_coins": 0,
+          "new_coins": 0
+        },
+        "peer_assessment": "Read all three peers. Dot1 manual recovery and Dot2 WATCH both; Dot3 conditional SELL both. Dot4 favors conditional exit review based on Dot3 evidence, not independent fresh confirmation.",
+        "notes": [
+          "Own public search also returned duplicate BASKET ticker rows at 15:21 UTC https://www.sasapad.fun/top/new-solana-meme-coins/; no attribution to exact contract. Exact retrieval time unavailable. No ledger or broadcast writes."
+        ]
+      }
+    }
+  ],
+  "target": "2026-11-25T19:00:00.000Z",
+  "published": "2026-11-25T19:08:00.000Z",
+  "head": "21bc18aa1267e7e9da9b15502fd3d4de16f80b70",
+  "priorPointer": {
+    "kind": "R30_LATEST_FINAL_POINTER_V1",
+    "target_utc": "2026-11-25T17:00:00Z",
+    "final_path": "reports/2026-11-25/17/final.json",
+    "final_blob_sha": "f3a7f72571f0846668c9453127a83cf38d5d9903",
+    "summary": {
+      "cash_eur": 400,
+      "open_cost_eur": 100,
+      "realized_pnl_eur": 0,
+      "unrealized_pnl_eur": null,
+      "net_liquidation_value_eur": null,
+      "unknown_mark_count": 2,
+      "initial_cash_eur": 500,
+      "fixed_buy_eur": 50,
+      "max_open_cost_eur": 500,
+      "scan_number": 15,
+      "proposed_new_spend_eur": 0,
+      "booked_new_spend_eur": 0,
+      "total_pnl_eur": null,
+      "total_pnl_pct": null
+    },
+    "mode": "INDICATIVE_PUBLIC_PRICE_MODEL_ONLY"
+  }
+}
