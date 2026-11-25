@@ -1,0 +1,61 @@
+{
+  "origin": "AUTOMATION",
+  "mode": "PAPER_ONLY",
+  "run_id": "20261125T235635Z-auto-strategy-8e2435d",
+  "batch": 2,
+  "first_verified_blob_sha": "e51580d039c09ca20e136d84e3e6ed9327bdff73",
+  "observed_at_utc": "UNKNOWN",
+  "peer_risk_read": {
+    "sha": "97647f18b8408693b509484b86126fc450dc4bc2",
+    "path": "r50/dot3/runs/20261125T230439Z-auto-risk/batch-01.json"
+  },
+  "decisions": [
+    {
+      "coin": "4CHAN",
+      "chain": "base",
+      "contract": "0x912db1cf8bf2d30c11225ec9a26623283870ad3e",
+      "source": "https://alph.ai/token/base/4CHAN-0x912db1cf8bf2d30c11225ec9a26623283870ad3e",
+      "source_time": "2026-11-25T05:40:08.849Z",
+      "price_usd": 0.00007,
+      "liquidity_usd": 35000,
+      "volume24_usd": 145.57,
+      "decision": "NO_ACTION",
+      "thesis": "Old snapshot shows very low turnover relative to liquidity; no verified current catalyst. Entry requires fresh volume acceleration and verified contract controls; exit review if liquidity collapses.",
+      "blockers": [
+        "audit 0/4",
+        "pool identity missing",
+        "stale quote"
+      ]
+    },
+    {
+      "coin": "4CHAN",
+      "chain": "solana",
+      "contract": "DVdWuNK8ncn79B6z8nCiwcNAiwyFcmBPfChgxJGTpump",
+      "source": "https://whodlbot.com/coin/4chan-DVdWuNK8ncn79B6z8nCiwcNAiwyFcmBPfChgxJGTpump",
+      "source_time": "2026-11-24T23:44:00Z",
+      "liquidity_usd": 39000,
+      "top10_pct": 24.6,
+      "linked_wallet_pct": 13.3,
+      "decision": "NO_ACTION",
+      "thesis": "Separate identity from Base token; revoked mint/freeze positive but linked wallet exposure and 21 ticker copies are material risks. No verified current momentum. Entry only after current depth and flow confirmation; exit review if linked wallets distribute.",
+      "blockers": [
+        "stale risk snapshot",
+        "no fresh quote"
+      ]
+    }
+  ],
+  "unresolved": [
+    {
+      "coin": "LENDR",
+      "contract": "AGazYig7A8Co6ZapAPterBRLitdiP6AAaWiPH8jWLend",
+      "finding": "Exact-address search returned unrelated lending protocol results; no new independent token evidence. Do not infer affiliation.",
+      "decision": "NO_ACTION"
+    }
+  ],
+  "queue": [
+    "Refresh four exact identities with time-aligned market data",
+    "Verify current pool custody and sell simulation",
+    "Find independently documented catalysts; do not force BUY"
+  ],
+  "orders": 0
+}
