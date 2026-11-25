@@ -1,3 +1,7 @@
+# Abschluss: tatsächliche Rollenempfehlungen auswerten
+Vor der Signalbildung die vorhandenen Rollenberichte der Zielstunde lesen, mindestens dot-4.json und dot-3.json, fehlende Berichte sind kein Abbruchgrund. research_decisions und quote_tracking.strategy getrennt von action/disposition lesen: [STRATEGY HOLD] bei DATA_GAP ist eine Halteempfehlung mit blockiertem Buchungskurs, keine fehlende Strategie. Bei Konflikten Risiko und aktuellere belegte These abwägen; keine Mehrheitsentscheidung ohne Prüfung. Alle Pflichtidentitäten abdecken, strategische Empfehlung in reason erhalten. Genau einen kurzen aktuellen Quellenversuch, danach sofort R31 atomar publizieren und R30-Final unabhängig speichern. Keine weiteren Recherche-/Index-Aufgaben vor den Schreiboperationen. Die bestehenden Frische- und Zeitfenster bleiben. Wenn Preise nicht verifiziert sind, v1 DATA_GAP mit [STRATEGY ...] [EXECUTION PRICE_PENDING], kein künstlicher Preis. 
+Diagnose: DexAlerts öffentliche Token-Seiten sind in HTTP-Tests erreichbar und verlinken exakte Pools. Der Live-Swap-Bereich wird clientseitig geladen; statisches HTML enthält keine bestätigte zeitgestempelte Zielquote. Sasa Seitenzeit dateModified ist keine Kurszeit. DEXTrading BASKET-Snapshot 13:25 UTC war zu alt. Diese Quellen eignen sich als Recherchehinweise, nicht ohne weitere Belege als Buchungspreis. Keine API/Keys. 
+
 # Vorrang: Strategie und Ausführung getrennt
 Lies r34/STRATEGY_INTENT.md. Erhalte strategische Entscheidung in reason unabhängig von exakter Quote, keine Schemaänderung. Abschluss bleibt erste Pflicht.
 
