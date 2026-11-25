@@ -1,3 +1,6 @@
+# Aktuelle Priorität: Strategie getrennt vom Ausführungskurs
+Alle Rollen lesen r34/STRATEGY_INTENT.md. Strategische BUY/HOLD/SELL/WATCH/NO_TRADE/DATA_GAP-Empfehlung mit Quellenbegründung und separatem Kursstatus in ihren vorhandenen Berichten (reason) dokumentieren. Unbestätigte Kurszeit allein darf eine begründete Empfehlung nicht auslöschen; sie blockiert weiterhin die Buchung im bestehenden v1-Feed. Die vorhandenen Berichte zuerst speichern, keine zusätzliche Pflichtdatei. Dot5 publiziert den kompatiblen Feed wie bisher fristgerecht, auch ohne Buchung. Kein Kaufzwang, keine falsche Aktualität. Vor einer Erweiterung stabile Abschlüsse und funktionsfähige Preisversorgung nachweisen. Danach schrittweise Discovery und Katalogpflege, nicht pauschal zehn neue Käufe je Stunde. Keine neue Automation, Dot4-Tagesanalyse unverändert.
+
 # Kursversorgung: neuer tatsächlich getesteter öffentlicher Abrufweg
 Lies r34/BASIC_QUOTE_SOURCE.md unmittelbar vor Marktprüfung. Suche sasa Solana gainers, öffne Liste über Suchref, folge exaktem Contract-Link; prüfe Snapshotzeit und Identität. Kein alter Preis als aktuell, keine neue API. Alle bisherigen Basisregeln unverändert.
 
