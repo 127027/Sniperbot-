@@ -1,3 +1,5 @@
+# R45: r45/STRATEGY_EXECUTION.md adds separate provisional strategy assessments, no execution gate change.
+
 # R37 priority: Discovery-first and mandatory candidate handoff
 Read r34/DISCOVERY_HANDOFF.md first. It supersedes contradictory ordering, not risk/price rules.
 

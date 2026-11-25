@@ -1,3 +1,5 @@
+# R45 priority: r45/STRATEGY_EXECUTION.md; separate assessment coverage and executable signal.
+
 # R44 priority: r44/IDENTITY_AND_CLOSE.md; normalized exact identity and direct links, close-window source refresh.
 
 # R39 priority: read r39/TRADE_LIFECYCLE.md. Durable EXIT and R38 incremental discovery; no safety override.
