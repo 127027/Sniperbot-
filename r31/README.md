@@ -12,3 +12,6 @@ Beide: Testgeld einzahlen, Limit und Stake setzen, neue Paper-Käufe erlauben. N
 ## Verträge und Tests
 [MULTI_DEVICE.md](MULTI_DEVICE.md), [R31_DOT_BROADCAST_RUNBOOK.md](R31_DOT_BROADCAST_RUNBOOK.md), [COMPLETION_CHECK.md](COMPLETION_CHECK.md), [Übergabe und priorisierte Restaufgaben](HANDOVER_2026-11-25.md).
 Historischer zentraler Staging-Entwurf ist in [README_HISTORY.md](README_HISTORY.md) erhalten; alte server.mjs/controls.json nicht als Mehrgerätebetrieb nutzen.
+
+
+R40 development: [Updater](R40_UPDATER.md).

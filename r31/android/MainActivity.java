@@ -15,8 +15,8 @@ public final class MainActivity extends Activity {
   @JavascriptInterface public void stop(){runOnUiThread(()->stopService(new Intent(MainActivity.this,PaperSyncService.class)));}
   @JavascriptInterface public String status(){return PaperSyncService.status();}
  }
- @Override public void onCreate(Bundle b){super.onCreate(b);web=WebShell.make(this,true);setContentView(web);web.addJavascriptInterface(new BackgroundBridge(),"R31Background");web.loadUrl(WebShell.ORIGIN+"/assets/index.html");}
+ @Override public void onCreate(Bundle b){super.onCreate(b);web=WebShell.make(this,true);setContentView(web);web.addJavascriptInterface(new BackgroundBridge(),"R31Background");web.addJavascriptInterface(new UpdateBridge(this),"R40Update");web.loadUrl(WebShell.ORIGIN+"/assets/index.html");}
  @Override protected void onResume(){super.onResume();visible=true;if(web!=null){web.onResume();web.evaluateJavascript("window.r31Resume && window.r31Resume()",null);}}
  @Override protected void onPause(){visible=false;if(web!=null){web.evaluateJavascript("window.r31Pause && window.r31Pause()",null);web.onPause();}super.onPause();}
- @Override protected void onDestroy(){if(web!=null){web.removeJavascriptInterface("R31Local");web.removeJavascriptInterface("R31Background");web.destroy();web=null;}super.onDestroy();}
+ @Override protected void onDestroy(){if(web!=null){web.removeJavascriptInterface("R31Local");web.removeJavascriptInterface("R31Background");web.removeJavascriptInterface("R40Update");web.destroy();web=null;}super.onDestroy();}
 }

@@ -1,6 +1,7 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.r31.paperbot" android:versionCode="3" android:versionName="0.3-paper">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.r31.paperbot" android:versionCode="40" android:versionName="0.40-paper">
 <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35"/>
 <uses-permission android:name="android.permission.INTERNET"/>
+<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
@@ -9,5 +10,6 @@
 <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTask" android:configChanges="orientation|screenSize|keyboardHidden">
 <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
 </activity>
+<provider android:name=".UpdateProvider" android:authorities="com.r31.paperbot.update" android:exported="false" android:grantUriPermissions="true"/>
 <service android:name=".PaperSyncService" android:exported="false" android:foregroundServiceType="dataSync" android:stopWithTask="false"/>
 </application></manifest>
