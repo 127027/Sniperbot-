@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-@main struct R33App: App {
+@main @MainActor struct R33App: App {
     @UIApplicationDelegateAdaptor(PaperDelegate.self) var delegate
     @StateObject private var model = PaperModel.shared
     @Environment(\.scenePhase) var phase
@@ -32,7 +32,7 @@ private func dict(_ x:Any?) -> Object { x as? Object ?? [:] }
 private func localTime(_ x:Any?) -> String {
     guard let d=date(x) else { return "—" }; let f=DateFormatter();f.locale=Locale(identifier:"de_DE");f.timeZone=TimeZone(identifier:"Europe/Berlin");f.dateFormat="dd.MM. HH:mm";return f.string(from:d)
 }
-struct Dashboard: View {
+@MainActor struct Dashboard: View {
     @ObservedObject var model: PaperModel
     @State private var tab = 0
     @State private var real = false
@@ -148,7 +148,7 @@ private func records(_ items:[Object],kind:Int)->some View{
         }
     }
 }
-struct MoneyView:View {
+@MainActor struct MoneyView:View {
     @ObservedObject var model:PaperModel
     @State private var amount=""
     @State private var withdraw=false
@@ -163,9 +163,10 @@ struct MoneyView:View {
         }.padding()
     }
 }
-struct ControlsView:View{
+@MainActor struct ControlsView:View{
     @ObservedObject var model:PaperModel
-    @State private var max="",stake=""
+    @State private var max=""
+    @State private var stake=""
     @State private var allow=false
     @State private var revision=0
     var body:some View{
