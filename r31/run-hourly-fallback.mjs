@@ -1,4 +1,4 @@
-import {r46FallbackPlan} from './r46-fallback.mjs';
+import {r46FallbackPlan,validReportRole} from './r46-fallback.mjs';
 import {REPO,R30,R31,blobSha} from './github.mjs';
 const token=process.env.GITHUB_TOKEN;
 const base='https://api.github.com/repos/'+REPO;
@@ -16,7 +16,7 @@ async function run(){try{guard()}catch{console.log('Skipped: outside actual :07â
  if(pf.sha!==fp.data.final_blob_sha||ps.sha!==sp.data.blob_sha||pf.data.target_utc!==fp.data.target_utc||pf.data.paper_ledger.last_completed_target_utc!==pf.data.target_utc||pf.data.paper_ledger.mode!=='INDICATIVE_PUBLIC_PRICE_MODEL_ONLY'||ps.data.sequence!==sp.data.sequence)throw Error('POINTER_INTEGRITY');
  if(Date.parse(ps.data.target_utc)>=t0||Date.parse(pf.data.target_utc)>=t0){console.log('Already published or newer target; do not overwrite primary');return}
  const stem='reports/'+target.slice(0,10)+'/'+target.slice(11,13)+'/';
- const reports=(await Promise.all([1,2,3,4].map(async role=>{try{const x=await file(a.sha,stem+'dot-'+role+'.json');if(Date.parse(x.data.target_utc)!==t0||x.data.mode!=='PAPER_ONLY'||x.data.role!==role&&x.data.dot!==role)return null;return {...x,role}}catch(e){if(e.status===404)return null;throw e}}))).filter(Boolean);
+ const reports=(await Promise.all([1,2,3,4].map(async role=>{try{const x=await file(a.sha,stem+'dot-'+role+'.json');if(Date.parse(x.data.target_utc)!==t0||x.data.mode!=='PAPER_ONLY'||!validReportRole(x.data,role))return null;return {...x,role}}catch(e){if(e.status===404)return null;throw e}}))).filter(Boolean);
  const [reg,idx]=await Promise.all([file(a.sha,'r38/pool-registry.json'),file(a.sha,'r34/index.json')]);
  if(!Array.isArray(reg.data.coins)||!Array.isArray(idx.data.coins))throw Error('REGISTRY_SCHEMA');
  const result=r46FallbackPlan({registry:reg.data.coins,index:idx.data.coins,previous:{signal:ps.data,blob_sha:ps.sha},universe:u.data,priorFinal:pf.data,reports,target,published:new Date().toISOString(),head:a.sha,priorPointer:fp.data});

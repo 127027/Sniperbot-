@@ -18,3 +18,6 @@ export function r46FallbackPlan(input){
  const final={...baseline.final,research_decisions:plan.signal.decisions,strategy_summary:sidecar.summary,learning_note:'Fallback: primary analyst did not publish; investigate source coverage and missing roles. No conclusions about profitability or new trades.',peer_assessment:'R46 deterministic nonexecuting fallback; coverage is not completed research.',notes:'R46 fallback; no new orders.'};
  return {...baseline,plan,final,sidecar};
 }
+
+// Legacy Dot1 role label observed in actual reports; target/path/mode checked by runner.
+export function validReportRole(d,n){return d.role===n||d.dot===n||d.role===['dot-1-market','dot-2-discovery','dot-3-risk','dot-4-strategy'][n-1]}
