@@ -1,3 +1,5 @@
+# R41 user-authorized one-time reset: read r41/PAPER_EPOCH.md first; preserve new ledger, do not import old holdings.
+
 # R39 mandatory before atomic publish: r39/TRADE_LIFECYCLE.md. Prior EXIT fresh full SELL or DATA_GAP [STRATEGY SELL] [EXECUTION PRICE_PENDING]; only new executable BUY changes to LONG; never stale prices.
 
 # R35 – aktuelle Nutzerfreigabe (Vorrang)

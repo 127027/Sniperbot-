@@ -1,3 +1,5 @@
+# R41 one-time epoch reset: r41/PAPER_EPOCH.md supersedes earlier no-reset only for this authorized baseline.
+
 # R39 – dauerhaftes Handelsgedächtnis und stündlicher GPT-Scan
 PAPER_ONLY, 24 Zielstunden/Tag, keine neuen Markt-APIs oder Schlüssel. R38 Registry/Discovery bleibt. Jeder Scan fragt: welche Coins würde GPT JETZT kaufen, halten oder verkaufen?
 BUY = aktuell belegter sinnvoller Neueinstieg; wiederholen, solange gerechtfertigt, auch bei bereits gesendetem BUY. Endgerät ignoriert Zusatzkauf. HOLD = unsicher, Bestand halten, kein Neueinstieg. SELL = vollständig aussteigen, persistentes EXIT nach bestätigtem SELL. Keine Teilverkäufe. Bei nicht gehaltenem Coin auf Endgerät keine Aktion.
