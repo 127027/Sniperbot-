@@ -70,6 +70,18 @@ function security(raw,chain,contract){
  const flags=['is_honeypot','cannot_sell_all','is_blacklisted','hidden_owner'].filter(k=>String(v[k])==='1');if(number(v.sell_tax)!==null&&number(v.sell_tax)>=0.5)flags.push('HIGH_SELL_TAX');
  return {status:Object.keys(evidence).length?'PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT':'UNAVAILABLE',flags,fields:evidence,source:'GoPlus'};
 }
+// Retrieval coverage policy, not a trading score. Reserve a discovery budget and rotate unresolved identities.
+function riskWork(rows,previous,at,max=24,rawBudget=8){
+ const items=new Map();
+ for(const r of rows)for(const i of r.identities??[]){
+  if(!i.pool||!['solana','ethereum','bsc','base'].includes(i.chain))continue;
+  const k=key(i.chain,i.contract),x={i,k,raw:r.id.startsWith('lead:'),fresh:!r.id.startsWith('lead:')&&fresh(r.observed_at_utc,at),missing:i.security?.status!=='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT',active:(i.pool.buys_1h??0)+(i.pool.sells_1h??0)>0,last:previous[k]??''};
+  const old=items.get(k);if(!old||(!x.raw&&old.raw))items.set(k,x);
+ }
+ const order=(a,b)=>Number(b.missing)-Number(a.missing)||Number(b.active)-Number(a.active)||Number(b.fresh)-Number(a.fresh)||a.last.localeCompare(b.last)||a.k.localeCompare(b.k);
+ const sorted=[...items.values()].sort(order),raw=sorted.filter(x=>x.raw).slice(0,Math.min(rawBudget,max)),used=new Set(raw.map(x=>x.k));
+ return [...raw,...sorted.filter(x=>!used.has(x.k)).slice(0,max-raw.length)].map(x=>x.i);
+}
 async function batch(work,n=4){for(const group of chunks(work,n))await Promise.all(group.map(f=>f()))}
 if(process.argv.includes('--self-test')){
  const a='0x'+'a'.repeat(40),b='0x'+'b'.repeat(40),p={chainId:'ethereum',baseToken:{address:a},quoteToken:{address:b},pairAddress:b,priceUsd:'1',liquidity:{usd:100}};
@@ -92,6 +104,10 @@ if(process.argv.includes('--self-test')){
  assert.equal(poolTradeQuote(trade,{chain:'ethereum',contract:a},fx,at+3600000,'https://example.com'),null);
  assert.equal(poolTradeQuote(trade,{chain:'ethereum',contract:'0x'+'c'.repeat(40)},fx,at,'https://example.com'),null);
  assert.equal(poolTradeQuote({data:[{attributes:{...trade.data[0].attributes,is_anomalous:true}}]},{chain:'ethereum',contract:a},fx,at,'https://example.com'),null);
+ const testRisk={pool:{buys_1h:2,sells_1h:1},security:{status:'UNAVAILABLE'}};
+ const riskRows=[{id:'known',observed_at_utc:new Date(at-1000).toISOString(),identities:[{...testRisk,chain:'ethereum',contract:a}]},{id:'lead:solana:fixture',identities:[{...testRisk,chain:'solana',contract:'fixture'}]},{id:'dup',identities:[{...testRisk,chain:'ethereum',contract:a}]}];
+ assert.equal(riskWork(riskRows,{},at,2,1).length,2);
+ assert.equal(riskWork(riskRows,{},at,1,1)[0].chain,'solana');
  console.log('Targeted evidence fixtures passed');
 }else{
  const started_at=now(), e=JSON.parse(await fs.readFile(dir+'evidence-latest.json','utf8'));let prev={rows:[]};
@@ -131,16 +147,21 @@ if(process.argv.includes('--self-test')){
  await batch(retry.slice(0,16).map(i=>async()=>{const url='https://api.gopluslabs.io/api/v1/'+(i.chain==='solana'?'solana/token_security':'token_security/'+ids[i.chain])+'?contract_addresses='+i.contract;const j=await req(url);sec.set(key(i.chain,i.contract),{...security(j,i.chain,i.contract),source_url:url,retrieved_at:now()})}),2);
  const candidates=[];for(const r of rows){for(const i of r.identities??[]){i.pool=pools.get(key(i.chain,i.contract))??null;i.security=sec.get(key(i.chain,i.contract))??{status:'UNAVAILABLE'};if(i.pool)candidates.push({r,i})}r.identities.sort((a,b)=>(b.pool?.liquidity_usd??0)-(a.pool?.liquidity_usd??0));}
  // Independent, read-only risk checks for leading candidates with missing/incomplete GoPlus evidence.
- const secondaryCandidates=rows.slice().sort((a,b)=>(b.change_1h_pct??0)-(a.change_1h_pct??0)).flatMap(r=>r.identities.filter(i=>i.pool&&['solana','ethereum','bsc','base'].includes(i.chain)).slice(0,1)).slice(0,24);
+ const riskAttempts={...(prev.risk_attempts??{})};
+ const secondaryCandidates=riskWork(rows,riskAttempts,Date.now());
+ const blockedRiskHosts=new Set();
  await batch(secondaryCandidates.map(i=>async()=>{
   const url=i.chain==='solana'?'https://api.rugcheck.xyz/v1/tokens/'+i.contract+'/report/summary':'https://api.honeypot.is/v2/IsHoneypot?address='+i.contract+'&chainID='+ids[i.chain]+'&pair='+i.pool.pool_address;
-  const raw=await req(url);i.secondary_security={...secondaryRisk(raw,i),source_url:url,retrieved_at:now()};
+  const host=new URL(url).hostname;if(blockedRiskHosts.has(host))return;
+  riskAttempts[key(i.chain,i.contract)]=now();
+  const raw=await req(url);if(logs.some(l=>l.url===url&&l.http_status===429))blockedRiskHosts.add(host);
+  i.secondary_security={...secondaryRisk(raw,i),source_url:url,retrieved_at:now()};
   // Preserve original fields and contradictory flags; never convert absent evidence to a pass.
   if(i.secondary_security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT'){
    const primary=i.security??{status:'UNAVAILABLE'};
    i.security={...primary,status:'PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT',flags:[...new Set([...(primary.flags??[]),...(i.secondary_security.flags??[])])],secondary:i.secondary_security};
   }
- }),3);
+ }),1);
  // Primary quotes remain asset-level; fallback uses completed pool candles, never DEX retrieval time as provider time.
  const ranked=rows.filter(r=>r.identities[0]?.pool).sort((a,b)=>(b.change_1h_pct??0)-(a.change_1h_pct??0));
  // Give discovery leads a bounded timestamped-trade budget instead of relying on untimed snapshots.
@@ -148,7 +169,7 @@ if(process.argv.includes('--self-test')){
  const needs=ranked.filter(r=>!fresh(r.observed_at_utc,Date.now())).slice(0,8);
  const probes=[...needs,...ranked.filter(r=>!needs.includes(r)).slice(0,2)];
  const fx=(probes.length||rawNeeds.length)?await req('https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR'):null;
- let geckoLimited=false;
+ let geckoLimited=(e.source_logs??[]).some(l=>String(l.url??'').includes('api.geckoterminal.com')&&(l.status==='HTTP_429'||l.http_status===429));
  const applyQuote=(r,i,q)=>{if(!q)return;r.fallback_quote={...q,chain:i.chain,contract:i.contract};if(!fresh(r.observed_at_utc,Date.now())){Object.assign(r,q);r.fallback_identity={chain:i.chain,contract:i.contract}}};
  for(const r of rawNeeds){if(geckoLimited)break;const i=r.identities[0],url=gt+nets[i.chain]+'/pools/'+encodeURIComponent(i.pool.pool_address)+'/trades';const j=await req(url);geckoLimited=logs.at(-1)?.http_status===429;applyQuote(r,i,poolTradeQuote(j,i,fx,Date.now(),url));}
  for(const r of probes){if(geckoLimited)break;if(r.fallback_quote)continue;const i=r.identities[0],url=gt+nets[i.chain]+'/pools/'+i.pool.pool_address+'/ohlcv/minute?aggregate=1&limit=5&currency=usd&token=base';const j=await req(url);geckoLimited=logs.at(-1)?.http_status===429;applyQuote(r,i,candleQuote(j,i,fx,Date.now(),url));}
@@ -168,16 +189,16 @@ if(process.argv.includes('--self-test')){
  }
  const finished_at=now(),at=Date.parse(finished_at);
  for(const r of rows){const i=r.identities.find(x=>r.fallback_identity?key(x.chain,x.contract)===key(r.fallback_identity.chain,r.fallback_identity.contract):x.pool);r.research_ready=Boolean(i?.pool&&fresh(r.observed_at_utc,at)&&number(r.price_eur)>0&&i.pool.volume_1h_usd!==null&&i.pool.sells_1h!==null);r.risk_status=i?.security?.status??'UNAVAILABLE';r.decision_status='RESEARCH_INPUT_NOT_BUY'}
- const out={schema:'cleanroom.targeted.v1',mode:'RESEARCH_ONLY',started_at,finished_at,source_snapshot:e.finished_at,kraken_identity_cache:cache,lead_attempts:attempts,discovery_coverage:{registry_read:registryRead,eligible_raw_contracts:raw.size,selected_raw_contracts:selectedLeads,unselected_raw_contracts:Math.max(0,raw.size-selectedLeads)},rows,news:e.news??[],source_logs:[...(e.source_logs??[]),...logs],summary:{assets:rows.filter(r=>!r.id.startsWith('lead:')).length,raw_leads_checked:selectedLeads,raw_leads_with_pool:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,raw_leads_with_timestamped_quote:rows.filter(r=>r.id.startsWith('lead:')&&r.research_ready).length,pool_mapped:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,fresh_quote_and_pool:rows.filter(r=>!r.id.startsWith('lead:')&&r.research_ready).length,security_fields:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,raw_leads_with_security_fields:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,fallback_quotes:rows.filter(r=>r.fallback_quote).length,kraken_quotes:rows.filter(r=>r.kraken_quote).length,news:(e.news??[]).length},limitations:'Research inputs only. No safety certification. DEX snapshot retrieval time is not a provider quote timestamp. FX daily indicative; candles are historic completed minute closes, not executable prices. Missing risk fields are unknown. Discovery remains bounded.'};
+ const out={schema:'cleanroom.targeted.v1',mode:'RESEARCH_ONLY',started_at,finished_at,source_snapshot:e.finished_at,kraken_identity_cache:cache,lead_attempts:attempts,risk_attempts:riskAttempts,discovery_coverage:{registry_read:registryRead,eligible_raw_contracts:raw.size,selected_raw_contracts:selectedLeads,unselected_raw_contracts:Math.max(0,raw.size-selectedLeads)},rows,news:e.news??[],source_logs:[...(e.source_logs??[]),...logs],summary:{assets:rows.filter(r=>!r.id.startsWith('lead:')).length,raw_leads_checked:selectedLeads,raw_leads_with_pool:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,raw_leads_with_timestamped_quote:rows.filter(r=>r.id.startsWith('lead:')&&r.research_ready).length,pool_mapped:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,fresh_quote_and_pool:rows.filter(r=>!r.id.startsWith('lead:')&&r.research_ready).length,security_fields:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,raw_leads_with_security_fields:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,fallback_quotes:rows.filter(r=>r.fallback_quote).length,kraken_quotes:rows.filter(r=>r.kraken_quote).length,news:(e.news??[]).length},limitations:'Research inputs only. No safety certification. DEX snapshot retrieval time is not a provider quote timestamp. FX daily indicative; candles are historic completed minute closes, not executable prices. Missing risk fields are unknown. Discovery remains bounded.'};
  // Compact, unranked evidence pages for agents with connector response-size limits.
  const pageSize=16, pages=[];
  const pageRoot=dir+'candidate-pages';
  await fs.mkdir(pageRoot,{recursive:true});
- const compact=rows.map(r=>({id:r.id,coin:r.coin,classification:r.classification??'MAPPED_ASSET',discovery_origin:r.discovery_origin??null,price_eur:r.price_eur,observed_at_utc:r.observed_at_utc,source_url:r.source_url,quote_scope:r.quote_scope??null,change_1h_pct:r.change_1h_pct, research_ready:r.research_ready,risk_status:r.risk_status, fallback_identity:r.fallback_identity??null, fallback_quote:r.fallback_quote??null,kraken_quote:r.kraken_quote??null,identities:r.identities.map(i=>({chain:i.chain,contract:i.contract,pool:i.pool,security:i.security}))})).sort((a,b)=>a.id.localeCompare(b.id));
+ const compact=rows.map(r=>({id:r.id,coin:r.coin,classification:r.classification??'MAPPED_ASSET',discovery_origin:r.discovery_origin??null,price_eur:r.price_eur,observed_at_utc:r.observed_at_utc,source_url:r.source_url,quote_scope:r.quote_scope??null,change_1h_pct:r.change_1h_pct, research_ready:r.research_ready,risk_status:r.risk_status, fallback_identity:r.fallback_identity??null, fallback_quote:r.fallback_quote??null,kraken_quote:r.kraken_quote??null,identities:r.identities.map(i=>({chain:i.chain,contract:i.contract,pool:i.pool,security:i.security,secondary_security:i.secondary_security??null}))})).sort((a,b)=>a.id.localeCompare(b.id));
  for(let offset=0;offset<compact.length;offset+=pageSize){
   const filename='page-'+String(offset/pageSize).padStart(3,'0')+'.json',data=compact.slice(offset,offset+pageSize);
   await fs.writeFile(pageRoot+'/'+filename+'.tmp',JSON.stringify({schema:'cleanroom.candidate-page.v1',snapshot:finished_at,rows:data})+'\n');await fs.rename(pageRoot+'/'+filename+'.tmp',pageRoot+'/'+filename);
-  pages.push({file:filename,count:data.length});
+  pages.push({file:filename,count:data.length,ids:data.map(r=>r.id)});
  }
  const index={schema:'cleanroom.candidate-index.v1',snapshot:finished_at,summary:out.summary,discovery_coverage:out.discovery_coverage,pages,total_rows:compact.length,limitations:'Alphabetical evidence pages, no ranking or recommendations. Read page snapshot and index together. Risk fields are not safety guarantees. Historical prices must be checked for freshness.'};
  await fs.writeFile(pageRoot+'/index.json.tmp',JSON.stringify(index,null,2)+'\n');await fs.rename(pageRoot+'/index.json.tmp',pageRoot+'/index.json');
