@@ -31,4 +31,23 @@ $('bgstart').onclick=()=>{window.R31Background?.start();text('bgstate','Start an
 if(mobile){try{const {mobileRuntime}=await import('./mobile-runtime.mjs');runtime=mobileRuntime({storage:window.R31Local});void runtime.poll().then(load);window.r31Resume=()=>{void runtime.resume().then(load);void loadTelemetry()};window.r31Pause=()=>runtime.pause();setInterval(()=>{void runtime.poll().then(load)},180000)}catch(e){text('status','Lokales Konto gesperrt: '+e.message);for(const id of ['save','fundbtn'])$(id).disabled=true}}else{$('bgstart').hidden=true;$('bgstop').hidden=true;text('background-note','Desktop-Prozess muss laufen. Paper-Ausführung ist unabhängig vom sichtbaren Tab.')}
 $('bot-update').onclick=async()=>{if(busy||loading)return;if(mobile){if(!window.R40Update){text('update-status','Native Aktualisierung nicht verfügbar');return}window.R40Update.check();text('update-status','Updateprüfung läuft');return}if(!state)return;busy=true;$('bot-update').disabled=true;try{const result=await post('/api/update',{});render(result);if(result.update?.state==='NEUSTART'){text('update-status','Neustart läuft · Seite verbindet sich erneut');setTimeout(async function reconnect(){try{const r=await fetch('/api/state',{cache:'no-store'});if(!r.ok)throw Error();location.reload()}catch{setTimeout(reconnect,2000)}},4000)}}catch(e){text('update-status','Update nicht durchgeführt: '+e.message)}finally{busy=false;$('bot-update').disabled=false}};
 if(mobile)setInterval(()=>{if(window.R40Update)text('update-status',window.R40Update.status())},1500);
-nav();void load();void loadTelemetry();countdown();setInterval(load,15000);setInterval(loadTelemetry,60000);setInterval(countdown,1000);
+
+// Cleanroom research preview: display only, never passed to the ledger.
+let cleanroomBusy=false;
+async function loadCleanroomPreview(){
+ if(cleanroomBusy)return;cleanroomBusy=true;
+ let panel=$('cleanroom-preview');
+ if(!panel){panel=el('div',undefined,'panel');panel.id='cleanroom-preview';$('paper-overview').prepend(panel)}
+ try{
+  const r=await fetch('https://raw.githubusercontent.com/127027/Sniperbot-/refs/heads/codex/r31-control-center-paper/r31/broadcast/cleanroom-research-preview.json',{cache:'no-store',credentials:'omit',redirect:'error',signal:AbortSignal.timeout(12000)});
+  if(!r.ok)throw Error('HTTP_'+r.status);
+  const raw=await r.text();if(raw.length>65536)throw Error('PREVIEW_TOO_LARGE');
+  const d=JSON.parse(raw);
+  if(d.schema!=='cleanroom.research.preview.v1'||d.mode!=='PAPER_ONLY'||d.status!=='RESEARCH_ONLY_NOT_EXECUTABLE'||!Array.isArray(d.decisions)||d.decisions.length>10||!d.decisions.every((x,i)=>x.rank===i+1&&typeof x.coin==='string'&&x.coin.length<=64&&x.action==='BUY'))throw Error('INVALID_PREVIEW');
+  panel.replaceChildren(el('h2','Cleanroom Dot 1 – Research'),el('p','Historische Testliste · '+d.date+' · keine ausführbaren Kaufkurse. Keine Buchung.'));
+  for(const x of d.decisions)panel.append(el('p',x.rank+'. '+x.coin+' · BUY (Research)','good'));
+ }catch(e){panel.replaceChildren(el('h2','Cleanroom Dot 1 – Research'),el('p','Research-Vorschau nicht verfügbar: '+e.message))}
+ finally{cleanroomBusy=false}
+}
+
+nav();void load();void loadTelemetry();if(mobile){void loadCleanroomPreview();setInterval(loadCleanroomPreview,180000);$('refresh').addEventListener('click',()=>void loadCleanroomPreview())}countdown();setInterval(load,15000);setInterval(loadTelemetry,60000);setInterval(countdown,1000);
