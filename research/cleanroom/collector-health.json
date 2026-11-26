@@ -1,73 +1,83 @@
 {
   "schema": "cleanroom.collector-health.v1",
   "mode": "RESEARCH_ONLY",
-  "run_id": "45891188424",
+  "run_id": "45893238735",
   "event": "push",
-  "sample": 4,
-  "started_at": "2026-11-26T20:47:43.308Z",
-  "finished_at": "2026-11-26T20:47:57.875Z",
+  "sample": 0,
+  "started_at": "2026-11-26T20:48:08.449Z",
+  "finished_at": "2026-11-26T20:48:20.551Z",
   "status": "OK",
-  "snapshot": "2026-11-26T20:47:57.667Z",
-  "fresh_research_quotes": 75,
+  "failed_cycles_in_run": 0,
+  "snapshot": "2026-11-26T20:48:20.229Z",
+  "fresh_research_quotes": 118,
   "steps": [
     {
       "file": "market-probe.mjs",
       "exit_code": 0,
       "error": null,
-      "finished_at": "2026-11-26T20:47:44.018Z"
+      "finished_at": "2026-11-26T20:48:09.559Z"
     },
     {
       "file": "evidence.mjs",
       "exit_code": 0,
       "error": null,
-      "finished_at": "2026-11-26T20:47:44.353Z"
+      "finished_at": "2026-11-26T20:48:09.857Z"
     },
     {
       "file": "targeted.mjs",
       "exit_code": 0,
       "error": null,
-      "finished_at": "2026-11-26T20:47:57.699Z"
+      "finished_at": "2026-11-26T20:48:20.270Z"
     },
     {
       "file": "token-registry.mjs",
       "exit_code": 0,
       "error": null,
-      "finished_at": "2026-11-26T20:47:57.867Z"
+      "finished_at": "2026-11-26T20:48:20.535Z"
     }
   ],
   "summary": {
-    "contract_quote_candidates": 3,
+    "contract_quote_candidates": 5,
     "contract_quote_hits": 0,
-    "raw_new_to_registry": 0,
-    "raw_first_selected": 27,
-    "raw_overlap_previous_cycle": 3,
-    "raw_current_selected": 21,
-    "raw_backlog_selected": 27,
-    "raw_cumulative_selection_keys": 2738,
-    "cache_primary_risk": 40,
-    "cache_secondary_risk": 58,
-    "cache_kraken_mapping": 4,
+    "contract_quote_chain": "bsc",
+    "contract_quote_status": "HTTP_400; SINGLE_OK",
+    "contract_quote_provider_error": "Number of contract addresses in the request exceeds the allowed limit of 1 contract address. Please note that to ensure fair usage and prevent abuse, the allowed limit may be adjusted periodically. To enjoy higher allowed limit, please subs",
+    "contract_quote_single_retry": true,
+    "raw_new_to_registry": 21,
+    "raw_first_selected": 37,
+    "raw_overlap_previous_cycle": 0,
+    "raw_current_selected": 32,
+    "raw_backlog_selected": 16,
+    "raw_cumulative_selection_keys": 2775,
+    "cache_primary_risk": 46,
+    "cache_secondary_risk": 66,
+    "cache_kraken_mapping": 3,
     "assets": 240,
     "raw_leads_checked": 48,
-    "raw_leads_with_pool": 41,
-    "raw_leads_with_timestamped_quote": 3,
-    "pool_mapped": 207,
-    "fresh_quote_and_pool": 72,
-    "security_fields": 80,
-    "raw_leads_with_security_fields": 12,
-    "fallback_quotes": 3,
+    "raw_leads_with_pool": 24,
+    "raw_leads_with_timestamped_quote": 0,
+    "pool_mapped": 219,
+    "fresh_quote_and_pool": 118,
+    "security_fields": 85,
+    "raw_leads_with_security_fields": 15,
+    "fallback_quotes": 0,
     "kraken_quotes": 4,
     "news": 30,
-    "registry_total": 5074,
-    "registry_added": 13
+    "registry_total": 5199,
+    "registry_added": 125
   },
   "provider_statuses": {
+    "api.geckoterminal.com": {
+      "OK": 3,
+      "SKIPPED_PROVIDER_COOLDOWN": 14
+    },
     "api.dexscreener.com": {
-      "OK": 16
+      "OK": 17
     },
     "api.coingecko.com": {
       "OK": 4,
-      "HTTP_400": 1
+      "HTTP_400": 1,
+      "HTTP_429": 1
     },
     "www.coindesk.com": {
       "OK": 1
@@ -76,21 +86,17 @@
       "OK": 1
     },
     "api.gopluslabs.io": {
-      "OK": 32
-    },
-    "api.rugcheck.xyz": {
-      "OK": 15
+      "OK": 35
     },
     "api.honeypot.is": {
-      "OK": 5,
-      "HTTP_404": 4
+      "HTTP_404": 6,
+      "OK": 16
+    },
+    "api.rugcheck.xyz": {
+      "OK": 2
     },
     "api.frankfurter.dev": {
       "OK": 1
-    },
-    "api.geckoterminal.com": {
-      "OK": 5,
-      "HTTP_429": 1
     },
     "api.kraken.com": {
       "OK": 13
