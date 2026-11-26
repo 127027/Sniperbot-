@@ -1,0 +1,45 @@
+name: Cleanroom research queue audit
+on:
+  push:
+    branches: [main]
+    paths: ['research/cleanroom/queue-audit.mjs','.github/workflows/cleanroom-queue-audit.yml']
+  schedule:
+    - cron: '25 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: cleanroom-queue-audit
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: code
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/r31-control-center-paper
+          path: research
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node code/research/cleanroom/queue-audit.mjs --self-test
+      - name: Audit recorded research (not trade signals)
+        run: |
+          node code/research/cleanroom/queue-audit.mjs research/r31/research/cleanroom/queue-stage4 > queue-audit.json || result=$?
+          cat queue-audit.json
+          echo '### Research queue status (no trading)' >> "$GITHUB_STEP_SUMMARY"
+          echo '~~~json' >> "$GITHUB_STEP_SUMMARY"
+          cat queue-audit.json >> "$GITHUB_STEP_SUMMARY"
+          echo '~~~' >> "$GITHUB_STEP_SUMMARY"
+          exit "${result:-0}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: research-queue-audit
+          path: queue-audit.json
+          retention-days: 7
