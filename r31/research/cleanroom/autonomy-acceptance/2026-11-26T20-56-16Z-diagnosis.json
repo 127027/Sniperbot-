@@ -1,0 +1,43 @@
+{
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "assessed_at_utc": "2026-11-26T20:56:16Z",
+  "counts": {
+    "screened_distinct_rows": 19,
+    "individual_decisions": 2,
+    "stored_readback": 2,
+    "watch": 1,
+    "reject": 1,
+    "buy": 0,
+    "data_gap": 0,
+    "not_individually_assessed": 17,
+    "independent_new_discovery": 0
+  },
+  "checkpoint": "f33761874950f8694d455eb8fb81b91e61e92d3c",
+  "decisions": [
+    "47fb56396f61563f75a1ea2508524b86522742c8",
+    "c3d1f96bbf88829b83cb6e808d0015d8338a70f9"
+  ],
+  "diagnosis": "Checkpoint-first worked; direct DEX API returned Internal Error (); URL is not accessible via this tool. Web news search confirmed MOG identity and older listing, not a current catalyst. Pepper rejected on inactive pool; alternative risk/news not attempted. Both indexes read; page-001 screened; remaining pages, registry shards and independent discovery not attempted. No explicit runtime/token limit observed. Reason for incomplete coverage not established; no evidence of general GitHub blocker.",
+  "improvements": [
+    {
+      "priority": 1,
+      "owner": "research worker",
+      "action": "Persist each individual decision before expanding scope; next scan verify at least one active candidate per page and read back each decision",
+      "criterion": "all completed decisions persisted and identical"
+    },
+    {
+      "priority": 2,
+      "owner": "collector maintainer",
+      "action": "Provide timestamped contract-level pool quotes and execution cost evidence through GitHub; compare with direct API",
+      "criterion": "fresh quote and risk evidence for each BUY"
+    },
+    {
+      "priority": 3,
+      "owner": "research worker",
+      "action": "Test independent discovery and registry shards; second worker could parallelize news/security but benefit unproven",
+      "criterion": "document distinct new leads and actual source attempts"
+    }
+  ],
+  "previous_diagnoses": "Earlier conversation reports repeated omitted writes; current checkpoint and two final writes verified. Prior diagnostic files not fetched."
+}
