@@ -37,6 +37,17 @@ function krakenQuote(raw,at,url,pair){
  const t=list[0][1].filter(x=>Array.isArray(x)&&number(x[0])>0&&number(x[1])>0&&number(x[2])>0&&fresh(new Date(Number(x[2])*1000).toISOString(),at)).sort((a,b)=>Number(b[2])-Number(a[2]))[0];
  return t?{price_eur:Number(t[0]),observed_at_utc:new Date(Number(t[2])*1000).toISOString(),source_url:url,quote_scope:'KRAKEN_LAST_TRADE_EUR_ASSET_INDICATIVE_PAPER'}:null;
 }
+function secondaryRisk(raw,i){
+ if(i.chain==='solana'){
+  if(!Array.isArray(raw?.risks)||!Number.isFinite(raw.score_normalised))return {status:'UNAVAILABLE'};
+  return {status:'PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT',source:'RugCheck',fields:{score_normalised:raw.score_normalised,lp_locked_pct:number(raw.lpLockedPct),token_program:raw.tokenProgram??null,risks:raw.risks.slice(0,30).map(x=>({name:x.name,level:x.level,value:x.value}))},flags:raw.risks.filter(x=>['danger','critical'].includes(x.level)).map(x=>x.name)};
+ }
+ if(norm(i.chain,raw?.token?.address)!==norm(i.chain,i.contract)||Number(raw?.chain?.id)!==ids[i.chain]||norm(i.chain,raw?.pair?.pair?.address??raw?.pairAddress)!==norm(i.chain,i.pool.pool_address))return {status:'UNAVAILABLE'};
+ const h=raw.honeypotResult?.isHoneypot;
+ if(typeof h!=='boolean')return {status:'UNAVAILABLE'};
+ const sell=number(raw.simulationResult?.sellTax);
+ return {status:'PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT',source:'Honeypot.is',fields:{is_honeypot:h,simulation_success:raw.simulationSuccess===true,buy_tax_pct:number(raw.simulationResult?.buyTax),sell_tax_pct:sell,reported_risk:raw.summary?.risk??null,risk_level:raw.summary?.riskLevel??null,provider_flags:raw.summary?.flags??[]},flags:[...(h?['HONEYPOT']:[]),...(sell!==null&&sell>=50?['HIGH_SELL_TAX']:[])]};
+}
 function security(raw,chain,contract){
  if(raw?.code!==1&&raw?.code!=='1')return {status:'UNAVAILABLE'};
  const v=Object.entries(raw.result??{}).find(([a])=>norm(chain,a)===norm(chain,contract))?.[1];if(!v||typeof v!=='object'||!Object.keys(v).length)return {status:'UNAVAILABLE'};
@@ -57,6 +68,10 @@ if(process.argv.includes('--self-test')){
  assert.equal(security({code:1,result:{[a]:{is_honeypot:'1'}}},'ethereum',a).flags[0],'is_honeypot');assert.equal(security({code:1,result:{}},'ethereum',a).status,'UNAVAILABLE');
  assert.equal(krakenQuote({error:[],result:{PEPEEUR:[['0.001','1',at/1000-10]],last:'1'}},at,'https://example.com','PEPEEUR').price_eur,0.001);
  assert.equal(krakenQuote({error:[],result:{OTHER:[['0.001','1',at/1000-10]],last:'1'}},at,'https://example.com','PEPEEUR'),null);
+ assert.equal(secondaryRisk({risks:[],score_normalised:1},{chain:'solana'}).status,'PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT');
+ assert.equal(secondaryRisk({risks:[{name:'Freeze authority',level:'danger'}],score_normalised:80},{chain:'solana'}).flags[0],'Freeze authority');
+ assert.equal(secondaryRisk({token:{address:a},chain:{id:1},pair:{pair:{address:b}},honeypotResult:{isHoneypot:true}},{chain:'ethereum',contract:a,pool:{pool_address:b}}).flags[0],'HONEYPOT');
+ assert.equal(secondaryRisk({token:{address:a},chain:{id:56},pair:{pair:{address:b}},honeypotResult:{isHoneypot:false}},{chain:'ethereum',contract:a,pool:{pool_address:b}}).status,'UNAVAILABLE');
  console.log('Targeted evidence fixtures passed');
 }else{
  const started_at=now(), e=JSON.parse(await fs.readFile(dir+'evidence-latest.json','utf8'));let prev={rows:[]};
@@ -75,6 +90,17 @@ if(process.argv.includes('--self-test')){
  for(const r of prioritized){const i=r.identities.filter(i=>pools.has(key(i.chain,i.contract))).sort((a,b)=>pools.get(key(b.chain,b.contract)).liquidity_usd-pools.get(key(a.chain,a.contract)).liquidity_usd)[0];if(i&&sec.get(key(i.chain,i.contract))?.status!=='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')retry.push(i)}
  await batch(retry.slice(0,16).map(i=>async()=>{const url='https://api.gopluslabs.io/api/v1/'+(i.chain==='solana'?'solana/token_security':'token_security/'+ids[i.chain])+'?contract_addresses='+i.contract;const j=await req(url);sec.set(key(i.chain,i.contract),{...security(j,i.chain,i.contract),source_url:url,retrieved_at:now()})}),2);
  const candidates=[];for(const r of rows){for(const i of r.identities??[]){i.pool=pools.get(key(i.chain,i.contract))??null;i.security=sec.get(key(i.chain,i.contract))??{status:'UNAVAILABLE'};if(i.pool)candidates.push({r,i})}r.identities.sort((a,b)=>(b.pool?.liquidity_usd??0)-(a.pool?.liquidity_usd??0));}
+ // Independent, read-only risk checks for leading candidates with missing/incomplete GoPlus evidence.
+ const secondaryCandidates=rows.slice().sort((a,b)=>(b.change_1h_pct??0)-(a.change_1h_pct??0)).flatMap(r=>r.identities.filter(i=>i.pool&&['solana','ethereum','bsc','base'].includes(i.chain)).slice(0,1)).slice(0,24);
+ await batch(secondaryCandidates.map(i=>async()=>{
+  const url=i.chain==='solana'?'https://api.rugcheck.xyz/v1/tokens/'+i.contract+'/report/summary':'https://api.honeypot.is/v2/IsHoneypot?address='+i.contract+'&chainID='+ids[i.chain]+'&pair='+i.pool.pool_address;
+  const raw=await req(url);i.secondary_security={...secondaryRisk(raw,i),source_url:url,retrieved_at:now()};
+  // Preserve original fields and contradictory flags; never convert absent evidence to a pass.
+  if(i.secondary_security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT'){
+   const primary=i.security??{status:'UNAVAILABLE'};
+   i.security={...primary,status:'PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT',flags:[...new Set([...(primary.flags??[]),...(i.secondary_security.flags??[])])],secondary:i.secondary_security};
+  }
+ }),3);
  // Primary quotes remain asset-level; fallback uses completed pool candles, never DEX retrieval time as provider time.
  const ranked=rows.filter(r=>r.identities[0]?.pool).sort((a,b)=>(b.change_1h_pct??0)-(a.change_1h_pct??0));
  const needs=ranked.filter(r=>!fresh(r.observed_at_utc,Date.now())).slice(0,12);
