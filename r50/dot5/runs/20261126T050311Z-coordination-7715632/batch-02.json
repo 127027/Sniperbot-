@@ -1,0 +1,44 @@
+{
+  "origin": "AUTOMATION",
+  "mode": "PAPER_ONLY",
+  "batch": 2,
+  "first_verified_blob_sha": "0e68f697ed2787e893b3df09f5b23943b5946f88",
+  "observed_at_utc": "UNKNOWN",
+  "checks": [
+    {
+      "coin": "ELSA",
+      "chain": "base",
+      "contract": "0x29cc30f9d113b356ce408667aa6433589cecbdca",
+      "sources": [
+        {
+          "url": "https://www.heyelsa.ai/",
+          "utc": "UNKNOWN",
+          "finding": "official project identifies exact contract as native utility token for fees and services, also on Mantle"
+        },
+        {
+          "url": "https://basescan.org/tx/0xb4ef4ebc86ab894fca776ccc401a0de2bed8785696a960905a63806d1911ca18",
+          "utc": "2026-06-19T05:04:09Z",
+          "finding": "successful historical ERC20 transfer of 32465.19710465 ELSA at exact contract"
+        }
+      ],
+      "classification": "utility token, not confirmed meme token",
+      "research_status": "EXCLUDE_FROM_MEME_UNIVERSE_UNLESS_SEPARATE_THESIS",
+      "limitation": "historical transfer does not establish current sellability or ranking match"
+    },
+    {
+      "coin": "ELSA",
+      "chain": "base",
+      "contract": "0xa16b0c7ffb1ae1cda5f76df629ea1ab6e6bf32cc",
+      "finding": "exact-address search did not yield independent confirmation; distinct from official contract",
+      "research_status": "UNRESOLVED"
+    }
+  ],
+  "lesson": "Filter token category using primary project source and chain evidence, not ticker or ranking alone. Keep chain plus contract as identity even for same address on multiple chains.",
+  "queue": [
+    "resolve second ELSA contract and ranking pool",
+    "refresh Marketcap same-pool quote",
+    "POMBAO raw transaction",
+    "audit historical origins and missing slots"
+  ],
+  "orders": 0
+}
