@@ -1,0 +1,40 @@
+{
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "observed_at": "2026-11-26T23:44:49Z",
+  "main_run": {
+    "id": "a163bf55-a6c8-8325-a988-63f117e7edc3",
+    "started": "2026-11-26T22:56:53.046789Z",
+    "completed": "2026-11-26T22:57:02.370157Z",
+    "new_outputs": 0,
+    "finals": 0,
+    "buys": 0
+  },
+  "support_run": {
+    "id": "e02ede1c-ebc8-8321-a5f8-09c5edf9fc38",
+    "verified_rows": 7,
+    "sha": "a9d5e709f219cfedd80491a91a4d97b63bad5076"
+  },
+  "prior_learning": "2026-11-26T22-47-52Z-learning.json",
+  "collector": {
+    "run_id": "45898048259",
+    "snapshot": "2026-11-26T21:49:20.337Z",
+    "age_seconds": 6929,
+    "registry": 5472,
+    "pages": 18,
+    "ci_regression_run": "45898048436",
+    "ci_regression": "failure"
+  },
+  "cause": "Collector bounded push run completed successfully; no subsequent collector run in latest 15 repository runs. Reason scheduled runs absent unknown. Main worker stopped after reported fetch, no new output; cause unknown.",
+  "hypothesis": "Freshness failure is due to missing subsequent collector execution rather than failure of the last collector cycle. Test: inspect actual workflow configuration, run completion and recent run listing; distinguish missing execution from failed execution.",
+  "test": {
+    "result": "Supported within visible run window: workflow declares six cron triggers per hour, last collector completed 21:49:28Z, no newer collector run in latest 15, entry/index/health unchanged. Workflow-specific schedule history and metadata GET rejected INVALID_ARGUMENT HTTP 400 endpoint not allowed. No dispatch tool exposed; rerun tools described for failed/cancelled jobs, last collector successful. No restart attempted; cannot establish scheduler root cause."
+  },
+  "patch": null,
+  "reason_no_patch": "No supported safe restart action established; no code or prompt change justified by this diagnosis.",
+  "next_test": {
+    "scheduled": "2026-11-27T00:00:00Z",
+    "acceptance": "Check actual new independent final decision and readback; collector snapshot advances and age <=900 seconds, or independently refreshed quote for BUY. If still stale, investigate isolated regression assertion with tests rather than repeat scheduler diagnosis."
+  },
+  "matured_cohorts": 0
+}
