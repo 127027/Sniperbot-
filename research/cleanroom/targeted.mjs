@@ -31,6 +31,12 @@ function candleQuote(j,identity,fx,at,url){
  if(!c)return null;
  return {price_eur:Number(c[4])*Number(fx.rates.EUR),observed_at_utc:new Date(c[0]*1000).toISOString(),source_url:url,quote_scope:'COMPLETED_POOL_MINUTE_CANDLE_CLOSE_INDICATIVE_PAPER',candle_close_utc:new Date(c[0]*1000+60000).toISOString(),price_usd:Number(c[4]),fx_rate:fx.rates.EUR,fx_date:fx.date,fx_source:'https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR'};
 }
+function krakenQuote(raw,at,url,pair){
+ const list=Object.entries(raw?.result??{}).filter(([k,v])=>k!=='last'&&Array.isArray(v));
+ if(!Array.isArray(raw?.error)||raw.error.length||list.length!==1||list[0][0]!==pair)return null;
+ const t=list[0][1].filter(x=>Array.isArray(x)&&number(x[0])>0&&number(x[1])>0&&number(x[2])>0&&fresh(new Date(Number(x[2])*1000).toISOString(),at)).sort((a,b)=>Number(b[2])-Number(a[2]))[0];
+ return t?{price_eur:Number(t[0]),observed_at_utc:new Date(Number(t[2])*1000).toISOString(),source_url:url,quote_scope:'KRAKEN_LAST_TRADE_EUR_ASSET_INDICATIVE_PAPER'}:null;
+}
 function security(raw,chain,contract){
  if(raw?.code!==1&&raw?.code!=='1')return {status:'UNAVAILABLE'};
  const v=Object.entries(raw.result??{}).find(([a])=>norm(chain,a)===norm(chain,contract))?.[1];if(!v||typeof v!=='object'||!Object.keys(v).length)return {status:'UNAVAILABLE'};
@@ -49,6 +55,8 @@ if(process.argv.includes('--self-test')){
  assert.equal(candleQuote(j,{chain:'ethereum',contract:b},fx,at,'https://example.com'),null);
  assert.equal(candleQuote(j,{chain:'ethereum',contract:a},fx,at+3600000,'https://example.com'),null);
  assert.equal(security({code:1,result:{[a]:{is_honeypot:'1'}}},'ethereum',a).flags[0],'is_honeypot');assert.equal(security({code:1,result:{}},'ethereum',a).status,'UNAVAILABLE');
+ assert.equal(krakenQuote({error:[],result:{PEPEEUR:[['0.001','1',at/1000-10]],last:'1'}},at,'https://example.com','PEPEEUR').price_eur,0.001);
+ assert.equal(krakenQuote({error:[],result:{OTHER:[['0.001','1',at/1000-10]],last:'1'}},at,'https://example.com','PEPEEUR'),null);
  console.log('Targeted evidence fixtures passed');
 }else{
  const started_at=now(), e=JSON.parse(await fs.readFile(dir+'evidence-latest.json','utf8'));let prev={rows:[]};
@@ -62,6 +70,10 @@ if(process.argv.includes('--self-test')){
  await batch(work);
  const securityWork=[];for(const [chain,set] of groups)for(const addresses of chunks([...set].filter(a=>pools.has(key(chain,a))),20))securityWork.push(async()=>{const url='https://api.gopluslabs.io/api/v1/'+(chain==='solana'?'solana/token_security':'token_security/'+ids[chain])+'?contract_addresses='+addresses.join(',');const j=await req(url);for(const a of addresses)sec.set(key(chain,a),{...security(j,chain,a),source_url:url,retrieved_at:now()})});
  await batch(securityWork,3);
+ // Some batch calls yield only a subset. Retry each leading unresolved contract individually.
+ const prioritized=rows.slice().sort((a,b)=>(b.change_1h_pct??0)-(a.change_1h_pct??0));const retry=[];
+ for(const r of prioritized){const i=r.identities.filter(i=>pools.has(key(i.chain,i.contract))).sort((a,b)=>pools.get(key(b.chain,b.contract)).liquidity_usd-pools.get(key(a.chain,a.contract)).liquidity_usd)[0];if(i&&sec.get(key(i.chain,i.contract))?.status!=='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')retry.push(i)}
+ await batch(retry.slice(0,16).map(i=>async()=>{const url='https://api.gopluslabs.io/api/v1/'+(i.chain==='solana'?'solana/token_security':'token_security/'+ids[i.chain])+'?contract_addresses='+i.contract;const j=await req(url);sec.set(key(i.chain,i.contract),{...security(j,i.chain,i.contract),source_url:url,retrieved_at:now()})}),2);
  const candidates=[];for(const r of rows){for(const i of r.identities??[]){i.pool=pools.get(key(i.chain,i.contract))??null;i.security=sec.get(key(i.chain,i.contract))??{status:'UNAVAILABLE'};if(i.pool)candidates.push({r,i})}r.identities.sort((a,b)=>(b.pool?.liquidity_usd??0)-(a.pool?.liquidity_usd??0));}
  // Primary quotes remain asset-level; fallback uses completed pool candles, never DEX retrieval time as provider time.
  const ranked=rows.filter(r=>r.identities[0]?.pool).sort((a,b)=>(b.change_1h_pct??0)-(a.change_1h_pct??0));
@@ -69,8 +81,22 @@ if(process.argv.includes('--self-test')){
  const probes=[...needs,...ranked.filter(r=>!needs.includes(r)).slice(0,2)];
  const fx=probes.length?await req('https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR'):null;
  for(const r of probes){const i=r.identities[0],url=gt+nets[i.chain]+'/pools/'+i.pool.pool_address+'/ohlcv/minute?aggregate=1&limit=5&currency=usd&token=base';const j=await req(url);const q=candleQuote(j,i,fx,Date.now(),url);if(q){r.fallback_quote={...q,chain:i.chain,contract:i.contract};if(!fresh(r.observed_at_utc,Date.now())){Object.assign(r,q);r.fallback_identity={chain:i.chain,contract:i.contract}}}}
+ // Independent EUR trades from Kraken, only if CoinGecko explicitly maps the asset ID to its EUR pair.
+ // Cache identity mapping, never cache price freshness. No symbol-only fallback.
+ let cache={};try{cache=prev.kraken_identity_cache??{}}catch{}
+ const wanted=ranked.slice(0,25), queryIds=wanted.map(r=>r.id);
+ if(queryIds.length){
+ const mappingUrl='https://api.coingecko.com/api/v3/exchanges/kraken/tickers?coin_ids='+encodeURIComponent(queryIds.join(','));
+ const mapping=await req(mappingUrl);
+ for(const t of mapping?.tickers??[]){if(queryIds.includes(t.coin_id)&&t.market?.identifier==='kraken'&&t.target==='EUR'&&/^[A-Z0-9]{1,20}$/.test(t.base??'')&&t.is_anomaly!==true)cache[t.coin_id]={base:t.base,source_url:mappingUrl,verified_at:now()}}
+ }
+ const toTry=ranked.filter(r=>!fresh(r.observed_at_utc,Date.now())||r.fallback_quote==null).filter(r=>cache[r.id]&&Date.now()-Date.parse(cache[r.id].verified_at)<7*86400000).slice(0,12);
+ if(toTry.length){
+ const pairs=await req('https://api.kraken.com/0/public/AssetPairs');
+ await batch(toTry.map(r=>async()=>{const m=cache[r.id],entry=Object.entries(pairs?.result??{}).find(([k,v])=>v.wsname===m.base+'/EUR');if(!entry)return;const [pair]=entry;const url='https://api.kraken.com/0/public/Trades?pair='+encodeURIComponent(pair);const raw=await req(url),q=krakenQuote(raw,Date.now(),url,pair);if(!q)return;r.kraken_quote={...q,identity_mapping:m,market_pair:pair};if(!fresh(r.observed_at_utc,Date.now())){Object.assign(r,q);delete r.fallback_identity}}),2);
+ }
  const finished_at=now(),at=Date.parse(finished_at);
  for(const r of rows){const i=r.identities.find(x=>r.fallback_identity?key(x.chain,x.contract)===key(r.fallback_identity.chain,r.fallback_identity.contract):x.pool);r.research_ready=Boolean(i?.pool&&fresh(r.observed_at_utc,at)&&number(r.price_eur)>0&&i.pool.volume_1h_usd!==null&&i.pool.sells_1h!==null);r.risk_status=i?.security?.status??'UNAVAILABLE';r.decision_status='RESEARCH_INPUT_NOT_BUY'}
- const out={schema:'cleanroom.targeted.v1',mode:'RESEARCH_ONLY',started_at,finished_at,source_snapshot:e.finished_at,rows,news:e.news??[],source_logs:[...(e.source_logs??[]),...logs],summary:{assets:rows.length,pool_mapped:rows.filter(r=>r.identities.some(i=>i.pool)).length,fresh_quote_and_pool:rows.filter(r=>r.research_ready).length,security_fields:rows.filter(r=>r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,fallback_quotes:rows.filter(r=>r.fallback_quote).length,news:(e.news??[]).length},limitations:'Research inputs only. No safety certification. DEX snapshot retrieval time is not a provider quote timestamp. FX daily indicative; candles are historic completed minute closes, not executable prices. Missing risk fields are unknown. Discovery remains bounded.'};
+ const out={schema:'cleanroom.targeted.v1',mode:'RESEARCH_ONLY',started_at,finished_at,source_snapshot:e.finished_at,kraken_identity_cache:cache,rows,news:e.news??[],source_logs:[...(e.source_logs??[]),...logs],summary:{assets:rows.length,pool_mapped:rows.filter(r=>r.identities.some(i=>i.pool)).length,fresh_quote_and_pool:rows.filter(r=>r.research_ready).length,security_fields:rows.filter(r=>r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,fallback_quotes:rows.filter(r=>r.fallback_quote).length,kraken_quotes:rows.filter(r=>r.kraken_quote).length,news:(e.news??[]).length},limitations:'Research inputs only. No safety certification. DEX snapshot retrieval time is not a provider quote timestamp. FX daily indicative; candles are historic completed minute closes, not executable prices. Missing risk fields are unknown. Discovery remains bounded.'};
  await fs.writeFile(dir+'targeted-latest.json.tmp',JSON.stringify(out,null,2)+'\n');await fs.rename(dir+'targeted-latest.json.tmp',dir+'targeted-latest.json');console.log(JSON.stringify(out.summary));
 }
