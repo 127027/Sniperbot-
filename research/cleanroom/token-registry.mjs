@@ -34,8 +34,16 @@ function merge(existing,evidence){
   const times=x.observations.map(o=>o.retrieved_at).sort();
   const sourceMap=new Map((p?.sources??[]).map(o=>[o.source,o]));
   for(const o of x.observations){const old=sourceMap.get(o.source);if(!old||o.retrieved_at>=old.retrieved_at)sourceMap.set(o.source,o)}
+  // Keep a bounded history of actual pool locators per token; a new pool is not a new token.
+  const poolMap=new Map((p?.observed_pools??[]).map(v=>[v.pool_address,v]));
+  for(const o of [...(p?.sources??[]),...x.observations]){
+   const address=canon(x.chain,o.pool);if(!address||!validTime(o.retrieved_at))continue;
+   const old=poolMap.get(address),t=iso(o.retrieved_at);
+   poolMap.set(address,{pool_address:address,first_observed_at:old&&old.first_observed_at<t?old.first_observed_at:t,last_observed_at:old&&old.last_observed_at>t?old.last_observed_at:t});
+  }
+  const observed_pools=[...poolMap.values()].sort((a,b)=>b.last_observed_at.localeCompare(a.last_observed_at)||a.pool_address.localeCompare(b.pool_address)).slice(0,32);
   // Preserve historical identities without implying that they are currently valid or verified memecoins.
-  rows.set(k,{chain:x.chain,contract:x.contract,first_seen_at:p?.first_seen_at??times[0],last_seen_at:at,seen_snapshots:(p?.seen_snapshots??0)+1,asset_ids:[...new Set([...(p?.asset_ids??[]),...x.asset_ids])].sort(),sources:[...sourceMap.values()].sort((a,b)=>a.source.localeCompare(b.source)),classification:'DISCOVERY_ONLY_NOT_BUY'});
+  rows.set(k,{chain:x.chain,contract:x.contract,first_seen_at:p?.first_seen_at??times[0],last_seen_at:at,seen_snapshots:(p?.seen_snapshots??0)+1,asset_ids:[...new Set([...(p?.asset_ids??[]),...x.asset_ids])].sort(),sources:[...sourceMap.values()].sort((a,b)=>a.source.localeCompare(b.source)),observed_pools,classification:'DISCOVERY_ONLY_NOT_BUY'});
   p?updated++:added++;
  }
  return {rows:[...rows.values()].sort((a,b)=>key(a.chain,a.contract).localeCompare(key(b.chain,b.contract))),added,updated,observed:observed.size};
@@ -50,6 +58,10 @@ if(process.argv.includes('--self-test')){
  const replay=merge(two.rows,fixture('2026-11-26T12:05:00.000Z',[a,b]));assert.equal(replay.added,0);assert.equal(replay.updated,0);assert.deepEqual(replay.rows,two.rows);
  const outage=merge(two.rows,fixture('2026-11-26T12:10:00.000Z',[]));assert.equal(outage.rows.length,2);assert.throws(()=>merge(two.rows,{rows:[]}));
  assert.notEqual(shard(key('ethereum',a)).length,0);assert.equal(canon('solana','AbCdEFghJKLMNPQRSTUVWXyz123456789'),'AbCdEFghJKLMNPQRSTUVWXyz123456789');
+ const poolFixture=fixture(t,[a]);poolFixture.discovery.rows[0].observations[0].pool=b;
+ const firstPool=merge([],poolFixture).rows[0];assert.equal(firstPool.observed_pools[0].pool_address,b);
+ const secondPool=fixture('2026-11-26T12:05:00Z',[a]);secondPool.discovery.rows[0].observations[0].pool='0x'+'c'.repeat(40);
+ assert.equal(merge([firstPool],secondPool).rows[0].observed_pools.length,2);
  console.log('Registry fixtures passed: deduplication, growth, replay, outage and input rejection');
 }else{
  const root=process.env.CLEANROOM_REGISTRY_DIR??'research/cleanroom/token-registry',input=process.env.CLEANROOM_EVIDENCE??'research/cleanroom/evidence-latest.json';
@@ -63,6 +75,7 @@ if(process.argv.includes('--self-test')){
  const shards=[];for(const [id,rows] of [...groups].sort(([a],[b])=>a.localeCompare(b))){if(JSON.stringify(rows)!==JSON.stringify(priorGroups.get(id)))await atomic(path.join(root,id+'.json'),{schema,rows});shards.push({id,count:rows.length})}
  const by_chain={};for(const r of result.rows)by_chain[r.chain]=(by_chain[r.chain]??0)+1;
  const history=[...(previous?.history??[])];if(!history.some(h=>h.snapshot===e.finished_at))history.push({snapshot:e.finished_at,total:result.rows.length,added:result.added,updated:result.updated,observed:result.observed});
- const index={schema,mode:'RESEARCH_ONLY',updated_at:new Date().toISOString(),last_snapshot:e.finished_at,total_contracts:result.rows.length,with_asset_mapping:result.rows.filter(r=>r.asset_ids.length).length,by_chain,shards,history:history.slice(-288),limitations:'Cumulative observed contract identities, not global coverage or verified memecoins. Stored observations are historical, never executable quotes. No deletions on provider outage.'};
+ const retainedPoolKeys=new Set(result.rows.flatMap(r=>(r.observed_pools??[]).map(p=>key(r.chain,p.pool_address))));
+ const index={schema,retained_distinct_pool_locators:retainedPoolKeys.size,mode:'RESEARCH_ONLY',updated_at:new Date().toISOString(),last_snapshot:e.finished_at,total_contracts:result.rows.length,with_asset_mapping:result.rows.filter(r=>r.asset_ids.length).length,by_chain,shards,history:history.slice(-288),limitations:'Cumulative observed contract identities, not global coverage or verified memecoins. Stored observations are historical, never executable quotes. No deletions on provider outage.'};
  await atomic(path.join(root,'index.json'),index);console.log(JSON.stringify({total_contracts:index.total_contracts,added:result.added,updated:result.updated,observed:result.observed,by_chain,shards:shards.length}));
 }
