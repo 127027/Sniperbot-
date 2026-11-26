@@ -65,3 +65,29 @@ test('R35 BUY BUY HOLD BUY SELL across two devices: immutable global BUY and loc
  }
  console.log('R35 MIXED CYCLE '+JSON.stringify(rows));
 });
+
+
+test('R45 ranked top ten: 50 EUR stake and 200 EUR cap; repeat BUY never duplicates; SELL frees capacity',()=>{
+ let now=at(7);
+ const phone=mobileRuntime({storage:storage(),now:()=>now});
+ phone.fund({id:'ranked-deposit',kind:'PAPER_DEPOSIT',amount_cents:50000});
+ phone.controls({expected_revision:1,max_invest_cents:20000,stake_cents:5000,allow_new_buys:true});
+ let previous=null;
+ function send(h,decisions){
+  const signal={schema:'r31.broadcast.v1',mode:'PAPER_ONLY',sequence:h-7,target_utc:at(h),published_at_utc:at(h),expires_at_utc:at(h,15),decisions,previous_blob_sha:previous};
+  const sha=blobSha(Buffer.from(JSON.stringify(signal)));now=at(h,1);
+  phone.accept({signal,blob_sha:sha});previous=sha;
+  assert.equal(phone.view().feed.state,'PROCESSED');
+ }
+ const ranked=['Z','Y','X','W','V','U','T','S','R','Q'];
+ send(8,ranked.map(x=>d(x,'BUY',8)));
+ assert.deepEqual(phone.view().ledger.positions.map(p=>p.coin),ranked.slice(0,4));
+ assert.equal(phone.view().ledger.cash_eur,300);
+ assert.equal(phone.view().ledger.trades.length,4);
+ send(9,ranked.map(x=>d(x,'BUY',9)));
+ assert.equal(phone.view().ledger.trades.length,4);
+ send(10,[...ranked.filter(x=>x!=='Y').map(x=>d(x,'BUY',10)),d('NEW','BUY',10),d('Y','SELL',10,2)]);
+ assert.deepEqual(phone.view().ledger.positions.map(p=>p.coin),['Z','X','W','V']);
+ assert.equal(phone.view().ledger.trades.length,6);
+ assert.equal(phone.view().summary.open_cost_eur,200);
+});
