@@ -14,7 +14,7 @@ concurrency:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: ${{ github.event_name == 'push' && 30 || 12 }}
     permissions:
       contents: write
     steps:
@@ -34,7 +34,11 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
       - name: Measured data watchdog
         run: |
-          node research/cleanroom/watchdog.mjs --once --publish
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            node research/cleanroom/watchdog.mjs --cycles=5 --publish
+          else
+            node research/cleanroom/watchdog.mjs --once --publish
+          fi
       - name: Verify published checkpoint and actual quote freshness
         run: |
           node --input-type=module <<'JS'
@@ -43,9 +47,13 @@ jobs:
           const dir='research/cleanroom/';
           const h=JSON.parse(fs.readFileSync(dir+'watchdog-checkpoints.json','utf8'));
           const last=h.samples.at(-1);
+          const health=JSON.parse(fs.readFileSync(dir+'collector-health.json','utf8'));
+          assert.equal(health.run_id,process.env.GITHUB_RUN_ID,'Health belongs to another run');
+          assert.equal(health.status,'OK','Collector health failed');
           assert.equal(last.run_id,process.env.GITHUB_RUN_ID,'No checkpoint for this run');
           assert.equal(last.status,'OK','Collector cycle failed; see checkpoint source logs');
           const index=JSON.parse(fs.readFileSync(dir+'candidate-pages/index.json','utf8'));
+          assert.equal(health.snapshot,index.snapshot,'Health and published evidence disagree');
           const now=Date.now(), age=now-Date.parse(index.snapshot);
           assert.ok(Number.isFinite(age)&&age>=0&&age<=300000,'Snapshot not freshly published');
           let fresh=0;
