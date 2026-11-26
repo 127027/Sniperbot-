@@ -200,7 +200,13 @@ if(process.argv.includes('--self-test')){
   await fs.writeFile(pageRoot+'/'+filename+'.tmp',JSON.stringify({schema:'cleanroom.candidate-page.v1',snapshot:finished_at,rows:data})+'\n');await fs.rename(pageRoot+'/'+filename+'.tmp',pageRoot+'/'+filename);
   pages.push({file:filename,count:data.length,ids:data.map(r=>r.id)});
  }
- const index={schema:'cleanroom.candidate-index.v1',snapshot:finished_at,summary:out.summary,discovery_coverage:out.discovery_coverage,pages,total_rows:compact.length,limitations:'Alphabetical evidence pages, no ranking or recommendations. Read page snapshot and index together. Risk fields are not safety guarantees. Historical prices must be checked for freshness.'};
+ // Small, automatically generated entry slice for tool-access testing, not a shortlist.
+ // Rotate alphabetically by five-minute slot, with no BUY recommendation or manual token inputs.
+ const entrySize=Math.min(3,compact.length),entryOffset=compact.length?((Math.floor(Date.parse(finished_at)/300000)*3)%compact.length):0;
+ const entryRows=Array.from({length:entrySize},(_,i)=>compact[(entryOffset+i)%compact.length]);
+ const entry={schema:'cleanroom.candidate-page.v1',snapshot:finished_at,rows:entryRows,selection:'ROTATING_ALPHABETICAL_ACCESS_TEST_ONLY',limitations:'Unranked evidence only; choose and investigate independently. Read full index for broader discovery.'};
+ await fs.writeFile(pageRoot+'/entry.json.tmp',JSON.stringify(entry)+'\n');await fs.rename(pageRoot+'/entry.json.tmp',pageRoot+'/entry.json');
+ const index={schema:'cleanroom.candidate-index.v1',snapshot:finished_at,summary:out.summary,discovery_coverage:out.discovery_coverage,pages,entry_file:'entry.json',total_rows:compact.length,limitations:'Alphabetical evidence pages, no ranking or recommendations. Read page snapshot and index together. Risk fields are not safety guarantees. Historical prices must be checked for freshness.'};
  await fs.writeFile(pageRoot+'/index.json.tmp',JSON.stringify(index,null,2)+'\n');await fs.rename(pageRoot+'/index.json.tmp',pageRoot+'/index.json');
  await fs.writeFile(dir+'targeted-latest.json.tmp',JSON.stringify(out,null,2)+'\n');await fs.rename(dir+'targeted-latest.json.tmp',dir+'targeted-latest.json');console.log(JSON.stringify(out.summary));
 }
