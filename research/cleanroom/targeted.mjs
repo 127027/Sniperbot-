@@ -31,6 +31,20 @@ function candleQuote(j,identity,fx,at,url){
  if(!c)return null;
  return {price_eur:Number(c[4])*Number(fx.rates.EUR),observed_at_utc:new Date(c[0]*1000).toISOString(),source_url:url,quote_scope:'COMPLETED_POOL_MINUTE_CANDLE_CLOSE_INDICATIVE_PAPER',candle_close_utc:new Date(c[0]*1000+60000).toISOString(),price_usd:Number(c[4]),fx_rate:fx.rates.EUR,fx_date:fx.date,fx_source:'https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR'};
 }
+// A real pool trade has a provider block time. Do not promote pool retrieval time.
+function poolTradeQuote(j,identity,fx,at,url){
+ if(!Array.isArray(j?.data)||!(number(fx?.rates?.EUR)>0)||!/^\d{4}-\d{2}-\d{2}$/.test(fx?.date??'')||Date.parse(fx.date)>at||at-Date.parse(fx.date)>7*86400000)return null;
+ const wanted=norm(identity.chain,identity.contract);
+ const trades=j.data.flatMap(x=>{
+  const a=x.attributes??{},t=a.block_timestamp;
+  if(!fresh(t,at)||!a.tx_hash||a.is_anomalous===true||!(number(a.volume_in_usd)>0))return [];
+  const from=norm(identity.chain,a.from_token_address)===wanted,to=norm(identity.chain,a.to_token_address)===wanted;
+  if(from===to)return [];
+  const p=number(from?a.price_from_in_usd:a.price_to_in_usd);
+  return p>0?[{p,t:new Date(t).toISOString(),tx:a.tx_hash}]:[];
+ }).sort((a,b)=>Date.parse(b.t)-Date.parse(a.t));
+ const x=trades[0];return x?{price_eur:x.p*Number(fx.rates.EUR),observed_at_utc:x.t,source_url:url,quote_scope:'POOL_LAST_TRADE_USD_FX_INDICATIVE_PAPER',price_usd:x.p,fx_rate:fx.rates.EUR,fx_date:fx.date,fx_source:'https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR',tx_hash:x.tx}:null;
+}
 function krakenQuote(raw,at,url,pair){
  const list=Object.entries(raw?.result??{}).filter(([k,v])=>k!=='last'&&Array.isArray(v));
  if(!Array.isArray(raw?.error)||raw.error.length||list.length!==1||list[0][0]!==pair)return null;
@@ -72,6 +86,12 @@ if(process.argv.includes('--self-test')){
  assert.equal(secondaryRisk({risks:[{name:'Freeze authority',level:'danger'}],score_normalised:80},{chain:'solana'}).flags[0],'Freeze authority');
  assert.equal(secondaryRisk({token:{address:a},chain:{id:1},pair:{pair:{address:b}},honeypotResult:{isHoneypot:true}},{chain:'ethereum',contract:a,pool:{pool_address:b}}).flags[0],'HONEYPOT');
  assert.equal(secondaryRisk({token:{address:a},chain:{id:56},pair:{pair:{address:b}},honeypotResult:{isHoneypot:false}},{chain:'ethereum',contract:a,pool:{pool_address:b}}).status,'UNAVAILABLE');
+ const trade={data:[{attributes:{from_token_address:a,to_token_address:b,price_from_in_usd:'2',price_to_in_usd:'3',volume_in_usd:'10',block_timestamp:new Date(at-10000).toISOString(),tx_hash:'fixture'}}]};
+ assert.equal(poolTradeQuote(trade,{chain:'ethereum',contract:a},fx,at,'https://example.com').price_eur,1.8);
+ assert.equal(poolTradeQuote(trade,{chain:'ethereum',contract:b},fx,at,'https://example.com').price_eur,2.7);
+ assert.equal(poolTradeQuote(trade,{chain:'ethereum',contract:a},fx,at+3600000,'https://example.com'),null);
+ assert.equal(poolTradeQuote(trade,{chain:'ethereum',contract:'0x'+'c'.repeat(40)},fx,at,'https://example.com'),null);
+ assert.equal(poolTradeQuote({data:[{attributes:{...trade.data[0].attributes,is_anomalous:true}}]},{chain:'ethereum',contract:a},fx,at,'https://example.com'),null);
  console.log('Targeted evidence fixtures passed');
 }else{
  const started_at=now(), e=JSON.parse(await fs.readFile(dir+'evidence-latest.json','utf8'));let prev={rows:[]};
@@ -123,10 +143,15 @@ if(process.argv.includes('--self-test')){
  }),3);
  // Primary quotes remain asset-level; fallback uses completed pool candles, never DEX retrieval time as provider time.
  const ranked=rows.filter(r=>r.identities[0]?.pool).sort((a,b)=>(b.change_1h_pct??0)-(a.change_1h_pct??0));
- const needs=ranked.filter(r=>!fresh(r.observed_at_utc,Date.now())).slice(0,12);
+ // Give discovery leads a bounded timestamped-trade budget instead of relying on untimed snapshots.
+ const rawNeeds=ranked.filter(r=>r.id.startsWith('lead:')&&!fresh(r.observed_at_utc,Date.now())).sort((a,b)=>(b.identities[0].pool.volume_1h_usd??0)-(a.identities[0].pool.volume_1h_usd??0)).slice(0,4);
+ const needs=ranked.filter(r=>!fresh(r.observed_at_utc,Date.now())).slice(0,8);
  const probes=[...needs,...ranked.filter(r=>!needs.includes(r)).slice(0,2)];
- const fx=probes.length?await req('https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR'):null;
- for(const r of probes){const i=r.identities[0],url=gt+nets[i.chain]+'/pools/'+i.pool.pool_address+'/ohlcv/minute?aggregate=1&limit=5&currency=usd&token=base';const j=await req(url);const q=candleQuote(j,i,fx,Date.now(),url);if(q){r.fallback_quote={...q,chain:i.chain,contract:i.contract};if(!fresh(r.observed_at_utc,Date.now())){Object.assign(r,q);r.fallback_identity={chain:i.chain,contract:i.contract}}}}
+ const fx=(probes.length||rawNeeds.length)?await req('https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR'):null;
+ let geckoLimited=false;
+ const applyQuote=(r,i,q)=>{if(!q)return;r.fallback_quote={...q,chain:i.chain,contract:i.contract};if(!fresh(r.observed_at_utc,Date.now())){Object.assign(r,q);r.fallback_identity={chain:i.chain,contract:i.contract}}};
+ for(const r of rawNeeds){if(geckoLimited)break;const i=r.identities[0],url=gt+nets[i.chain]+'/pools/'+encodeURIComponent(i.pool.pool_address)+'/trades';const j=await req(url);geckoLimited=logs.at(-1)?.http_status===429;applyQuote(r,i,poolTradeQuote(j,i,fx,Date.now(),url));}
+ for(const r of probes){if(geckoLimited)break;if(r.fallback_quote)continue;const i=r.identities[0],url=gt+nets[i.chain]+'/pools/'+i.pool.pool_address+'/ohlcv/minute?aggregate=1&limit=5&currency=usd&token=base';const j=await req(url);geckoLimited=logs.at(-1)?.http_status===429;applyQuote(r,i,candleQuote(j,i,fx,Date.now(),url));}
  // Independent EUR trades from Kraken, only if CoinGecko explicitly maps the asset ID to its EUR pair.
  // Cache identity mapping, never cache price freshness. No symbol-only fallback.
  let cache={};try{cache=prev.kraken_identity_cache??{}}catch{}
