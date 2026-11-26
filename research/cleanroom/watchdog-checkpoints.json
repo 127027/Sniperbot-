@@ -74303,6 +74303,823 @@
           "status": "OK"
         }
       ]
+    },
+    {
+      "run_id": "45898048259",
+      "sample": 2,
+      "planned_at": "2026-11-26T21:38:59.004Z",
+      "started_at": "2026-11-26T21:38:59.069Z",
+      "finished_at": "2026-11-26T21:39:24.930Z",
+      "status": "OK",
+      "steps": [
+        {
+          "file": "market-probe.mjs",
+          "exit_code": 0,
+          "error": null,
+          "finished_at": "2026-11-26T21:39:01.123Z"
+        },
+        {
+          "file": "evidence.mjs",
+          "exit_code": 0,
+          "error": null,
+          "finished_at": "2026-11-26T21:39:01.324Z"
+        },
+        {
+          "file": "targeted.mjs",
+          "exit_code": 0,
+          "error": null,
+          "finished_at": "2026-11-26T21:39:24.712Z"
+        },
+        {
+          "file": "token-registry.mjs",
+          "exit_code": 0,
+          "error": null,
+          "finished_at": "2026-11-26T21:39:24.898Z"
+        }
+      ],
+      "summary": {
+        "support_status": "OK",
+        "support_files": [
+          "r31/research/cleanroom/autonomy-acceptance/2026-11-26T21-11-00Z-support-evidence.json"
+        ],
+        "support_received": 7,
+        "support_selected": 7,
+        "support_with_pool": 7,
+        "support_fresh_quotes": 4,
+        "contract_quote_eligible": 6,
+        "contract_quote_candidates": 1,
+        "contract_quote_hits": 0,
+        "contract_quote_chain": "ethereum",
+        "contract_quote_status": "HTTP_429",
+        "contract_quote_provider_error": null,
+        "contract_quote_single_retry": false,
+        "raw_new_to_registry": 21,
+        "raw_first_selected": 36,
+        "raw_overlap_previous_cycle": 7,
+        "raw_current_selected": 32,
+        "raw_backlog_selected": 16,
+        "raw_cumulative_selection_keys": 3169,
+        "cache_primary_risk": 52,
+        "cache_secondary_risk": 14,
+        "cache_kraken_mapping": 4,
+        "assets": 240,
+        "raw_leads_checked": 48,
+        "raw_leads_with_pool": 20,
+        "raw_leads_with_timestamped_quote": 4,
+        "pool_mapped": 226,
+        "fresh_quote_and_pool": 82,
+        "security_fields": 69,
+        "raw_leads_with_security_fields": 11,
+        "fallback_quotes": 4,
+        "kraken_quotes": 3,
+        "news": 30,
+        "registry_total": 5443,
+        "registry_added": 27
+      },
+      "source_logs": [
+        {
+          "name": "GeckoTerminal solana",
+          "url": "https://api.geckoterminal.com/api/v2/networks/solana/new_pools?include=base_token,quote_token&page=3",
+          "started_at": "2026-11-26T21:38:59.096Z",
+          "finished_at": "2026-11-26T21:38:59.166Z",
+          "status": "OK",
+          "row_count": 20
+        },
+        {
+          "name": "GeckoTerminal eth",
+          "url": "https://api.geckoterminal.com/api/v2/networks/eth/new_pools?include=base_token,quote_token&page=3",
+          "started_at": "2026-11-26T21:38:59.166Z",
+          "finished_at": "2026-11-26T21:38:59.568Z",
+          "status": "OK",
+          "row_count": 20
+        },
+        {
+          "name": "GeckoTerminal bsc",
+          "url": "https://api.geckoterminal.com/api/v2/networks/bsc/new_pools?include=base_token,quote_token&page=3",
+          "started_at": "2026-11-26T21:38:59.568Z",
+          "finished_at": "2026-11-26T21:38:59.954Z",
+          "status": "OK",
+          "row_count": 20
+        },
+        {
+          "name": "DEX Screener profiles",
+          "url": "https://api.dexscreener.com/token-profiles/latest/v1",
+          "started_at": "2026-11-26T21:38:59.954Z",
+          "finished_at": "2026-11-26T21:38:59.991Z",
+          "status": "OK",
+          "row_count": 30
+        },
+        {
+          "name": "CoinGecko EUR meme markets",
+          "url": "https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&category=meme-token&per_page=100&page=1&price_change_percentage=1h",
+          "started_at": "2026-11-26T21:38:59.991Z",
+          "finished_at": "2026-11-26T21:39:00.555Z",
+          "status": "OK",
+          "row_count": 100
+        },
+        {
+          "name": "CoinGecko EUR meme markets page 14",
+          "url": "https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&category=meme-token&per_page=100&page=14&price_change_percentage=1h",
+          "started_at": "2026-11-26T21:39:00.555Z",
+          "finished_at": "2026-11-26T21:39:01.116Z",
+          "status": "OK",
+          "row_count": 100
+        },
+        {
+          "url": "https://api.coingecko.com/api/v3/coins/list?include_platform=true",
+          "started_at": "2026-11-26T21:39:01.158Z",
+          "finished_at": "2026-11-26T21:39:01.291Z",
+          "status": "OK",
+          "http_status": 200,
+          "row_count": 21239
+        },
+        {
+          "url": "https://www.coindesk.com/arc/outboundfeeds/rss/",
+          "started_at": "2026-11-26T21:39:01.180Z",
+          "finished_at": "2026-11-26T21:39:01.306Z",
+          "status": "OK",
+          "http_status": 200,
+          "row_count": 15
+        },
+        {
+          "url": "https://cointelegraph.com/rss",
+          "started_at": "2026-11-26T21:39:01.181Z",
+          "finished_at": "2026-11-26T21:39:01.238Z",
+          "status": "OK",
+          "http_status": 200,
+          "row_count": 15
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/bsc/0x22b1458e780f8fa71e2f84502cee8b5a3cc731fa,0x25d887ce7a35172c62febfd67a1856f20faebb00,0x924fa68a0fc644485b8df8abfa0a41c2e7744444,0x6418c0dd099a9fda397c766304cdd918233e8847,0xa697e272a73744b343528c3bc4702f2565b2f422,0xfb5b838b6cfeedc2873ab27866079ac55363d37e,0xba2ae424d960c26247dd6c32edc70b295c744c43,0x80f1ff15b887cb19295d88c8c16f89d47f6d8888,0x6bdcce4a559076e37755a78ce0c06214e59e4444,0xfebfa339e44c28e2aa9e62ea1027c9cb4e378605,0xba38b3c706f7a515ff7c8db04daa0a134ec46d2b,0xbab528425edb1e0e36d3719bc3307d9c8cce8888,0x0df0587216a4a1bb7d5082fdc491d93d2dd4b413,0x3d4f0513e8a29669b960f9dbca61861548a9a760,0xc748673057861a797275cd8a068abb95a902e8de,0xbeea1d618e533a387d941f58a7d4c9b7bd377777,0x9daf1a070f882d870a8d58d7a27041c752f3b88d,0x6a2608dabe09bc1128eec7275b92dfb939d5db3f,0x2859e4544c4bb03966803b044a93563bd2d0dd4d,0x20482b0b4d9d8f60d3ab432b92f4c4b901a0d10c,0xa7440029eca41deabd8775ef1d6086b37d4df8d6,0xfe189e97832da1573e4e4ff034f4ffc3a15c7777,0x5c85d6c6825ab4032337f11ee92a72df936b46f6,0x6ec90334d89dbdc89e08a133271be3d104128edb,0x20d6015660b3fe52e6690a889b5c51f69902ce0e,0x94162acc63812d53ac2bcf1f4aef65863273e63b,0x8b953e1b3d563c40f688350eb859575be0989fd7,0x997a58129890bbda032231a52ed1ddc845fc18e1,0x595e21b20e78674f8a64c1566a20b2b316bc3511,0xda05ca5303d75f14e298fb8aeff51fd2f2105803",
+          "started_at": "2026-11-26T21:39:01.809Z",
+          "finished_at": "2026-11-26T21:39:01.948Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/bsc/0x7bd6fabd64813c48545c9c0e312a0099d9be2540,0x88b985007d714d1578bccdec2303212c14946cdc,0x19c018e13cff682e729cc7b5fb68c8a641bf98a4,0x7fd94b91dc084ff75e63e373578c9312107eb64b,0xeccbb861c0dda7efd964010085488b69317e4444,0x6d5ad1592ed9d6d1df9b93c793ab759573ed6714,0xe054017a2f0ecfa294b08a74af319bce0b985a39,0x82ec31d69b3c289e541b50e30681fd1acad24444,0x6eb6e8974264bee01c160f1770a38f8e6de1a3b1,0x95c91eef65f50570cfc3f269961a00108cf7bf59,0x6421355286ecb21ad502582cd0b0da16971d5f45,0xa4390b901a63641c92327e5793b45fcb46954444,0x860de30baf288efaefd90f2700358d26d4fc4444,0xf1dc2f7d9b9de5421ee89ef746f482a16e213383,0x039d2e8f097331278bd6c1415d839310e0d5ece4,0x8fb024a51841e45891579bdc924550996b72b0fd,0x96e8d3a52dd950aacc8d1749932e1c14bc76e371,0x71d421b6de07cefa2733d044f92a0306308de8b8,0x22168882276e5d5e1da694343b41dd7726eeb288,0x198dba421a7db566a90da5de7901abe3443b4444,0x7ed958b4cd75acd52cb28140371613dd9e277777,0xfecbda1b8dbd73c4eea7843c04db816107fa6666,0x8449740659e5b644b0e4430aa34c46c6a8887777,0x977c4f40742daca3f1a4c11b44938fc12d714444,0x0a43fc31a73013089df59194872ecae4cae14444,0x49cf3353e2e514cca0f185b916a7d672de9f4444,0xa5b977667117877d06e0e74bd6d85cf7e241ffff,0xd270d4e1ec6e6e0d28c0ecb8be966ec75997ffff,0x800ad6bf6747105e3620d3cb4bced15ab9e47777,0x63dea5acdbe1f27c968907d08610a5f0a0284ba6",
+          "started_at": "2026-11-26T21:39:01.809Z",
+          "finished_at": "2026-11-26T21:39:01.949Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/ethereum/0xb794ad95317f75c44090f64955954c3849315ffe,0x7a78c790250fef60ce7e8ef85557d67cc4216a52,0xe0a458bf4acf353cb45e211281a334bb1d837885,0x3f382dbd960e3a9bbceae22651e88158d2791550,0x3301ee63fb29f863f2333bd4466acb46cd8323e6,0x7def4573628021500c3207994935a51801fb56be,0x9e18d5bab2fa94a6a95f509ecb38f8f68322abd3,0xe60e9bd04ccc0a394f1fdf29874e35a773cb07f4,0x68bbed6a47194eff1cf514b50ea91895597fc91e,0x2c9aceb63181cd08a093d052ec041e191f229692,0x2598c30330d5771ae9f983979209486ae26de875,0xabab3b0db38f2303acbcab672905e41a18e396d8,0x594daad7d77592a2b97b725a7ad59d7e188b5bfa,0xaff2565091e7207191dbe340b8528d02fa78d044,0xf280b16ef293d8e534e370794ef26bf312694126,0x9414e9af3a531e47f0f2b48d1a7faf8178cf0bd7,0x69babe9811cc86dcfc3b8f9a14de6470dd18eda4,0xf92927eca847da7fc2b1b47d0c09a101dee6cdaf,0x32b86b99441480a7e5bd3a26c124ec2373e3f015,0x0590cc9232ebf68d81f6707a119898219342ecb9,0x3d806324b6df5af3c1a81acba14a8a62fe6d643f,0x0f286934b3eda6f4863df62e3ac25b1928f2104a,0x07f347371dce21733838d3bb254c640479c4b8e0,0xa343149cd937d0d77b9ce4b78d3b4e8b7cd927c5,0x09bf1725020e2527b77dcd81a7f92f3d27345fab,0x1487bd704fa05a222b0adb50dc420f001f003045,0x7260bfec3c71109e62fa3dc09e6b5019ec82c7ea,0xa4cf2afd3b165975afffbf7e487cdd40c894ab6b",
+          "started_at": "2026-11-26T21:39:01.808Z",
+          "finished_at": "2026-11-26T21:39:01.958Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/ethereum/0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce,0x6982508145454ce325ddbe47a25d4ec3d2311933,0x6418c0dd099a9fda397c766304cdd918233e8847,0xe0f63a424a4439cbe457d80e4f4b51ad25b2c56c,0x1151cb3d861920e07a38e03eead12c32178567f6,0xcf0c122c6b73ff809c693db761e7baebe62b6a2e,0x8ed97a637a790be1feff5e888d43629dc05408f6,0xac57de9c1a09fec648e93eb98875b212db0d460b,0xa35923162c49cf95e6bf26623385eb431ad920d3,0xaaee1a9723aadb7afa2810263653a34ba2c21c7a,0xdd3b11ef34cd511a2da159034a05fcb94d806686,0xf017d3690346eb8234b85f74cee5e15821fee1f4,0x7a58c0be72be218b41c608b7fe7c5bb630736c71,0xfee293840d23b0b2de8c55e1cf7a9f01c157767c,0x812ba41e071c7b7fa4ebcfb62df5f45f6fa853ee,0xb131f4a55907b10d1f0a50d8ab8fa09ec342cd74,0x761d38e5ddf6ccf6cf7c55759d5210750b5d60f3,0xe018d1e8747ac44d87d35197ba1e9a73a721097c,0x4dc26fc5854e7648a064a4abd590bbe71724c277,0x0d37af9d8ae74f35f3a38bd2a08fcb29890ca6d2,0x7039cd6d7966672f194e8139074c3d5c4e6dcf65,0x5888641e3e6cbea6d84ba81edb217bd691d3be38,0x00282fd551d03dc033256c4bf119532e8c735d8a,0x8baf5d75cae25c7df6d1e0d26c52d19ee848301a,0x04f121600c8c47a754636fc9d75661a9525e05d5,0x49642110b712c1fd7261bc074105e9e44676c68f,0x039d2e8f097331278bd6c1415d839310e0d5ece4,0x911eb8e70d2bff89c16df04af557c4de546838df,0x7c9f94a79b6b859dfb1d3312fc2311b39f89c677,0xe1590a6fa0cff9c960181cb77d8a873601772f64",
+          "started_at": "2026-11-26T21:39:01.785Z",
+          "finished_at": "2026-11-26T21:39:02.202Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/polygon/0xa3f751662e282e83ec3cbc387d225ca56dd63d3a,0xe5b49820e5a1063f6f4ddf851327b5e8b2301048,0xe0339c80ffde91f3e20494df88d4206d86024cdf,0x039d2e8f097331278bd6c1415d839310e0d5ece4,0x385eeac5cb85a38a9a07a70c73e0a3271cfb54a7,0x2598c30330d5771ae9f983979209486ae26de875,0xa0cb0ce7c6d93a7ebd72952feb4407dddee8a194",
+          "started_at": "2026-11-26T21:39:02.203Z",
+          "finished_at": "2026-11-26T21:39:02.322Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/avalanche/0xa659d083b677d6bffe1cb704e1473b896727be6d,0x6f911b6b39bcc665a463129c94b5380a4387b7eb,0x846e52d0dd71c2fdc891538b2d37ff84345c7b9f,0xeb2729257280580694a06c499cb8c622e74215c8,0x0f875ae3eb1fc8a3289657676fc2a288585982a5,0x4586af10ecceed4e383e3f2ec93b6c61e26500b5,0x039d2e8f097331278bd6c1415d839310e0d5ece4,0xcaf5191fc480f43e4df80106c7695eca56e48b18,0x2598c30330d5771ae9f983979209486ae26de875,0xacfb898cff266e53278cc0124fc2c7c94c8cb9a5",
+          "started_at": "2026-11-26T21:39:02.203Z",
+          "finished_at": "2026-11-26T21:39:02.326Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/bsc/0xbe6ad1eb9876cf3d3f9b85feecfb400298e80143,0xde04da55b74435d7b9f2c5c62d9f1b53929b09aa,0x2db0d5cb907014c67dc201886624716fb5c71123,0x3cbd513239d9e5538a4caed8ed53ef77009df473,0x2598c30330d5771ae9f983979209486ae26de875,0x1225075c06b8e288953531e96f22490dd85b7f60,0x777bf78ad4546b61607a17bf4a1977dbbea98c28,0xaecf6d1aff214fef70042740054f0f6d0caa98ab,0x180b25beb6c84c2b3855e630d50c965425fb5de2,0x015fc97ce0ea0f5446cd05bf668bc0370a697777,0xa0cb0ce7c6d93a7ebd72952feb4407dddee8a194",
+          "started_at": "2026-11-26T21:39:02.202Z",
+          "finished_at": "2026-11-26T21:39:02.327Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/arbitrum/0x25d887ce7a35172c62febfd67a1856f20faebb00,0x09199d9a5f4448d0848e4395d065e1ad9c4a1f74,0x527e8d368298dea5a53be257e5300f4dbafb7a97,0x9f07f8a82cb1af1466252e505b7b7ddee103bc91,0x37a645648df29205c6261289983fb04ecd70b4b3,0x039d2e8f097331278bd6c1415d839310e0d5ece4,0x2598c30330d5771ae9f983979209486ae26de875,0x1f53b7aa6f4b36b7dfdedb4bc4a14747a19cf7b1,0x09e18590e8f76b6cf471b3cd75fe1a1a9d2b2c2b,0x155f0dd04424939368972f4e1838687d6a831151",
+          "started_at": "2026-11-26T21:39:02.203Z",
+          "finished_at": "2026-11-26T21:39:02.335Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/solana/FasH397CeZLNYWkd3wWK9vrmjd1z93n3b59DssRXpump,J2bUGZDxRDpsVfjZqKwn6yYCUKFmqzHgt8UajhGtpump,mMykZc4tun2kFNgxbd7WiApAoGEaX8bxFuHjxzjnkrV,H7VfCzzPJvnqfs1b8uA9uUuVjXiYfzAUDw5gmyV9pump,EwUVBpdM5vw1CJHRMSLywzVjyQSJZpy6qboxEPBKpump,31HzUsjzTt7FBCGnDy68cBnELayVsnd3zYEBtsXXpump,8Gzb4Le3rUkDepM6xtaj7X6cN1xxbrHNXqtMb8Pipump,HwPtbFpd3VTe3tfyosoVtPf9WPuSk5gAKkN5xp6Npump,9qriMjPPAJTMCtfQnz7Mo9BsV2jAWTr2ff7yc3JWpump,CMx1EUTXhnUKYF5xYMCSkDmJfvRSD7a4iwayW1DVpump,GMvCfcZg8YvkkQmwDaAzCtHDrrEtgE74nQpQ7xNabonk,85ymfLLfeyYA9wV1PorpLBW1pprWfPgnm3cMEx5ppump,DpeJ6CkihBJzSNvgMcB9e56NT6Qiu2HL3nAGwYWUJESt,Hmeju3J16Cbx1D6snGFNDGTV32AS9TYPaXyVYHBqpump,7XJiwLDrjzxDYdZipnJXzpr1iDTmK55XixSFAa7JgNEL,Cz7LGKdZPpAxonXx23ZYPW3RtDQvjcf17ZDCZEzFpump,4sxxEHW6XqX5YBYs29f1p2RhR7afXFS8wQWcMYQVpump,3xvLSHrLcM7246X1vu34cM9gNX741kQrzqj6T2HhLvXp,888R77WmcLJKyGeJjk1WktFAB5u5fkvmokHYsAu6Spyd,FJSKRhn5ZGtv66HtgaqVY9oNsV2KeynngLTq6PX4pump,DDmGnuvroxVrb7CSyjYcezFU8gnAfhKasg4ZZezmpump,GJAFwWjJ3vnTsrQVabjBVK2TYB1YtRCQXRDfDgUnpump,CN162nCPpq3DxPCyKLbAvEJeB1aCxsnVTEG4ZU8vpump,CZJfrAmMs5Cz4H22PWzfqTJu5FkP7Q2Vvx1oPVL9pump,GbUA2PVzxsVmUNfWkjRSzut4kw4y7mit9S6VRLY2CYC,6Bp9LWtyVXcEATi5nuquX5p1hPGUg1cVoUuXGN9Epump,2wzVMXhLypmP92mXNCq4fuFcd9TCC972AbMfuiH3pump,HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC,DvyxUPDrDSLLziu5YsTkyirRDTncqkrWTsUdNCuipump,9QT8K685Hrae4k11dhGXirdtpfAaimExtyfwt8cPpump",
+          "started_at": "2026-11-26T21:39:02.336Z",
+          "finished_at": "2026-11-26T21:39:02.445Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/solana/2fdtCHuvyLcD2q86XZGFmYbDux9ZbbUgMmFhzChqmoon,FMTG5DSNYSS6Wv6d6bWG8MnK9ncdgVnkUFRj3ksdpump,Ai9HeYDrjpJtrjpHfDwVXfVoCR5ja9Cmt9cHGg2kpump,F5tfztTnE4sYsMhZT5KrFpWvHmYSfJZoRjCuxKPbpump,Ai4CL1SAxVRigxQFwBH8S2JkuL7EqrdiGwTC7JpCpump,HyDKNdnhZNVYQMruBevbNsUWruA9STmAQrS4srXApump,4MMQY9bwkxxTtsK3W227Q5ABT6yFY8Pmn9Ze7wmAXKY8,2sCUCJdVkmyXp4dT8sFaA9LKgSMK4yDPi9zLHiwXpump,69kdRLyP5DTRkpHraaSZAQbWmAwzF9guKjZfzMXzcbAs,93n51i8anR3ziS6kxqXEACjrvJoXpAxt3qbbo3eaRFRz,9tqjeRS1swj36Ee5C1iGiwAxjQJNGAVCzaTLwFY8bonk,4X9mk1nkfaXPqsqA9aeHuSc6dEMzshdopSBpi7QTpump,HqVZaYJnEcmKQKRf4K5N8eEuBjkTgpRzVfF7AYBFpump,D25bi7oHQjqkVrzbfuM6k2gzVNHTSpBLhtakDCzCCDUB,6nSM2HxvaetyDrUYjjAUKwgWGi8CGjmboLee7wcHeKN4,B5YTUMqSnwzztWHWmzAzHApeRy6cuGEx49Bidt4kuH8w,7ypCq2CJ4fnbtS3z2B1W1UT2he5E3u7Md6Gy1ri7uGrQ,BYdxrskh1HfVfvAd8a9aAjoLAU6Bo97AgN56gDwqpump,ACeWC77UeW2DBZMe7YBsuXoxLvk4dHMnPzneApau1Au6,CTPoyCwkjMvoJwU4xvZZqoD8tiYk6yDchySiN5gGpump,26s3UGB9hund1qspApy1zYgCritxAooGg7o63BMn89Yq,6e8LLHkqCTa4mzGuL1PoUxSfeHmDeceJ3DaJSSUNg937,Gv2i54czMSYbkygCKhLRYc59JNVtfrofFwd9mPqZpump,4UeLCRqARmfb6e6KQijtiktqqXUxbfk6jZng7DhuBAGS,AT13ipG8K4HDyEJm3H1ZVQV2Bw8sihewoLQReSMsYo3o,DKYcjobF7HPtL9RyQBRdeRQ2iWvizpfbgWwPWNXdpump,CSocnzcRpgSCr1naKcNTieWZUxb6rABe45j844m7pump,DtR4D9FtVoTX2569gaL837ZgrB6wNjj6tkmnX9Rdk9B2,6d5zHW5B8RkGKd51Lpb9RqFQSqDudr9GJgZ1SgQZpump,DKu9kykSfbN5LBfFXtNNDPaX35o4Fv6vJ9FKk7pZpump",
+          "started_at": "2026-11-26T21:39:02.336Z",
+          "finished_at": "2026-11-26T21:39:02.449Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/solana/2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv,J3NKxxXZcnNiMjKw9hYb2K4LUxgwB6t1FtPtQVsv3KFr,6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN,DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263,EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm,BeGY8KqKxboEwRbJd1q9H2K829jS4Rc5dEyNMYXCbV5p,DrZ26cKJDksVRWib3DVVsjo9eeXccc7hKhDJviiYEEZY,9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump,Dz9mQ9NzkBcCsuGPFJ3r1bS4wgqKMHBPiVuniW8Mbonk,dog1viwbb2vWDpER5FrJ4YFG6gq6XuyFohUe9TXN65u,u9nmK5sQovm6ACVCQbbq8xUMpFqdPSYxdxVwXUX4sjY,FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P,7dUKUopcNWW6CcU4eRxCHh1uiMh32zDrmGf6ufqhxann,9PR7nCP9DpcUotnDPVLUBUZKu5WAYkwrCUx9wDnSpump,2Dyzu65QA9zdX1UeE7Gx71k7fiwyUK6sZdrvJ7auq5wm,2Wu1g2ft7qZHfTpfzP3wLdfPeV1is4EwQ3CXBfRYAciD,ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82,vQoYWru2pbUdcVkUrRH74ktQDJgVjRcDvsoDbUzM5n9,ED5nyyWEzpPPiWimP8vYm7sD7TD3LAt3Q3gRTWHzPJBY,2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump,7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr,MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5,7kN5FQMD8ja4bzysEgc5FXmryKd6gCgjiWnhksjHCFb3,A7n89LqW67HJKzJkdWZa2xojuK4N5GBKHz3dfjATCZPz,5UUH9RTDiSpq6HKS6bp4NdU9PNJpXRXuiw6ShBTBhgH2,8x5VqbHA8D7NkD52uNuS5nnt3PwA8pLD34ymskeSo2Wn,Ce2gx9KGXJ6C9Mp5b5x1sn9Mg87JwEbrQby4Zqo3pump,AiXxRGmRc5oDiFXbEeRX9obPpr3Zir7rks1ef2NjddiF,Dfh5DzRgSvvCFDoYc2ciTkMrbDfRKybA4SoFbPmApump,HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR",
+          "started_at": "2026-11-26T21:39:02.335Z",
+          "finished_at": "2026-11-26T21:39:02.458Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/solana/7ZCm8WBN9aLa3o47SoYctU6iLdj7wkGG5SV2hE5CgtD5,G7vQWurMkMMm2dU3iZpXYFTHT9Biio4F4gZCrwFpKNwG,mtQ5jWgCqrgBiSut29b4HV19RkMBGA6vidwTMqhNmyy,y1AZt42vceCmStjW4zetK3VoNarC1VxJ5iDjpiupump,AyrQpt5xsVYiN4BqgZdd2tZJAWswT9yLUZmP1jKqpump,63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9,2UfBjNeDwzZsoUnr3hNKF4vkzAgiGmBNYCAxLq72cPa2,14zP2ToQ79XWvc7FQpm4bRnp9d6Mp1rFfsUW3gpLcRX,3vgopg7xm3EWkXfxmWPUpcf7g939hecfqg18sLuXDzVt,Hg8bKz4mvs8KNj9zew1cEF9tDw1x2GViB4RFZjVEmfrD,CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump,9zqre5sRRdFvKqyTyvEd1jcKDRF4g47s7mZSGUnQpump,7oLWGMuGbBm9uwDmffSdxLE98YChFAH1UdY5XpKYLff8,FvgqHMfL9yn39V79huDPy3YUNDoYJpuLWng2JfmQpump,5LafQUrVco6o7KMz42eqVEJ9LW31StPyGjeeu5sKoMtA,FvER7SsvY5GqAMawf7Qfb5MnUUmDdbPNPg4nCa4zHoLw,33eWALS9GkzSMS3EsKSdYCsrUiMdQDgX2QzGx4vA9wE8,FkBF9u1upwEMUPxnXjcydxxVSxgr8f3k1YXbz7G7bmtA,Av6qVigkb7USQyPXJkUvAEm4f599WTRvd75PUWBA9eNm,9X2RHtKrBzw3SLYe9E88cBd1kz5RfU1f4JTSn4aRH43d,CzywqyWnzACqc7nphTAPHC8cb2h7ou6U9TehBrVnzJKx,BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump,APxxh2tWCh95tbHitFJchcdbMsctSBgRS2Zzju9Bpump,2fnGKgfwYjqv99ppnKCq5nCLLhRSJAPAhSMVkqjipump,AKotzk1dhcNangAJBtvNKtT9bhbSVZc2mMhRFgkFpump,9gwTegFJJErDpWJKjPfLr2g2zrE3nL1v5zpwbtsk3c6P,Tm2iqbxYjKpW8xCMe6q1xUraNMNzcG5xMztAir3pump,EVrGfAj99Xr1NjqqZv6E2msVKZVmhGaThHhcZXzrpump,Euoq6CyQFCjCVSLR9wFaUPDW19Y6ZHwEcJoZsEi643i1,4mbdysBik3jmzD7mt6FGPDsMxnYcxExSQRFjPucdpump",
+          "started_at": "2026-11-26T21:39:02.336Z",
+          "finished_at": "2026-11-26T21:39:03.567Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/solana/FkUW1kzx1yTz1pVgbupWSuSrDWbdhFs33BsPZRHEpump,FpTwGcVeqKskLBPS8QWtfoZufLSwbW9jdvhYMPAbpump,FyEzVdAQggWYBNHZRbC56bqwjKFRRbbUK7bTx9Fppump,RvFRarepy3dGgCnRh6QTUWbBYRwJ1Qd9mMeSwUupump,2ZosLEAuUvrN44mhd1fTcehAj5Km81ndnFTd1i8Zpump,2ZUSeqau2nvxTrCk35zDU63K17Wj1xKXs7vd5tnRpump,32CdQdBUxbCsLy5AUHWmyidfwhgGUr9N573NBUrDpump,32rBxcFjCFnyqZ41CEPM5AL67X1dcw8w83vZt6Kxpump,33dhma9QA7xefhVpA7c5vMrN826xcHanSHruUEKF2LmW,33jENUQnjoitkMFpvNJcSHyLAHFWJuHwT6E3E8CNpump,347k5f1WLRYe81roRcLBWDR6k3eCRunaqetQPW6pbonk,34a8ALsPmbWxp7D3bQ6erERrCLz1ahr6u6o66Udmpump,34As1e1Kop9zBvu5e84kjg452Uigq8krcoGEJiWRpump,34EBTRNxjqZo3CgpQD3aaW3CC69DkP6BQUEx1Dd2pump,34PsU89eViNBx1ECGmg5aqfrvMag4VERm3RHg6s4BFfX,34q2KmCvapecJgR6ZrtbCTrzZVtkt3a5mHEA3TuEsWYb,34VWJ7PPwcPpYEqTGJQXo8qaMJYoP8VKuBGHPG3ypump",
+          "started_at": "2026-11-26T21:39:03.568Z",
+          "finished_at": "2026-11-26T21:39:03.679Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/optimism/0x2598c30330d5771ae9f983979209486ae26de875",
+          "started_at": "2026-11-26T21:39:03.568Z",
+          "finished_at": "2026-11-26T21:39:03.723Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/base/0x50da645f148798f68ef2d7db7c1cb22a6819bb2c,0xb166e8b140d35d9d8226e40c09f757bac5a4d87d,0x58ecef26335af7b04a998105a6603b0dc475af33,0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4,0x2da56acb9ea78330f947bd57c54119debda7af71,0xb3e3c89b8d9c88b1fe96856e382959ee6291ebba,0x532f27101965dd16442e59d40670faf5ebb142e4,0x4ed4e862860bed51a9570b96d89af5e1b0efefed,0x5ca35ebc4f25b042d2cae75914c7e882e631fa9a,0x4a9f3ed92892c0168dc194ec3867f8316288b32a,0x4f9fd6be4a90f2620860d680c0d4d5fb53d1a825,0x88a78c5035bdc8c9a8bb5c029e6cfcdd14b822fe,0x0028e1e60167b48a938b785aa5292917e7eaca8b,0xed899bfdb28c8ad65307fa40f4acab113ae2e14c,0x82aed68f1deaca2b2aa4c5f27276374228a9f923,0x68e284f21d04d4d62398c290ec3ef41c97f80b07,0xdb6e0e5094a25a052ab6845a9f1e486b9a9b3dde,0x06a63c498ef95ad1fa4fff841955e512b4b2198a,0xcd2f22236dd9dfe2356d7c543161d4d260fd9bcb,0xfad8cb754230dbfd249db0e8eccb5142dd675a0d,0x20ef84969f6d81ff74ae4591c331858b20ad82cd,0xb96cfc6f81f85c58a1eccdd9ec2ad940e2cb8453,0x18a8bd1fe17a1bb9ffb39ecd83e9489cfd17a022,0x368cd1d5af181be4f8b8707559e57c323a119e3a,0x2598c30330d5771ae9f983979209486ae26de875,0xd46e2edc7314ee5cb69f86ab7b0e84e349971efb,0xb9926b3fbc5873db0182016d55727d5ae89e5efd,0xfac77f01957ed1b3dd1cbea992199b8f85b6e886,0x27d2decb4bfc9c76f0309b8e88dec3a601fe25a8",
+          "started_at": "2026-11-26T21:39:03.568Z",
+          "finished_at": "2026-11-26T21:39:03.727Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.dexscreener.com/tokens/v1/solana/HHf2VfXSPUVqQth6tXypfdUX2vawCiVKfkbAX4CJpump,5XtxwuwEbkLM1J86myuKKNcR5rr7hvwf4BKjHeHjpump,Hk8qqvyYU5gfAB5QCZCcJq3gR3TZ8LtvNmA1EM3bpump,8MdkXe5G77xaMheVQxLqAYV8e2m2Dfc5ZbuXup2epump,E2ueKQ3EDTTmCkUA17j3KeTb2u6VT91xiyECdKRzpump,6qdzMx4c9rL2X3Ns3SwZ8uEo4zReDPjdXpAEmpo7pump,8wdL6Htn346sjpmosDm3gCJXkDbWBbeCc3LmYRNApump,3B1ijcocM5EDga6XxQ7JLW7weocQPWWjuhBYG8Vepump,coqRkaaKeUygDPhuS3mrmrj6DiHjeQJc2rFbT2YfxWn,7sxuap7Q4uoAJFBW3ensq6QTa2KwgGosfFwoeXtJpump,9SVj5ZTAL41tqswVNwT1TT9yv3oSHYMYv8zqoHtPpump,AuVQxjSZt937unfV6ScNca1ZwwqZtjNSq3LfQtv4pump,ChYn9ZpCUzrwd8rcpUtr7K7iKgDWUfJijM4xwxBCpump,GEUULM43QbeFJ7p1Twodufx7bJDWNBibpwbKyETWpump,3PBNs8UwDrHhHnXYmUMMKNYAuZm1ew6Wome8cUJ1pump,41CL2CjYpjuZoLTY6jGz1vZ5YYD7jr55o8jQjaJ5pump,4WqBvpUt4fR8dRTgrBaTz6yqcakwnWuxmbtyB4fWpump,4xdYpXXb6x68oVwqK61GH9fgchsZduPT5SFXqP35nLqj,5JeaCPcKaM4c6FcW7djS26sWzQWSGMNZoNDmoKsUpump,5JkQfg5LPFuZt4kmXnYXVa6ZNVBja87i57Jur63tpump,8hdEyZiuKaC8YqaheMmfpzbDpyLNfRfDVzRdoNCQpump,8Kz6N25Fa1Bd37QcXa5yDmYBV6StTbPXHUZcb21AFgQP,AKNK61F6GBLLjZWC5b3QwPKvVPTKKiufQa21rwXwpump,AZAryK3iXhzqoYgRjhznRmxGPjpUjJrqvnrg6rkqJreJ,BLn9pofQzgXyMk7YM8dhsXWcqAXMBzJ1pucsEYWbpump,BMMoYTD5i34EYvphjmgRVfhB64LfiNa96Tc7CUp6pump,BQM7zoSrnZ49rNtrUbUEiLuP4fbMeaWQjsX7oYyDpump,E9RFhpfNaeBn53L4zL94ArkdooKnXuRSWLStpVyvpump,EHa9mWQxPfJcLv6JYA9mVVBxPRsmrPBH1yDkx6aTpump,EMWyqpEC492LZdbsXQbjie1iJjd1cembbLToMTwApump",
+          "started_at": "2026-11-26T21:39:03.567Z",
+          "finished_at": "2026-11-26T21:39:03.751Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce,0xac57de9c1a09fec648e93eb98875b212db0d460b,0xa35923162c49cf95e6bf26623385eb431ad920d3,0xaaee1a9723aadb7afa2810263653a34ba2c21c7a,0xdd3b11ef34cd511a2da159034a05fcb94d806686,0xf017d3690346eb8234b85f74cee5e15821fee1f4,0x7a58c0be72be218b41c608b7fe7c5bb630736c71,0xfee293840d23b0b2de8c55e1cf7a9f01c157767c,0x812ba41e071c7b7fa4ebcfb62df5f45f6fa853ee,0xb131f4a55907b10d1f0a50d8ab8fa09ec342cd74,0x761d38e5ddf6ccf6cf7c55759d5210750b5d60f3,0xe018d1e8747ac44d87d35197ba1e9a73a721097c,0x4dc26fc5854e7648a064a4abd590bbe71724c277,0x0d37af9d8ae74f35f3a38bd2a08fcb29890ca6d2,0x7039cd6d7966672f194e8139074c3d5c4e6dcf65,0x5888641e3e6cbea6d84ba81edb217bd691d3be38,0x00282fd551d03dc033256c4bf119532e8c735d8a,0x8baf5d75cae25c7df6d1e0d26c52d19ee848301a,0x04f121600c8c47a754636fc9d75661a9525e05d5,0x49642110b712c1fd7261bc074105e9e44676c68f",
+          "started_at": "2026-11-26T21:39:03.752Z",
+          "finished_at": "2026-11-26T21:39:04.028Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xa343149cd937d0d77b9ce4b78d3b4e8b7cd927c5,0x1487bd704fa05a222b0adb50dc420f001f003045,0xa4cf2afd3b165975afffbf7e487cdd40c894ab6b",
+          "started_at": "2026-11-26T21:39:03.754Z",
+          "finished_at": "2026-11-26T21:39:04.061Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0x7c9f94a79b6b859dfb1d3312fc2311b39f89c677,0xb794ad95317f75c44090f64955954c3849315ffe,0xe0a458bf4acf353cb45e211281a334bb1d837885,0x3f382dbd960e3a9bbceae22651e88158d2791550,0x3301ee63fb29f863f2333bd4466acb46cd8323e6,0x7def4573628021500c3207994935a51801fb56be,0x9e18d5bab2fa94a6a95f509ecb38f8f68322abd3,0xe60e9bd04ccc0a394f1fdf29874e35a773cb07f4,0x68bbed6a47194eff1cf514b50ea91895597fc91e,0x2c9aceb63181cd08a093d052ec041e191f229692,0x2598c30330d5771ae9f983979209486ae26de875,0xabab3b0db38f2303acbcab672905e41a18e396d8,0x594daad7d77592a2b97b725a7ad59d7e188b5bfa,0x9414e9af3a531e47f0f2b48d1a7faf8178cf0bd7,0x69babe9811cc86dcfc3b8f9a14de6470dd18eda4,0x32b86b99441480a7e5bd3a26c124ec2373e3f015,0x0590cc9232ebf68d81f6707a119898219342ecb9,0x3d806324b6df5af3c1a81acba14a8a62fe6d643f,0x0f286934b3eda6f4863df62e3ac25b1928f2104a,0x07f347371dce21733838d3bb254c640479c4b8e0",
+          "started_at": "2026-11-26T21:39:03.753Z",
+          "finished_at": "2026-11-26T21:39:04.064Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/56?contract_addresses=0xd270d4e1ec6e6e0d28c0ecb8be966ec75997ffff,0x800ad6bf6747105e3620d3cb4bced15ab9e47777,0x63dea5acdbe1f27c968907d08610a5f0a0284ba6,0xbe6ad1eb9876cf3d3f9b85feecfb400298e80143,0x2db0d5cb907014c67dc201886624716fb5c71123,0x2598c30330d5771ae9f983979209486ae26de875,0x1225075c06b8e288953531e96f22490dd85b7f60,0x015fc97ce0ea0f5446cd05bf668bc0370a697777",
+          "started_at": "2026-11-26T21:39:04.064Z",
+          "finished_at": "2026-11-26T21:39:04.266Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/56?contract_addresses=0x595e21b20e78674f8a64c1566a20b2b316bc3511,0x7bd6fabd64813c48545c9c0e312a0099d9be2540,0x19c018e13cff682e729cc7b5fb68c8a641bf98a4,0x82ec31d69b3c289e541b50e30681fd1acad24444,0x6eb6e8974264bee01c160f1770a38f8e6de1a3b1,0x95c91eef65f50570cfc3f269961a00108cf7bf59,0x6421355286ecb21ad502582cd0b0da16971d5f45,0xa4390b901a63641c92327e5793b45fcb46954444,0x860de30baf288efaefd90f2700358d26d4fc4444,0xf1dc2f7d9b9de5421ee89ef746f482a16e213383,0x8fb024a51841e45891579bdc924550996b72b0fd,0x96e8d3a52dd950aacc8d1749932e1c14bc76e371,0x71d421b6de07cefa2733d044f92a0306308de8b8,0x22168882276e5d5e1da694343b41dd7726eeb288,0x198dba421a7db566a90da5de7901abe3443b4444,0x7ed958b4cd75acd52cb28140371613dd9e277777,0xfecbda1b8dbd73c4eea7843c04db816107fa6666,0x8449740659e5b644b0e4430aa34c46c6a8887777,0x0a43fc31a73013089df59194872ecae4cae14444,0x49cf3353e2e514cca0f185b916a7d672de9f4444",
+          "started_at": "2026-11-26T21:39:04.064Z",
+          "finished_at": "2026-11-26T21:39:04.271Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/56?contract_addresses=0x22b1458e780f8fa71e2f84502cee8b5a3cc731fa,0x80f1ff15b887cb19295d88c8c16f89d47f6d8888,0x6bdcce4a559076e37755a78ce0c06214e59e4444,0xfebfa339e44c28e2aa9e62ea1027c9cb4e378605,0xba38b3c706f7a515ff7c8db04daa0a134ec46d2b,0xbab528425edb1e0e36d3719bc3307d9c8cce8888,0x0df0587216a4a1bb7d5082fdc491d93d2dd4b413,0x3d4f0513e8a29669b960f9dbca61861548a9a760,0xc748673057861a797275cd8a068abb95a902e8de,0xbeea1d618e533a387d941f58a7d4c9b7bd377777,0x9daf1a070f882d870a8d58d7a27041c752f3b88d,0x6a2608dabe09bc1128eec7275b92dfb939d5db3f,0x2859e4544c4bb03966803b044a93563bd2d0dd4d,0x20482b0b4d9d8f60d3ab432b92f4c4b901a0d10c,0xa7440029eca41deabd8775ef1d6086b37d4df8d6,0xfe189e97832da1573e4e4ff034f4ffc3a15c7777,0x5c85d6c6825ab4032337f11ee92a72df936b46f6,0x6ec90334d89dbdc89e08a133271be3d104128edb,0x20d6015660b3fe52e6690a889b5c51f69902ce0e,0x8b953e1b3d563c40f688350eb859575be0989fd7",
+          "started_at": "2026-11-26T21:39:04.064Z",
+          "finished_at": "2026-11-26T21:39:04.286Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/137?contract_addresses=0xa3f751662e282e83ec3cbc387d225ca56dd63d3a,0x385eeac5cb85a38a9a07a70c73e0a3271cfb54a7",
+          "started_at": "2026-11-26T21:39:04.287Z",
+          "finished_at": "2026-11-26T21:39:04.487Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/42161?contract_addresses=0x25d887ce7a35172c62febfd67a1856f20faebb00,0x1f53b7aa6f4b36b7dfdedb4bc4a14747a19cf7b1,0x09e18590e8f76b6cf471b3cd75fe1a1a9d2b2c2b",
+          "started_at": "2026-11-26T21:39:04.287Z",
+          "finished_at": "2026-11-26T21:39:04.488Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/43114?contract_addresses=0xa659d083b677d6bffe1cb704e1473b896727be6d",
+          "started_at": "2026-11-26T21:39:04.286Z",
+          "finished_at": "2026-11-26T21:39:04.489Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=8x5VqbHA8D7NkD52uNuS5nnt3PwA8pLD34ymskeSo2Wn,AiXxRGmRc5oDiFXbEeRX9obPpr3Zir7rks1ef2NjddiF,HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR,7ZCm8WBN9aLa3o47SoYctU6iLdj7wkGG5SV2hE5CgtD5,G7vQWurMkMMm2dU3iZpXYFTHT9Biio4F4gZCrwFpKNwG,y1AZt42vceCmStjW4zetK3VoNarC1VxJ5iDjpiupump,AyrQpt5xsVYiN4BqgZdd2tZJAWswT9yLUZmP1jKqpump,63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9,2UfBjNeDwzZsoUnr3hNKF4vkzAgiGmBNYCAxLq72cPa2,14zP2ToQ79XWvc7FQpm4bRnp9d6Mp1rFfsUW3gpLcRX,3vgopg7xm3EWkXfxmWPUpcf7g939hecfqg18sLuXDzVt,Hg8bKz4mvs8KNj9zew1cEF9tDw1x2GViB4RFZjVEmfrD,CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump,9zqre5sRRdFvKqyTyvEd1jcKDRF4g47s7mZSGUnQpump,7oLWGMuGbBm9uwDmffSdxLE98YChFAH1UdY5XpKYLff8,FvgqHMfL9yn39V79huDPy3YUNDoYJpuLWng2JfmQpump,5LafQUrVco6o7KMz42eqVEJ9LW31StPyGjeeu5sKoMtA,FvER7SsvY5GqAMawf7Qfb5MnUUmDdbPNPg4nCa4zHoLw,33eWALS9GkzSMS3EsKSdYCsrUiMdQDgX2QzGx4vA9wE8,FkBF9u1upwEMUPxnXjcydxxVSxgr8f3k1YXbz7G7bmtA",
+          "started_at": "2026-11-26T21:39:04.489Z",
+          "finished_at": "2026-11-26T21:39:04.684Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv,DrZ26cKJDksVRWib3DVVsjo9eeXccc7hKhDJviiYEEZY,9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump,Dz9mQ9NzkBcCsuGPFJ3r1bS4wgqKMHBPiVuniW8Mbonk,dog1viwbb2vWDpER5FrJ4YFG6gq6XuyFohUe9TXN65u,u9nmK5sQovm6ACVCQbbq8xUMpFqdPSYxdxVwXUX4sjY,FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P,7dUKUopcNWW6CcU4eRxCHh1uiMh32zDrmGf6ufqhxann,9PR7nCP9DpcUotnDPVLUBUZKu5WAYkwrCUx9wDnSpump,2Dyzu65QA9zdX1UeE7Gx71k7fiwyUK6sZdrvJ7auq5wm,2Wu1g2ft7qZHfTpfzP3wLdfPeV1is4EwQ3CXBfRYAciD,ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82,vQoYWru2pbUdcVkUrRH74ktQDJgVjRcDvsoDbUzM5n9,ED5nyyWEzpPPiWimP8vYm7sD7TD3LAt3Q3gRTWHzPJBY,2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump,7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr,MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5,7kN5FQMD8ja4bzysEgc5FXmryKd6gCgjiWnhksjHCFb3,A7n89LqW67HJKzJkdWZa2xojuK4N5GBKHz3dfjATCZPz,5UUH9RTDiSpq6HKS6bp4NdU9PNJpXRXuiw6ShBTBhgH2",
+          "started_at": "2026-11-26T21:39:04.489Z",
+          "finished_at": "2026-11-26T21:39:04.688Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=Av6qVigkb7USQyPXJkUvAEm4f599WTRvd75PUWBA9eNm,9X2RHtKrBzw3SLYe9E88cBd1kz5RfU1f4JTSn4aRH43d,CzywqyWnzACqc7nphTAPHC8cb2h7ou6U9TehBrVnzJKx,BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump,APxxh2tWCh95tbHitFJchcdbMsctSBgRS2Zzju9Bpump,2fnGKgfwYjqv99ppnKCq5nCLLhRSJAPAhSMVkqjipump,AKotzk1dhcNangAJBtvNKtT9bhbSVZc2mMhRFgkFpump,9gwTegFJJErDpWJKjPfLr2g2zrE3nL1v5zpwbtsk3c6P,Tm2iqbxYjKpW8xCMe6q1xUraNMNzcG5xMztAir3pump,EVrGfAj99Xr1NjqqZv6E2msVKZVmhGaThHhcZXzrpump,Euoq6CyQFCjCVSLR9wFaUPDW19Y6ZHwEcJoZsEi643i1,4mbdysBik3jmzD7mt6FGPDsMxnYcxExSQRFjPucdpump,FasH397CeZLNYWkd3wWK9vrmjd1z93n3b59DssRXpump,H7VfCzzPJvnqfs1b8uA9uUuVjXiYfzAUDw5gmyV9pump,EwUVBpdM5vw1CJHRMSLywzVjyQSJZpy6qboxEPBKpump,31HzUsjzTt7FBCGnDy68cBnELayVsnd3zYEBtsXXpump,8Gzb4Le3rUkDepM6xtaj7X6cN1xxbrHNXqtMb8Pipump,HwPtbFpd3VTe3tfyosoVtPf9WPuSk5gAKkN5xp6Npump,9qriMjPPAJTMCtfQnz7Mo9BsV2jAWTr2ff7yc3JWpump,CMx1EUTXhnUKYF5xYMCSkDmJfvRSD7a4iwayW1DVpump",
+          "started_at": "2026-11-26T21:39:04.489Z",
+          "finished_at": "2026-11-26T21:39:05.370Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=GMvCfcZg8YvkkQmwDaAzCtHDrrEtgE74nQpQ7xNabonk,85ymfLLfeyYA9wV1PorpLBW1pprWfPgnm3cMEx5ppump,DpeJ6CkihBJzSNvgMcB9e56NT6Qiu2HL3nAGwYWUJESt,Hmeju3J16Cbx1D6snGFNDGTV32AS9TYPaXyVYHBqpump,7XJiwLDrjzxDYdZipnJXzpr1iDTmK55XixSFAa7JgNEL,Cz7LGKdZPpAxonXx23ZYPW3RtDQvjcf17ZDCZEzFpump,3xvLSHrLcM7246X1vu34cM9gNX741kQrzqj6T2HhLvXp,888R77WmcLJKyGeJjk1WktFAB5u5fkvmokHYsAu6Spyd,FJSKRhn5ZGtv66HtgaqVY9oNsV2KeynngLTq6PX4pump,DDmGnuvroxVrb7CSyjYcezFU8gnAfhKasg4ZZezmpump,GJAFwWjJ3vnTsrQVabjBVK2TYB1YtRCQXRDfDgUnpump,CN162nCPpq3DxPCyKLbAvEJeB1aCxsnVTEG4ZU8vpump,CZJfrAmMs5Cz4H22PWzfqTJu5FkP7Q2Vvx1oPVL9pump,GbUA2PVzxsVmUNfWkjRSzut4kw4y7mit9S6VRLY2CYC,6Bp9LWtyVXcEATi5nuquX5p1hPGUg1cVoUuXGN9Epump,HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC,DvyxUPDrDSLLziu5YsTkyirRDTncqkrWTsUdNCuipump,9QT8K685Hrae4k11dhGXirdtpfAaimExtyfwt8cPpump,2fdtCHuvyLcD2q86XZGFmYbDux9ZbbUgMmFhzChqmoon,FMTG5DSNYSS6Wv6d6bWG8MnK9ncdgVnkUFRj3ksdpump",
+          "started_at": "2026-11-26T21:39:05.370Z",
+          "finished_at": "2026-11-26T21:39:05.559Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=Ai9HeYDrjpJtrjpHfDwVXfVoCR5ja9Cmt9cHGg2kpump,F5tfztTnE4sYsMhZT5KrFpWvHmYSfJZoRjCuxKPbpump,Ai4CL1SAxVRigxQFwBH8S2JkuL7EqrdiGwTC7JpCpump,HyDKNdnhZNVYQMruBevbNsUWruA9STmAQrS4srXApump,4MMQY9bwkxxTtsK3W227Q5ABT6yFY8Pmn9Ze7wmAXKY8,2sCUCJdVkmyXp4dT8sFaA9LKgSMK4yDPi9zLHiwXpump,69kdRLyP5DTRkpHraaSZAQbWmAwzF9guKjZfzMXzcbAs,93n51i8anR3ziS6kxqXEACjrvJoXpAxt3qbbo3eaRFRz,9tqjeRS1swj36Ee5C1iGiwAxjQJNGAVCzaTLwFY8bonk,4X9mk1nkfaXPqsqA9aeHuSc6dEMzshdopSBpi7QTpump,HqVZaYJnEcmKQKRf4K5N8eEuBjkTgpRzVfF7AYBFpump,D25bi7oHQjqkVrzbfuM6k2gzVNHTSpBLhtakDCzCCDUB,6nSM2HxvaetyDrUYjjAUKwgWGi8CGjmboLee7wcHeKN4,7ypCq2CJ4fnbtS3z2B1W1UT2he5E3u7Md6Gy1ri7uGrQ,BYdxrskh1HfVfvAd8a9aAjoLAU6Bo97AgN56gDwqpump,ACeWC77UeW2DBZMe7YBsuXoxLvk4dHMnPzneApau1Au6,CTPoyCwkjMvoJwU4xvZZqoD8tiYk6yDchySiN5gGpump,26s3UGB9hund1qspApy1zYgCritxAooGg7o63BMn89Yq,6e8LLHkqCTa4mzGuL1PoUxSfeHmDeceJ3DaJSSUNg937,Gv2i54czMSYbkygCKhLRYc59JNVtfrofFwd9mPqZpump",
+          "started_at": "2026-11-26T21:39:05.370Z",
+          "finished_at": "2026-11-26T21:39:05.559Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=4UeLCRqARmfb6e6KQijtiktqqXUxbfk6jZng7DhuBAGS,AT13ipG8K4HDyEJm3H1ZVQV2Bw8sihewoLQReSMsYo3o,DKYcjobF7HPtL9RyQBRdeRQ2iWvizpfbgWwPWNXdpump,CSocnzcRpgSCr1naKcNTieWZUxb6rABe45j844m7pump,DtR4D9FtVoTX2569gaL837ZgrB6wNjj6tkmnX9Rdk9B2,6d5zHW5B8RkGKd51Lpb9RqFQSqDudr9GJgZ1SgQZpump,DKu9kykSfbN5LBfFXtNNDPaX35o4Fv6vJ9FKk7pZpump,HHf2VfXSPUVqQth6tXypfdUX2vawCiVKfkbAX4CJpump,5XtxwuwEbkLM1J86myuKKNcR5rr7hvwf4BKjHeHjpump,Hk8qqvyYU5gfAB5QCZCcJq3gR3TZ8LtvNmA1EM3bpump,E2ueKQ3EDTTmCkUA17j3KeTb2u6VT91xiyECdKRzpump,6qdzMx4c9rL2X3Ns3SwZ8uEo4zReDPjdXpAEmpo7pump,3B1ijcocM5EDga6XxQ7JLW7weocQPWWjuhBYG8Vepump,coqRkaaKeUygDPhuS3mrmrj6DiHjeQJc2rFbT2YfxWn,7sxuap7Q4uoAJFBW3ensq6QTa2KwgGosfFwoeXtJpump,9SVj5ZTAL41tqswVNwT1TT9yv3oSHYMYv8zqoHtPpump,AuVQxjSZt937unfV6ScNca1ZwwqZtjNSq3LfQtv4pump,ChYn9ZpCUzrwd8rcpUtr7K7iKgDWUfJijM4xwxBCpump,GEUULM43QbeFJ7p1Twodufx7bJDWNBibpwbKyETWpump,32CdQdBUxbCsLy5AUHWmyidfwhgGUr9N573NBUrDpump",
+          "started_at": "2026-11-26T21:39:05.370Z",
+          "finished_at": "2026-11-26T21:39:05.561Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=32rBxcFjCFnyqZ41CEPM5AL67X1dcw8w83vZt6Kxpump,33dhma9QA7xefhVpA7c5vMrN826xcHanSHruUEKF2LmW,33jENUQnjoitkMFpvNJcSHyLAHFWJuHwT6E3E8CNpump,347k5f1WLRYe81roRcLBWDR6k3eCRunaqetQPW6pbonk,34a8ALsPmbWxp7D3bQ6erERrCLz1ahr6u6o66Udmpump,34As1e1Kop9zBvu5e84kjg452Uigq8krcoGEJiWRpump,34EBTRNxjqZo3CgpQD3aaW3CC69DkP6BQUEx1Dd2pump,34q2KmCvapecJgR6ZrtbCTrzZVtkt3a5mHEA3TuEsWYb",
+          "started_at": "2026-11-26T21:39:05.561Z",
+          "finished_at": "2026-11-26T21:39:05.750Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0x50da645f148798f68ef2d7db7c1cb22a6819bb2c,0x2da56acb9ea78330f947bd57c54119debda7af71,0xb3e3c89b8d9c88b1fe96856e382959ee6291ebba,0x532f27101965dd16442e59d40670faf5ebb142e4,0x4ed4e862860bed51a9570b96d89af5e1b0efefed,0x5ca35ebc4f25b042d2cae75914c7e882e631fa9a,0x4a9f3ed92892c0168dc194ec3867f8316288b32a,0x4f9fd6be4a90f2620860d680c0d4d5fb53d1a825,0x0028e1e60167b48a938b785aa5292917e7eaca8b,0xed899bfdb28c8ad65307fa40f4acab113ae2e14c,0x82aed68f1deaca2b2aa4c5f27276374228a9f923,0x68e284f21d04d4d62398c290ec3ef41c97f80b07,0x06a63c498ef95ad1fa4fff841955e512b4b2198a,0xcd2f22236dd9dfe2356d7c543161d4d260fd9bcb,0xfad8cb754230dbfd249db0e8eccb5142dd675a0d,0x20ef84969f6d81ff74ae4591c331858b20ad82cd,0xb96cfc6f81f85c58a1eccdd9ec2ad940e2cb8453,0x18a8bd1fe17a1bb9ffb39ecd83e9489cfd17a022,0x368cd1d5af181be4f8b8707559e57c323a119e3a,0x2598c30330d5771ae9f983979209486ae26de875",
+          "started_at": "2026-11-26T21:39:05.561Z",
+          "finished_at": "2026-11-26T21:39:05.756Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0xb9926b3fbc5873db0182016d55727d5ae89e5efd",
+          "started_at": "2026-11-26T21:39:05.561Z",
+          "finished_at": "2026-11-26T21:39:05.762Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0xe018d1e8747ac44d87d35197ba1e9a73a721097c",
+          "started_at": "2026-11-26T21:39:05.762Z",
+          "finished_at": "2026-11-26T21:39:05.952Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=EwUVBpdM5vw1CJHRMSLywzVjyQSJZpy6qboxEPBKpump",
+          "started_at": "2026-11-26T21:39:05.763Z",
+          "finished_at": "2026-11-26T21:39:05.956Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=2fnGKgfwYjqv99ppnKCq5nCLLhRSJAPAhSMVkqjipump",
+          "started_at": "2026-11-26T21:39:05.956Z",
+          "finished_at": "2026-11-26T21:39:06.149Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=DKYcjobF7HPtL9RyQBRdeRQ2iWvizpfbgWwPWNXdpump",
+          "started_at": "2026-11-26T21:39:05.956Z",
+          "finished_at": "2026-11-26T21:39:06.154Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0x368cd1d5af181be4f8b8707559e57c323a119e3a",
+          "started_at": "2026-11-26T21:39:06.154Z",
+          "finished_at": "2026-11-26T21:39:06.346Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=3B1ijcocM5EDga6XxQ7JLW7weocQPWWjuhBYG8Vepump",
+          "started_at": "2026-11-26T21:39:06.154Z",
+          "finished_at": "2026-11-26T21:39:06.360Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=6nSM2HxvaetyDrUYjjAUKwgWGi8CGjmboLee7wcHeKN4",
+          "started_at": "2026-11-26T21:39:06.361Z",
+          "finished_at": "2026-11-26T21:39:06.547Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/56?contract_addresses=0x8449740659e5b644b0e4430aa34c46c6a8887777",
+          "started_at": "2026-11-26T21:39:06.361Z",
+          "finished_at": "2026-11-26T21:39:06.552Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=8x5VqbHA8D7NkD52uNuS5nnt3PwA8pLD34ymskeSo2Wn",
+          "started_at": "2026-11-26T21:39:06.552Z",
+          "finished_at": "2026-11-26T21:39:06.741Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=DKu9kykSfbN5LBfFXtNNDPaX35o4Fv6vJ9FKk7pZpump",
+          "started_at": "2026-11-26T21:39:06.552Z",
+          "finished_at": "2026-11-26T21:39:06.742Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=9PR7nCP9DpcUotnDPVLUBUZKu5WAYkwrCUx9wDnSpump",
+          "started_at": "2026-11-26T21:39:06.742Z",
+          "finished_at": "2026-11-26T21:39:06.931Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=0x4ed4e862860bed51a9570b96d89af5e1b0efefed",
+          "started_at": "2026-11-26T21:39:06.742Z",
+          "finished_at": "2026-11-26T21:39:06.933Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=Dz9mQ9NzkBcCsuGPFJ3r1bS4wgqKMHBPiVuniW8Mbonk",
+          "started_at": "2026-11-26T21:39:06.933Z",
+          "finished_at": "2026-11-26T21:39:07.122Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=9tqjeRS1swj36Ee5C1iGiwAxjQJNGAVCzaTLwFY8bonk",
+          "started_at": "2026-11-26T21:39:06.933Z",
+          "finished_at": "2026-11-26T21:39:07.122Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=dog1viwbb2vWDpER5FrJ4YFG6gq6XuyFohUe9TXN65u",
+          "started_at": "2026-11-26T21:39:07.122Z",
+          "finished_at": "2026-11-26T21:39:07.311Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=0x0590cc9232ebf68d81f6707a119898219342ecb9",
+          "started_at": "2026-11-26T21:39:07.123Z",
+          "finished_at": "2026-11-26T21:39:07.315Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/32rBxcFjCFnyqZ41CEPM5AL67X1dcw8w83vZt6Kxpump/report/summary",
+          "started_at": "2026-11-26T21:39:07.320Z",
+          "finished_at": "2026-11-26T21:39:07.802Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/33dhma9QA7xefhVpA7c5vMrN826xcHanSHruUEKF2LmW/report/summary",
+          "started_at": "2026-11-26T21:39:07.802Z",
+          "finished_at": "2026-11-26T21:39:08.292Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/34As1e1Kop9zBvu5e84kjg452Uigq8krcoGEJiWRpump/report/summary",
+          "started_at": "2026-11-26T21:39:08.292Z",
+          "finished_at": "2026-11-26T21:39:08.451Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.honeypot.is/v2/IsHoneypot?address=0x07f347371dce21733838d3bb254c640479c4b8e0&chainID=1&pair=0xaf2a17361fbdb1e8e5bf2033ee4927dfb41eebfbdcac4e698601a9087288eb1a",
+          "started_at": "2026-11-26T21:39:08.452Z",
+          "finished_at": "2026-11-26T21:39:08.673Z",
+          "http_status": 404,
+          "status": "HTTP_404",
+          "provider_error": "pair not found"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/ChYn9ZpCUzrwd8rcpUtr7K7iKgDWUfJijM4xwxBCpump/report/summary",
+          "started_at": "2026-11-26T21:39:08.673Z",
+          "finished_at": "2026-11-26T21:39:08.832Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/GEUULM43QbeFJ7p1Twodufx7bJDWNBibpwbKyETWpump/report/summary",
+          "started_at": "2026-11-26T21:39:08.833Z",
+          "finished_at": "2026-11-26T21:39:08.997Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/33jENUQnjoitkMFpvNJcSHyLAHFWJuHwT6E3E8CNpump/report/summary",
+          "started_at": "2026-11-26T21:39:08.998Z",
+          "finished_at": "2026-11-26T21:39:09.161Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/9SVj5ZTAL41tqswVNwT1TT9yv3oSHYMYv8zqoHtPpump/report/summary",
+          "started_at": "2026-11-26T21:39:09.161Z",
+          "finished_at": "2026-11-26T21:39:09.324Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.honeypot.is/v2/IsHoneypot?address=0x82aed68f1deaca2b2aa4c5f27276374228a9f923&chainID=8453&pair=0xD22586e6F068718Fb92B7EECfC0A2c918E7b9a70",
+          "started_at": "2026-11-26T21:39:09.324Z",
+          "finished_at": "2026-11-26T21:39:09.537Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.honeypot.is/v2/IsHoneypot?address=0x22168882276e5d5e1da694343b41dd7726eeb288&chainID=56&pair=0xE66783Ef2E2bC51958C032F04a37b6F060581fB9",
+          "started_at": "2026-11-26T21:39:09.537Z",
+          "finished_at": "2026-11-26T21:39:09.768Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.honeypot.is/v2/IsHoneypot?address=0x6421355286ecb21ad502582cd0b0da16971d5f45&chainID=56&pair=0x16fdB137A9874655BbBa5BF1160DC967c6F3f4ed",
+          "started_at": "2026-11-26T21:39:09.768Z",
+          "finished_at": "2026-11-26T21:39:09.976Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.honeypot.is/v2/IsHoneypot?address=0x7bd6fabd64813c48545c9c0e312a0099d9be2540&chainID=56&pair=0x9C0e520B4862AE7C7a55BcaA172b23c0EEA6aEf6",
+          "started_at": "2026-11-26T21:39:09.976Z",
+          "finished_at": "2026-11-26T21:39:10.247Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.honeypot.is/v2/IsHoneypot?address=0x96e8d3a52dd950aacc8d1749932e1c14bc76e371&chainID=56&pair=0x4f3066dF23cB802f03C02340AC2ABc25ce882432",
+          "started_at": "2026-11-26T21:39:10.247Z",
+          "finished_at": "2026-11-26T21:39:10.478Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.honeypot.is/v2/IsHoneypot?address=0xfecbda1b8dbd73c4eea7843c04db816107fa6666&chainID=56&pair=0x3B8e2AB4E9AD9e2Cec109432cF38cB17eB11f7C7",
+          "started_at": "2026-11-26T21:39:10.478Z",
+          "finished_at": "2026-11-26T21:39:10.656Z",
+          "http_status": 404,
+          "status": "HTTP_404",
+          "provider_error": "pair not found"
+        },
+        {
+          "url": "https://api.honeypot.is/v2/IsHoneypot?address=0x5888641e3e6cbea6d84ba81edb217bd691d3be38&chainID=1&pair=0x2B76272f365D4D44B159e06496EbC77e01eD0d7E",
+          "started_at": "2026-11-26T21:39:10.656Z",
+          "finished_at": "2026-11-26T21:39:10.852Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.honeypot.is/v2/IsHoneypot?address=0x7039cd6d7966672f194e8139074c3d5c4e6dcf65&chainID=1&pair=0x94cA4065ae4af445B7B12449c16dD93559eA08cd",
+          "started_at": "2026-11-26T21:39:10.852Z",
+          "finished_at": "2026-11-26T21:39:11.105Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/2fnGKgfwYjqv99ppnKCq5nCLLhRSJAPAhSMVkqjipump/report/summary",
+          "started_at": "2026-11-26T21:39:11.105Z",
+          "finished_at": "2026-11-26T21:39:11.264Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/31HzUsjzTt7FBCGnDy68cBnELayVsnd3zYEBtsXXpump/report/summary",
+          "started_at": "2026-11-26T21:39:11.264Z",
+          "finished_at": "2026-11-26T21:39:11.427Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/5LafQUrVco6o7KMz42eqVEJ9LW31StPyGjeeu5sKoMtA/report/summary",
+          "started_at": "2026-11-26T21:39:11.427Z",
+          "finished_at": "2026-11-26T21:39:11.586Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/8Gzb4Le3rUkDepM6xtaj7X6cN1xxbrHNXqtMb8Pipump/report/summary",
+          "started_at": "2026-11-26T21:39:11.586Z",
+          "finished_at": "2026-11-26T21:39:13.780Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/AKotzk1dhcNangAJBtvNKtT9bhbSVZc2mMhRFgkFpump/report/summary",
+          "started_at": "2026-11-26T21:39:13.780Z",
+          "finished_at": "2026-11-26T21:39:13.939Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/APxxh2tWCh95tbHitFJchcdbMsctSBgRS2Zzju9Bpump/report/summary",
+          "started_at": "2026-11-26T21:39:13.939Z",
+          "finished_at": "2026-11-26T21:39:15.748Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump/report/summary",
+          "started_at": "2026-11-26T21:39:15.748Z",
+          "finished_at": "2026-11-26T21:39:17.980Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.rugcheck.xyz/v1/tokens/EVrGfAj99Xr1NjqqZv6E2msVKZVmhGaThHhcZXzrpump/report/summary",
+          "started_at": "2026-11-26T21:39:17.980Z",
+          "finished_at": "2026-11-26T21:39:18.745Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR",
+          "started_at": "2026-11-26T21:39:18.745Z",
+          "finished_at": "2026-11-26T21:39:18.828Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.geckoterminal.com/api/v2/networks/solana/pools/6d47hQ1mg8F1eJzp64VAcbvTZHeTpffWmSEhPVMLSFgj/trades",
+          "started_at": "2026-11-26T21:39:18.828Z",
+          "finished_at": "2026-11-26T21:39:19.871Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.geckoterminal.com/api/v2/networks/solana/pools/7Vmv9VWN7w3pwzYxHCGLRdbJgbLTghL9br7Nkmvh3mrh/trades",
+          "started_at": "2026-11-26T21:39:19.873Z",
+          "finished_at": "2026-11-26T21:39:20.804Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.geckoterminal.com/api/v2/networks/solana/pools/FNxKx8si5YZ55uNvXhJiupWR57SBKX8rSQ8kM1RrrnB/trades",
+          "started_at": "2026-11-26T21:39:20.805Z",
+          "finished_at": "2026-11-26T21:39:22.114Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.geckoterminal.com/api/v2/networks/eth/pools/0xE9BBb07d23422835EB823E9efE0a44F57b651DA0/trades",
+          "started_at": "2026-11-26T21:39:22.114Z",
+          "finished_at": "2026-11-26T21:39:22.902Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.geckoterminal.com/api/v2/networks/solana/pools/7Te1wXcfeQjKLGHXFvxSCnGZTqunoZ9fxBn7KKjrkNEr/ohlcv/minute?aggregate=1&limit=5&currency=usd&token=base",
+          "started_at": "2026-11-26T21:39:22.903Z",
+          "finished_at": "2026-11-26T21:39:22.918Z",
+          "http_status": 429,
+          "status": "HTTP_429",
+          "provider_error": "You've exceeded the Rate Limit. Please visit https://www.coingecko.com/en/api/pricing to subscribe to our API plans for higher rate limits and use the onchain endpoints: https://docs.coingecko.com/reference/endpoint-overview"
+        },
+        {
+          "url": "https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=0x07f347371dce21733838d3bb254c640479c4b8e0&vs_currencies=eur&include_last_updated_at=true",
+          "started_at": "2026-11-26T21:39:22.918Z",
+          "finished_at": "2026-11-26T21:39:23.022Z",
+          "http_status": 429,
+          "status": "HTTP_429",
+          "provider_error": null
+        },
+        {
+          "url": "https://api.coingecko.com/api/v3/exchanges/kraken/tickers?coin_ids=pepe-wojak%2Cpumpmas%2Caudacity%2Cpodcat%2Cbarking-puppy%2Cani-token%2C1001-token%2C4stock%2Canonymous-shib%2Cava-ai%2Ccomedian%2Cani-grok-companion%2Cbananacat%2Callinu%2Cbianrensheng%2Clong-6%2Cbaby-toly-wif-hat%2Cdogelon-mars%2Ca-meme-dog%2Ccheems-token%2Cbaby-cupsey",
+          "started_at": "2026-11-26T21:39:23.022Z",
+          "finished_at": "2026-11-26T21:39:23.022Z",
+          "http_status": null,
+          "status": "SKIPPED_PROVIDER_COOLDOWN",
+          "retry_after_utc": "2026-11-26T21:41:23.021Z"
+        },
+        {
+          "url": "https://api.kraken.com/0/public/AssetPairs",
+          "started_at": "2026-11-26T21:39:23.022Z",
+          "finished_at": "2026-11-26T21:39:23.217Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.kraken.com/0/public/Trades?pair=ZEREBROEUR",
+          "started_at": "2026-11-26T21:39:23.218Z",
+          "finished_at": "2026-11-26T21:39:23.394Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.kraken.com/0/public/Trades?pair=DEGENEUR",
+          "started_at": "2026-11-26T21:39:23.219Z",
+          "finished_at": "2026-11-26T21:39:23.428Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.kraken.com/0/public/Trades?pair=USELESSEUR",
+          "started_at": "2026-11-26T21:39:23.430Z",
+          "finished_at": "2026-11-26T21:39:23.605Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.kraken.com/0/public/Trades?pair=DOGEUR",
+          "started_at": "2026-11-26T21:39:23.431Z",
+          "finished_at": "2026-11-26T21:39:23.645Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.kraken.com/0/public/Trades?pair=SPXEUR",
+          "started_at": "2026-11-26T21:39:23.647Z",
+          "finished_at": "2026-11-26T21:39:23.801Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.kraken.com/0/public/Trades?pair=MOGEUR",
+          "started_at": "2026-11-26T21:39:23.647Z",
+          "finished_at": "2026-11-26T21:39:23.835Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.kraken.com/0/public/Trades?pair=NPCEUR",
+          "started_at": "2026-11-26T21:39:23.836Z",
+          "finished_at": "2026-11-26T21:39:24.020Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.kraken.com/0/public/Trades?pair=PNUTEUR",
+          "started_at": "2026-11-26T21:39:23.837Z",
+          "finished_at": "2026-11-26T21:39:24.313Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.kraken.com/0/public/Trades?pair=GOATEUR",
+          "started_at": "2026-11-26T21:39:24.315Z",
+          "finished_at": "2026-11-26T21:39:24.478Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.kraken.com/0/public/Trades?pair=FARTCOINEUR",
+          "started_at": "2026-11-26T21:39:24.315Z",
+          "finished_at": "2026-11-26T21:39:24.493Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.kraken.com/0/public/Trades?pair=PENGUEUR",
+          "started_at": "2026-11-26T21:39:24.495Z",
+          "finished_at": "2026-11-26T21:39:24.667Z",
+          "http_status": 200,
+          "status": "OK"
+        },
+        {
+          "url": "https://api.kraken.com/0/public/Trades?pair=TRUMPEUR",
+          "started_at": "2026-11-26T21:39:24.495Z",
+          "finished_at": "2026-11-26T21:39:24.681Z",
+          "http_status": 200,
+          "status": "OK"
+        }
+      ]
     }
   ]
 }
