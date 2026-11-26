@@ -2,7 +2,7 @@ name: Cleanroom targeted evidence regression
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/cleanroom-targeted-check.yml','research/cleanroom/targeted.mjs']
+    paths: ['.github/workflows/cleanroom-targeted-check.yml','research/cleanroom/targeted.mjs','research/cleanroom/evidence.mjs']
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,9 +15,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: node research/cleanroom/evidence.mjs --self-test
       - run: node research/cleanroom/targeted.mjs --self-test
       - run: node research/cleanroom/market-probe.mjs
       - run: node research/cleanroom/evidence.mjs
+      - name: Check actual discovery inventory
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; import assert from "node:assert/strict"; const d=JSON.parse(fs.readFileSync("research/cleanroom/evidence-latest.json","utf8")).discovery; assert.equal(d.rows.length,d.distinct_contracts); assert.equal(d.rows.filter(r=>!r.joined_asset).length,d.not_joined); assert.ok(d.rows.every(r=>r.classification==="UNVERIFIED_DISCOVERY_LEAD")); console.log(JSON.stringify({distinct_contracts:d.distinct_contracts,not_joined:d.not_joined}));'
       - run: node research/cleanroom/targeted.mjs
       - name: Save diagnostics for inspection
         uses: actions/upload-artifact@v4
