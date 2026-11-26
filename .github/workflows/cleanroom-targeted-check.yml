@@ -12,6 +12,8 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -30,6 +32,15 @@ jobs:
           node research/cleanroom/token-registry.mjs
           node research/cleanroom/token-registry.mjs
           node --input-type=module -e 'import fs from "node:fs"; import assert from "node:assert/strict"; const p=process.env.CLEANROOM_REGISTRY_DIR; const j=JSON.parse(fs.readFileSync(p+"/index.json")); assert.ok(j.total_contracts>0); assert.equal(j.history.length,1); assert.equal(j.shards.reduce((n,s)=>n+s.count,0),j.total_contracts); console.log(JSON.stringify({registry_total:j.total_contracts,chains:j.by_chain,history:j.history}));'
+      - name: Verify cumulative merge across two genuine provider snapshots
+        run: |
+          export CLEANROOM_REGISTRY_DIR="$RUNNER_TEMP/cleanroom-history-registry"
+          git show d71e9ca4936058f4d45c3b3740e0b54b0eb158c8:research/cleanroom/market-latest.json > "$RUNNER_TEMP/prior-market.json"
+          git show d71e9ca4936058f4d45c3b3740e0b54b0eb158c8:research/cleanroom/evidence-latest.json > "$RUNNER_TEMP/prior-evidence.json"
+          node --input-type=module -e 'import fs from "node:fs"; const p=process.env.RUNNER_TEMP; const e=JSON.parse(fs.readFileSync(p+"/prior-evidence.json")); const m=JSON.parse(fs.readFileSync(p+"/prior-market.json")); const rows=[]; for(const s of m.sources) if(s.status==="OK") for(const r of s.rows) if(r.chain&&r.contract) rows.push({chain:r.chain,contract:r.contract,observations:[{source:s.name,url:s.url,retrieved_at:s.finished_at,symbol:r.symbol,pool:r.pool}]}); e.discovery={rows}; fs.writeFileSync(p+"/prior-evidence.json",JSON.stringify(e));'
+          CLEANROOM_EVIDENCE="$RUNNER_TEMP/prior-evidence.json" node research/cleanroom/token-registry.mjs
+          node research/cleanroom/token-registry.mjs
+          node --input-type=module -e 'import fs from "node:fs"; import assert from "node:assert/strict"; const j=JSON.parse(fs.readFileSync(process.env.CLEANROOM_REGISTRY_DIR+"/index.json")); assert.equal(j.history.length,2); assert.ok(j.history[1].total>=j.history[0].total); assert.ok(j.history[1].total===j.history[0].total+j.history[1].added); console.log(JSON.stringify({historical_live_snapshots:j.history,by_chain:j.by_chain}));'
       - name: Save diagnostics for inspection
         uses: actions/upload-artifact@v4
         with:
