@@ -26,6 +26,9 @@ jobs:
         run: |
           node --input-type=module -e 'import fs from "node:fs"; import assert from "node:assert/strict"; const d=JSON.parse(fs.readFileSync("research/cleanroom/evidence-latest.json","utf8")).discovery; assert.equal(d.rows.length,d.distinct_contracts); assert.equal(d.rows.filter(r=>!r.joined_asset).length,d.not_joined); assert.ok(d.rows.every(r=>r.classification==="UNVERIFIED_DISCOVERY_LEAD")); console.log(JSON.stringify({distinct_contracts:d.distinct_contracts,not_joined:d.not_joined}));'
       - run: node research/cleanroom/targeted.mjs
+      - name: Check expanded discovery and actual lead processing
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; import assert from "node:assert/strict"; const t=JSON.parse(fs.readFileSync("research/cleanroom/targeted-latest.json")); const m=JSON.parse(fs.readFileSync("research/cleanroom/market-latest.json")); const l=t.rows.filter(r=>r.id.startsWith("lead:")); assert.equal(l.length,t.summary.raw_leads_checked); assert.ok(l.length>0); assert.ok(l.every(r=>r.decision_status==="RESEARCH_INPUT_NOT_BUY"&&r.classification==="UNVERIFIED_DISCOVERY_LEAD")); assert.ok(l.filter(r=>r.research_ready).every(r=>r.observed_at_utc&&r.quote_scope==="COMPLETED_POOL_MINUTE_CANDLE_CLOSE_INDICATIVE_PAPER")); console.log(JSON.stringify({cursor:m.coverage_cursor,market_pages:m.sources.filter(s=>s.name.startsWith("CoinGecko EUR meme markets")).map(s=>({name:s.name,status:s.status,rows:s.rows.length})),coverage:t.discovery_coverage,summary:t.summary}));'
       - name: Merge live evidence into isolated registry and verify replay
         run: |
           export CLEANROOM_REGISTRY_DIR="$RUNNER_TEMP/cleanroom-registry"
