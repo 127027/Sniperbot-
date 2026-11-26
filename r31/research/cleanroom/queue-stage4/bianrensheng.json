@@ -1,0 +1,80 @@
+{
+  "schema": "cleanroom.research-result.v1",
+  "queue_id": "stage4-20261126",
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "id": "bianrensheng",
+  "chain": "bsc",
+  "contract": "0x924fa68a0fc644485b8df8abfa0a41c2e7744444",
+  "assessed_at_utc": "2026-11-26T17:12:12.675Z",
+  "decision": "DATA_GAP",
+  "reason": "Historical quote exceeds 15 minutes at run start 17:11:57 UTC; direct refresh attempts failed. No current entry justified.",
+  "diagnosis": "GitHub index and page matched snapshot 2026-11-26T16:40:13.623Z. Direct CoinGecko and DexScreener requests returned Internal Error (); URL is not accessible via this tool. No HTTP status supplied. Cause unknown; no general execution limit evidenced. Current holder concentration and slippage not independently tested.",
+  "sources": [
+    "https://raw.githubusercontent.com/127027/Sniperbot-/main/research/cleanroom/candidate-pages/index.json",
+    "https://raw.githubusercontent.com/127027/Sniperbot-/main/research/cleanroom/candidate-pages/page-001.json",
+    "https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&ids=bianrensheng&price_change_percentage=1h",
+    "https://api.dexscreener.com/tokens/v1/bsc/0x22b1458e780f8fa71e2f84502cee8b5a3cc731fa,0x25d887ce7a35172c62febfd67a1856f20faebb00,0x924fa68a0fc644485b8df8abfa0a41c2e7744444,0x6418c0dd099a9fda397c766304cdd918233e8847,0xa697e272a73744b343528c3bc4702f2565b2f422,0xfb5b838b6cfeedc2873ab27866079ac55363d37e,0xba2ae424d960c26247dd6c32edc70b295c744c43,0x80f1ff15b887cb19295d88c8c16f89d47f6d8888,0x6bdcce4a559076e37755a78ce0c06214e59e4444,0xfebfa339e44c28e2aa9e62ea1027c9cb4e378605,0xba38b3c706f7a515ff7c8db04daa0a134ec46d2b,0x0df0587216a4a1bb7d5082fdc491d93d2dd4b413,0xbab528425edb1e0e36d3719bc3307d9c8cce8888,0x3d4f0513e8a29669b960f9dbca61861548a9a760,0xc748673057861a797275cd8a068abb95a902e8de,0xbeea1d618e533a387d941f58a7d4c9b7bd377777,0x9daf1a070f882d870a8d58d7a27041c752f3b88d,0x6a2608dabe09bc1128eec7275b92dfb939d5db3f,0x2859e4544c4bb03966803b044a93563bd2d0dd4d,0x20482b0b4d9d8f60d3ab432b92f4c4b901a0d10c,0xa7440029eca41deabd8775ef1d6086b37d4df8d6,0xfe189e97832da1573e4e4ff034f4ffc3a15c7777,0x5c85d6c6825ab4032337f11ee92a72df936b46f6,0x595e21b20e78674f8a64c1566a20b2b316bc3511,0x6ec90334d89dbdc89e08a133271be3d104128edb,0x20d6015660b3fe52e6690a889b5c51f69902ce0e,0x94162acc63812d53ac2bcf1f4aef65863273e63b,0x8b953e1b3d563c40f688350eb859575be0989fd7,0x997a58129890bbda032231a52ed1ddc845fc18e1,0xda05ca5303d75f14e298fb8aeff51fd2f2105803",
+    "https://api.honeypot.is/v2/IsHoneypot?address=0x924fa68a0fc644485b8df8abfa0a41c2e7744444&chainID=56&pair=0x66f289De31EEF70d52186729d2637Ac978CFC56B",
+    "https://api.coingecko.com/api/v3/simple/token_price/binance-smart-chain?contract_addresses=0x924fa68a0fc644485b8df8abfa0a41c2e7744444&vs_currencies=eur&include_last_updated_at=true",
+    "https://api.dexscreener.com/tokens/v1/bsc/0x924fa68a0fc644485b8df8abfa0a41c2e7744444"
+  ],
+  "attempts": [
+    {
+      "url": "https://raw.githubusercontent.com/127027/Sniperbot-/main/research/cleanroom/candidate-pages/index.json",
+      "result": "Read successfully; snapshot 2026-11-26T16:40:13.623Z"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/127027/Sniperbot-/main/research/cleanroom/candidate-pages/page-001.json",
+      "result": "Read successfully; exact chain/contract extracted; matching snapshot"
+    },
+    {
+      "url": "https://api.coingecko.com/api/v3/simple/token_price/binance-smart-chain?contract_addresses=0x924fa68a0fc644485b8df8abfa0a41c2e7744444&vs_currencies=eur&include_last_updated_at=true",
+      "result": "Internal Error (); URL is not accessible via this tool."
+    },
+    {
+      "url": "https://api.dexscreener.com/tokens/v1/bsc/0x924fa68a0fc644485b8df8abfa0a41c2e7744444",
+      "result": "Internal Error (); URL is not accessible via this tool."
+    }
+  ],
+  "gaps": [
+    "Fresh timestamped EUR quote",
+    "Current pool activity",
+    "Current holder concentration and executable slippage"
+  ],
+  "quote": {
+    "price_eur": 0.409988,
+    "observed_at_utc": "2026-11-26T16:38:50.000Z",
+    "source_url": "https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&ids=bianrensheng&price_change_percentage=1h",
+    "historical": true
+  },
+  "pool": {
+    "address": "0x66f289De31EEF70d52186729d2637Ac978CFC56B",
+    "liquidity_usd": 6600277.14,
+    "buys_1h": 126,
+    "sells_1h": 45,
+    "source_url": "https://api.dexscreener.com/tokens/v1/bsc/0x22b1458e780f8fa71e2f84502cee8b5a3cc731fa,0x25d887ce7a35172c62febfd67a1856f20faebb00,0x924fa68a0fc644485b8df8abfa0a41c2e7744444,0x6418c0dd099a9fda397c766304cdd918233e8847,0xa697e272a73744b343528c3bc4702f2565b2f422,0xfb5b838b6cfeedc2873ab27866079ac55363d37e,0xba2ae424d960c26247dd6c32edc70b295c744c43,0x80f1ff15b887cb19295d88c8c16f89d47f6d8888,0x6bdcce4a559076e37755a78ce0c06214e59e4444,0xfebfa339e44c28e2aa9e62ea1027c9cb4e378605,0xba38b3c706f7a515ff7c8db04daa0a134ec46d2b,0x0df0587216a4a1bb7d5082fdc491d93d2dd4b413,0xbab528425edb1e0e36d3719bc3307d9c8cce8888,0x3d4f0513e8a29669b960f9dbca61861548a9a760,0xc748673057861a797275cd8a068abb95a902e8de,0xbeea1d618e533a387d941f58a7d4c9b7bd377777,0x9daf1a070f882d870a8d58d7a27041c752f3b88d,0x6a2608dabe09bc1128eec7275b92dfb939d5db3f,0x2859e4544c4bb03966803b044a93563bd2d0dd4d,0x20482b0b4d9d8f60d3ab432b92f4c4b901a0d10c,0xa7440029eca41deabd8775ef1d6086b37d4df8d6,0xfe189e97832da1573e4e4ff034f4ffc3a15c7777,0x5c85d6c6825ab4032337f11ee92a72df936b46f6,0x595e21b20e78674f8a64c1566a20b2b316bc3511,0x6ec90334d89dbdc89e08a133271be3d104128edb,0x20d6015660b3fe52e6690a889b5c51f69902ce0e,0x94162acc63812d53ac2bcf1f4aef65863273e63b,0x8b953e1b3d563c40f688350eb859575be0989fd7,0x997a58129890bbda032231a52ed1ddc845fc18e1,0xda05ca5303d75f14e298fb8aeff51fd2f2105803",
+    "retrieved_at": "2026-11-26T16:39:59.230Z",
+    "volume_1h_usd": 12319.1,
+    "change_1h_pct": 0.58,
+    "historical": true
+  },
+  "risk": {
+    "status": "PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT",
+    "fields": {
+      "is_honeypot": false,
+      "simulation_success": true,
+      "buy_tax_pct": 0,
+      "sell_tax_pct": 0,
+      "reported_risk": "low",
+      "risk_level": 1,
+      "provider_flags": []
+    },
+    "flags": [],
+    "source_url": "https://api.honeypot.is/v2/IsHoneypot?address=0x924fa68a0fc644485b8df8abfa0a41c2e7744444&chainID=56&pair=0x66f289De31EEF70d52186729d2637Ac978CFC56B",
+    "retrieved_at": "2026-11-26T16:40:09.676Z",
+    "provenance": "Collector Honeypot.is, not direct query; not an audit"
+  },
+  "thesis_60m": "Historical 126 buys vs 45 sells, +0.58% pool momentum and $6.6m liquidity suggest conditional continuation if sustained; trade counts do not establish net inflows and stale evidence cannot support a current forecast.",
+  "hypothetical_budget_eur": 50
+}
