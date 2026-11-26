@@ -1,0 +1,52 @@
+name: Cleanroom one-hour measured data test
+on:
+  push:
+    branches: [cleanroom/one-hour-probe-20261126]
+    paths: ['.github/workflows/cleanroom-one-hour-probe.yml']
+permissions:
+  contents: write
+concurrency:
+  group: cleanroom-one-hour-probe-20261126
+  cancel-in-progress: false
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check parser
+        run: node research/cleanroom/market-probe.mjs --self-test
+      - name: Sample public data every five minutes for one hour
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "Cleanroom duration test"
+          git config user.email "actions@users.noreply.github.com"
+          export CLEANROOM_OUTPUT="$RUNNER_TEMP/cleanroom-probe.json"
+          export HEARTBEAT="research/cleanroom/duration-test-20261126.json"
+          export TEST_START="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          start=$(date +%s)
+          for i in $(seq 0 12); do
+            deadline=$((start + i * 300))
+            remaining=$((deadline - $(date +%s)))
+            if [ "$remaining" -gt 0 ]; then sleep "$remaining"; fi
+            export SAMPLE="$i"
+            rm -f "$CLEANROOM_OUTPUT"
+            if node research/cleanroom/market-probe.mjs; then export PROBE_EXIT=0; else export PROBE_EXIT=$?; fi
+            node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const file=process.env.HEARTBEAT;
+          const sample=Number(process.env.SAMPLE);
+          const report=fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):{schema:'cleanroom.duration.test.v1',mode:'RESEARCH_ONLY_NO_SIGNALS',scope:'Measured market-data collector only, not GPT Dot execution',started_at:process.env.TEST_START,planned_minutes:60,interval_minutes:5,samples:[]};
+          const p=fs.existsSync(process.env.CLEANROOM_OUTPUT)?JSON.parse(fs.readFileSync(process.env.CLEANROOM_OUTPUT,'utf8')):null;
+          report.samples.push({sample,recorded_at:new Date().toISOString(),exit_code:Number(process.env.PROBE_EXIT),started_at:p?.started_at??null,finished_at:p?.finished_at??null,rows:p?.rows??0,successful_sources:p?.successful_sources??0,sources:p?.sources?.map(s=>({name:s.name,status:s.status,rows:s.rows.length}))??[]});
+          report.status=sample===12?'COMPLETED':'SAMPLING';
+          fs.writeFileSync(file,JSON.stringify(report,null,2)+'\n');
+          NODE
+            git add "$HEARTBEAT"
+            git commit -m "Cleanroom duration test checkpoint $i of 12"
+            git push origin HEAD:cleanroom/one-hour-probe-20261126
+          done
