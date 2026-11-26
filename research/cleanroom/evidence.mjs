@@ -25,6 +25,27 @@ export function joinEvidence(market,registry,pools,at){
  }
  return {rows,gaps};
 }
+// Preserve raw discovery leads separately from verified asset-level evidence.
+// A missing CoinGecko join must not silently erase newly observed token addresses.
+export function discoveryInventory(snapshot,joined){
+ const aliases={solana:'solana',ethereum:'ethereum',eth:'ethereum',bsc:'bsc',base:'base',arbitrum:'arbitrum',polygon:'polygon',optimism:'optimism',avalanche:'avalanche'};
+ const known=new Set(joined.rows.flatMap(r=>r.identities.map(i=>key(i.chain,i.contract))));
+ const leads=new Map();
+ for(const source of snapshot.sources??[]){
+  if(source.status!=='OK')continue;
+  for(const row of source.rows??[]){
+   const chain=aliases[row.chain],contract=chain&&canonical(chain,row.contract);
+   if(!contract)continue;
+   const k=key(chain,contract);
+   const item=leads.get(k)??{chain,contract,joined_asset:known.has(k),classification:'UNVERIFIED_DISCOVERY_LEAD',observations:[]};
+   item.observations.push({source:source.name,url:source.url,retrieved_at:source.finished_at,symbol:row.symbol??null,pool:row.pool??null,liquidity_usd:row.liquidity_usd??null,volume_1h_usd:row.volume_1h_usd??null,change_1h_pct:row.change_1h_pct??null,provider_quote_time:row.provider_quote_time??null});
+   leads.set(k,item);
+  }
+ }
+ const rows=[...leads.values()];
+ return {schema:'cleanroom.discovery.inventory.v1',distinct_contracts:rows.length,not_joined:rows.filter(r=>!r.joined_asset).length,rows,coverage:'Only retrieved source pages. Unknown global denominator. Leads are not verified memecoins, quotes, risk assessments or BUYs.'};
+}
+
 async function req(url,parser,headers={}){
  const started_at=new Date().toISOString();try{const r=await fetch(url,{headers,signal:AbortSignal.timeout(25000),redirect:'follow'});const status=r.status;if(!r.ok)return {url,started_at,finished_at:new Date().toISOString(),status:'HTTP_'+status,http_status:status,data:null};
  const raw=await r.text();if(raw.length>12000000)throw Error('RESPONSE_TOO_LARGE');const data=parser(raw);return {url,started_at,finished_at:new Date().toISOString(),status:'OK',http_status:status,data};
@@ -43,7 +64,9 @@ if(process.argv.includes('--self-test')){
  assert.equal(joinEvidence([{...m,provider_quote_time:'2026-11-26T09:00:00Z'}],registry,[],at).rows.length,0);
  assert.equal(joinEvidence([m],[],[],at).rows.length,0);assert.equal(joinEvidence([m],[...registry,...registry],[],at).rows.length,0);
  assert.equal(rss('<rss><item><title>Test</title><link>https://example.com</link><pubDate>Thu, 26 Nov 2026 09:00:00 GMT</pubDate></item></rss>')[0].published_at,'2026-11-26T09:00:00.000Z');
- console.log('Evidence fixtures passed');
+ const discovery=discoveryInventory({sources:[{name:'fixture',status:'OK',rows:[{chain:'ethereum',contract:address},{chain:'ethereum',contract:address.toUpperCase().replace('0X','0x')},{chain:'ethereum',contract:'0x'+'b'.repeat(40)},{chain:'ethereum',contract:'invalid'}]}]},a);
+ assert.equal(discovery.distinct_contracts,2);assert.equal(discovery.not_joined,1);assert.equal(discovery.rows[0].observations.length,2);assert.equal(discovery.rows[1].classification,'UNVERIFIED_DISCOVERY_LEAD');
+ console.log('Evidence and discovery inventory fixtures passed');
 }else{
  const snapshot=JSON.parse(await readFile(process.env.CLEANROOM_OUTPUT??'research/cleanroom/market-latest.json','utf8'));
  const market=snapshot.sources.find(s=>s.name==='CoinGecko EUR meme markets')?.rows??[];
@@ -52,6 +75,6 @@ if(process.argv.includes('--self-test')){
  const [reg,...news]=await Promise.all([req(BASE+'/coins/list?include_platform=true',JSON.parse,headers),req('https://www.coindesk.com/arc/outboundfeeds/rss/',rss),req('https://cointelegraph.com/rss',rss)]);
  const finished_at=new Date().toISOString();
  const joined=joinEvidence(market,Array.isArray(reg.data)?reg.data:[],pools,finished_at);
- const result={schema:'cleanroom.evidence.v1',mode:'RESEARCH_ONLY',finished_at,market_snapshot_finished_at:snapshot.finished_at,source_logs:[...snapshot.sources.map(({name,url,started_at,finished_at,status,rows})=>({name,url,started_at,finished_at,status,row_count:rows.length})),...([reg,...news].map(({data,...s})=>({...s,row_count:Array.isArray(data)?data.length:0})))],market_rows:market.length,joined_count:joined.rows.length,unresolved_count:joined.gaps.length,...joined,news:news.flatMap(s=>(s.data??[]).map(x=>({...x,source:s.url}))),limitations:'No global completeness, no chain-specific execution quote, risk or trade decision. Freshness and identity must be checked again before any broadcast.'};
+ const result={schema:'cleanroom.evidence.v1',mode:'RESEARCH_ONLY',finished_at,market_snapshot_finished_at:snapshot.finished_at,source_logs:[...snapshot.sources.map(({name,url,started_at,finished_at,status,rows})=>({name,url,started_at,finished_at,status,row_count:rows.length})),...([reg,...news].map(({data,...s})=>({...s,row_count:Array.isArray(data)?data.length:0})))],market_rows:market.length,joined_count:joined.rows.length,unresolved_count:joined.gaps.length,...joined,discovery:discoveryInventory(snapshot,joined),news:news.flatMap(s=>(s.data??[]).map(x=>({...x,source:s.url}))),limitations:'No global completeness, no chain-specific execution quote, risk or trade decision. Freshness and identity must be checked again before any broadcast.'};
  const dest='research/cleanroom/evidence-latest.json';await mkdir(dirname(dest),{recursive:true});await writeFile(dest,JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify({finished_at,market_rows:result.market_rows,joined:result.joined_count,unresolved:result.unresolved_count,news:result.news.length,registry:reg.status}));
 }
