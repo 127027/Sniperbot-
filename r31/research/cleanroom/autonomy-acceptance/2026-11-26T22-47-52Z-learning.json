@@ -1,0 +1,47 @@
+{
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "observed_at": "2026-11-26T22:47:52Z",
+  "main_run": {
+    "id": "9a0e17a9-f560-8325-bf47-8422eefb6ee5",
+    "started": "2026-11-26T22:01:08.305609Z",
+    "completed": "2026-11-26T22:01:30.611731Z",
+    "checkpoint_sha": "8a85ac35762f5c1e3b2210e154353b86b46c7ba0",
+    "finals": 0,
+    "buys": 0
+  },
+  "support_run": {
+    "id": "e02ede1c-ebc8-8321-a5f8-09c5edf9fc38",
+    "sha": "a9d5e709f219cfedd80491a91a4d97b63bad5076",
+    "leads": 7
+  },
+  "prior_learning_files": 0,
+  "collector": {
+    "run_id": "45898048259",
+    "snapshot": "2026-11-26T21:49:20.337Z",
+    "age_seconds": 3512,
+    "reported_fresh_at_snapshot": 88,
+    "registry": 5472,
+    "support_selected": 7,
+    "support_fresh_at_snapshot": 1,
+    "ci_regression_run": "45898048436",
+    "ci_regression": "failure",
+    "entry_sha": "e8604405ffbbe21bcdf1f23833c14825f716b087",
+    "index_sha": "6c3bf4f2cb4e5520149e353c6111f8ec177c1c52",
+    "entry_rows": 3,
+    "entry_current_quotes": 0
+  },
+  "cause": "Main worker premature termination unknown; separate verified collector snapshot staleness after bounded successful run. Staleness does not explain stopping before final assessment.",
+  "hypothesis": "Collector freshness is now an independent blocker: if entry and index snapshot remain unchanged at next run, cached entry cannot support a current BUY; independent source refresh or new collector cycle is required.",
+  "test": {
+    "method": "Read actual entry and index from main and compare snapshot and quote timestamps to observation time; inspect completed collector CI.",
+    "result": "Both snapshots identical and 58m32s old; only one entry quote present, 59m56s old; zero current entry quotes. Hypothesis supported for current entry, not entire market."
+  },
+  "patch": null,
+  "reason_no_patch": "One diagnostic per round; no untested deployment or repeated prompt change. Existing CI failure remains unresolved.",
+  "next_test": {
+    "scheduled": "2026-11-26T23:00:00Z",
+    "acceptance": "Independent worker records at least one final readback decision, uses refreshed timestamped evidence for any BUY, reports 10 target without forcing. Check whether collector snapshot advances and is <=15 minutes old; if unchanged investigate supported collector restart in next round."
+  },
+  "matured_cohorts": 0
+}
