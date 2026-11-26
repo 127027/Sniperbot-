@@ -9,13 +9,13 @@ if(publish){const g=spawnSync('git',['status','--porcelain'],{encoding:'utf8'});
 for(let i=0;i<limit;i++){
  const cycle_start=now(), steps=[];
  const step=(file)=>{const r=run(process.execPath,[dir+file],180000);steps.push({file,...r,finished_at:now()});return r.exit_code===0};
- const good=step('market-probe.mjs')&&step('evidence.mjs')&&step('targeted.mjs');
- let summary=null,source_logs=[];if(good){const x=JSON.parse(await fs.readFile(dir+'targeted-latest.json','utf8'));summary=x.summary;source_logs=x.source_logs;}
+ const good=step('market-probe.mjs')&&step('evidence.mjs')&&step('targeted.mjs')&&step('token-registry.mjs');
+ let summary=null,source_logs=[];if(good){const x=JSON.parse(await fs.readFile(dir+'targeted-latest.json','utf8'));summary=x.summary;source_logs=x.source_logs;const registry=JSON.parse(await fs.readFile(dir+'token-registry/index.json','utf8'));summary.registry_total=registry.total_contracts;summary.registry_added=registry.history.at(-1)?.added??0;}
  const p=dir+'watchdog-checkpoints.json';let h={schema:'cleanroom.watchdog.v1',samples:[]};try{h=JSON.parse(await fs.readFile(p,'utf8'))}catch{}
  h.samples.push({run_id:process.env.GITHUB_RUN_ID??'local-'+started,sample:i,planned_at:new Date(started+i*interval).toISOString(),started_at:cycle_start,finished_at:now(),status:good?'OK':'FAILED',steps,summary,source_logs});h.samples=h.samples.slice(-144);
  await fs.writeFile(p+'.tmp',JSON.stringify(h,null,2)+'\n');await fs.rename(p+'.tmp',p);
  if(publish){
-  const files=[p];if(good)files.push(dir+'market-latest.json',dir+'evidence-latest.json',dir+'targeted-latest.json');
+  const files=[p];if(good)files.push(dir+'market-latest.json',dir+'evidence-latest.json',dir+'targeted-latest.json',dir+'token-registry/');
   for(const args of [['add','--',...files],['commit','-m','Cleanroom watchdog checkpoint '+cycle_start],['pull','--rebase','origin','main'],['push','origin','HEAD:main']]){const r=run('git',args,60000);if(r.exit_code!==0)throw Error('GIT_STEP_FAILED '+args[0]);}
  }
  console.log(JSON.stringify({sample:i,good,summary}));
