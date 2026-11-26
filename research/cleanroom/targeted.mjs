@@ -1,6 +1,7 @@
 // Targeted pool + security evidence; never publishes BUY/SELL or uses wallets.
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
 const dir='research/cleanroom/', base='https://api.dexscreener.com/tokens/v1/', gt='https://api.geckoterminal.com/api/v2/networks/';
 const nets={solana:'solana',ethereum:'eth',bsc:'bsc',base:'base',arbitrum:'arbitrum',polygon:'polygon_pos',optimism:'optimism',avalanche:'avax'};
 const ids={ethereum:1,bsc:56,base:8453,arbitrum:42161,polygon:137,optimism:10,avalanche:43114};
@@ -56,6 +57,28 @@ function executionCosts(i,at){
   fields.push({source:v.source,source_url:v.source_url??null,retrieved_at:v.retrieved_at,buy_tax_pct:buy!==null&&buy>=0&&buy*scale<=100?buy*scale:null,sell_tax_pct:sell!==null&&sell>=0&&sell*scale<=100?sell*scale:null});
  }
  return {scope:'PAPER_COST_EVIDENCE_NOT_EXECUTABLE_QUOTE',stake_eur:50,tax_observations:fields,gas_eur:null,dex_fee_pct:null,slippage_pct:null,round_trip_total_eur:null,limitations:'Taxes only when provider supplied valid current fields. Gas, route fee, price impact and total unknown; do not assume zero.'};
+}
+// Independent worker reports are untrusted discovery locators, not market facts.
+function supportRows(doc){
+ if(doc?.mode!=='RESEARCH_ONLY'||doc.non_executable!==true||!Array.isArray(doc.rows))return [];
+ return doc.rows.filter(r=>nets[r.chain]&&(r.chain==='solana'?/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(r.contract??''):/^0x[0-9a-fA-F]{40}$/.test(r.contract??''))&&Array.isArray(r.sources)&&r.sources.some(u=>typeof u==='string'&&u.startsWith('https://'))).slice(0,32).map(r=>({chain:r.chain,contract:norm(r.chain,r.contract),sources:[{symbol:typeof r.name==='string'?r.name.slice(0,100):null}]}));
+}
+function loadSupport(at){
+ const root='r31/research/cleanroom/autonomy-acceptance/',ref='refs/remotes/origin/cleanroom-support-read';
+ const git=args=>spawnSync('git',args,{encoding:'utf8',timeout:15000,maxBuffer:2000000});
+ const fetched=git(['fetch','--no-tags','--depth=1','origin','+refs/heads/codex/r31-control-center-paper:'+ref]);
+ if(fetched.status!==0)return {status:'FETCH_FAILED',rows:[],files:[]};
+ const tree=git(['ls-tree','-r','--name-only',ref,'--',root]);
+ if(tree.status!==0)return {status:'TREE_FAILED',rows:[],files:[]};
+ const names=tree.stdout.split('\n').filter(p=>p.startsWith(root)&&/^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z-support-evidence\.json$/.test(p.slice(root.length))).sort().reverse();
+ const rows=[],files=[];
+ for(const p of names.slice(0,4)){
+  const t=Date.parse(p.slice(root.length,root.length+20).replace(/T(\d{2})-(\d{2})-(\d{2})Z/,'T$1:$2:$3Z'));
+  if(!Number.isFinite(t)||t>at||at-t>2*3600000)continue;
+  const file=git(['show',ref+':'+p]);if(file.status!==0)continue;
+  try{const valid=supportRows(JSON.parse(file.stdout));if(valid.length){files.push(p);rows.push(...valid.map(r=>({...r,support_file:p})));}}catch{}
+ }
+ return {status:files.length?'OK':'NO_RECENT_VALID_REPORT',rows,files};
 }
 function candleQuote(j,identity,fx,at,url){
  const a=j?.data?.attributes?.ohlcv_list, meta=j?.meta;
@@ -154,6 +177,8 @@ if(process.argv.includes('--self-test')){
  assert.equal(usableSecondary({evidence:fixtureRisk,pool_address:b},{pool:{pool_address:b}},at),true);
  assert.equal(usableSecondary({evidence:fixtureRisk,pool_address:a},{pool:{pool_address:b}},at),false);
  assert.equal(cachedRisk(fixtureRisk).retrieved_at,fixtureRisk.retrieved_at);
+ const supportFixture={mode:'RESEARCH_ONLY',non_executable:true,rows:[{chain:'ethereum',contract:a,name:'fixture',sources:['https://example.com'],price_eur:999},{chain:'ethereum',contract:'bad',sources:['https://example.com']}]};
+ assert.equal(supportRows(supportFixture).length,1);assert.equal(supportRows(supportFixture)[0].price_eur,undefined);assert.equal(supportRows({...supportFixture,non_executable:false}).length,0);
  const cost=executionCosts({security:{...fixtureRisk,source:'GoPlus',fields:{buy_tax:'0.02',sell_tax:'0.04'}},secondary_security:{...fixtureRisk,source:'Honeypot.is',fields:{buy_tax_pct:0,sell_tax_pct:3}}},at);
  assert.equal(cost.tax_observations[0].buy_tax_pct,2);assert.equal(cost.tax_observations[1].sell_tax_pct,3);assert.equal(cost.round_trip_total_eur,null);
  assert.equal(executionCosts({security:fixtureRisk},at+3600000).tax_observations.length,0);
@@ -183,6 +208,8 @@ if(process.argv.includes('--self-test')){
  const attempts={...(prev.lead_attempts??{})}, raw=new Map(),historicalKeys=new Set();
  const valid=(c,a)=>nets[c]&&(c==='solana'?/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a??''):/^0x[0-9a-fA-F]{40}$/.test(a??''));
  const addLead=(x,origin)=>{if(!valid(x.chain,x.contract))return;const k=key(x.chain,x.contract);if(known.has(k)||raw.has(k))return;raw.set(k,{...x,origin})};
+ const support=loadSupport(Date.parse(started_at));
+ for(const x of support.rows)addLead(x,'DOT_SUPPORT_DISCOVERY');
  for(const x of e.discovery?.rows??[])addLead(x,'CURRENT_DISCOVERY');
  let registryRead='NOT_AVAILABLE';try{
   const index=JSON.parse(await fs.readFile(dir+'token-registry/index.json','utf8'));
@@ -191,7 +218,8 @@ if(process.argv.includes('--self-test')){
  }catch(err){registryRead='ERROR:'+String(err.code??err.message);}
  const oldest=(a,b)=>(attempts[a[0]]??'').localeCompare(attempts[b[0]]??'')||a[0].localeCompare(b[0]);
  // New-to-registry contracts get priority for acquisition, not for trading.
- const recent=[...raw].filter(([,x])=>x.origin==='CURRENT_DISCOVERY').sort((a,b)=>Number(historicalKeys.has(a[0]))-Number(historicalKeys.has(b[0]))||oldest(a,b)).slice(0,32);
+ const supportSelected=[...raw].filter(([,x])=>x.origin==='DOT_SUPPORT_DISCOVERY').sort(oldest).slice(0,8);
+ const recent=[...supportSelected,...[...raw].filter(([,x])=>x.origin==='CURRENT_DISCOVERY').sort((a,b)=>Number(historicalKeys.has(a[0]))-Number(historicalKeys.has(b[0]))||oldest(a,b)).slice(0,32-supportSelected.length)];
  const chosen=new Set(recent.map(([k])=>k));
  const other=[...raw].filter(([k])=>!chosen.has(k)).sort(oldest).slice(0,48-recent.length);
  const previousRaw=new Set((prev.rows??[]).filter(r=>r.id.startsWith('lead:')).flatMap(r=>r.identities.map(i=>key(i.chain,i.contract))));
@@ -201,7 +229,7 @@ if(process.argv.includes('--self-test')){
  const rawOverlap=[...recent,...other].filter(([k])=>previousRaw.has(k)).length;
  for(const [k,x] of [...recent,...other]){
   const o=x.observations?.at(-1)??x.sources?.at(-1)??{};
-  rows.push({id:'lead:'+k,coin:o.symbol??x.contract,price_eur:null,observed_at_utc:null,source_url:null,change_1h_pct:o.change_1h_pct??null,identities:[{chain:x.chain,contract:x.contract,pool:null}],classification:'UNVERIFIED_DISCOVERY_LEAD',discovery_origin:x.origin,decision_status:'RESEARCH_INPUT_NOT_BUY'});
+  rows.push({id:'lead:'+k,coin:o.symbol??x.contract,price_eur:null,observed_at_utc:null,source_url:null,change_1h_pct:o.change_1h_pct??null,identities:[{chain:x.chain,contract:x.contract,pool:null}],classification:'UNVERIFIED_DISCOVERY_LEAD',discovery_origin:x.origin,support_file:x.support_file??null,decision_status:'RESEARCH_INPUT_NOT_BUY'});
   attempts[k]=started_at;
  }
  const selectedLeads=rows.filter(r=>r.id.startsWith('lead:')).length;
@@ -283,12 +311,12 @@ if(process.argv.includes('--self-test')){
  }
  const finished_at=now(),at=Date.parse(finished_at);
  for(const r of rows){const i=r.identities.find(x=>r.fallback_identity?key(x.chain,x.contract)===key(r.fallback_identity.chain,r.fallback_identity.contract):x.pool);r.research_ready=Boolean(i?.pool&&fresh(r.observed_at_utc,at)&&number(r.price_eur)>0&&i.pool.volume_1h_usd!==null&&i.pool.sells_1h!==null);r.risk_status=i?.security?.status??'UNAVAILABLE';r.decision_status='RESEARCH_INPUT_NOT_BUY'}
- const out={schema:'cleanroom.targeted.v1',mode:'RESEARCH_ONLY',started_at,finished_at,source_snapshot:e.finished_at,mapped_attempts:mappedAttempts,contract_quote_attempts:contractQuoteHistory,kraken_identity_cache:cache,risk_cache:riskCache,host_cooldown:Object.fromEntries(Object.entries(hostCooldown).filter(([,v])=>v>Date.now())),cache_reuse:cacheHits,lead_attempts:attempts,risk_attempts:riskAttempts,discovery_coverage:{registry_read:registryRead,eligible_raw_contracts:raw.size,selected_raw_contracts:selectedLeads,unselected_raw_contracts:Math.max(0,raw.size-selectedLeads),current_discovery_new_to_registry:currentUnseen,selected_new_to_registry:rawNewToRegistry,selected_first_attempt:rawFirstSelected,selected_overlap_previous_cycle:rawOverlap,selected_current_discovery:recent.length,selected_rotating_backlog:other.length,cumulative_raw_selection_keys:Object.keys(attempts).length,mapped_current:rows.filter(r=>!r.id.startsWith('lead:')&&currentIds.has(r.id)).length},rows,news:e.news??[],source_logs:[...(e.source_logs??[]),...logs],summary:{contract_quote_eligible:quoteEligible.length,contract_quote_candidates:contractQuoteAttempts,contract_quote_hits:contractQuoteHits,contract_quote_chain:contractQuoteChain,contract_quote_status:contractQuoteStatus,contract_quote_provider_error:contractQuoteError,contract_quote_single_retry:contractQuoteSingleRetry,raw_new_to_registry:rawNewToRegistry,raw_first_selected:rawFirstSelected,raw_overlap_previous_cycle:rawOverlap,raw_current_selected:recent.length,raw_backlog_selected:other.length,raw_cumulative_selection_keys:Object.keys(attempts).length,cache_primary_risk:cacheHits.primary_risk,cache_secondary_risk:cacheHits.secondary_risk,cache_kraken_mapping:cacheHits.kraken_mapping,assets:rows.filter(r=>!r.id.startsWith('lead:')).length,raw_leads_checked:selectedLeads,raw_leads_with_pool:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,raw_leads_with_timestamped_quote:rows.filter(r=>r.id.startsWith('lead:')&&r.research_ready).length,pool_mapped:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,fresh_quote_and_pool:rows.filter(r=>!r.id.startsWith('lead:')&&r.research_ready).length,security_fields:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,raw_leads_with_security_fields:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,fallback_quotes:rows.filter(r=>r.fallback_quote).length,kraken_quotes:rows.filter(r=>r.kraken_quote).length,news:(e.news??[]).length},limitations:'Research inputs only. No safety certification. DEX snapshot retrieval time is not a provider quote timestamp. FX daily indicative; candles are historic completed minute closes, not executable prices. Missing risk fields are unknown. Discovery remains bounded.'};
+ const out={schema:'cleanroom.targeted.v1',mode:'RESEARCH_ONLY',started_at,finished_at,source_snapshot:e.finished_at,mapped_attempts:mappedAttempts,contract_quote_attempts:contractQuoteHistory,kraken_identity_cache:cache,risk_cache:riskCache,host_cooldown:Object.fromEntries(Object.entries(hostCooldown).filter(([,v])=>v>Date.now())),cache_reuse:cacheHits,lead_attempts:attempts,risk_attempts:riskAttempts,discovery_coverage:{registry_read:registryRead,eligible_raw_contracts:raw.size,selected_raw_contracts:selectedLeads,unselected_raw_contracts:Math.max(0,raw.size-selectedLeads),current_discovery_new_to_registry:currentUnseen,selected_new_to_registry:rawNewToRegistry,selected_first_attempt:rawFirstSelected,selected_overlap_previous_cycle:rawOverlap,selected_current_discovery:recent.length,selected_rotating_backlog:other.length,cumulative_raw_selection_keys:Object.keys(attempts).length,mapped_current:rows.filter(r=>!r.id.startsWith('lead:')&&currentIds.has(r.id)).length},rows,news:e.news??[],source_logs:[...(e.source_logs??[]),...logs],summary:{support_status:support.status,support_files:support.files,support_received:support.rows.length,support_selected:supportSelected.length,support_with_pool:rows.filter(r=>r.discovery_origin==='DOT_SUPPORT_DISCOVERY'&&r.identities.some(i=>i.pool)).length,support_fresh_quotes:rows.filter(r=>r.discovery_origin==='DOT_SUPPORT_DISCOVERY'&&r.research_ready).length,contract_quote_eligible:quoteEligible.length,contract_quote_candidates:contractQuoteAttempts,contract_quote_hits:contractQuoteHits,contract_quote_chain:contractQuoteChain,contract_quote_status:contractQuoteStatus,contract_quote_provider_error:contractQuoteError,contract_quote_single_retry:contractQuoteSingleRetry,raw_new_to_registry:rawNewToRegistry,raw_first_selected:rawFirstSelected,raw_overlap_previous_cycle:rawOverlap,raw_current_selected:recent.length,raw_backlog_selected:other.length,raw_cumulative_selection_keys:Object.keys(attempts).length,cache_primary_risk:cacheHits.primary_risk,cache_secondary_risk:cacheHits.secondary_risk,cache_kraken_mapping:cacheHits.kraken_mapping,assets:rows.filter(r=>!r.id.startsWith('lead:')).length,raw_leads_checked:selectedLeads,raw_leads_with_pool:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,raw_leads_with_timestamped_quote:rows.filter(r=>r.id.startsWith('lead:')&&r.research_ready).length,pool_mapped:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,fresh_quote_and_pool:rows.filter(r=>!r.id.startsWith('lead:')&&r.research_ready).length,security_fields:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,raw_leads_with_security_fields:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,fallback_quotes:rows.filter(r=>r.fallback_quote).length,kraken_quotes:rows.filter(r=>r.kraken_quote).length,news:(e.news??[]).length},limitations:'Research inputs only. No safety certification. DEX snapshot retrieval time is not a provider quote timestamp. FX daily indicative; candles are historic completed minute closes, not executable prices. Missing risk fields are unknown. Discovery remains bounded.'};
  // Compact, unranked evidence pages for agents with connector response-size limits.
  const pageSize=16, pages=[];
  const pageRoot=dir+'candidate-pages';
  await fs.mkdir(pageRoot,{recursive:true});
- const compact=rows.map(r=>({id:r.id,coin:r.coin,classification:r.classification??'MAPPED_ASSET',discovery_origin:r.discovery_origin??null,price_eur:r.price_eur,observed_at_utc:r.observed_at_utc,source_url:r.source_url,quote_scope:r.quote_scope??null,change_1h_pct:r.change_1h_pct, research_ready:r.research_ready,risk_status:r.risk_status, fallback_identity:r.fallback_identity??null, fallback_quote:r.fallback_quote??null,kraken_quote:r.kraken_quote??null,identities:r.identities.map(i=>({chain:i.chain,contract:i.contract,pool:i.pool,security:i.security,secondary_security:i.secondary_security??null,execution_costs:executionCosts(i,at)}))})).sort((a,b)=>a.id.localeCompare(b.id));
+ const compact=rows.map(r=>({id:r.id,coin:r.coin,classification:r.classification??'MAPPED_ASSET',discovery_origin:r.discovery_origin??null,support_file:r.support_file??null,price_eur:r.price_eur,observed_at_utc:r.observed_at_utc,source_url:r.source_url,quote_scope:r.quote_scope??null,change_1h_pct:r.change_1h_pct, research_ready:r.research_ready,risk_status:r.risk_status, fallback_identity:r.fallback_identity??null, fallback_quote:r.fallback_quote??null,kraken_quote:r.kraken_quote??null,identities:r.identities.map(i=>({chain:i.chain,contract:i.contract,pool:i.pool,security:i.security,secondary_security:i.secondary_security??null,execution_costs:executionCosts(i,at)}))})).sort((a,b)=>a.id.localeCompare(b.id));
  for(let offset=0;offset<compact.length;offset+=pageSize){
   const filename='page-'+String(offset/pageSize).padStart(3,'0')+'.json',data=compact.slice(offset,offset+pageSize);
   await fs.writeFile(pageRoot+'/'+filename+'.tmp',JSON.stringify({schema:'cleanroom.candidate-page.v1',snapshot:finished_at,rows:data})+'\n');await fs.rename(pageRoot+'/'+filename+'.tmp',pageRoot+'/'+filename);
