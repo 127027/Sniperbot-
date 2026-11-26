@@ -32,9 +32,18 @@ async function collect(){
  const networks=Object.keys(chains), priorNetwork=Number(prior.coverage_cursor?.next_network_index);
  let nextNetwork=Number.isInteger(priorNetwork)&&priorNetwork>=0&&priorNetwork<networks.length?priorNetwork:0;
  const attemptedNetworks=[];
- for(let n=0;n<4;n++){
+ // Every third cycle leaves the GeckoTerminal quota for timestamped pool trade/candle queries.
+ // Other discovery sources remain active; skipped networks are resumed by the persisted cursor.
+ const phase=(Number.isInteger(prior.coverage_cursor?.gecko_phase)?prior.coverage_cursor.gecko_phase+1:0)%3;
+ const discoveryBudget=phase===2?0:3;
+ const networkPages={...(prior.coverage_cursor?.network_pages??{})};
+ const attemptedNetworkPages=[];
+ for(let n=0;n<discoveryBudget;n++){
   const network=networks[nextNetwork];attemptedNetworks.push(network);
-  const result=await request('GeckoTerminal '+network,gecko+network+'/new_pools?include=base_token,quote_token&page=1',j=>pools(j,network));sources.push(result);
+  const page=[1,2,3].includes(networkPages[network])?networkPages[network]:1;
+  attemptedNetworkPages.push({network,page});
+  const result=await request('GeckoTerminal '+network,gecko+network+'/new_pools?include=base_token,quote_token&page='+page,j=>pools(j,network));sources.push(result);
+  if(result.status==='OK')networkPages[network]=page===1&&result.rows.length>=20?2:page===2&&result.rows.length>=20?3:1;
   nextNetwork=(nextNetwork+1)%networks.length;
   if(result.status==='HTTP_429')break;
  }
@@ -42,7 +51,7 @@ async function collect(){
  sources.push(await request('CoinGecko EUR meme markets','https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&category=meme-token&per_page=100&page=1&price_change_percentage=1h',markets,process.env.COINGECKO_DEMO_KEY?{'x-cg-demo-api-key':process.env.COINGECKO_DEMO_KEY}:{}));
  const first=sources.find(s=>s.name==='CoinGecko EUR meme markets');let page=Number(prior.coverage_cursor?.next_market_page)||2;if(page<2||page>1000)page=2;let next=page;
  if(first?.status==='OK'){const extra=await request('CoinGecko EUR meme markets page '+page,'https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&category=meme-token&per_page=100&page='+page+'&price_change_percentage=1h',markets,cgHeaders);sources.push(extra);if(extra.status==='OK')next=extra.rows.length===100?page+1:2;}
- return {coverage_cursor:{next_market_page:next,attempted_market_page:first?.status==='OK'?page:null,next_network_index:nextNetwork,attempted_networks:attemptedNetworks},schema:'cleanroom.market.probe.v1',mode:'RESEARCH_ONLY',started_at:started,finished_at:now(),coverage:'Bounded first page plus rotating extra market page and rotating GeckoTerminal networks, not global enumeration. Cursor advances only after successful page response. Pools/profiles are leads, not verified memecoins. No source quote timestamp inferred from retrieval time. No orders.',source_count:sources.length,successful_sources:sources.filter(x=>x.status==='OK').length,rows:sources.reduce((n,x)=>n+x.rows.length,0),sources};
+ return {coverage_cursor:{next_market_page:next,attempted_market_page:first?.status==='OK'?page:null,next_network_index:nextNetwork,attempted_networks:attemptedNetworks,attempted_network_pages:attemptedNetworkPages,network_pages:networkPages,gecko_phase:phase,gecko_discovery_budget:discoveryBudget},schema:'cleanroom.market.probe.v1',mode:'RESEARCH_ONLY',started_at:started,finished_at:now(),coverage:'Bounded first page plus rotating extra market page, rotating GeckoTerminal networks/pages and a reserved quote cycle every third run, not global enumeration. Cursor advances only after successful page response. Pools/profiles are leads, not verified memecoins. No source quote timestamp inferred from retrieval time. No orders.',source_count:sources.length,successful_sources:sources.filter(x=>x.status==='OK').length,rows:sources.reduce((n,x)=>n+x.rows.length,0),sources};
 }
 if(process.argv.includes('--self-test')){
  assert.equal(num(null),null);assert.equal(num('1.23'),1.23);assert.equal(num(''),null);
