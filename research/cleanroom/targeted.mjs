@@ -9,10 +9,17 @@ const number=x=>x!==null&&x!==undefined&&x!==''&&Number.isFinite(Number(x))?Numb
 const key=(c,a)=>c+':'+norm(c,a), now=()=>new Date().toISOString();
 const fresh=(t,at)=>Number.isFinite(Date.parse(t))&&Date.parse(t)<=at&&at-Date.parse(t)<=900000;
 const chunks=(a,n)=>Array.from({length:Math.ceil(a.length/n)},(_,i)=>a.slice(i*n,i*n+n));
-const logs=[];
+const logs=[],hostCooldown={};
+const riskTTL=30*60000;
+const usableRisk=(v,at)=>v?.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT'&&Number.isFinite(Date.parse(v.retrieved_at))&&Date.parse(v.retrieved_at)<=at&&at-Date.parse(v.retrieved_at)<=riskTTL;
+const usableSecondary=(v,i,at)=>usableRisk(v?.evidence,at)&&v.pool_address===i.pool?.pool_address;
+const cachedRisk=v=>({...v,reused_from_github:true});
+function retryDelay(value,at){const n=Number(value);if(value!==null&&value!==''&&Number.isFinite(n)&&n>=0)return Math.max(60000,n*1000);const t=Date.parse(value);return Number.isFinite(t)&&t>at?Math.max(60000,t-at):120000;}
 async function req(url){
  const started_at=now();let status=null;
- try{const r=await fetch(url,{headers:{accept:'application/json'},signal:AbortSignal.timeout(10000),redirect:'error'});status=r.status;if(!r.ok){logs.push({url,started_at,finished_at:now(),http_status:status,status:'HTTP_'+status});return null}
+ const host=new URL(url).hostname;
+ if((hostCooldown[host]??0)>Date.now()){logs.push({url,started_at,finished_at:now(),http_status:null,status:'SKIPPED_PROVIDER_COOLDOWN',retry_after_utc:new Date(hostCooldown[host]).toISOString()});return null}
+ try{const r=await fetch(url,{headers:{accept:'application/json'},signal:AbortSignal.timeout(10000),redirect:'error'});status=r.status;if(status===429)hostCooldown[host]=Date.now()+retryDelay(r.headers.get('retry-after'),Date.now());if(!r.ok){logs.push({url,started_at,finished_at:now(),http_status:status,status:'HTTP_'+status});return null}
  const data=await r.json();logs.push({url,started_at,finished_at:now(),http_status:status,status:'OK'});return data;
  }catch(e){logs.push({url,started_at,finished_at:now(),http_status:status,status:'ERROR',error:String(e.cause?.code??e.message)});return null}
 }
@@ -108,10 +115,27 @@ if(process.argv.includes('--self-test')){
  const riskRows=[{id:'known',observed_at_utc:new Date(at-1000).toISOString(),identities:[{...testRisk,chain:'ethereum',contract:a}]},{id:'lead:solana:fixture',identities:[{...testRisk,chain:'solana',contract:'fixture'}]},{id:'dup',identities:[{...testRisk,chain:'ethereum',contract:a}]}];
  assert.equal(riskWork(riskRows,{},at,2,1).length,2);
  assert.equal(riskWork(riskRows,{},at,1,1)[0].chain,'solana');
- console.log('Targeted evidence fixtures passed');
+ const fixtureRisk={status:'PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT',retrieved_at:new Date(at-60000).toISOString(),flags:['test']};
+ assert.equal(usableRisk(fixtureRisk,at),true);assert.equal(usableRisk(fixtureRisk,at+3600000),false);
+ assert.equal(usableRisk({...fixtureRisk,retrieved_at:new Date(at+1000).toISOString()},at),false);
+ assert.equal(usableRisk({...fixtureRisk,status:'UNAVAILABLE'},at),false);
+ assert.equal(usableSecondary({evidence:fixtureRisk,pool_address:b},{pool:{pool_address:b}},at),true);
+ assert.equal(usableSecondary({evidence:fixtureRisk,pool_address:a},{pool:{pool_address:b}},at),false);
+ assert.equal(cachedRisk(fixtureRisk).retrieved_at,fixtureRisk.retrieved_at);
+ assert.equal(retryDelay('120',at),120000);assert.equal(retryDelay(null,at),120000);
+ console.log('Targeted evidence and cache fixtures passed');
 }else{
  const started_at=now(), e=JSON.parse(await fs.readFile(dir+'evidence-latest.json','utf8'));let prev={rows:[]};
  try{prev=JSON.parse(await fs.readFile(dir+'targeted-latest.json','utf8'))}catch{}
+ // Persist only evidence with its original provider/retrieval time. Never renew its timestamp on a cache hit.
+ const riskCache={...(prev.risk_cache??{})};
+ for(const [host,until] of Object.entries(prev.host_cooldown??{}))if(Number.isFinite(until)&&until>Date.now())hostCooldown[host]=until;
+ for(const l of e.source_logs??[])if(l.status==='HTTP_429'){try{const h=new URL(l.url).hostname,t=Date.parse(l.finished_at);if(Number.isFinite(t)&&t+120000>Date.now())hostCooldown[h]=Math.max(hostCooldown[h]??0,t+120000)}catch{}}
+ for(const [k,v] of Object.entries(riskCache))if(!usableRisk(v.primary,Date.now())&&!usableRisk(v.secondary?.evidence,Date.now()))delete riskCache[k];
+ const cacheHits={primary_risk:0,secondary_risk:0,kraken_mapping:0};
+ const savePrimary=(k,v)=>{if(usableRisk(v,Date.now())){riskCache[k]??={};riskCache[k].primary=v;}};
+ const reusePrimary=(k)=>{const v=riskCache[k]?.primary;if(!usableRisk(v,Date.now()))return null;cacheHits.primary_risk++;return cachedRisk(v);};
+ const saveSecondary=(i,v)=>{if(usableRisk(v,Date.now())){const k=key(i.chain,i.contract);riskCache[k]??={};riskCache[k].secondary={pool_address:i.pool.pool_address,evidence:v};}};
  // Prior identities survive an upstream outage; their old quotes are never treated as current.
  const map=new Map((e.rows??[]).map(r=>[r.id,r]));for(const r of prev.rows??[])if(!r.id.startsWith('lead:')&&!map.has(r.id))map.set(r.id,{id:r.id,coin:r.coin,change_1h_pct:r.change_1h_pct,volume_24h_eur:r.volume_24h_eur,price_eur:null,observed_at_utc:null,source_url:null,identities:r.identities.map(i=>({chain:i.chain,contract:i.contract,pool:null})),risk_status:'NOT_ASSESSED'});
  // Reserve a separate bounded budget for raw discovery; do not let known assets crowd it out.
@@ -139,16 +163,24 @@ if(process.argv.includes('--self-test')){
  const pools=new Map(),sec=new Map(),work=[];
  for(const [chain,set] of groups)for(const addresses of chunks([...set],30))work.push(async()=>{const url=base+chain+'/'+addresses.join(',');const j=await req(url);const retrieved=now();for(const a of addresses){const p=selectPairs(j,chain,a);if(p)pools.set(key(chain,a),pool(p,url,retrieved))}});
  await batch(work);
- const securityWork=[];for(const [chain,set] of groups)for(const addresses of chunks([...set].filter(a=>pools.has(key(chain,a))),20))securityWork.push(async()=>{const url='https://api.gopluslabs.io/api/v1/'+(chain==='solana'?'solana/token_security':'token_security/'+ids[chain])+'?contract_addresses='+addresses.join(',');const j=await req(url);for(const a of addresses)sec.set(key(chain,a),{...security(j,chain,a),source_url:url,retrieved_at:now()})});
+ for(const [chain,set] of groups)for(const a of set){const k=key(chain,a);if(pools.has(k)){const c=reusePrimary(k);if(c)sec.set(k,c);}}
+ const securityWork=[];for(const [chain,set] of groups)for(const addresses of chunks([...set].filter(a=>pools.has(key(chain,a))&&!sec.has(key(chain,a))),20))securityWork.push(async()=>{const url='https://api.gopluslabs.io/api/v1/'+(chain==='solana'?'solana/token_security':'token_security/'+ids[chain])+'?contract_addresses='+addresses.join(',');const j=await req(url);for(const a of addresses){const k=key(chain,a),v={...security(j,chain,a),source_url:url,retrieved_at:now()};sec.set(k,v);savePrimary(k,v)}});
  await batch(securityWork,3);
  // Some batch calls yield only a subset. Retry each leading unresolved contract individually.
  const prioritized=rows.slice().sort((a,b)=>(b.change_1h_pct??0)-(a.change_1h_pct??0));const retry=[];
  for(const r of prioritized){const i=r.identities.filter(i=>pools.has(key(i.chain,i.contract))).sort((a,b)=>pools.get(key(b.chain,b.contract)).liquidity_usd-pools.get(key(a.chain,a.contract)).liquidity_usd)[0];if(i&&sec.get(key(i.chain,i.contract))?.status!=='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')retry.push(i)}
- await batch(retry.slice(0,16).map(i=>async()=>{const url='https://api.gopluslabs.io/api/v1/'+(i.chain==='solana'?'solana/token_security':'token_security/'+ids[i.chain])+'?contract_addresses='+i.contract;const j=await req(url);sec.set(key(i.chain,i.contract),{...security(j,i.chain,i.contract),source_url:url,retrieved_at:now()})}),2);
+ await batch(retry.slice(0,16).map(i=>async()=>{const url='https://api.gopluslabs.io/api/v1/'+(i.chain==='solana'?'solana/token_security':'token_security/'+ids[i.chain])+'?contract_addresses='+i.contract;const j=await req(url);const k=key(i.chain,i.contract),v={...security(j,i.chain,i.contract),source_url:url,retrieved_at:now()};sec.set(k,v);savePrimary(k,v)}),2);
  const candidates=[];for(const r of rows){for(const i of r.identities??[]){i.pool=pools.get(key(i.chain,i.contract))??null;i.security=sec.get(key(i.chain,i.contract))??{status:'UNAVAILABLE'};if(i.pool)candidates.push({r,i})}r.identities.sort((a,b)=>(b.pool?.liquidity_usd??0)-(a.pool?.liquidity_usd??0));}
  // Independent, read-only risk checks for leading candidates with missing/incomplete GoPlus evidence.
  const riskAttempts={...(prev.risk_attempts??{})};
- const secondaryCandidates=riskWork(rows,riskAttempts,Date.now());
+ const mergeSecondary=i=>{
+  if(i.secondary_security?.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT'){
+   const primary=i.security??{status:'UNAVAILABLE'};
+   i.security={...primary,status:'PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT',flags:[...new Set([...(primary.flags??[]),...(i.secondary_security.flags??[])])],secondary:i.secondary_security};
+  }
+ };
+ for(const r of rows)for(const i of r.identities){const v=riskCache[key(i.chain,i.contract)]?.secondary;if(i.pool&&usableSecondary(v,i,Date.now())){i.secondary_security=cachedRisk(v.evidence);cacheHits.secondary_risk++;mergeSecondary(i);}}
+ const secondaryCandidates=riskWork(rows.map(r=>({...r,identities:r.identities.filter(i=>!i.secondary_security)})),riskAttempts,Date.now());
  const blockedRiskHosts=new Set();
  await batch(secondaryCandidates.map(i=>async()=>{
   const url=i.chain==='solana'?'https://api.rugcheck.xyz/v1/tokens/'+i.contract+'/report/summary':'https://api.honeypot.is/v2/IsHoneypot?address='+i.contract+'&chainID='+ids[i.chain]+'&pair='+i.pool.pool_address;
@@ -157,10 +189,7 @@ if(process.argv.includes('--self-test')){
   const raw=await req(url);if(logs.some(l=>l.url===url&&l.http_status===429))blockedRiskHosts.add(host);
   i.secondary_security={...secondaryRisk(raw,i),source_url:url,retrieved_at:now()};
   // Preserve original fields and contradictory flags; never convert absent evidence to a pass.
-  if(i.secondary_security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT'){
-   const primary=i.security??{status:'UNAVAILABLE'};
-   i.security={...primary,status:'PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT',flags:[...new Set([...(primary.flags??[]),...(i.secondary_security.flags??[])])],secondary:i.secondary_security};
-  }
+  saveSecondary(i,i.secondary_security);mergeSecondary(i);
  }),1);
  // Primary quotes remain asset-level; fallback uses completed pool candles, never DEX retrieval time as provider time.
  const ranked=rows.filter(r=>r.identities[0]?.pool).sort((a,b)=>(b.change_1h_pct??0)-(a.change_1h_pct??0));
@@ -176,7 +205,9 @@ if(process.argv.includes('--self-test')){
  // Independent EUR trades from Kraken, only if CoinGecko explicitly maps the asset ID to its EUR pair.
  // Cache identity mapping, never cache price freshness. No symbol-only fallback.
  let cache={};try{cache=prev.kraken_identity_cache??{}}catch{}
- const wanted=ranked.filter(r=>!r.id.startsWith('lead:')).slice(0,25), queryIds=wanted.map(r=>r.id);
+ const wanted=ranked.filter(r=>!r.id.startsWith('lead:')).slice(0,25);
+ const mappingFresh=id=>cache[id]&&Number.isFinite(Date.parse(cache[id].verified_at))&&Date.now()>=Date.parse(cache[id].verified_at)&&Date.now()-Date.parse(cache[id].verified_at)<86400000;
+ const queryIds=wanted.filter(r=>!mappingFresh(r.id)).map(r=>r.id);cacheHits.kraken_mapping=wanted.length-queryIds.length;
  if(queryIds.length){
  const mappingUrl='https://api.coingecko.com/api/v3/exchanges/kraken/tickers?coin_ids='+encodeURIComponent(queryIds.join(','));
  const mapping=await req(mappingUrl);
@@ -189,7 +220,7 @@ if(process.argv.includes('--self-test')){
  }
  const finished_at=now(),at=Date.parse(finished_at);
  for(const r of rows){const i=r.identities.find(x=>r.fallback_identity?key(x.chain,x.contract)===key(r.fallback_identity.chain,r.fallback_identity.contract):x.pool);r.research_ready=Boolean(i?.pool&&fresh(r.observed_at_utc,at)&&number(r.price_eur)>0&&i.pool.volume_1h_usd!==null&&i.pool.sells_1h!==null);r.risk_status=i?.security?.status??'UNAVAILABLE';r.decision_status='RESEARCH_INPUT_NOT_BUY'}
- const out={schema:'cleanroom.targeted.v1',mode:'RESEARCH_ONLY',started_at,finished_at,source_snapshot:e.finished_at,kraken_identity_cache:cache,lead_attempts:attempts,risk_attempts:riskAttempts,discovery_coverage:{registry_read:registryRead,eligible_raw_contracts:raw.size,selected_raw_contracts:selectedLeads,unselected_raw_contracts:Math.max(0,raw.size-selectedLeads)},rows,news:e.news??[],source_logs:[...(e.source_logs??[]),...logs],summary:{assets:rows.filter(r=>!r.id.startsWith('lead:')).length,raw_leads_checked:selectedLeads,raw_leads_with_pool:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,raw_leads_with_timestamped_quote:rows.filter(r=>r.id.startsWith('lead:')&&r.research_ready).length,pool_mapped:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,fresh_quote_and_pool:rows.filter(r=>!r.id.startsWith('lead:')&&r.research_ready).length,security_fields:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,raw_leads_with_security_fields:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,fallback_quotes:rows.filter(r=>r.fallback_quote).length,kraken_quotes:rows.filter(r=>r.kraken_quote).length,news:(e.news??[]).length},limitations:'Research inputs only. No safety certification. DEX snapshot retrieval time is not a provider quote timestamp. FX daily indicative; candles are historic completed minute closes, not executable prices. Missing risk fields are unknown. Discovery remains bounded.'};
+ const out={schema:'cleanroom.targeted.v1',mode:'RESEARCH_ONLY',started_at,finished_at,source_snapshot:e.finished_at,kraken_identity_cache:cache,risk_cache:riskCache,host_cooldown:Object.fromEntries(Object.entries(hostCooldown).filter(([,v])=>v>Date.now())),cache_reuse:cacheHits,lead_attempts:attempts,risk_attempts:riskAttempts,discovery_coverage:{registry_read:registryRead,eligible_raw_contracts:raw.size,selected_raw_contracts:selectedLeads,unselected_raw_contracts:Math.max(0,raw.size-selectedLeads)},rows,news:e.news??[],source_logs:[...(e.source_logs??[]),...logs],summary:{cache_primary_risk:cacheHits.primary_risk,cache_secondary_risk:cacheHits.secondary_risk,cache_kraken_mapping:cacheHits.kraken_mapping,assets:rows.filter(r=>!r.id.startsWith('lead:')).length,raw_leads_checked:selectedLeads,raw_leads_with_pool:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,raw_leads_with_timestamped_quote:rows.filter(r=>r.id.startsWith('lead:')&&r.research_ready).length,pool_mapped:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,fresh_quote_and_pool:rows.filter(r=>!r.id.startsWith('lead:')&&r.research_ready).length,security_fields:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,raw_leads_with_security_fields:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,fallback_quotes:rows.filter(r=>r.fallback_quote).length,kraken_quotes:rows.filter(r=>r.kraken_quote).length,news:(e.news??[]).length},limitations:'Research inputs only. No safety certification. DEX snapshot retrieval time is not a provider quote timestamp. FX daily indicative; candles are historic completed minute closes, not executable prices. Missing risk fields are unknown. Discovery remains bounded.'};
  // Compact, unranked evidence pages for agents with connector response-size limits.
  const pageSize=16, pages=[];
  const pageRoot=dir+'candidate-pages';
