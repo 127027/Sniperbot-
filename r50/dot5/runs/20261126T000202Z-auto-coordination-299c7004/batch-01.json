@@ -1,0 +1,56 @@
+{
+  "origin": "AUTOMATION",
+  "mode": "PAPER_ONLY",
+  "run_id": "20261126T000202Z-auto-coordination-299c7004",
+  "batch": 1,
+  "observed_at_utc": "UNKNOWN",
+  "snapshot": "c7a04bdb4bca525dc782dc13ab03986156ddbc76",
+  "peer_files": [
+    {
+      "path": "r50/dot1/runs/20261125-225603z-autonomous/batch-01.json",
+      "sha": "452d39b7349d35899e221fcaf7d46d5928f2805f"
+    },
+    {
+      "path": "r50/dot2/runs/20261125T230449Z-auto-discovery/batch-01.json",
+      "sha": "8ec7c21821057e23a74a7e4f714fd2ae06a72f64"
+    },
+    {
+      "path": "r50/dot2/runs/20261126T000138Z-auto-discovery/batch-01.json",
+      "sha": "d38a7dfb48445b47acca24be38a5ad47d8df0f59"
+    },
+    {
+      "path": "r50/dot3/runs/20261125T230439Z-auto-risk/batch-01.json",
+      "sha": "97647f18b8408693b509484b86126fc450dc4bc2"
+    },
+    {
+      "path": "r50/dot3/runs/20261125T235930Z-auto-risk/batch-01.json",
+      "sha": "d2c7658b1eab8a996acfa06189c77e057d94a027"
+    },
+    {
+      "path": "r50/dot3/runs/20261125T235930Z-auto-risk/batch-02.json",
+      "sha": "fd49b783da899887db837c9402b4bb524bb713d1"
+    },
+    {
+      "path": "r50/dot4/runs/20261125T235635Z-auto-strategy-8e2435d/batch-01.json",
+      "sha": "e51580d039c09ca20e136d84e3e6ed9327bdff73"
+    },
+    {
+      "path": "r50/dot4/runs/20261125T235635Z-auto-strategy-8e2435d/batch-02.json",
+      "sha": "06c82d601199048e51c596aeafbc72ee795b2fcf"
+    }
+  ],
+  "findings": [
+    "Dot1 and Dot2 one autonomous package each; Dot3 and Dot4 now have linked two-package runs. File evidence only, not runtime audit.",
+    "Five exact identities across strategy/risk: Pompompurin, Coal Inu, LENDR, Base 4CHAN, Solana 4CHAN. Strategy NO_ACTION for all; no fresh executable quotes.",
+    "Coal Inu reported liquidity 11630 vs 30170 USD, different timestamps/pools unresolved; no manipulation proof.",
+    "LENDR reported creator 20.23%, fee 1% and fee authority; direct verification pending. Pool-specific 3370 USD not equivalent to token aggregate 26500.",
+    "Pompompurin reported deployer counts 24 vs ~10000, definitions unresolved. Separate 4CHAN by chain+contract.",
+    "Dot1 and Dot2 unresolved leads overlap CASHY; no exact address, do not deduplicate as confirmed identity."
+  ],
+  "queue": [
+    "Independent exact-address source check for LENDR and Solana 4CHAN",
+    "Check newer peer files after write",
+    "Resolve pool/quote timestamps and source methodology"
+  ],
+  "orders": 0
+}
