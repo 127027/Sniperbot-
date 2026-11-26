@@ -54,7 +54,7 @@ if(process.argv.includes('--self-test')){
  const started_at=now(), e=JSON.parse(await fs.readFile(dir+'evidence-latest.json','utf8'));let prev={rows:[]};
  try{prev=JSON.parse(await fs.readFile(dir+'targeted-latest.json','utf8'))}catch{}
  // Prior identities survive an upstream outage; their old quotes are never treated as current.
- const map=new Map((e.rows??[]).map(r=>[r.id,r]));for(const r of prev.rows??[])if(!map.has(r.id))map.set(r.id,{...r,price_eur:null,observed_at_utc:null,source_url:null,identities:r.identities.map(i=>({chain:i.chain,contract:i.contract,pool:null})),risk_status:'NOT_ASSESSED'});
+ const map=new Map((e.rows??[]).map(r=>[r.id,r]));for(const r of prev.rows??[])if(!map.has(r.id))map.set(r.id,{id:r.id,coin:r.coin,change_1h_pct:r.change_1h_pct,volume_24h_eur:r.volume_24h_eur,price_eur:null,observed_at_utc:null,source_url:null,identities:r.identities.map(i=>({chain:i.chain,contract:i.contract,pool:null})),risk_status:'NOT_ASSESSED'});
  const rows=[...map.values()].slice(0,160);
  const groups=new Map();for(const r of rows)for(const i of r.identities??[]){if(!nets[i.chain])continue;if(!groups.has(i.chain))groups.set(i.chain,new Set());groups.get(i.chain).add(i.contract)}
  const pools=new Map(),sec=new Map(),work=[];
