@@ -51,6 +51,15 @@ async function req(url,parser,headers={}){
  const raw=await r.text();if(raw.length>12000000)throw Error('RESPONSE_TOO_LARGE');const data=parser(raw);return {url,started_at,finished_at:new Date().toISOString(),status:'OK',http_status:status,data};
  }catch(e){return {url,started_at,finished_at:new Date().toISOString(),status:'ERROR',error:String(e.cause?.code??e.message),data:null}}
 }
+// Store only relevant asset-to-contract identity mappings, never refresh price timestamps.
+const identityTTL=6*3600000;
+const identityFresh=(entry,at)=>entry&&Number.isFinite(Date.parse(entry.retrieved_at))&&Date.parse(entry.retrieved_at)<=at&&at-Date.parse(entry.retrieved_at)<=identityTTL;
+function updateIdentityCache(cache,registry,wanted,at){
+ const wantedSet=new Set(wanted),found=new Map(),dupes=new Set();
+ for(const x of registry){if(typeof x?.id!=='string'||!wantedSet.has(x.id))continue;if(found.has(x.id))dupes.add(x.id);else found.set(x.id,x);}
+ for(const id of wanted){const item=dupes.has(id)?null:found.get(id);cache[id]={retrieved_at:at,record:item?{id:item.id,platforms:item.platforms??{}}:null};}
+ return cache;
+}
 function rss(raw){
  const clean=x=>x?.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g,'$1').replace(/<[^>]*>/g,'').trim().slice(0,500)??null;
  const items=[...raw.matchAll(/<item(?:\s[^>]*)?>([\s\S]*?)<\/item>/gi)].slice(0,15).map(m=>{const t=k=>clean(m[1].match(new RegExp('<'+k+'(?:\\s[^>]*)?>([\\s\\S]*?)<\\/'+k+'>','i'))?.[1]);return {title:t('title'),url:t('link'),published_at:ts(t('pubDate'))}});
@@ -66,15 +75,25 @@ if(process.argv.includes('--self-test')){
  assert.equal(rss('<rss><item><title>Test</title><link>https://example.com</link><pubDate>Thu, 26 Nov 2026 09:00:00 GMT</pubDate></item></rss>')[0].published_at,'2026-11-26T09:00:00.000Z');
  const discovery=discoveryInventory({sources:[{name:'fixture',status:'OK',rows:[{chain:'ethereum',contract:address},{chain:'ethereum',contract:address.toUpperCase().replace('0X','0x')},{chain:'ethereum',contract:'0x'+'b'.repeat(40)},{chain:'ethereum',contract:'invalid'}]}]},a);
  assert.equal(discovery.distinct_contracts,2);assert.equal(discovery.not_joined,1);assert.equal(discovery.rows[0].observations.length,2);assert.equal(discovery.rows[1].classification,'UNVERIFIED_DISCOVERY_LEAD');
- console.log('Evidence and discovery inventory fixtures passed');
+ const cached=updateIdentityCache({},registry,['coin-a','missing'],at);assert.equal(cached['coin-a'].record.id,'coin-a');assert.equal(cached.missing.record,null);assert.equal(identityFresh(cached['coin-a'],Date.parse(at)+1000),true);assert.equal(identityFresh(cached['coin-a'],Date.parse(at)+7*3600000),false);
+ assert.equal(updateIdentityCache({},[...registry,...registry],['coin-a'],at)['coin-a'].record,null);
+ console.log('Evidence, discovery inventory and identity cache fixtures passed');
 }else{
  const snapshot=JSON.parse(await readFile(process.env.CLEANROOM_OUTPUT??'research/cleanroom/market-latest.json','utf8'));
  const market=[...new Map(snapshot.sources.filter(s=>s.status==='OK'&&s.name.startsWith('CoinGecko EUR meme markets')).flatMap(s=>s.rows).map(r=>[r.id,r])).values()];
  const pools=snapshot.sources.filter(s=>s.name.startsWith('GeckoTerminal')).flatMap(s=>s.rows);
  const headers=process.env.COINGECKO_DEMO_KEY?{'x-cg-demo-api-key':process.env.COINGECKO_DEMO_KEY}:{};
- const [reg,...news]=await Promise.all([req(BASE+'/coins/list?include_platform=true',JSON.parse,headers),req('https://www.coindesk.com/arc/outboundfeeds/rss/',rss),req('https://cointelegraph.com/rss',rss)]);
+ const dest='research/cleanroom/evidence-latest.json';
+ let previous={};try{previous=JSON.parse(await readFile(dest,'utf8'))}catch(e){if(e.code!=='ENOENT')throw e}
+ const wanted=market.map(x=>x.id).filter(x=>typeof x==='string'),at=Date.now(),identityCache={};
+ for(const [id,item] of Object.entries(previous.identity_cache??{}))if(identityFresh(item,at))identityCache[id]=item;
+ const missing=wanted.filter(id=>!identityFresh(identityCache[id],at));
+ const registryURL=BASE+'/coins/list?include_platform=true';
+ const [reg,...news]=await Promise.all([missing.length?req(registryURL,JSON.parse,headers):Promise.resolve({url:registryURL,status:'REUSED_IDENTITY_CACHE',http_status:null,started_at:new Date().toISOString(),finished_at:new Date().toISOString(),data:null}),req('https://www.coindesk.com/arc/outboundfeeds/rss/',rss),req('https://cointelegraph.com/rss',rss)]);
+ if(reg.status==='OK'&&Array.isArray(reg.data))updateIdentityCache(identityCache,reg.data,wanted,reg.finished_at);
+ const cachedRecords=wanted.flatMap(id=>identityFresh(identityCache[id],Date.now())&&identityCache[id].record?[identityCache[id].record]:[]);
  const finished_at=new Date().toISOString();
- const joined=joinEvidence(market,Array.isArray(reg.data)?reg.data:[],pools,finished_at);
- const result={schema:'cleanroom.evidence.v1',mode:'RESEARCH_ONLY',finished_at,market_snapshot_finished_at:snapshot.finished_at,source_logs:[...snapshot.sources.map(({name,url,started_at,finished_at,status,rows})=>({name,url,started_at,finished_at,status,row_count:rows.length})),...([reg,...news].map(({data,...s})=>({...s,row_count:Array.isArray(data)?data.length:0})))],market_rows:market.length,joined_count:joined.rows.length,unresolved_count:joined.gaps.length,...joined,discovery:discoveryInventory(snapshot,joined),news:news.flatMap(s=>(s.data??[]).map(x=>({...x,source:s.url}))),limitations:'No global completeness, no chain-specific execution quote, risk or trade decision. Freshness and identity must be checked again before any broadcast.'};
- const dest='research/cleanroom/evidence-latest.json';await mkdir(dirname(dest),{recursive:true});await writeFile(dest,JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify({finished_at,market_rows:result.market_rows,joined:result.joined_count,unresolved:result.unresolved_count,news:result.news.length,registry:reg.status}));
+ const joined=joinEvidence(market,cachedRecords,pools,finished_at);
+ const result={schema:'cleanroom.evidence.v1',mode:'RESEARCH_ONLY',finished_at,market_snapshot_finished_at:snapshot.finished_at,source_logs:[...snapshot.sources.map(({name,url,started_at,finished_at,status,rows})=>({name,url,started_at,finished_at,status,row_count:rows.length})),...([reg,...news].map(({data,...s})=>({...s,row_count:Array.isArray(data)?data.length:0})))],identity_cache:identityCache,identity_cache_stats:{requested:wanted.length,reused:wanted.length-missing.length,missing_before_request:missing.length,available:cachedRecords.length,ttl_hours:6},market_rows:market.length,joined_count:joined.rows.length,unresolved_count:joined.gaps.length,...joined,discovery:discoveryInventory(snapshot,joined),news:news.flatMap(s=>(s.data??[]).map(x=>({...x,source:s.url}))),limitations:'No global completeness, no chain-specific execution quote, risk or trade decision. Freshness and identity must be checked again before any broadcast.'};
+ await mkdir(dirname(dest),{recursive:true});await writeFile(dest,JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify({finished_at,market_rows:result.market_rows,joined:result.joined_count,unresolved:result.unresolved_count,news:result.news.length,registry:reg.status}));
 }
