@@ -2,7 +2,7 @@ name: Cleanroom market connectivity
 on:
   push:
     branches: [main]
-    paths: ['research/cleanroom/market-probe.mjs','research/cleanroom/evidence.mjs','research/cleanroom/targeted.mjs','research/cleanroom/watchdog.mjs','.github/workflows/cleanroom-market-probe.yml']
+    paths: ['research/cleanroom/market-probe.mjs','research/cleanroom/evidence.mjs','research/cleanroom/targeted.mjs','research/cleanroom/watchdog.mjs','research/cleanroom/token-registry.mjs','.github/workflows/cleanroom-market-probe.yml']
   schedule:
     - cron: '3,13,23,33,43,53 * * * *'
   workflow_dispatch:
@@ -27,6 +27,7 @@ jobs:
       - run: node research/cleanroom/market-probe.mjs --self-test
       - run: node research/cleanroom/evidence.mjs --self-test
       - run: node research/cleanroom/targeted.mjs --self-test
+      - run: node research/cleanroom/token-registry.mjs --self-test
       - name: Configure dedicated research checkout
         run: |
           git config user.name "Cleanroom market probe"
