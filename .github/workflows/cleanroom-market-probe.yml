@@ -4,7 +4,7 @@ on:
     branches: [main]
     paths: ['research/cleanroom/market-probe.mjs','research/cleanroom/evidence.mjs','research/cleanroom/targeted.mjs','research/cleanroom/watchdog.mjs','research/cleanroom/token-registry.mjs','.github/workflows/cleanroom-market-probe.yml']
   schedule:
-    - cron: '3,13,23,33,43,53 * * * *'
+    - cron: '4,14,24,34,44,54 * * * *'
   workflow_dispatch:
 permissions:
   contents: read
@@ -35,3 +35,28 @@ jobs:
       - name: Measured data watchdog
         run: |
           node research/cleanroom/watchdog.mjs --once --publish
+      - name: Verify published checkpoint and actual quote freshness
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const dir='research/cleanroom/';
+          const h=JSON.parse(fs.readFileSync(dir+'watchdog-checkpoints.json','utf8'));
+          const last=h.samples.at(-1);
+          assert.equal(last.run_id,process.env.GITHUB_RUN_ID,'No checkpoint for this run');
+          assert.equal(last.status,'OK','Collector cycle failed; see checkpoint source logs');
+          const index=JSON.parse(fs.readFileSync(dir+'candidate-pages/index.json','utf8'));
+          const now=Date.now(), age=now-Date.parse(index.snapshot);
+          assert.ok(Number.isFinite(age)&&age>=0&&age<=300000,'Snapshot not freshly published');
+          let fresh=0;
+          for(const p of index.pages){
+            const page=JSON.parse(fs.readFileSync(dir+'candidate-pages/'+p.file,'utf8'));
+            assert.equal(page.snapshot,index.snapshot,'Mixed snapshots');
+            for(const r of page.rows){
+              const t=now-Date.parse(r.observed_at_utc);
+              if(r.research_ready&&Number.isFinite(t)&&t>=0&&t<=900000&&Number.isFinite(r.price_eur)&&r.price_eur>0)fresh++;
+            }
+          }
+          console.log(JSON.stringify({run_id:last.run_id,snapshot:index.snapshot,snapshot_age_ms:age,fresh_research_quotes:fresh}));
+          assert.ok(fresh>0,'No fresh research-ready quotes');
+          JS
