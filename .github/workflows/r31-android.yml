@@ -18,7 +18,7 @@ jobs:
           java-version: '17'
       - run: node --test r31/android/mobile.test.mjs r31/android/end-to-end.test.mjs r31/telemetry.test.mjs
       - run: bash r31/android/build.sh
-      - name: R43 persistent signer regression (disposable fixture only)
+      - name: Persistent signer regression (disposable fixture only)
         if: github.ref == 'refs/heads/codex/r40-device-updater'
         run: |
           set -euo pipefail
@@ -32,7 +32,7 @@ jobs:
           bash r31/android/release-android.sh
           cp r31/android/out/release-metadata.json "$RUNNER_TEMP/first.json"
           bash r31/android/release-android.sh
-          node -e "const a=require(process.env.RUNNER_TEMP+'/first.json'),b=require('./r31/android/out/release-metadata.json');if(a.certificate_sha256!==b.certificate_sha256||a.version_code!==43||b.version_code!==43)process.exit(1)"
+          node -e "const a=require(process.env.RUNNER_TEMP+'/first.json'),b=require('./r31/android/out/release-metadata.json');if(a.certificate_sha256!==b.certificate_sha256||a.version_code!==require('./r31/version.json').version||b.version_code!==require('./r31/version.json').version)process.exit(1)"
           if env -u R40_SIGNING_KEYSTORE R43_RELEASE=1 bash r31/android/build.sh; then echo 'ERROR: release fallback allowed'; exit 1; fi
           mv "$RUNNER_TEMP/ordinary-test.apk" r31/android/out/R31-Paper-Android.apk
           (cd r31/android/out && sha256sum R31-Paper-Android.apk > SHA256SUMS.txt)
