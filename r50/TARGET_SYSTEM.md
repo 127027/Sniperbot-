@@ -13,3 +13,6 @@ For each fixed 24h window, build a source-grounded universe of observable meme t
 4. Runtime reality: current scheduled tasks start at most hourly through exposed controls; observed R50 runs last seconds, not 60 minutes. No configuration exposed to guarantee continuous GPT execution or immediate event detection. Repeated prompt tuning cannot establish this architecture. A continuous event collector and supported continuous model execution would be separate prerequisites; no new API/keys or unsupported workaround without user decision. Hourly batch fallback is explicitly a reduced-scope mode.
 ## Current status
 R50 isolated tests deliberately forbid trade writes. R50.1/2 direct writes may improve research durability but do not establish the full target. Preserve paper-only and existing ledgers. Do not relabel test artifacts as trading performance or turn on real trading. Next technical design must establish supported execution model and verified data/decision bridge before ending isolation.
+
+## R51 transition
+See r51/RUNBOOK.md. User approved hourly trading lifecycle 26 November. Enable only validated R31 PAPER_ONLY broadcast from Dot5, existing device settings untouched. R50 research artifacts retained. Continuous execution and independent automatic comparator remain unresolved; no claim of full target completion.
