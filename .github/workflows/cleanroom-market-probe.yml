@@ -2,7 +2,7 @@ name: Cleanroom market connectivity
 on:
   push:
     branches: [main]
-    paths: ['research/cleanroom/market-probe.mjs','research/cleanroom/evidence.mjs','.github/workflows/cleanroom-market-probe.yml']
+    paths: ['research/cleanroom/market-probe.mjs','research/cleanroom/evidence.mjs','research/cleanroom/targeted.mjs','research/cleanroom/watchdog.mjs','.github/workflows/cleanroom-market-probe.yml']
   schedule:
     - cron: '3,13,23,33,43,53 * * * *'
   workflow_dispatch:
@@ -14,7 +14,7 @@ concurrency:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 75
     permissions:
       contents: write
     steps:
@@ -26,17 +26,15 @@ jobs:
           node-version: '22'
       - run: node research/cleanroom/market-probe.mjs --self-test
       - run: node research/cleanroom/evidence.mjs --self-test
-      - run: node research/cleanroom/market-probe.mjs
-      - run: node research/cleanroom/evidence.mjs
-      - name: Save latest research-only evidence and append bounded checkpoint
+      - run: node research/cleanroom/targeted.mjs --self-test
+      - name: Configure dedicated research checkout
         run: |
-          node --input-type=module -e 'import fs from "node:fs"; const p="research/cleanroom/evidence-checkpoints.json"; const e=JSON.parse(fs.readFileSync("research/cleanroom/evidence-latest.json")); const old=fs.existsSync(p)?JSON.parse(fs.readFileSync(p)):{schema:"cleanroom.evidence.checkpoints.v1",samples:[]}; old.samples.push({finished_at:e.finished_at,joined:e.joined_count,unresolved:e.unresolved_count,news:e.news.length,sources:e.source_logs});old.samples=old.samples.slice(-144);fs.writeFileSync(p,JSON.stringify(old,null,2)+"\n")'
           git config user.name "Cleanroom market probe"
           git config user.email "actions@users.noreply.github.com"
-          git add research/cleanroom/market-latest.json research/cleanroom/evidence-latest.json research/cleanroom/evidence-checkpoints.json
-          git diff --cached --quiet && exit 0
-          git commit -m "Cleanroom public market evidence (research only)"
-          git push origin HEAD:main
-      - name: Check data readiness (not a trading signal)
+      - name: Measured data watchdog
         run: |
-          node --input-type=module -e 'import fs from "node:fs"; const x=JSON.parse(fs.readFileSync("research/cleanroom/evidence-latest.json")); console.log("Mapped fresh EUR assets: "+x.joined_count+"; news: "+x.news.length); if(x.joined_count<10)process.exit(1)'
+          if [ "${{ github.event_name }}" = schedule ]; then
+            node research/cleanroom/watchdog.mjs --once --publish
+          else
+            node research/cleanroom/watchdog.mjs --publish
+          fi
