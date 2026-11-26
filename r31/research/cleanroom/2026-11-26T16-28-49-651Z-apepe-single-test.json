@@ -1,0 +1,47 @@
+{
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "assessed_at_utc": "2026-11-26T16:28:49.651Z",
+  "coin": "APEPE",
+  "id": "ape-and-pepe",
+  "chain": "polygon",
+  "contract": "0xa3f751662e282e83ec3cbc387d225ca56dd63d3a",
+  "snapshot": "2026-11-26T16:24:48.937Z",
+  "source_blob": "12cb7c8934a816b2f94a2af5bc1a3b13d0e4502e",
+  "price_eur": 0.00000128,
+  "observed_at_utc": "2026-11-26T16:23:57.000Z",
+  "quote_scope": "COINGECKO_ASSET_INDICATIVE_PAPER",
+  "pool": {
+    "address": "0x00a59c2d0f0f4837028D47a391decbffC1e10608",
+    "dex": "uniswap",
+    "retrieved_at": "2026-11-26T16:24:34.057Z",
+    "provider_quote_time": null,
+    "liquidity_usd": 12946.16,
+    "volume_24h_usd": 28.51,
+    "volume_1h_usd": null,
+    "buys_1h": 0,
+    "sells_1h": 0
+  },
+  "risk": {
+    "provider": "GoPlus",
+    "retrieved_at": "2026-11-26T16:24:35.824Z",
+    "is_honeypot": "0",
+    "cannot_sell_all": "0",
+    "is_mintable": "0",
+    "buy_tax": "0",
+    "sell_tax": "0",
+    "holder_count": "415998",
+    "note": "Provider fields, not audit; concentration and executable slippage unknown."
+  },
+  "decision": "REJECT",
+  "hypothetical_budget_eur": 50,
+  "allocated_eur": 0,
+  "reason": "No trades in last hour and only USD 28.51 volume in 24h; hypothetical EUR 50 is substantial relative to observed turnover. No defensible short-term upside thesis; execution and exit uncertain. Asset quote is indicative, not executable. No confirmed news catalyst.",
+  "sources": [
+    "https://github.com/127027/Sniperbot-/blob/main/research/cleanroom/candidate-pages/page-000.json",
+    "https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&ids=ape-and-pepe&price_change_percentage=1h",
+    "https://api.dexscreener.com/tokens/v1/polygon/0xa3f751662e282e83ec3cbc387d225ca56dd63d3a,0xe5b49820e5a1063f6f4ddf851327b5e8b2301048,0xe0339c80ffde91f3e20494df88d4206d86024cdf,0xe20b9e246db5a0d21bf9209e4858bc9a3ff7a034,0x784665471bb8b945b57a76a9200b109ee214e789",
+    "https://api.gopluslabs.io/api/v1/token_security/137?contract_addresses=0xa3f751662e282e83ec3cbc387d225ca56dd63d3a,0xe5b49820e5a1063f6f4ddf851327b5e8b2301048,0xe0339c80ffde91f3e20494df88d4206d86024cdf,0xe20b9e246db5a0d21bf9209e4858bc9a3ff7a034,0x784665471bb8b945b57a76a9200b109ee214e789"
+  ],
+  "audit": "Two successful GitHub reads of same blob; second parsed and filtered one candidate. Provider endpoints are collector provenance, not direct calls. Initial response display truncated; filtered read resolved this."
+}
