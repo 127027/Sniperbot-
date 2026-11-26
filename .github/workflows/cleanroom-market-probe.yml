@@ -1,0 +1,36 @@
+name: Cleanroom market connectivity
+on:
+  push:
+    branches: [main]
+    paths: ['research/cleanroom/market-probe.mjs','.github/workflows/cleanroom-market-probe.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: cleanroom-market-probe
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node research/cleanroom/market-probe.mjs --self-test
+      - run: node research/cleanroom/market-probe.mjs
+      - name: Save compact research-only probe result
+        run: |
+          git config user.name "Cleanroom market probe"
+          git config user.email "actions@users.noreply.github.com"
+          git add research/cleanroom/market-latest.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Cleanroom public connectivity snapshot (research only)"
+          git push origin HEAD:main
+      - name: Require at least one successful nonempty source
+        run: node --input-type=module -e "import fs from 'node:fs'; const x=JSON.parse(fs.readFileSync('research/cleanroom/market-latest.json')); if(!x.sources.some(s=>s.status==='OK'&&s.rows.length))process.exit(1)"
