@@ -1,0 +1,2 @@
+# RESEARCH_ONLY checkpoint
+Recorded 2026-11-26T14:42:41.943Z. Read main research directory, README and targeted-latest.json. Targeted snapshot finished 14:39:09.931 UTC; SHIB and PEPE rows contain indicative CoinGecko EUR quotes dated 14:37:58 UTC, DEX pools and GoPlus fields. Pool provider quote time null, not substituted with retrieval time. No decisions yet. Next: inspect register, all rows and alternative sources. No operative signals.
