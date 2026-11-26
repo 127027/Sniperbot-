@@ -1,0 +1,64 @@
+{
+  "origin": "MANUAL_CHAT_FUNCTION_TEST_NOT_AUTONOMOUS",
+  "mode": "PAPER_ONLY",
+  "run_id": "20261126-inline-r52-diagnostic-65462f2e",
+  "batch": 2,
+  "first_verified_blob_sha": "848b0f366994afe69defeb00d94c00109a78a7d0",
+  "observed_at_utc": "UNKNOWN",
+  "checks": [
+    {
+      "coin": "AGI",
+      "chain": "base",
+      "contract": "0x76a58b43f79c47b416567b847475f11a0d7ca601",
+      "source": "https://sasapad.fun/x/base/0x76a58b43f79c47b416567b847475f11a0d7ca601/",
+      "quote_time": "UNKNOWN",
+      "price_usd": 0.000057,
+      "liquidity_usd": 25600,
+      "top10_pct": 38,
+      "reported_peak_cap_usd": 93800,
+      "reported_cap_usd": 57000,
+      "decision": "WATCH",
+      "finding": "Exact detail link from latest ranking points to this contract, not the previously researched 0xe060... token. Do not join price histories by ticker."
+    },
+    {
+      "coin": "AGI",
+      "chain": "base",
+      "contract": "0xe060cb1be2c7d3c0c69a5a00c44935306739d7d8",
+      "sources": [
+        "https://www.unhosted.ai/predictions/base/0xe060cb1be2c7d3c0c69a5a00c44935306739d7d8/agi",
+        "https://dexpaprika.com/base/pool/0x3027dd09dd680e1bbaa958f9073730c55b88172ad828af5f9a69a3cf5911d0f4"
+      ],
+      "pool": "0x3027dd09dd680e1bbaa958f9073730c55b88172ad828af5f9a69a3cf5911d0f4",
+      "finding": "Separate Base identity corroborated; source reports historical liquidity $25672 at 01:00 UTC and $34150 at 05:00 UTC, not current execution quote. Do not merge with ranking identity.",
+      "decision": "WATCH"
+    },
+    {
+      "coin": "HeyElsa",
+      "chain": "base",
+      "contract": "0x2b23dd10b5965c58f7d20c12368d438e23812b07",
+      "source": "https://sasapad.fun/x/base/0x2b23dd10b5965c58f7d20c12368d438e23812b07/",
+      "quote_time": "UNKNOWN",
+      "liquidity_usd": 67000,
+      "change24_pct": 517,
+      "price_usd": 0.00000104,
+      "decision": "WATCH",
+      "finding": "Detail link resolves identity; stale/undated quote and incomplete independent risk evidence."
+    },
+    {
+      "coin": "9to5",
+      "chain": "solana",
+      "pool": "EFLnPZYnZWNV21FEMgMTYYhxq3gg39Ka7cPLBJ69YPBA",
+      "source": "https://www.geckoterminal.com/solana/pools/EFLnPZYnZWNV21FEMgMTYYhxq3gg39Ka7cPLBJ69YPBA",
+      "result": "CACHE_MISS",
+      "decision": "DATA_GAP",
+      "finding": "Pool page could not be fetched; no verified mint or quote."
+    }
+  ],
+  "queue": [
+    "Check exact AGI ranking contract on independent provider",
+    "Resolve 9to5 via alternate source",
+    "Verify actual catalysts, fresh quotes and wallet risk",
+    "Retain earlier unresolved queue"
+  ],
+  "orders": 0
+}
