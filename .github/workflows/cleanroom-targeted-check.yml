@@ -2,7 +2,7 @@ name: Cleanroom targeted evidence regression
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/cleanroom-targeted-check.yml','research/cleanroom/targeted.mjs','research/cleanroom/evidence.mjs']
+    paths: ['.github/workflows/cleanroom-targeted-check.yml','research/cleanroom/targeted.mjs','research/cleanroom/evidence.mjs','research/cleanroom/token-registry.mjs']
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,6 +16,7 @@ jobs:
         with:
           node-version: '22'
       - run: node research/cleanroom/evidence.mjs --self-test
+      - run: node research/cleanroom/token-registry.mjs --self-test
       - run: node research/cleanroom/targeted.mjs --self-test
       - run: node research/cleanroom/market-probe.mjs
       - run: node research/cleanroom/evidence.mjs
@@ -23,9 +24,17 @@ jobs:
         run: |
           node --input-type=module -e 'import fs from "node:fs"; import assert from "node:assert/strict"; const d=JSON.parse(fs.readFileSync("research/cleanroom/evidence-latest.json","utf8")).discovery; assert.equal(d.rows.length,d.distinct_contracts); assert.equal(d.rows.filter(r=>!r.joined_asset).length,d.not_joined); assert.ok(d.rows.every(r=>r.classification==="UNVERIFIED_DISCOVERY_LEAD")); console.log(JSON.stringify({distinct_contracts:d.distinct_contracts,not_joined:d.not_joined}));'
       - run: node research/cleanroom/targeted.mjs
+      - name: Merge live evidence into isolated registry and verify replay
+        run: |
+          export CLEANROOM_REGISTRY_DIR="$RUNNER_TEMP/cleanroom-registry"
+          node research/cleanroom/token-registry.mjs
+          node research/cleanroom/token-registry.mjs
+          node --input-type=module -e 'import fs from "node:fs"; import assert from "node:assert/strict"; const p=process.env.CLEANROOM_REGISTRY_DIR; const j=JSON.parse(fs.readFileSync(p+"/index.json")); assert.ok(j.total_contracts>0); assert.equal(j.history.length,1); assert.equal(j.shards.reduce((n,s)=>n+s.count,0),j.total_contracts); console.log(JSON.stringify({registry_total:j.total_contracts,chains:j.by_chain,history:j.history}));'
       - name: Save diagnostics for inspection
         uses: actions/upload-artifact@v4
         with:
           name: cleanroom-targeted-evidence
-          path: research/cleanroom/targeted-latest.json
+          path: |
+            research/cleanroom/targeted-latest.json
+            ${{ runner.temp }}/cleanroom-registry/index.json
           retention-days: 1
