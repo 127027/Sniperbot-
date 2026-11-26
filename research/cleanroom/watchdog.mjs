@@ -15,7 +15,7 @@ for(let i=0;i<limit;i++){
  h.samples.push({run_id:process.env.GITHUB_RUN_ID??'local-'+started,sample:i,planned_at:new Date(started+i*interval).toISOString(),started_at:cycle_start,finished_at:now(),status:good?'OK':'FAILED',steps,summary,source_logs});h.samples=h.samples.slice(-144);
  await fs.writeFile(p+'.tmp',JSON.stringify(h,null,2)+'\n');await fs.rename(p+'.tmp',p);
  if(publish){
-  const files=[p];if(good)files.push(dir+'market-latest.json',dir+'evidence-latest.json',dir+'targeted-latest.json',dir+'token-registry/');
+  const files=[p];if(good)files.push(dir+'market-latest.json',dir+'evidence-latest.json',dir+'targeted-latest.json',dir+'token-registry/',dir+'candidate-pages/');
   for(const args of [['add','--',...files],['commit','-m','Cleanroom watchdog checkpoint '+cycle_start],['pull','--rebase','origin','main'],['push','origin','HEAD:main']]){const r=run('git',args,60000);if(r.exit_code!==0)throw Error('GIT_STEP_FAILED '+args[0]);}
  }
  console.log(JSON.stringify({sample:i,good,summary}));
