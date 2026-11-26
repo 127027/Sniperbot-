@@ -77,8 +77,28 @@ if(process.argv.includes('--self-test')){
  const started_at=now(), e=JSON.parse(await fs.readFile(dir+'evidence-latest.json','utf8'));let prev={rows:[]};
  try{prev=JSON.parse(await fs.readFile(dir+'targeted-latest.json','utf8'))}catch{}
  // Prior identities survive an upstream outage; their old quotes are never treated as current.
- const map=new Map((e.rows??[]).map(r=>[r.id,r]));for(const r of prev.rows??[])if(!map.has(r.id))map.set(r.id,{id:r.id,coin:r.coin,change_1h_pct:r.change_1h_pct,volume_24h_eur:r.volume_24h_eur,price_eur:null,observed_at_utc:null,source_url:null,identities:r.identities.map(i=>({chain:i.chain,contract:i.contract,pool:null})),risk_status:'NOT_ASSESSED'});
- const rows=[...map.values()].slice(0,160);
+ const map=new Map((e.rows??[]).map(r=>[r.id,r]));for(const r of prev.rows??[])if(!r.id.startsWith('lead:')&&!map.has(r.id))map.set(r.id,{id:r.id,coin:r.coin,change_1h_pct:r.change_1h_pct,volume_24h_eur:r.volume_24h_eur,price_eur:null,observed_at_utc:null,source_url:null,identities:r.identities.map(i=>({chain:i.chain,contract:i.contract,pool:null})),risk_status:'NOT_ASSESSED'});
+ // Reserve a separate bounded budget for raw discovery; do not let known assets crowd it out.
+ const rows=[...map.values()].slice(0,240), known=new Set(rows.flatMap(r=>r.identities.map(i=>key(i.chain,i.contract))));
+ const attempts={...(prev.lead_attempts??{})}, raw=new Map();
+ const valid=(c,a)=>nets[c]&&(c==='solana'?/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a??''):/^0x[0-9a-fA-F]{40}$/.test(a??''));
+ const addLead=(x,origin)=>{if(!valid(x.chain,x.contract))return;const k=key(x.chain,x.contract);if(known.has(k)||raw.has(k))return;raw.set(k,{...x,origin})};
+ for(const x of e.discovery?.rows??[])addLead(x,'CURRENT_DISCOVERY');
+ let registryRead='NOT_AVAILABLE';try{
+  const index=JSON.parse(await fs.readFile(dir+'token-registry/index.json','utf8'));
+  for(const s of index.shards??[]){if(!/^[0-9a-f]{2}$/.test(s.id))throw Error('INVALID_SHARD');const part=JSON.parse(await fs.readFile(dir+'token-registry/'+s.id+'.json','utf8'));for(const x of part.rows??[])addLead(x,'HISTORICAL_REGISTRY')}
+  registryRead='OK';
+ }catch(err){registryRead='ERROR:'+String(err.code??err.message);}
+ const oldest=(a,b)=>(attempts[a[0]]??'').localeCompare(attempts[b[0]]??'')||a[0].localeCompare(b[0]);
+ const recent=[...raw].filter(([,x])=>x.origin==='CURRENT_DISCOVERY').sort(oldest).slice(0,24);
+ const chosen=new Set(recent.map(([k])=>k));
+ const other=[...raw].filter(([k])=>!chosen.has(k)).sort(oldest).slice(0,24);
+ for(const [k,x] of [...recent,...other]){
+  const o=x.observations?.at(-1)??x.sources?.at(-1)??{};
+  rows.push({id:'lead:'+k,coin:o.symbol??x.contract,price_eur:null,observed_at_utc:null,source_url:null,change_1h_pct:o.change_1h_pct??null,identities:[{chain:x.chain,contract:x.contract,pool:null}],classification:'UNVERIFIED_DISCOVERY_LEAD',discovery_origin:x.origin,decision_status:'RESEARCH_INPUT_NOT_BUY'});
+  attempts[k]=started_at;
+ }
+ const selectedLeads=rows.filter(r=>r.id.startsWith('lead:')).length;
  const groups=new Map();for(const r of rows)for(const i of r.identities??[]){if(!nets[i.chain])continue;if(!groups.has(i.chain))groups.set(i.chain,new Set());groups.get(i.chain).add(i.contract)}
  const pools=new Map(),sec=new Map(),work=[];
  for(const [chain,set] of groups)for(const addresses of chunks([...set],30))work.push(async()=>{const url=base+chain+'/'+addresses.join(',');const j=await req(url);const retrieved=now();for(const a of addresses){const p=selectPairs(j,chain,a);if(p)pools.set(key(chain,a),pool(p,url,retrieved))}});
@@ -110,19 +130,19 @@ if(process.argv.includes('--self-test')){
  // Independent EUR trades from Kraken, only if CoinGecko explicitly maps the asset ID to its EUR pair.
  // Cache identity mapping, never cache price freshness. No symbol-only fallback.
  let cache={};try{cache=prev.kraken_identity_cache??{}}catch{}
- const wanted=ranked.slice(0,25), queryIds=wanted.map(r=>r.id);
+ const wanted=ranked.filter(r=>!r.id.startsWith('lead:')).slice(0,25), queryIds=wanted.map(r=>r.id);
  if(queryIds.length){
  const mappingUrl='https://api.coingecko.com/api/v3/exchanges/kraken/tickers?coin_ids='+encodeURIComponent(queryIds.join(','));
  const mapping=await req(mappingUrl);
  for(const t of mapping?.tickers??[]){if(queryIds.includes(t.coin_id)&&t.market?.identifier==='kraken'&&t.target==='EUR'&&/^[A-Z0-9]{1,20}$/.test(t.base??'')&&t.is_anomaly!==true)cache[t.coin_id]={base:t.base,source_url:mappingUrl,verified_at:now()}}
  }
- const toTry=ranked.filter(r=>!fresh(r.observed_at_utc,Date.now())||r.fallback_quote==null).filter(r=>cache[r.id]&&Date.now()-Date.parse(cache[r.id].verified_at)<7*86400000).slice(0,12);
+ const toTry=ranked.filter(r=>!r.id.startsWith('lead:')).filter(r=>!fresh(r.observed_at_utc,Date.now())||r.fallback_quote==null).filter(r=>cache[r.id]&&Date.now()-Date.parse(cache[r.id].verified_at)<7*86400000).slice(0,12);
  if(toTry.length){
  const pairs=await req('https://api.kraken.com/0/public/AssetPairs');
  await batch(toTry.map(r=>async()=>{const m=cache[r.id],entry=Object.entries(pairs?.result??{}).find(([k,v])=>v.wsname===m.base+'/EUR');if(!entry)return;const [pair]=entry;const url='https://api.kraken.com/0/public/Trades?pair='+encodeURIComponent(pair);const raw=await req(url),q=krakenQuote(raw,Date.now(),url,pair);if(!q)return;r.kraken_quote={...q,identity_mapping:m,market_pair:pair};if(!fresh(r.observed_at_utc,Date.now())){Object.assign(r,q);delete r.fallback_identity}}),2);
  }
  const finished_at=now(),at=Date.parse(finished_at);
  for(const r of rows){const i=r.identities.find(x=>r.fallback_identity?key(x.chain,x.contract)===key(r.fallback_identity.chain,r.fallback_identity.contract):x.pool);r.research_ready=Boolean(i?.pool&&fresh(r.observed_at_utc,at)&&number(r.price_eur)>0&&i.pool.volume_1h_usd!==null&&i.pool.sells_1h!==null);r.risk_status=i?.security?.status??'UNAVAILABLE';r.decision_status='RESEARCH_INPUT_NOT_BUY'}
- const out={schema:'cleanroom.targeted.v1',mode:'RESEARCH_ONLY',started_at,finished_at,source_snapshot:e.finished_at,kraken_identity_cache:cache,rows,news:e.news??[],source_logs:[...(e.source_logs??[]),...logs],summary:{assets:rows.length,pool_mapped:rows.filter(r=>r.identities.some(i=>i.pool)).length,fresh_quote_and_pool:rows.filter(r=>r.research_ready).length,security_fields:rows.filter(r=>r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,fallback_quotes:rows.filter(r=>r.fallback_quote).length,kraken_quotes:rows.filter(r=>r.kraken_quote).length,news:(e.news??[]).length},limitations:'Research inputs only. No safety certification. DEX snapshot retrieval time is not a provider quote timestamp. FX daily indicative; candles are historic completed minute closes, not executable prices. Missing risk fields are unknown. Discovery remains bounded.'};
+ const out={schema:'cleanroom.targeted.v1',mode:'RESEARCH_ONLY',started_at,finished_at,source_snapshot:e.finished_at,kraken_identity_cache:cache,lead_attempts:attempts,discovery_coverage:{registry_read:registryRead,eligible_raw_contracts:raw.size,selected_raw_contracts:selectedLeads,unselected_raw_contracts:Math.max(0,raw.size-selectedLeads)},rows,news:e.news??[],source_logs:[...(e.source_logs??[]),...logs],summary:{assets:rows.filter(r=>!r.id.startsWith('lead:')).length,raw_leads_checked:selectedLeads,raw_leads_with_pool:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,raw_leads_with_timestamped_quote:rows.filter(r=>r.id.startsWith('lead:')&&r.research_ready).length,pool_mapped:rows.filter(r=>r.identities.some(i=>i.pool)).length,fresh_quote_and_pool:rows.filter(r=>r.research_ready).length,security_fields:rows.filter(r=>r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,fallback_quotes:rows.filter(r=>r.fallback_quote).length,kraken_quotes:rows.filter(r=>r.kraken_quote).length,news:(e.news??[]).length},limitations:'Research inputs only. No safety certification. DEX snapshot retrieval time is not a provider quote timestamp. FX daily indicative; candles are historic completed minute closes, not executable prices. Missing risk fields are unknown. Discovery remains bounded.'};
  await fs.writeFile(dir+'targeted-latest.json.tmp',JSON.stringify(out,null,2)+'\n');await fs.rename(dir+'targeted-latest.json.tmp',dir+'targeted-latest.json');console.log(JSON.stringify(out.summary));
 }
