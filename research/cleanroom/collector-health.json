@@ -1,76 +1,73 @@
 {
   "schema": "cleanroom.collector-health.v1",
   "mode": "RESEARCH_ONLY",
-  "run_id": "45893238735",
+  "run_id": "45895950755",
   "event": "push",
-  "sample": 4,
-  "started_at": "2026-11-26T21:08:08.498Z",
-  "finished_at": "2026-11-26T21:08:18.436Z",
+  "sample": 0,
+  "started_at": "2026-11-26T21:08:28.384Z",
+  "finished_at": "2026-11-26T21:08:39.649Z",
   "status": "OK",
   "failed_cycles_in_run": 0,
-  "snapshot": "2026-11-26T21:08:18.099Z",
-  "fresh_research_quotes": 114,
+  "snapshot": "2026-11-26T21:08:39.410Z",
+  "fresh_research_quotes": 95,
   "steps": [
     {
       "file": "market-probe.mjs",
       "exit_code": 0,
       "error": null,
-      "finished_at": "2026-11-26T21:08:08.914Z"
+      "finished_at": "2026-11-26T21:08:28.985Z"
     },
     {
       "file": "evidence.mjs",
       "exit_code": 0,
       "error": null,
-      "finished_at": "2026-11-26T21:08:09.182Z"
+      "finished_at": "2026-11-26T21:08:29.248Z"
     },
     {
       "file": "targeted.mjs",
       "exit_code": 0,
       "error": null,
-      "finished_at": "2026-11-26T21:08:18.140Z"
+      "finished_at": "2026-11-26T21:08:39.445Z"
     },
     {
       "file": "token-registry.mjs",
       "exit_code": 0,
       "error": null,
-      "finished_at": "2026-11-26T21:08:18.422Z"
+      "finished_at": "2026-11-26T21:08:39.636Z"
     }
   ],
   "summary": {
+    "contract_quote_eligible": 22,
     "contract_quote_candidates": 1,
-    "contract_quote_hits": 1,
-    "contract_quote_chain": "bsc",
-    "contract_quote_status": "OK",
+    "contract_quote_hits": 0,
+    "contract_quote_chain": "ethereum",
+    "contract_quote_status": "OK_NO_FRESH_MATCH",
     "contract_quote_provider_error": null,
     "contract_quote_single_retry": false,
-    "raw_new_to_registry": 10,
-    "raw_first_selected": 26,
-    "raw_overlap_previous_cycle": 0,
-    "raw_current_selected": 32,
-    "raw_backlog_selected": 16,
-    "raw_cumulative_selection_keys": 2902,
-    "cache_primary_risk": 50,
-    "cache_secondary_risk": 28,
+    "raw_new_to_registry": 1,
+    "raw_first_selected": 25,
+    "raw_overlap_previous_cycle": 1,
+    "raw_current_selected": 24,
+    "raw_backlog_selected": 24,
+    "raw_cumulative_selection_keys": 2927,
+    "cache_primary_risk": 56,
+    "cache_secondary_risk": 31,
     "cache_kraken_mapping": 3,
     "assets": 240,
     "raw_leads_checked": 48,
-    "raw_leads_with_pool": 29,
-    "raw_leads_with_timestamped_quote": 2,
-    "pool_mapped": 225,
-    "fresh_quote_and_pool": 112,
-    "security_fields": 63,
-    "raw_leads_with_security_fields": 5,
-    "fallback_quotes": 2,
-    "kraken_quotes": 6,
+    "raw_leads_with_pool": 26,
+    "raw_leads_with_timestamped_quote": 0,
+    "pool_mapped": 224,
+    "fresh_quote_and_pool": 95,
+    "security_fields": 78,
+    "raw_leads_with_security_fields": 11,
+    "fallback_quotes": 0,
+    "kraken_quotes": 5,
     "news": 30,
-    "registry_total": 5264,
-    "registry_added": 13
+    "registry_total": 5268,
+    "registry_added": 4
   },
   "provider_statuses": {
-    "api.geckoterminal.com": {
-      "OK": 5,
-      "HTTP_429": 1
-    },
     "api.dexscreener.com": {
       "OK": 17
     },
@@ -84,14 +81,20 @@
       "OK": 1
     },
     "api.gopluslabs.io": {
-      "OK": 34
+      "OK": 33
+    },
+    "api.rugcheck.xyz": {
+      "OK": 16
     },
     "api.honeypot.is": {
-      "HTTP_404": 13,
-      "OK": 11
+      "OK": 7,
+      "HTTP_404": 1
     },
     "api.frankfurter.dev": {
       "OK": 1
+    },
+    "api.geckoterminal.com": {
+      "SKIPPED_PROVIDER_COOLDOWN": 14
     },
     "api.kraken.com": {
       "OK": 13
