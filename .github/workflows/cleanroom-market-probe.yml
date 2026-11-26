@@ -38,4 +38,5 @@ jobs:
           git commit -m "Cleanroom public market evidence (research only)"
           git push origin HEAD:main
       - name: Check data readiness (not a trading signal)
-        run: node --input-type=module -e 'import fs from "node:fs"; const x=JSON.parse(fs.readFileSync("research/cleanroom/evidence-latest.json")); console.log("Mapped fresh EUR assets: "+x.joined_count+"; news: "+x.news.length); if(x.joined_count<10)process.exit(1)'
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; const x=JSON.parse(fs.readFileSync("research/cleanroom/evidence-latest.json")); console.log("Mapped fresh EUR assets: "+x.joined_count+"; news: "+x.news.length); if(x.joined_count<10)process.exit(1)'
