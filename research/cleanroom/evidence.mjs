@@ -69,7 +69,7 @@ if(process.argv.includes('--self-test')){
  console.log('Evidence and discovery inventory fixtures passed');
 }else{
  const snapshot=JSON.parse(await readFile(process.env.CLEANROOM_OUTPUT??'research/cleanroom/market-latest.json','utf8'));
- const market=snapshot.sources.find(s=>s.name==='CoinGecko EUR meme markets')?.rows??[];
+ const market=[...new Map(snapshot.sources.filter(s=>s.status==='OK'&&s.name.startsWith('CoinGecko EUR meme markets')).flatMap(s=>s.rows).map(r=>[r.id,r])).values()];
  const pools=snapshot.sources.filter(s=>s.name.startsWith('GeckoTerminal')).flatMap(s=>s.rows);
  const headers=process.env.COINGECKO_DEMO_KEY?{'x-cg-demo-api-key':process.env.COINGECKO_DEMO_KEY}:{};
  const [reg,...news]=await Promise.all([req(BASE+'/coins/list?include_platform=true',JSON.parse,headers),req('https://www.coindesk.com/arc/outboundfeeds/rss/',rss),req('https://cointelegraph.com/rss',rss)]);
