@@ -45,6 +45,18 @@ function contractQuote(j,identity,at,url){
  if(!(p>0)||!Number.isFinite(t)||t<=0||t*1000>at||at-t*1000>900000)return null;
  return {price_eur:p,observed_at_utc:new Date(t*1000).toISOString(),source_url:url,quote_scope:'COINGECKO_CONTRACT_INDICATIVE_PAPER'};
 }
+// Provider-reported token taxes only; they are not a full execution quote.
+function executionCosts(i,at){
+ const fields=[];
+ for(const v of [i.security,i.secondary_security]){
+  if(!usableRisk(v,at))continue;
+  const f=v.fields??{},scale=v.source==='GoPlus'?100:v.source==='Honeypot.is'?1:null;
+  if(scale===null)continue;
+  const buy=number(scale===100?f.buy_tax:f.buy_tax_pct),sell=number(scale===100?f.sell_tax:f.sell_tax_pct);
+  fields.push({source:v.source,source_url:v.source_url??null,retrieved_at:v.retrieved_at,buy_tax_pct:buy!==null&&buy>=0&&buy*scale<=100?buy*scale:null,sell_tax_pct:sell!==null&&sell>=0&&sell*scale<=100?sell*scale:null});
+ }
+ return {scope:'PAPER_COST_EVIDENCE_NOT_EXECUTABLE_QUOTE',stake_eur:50,tax_observations:fields,gas_eur:null,dex_fee_pct:null,slippage_pct:null,round_trip_total_eur:null,limitations:'Taxes only when provider supplied valid current fields. Gas, route fee, price impact and total unknown; do not assume zero.'};
+}
 function candleQuote(j,identity,fx,at,url){
  const a=j?.data?.attributes?.ohlcv_list, meta=j?.meta;
  if(!Array.isArray(a)||!meta?.base?.address||norm(identity.chain,meta.base.address)!==norm(identity.chain,identity.contract)||!(number(fx?.rates?.EUR)>0)||!/^\d{4}-\d{2}-\d{2}$/.test(fx?.date??'')||Date.parse(fx.date)>at||at-Date.parse(fx.date)>7*86400000)return null;
@@ -142,6 +154,9 @@ if(process.argv.includes('--self-test')){
  assert.equal(usableSecondary({evidence:fixtureRisk,pool_address:b},{pool:{pool_address:b}},at),true);
  assert.equal(usableSecondary({evidence:fixtureRisk,pool_address:a},{pool:{pool_address:b}},at),false);
  assert.equal(cachedRisk(fixtureRisk).retrieved_at,fixtureRisk.retrieved_at);
+ const cost=executionCosts({security:{...fixtureRisk,source:'GoPlus',fields:{buy_tax:'0.02',sell_tax:'0.04'}},secondary_security:{...fixtureRisk,source:'Honeypot.is',fields:{buy_tax_pct:0,sell_tax_pct:3}}},at);
+ assert.equal(cost.tax_observations[0].buy_tax_pct,2);assert.equal(cost.tax_observations[1].sell_tax_pct,3);assert.equal(cost.round_trip_total_eur,null);
+ assert.equal(executionCosts({security:fixtureRisk},at+3600000).tax_observations.length,0);
  assert.equal(retryDelay('120',at),120000);assert.equal(retryDelay(null,at),120000);
  console.log('Targeted evidence and cache fixtures passed');
 }else{
@@ -235,26 +250,19 @@ if(process.argv.includes('--self-test')){
  for(const r of probes){if(geckoLimited)break;if(r.fallback_quote)continue;const i=r.identities[0],url=gt+nets[i.chain]+'/pools/'+i.pool.pool_address+'/ohlcv/minute?aggregate=1&limit=5&currency=usd&token=base';const j=await req(url);geckoLimited=logs.at(-1)?.http_status===429;applyQuote(r,i,candleQuote(j,i,fx,Date.now(),url));}
  // Try a second provider for raw leads without a timestamped quote. One bounded batch per cycle.
  // Rotate chains across cycles. No symbol matching, fabricated quote time or forced buy.
- const quoteGroups=new Map();
- for(const r of ranked){const i=r.identities[0];if(!r.id.startsWith('lead:')||fresh(r.observed_at_utc,Date.now())||!cgPlatforms[i.chain]||(i.pool.buys_1h??0)+(i.pool.sells_1h??0)<=0)continue;
-  if(!quoteGroups.has(i.chain))quoteGroups.set(i.chain,[]);quoteGroups.get(i.chain).push(r);}
- const quoteChains=[...quoteGroups.keys()].sort();
+ // Provider explicitly limits this endpoint to one address per request.
+ const contractQuoteHistory={...(prev.contract_quote_attempts??{})};
+ const quoteEligible=ranked.filter(r=>{const i=r.identities[0];return r.id.startsWith('lead:')&&!fresh(r.observed_at_utc,Date.now())&&cgPlatforms[i.chain]&&(i.pool.buys_1h??0)+(i.pool.sells_1h??0)>0});
+ const ordered=quoteEligible.sort((a,b)=>(contractQuoteHistory[key(a.identities[0].chain,a.identities[0].contract)]??'').localeCompare(contractQuoteHistory[key(b.identities[0].chain,b.identities[0].contract)]??'')||a.id.localeCompare(b.id));
  let contractQuoteAttempts=0,contractQuoteHits=0,contractQuoteStatus='NO_ELIGIBLE_LEADS',contractQuoteError=null,contractQuoteSingleRetry=false,contractQuoteChain=null;
- if(quoteChains.length){const cursor=Math.floor(Date.parse(started_at)/300000)%quoteChains.length,chain=quoteChains[cursor];
-  const selected=quoteGroups.get(chain).slice(0,20),url='https://api.coingecko.com/api/v3/simple/token_price/'+cgPlatforms[chain]+'?contract_addresses='+encodeURIComponent(selected.map(r=>r.identities[0].contract).join(','))+'&vs_currencies=eur&include_last_updated_at=true';
+ if(ordered.length){
+  const r=ordered[0],i=r.identities[0],chain=i.chain;
+  const url='https://api.coingecko.com/api/v3/simple/token_price/'+cgPlatforms[chain]+'?contract_addresses='+encodeURIComponent(i.contract)+'&vs_currencies=eur&include_last_updated_at=true';
   const headers=process.env.COINGECKO_DEMO_KEY?{'x-cg-demo-api-key':process.env.COINGECKO_DEMO_KEY}:{};
-  const j=await req(url,headers);contractQuoteAttempts=selected.length;contractQuoteChain=chain;
-  const firstLog=logs.at(-1);contractQuoteStatus=firstLog?.status??'UNKNOWN';contractQuoteError=firstLog?.provider_error??null;
-  for(const r of selected){const i=r.identities[0],q=contractQuote(j,i,Date.now(),url);if(q){applyQuote(r,i,q);contractQuoteHits++;}}
-  // A rejected batch is not evidence that individual contracts are unsupported.
-  // At most one single-contract retry after a 400, never after 429 or cooldown.
-  if(firstLog?.http_status===400&&selected.length>1){
-   contractQuoteSingleRetry=true;
-   const r=selected[0],i=r.identities[0],singleUrl='https://api.coingecko.com/api/v3/simple/token_price/'+cgPlatforms[chain]+'?contract_addresses='+encodeURIComponent(i.contract)+'&vs_currencies=eur&include_last_updated_at=true';
-   const one=await req(singleUrl,headers),retryLog=logs.at(-1);
-   contractQuoteStatus+='; SINGLE_'+(retryLog?.status??'UNKNOWN');contractQuoteError=retryLog?.provider_error??contractQuoteError;
-   const q=contractQuote(one,i,Date.now(),singleUrl);if(q){applyQuote(r,i,q);contractQuoteHits++;}
-  }
+  const j=await req(url,headers),last=logs.at(-1);contractQuoteChain=chain;
+  contractQuoteStatus=last?.status??'UNKNOWN';contractQuoteError=last?.provider_error??null;
+  if(last?.status!=='SKIPPED_PROVIDER_COOLDOWN'){contractQuoteAttempts=1;contractQuoteHistory[key(chain,i.contract)]=started_at;}
+  const q=contractQuote(j,i,Date.now(),url);if(q){applyQuote(r,i,q);contractQuoteHits++;}
   if(contractQuoteStatus==='OK'&&contractQuoteHits===0)contractQuoteStatus='OK_NO_FRESH_MATCH';
  }
  // Independent EUR trades from Kraken, only if CoinGecko explicitly maps the asset ID to its EUR pair.
@@ -275,16 +283,16 @@ if(process.argv.includes('--self-test')){
  }
  const finished_at=now(),at=Date.parse(finished_at);
  for(const r of rows){const i=r.identities.find(x=>r.fallback_identity?key(x.chain,x.contract)===key(r.fallback_identity.chain,r.fallback_identity.contract):x.pool);r.research_ready=Boolean(i?.pool&&fresh(r.observed_at_utc,at)&&number(r.price_eur)>0&&i.pool.volume_1h_usd!==null&&i.pool.sells_1h!==null);r.risk_status=i?.security?.status??'UNAVAILABLE';r.decision_status='RESEARCH_INPUT_NOT_BUY'}
- const out={schema:'cleanroom.targeted.v1',mode:'RESEARCH_ONLY',started_at,finished_at,source_snapshot:e.finished_at,mapped_attempts:mappedAttempts,kraken_identity_cache:cache,risk_cache:riskCache,host_cooldown:Object.fromEntries(Object.entries(hostCooldown).filter(([,v])=>v>Date.now())),cache_reuse:cacheHits,lead_attempts:attempts,risk_attempts:riskAttempts,discovery_coverage:{registry_read:registryRead,eligible_raw_contracts:raw.size,selected_raw_contracts:selectedLeads,unselected_raw_contracts:Math.max(0,raw.size-selectedLeads),current_discovery_new_to_registry:currentUnseen,selected_new_to_registry:rawNewToRegistry,selected_first_attempt:rawFirstSelected,selected_overlap_previous_cycle:rawOverlap,selected_current_discovery:recent.length,selected_rotating_backlog:other.length,cumulative_raw_selection_keys:Object.keys(attempts).length,mapped_current:rows.filter(r=>!r.id.startsWith('lead:')&&currentIds.has(r.id)).length},rows,news:e.news??[],source_logs:[...(e.source_logs??[]),...logs],summary:{contract_quote_candidates:contractQuoteAttempts,contract_quote_hits:contractQuoteHits,contract_quote_chain:contractQuoteChain,contract_quote_status:contractQuoteStatus,contract_quote_provider_error:contractQuoteError,contract_quote_single_retry:contractQuoteSingleRetry,raw_new_to_registry:rawNewToRegistry,raw_first_selected:rawFirstSelected,raw_overlap_previous_cycle:rawOverlap,raw_current_selected:recent.length,raw_backlog_selected:other.length,raw_cumulative_selection_keys:Object.keys(attempts).length,cache_primary_risk:cacheHits.primary_risk,cache_secondary_risk:cacheHits.secondary_risk,cache_kraken_mapping:cacheHits.kraken_mapping,assets:rows.filter(r=>!r.id.startsWith('lead:')).length,raw_leads_checked:selectedLeads,raw_leads_with_pool:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,raw_leads_with_timestamped_quote:rows.filter(r=>r.id.startsWith('lead:')&&r.research_ready).length,pool_mapped:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,fresh_quote_and_pool:rows.filter(r=>!r.id.startsWith('lead:')&&r.research_ready).length,security_fields:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,raw_leads_with_security_fields:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,fallback_quotes:rows.filter(r=>r.fallback_quote).length,kraken_quotes:rows.filter(r=>r.kraken_quote).length,news:(e.news??[]).length},limitations:'Research inputs only. No safety certification. DEX snapshot retrieval time is not a provider quote timestamp. FX daily indicative; candles are historic completed minute closes, not executable prices. Missing risk fields are unknown. Discovery remains bounded.'};
+ const out={schema:'cleanroom.targeted.v1',mode:'RESEARCH_ONLY',started_at,finished_at,source_snapshot:e.finished_at,mapped_attempts:mappedAttempts,contract_quote_attempts:contractQuoteHistory,kraken_identity_cache:cache,risk_cache:riskCache,host_cooldown:Object.fromEntries(Object.entries(hostCooldown).filter(([,v])=>v>Date.now())),cache_reuse:cacheHits,lead_attempts:attempts,risk_attempts:riskAttempts,discovery_coverage:{registry_read:registryRead,eligible_raw_contracts:raw.size,selected_raw_contracts:selectedLeads,unselected_raw_contracts:Math.max(0,raw.size-selectedLeads),current_discovery_new_to_registry:currentUnseen,selected_new_to_registry:rawNewToRegistry,selected_first_attempt:rawFirstSelected,selected_overlap_previous_cycle:rawOverlap,selected_current_discovery:recent.length,selected_rotating_backlog:other.length,cumulative_raw_selection_keys:Object.keys(attempts).length,mapped_current:rows.filter(r=>!r.id.startsWith('lead:')&&currentIds.has(r.id)).length},rows,news:e.news??[],source_logs:[...(e.source_logs??[]),...logs],summary:{contract_quote_eligible:quoteEligible.length,contract_quote_candidates:contractQuoteAttempts,contract_quote_hits:contractQuoteHits,contract_quote_chain:contractQuoteChain,contract_quote_status:contractQuoteStatus,contract_quote_provider_error:contractQuoteError,contract_quote_single_retry:contractQuoteSingleRetry,raw_new_to_registry:rawNewToRegistry,raw_first_selected:rawFirstSelected,raw_overlap_previous_cycle:rawOverlap,raw_current_selected:recent.length,raw_backlog_selected:other.length,raw_cumulative_selection_keys:Object.keys(attempts).length,cache_primary_risk:cacheHits.primary_risk,cache_secondary_risk:cacheHits.secondary_risk,cache_kraken_mapping:cacheHits.kraken_mapping,assets:rows.filter(r=>!r.id.startsWith('lead:')).length,raw_leads_checked:selectedLeads,raw_leads_with_pool:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,raw_leads_with_timestamped_quote:rows.filter(r=>r.id.startsWith('lead:')&&r.research_ready).length,pool_mapped:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.pool)).length,fresh_quote_and_pool:rows.filter(r=>!r.id.startsWith('lead:')&&r.research_ready).length,security_fields:rows.filter(r=>!r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,raw_leads_with_security_fields:rows.filter(r=>r.id.startsWith('lead:')&&r.identities.some(i=>i.security.status==='PROVIDER_FIELDS_AVAILABLE_NOT_AUDIT')).length,fallback_quotes:rows.filter(r=>r.fallback_quote).length,kraken_quotes:rows.filter(r=>r.kraken_quote).length,news:(e.news??[]).length},limitations:'Research inputs only. No safety certification. DEX snapshot retrieval time is not a provider quote timestamp. FX daily indicative; candles are historic completed minute closes, not executable prices. Missing risk fields are unknown. Discovery remains bounded.'};
  // Compact, unranked evidence pages for agents with connector response-size limits.
  const pageSize=16, pages=[];
  const pageRoot=dir+'candidate-pages';
  await fs.mkdir(pageRoot,{recursive:true});
- const compact=rows.map(r=>({id:r.id,coin:r.coin,classification:r.classification??'MAPPED_ASSET',discovery_origin:r.discovery_origin??null,price_eur:r.price_eur,observed_at_utc:r.observed_at_utc,source_url:r.source_url,quote_scope:r.quote_scope??null,change_1h_pct:r.change_1h_pct, research_ready:r.research_ready,risk_status:r.risk_status, fallback_identity:r.fallback_identity??null, fallback_quote:r.fallback_quote??null,kraken_quote:r.kraken_quote??null,identities:r.identities.map(i=>({chain:i.chain,contract:i.contract,pool:i.pool,security:i.security,secondary_security:i.secondary_security??null}))})).sort((a,b)=>a.id.localeCompare(b.id));
+ const compact=rows.map(r=>({id:r.id,coin:r.coin,classification:r.classification??'MAPPED_ASSET',discovery_origin:r.discovery_origin??null,price_eur:r.price_eur,observed_at_utc:r.observed_at_utc,source_url:r.source_url,quote_scope:r.quote_scope??null,change_1h_pct:r.change_1h_pct, research_ready:r.research_ready,risk_status:r.risk_status, fallback_identity:r.fallback_identity??null, fallback_quote:r.fallback_quote??null,kraken_quote:r.kraken_quote??null,identities:r.identities.map(i=>({chain:i.chain,contract:i.contract,pool:i.pool,security:i.security,secondary_security:i.secondary_security??null,execution_costs:executionCosts(i,at)}))})).sort((a,b)=>a.id.localeCompare(b.id));
  for(let offset=0;offset<compact.length;offset+=pageSize){
   const filename='page-'+String(offset/pageSize).padStart(3,'0')+'.json',data=compact.slice(offset,offset+pageSize);
   await fs.writeFile(pageRoot+'/'+filename+'.tmp',JSON.stringify({schema:'cleanroom.candidate-page.v1',snapshot:finished_at,rows:data})+'\n');await fs.rename(pageRoot+'/'+filename+'.tmp',pageRoot+'/'+filename);
-  pages.push({file:filename,count:data.length,ids:data.map(r=>r.id)});
+  pages.push({file:filename,count:data.length,ids:data.map(r=>r.id),fresh_research_rows:data.filter(r=>r.research_ready).length,active_pool_rows:data.filter(r=>r.identities.some(i=>(i.pool?.buys_1h??0)+(i.pool?.sells_1h??0)>0)).length});
  }
  // Small, automatically generated entry slice for tool-access testing, not a shortlist.
  // Rotate alphabetically by five-minute slot, with no BUY recommendation or manual token inputs.
