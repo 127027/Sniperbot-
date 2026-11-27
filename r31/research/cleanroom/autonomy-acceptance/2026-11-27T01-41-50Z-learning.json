@@ -1,0 +1,43 @@
+{
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "observed_at": "2026-11-27T01:41:50Z",
+  "main_run": {
+    "id": "74107f90-7d24-8325-bcb2-8c45202259d9",
+    "started": "2026-11-27T01:02:18.029709Z",
+    "completed": "2026-11-27T01:02:54.301040Z",
+    "checkpoint_sha": "81cd5c231ef179d45b3a4e5cc3f01b31660f4c51",
+    "final_sha": "191a544fb5cf5b3ef4713704b00f33d062ba61fe",
+    "finals": 1,
+    "buys": 0,
+    "diagnosis_saved": false
+  },
+  "support_run": {
+    "id": "e02ede1c-ebc8-8321-a5f8-09c5edf9fc38",
+    "sha": "a9d5e709f219cfedd80491a91a4d97b63bad5076",
+    "rows": 7
+  },
+  "prior_learning": "2026-11-27T00-40-46Z-learning.json",
+  "collector": {
+    "run_id": "45920764204",
+    "snapshot": "2026-11-27T01:08:06.494Z",
+    "age_seconds": 2023,
+    "fresh_at_snapshot": 79,
+    "registry": 5563,
+    "ci": "success",
+    "queue_audit_run": "45920400668"
+  },
+  "cause": "Collector schedule resumed after main run ended, but latest published snapshot already older than 15 minutes at supervision. Main worker stopping after one final remains unexplained.",
+  "hypothesis": "A successful scheduled collector run does not imply continuous freshness; recovery occurred after the worker, so it could not benefit from that snapshot.",
+  "test": {
+    "method": "Compare independently retrieved worker completion, checkpoint snapshot, collector start and snapshot, CI conclusion, and current entry snapshot.",
+    "result": "Confirmed temporal mismatch: worker ended 01:02:54Z; collector began 01:07:47Z; entry snapshot matches health 01:08:06Z. At supervision snapshot age 2023 seconds; no newer collector in visible 15 runs. No inference of scheduler root cause."
+  },
+  "patch": null,
+  "reason_no_patch": "One falsifiable diagnosis this round; no prompt change or untested code deployment. Historical regression repair remains pending.",
+  "next_test": {
+    "scheduled": "2026-11-27T02:00:00Z",
+    "acceptance": "Check snapshot available before independent worker start, age <=900 seconds or independently refreshed quote; more than one final with readback and separate diagnosis; 10 justified BUY target. If stale, isolate workflow cadence and bounded cycle behavior rather than repeat prompt changes."
+  },
+  "matured_cohorts": 0
+}
