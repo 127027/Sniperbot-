@@ -76,7 +76,7 @@ jobs:
       - name: Prepare research queue from actual new snapshot
         run: |
           mkdir -p "${RUNNER_TEMP}/cleanroom-queue"
-          node research/cleanroom/queue-ingest.mjs research/cleanroom "${RUNNER_TEMP}/cleanroom-queue/state.json" "test-${GITHUB_RUN_ID}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" 32 > "${RUNNER_TEMP}/cleanroom-queue/inbox.json"
+          node research/cleanroom/queue-ingest.mjs research/cleanroom "${RUNNER_TEMP}/cleanroom-queue/state.json" "test-${GITHUB_RUN_ID}" "$(node -p "new Date().toISOString()")" 32 > "${RUNNER_TEMP}/cleanroom-queue/inbox.json"
           node --input-type=module <<'JS'
           import fs from 'node:fs';
           import assert from 'node:assert/strict';
