@@ -1,0 +1,17 @@
+name: R31 independent report capture
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['research/cleanroom/scheduler-capture.mjs','.github/workflows/cleanroom-scheduler-capture.yml','r31/research/cleanroom/scheduler-captures/**']
+permissions:
+  contents: read
+jobs:
+  validate-capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node research/cleanroom/scheduler-capture.mjs --self-test
+      - run: node research/cleanroom/scheduler-capture.mjs r31/research/cleanroom/scheduler-captures/*.json
