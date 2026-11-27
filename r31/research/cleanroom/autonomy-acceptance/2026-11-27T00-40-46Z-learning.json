@@ -1,0 +1,50 @@
+{
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "observed_at": "2026-11-27T00:40:46Z",
+  "main_run": {
+    "id": "93dbb4ce-5d38-8325-b5cf-e29c9e86bd55",
+    "started": "2026-11-27T00:00:13.231371Z",
+    "completed": "2026-11-27T00:00:42.125893Z",
+    "checkpoint_sha": "e5901e62f53dfc352de6b4e7694c7534c79d42b9",
+    "final_sha": "b0b0651a8862b0758b821dfa700f5983146c4cb6",
+    "finals": 1,
+    "buys": 0,
+    "diagnosis_saved": false
+  },
+  "support_run": {
+    "id": "e02ede1c-ebc8-8321-a5f8-09c5edf9fc38",
+    "sha": "a9d5e709f219cfedd80491a91a4d97b63bad5076",
+    "rows": 7
+  },
+  "prior_learning": "2026-11-26T23-45-00Z-learning.json",
+  "collector": {
+    "run_id": "45898048259",
+    "snapshot": "2026-11-26T21:49:20.337Z",
+    "age_seconds": 10286,
+    "registry": 5472,
+    "pages": 18,
+    "rows": 288
+  },
+  "cause": "Confirmed regression predicate incompatibility with contract quote scope on persisted collector snapshot. Exact failing assertion in historical CI not independently confirmed because annotations endpoint rejected HTTP 400. Main worker early termination and absent collector scheduling root causes unknown.",
+  "hypothesis": "Old regression allowlist rejects legitimate COINGECKO_CONTRACT_INDICATIVE_PAPER rows.",
+  "test": {
+    "ci_run": "45898048436",
+    "job": "140176728036",
+    "step": 12,
+    "head": "8550994a7304eb62c1716886b459651b2e91046f",
+    "method": "Read workflow at exact failing commit, inspect producer quote_scope, fetch all 18 persisted candidate pages and replay exact scope predicate on ready leads.",
+    "ready_leads": 5,
+    "old_predicate": false,
+    "expanded_predicate": true,
+    "rejected_scope": "COINGECKO_CONTRACT_INDICATIVE_PAPER",
+    "result": "Hypothesis reproduced on later genuine snapshot; not a full CI rerun. No code changed."
+  },
+  "patch": null,
+  "reason_no_patch": "This round is one falsifiable diagnosis; next isolated test should add explicit contract identity, positive EUR price and original timestamp validation, not simply weaken assertion. No deployment.",
+  "next_test": {
+    "scheduled": "2026-11-27T01:00:00Z",
+    "acceptance": "Verify independent new finals and checkpoint readback, more than one final, 10 justified BUYs target; collector snapshot <=900 seconds or independently fresh quotes. Isolated regression test must accept valid contract scope and reject missing timestamps or wrong identity; full CI before any merge."
+  },
+  "matured_cohorts": 0
+}
