@@ -37,6 +37,8 @@ jobs:
         run: node research/cleanroom/queue-artifact.mjs --self-test
       - name: Atomic coordinator handoff and restart fixtures
         run: node research/cleanroom/queue-coordinator.mjs --self-test
+      - name: Remote CAS and five-worker packet acceptance
+        run: node research/cleanroom/queue-remote.mjs --self-test
   isolated-collector:
     if: github.ref == 'refs/heads/codex/r31-autonomy-recovery'
     needs: offline-tests

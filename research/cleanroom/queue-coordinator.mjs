@@ -68,6 +68,28 @@ export function openCoordinator(repo,ref='refs/heads/cleanroom-coordinator-isola
    b.queue=p.state;b.packets[scan_id]={...p.inbox,worker};
   });
  }
+ // Coordinator-issued leases and packet are committed atomically; workers do not
+ // mutate the shared queue or invent tokens. Replay returns the original packet.
+ function assignClaimed(expected,{scan_id,worker,at,registry,candidates,limit=8,lease_seconds=900}){
+  if(!name(scan_id)||!name(worker)||!Array.isArray(registry)||!Array.isArray(candidates))throw Error('BAD_ASSIGNMENT');
+  if(!Number.isInteger(lease_seconds)||lease_seconds<10||lease_seconds>3600)throw Error('INVALID_LEASE');
+  return transact(expected,b=>{
+   if(own(b.packets,scan_id)){
+    const old=b.packets[scan_id];
+    if(old.worker!==worker||old.dispatch_kind!=='PRECLAIMED')throw Error('PACKET_REPLAY_MISMATCH');
+    return false;
+   }
+   const p=prepare(b.queue,registry,candidates,at,scan_id,limit);
+   b.queue=p.state;
+   const rows=[];
+   for(const row of p.inbox.rows){
+    const token=randomUUID(),event_id=scan_id+':dispatch:'+row.id;
+    b.queue=reduce(b.queue,{type:'CLAIM',scan_id,worker,chain:row.chain,contract:row.contract,at,lease_seconds,event_id,expected_revision:b.queue.revision,token});
+    rows.push({...row,status:'RESEARCHING',token,lease_expires_at:b.queue.jobs[row.id].lease.expires_at});
+   }
+   b.packets[scan_id]={...p.inbox,queue_revision:b.queue.revision,worker,dispatch_kind:'PRECLAIMED',rows};
+  });
+ }
  function checkPacket(b,a){
   if(!name(a.scan_id)||!name(a.worker)||!own(b.packets,a.scan_id)||b.packets[a.scan_id].worker!==a.worker)throw Error('PACKET_WORKER_MISMATCH');
  }
@@ -105,7 +127,7 @@ export function openCoordinator(repo,ref='refs/heads/cleanroom-coordinator-isola
    return old?false:undefined;
   });
  }
- return {read,assign,claim,receipt,close};
+ return {read,assign,assignClaimed,claim,receipt,close};
 }
 function selfTest(){
  const base=fs.mkdtempSync(path.join(os.tmpdir(),'cleanroom-coordinator-'));
