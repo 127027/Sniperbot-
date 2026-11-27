@@ -1,0 +1,31 @@
+name: R31 isolated persistent collector
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths:
+      - 'research/cleanroom/collector-service.mjs'
+      - '.github/workflows/cleanroom-collector-service.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: r31-isolated-collector-service
+  cancel-in-progress: false
+jobs:
+  service:
+    if: github.ref == 'refs/heads/codex/r31-autonomy-recovery'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify collector service guards
+        run: |
+          node research/cleanroom/collector-service.mjs --self-test
+          node research/cleanroom/collector-cadence.mjs --self-test
+      - name: Publish one measured research-only cycle
+        run: node research/cleanroom/collector-service.mjs --once
