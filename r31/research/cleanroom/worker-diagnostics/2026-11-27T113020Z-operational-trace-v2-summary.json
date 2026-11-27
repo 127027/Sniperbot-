@@ -1,0 +1,387 @@
+{
+  "schema": "r31.controller-diagnosis.v2",
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "workers": [
+    {
+      "worker": "market",
+      "run": {
+        "id": "0c5bb106-5b00-8328-8c8d-e81a6c11b393",
+        "recorded_status": "completed",
+        "scheduled_for": "2026-11-27T10:29:17Z",
+        "started_at": "2026-11-27T10:29:01.886185Z",
+        "completed_at": "2026-11-27T10:29:21.676933Z",
+        "chat_ref": {
+          "type": "chatgpt",
+          "id": "6b0767a1-99a4-83eb-8e5a-8bf96a5741ed"
+        }
+      },
+      "capture": {
+        "path": "r31/research/cleanroom/scheduler-captures/0c5bb106-5b00-8328-8c8d-e81a6c11b393.json",
+        "blob_sha": "c250a1de836fa2160c3eb795ed30217fb8542a57",
+        "raw_identical": true
+      },
+      "sighted": 3,
+      "rows": [
+        {
+          "chain": "solana",
+          "contract": "63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9",
+          "decision": "DATA_GAP",
+          "reason": "The exact-contract search returned unrelated websites about YouTube identifiers and string decoding. No token identity, current market data, catalyst, security assessment, sellability or execution costs were established. The supplied GIGA label remains unverified.",
+          "sources": [],
+          "step_refs": [
+            1,
+            2
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "seq": 1,
+          "kind": "SOURCE_QUERY",
+          "action": "Executed independent public exact-contract search.",
+          "purpose": "Identify the supplied Solana contract and obtain current market evidence.",
+          "tool": "web search",
+          "request": "63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9",
+          "status": "PARTIAL",
+          "result": "Search completed and returned unrelated results, including https://yikdo.com/link-viewer, https://keep.md/tools/youtube-video-id-finder and https://decoder.in/. No relevant cryptocurrency result was returned.",
+          "error": "NONE",
+          "next": "Repeat the lookup with Solana-specific market sources and explicit contract matching.",
+          "observed_at": null
+        },
+        {
+          "seq": 2,
+          "kind": "DECISION",
+          "action": "Classified the first supplied contract as DATA_GAP.",
+          "purpose": "Prevent an unsupported hypothetical BUY.",
+          "tool": "NONE",
+          "request": "Assess the evidence returned in step 1.",
+          "status": "OK",
+          "result": "Zero relevant market sources; identity and trading qualification remain unverified.",
+          "error": "NONE",
+          "next": "Attempt an alternative contract-specific source.",
+          "observed_at": null
+        },
+        {
+          "seq": 3,
+          "kind": "SOURCE_QUERY",
+          "action": "Alternative Solana-specific lookup.",
+          "purpose": "Recover from irrelevant general search results.",
+          "tool": "NONE",
+          "request": "GIGA Solana 63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9 DexScreener GeckoTerminal",
+          "status": "NOT_EXECUTED",
+          "result": "No alternative source retrieval completed.",
+          "error": "NONE",
+          "next": "Execute this search before advancing the candidate.",
+          "observed_at": null
+        },
+        {
+          "seq": 4,
+          "kind": "SOURCE_QUERY",
+          "action": "Independent NPC contract lookup.",
+          "purpose": "Verify Base token identity and market evidence.",
+          "tool": "NONE",
+          "request": "NPC Base 0xb166e8b140d35d9d8226e40c09f757bac5a4d87d",
+          "status": "NOT_EXECUTED",
+          "result": "Candidate remains unassessed.",
+          "error": "NONE",
+          "next": "Execute exact-contract search.",
+          "observed_at": null
+        },
+        {
+          "seq": 5,
+          "kind": "SOURCE_QUERY",
+          "action": "Independent LOU contract lookup.",
+          "purpose": "Verify Solana token identity and market evidence.",
+          "tool": "NONE",
+          "request": "LOU Solana 5DQSDg6SGkbsbykq4mQstpcL4d5raEHc6rY7LgBwpump",
+          "status": "NOT_EXECUTED",
+          "result": "Candidate remains unassessed.",
+          "error": "NONE",
+          "next": "Execute exact-contract search.",
+          "observed_at": null
+        },
+        {
+          "seq": 6,
+          "kind": "REPORT",
+          "action": "Returned partial operational trace.",
+          "purpose": "Preserve actual research activity and unfinished work for independent assessment.",
+          "tool": "NONE",
+          "request": "Produce r31.research-return.v2 response.",
+          "status": "PARTIAL",
+          "result": "One actual public search completed, zero relevant market sources, one DATA_GAP decision, two unassessed supplied candidates, zero qualified BUYs, zero additional discoveries.",
+          "error": "NONE",
+          "next": "Resume alternative source lookup from step 3.",
+          "observed_at": null
+        }
+      ],
+      "stop_reason": "Returning an incomplete result after one completed public search. The alternative lookup and remaining candidate searches were not executed. No explicit tool error, verified deadline exhaustion or platform termination cause was observed. Continuous research and successful fallback are not demonstrated.",
+      "next_work": "Execute the alternative GIGA lookup from step 3, then NPC and LOU from steps 4 and 5. Obtain exact-contract market evidence, dated catalysts, security and sellability checks, indicative EUR50 entry and exit quotes, complete execution costs and exit conditions. Continue distinct candidate discovery. Worker contribution to the collective ten-BUY target is zero; collective results are unavailable.",
+      "blockers": [
+        {
+          "step": "1",
+          "error": "Public search returned irrelevant results rather than contract-specific cryptocurrency evidence.",
+          "last_action": "Executed the supplied Solana contract as an exact search query.",
+          "alternative": "Search with explicit Solana, GIGA, DexScreener and GeckoTerminal context.",
+          "alternative_result": "NOT_EXECUTED",
+          "cause": "Irrelevant search retrieval is observed; the underlying retrieval cause is not established.",
+          "next_test": "Execute a domain-specific exact-contract lookup and verify the returned token address.",
+          "repair": "Use cryptocurrency-specific retrieval and require exact chain and contract matching before accepting market evidence.",
+          "acceptance": "Return a relevant source with the exact contract, chain, market observation and verifiable freshness."
+        },
+        {
+          "step": "3-5",
+          "error": "Research did not continue after the first irrelevant search result.",
+          "last_action": "Classified the first contract as DATA_GAP.",
+          "alternative": "Perform separate alternative and remaining candidate searches.",
+          "alternative_result": "NOT_EXECUTED",
+          "cause": "The missing continuation is observable; no internal execution failure or time-limit evidence is available.",
+          "next_test": "Complete at least one alternative retrieval followed by a distinct candidate retrieval.",
+          "repair": "Require actual fallback execution and candidate progression before voluntary report completion.",
+          "acceptance": "Operational trace contains completed sequential source calls for all three supplied identities, with evidence-based decisions."
+        },
+        {
+          "step": "BUY qualification",
+          "error": "Zero qualified hypothetical BUY recommendations.",
+          "last_action": "Rejected unsupported BUY qualification for the first contract.",
+          "alternative": "Obtain independent market, risk and amount-specific execution evidence.",
+          "alternative_result": "NOT_EXECUTED",
+          "cause": "Required evidence is absent; this does not establish that suitable market opportunities are absent.",
+          "next_test": "Verify current EUR50 indicative entry and exit quotes, sellability, security, fees, gas, slippage, taxes and exit rules.",
+          "repair": "Improve evidence acquisition without relaxing BUY qualification requirements.",
+          "acceptance": "Count only distinct hypothetical BUY recommendations meeting every required evidence condition."
+        }
+      ],
+      "trace_status": "STEP_TRACE_INCOMPLETE: row has no relevant source",
+      "duration_ms": 19790,
+      "first_unexecuted": {
+        "seq": 3,
+        "kind": "SOURCE_QUERY",
+        "action": "Alternative Solana-specific lookup.",
+        "purpose": "Recover from irrelevant general search results.",
+        "tool": "NONE",
+        "request": "GIGA Solana 63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9 DexScreener GeckoTerminal",
+        "status": "NOT_EXECUTED",
+        "result": "No alternative source retrieval completed.",
+        "error": "NONE",
+        "next": "Execute this search before advancing the candidate.",
+        "observed_at": null
+      },
+      "qualified_buys": 0
+    },
+    {
+      "worker": "discovery",
+      "run": {
+        "id": "0b29cec3-3174-8324-8821-3d246e027920",
+        "recorded_status": "completed",
+        "scheduled_for": "2026-11-27T10:29:24Z",
+        "started_at": "2026-11-27T10:28:48.711287Z",
+        "completed_at": "2026-11-27T10:29:14.523043Z",
+        "chat_ref": {
+          "type": "chatgpt",
+          "id": "6b0769aa-5dec-83ed-abe3-ea9f5448eea0"
+        }
+      },
+      "capture": {
+        "path": "r31/research/cleanroom/scheduler-captures/0b29cec3-3174-8324-8821-3d246e027920.json",
+        "blob_sha": "98380928df67c46442b4c78955ac87a4f5bd077f",
+        "raw_identical": true
+      },
+      "sighted": 3,
+      "rows": [
+        {
+          "chain": "bsc",
+          "contract": "0x0df0587216a4a1bb7d5082fdc491d93d2dd4b413",
+          "decision": "WATCH",
+          "reason": "BscScan corroborates the exact CHEEMS identity and historical swaps involving WBNB. Historical swap-emitting contract 0x38231d4ef9d33ebea944c75a21301ff6986499c3 identified. Returned records are several months old. Current momentum, independent issuer confirmation, catalysts, liquidity, security, sellability and EUR50 round-trip trading costs remain unverified. No qualified BUY.",
+          "sources": [
+            {
+              "url": "https://bscscan.com/tx/0x6ecce2e9482894c59435798342d154803b50a0250b0d1920101ada64429d4d36",
+              "observed_at": null
+            },
+            {
+              "url": "https://bscscan.com/tx/0xde56c41a10c154129123312c7d3230252950096f264ec8f699559cb3ec2c9aae",
+              "observed_at": null
+            },
+            {
+              "url": "https://bscscan.com/tx/0x9b83f5786b950b9714cf3e33fc161161c584a46e6048cd141c9f6c7a0a100f29",
+              "observed_at": null
+            }
+          ],
+          "step_refs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "seq": 1,
+          "kind": "RECEIVE",
+          "action": "Received three exact-contract research leads.",
+          "purpose": "Establish bounded research scope.",
+          "tool": "NONE",
+          "request": "CHEEMS on BSC; INFERNO on Ethereum; AI on Optimism.",
+          "status": "OK",
+          "result": "Three supplied identities, historical labels unverified.",
+          "error": "NONE",
+          "next": "Execute exact CHEEMS contract search.",
+          "observed_at": null
+        },
+        {
+          "seq": 2,
+          "kind": "SOURCE_QUERY",
+          "action": "Executed public exact-contract search.",
+          "purpose": "Establish CHEEMS identity and locate market evidence.",
+          "tool": "web.run",
+          "request": "fast| \"0x0df0587216a4a1bb7d5082fdc491d93d2dd4b413\" CHEEMS BSC",
+          "status": "OK",
+          "result": "Nine BscScan transaction results returned. Exact contract repeatedly identified as Cheems Token. Historical transfer, approval and swap events available. Results published approximately five months to 1.4 years earlier.",
+          "error": "NONE",
+          "next": "Evaluate returned identity and market evidence.",
+          "observed_at": null
+        },
+        {
+          "seq": 3,
+          "kind": "IDENTITY_CHECK",
+          "action": "Compared exact addresses and labels in returned transaction records.",
+          "purpose": "Avoid same-name token substitution.",
+          "tool": "NONE",
+          "request": "Compare supplied BSC contract against returned BscScan records.",
+          "status": "PARTIAL",
+          "result": "Explorer identity corroborated. Historical swap-emitting contract 0x38231d4ef9d33ebea944c75a21301ff6986499c3 identified. Independent second provider and issuer provenance not established.",
+          "error": "NONE",
+          "next": "Evaluate freshness and trade qualification.",
+          "observed_at": null
+        },
+        {
+          "seq": 4,
+          "kind": "MARKET_CHECK",
+          "action": "Evaluated returned historical transaction evidence.",
+          "purpose": "Prevent historical activity from being treated as current market evidence.",
+          "tool": "NONE",
+          "request": "Check returned publication ages, swap events and WBNB transfers.",
+          "status": "PARTIAL",
+          "result": "Historical trading activity established. No current liquidity, momentum, EUR50 quotation, current sellability or complete cost evidence.",
+          "error": "NONE",
+          "next": "Assign non-executable observation decision.",
+          "observed_at": null
+        },
+        {
+          "seq": 5,
+          "kind": "DECISION",
+          "action": "Assigned WATCH to CHEEMS.",
+          "purpose": "Retain corroborated identity without unsupported BUY qualification.",
+          "tool": "NONE",
+          "request": "Evaluate CHEEMS against required current evidence.",
+          "status": "OK",
+          "result": "WATCH; zero qualified BUY recommendations.",
+          "error": "NONE",
+          "next": "Search exact INFERNO contract.",
+          "observed_at": null
+        },
+        {
+          "seq": 6,
+          "kind": "SOURCE_QUERY",
+          "action": "INFERNO research remains outstanding.",
+          "purpose": "Identify Ethereum token and assess meme classification.",
+          "tool": "NONE",
+          "request": "Pending exact-contract search: 0x00f116ac0c304c570daaa68fa6c30a86a04b5c5f",
+          "status": "NOT_EXECUTED",
+          "result": "No source request executed for this identity.",
+          "error": "NONE",
+          "next": "Execute pending exact-contract search.",
+          "observed_at": null
+        },
+        {
+          "seq": 7,
+          "kind": "SOURCE_QUERY",
+          "action": "AI research remains outstanding.",
+          "purpose": "Resolve ambiguous token label on Optimism.",
+          "tool": "NONE",
+          "request": "Pending exact-contract search: 0x2598c30330d5771ae9f983979209486ae26de875",
+          "status": "NOT_EXECUTED",
+          "result": "No source request executed for this identity.",
+          "error": "NONE",
+          "next": "Execute pending exact-contract search after INFERNO.",
+          "observed_at": null
+        },
+        {
+          "seq": 8,
+          "kind": "REPORT",
+          "action": "Returned partial operational diagnostic.",
+          "purpose": "Preserve actual evidence and distinguish completed work from outstanding work.",
+          "tool": "NONE",
+          "request": "Return r31.research-return.v2 JSON.",
+          "status": "PARTIAL",
+          "result": "One actual public search, nine returned source records, one assessed candidate, two unresearched supplied leads, zero additional discovered identities, zero qualified BUY recommendations.",
+          "error": "NONE",
+          "next": "Resume INFERNO, then AI, then independent current CHEEMS market and risk research.",
+          "observed_at": null
+        }
+      ],
+      "stop_reason": "Returning an incomplete diagnostic after one actual source call and one candidate assessment. Further source calls were not executed before returning. No observed tool error, timeout or demonstrated exhaustion of research capacity. Exact UTC source retrieval times and total execution duration were not established. The operational trace contains genuine source execution, but the multi-candidate research objective remains incomplete.",
+      "next_work": "First execute the outstanding INFERNO Ethereum exact-contract search, then the AI Optimism exact-contract search. Obtain independent current CHEEMS pool data, verify meme classification and issuer provenance for each candidate, investigate current catalysts and security, and obtain EUR50 entry and reverse-exit quotations with full costs. Continue distinct new-listing discovery. Worker contribution to the shared ten-BUY target is zero.",
+      "blockers": [
+        {
+          "step": "CHEEMS current market qualification",
+          "error": "Returned search evidence is historical and insufficient for current trade qualification.",
+          "last_action": "Evaluated nine returned BscScan transaction records.",
+          "alternative": "Compared historical swap and transfer records within the returned results.",
+          "alternative_result": "Exact explorer identity and historical trading activity corroborated; no independent current market evidence established.",
+          "cause": "The executed search returned historical explorer records rather than timestamped current quotations. Other public market sources were not tested.",
+          "next_test": "Search the exact CHEEMS contract and identified historical swap address through independent DEX market sources.",
+          "repair": "Separate identity evidence from current market, risk and cost evidence; continue targeted source retrieval before assigning trade qualification.",
+          "acceptance": "Current exact-contract market data, independent identity corroboration, EUR50 entry and exit quotations, security and sellability evidence, complete costs and an explicit exit condition."
+        },
+        {
+          "step": "Multi-candidate research continuation",
+          "error": "Only one of three supplied candidates assessed; no additional discovery executed.",
+          "last_action": "Assigned WATCH to CHEEMS following the first public search.",
+          "alternative": "Preserved exact outstanding contracts and continuation order in this report.",
+          "alternative_result": "Remaining work is identifiable but not executed.",
+          "cause": "No subsequent source calls occurred before report generation. No technical failure or internal termination cause was observed.",
+          "next_test": "Execute public exact-contract searches for INFERNO and AI and return independently supported decisions for both.",
+          "repair": "Require actual source execution for every supplied identity before voluntary completion, with explicit evidence-based continuation checkpoints.",
+          "acceptance": "All three supplied identities receive individually sourced assessments, with additional distinct discovery where feasible and no fabricated tool calls."
+        }
+      ],
+      "trace_status": "STEP_TRACE_STRUCTURAL_ONLY",
+      "duration_ms": 25812,
+      "first_unexecuted": {
+        "seq": 6,
+        "kind": "SOURCE_QUERY",
+        "action": "INFERNO research remains outstanding.",
+        "purpose": "Identify Ethereum token and assess meme classification.",
+        "tool": "NONE",
+        "request": "Pending exact-contract search: 0x00f116ac0c304c570daaa68fa6c30a86a04b5c5f",
+        "status": "NOT_EXECUTED",
+        "result": "No source request executed for this identity.",
+        "error": "NONE",
+        "next": "Execute pending exact-contract search.",
+        "observed_at": null
+      },
+      "qualified_buys": 0
+    }
+  ],
+  "comparison": {
+    "v1": [
+      0,
+      3
+    ],
+    "v2": [
+      1,
+      1
+    ],
+    "relevant_source_backed": [
+      0,
+      1
+    ]
+  },
+  "acceptance": "INCOMPLETE",
+  "independent_source_validation": "Not performed; historical explorer evidence is worker-reported; no BUY evidence",
+  "next_test": "Single outstanding retrieval per worker; coordinator persists cursor; do not repeat completed candidate assessments; test actual continuation across runs",
+  "cause": "Unknown internal reason for early return; both report unexecuted next calls"
+}
