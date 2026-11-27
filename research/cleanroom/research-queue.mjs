@@ -8,6 +8,11 @@ const schema='cleanroom.research-queue.v1';
 const chains=new Set(['solana','ethereum','bsc','base','arbitrum','polygon','optimism','avalanche']);
 const time=t=>{const n=Date.parse(t);if(!Number.isFinite(n))throw Error('INVALID_TIME');return n};
 const iso=t=>new Date(time(t)).toISOString();
+const activeReservation=(j,ms)=>j.reservation&&time(j.reservation.expires_at)>ms;
+function eligible(j,ms){
+ if(j.status==='RESEARCHING')return time(j.lease.expires_at)<=ms;
+ return !activeReservation(j,ms)&&(j.status==='QUEUED'||j.status==='RETRY'&&time(j.retry_at)<=ms);
+}
 function key(chain,contract){
  if(!chains.has(chain)||typeof contract!=='string'||!(chain==='solana'?/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(contract):/^0x[0-9a-fA-F]{40}$/.test(contract)))throw Error('INVALID_IDENTITY');
  return chain+':'+(chain==='solana'?contract:contract.toLowerCase());
@@ -40,11 +45,17 @@ export function reduce(input,action){
  case 'START_SCAN': {
   const s=action.scan_id;if(typeof s!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,100}$/.test(s)||Object.hasOwn(q.scans,s))throw Error('INVALID_SCAN');
   if(!Array.isArray(action.ids)||!action.ids.length)throw Error('SCAN_IDS_REQUIRED');const ids=[...new Set(action.ids)];if(ids.some(id=>!Object.hasOwn(q.jobs,id)))throw Error('UNKNOWN_SCAN_JOB');
+  if(ids.some(id=>!eligible(q.jobs[id],ms)))throw Error('SCAN_JOB_RESERVED_OR_INELIGIBLE');
+  const seconds=action.reservation_seconds??900;
+  if(!Number.isInteger(seconds)||seconds<60||seconds>3600)throw Error('INVALID_RESERVATION');
+  for(const id of ids){const j=q.jobs[id];j.assignments=(j.assignments??0)+1;j.last_assigned_at=at;j.reservation={scan_id:s,expires_at:new Date(ms+seconds*1000).toISOString()};}
   q.scans[s]={started_at:at,ids,status:'OPEN'};break;
  }
  case 'CLAIM':{
   const j=job(),s=q.scans[action.scan_id];
   if(!s||s.status!=='OPEN'||!s.ids.includes(j.id))throw Error('JOB_NOT_IN_OPEN_SCAN');
+  if(j.reservation&&j.reservation.scan_id!==action.scan_id)throw Error('JOB_RESERVED_OTHER_SCAN');
+  if(j.status!=='RESEARCHING'&&j.reservation&&!activeReservation(j,ms))throw Error('RESERVATION_EXPIRED');
   if(!['QUEUED','RETRY','RESEARCHING'].includes(j.status))throw Error('NOT_ELIGIBLE');
   if(j.status==='RETRY'&&time(j.retry_at)>ms)throw Error('RETRY_NOT_DUE');
   if(j.status==='RESEARCHING'&&time(j.lease.expires_at)>ms)throw Error('ALREADY_CLAIMED');
@@ -65,7 +76,7 @@ export function reduce(input,action){
    if(action.stake_eur!==50||typeof action.exit_rule!=='string'||!action.exit_rule.trim()||action.risk_reviewed!==true||action.costs_reviewed!==true)throw Error('BUY_EVIDENCE_INCOMPLETE');
   }
   j.history.push({scan_id:j.lease.scan_id,at,decision:d,reason:action.reason,artifact:action.artifact,blob_sha:action.blob_sha});
-  j.status='DECIDED';delete j.lease;delete j.checkpoint;break;
+  j.status='DECIDED';delete j.lease;delete j.checkpoint;delete j.reservation;break;
  }
  case 'RETRY':{
   const j=owned(),due=iso(action.retry_at);
@@ -82,14 +93,14 @@ export function reduce(input,action){
   const results=s.ids.map(id=>q.jobs[id].history.findLast(h=>h.scan_id===action.scan_id));
   s.completed=results.filter(Boolean).length;s.buy_count=results.filter(h=>h?.decision==='PAPER_BUY').length;
   s.unfinished=s.ids.filter((id,i)=>!results[i]);
-  for(const id of s.unfinished){const j=q.jobs[id];if(j.lease?.scan_id===action.scan_id){j.status='QUEUED';delete j.lease;}}
+  for(const id of s.unfinished){const j=q.jobs[id];if(j.lease?.scan_id===action.scan_id){j.status='QUEUED';delete j.lease;}if(j.reservation?.scan_id===action.scan_id)delete j.reservation;}
   s.status=s.unfinished.length?'INCOMPLETE':'COMPLETE';s.closed_at=at;s.diagnosis_artifact=action.diagnosis_artifact;s.diagnosis_sha=action.diagnosis_sha;break;
  }
  default:throw Error('UNKNOWN_ACTION');
  }
  q.revision++;q.events.push({id:action.event_id,at,type:action.type,payload:JSON.stringify(action)});return q;
 }
-export function next(q,at){validate(q);const ms=time(at);return Object.values(q.jobs).filter(j=>j.status==='QUEUED'||j.status==='RETRY'&&time(j.retry_at)<=ms||j.status==='RESEARCHING'&&time(j.lease.expires_at)<=ms).sort((a,b)=>a.attempts-b.attempts||a.first_seen.localeCompare(b.first_seen)||a.id.localeCompare(b.id)).map(j=>j.id)}
+export function next(q,at){validate(q);const ms=time(at);return Object.values(q.jobs).filter(j=>eligible(j,ms)).sort((a,b)=>(a.assignments??0)-(b.assignments??0)||a.attempts-b.attempts||a.first_seen.localeCompare(b.first_seen)||a.id.localeCompare(b.id)).map(j=>j.id)}
 function selfTest(){
  let q=empty(),seq=0;const a='0x'+'a'.repeat(40),b='0x'+'b'.repeat(40),id=key('ethereum',a),sha='c'.repeat(40),t='2026-11-27T07:00:00Z';
  const evt=(type,x={},at=t)=>({type,event_id:'test-'+(++seq),expected_revision:q.revision,at,...x});
