@@ -1,0 +1,19 @@
+name: R31 actionable failure diagnosis validation
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['research/cleanroom/failure-diagnosis.mjs','.github/workflows/cleanroom-failure-diagnosis.yml','r31/research/cleanroom/worker-diagnostics/failure-diagnosis-results-46070602310.json']
+permissions:
+  contents: read
+jobs:
+  diagnosis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node research/cleanroom/failure-diagnosis.mjs --self-test
+      - name: Validate actual reports if captured
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; import {execFileSync} from "node:child_process"; const p="r31/research/cleanroom/worker-diagnostics/failure-diagnosis-results-46070602310.json";if(!fs.existsSync(p)){console.log("FIXTURE_ONLY");process.exit(0)};const j=JSON.parse(fs.readFileSync(p));if(j.runs.length!==2||new Set(j.runs.map(x=>x.worker)).size!==2)throw Error("MISSING_WORKERS");for(const x of j.runs)execFileSync("node",["research/cleanroom/failure-diagnosis.mjs",x.path,x.worker,x.run_id,x.baseline],{stdio:"inherit"})'
