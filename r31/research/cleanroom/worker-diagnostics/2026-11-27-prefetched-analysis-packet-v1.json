@@ -1,0 +1,87 @@
+{
+  "schema": "r31.prefetched-analysis-packet.v1",
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "id": "r31-prefetch-2026-11-27-v1",
+  "observed_date": "2026-11-27",
+  "market_evidence": {
+    "commit": "adf2b6d5b6d7cffa713139de4c7858075cde9ed0",
+    "path": "r31/research/cleanroom/worker-diagnostics/2026-11-27T123821Z-exact-contract-live.json",
+    "blob": "5a69b99a16690af12b39239f0bdd8a3cf17e28ef",
+    "retrieved_at": "2026-11-27T12:38:21Z",
+    "provider_quote_time": null
+  },
+  "candidates": [
+    {
+      "chain": "solana",
+      "contract": "5DQSDg6SGkbsbykq4mQstpcL4d5raEHc6rY7LgBwpump",
+      "label": "LOU",
+      "sources": [
+        {
+          "id": "L1",
+          "url": "https://www.mexc.com/announcements/article/migration-of-asscoin-pythia-lou-aka-acolyt-to-the-innovation-zone-17827791521681",
+          "status": "READ",
+          "published_at": "2025-02-02",
+          "summary": "Exchange announcement explicitly lists exact Solana address and meme classification; historical listing event, not a fresh catalyst."
+        },
+        {
+          "id": "L2",
+          "url": "https://www.solflare.com/prices/lou/5DQSDg6SGkbsbykq4mQstpcL4d5raEHc6rY7LgBwpump/",
+          "status": "READ",
+          "published_at": null,
+          "summary": "Exact address and label; registry status unverified; historical risk scan dated August 27 2026 reports no mint/freeze authority, mutable metadata and top-20 concentration 33.99%; not a current security result."
+        }
+      ],
+      "market": null,
+      "gaps": [
+        "current exact market observation",
+        "current security",
+        "catalyst",
+        "EUR50 entry/exit quotation and complete costs"
+      ]
+    },
+    {
+      "chain": "optimism",
+      "contract": "0x2598c30330d5771ae9f983979209486ae26de875",
+      "label": "AI (unverified)",
+      "sources": [
+        {
+          "id": "A1",
+          "url": "https://optimistic.etherscan.io/token/0x2598c30330d5771ae9f983979209486ae26de875",
+          "status": "HTTP_ERROR",
+          "http_status": 403,
+          "published_at": null,
+          "summary": "Direct explorer page returned 403. Search excerpt is not sufficient to establish issuer or meme classification."
+        },
+        {
+          "id": "A2",
+          "url": "https://api.dexscreener.com/tokens/v1/optimism/0x2598c30330d5771ae9f983979209486ae26de875",
+          "status": "READ",
+          "published_at": null,
+          "summary": "Earlier live GitHub probe HTTP200 exact base-token address; pool 0xE38DEB1748B32D7FF31c6A2c59b8663F33883ebD; price $0.0000006972, liquidity $8689.62; provider timestamp unknown."
+        },
+        {
+          "id": "A3",
+          "url": "https://api.geckoterminal.com/api/v2/networks/optimism/tokens/0x2598c30330d5771ae9f983979209486ae26de875/pools",
+          "status": "READ",
+          "published_at": null,
+          "summary": "Earlier live probe HTTP200 exact address and matching pool; price $0.0000006896134966, liquidity $8730.78, reported hour volume 0; provider timestamp unknown."
+        }
+      ],
+      "market": {
+        "scope": "historical_retrieval_not_current_quote",
+        "retrieved_at": "2026-11-27T12:38:21Z",
+        "provider_quote_time": null
+      },
+      "gaps": [
+        "issuer",
+        "meme classification",
+        "current market",
+        "current security",
+        "catalyst",
+        "EUR50 entry/exit quotation and complete costs"
+      ]
+    }
+  ],
+  "required": "Both workers evaluate same packet without tools; reference source IDs, explicitly state source failure and gaps, no BUY/HOLD/SELL in diagnostic, no current-price claims. Return decision and short operational rationale; propose a falsifiable fix for missing source execution based on observed logs only."
+}

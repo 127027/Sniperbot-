@@ -1,0 +1,16 @@
+name: R31 prefetched analysis packet
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['research/cleanroom/prefetched-analysis.mjs','.github/workflows/cleanroom-prefetched-analysis.yml','r31/research/cleanroom/worker-diagnostics/2026-11-27-prefetched-analysis-packet-v1.json']
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node research/cleanroom/prefetched-analysis.mjs r31/research/cleanroom/worker-diagnostics/2026-11-27-prefetched-analysis-packet-v1.json --self-test
