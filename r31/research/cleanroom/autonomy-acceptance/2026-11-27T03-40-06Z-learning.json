@@ -1,0 +1,41 @@
+{
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "observed_at": "2026-11-27T03:40:06Z",
+  "main_run": {
+    "id": "b2206e4e-632c-8325-b3a2-bd9924997697",
+    "scheduled": "2026-11-27T03:00:00Z",
+    "started": "2026-11-27T02:56:23.077594Z",
+    "completed": "2026-11-27T02:56:30.313161Z",
+    "new_files": 0,
+    "finals": 0,
+    "buys": 0,
+    "cause": "unknown; no actual GitHub calls reported, no new independent artifacts in directory"
+  },
+  "support_run": {
+    "id": "e02ede1c-ebc8-8321-a5f8-09c5edf9fc38",
+    "started": "2026-11-26T21:10:32.928844Z",
+    "sha": "a9d5e709f219cfedd80491a91a4d97b63bad5076",
+    "new_run": false
+  },
+  "prior_learning": "2026-11-27T02-48-08Z-learning.json",
+  "prior_finals_verified": 3,
+  "hypothesis": "Existing collector job rerun could serve as independent recovery without code changes, but only if isolated from main writes.",
+  "test": {
+    "run_id": 45920764204,
+    "job_id": 140250698652,
+    "head_sha": "392f9b65db65b2aa222622a8c3aefec194d0bca5",
+    "snapshot": "2026-11-27T01:08:06.494Z",
+    "snapshot_age_seconds": 9119.506,
+    "entry_sha": "2ce615828288245f8f4f5d3fef8d899d1697894e",
+    "method": "Inspect actual successful job steps and workflow source, enumerate available GitHub recovery actions.",
+    "result": "Rerun action exists but documented for failed/cancelled job; this job succeeded. Workflow explicitly checks out main and publishes to main, including on workflow_dispatch. No dispatch action exposed. Recovery via existing job fails isolation requirement; no rerun attempted. All four self-tests and freshness verification succeeded in last job. No new collector run in latest 20 CI results. Root cause of missing schedule and worker omission unknown."
+  },
+  "patch": null,
+  "prompt_changed": false,
+  "next_test": {
+    "scheduled": "2026-11-27T04:00:00Z",
+    "acceptance": "Independent fetch/write/readback, >3 persisted finals including beyond entry, quote age <=900s for BUY, separate diagnosis. Investigate isolated collector workflow on research branch with no main publication and executable test capability; do not deploy untested."
+  },
+  "matured_cohorts": 0
+}
