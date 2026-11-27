@@ -1,0 +1,28 @@
+name: R31 fresh discovery integrated pilot
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['research/cleanroom/fresh-cycle.mjs','.github/workflows/cleanroom-fresh-cycle.yml']
+permissions:
+  contents: read
+concurrency:
+  group: r31-fresh-cycle-pilot
+  cancel-in-progress: false
+jobs:
+  fresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node research/cleanroom/fresh-cycle.mjs --self-test
+      - run: node research/cleanroom/fresh-cycle.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fresh-evidence
+          path: |
+            fresh-packet.json
+            fresh-summary.json
