@@ -1,4 +1,4 @@
-name: R31 ranked deep analysis packet
+name: R31 ranked deep fixture or explicit manifest
 on:
   push:
     branches: ['codex/r31-autonomy-recovery']
@@ -23,7 +23,7 @@ jobs:
           if test -f r31/research/cleanroom/worker-diagnostics/broad-current-dispatch.json; then
             node research/cleanroom/ranked-deep-cycle.mjs
           else
-            echo "No independently accepted broad manifest yet; fixture only"
+            echo 'FIXTURE_ONLY_NO_LIVE_DISPATCH'; if test "${{ github.event_name }}" = 'workflow_dispatch'; then exit 1; fi
           fi
       - uses: actions/upload-artifact@v4
         if: always()

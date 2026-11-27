@@ -60,7 +60,8 @@ export function nextBatch(m,at){
 }
 
 async function acquire(){
- const manifest=JSON.parse(fs.readFileSync('r31/research/cleanroom/worker-diagnostics/broad-current-dispatch.json','utf8'));
+ const manifest=JSON.parse(fs.readFileSync(process.env.R31_DISPATCH_PATH??'r31/research/cleanroom/worker-diagnostics/broad-current-dispatch.json','utf8'));
+ if(process.env.R31_SAME_RUN==='1'&&(manifest.source_run!==process.env.GITHUB_RUN_ID||manifest.source_commit!==process.env.GITHUB_SHA))throw Error('FOREIGN_SCAN_RUN');
  const start=new Date().toISOString(),limiter=pacedFetch();
  const selection=nextBatch(manifest,start);
  console.log('RANKED_DISPATCH '+JSON.stringify({started_at:start,source_run:manifest.source_run,eligible:selection.eligible,selected:selection.selected,remaining:selection.remaining}));
