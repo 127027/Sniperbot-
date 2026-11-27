@@ -1,0 +1,60 @@
+{
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "time": "2026-11-27T02:01:43Z",
+  "counts": {
+    "buy": 0,
+    "target": 10,
+    "sighted": 3,
+    "assessed": 3,
+    "saved_readback": 3,
+    "watch": 1,
+    "reject": 1,
+    "data_gap": 1,
+    "independent_new_contracts": 0
+  },
+  "checkpoint_readback": true,
+  "previous_baseline": {
+    "sighted": 19,
+    "assessed": 2,
+    "buy": 0
+  },
+  "sources": [
+    "entry.json",
+    "candidate-pages/index.json",
+    "token-registry/index.json",
+    "overnight-learning-policy.md",
+    "2026-11-26T20-56-16Z-diagnosis.json",
+    "DexTrading",
+    "Quantum Audit",
+    "ApeSpace",
+    "CoinGecko"
+  ],
+  "snapshot": "2026-11-27T01:08:06.494Z",
+  "registry_contracts": 5563,
+  "last_action": "Read prior diagnosis after reading both indexes and policy",
+  "next_unattempted": "Fetch page-000.json and registry shards, latest support/learning files and independent listing discovery",
+  "coverage": "Entry only; market exhaustion not established",
+  "errors": "No GitHub error; exact NIO search yielded no matching evidence; alternative market quotes stale or untimestamped. No explicit runtime limit observed.",
+  "cause": "Incomplete coverage cause unknown; hypothesis: sequential research is not carried forward after initial batch; test bounded next-page fetch and persisted decision before summaries.",
+  "improvements": [
+    {
+      "priority": "P0",
+      "owner": "collector",
+      "action": "Investigate stale snapshot and provider quote updates",
+      "criterion": "Quote <=15 minutes at decision time"
+    },
+    {
+      "priority": "P0",
+      "owner": "research worker",
+      "action": "Resume page-000 and persist individual decisions; read newest support/learning files",
+      "criterion": "At least one active candidate per nonempty page, readback for every decision"
+    },
+    {
+      "priority": "P1",
+      "owner": "research worker",
+      "action": "Independent listing discovery and registry comparison",
+      "criterion": "Exact chain/contract and timestamp for each new lead"
+    }
+  ]
+}
