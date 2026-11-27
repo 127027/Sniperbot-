@@ -3,6 +3,16 @@ import assert from 'node:assert/strict';
 import {pathToFileURL} from 'node:url';
 import {parseReturn} from './scheduler-capture.mjs';
 const str=x=>typeof x==='string'&&!!x.trim();
+// Legacy text is supported; structured diagnostics must contain meaningful typed fields.
+const obj=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+const meaningful=x=>str(x)||(Array.isArray(x)&&x.length>0&&x.every(meaningful))||(obj(x)&&Object.keys(x).length>0&&Object.values(x).some(meaningful));
+const diagnosis=(x,kind)=>{
+ if(str(x))return true;
+ if(!obj(x))return false;
+ if(kind==='fix')return str(x.observed_problem)&&[x.operational_solution,x.proposed_repair].some(meaningful)&&[x.falsifiable_prediction,x.hypothesis,x.unknown_cause].some(str);
+ if(kind==='test')return [x.design,x.experiment].some(str)&&str(x.arm_A)&&str(x.arm_B)&&Array.isArray(x.controls)&&x.controls.length>0&&x.controls.every(str)&&[x.metrics,x.measurements].some(v=>Array.isArray(v)&&v.length>0&&v.every(str));
+ return meaningful(x.current_packet_test)&&[x.future_completion_gate_test,x.proposed_repair_test].some(meaningful);
+};
 const identity=x=>x.chain+':'+(x.chain==='solana'?x.contract:x.contract.toLowerCase());
 export function validatePacket(p){
  if(p?.schema!=='r31.prefetched-analysis-packet.v1'||p.mode!=='RESEARCH_ONLY'||p.non_executable!==true||!str(p.id)||!Array.isArray(p.candidates)||!p.candidates.length)throw Error('BAD_PACKET');
@@ -27,7 +37,7 @@ export function evaluate(p,raw,worker){
  }
  if(seen.size!==p.candidates.length)errors.push('MISSING_CANDIDATES');
  if(!Array.isArray(r.steps)||!r.steps.length||r.steps.some((s,i)=>s.seq!==i+1||!str(s.action)||!str(s.result)||!str(s.status))||r.steps.at(-1)?.action!=='REPORT')errors.push('MISSING_TRACE');
- if(!str(r.fix_hypothesis)||!str(r.next_test)||!str(r.acceptance)||!str(r.stop_reason))errors.push('MISSING_DIAGNOSIS');
+ if(!diagnosis(r.fix_hypothesis,'fix')||!diagnosis(r.next_test,'test')||!diagnosis(r.acceptance,'acceptance')||!str(r.stop_reason))errors.push('MISSING_DIAGNOSIS');
  return {status:errors.length?'INCOMPLETE':'STRUCTURAL_PACKET_ANALYSIS_ONLY',errors,assessed:seen.size,verified_buys:0,accepted:false,worker_report:r};
 }
 function test(p){
@@ -39,6 +49,14 @@ function test(p){
  assert.equal(run({...r,rows:[rows[0]]}).status,'INCOMPLETE');
  assert.equal(run({...r,rows:[rows[0],{...rows[1],failed_source_ids:[]}]}).status,'INCOMPLETE');
  assert.equal(run({...r,rows:[{...rows[0],source_ids:['invented']},rows[1]]}).status,'INCOMPLETE');
+ assert.equal(run({...r,fix_hypothesis:{}}).status,'INCOMPLETE');
+ assert.equal(run({...r,next_test:{arm_A:'only'}}).status,'INCOMPLETE');
+ assert.equal(run({...r,acceptance:{current_packet_test:'PASS'}}).status,'INCOMPLETE');
  console.log('Prefetched packet regression: exact candidate coverage, source references, failed-source reporting, no BUY promotion; fixture only');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){const p=validatePacket(JSON.parse(fs.readFileSync(process.argv[2],'utf8')));if(process.argv.includes('--self-test'))test(p);else if(process.argv[3])console.log(JSON.stringify(evaluate(p,fs.readFileSync(process.argv[3],'utf8'),process.argv[4]),null,2));else console.log(JSON.stringify({packet:p.id,candidates:p.candidates.length,valid:true,verified_buys:0}));}
+
+export function replayCaptured(p,c,worker,expectedRun){
+ if(c?.schema!=='r31.scheduler-capture.v1'||c.mode!=='RESEARCH_ONLY'||c.non_executable!==true||c.worker!==worker||c.run?.id!==expectedRun||c.run?.recorded_status!=='completed')throw Error('CAPTURE_BINDING_INVALID');
+ return evaluate(p,c.raw_report,worker);
+}
