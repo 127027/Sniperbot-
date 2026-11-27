@@ -1,0 +1,371 @@
+{
+  "schema": "r31.prefetched-controller-diagnosis.v1",
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "dispatch_blob": "c0f43356952c93d1cbd01a12e447b87d9ce23d56",
+  "packet_blob": "1e140ce42d2bd0d0feefa48e212062e3204e0258",
+  "validator_blob": "fe6ffa0b5eaff660ac5707967cf45214a0ea74e0",
+  "results": [
+    {
+      "worker": "market",
+      "run": {
+        "id": "98c5d1ec-a980-8328-b7ac-405a9fdc32c3",
+        "recorded_status": "completed",
+        "scheduled_for": "2026-11-27T12:57:17Z",
+        "started_at": "2026-11-27T12:56:40.536422Z",
+        "completed_at": "2026-11-27T12:57:01.403447Z",
+        "chat_ref": {
+          "type": "chatgpt",
+          "id": "6b0767a1-99a4-83eb-8e5a-8bf96a5741ed"
+        }
+      },
+      "duration_seconds": 20.867,
+      "capture": {
+        "path": "r31/research/cleanroom/scheduler-captures/98c5d1ec-a980-8328-b7ac-405a9fdc32c3.json",
+        "blob": "fd82b10c26ae1b79466ff3f964c79a13261a21a7",
+        "commit": "feb315f45948901ec9e80c864e8dd736b032ff9e",
+        "exact_raw_readback": true
+      },
+      "evaluated": 2,
+      "errors": [
+        "MISSING_DIAGNOSIS"
+      ],
+      "strict_status": "INCOMPLETE",
+      "rows": [
+        {
+          "chain": "solana",
+          "contract": "5DQSDg6SGkbsbykq4mQstpcL4d5raEHc6rY7LgBwpump",
+          "decision": "WATCH",
+          "reason": "L1 establishes historical exact-contract identity and meme classification through an exchange announcement published on 2025-02-02. L2 corroborates the address and label, but registry verification remains unresolved. The historical security assessment dated 2026-08-27 reports no mint or freeze authority, mutable metadata and 33.99% top-20 holder concentration. These observations do not establish current security. The historical exchange announcement is not a fresh catalyst. Retain the candidate for further research because meme classification is supported, but current momentum, liquidity, execution economics and security remain unverified.",
+          "source_ids": [
+            "L1",
+            "L2"
+          ],
+          "failed_source_ids": [],
+          "gaps": [
+            "Current exact-contract price, liquidity, volume and momentum",
+            "Current security and sellability assessment",
+            "Registry verification and current holder distribution",
+            "Fresh dated catalyst",
+            "Amount-specific EUR50 entry and exit quotations",
+            "Complete fees, gas, slippage and taxes",
+            "Evidence-based exit conditions"
+          ]
+        },
+        {
+          "chain": "optimism",
+          "contract": "0x2598c30330d5771ae9f983979209486ae26de875",
+          "decision": "DATA_GAP",
+          "reason": "A2 and A3 establish historical exact-address market observations and identify the same pool, 0xE38DEB1748B32D7FF31c6A2c59b8663F33883ebD. The supplied historical prices were USD0.0000006972 and USD0.0000006896134966, respectively, a relative difference of approximately 1.06% using A2 as the denominator. Reported liquidity was USD8689.62 and USD8730.78. A3 reported zero hourly volume. Retrieval occurred at 2026-11-27T12:38:21Z, but provider quote timestamps are unknown. These are historical observations, not verified current prices. A1 returned HTTP403, preventing direct explorer-based identity verification. The AI label, issuer provenance and meme classification remain unverified. Matching market addresses do not establish project identity, security or executable sellability. Insufficient evidence exists to classify this asset as a confirmed memecoin.",
+          "source_ids": [
+            "A2",
+            "A3"
+          ],
+          "failed_source_ids": [
+            "A1"
+          ],
+          "gaps": [
+            "Verified issuer and project provenance",
+            "Exact-contract meme classification",
+            "Successful alternative to the HTTP403 explorer source",
+            "Current timestamped market observations",
+            "Current security, ownership and sellability assessment",
+            "Fresh dated catalyst",
+            "Amount-specific EUR50 entry and exit quotations",
+            "Complete fees, gas, slippage and taxes",
+            "Evidence-based exit conditions"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "seq": 1,
+          "action": "RECEIVE_PACKET",
+          "status": "OK",
+          "result": "Received two distinct candidate identities, five supplied source records and historical market retrieval metadata. No independent retrieval performed."
+        },
+        {
+          "seq": 2,
+          "action": "ASSESS_LOU_IDENTITY",
+          "status": "OK",
+          "result": "L1 and L2 support historical exact-contract identity. L1 supports meme classification. Registry verification remains unresolved."
+        },
+        {
+          "seq": 3,
+          "action": "ASSESS_LOU_MARKET_AND_RISK",
+          "status": "PARTIAL",
+          "result": "Historical security findings available through L2. Current market observations, security, catalyst and execution evidence absent."
+        },
+        {
+          "seq": 4,
+          "action": "CLASSIFY_LOU",
+          "status": "OK",
+          "result": "WATCH. Historical meme classification supports continued research, but current market qualification is incomplete."
+        },
+        {
+          "seq": 5,
+          "action": "ASSESS_AI_IDENTITY",
+          "status": "PARTIAL",
+          "result": "A1 records an observed HTTP403 failure. A2 and A3 support exact market-address matching but do not establish issuer provenance or meme classification."
+        },
+        {
+          "seq": 6,
+          "action": "ASSESS_AI_MARKET_AND_RISK",
+          "status": "PARTIAL",
+          "result": "Two historical providers identify the same pool. Historical price difference approximately 1.06%. Liquidity observations broadly agree. Provider quote timestamps unknown. A3 reports zero hourly volume. Current security and execution evidence absent."
+        },
+        {
+          "seq": 7,
+          "action": "CLASSIFY_AI",
+          "status": "OK",
+          "result": "DATA_GAP. Exact market identity is supported, but project identity, meme classification and current market qualification remain unresolved."
+        },
+        {
+          "seq": 8,
+          "action": "DIAGNOSE_PREMATURE_RETURNS",
+          "status": "OK",
+          "result": "Previous market NPC execution completed one public search. Previous discovery AI execution returned before any source call. No explicit tool error or timeout was observed for that premature return. Therefore universal source-tool unavailability is not established, and the internal reason for the missing execution remains unknown."
+        },
+        {
+          "seq": 9,
+          "action": "DESIGN_CONTROLLED_EXPERIMENT",
+          "status": "OK",
+          "result": "Separate source acquisition, candidate analysis and completion validation into independently observable stages. Compare worker-initiated retrieval against controller-prefetched evidence under matched conditions. Require externally observed source execution receipts rather than worker self-reports."
+        },
+        {
+          "seq": 10,
+          "action": "REPORT",
+          "status": "OK",
+          "result": "Both supplied candidates assessed. Five source records evaluated: four supplied successful reads and one supplied HTTP403 failure. Decisions: one WATCH and one DATA_GAP. Zero independent tool calls, zero GitHub accesses and zero trading actions. Bounded packet-analysis task completed."
+        }
+      ],
+      "fix_hypothesis": {
+        "observed_problem": "Workers have previously returned incomplete research results before performing required source retrieval. At least one market execution successfully performed a public search, while the discovery AI execution returned without any source call.",
+        "unknown_cause": "No observed error or timeout explains the premature discovery return. Scheduling, orchestration, tool availability at the individual invocation level and worker completion behavior remain possible but unverified explanations.",
+        "operational_solution": "Implement an externally enforced completion gate with persistent candidate cursors and separate acquisition and analysis stages. A source-required assignment cannot transition to COMPLETED unless the controller observes an actual source-call receipt and a corresponding candidate assessment. If a worker returns without a required receipt, classify the assignment as INCOMPLETE_NO_SOURCE_CALL and retain the same pending action. The controller can then dispatch that exact action again or obtain the source evidence independently and deliver a compact analysis packet. A completed prefetched analysis must be classified separately from successful independent research.",
+        "falsifiable_prediction": "If source acquisition is the principal operational bottleneck, matched prefetched assignments should achieve higher candidate-assessment completion rates than assignments requiring workers to initiate retrieval. If both variants return prematurely at similar rates, source acquisition alone does not explain the failure. If worker-initiated retrieval succeeds reliably but subsequent assessments remain incomplete, the bottleneck is downstream of source execution."
+      },
+      "next_test": {
+        "design": "Run a controlled comparison with two workers, identical candidate identities, equivalent output requirements and matched execution budgets. Alternate assignment order to reduce order effects.",
+        "arm_A": "Assign each worker one exact public source request followed by one candidate assessment. Independently record whether the requested tool call actually occurred, its response status and whether the assessment was returned.",
+        "arm_B": "Supply both workers with the same immutable prefetched evidence packet and require both candidate assessments without tool calls.",
+        "arm_C": "Repeat arm A with an external completion gate and persistent cursor. When a source-required response arrives without an observed call receipt, retain the unfinished action and classify the response as incomplete rather than completed.",
+        "sample": "At least ten matched assignments per worker per arm.",
+        "metrics": [
+          "Actual source-call initiation rate",
+          "Actual source-response completion rate",
+          "Candidate-assessment completion rate",
+          "Premature return rate",
+          "Successful continuation rate from retained cursor",
+          "Agreement on identity and source-failure classification",
+          "Unsupported source claims",
+          "Measured execution duration where externally observable"
+        ],
+        "controls": [
+          "Same candidate identities across comparable assignments",
+          "Equivalent evidence and output requirements",
+          "Matched execution budgets",
+          "No forced trading recommendations",
+          "No reliance on self-reported tool execution",
+          "Separate genuine source errors from missing source attempts"
+        ]
+      },
+      "acceptance": {
+        "current_packet_test": "PASS: both supplied candidates assessed, all five supplied source records accounted for, HTTP403 explicitly identified, historical observations distinguished from current quotes, and all material evidence gaps retained.",
+        "future_completion_gate_test": "Every source-required assignment must have an externally observed source-call receipt before being marked completed. Every premature return must preserve the exact unfinished cursor.",
+        "future_reliability_target": "At least 90% completed candidate assessments across the matched test assignments, with zero unsupported source-execution claims and zero incorrectly completed source-required assignments.",
+        "diagnostic_limit": "Successful prefetched analysis establishes evidence-processing capability only. It does not establish independent discovery, continuous market monitoring, hourly reporting reliability or autonomous trading capability."
+      },
+      "stop_reason": "Both candidate assessments and the requested operational diagnostic are complete. Stopping at the explicitly defined bounded packet-analysis boundary. No tools were called, no new source evidence was acquired, and no continuous research duration is claimed.",
+      "verified_buys": 0
+    },
+    {
+      "worker": "discovery",
+      "run": {
+        "id": "942d14c8-8024-8329-964d-6176442aa3ef",
+        "recorded_status": "completed",
+        "scheduled_for": "2026-11-27T12:57:30Z",
+        "started_at": "2026-11-27T12:57:40.319829Z",
+        "completed_at": "2026-11-27T12:57:58.015079Z",
+        "chat_ref": {
+          "type": "chatgpt",
+          "id": "6b0769aa-5dec-83ed-abe3-ea9f5448eea0"
+        }
+      },
+      "duration_seconds": 17.696,
+      "capture": {
+        "path": "r31/research/cleanroom/scheduler-captures/942d14c8-8024-8329-964d-6176442aa3ef.json",
+        "blob": "29925a07220211e918ad302017bfb843745e834f",
+        "commit": "f602b27631fa58a6606cb05825e672f95817f4ad",
+        "exact_raw_readback": true
+      },
+      "evaluated": 2,
+      "errors": [
+        "MISSING_DIAGNOSIS"
+      ],
+      "strict_status": "INCOMPLETE",
+      "rows": [
+        {
+          "chain": "solana",
+          "contract": "5DQSDg6SGkbsbykq4mQstpcL4d5raEHc6rY7LgBwpump",
+          "decision": "WATCH",
+          "reason": "L1 explicitly associates the exact Solana contract with LOU and confirms historical meme classification. L2 corroborates the address and label, but registry verification remains absent. The exchange announcement dated 2025-02-02 is a historical listing event, not a current catalyst. The security scan dated 2026-08-27 reported no mint or freeze authority, mutable metadata and 33.99% top-20 holder concentration. These observations are historical and cannot establish present security. No market observation was supplied. Retain the candidate for further research without assuming current momentum, liquidity or sellability.",
+          "source_ids": [
+            "L1",
+            "L2"
+          ],
+          "failed_source_ids": [],
+          "gaps": [
+            "Current exact-contract market observation",
+            "Current contract security and holder concentration",
+            "Verified registry status and issuer provenance",
+            "Current catalyst and momentum",
+            "Current sellability evidence",
+            "EUR50 indicative entry and exit quotations",
+            "Complete fees, gas, slippage and taxes"
+          ]
+        },
+        {
+          "chain": "optimism",
+          "contract": "0x2598c30330d5771ae9f983979209486ae26de875",
+          "decision": "DATA_GAP",
+          "reason": "A2 and A3 corroborate the exact Optimism contract and matching pool 0xE38DEB1748B32D7FF31c6A2c59b8663F33883ebD. Historical retrieval occurred at 2026-11-27T12:38:21Z, but provider quotation timestamps are unknown. A2 reported USD0.0000006972 and USD8689.62 liquidity; A3 reported USD0.0000006896134966 and USD8730.78 liquidity. The reported prices differ by approximately 1.1%. A3 reported zero hourly volume. These are historical provider observations, not current quotations or evidence of present sellability. A1 returned HTTP403, preventing direct explorer verification. Neither successful market source establishes official issuer provenance or meme classification. The AI label remains unverified.",
+          "source_ids": [
+            "A2",
+            "A3"
+          ],
+          "failed_source_ids": [
+            "A1"
+          ],
+          "gaps": [
+            "Exact-address issuer provenance",
+            "Verified token label and meme classification",
+            "Alternative explorer or official issuer evidence following HTTP403",
+            "Provider quotation timestamps and current market observation",
+            "Current contract security",
+            "Current catalyst and momentum",
+            "Current sellability evidence",
+            "EUR50 indicative entry and exit quotations",
+            "Complete fees, gas, slippage and taxes"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "seq": 1,
+          "action": "RECEIVE",
+          "status": "OK",
+          "result": "Received identical prefetched packet containing two exact-contract candidates and five source records. No external retrieval performed."
+        },
+        {
+          "seq": 2,
+          "action": "EVIDENCE_CLASSIFICATION",
+          "status": "OK",
+          "result": "Distinguished four supplied READ records from one supplied HTTP_ERROR record. Publication dates, historical security observations, retrieval timestamps and unknown provider quotation timestamps remain separate."
+        },
+        {
+          "seq": 3,
+          "action": "ASSESS_LOU",
+          "status": "OK",
+          "result": "Evaluated L1 and L2. Historical identity and meme classification corroborated. Current market and security evidence absent. Decision WATCH."
+        },
+        {
+          "seq": 4,
+          "action": "ASSESS_OPTIMISM_AI",
+          "status": "OK",
+          "result": "Evaluated A1, A2 and A3. Two market providers corroborate contract and pool identity. Explorer HTTP403 remains unresolved. Issuer, token classification and current quotation evidence absent. Decision DATA_GAP."
+        },
+        {
+          "seq": 5,
+          "action": "COMPARE_OPERATIONAL_FAILURES",
+          "status": "OK",
+          "result": "Previous market NPC execution completed one search. Previous discovery AI execution returned before any source call. No actual error or timeout was observed in that discovery execution. The evidence establishes inconsistent source execution, not its hidden internal cause. The supplied A1 HTTP403 is a separate observed source-access failure."
+        },
+        {
+          "seq": 6,
+          "action": "DESIGN_CONTROLLED_EXPERIMENT",
+          "status": "OK",
+          "result": "Proposed controller-enforced source execution and evidence-gated completion, with separate measurement of source acquisition and candidate analysis. The proposed repair has not been implemented or tested."
+        },
+        {
+          "seq": 7,
+          "action": "REPORT",
+          "status": "OK",
+          "result": "Two of two supplied candidates assessed. One WATCH, one DATA_GAP, zero unassessed candidates. Four successful supplied source records evaluated and one failed supplied source recorded. Zero new tool calls, zero GitHub accesses and zero new external source claims."
+        }
+      ],
+      "fix_hypothesis": {
+        "observed_problem": "Workers can return a final diagnostic before executing a mandatory source action. Market NPC completed one search, whereas discovery AI returned without executing any source call. No observed error or timeout explains the latter.",
+        "hypothesis": "Mandatory source execution is not sufficiently enforced by the current worker completion boundary. This is a testable workflow hypothesis, not an established internal platform diagnosis.",
+        "proposed_repair": {
+          "component": "Controller dispatch and completion validation",
+          "mechanism": [
+            "Assign every required source action a unique dispatch ID and candidate identity.",
+            "Execute source acquisition as a separate controller-managed stage rather than relying exclusively on worker instructions.",
+            "Persist actual request parameters, response status, retrieval timestamp and response hash.",
+            "Provide workers with immutable evidence packets containing successful responses and explicit source failures.",
+            "Reject completed status when required source receipts or candidate assessments are missing.",
+            "Retain the exact unfinished cursor and retry only missing actions within a bounded retry budget.",
+            "Treat an actual source error as an attempted action, but never as successful evidence acquisition."
+          ],
+          "limitation": "Controller-prefetched evidence can improve reliable research coverage but does not demonstrate that workers independently execute public research. Independent worker source execution must remain a separate acceptance criterion."
+        }
+      },
+      "next_test": {
+        "experiment": "Controlled A/B source-execution and analysis comparison",
+        "sample": "20 matched dispatches per arm, balanced between market and discovery workers, using identical exact-contract inputs and source requirements.",
+        "arm_A": "Existing direct worker dispatch requiring independent public source execution.",
+        "arm_B": "Controller-managed source acquisition followed by immutable evidence-packet analysis and enforced completion validation.",
+        "controls": [
+          "Identical candidate identities and required source actions",
+          "Identical evidence qualification criteria",
+          "Identical execution budget and retry limits",
+          "No prompt-length increase as the experimental intervention",
+          "Externally recorded source receipts and completion outcomes"
+        ],
+        "measurements": [
+          "Actual source attempts divided by required source actions",
+          "Successful relevant source responses divided by attempted actions",
+          "Premature final responses without required source receipts",
+          "Completed candidate assessments divided by supplied candidates",
+          "Correct classification of historical evidence and failed sources",
+          "Verified continuation cursor preservation",
+          "Actual elapsed time where externally measurable"
+        ],
+        "falsification": "If controller-managed acquisition does not reduce missing source receipts or incomplete candidate assessments relative to direct dispatch, the proposed workflow repair is insufficient. If complete prefetched packets still produce missing candidate assessments, an additional analysis or completion-validation problem exists. If direct dispatch consistently completes all required actions, the earlier failures are not reproducible under the tested conditions."
+      },
+      "acceptance": {
+        "current_packet_test": {
+          "status": "PASS",
+          "required_candidates": 2,
+          "assessed_candidates": 2,
+          "missing_candidates": 0,
+          "new_source_calls": 0,
+          "source_failures_correctly_identified": 1,
+          "unsupported_current_market_claims": 0
+        },
+        "proposed_repair_test": {
+          "status": "NOT_TESTED",
+          "required_source_attempt_receipt_rate": "100%",
+          "premature_completed_reports_allowed": 0,
+          "required_candidate_assessment_rate": "100%",
+          "required_failed_source_disclosure_rate": "100%",
+          "fabricated_source_receipts_allowed": 0,
+          "unsupported_current_quotation_claims_allowed": 0,
+          "required_unfinished_cursor_preservation_rate": "100%"
+        },
+        "independent_worker_research": {
+          "status": "NOT_TESTED",
+          "criterion": "Workers must independently execute required source actions and produce externally verifiable receipts before completion. Successful analysis of controller-prefetched evidence does not satisfy this criterion."
+        }
+      },
+      "stop_reason": "Explicit bounded packet-analysis task completed. Both candidates assessed using only supplied evidence. No additional source execution was authorized or performed. The analysis stage passed; independent source execution, continuous market discovery, hourly operation and the proposed controller repair remain unverified.",
+      "verified_buys": 0
+    }
+  ],
+  "distinct_candidates": 2,
+  "independent_new_research": 0,
+  "verified_buys": 0,
+  "acceptance": "Semantic bounded analysis 2/2 workers, strict validator 0/2 because diagnostic fields are objects instead of required strings. No independent research acceptance.",
+  "next": "Repair schema agreement explicitly (structured diagnostic objects with validated required fields or string contract), then matched single-source receipt test with independently observable request/response; no claim of internal cause. No duplicate dispatch."
+}
