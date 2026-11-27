@@ -4,6 +4,7 @@
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {pathToFileURL} from 'node:url';
+import {verifyDiagnosis} from './queue-diagnosis.mjs';
 const schema='cleanroom.research-queue.v1';
 const chains=new Set(['solana','ethereum','bsc','base','arbitrum','polygon','optimism','avalanche']);
 const time=t=>{const n=Date.parse(t);if(!Number.isFinite(n))throw Error('INVALID_TIME');return n};
@@ -19,7 +20,7 @@ function key(chain,contract){
 }
 export function empty(){return {schema,mode:'RESEARCH_ONLY',non_executable:true,revision:0,jobs:{},scans:{},events:[]}}
 function validate(q){if(q?.schema!==schema||q.mode!=='RESEARCH_ONLY'||q.non_executable!==true||!Number.isSafeInteger(q.revision)||!q.jobs||!q.scans||!Array.isArray(q.events))throw Error('INVALID_QUEUE')}
-export function reduce(input,action){
+export function reduce(input,action,{repo=process.cwd()}={}){
  validate(input);const q=structuredClone(input),at=iso(action.at),ms=time(at);
  if(typeof action.event_id!=='string'||!action.event_id||action.event_id.length>200)throw Error('EVENT_ID_REQUIRED');
  const previous=q.events.find(e=>e.id===action.event_id);
@@ -89,19 +90,20 @@ export function reduce(input,action){
  }
  case 'CLOSE_SCAN':{
   const s=q.scans[action.scan_id];if(!s||s.status!=='OPEN')throw Error('INVALID_SCAN');
-  if(typeof action.diagnosis_artifact!=='string'||!action.diagnosis_artifact||!/^[0-9a-f]{40}$/.test(action.diagnosis_sha??'')||action.readback_verified!==true)throw Error('DIAGNOSIS_NOT_VERIFIED');
+  const proof=verifyDiagnosis(q,action,repo);
   const results=s.ids.map(id=>q.jobs[id].history.findLast(h=>h.scan_id===action.scan_id));
   s.completed=results.filter(Boolean).length;s.buy_count=results.filter(h=>h?.decision==='PAPER_BUY').length;
   s.unfinished=s.ids.filter((id,i)=>!results[i]);
   for(const id of s.unfinished){const j=q.jobs[id];if(j.lease?.scan_id===action.scan_id){j.status='QUEUED';delete j.lease;}if(j.reservation?.scan_id===action.scan_id)delete j.reservation;}
-  s.status=s.unfinished.length?'INCOMPLETE':'COMPLETE';s.closed_at=at;s.diagnosis_artifact=action.diagnosis_artifact;s.diagnosis_sha=action.diagnosis_sha;break;
+  s.status=s.unfinished.length?'INCOMPLETE':'COMPLETE';s.closed_at=at;s.diagnosis_artifact=proof.artifact;s.diagnosis_sha=proof.blob_sha;s.diagnosis_commit=proof.commit;break;
  }
  default:throw Error('UNKNOWN_ACTION');
  }
  q.revision++;q.events.push({id:action.event_id,at,type:action.type,payload:JSON.stringify(action)});return q;
 }
 export function next(q,at){validate(q);const ms=time(at);return Object.values(q.jobs).filter(j=>eligible(j,ms)).sort((a,b)=>(a.assignments??0)-(b.assignments??0)||a.attempts-b.attempts||a.first_seen.localeCompare(b.first_seen)||a.id.localeCompare(b.id)).map(j=>j.id)}
-function selfTest(){
+async function selfTest(){
+ const {diagnosisFixture}=await import('./queue-diagnosis-fixture.mjs');
  let q=empty(),seq=0;const a='0x'+'a'.repeat(40),b='0x'+'b'.repeat(40),id=key('ethereum',a),sha='c'.repeat(40),t='2026-11-27T07:00:00Z';
  const evt=(type,x={},at=t)=>({type,event_id:'test-'+(++seq),expected_revision:q.revision,at,...x});
  const apply=(type,x={},at=t)=>q=reduce(q,evt(type,x,at));
@@ -122,7 +124,8 @@ function selfTest(){
  assert.throws(()=>reduce(q,evt('FINAL',{...final,quote:{...identity,source:'https://example.org',price_eur:1,observed_at:'2026-11-27T06:00:00Z'}},'2026-11-27T07:01:01Z')),/BUY_QUOTE_INVALID/);
  assert.throws(()=>reduce(q,evt('FINAL',{...final,quote:{chain:'ethereum',contract:b,source:'https://example.org',price_eur:1,observed_at:t}},'2026-11-27T07:01:01Z')),/BUY_QUOTE_INVALID/);
  apply('FINAL',{...final,decision:'WATCH'},'2026-11-27T07:01:01Z');
- apply('CLOSE_SCAN',{scan_id:'scan1',diagnosis_artifact:'diag.json',diagnosis_sha:sha,readback_verified:true},'2026-11-27T07:01:02Z');
+ const closeAt='2026-11-27T07:01:02Z',d=diagnosisFixture(q,'scan1',closeAt);
+ try{assert.throws(()=>reduce(q,evt('CLOSE_SCAN',{...d.action,diagnosis_sha:'0'.repeat(40)},closeAt),{repo:d.repo}),/DIAGNOSIS_NOT_VERIFIED/);q=reduce(q,evt('CLOSE_SCAN',d.action,closeAt),{repo:d.repo});}finally{d.cleanup()}
  assert.equal(q.scans.scan1.status,'INCOMPLETE');assert.equal(q.scans.scan1.buy_count,0);assert.equal(q.scans.scan1.unfinished.length,1);
  apply('REOPEN',{...identity,reason:'new evidence',evidence_at:'2026-11-27T07:01:03Z'},'2026-11-27T07:01:03Z');
  assert.equal(q.jobs[id].status,'QUEUED');assert.equal(q.jobs[id].history.length,1);
@@ -130,7 +133,7 @@ function selfTest(){
  console.log('Queue fixtures passed: identity deduplication, CAS revision, event replay, competing claims, expired lease recovery, checkpoint persistence, stale/wrong-contract BUY rejection, incomplete scan, reopening');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
- if(process.argv.includes('--self-test'))selfTest();
+ if(process.argv.includes('--self-test'))await selfTest();
  else if(process.argv[2]==='init')console.log(JSON.stringify(empty(),null,2));
  else if(process.argv[2]==='apply'){const q=JSON.parse(await fs.readFile(process.argv[3],'utf8')),a=JSON.parse(await fs.readFile(process.argv[4],'utf8'));console.log(JSON.stringify(reduce(q,a),null,2))}
  else if(process.argv[2]==='next'){const q=JSON.parse(await fs.readFile(process.argv[3],'utf8'));console.log(JSON.stringify(next(q,process.argv[4])))}

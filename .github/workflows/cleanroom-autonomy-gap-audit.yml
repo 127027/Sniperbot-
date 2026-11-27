@@ -22,6 +22,7 @@ jobs:
           import assert from 'node:assert/strict';
           import {empty,reduce,next} from './research/cleanroom/research-queue.mjs';
           import {prepare} from './research/cleanroom/queue-ingest.mjs';
+          import {diagnosisFixture} from './research/cleanroom/queue-diagnosis-fixture.mjs';
           const t='2026-11-27T07:00:00Z',t1='2026-11-27T07:01:00Z',t2='2026-11-27T07:02:00Z',sha='a'.repeat(40);
           const addresses=['a','b','c','d'].map(c=>'0x'+c.repeat(40));
           const id=a=>'ethereum:'+a;
@@ -29,6 +30,7 @@ jobs:
           const candidate={id:'fixture',coin:'fixture',identities:[{chain:'ethereum',contract:addresses[0],pool:{source_url:'https://example.org/pool',retrieved_at:t}}]};
           let n=0;
           const apply=(q,type,x,at=t)=>reduce(q,{type,...x,at,event_id:'audit-'+(++n),expected_revision:q.revision});
+          const close=(q,scan_id,at)=>{const d=diagnosisFixture(q,scan_id,at);try{return reduce(q,{type:'CLOSE_SCAN',...d.action,at,event_id:'audit-'+(++n),expected_revision:q.revision},{repo:d.repo})}finally{d.cleanup()}};
           const cases=[];
           function test(name,fn){try{fn();cases.push({name,status:'PASS'})}catch(e){cases.push({name,status:'FAIL',error:e.message})}}
           test('duplicate contract deduplicated, distinct chains retained',()=>{
@@ -57,7 +59,7 @@ jobs:
           });
           test('uncompleted scan retains all unresolved contracts',()=>{
             let q=prepare(null,rows,[candidate],t,'audit4',2).state;
-            q=apply(q,'CLOSE_SCAN',{scan_id:'audit4',diagnosis_artifact:'diag.json',diagnosis_sha:sha,readback_verified:true},t1);
+            q=close(q,'audit4',t1);
             assert.equal(q.scans.audit4.status,'INCOMPLETE');
             assert.equal(q.scans.audit4.unfinished.length,2);
             assert.equal(next(q,t2).length,4)
@@ -70,7 +72,7 @@ jobs:
           });
           test('failed scan with zero claims rotates to untouched candidates',()=>{
             const p=prepare(null,rows,[candidate],t,'rotation1',2);
-            const q=apply(p.state,'CLOSE_SCAN',{scan_id:'rotation1',diagnosis_artifact:'diag.json',diagnosis_sha:sha,readback_verified:true},t1);
+            const q=close(p.state,'rotation1',t1);
             const p2=prepare(q,rows,[candidate],t2,'rotation2',2);
             assert.ok(p2.inbox.rows.some(x=>!p.inbox.rows.some(y=>y.id===x.id)),'Same inbox repeated; no untouched candidate assigned')
           });
@@ -82,6 +84,16 @@ jobs:
           test('scan closing requires actual verified diagnosis not only a caller flag',()=>{
             const p=prepare(null,rows,[candidate],t,'unverified1',2);
             assert.throws(()=>apply(p.state,'CLOSE_SCAN',{scan_id:'unverified1',diagnosis_artifact:'nonexistent.json',diagnosis_sha:sha,readback_verified:true},t1),'Missing actual diagnosis validation')
+          });
+          test('pinned diagnosis rejects wrong scan revision and modified blob',()=>{
+            const p=prepare(null,rows,[candidate],t,'bound1',2),d=diagnosisFixture(p.state,'bound1',t1,{queue_revision:p.state.revision+1});
+            const act={type:'CLOSE_SCAN',...d.action,at:t1,event_id:'bad-proof-'+(++n),expected_revision:p.state.revision};
+            try{assert.throws(()=>reduce(p.state,act,{repo:d.repo}),/DIAGNOSIS_BINDING_MISMATCH/);assert.throws(()=>reduce(p.state,{...act,diagnosis_sha:'0'.repeat(40)},{repo:d.repo}),/BLOB_ID_MISMATCH/)}finally{d.cleanup()}
+          });
+          test('expired assignment can be recovered once and old assignment fenced',()=>{
+            const p=prepare(null,[rows[0]],[],t,'expired1',1),lease={chain:'ethereum',contract:addresses[0],worker:'old',token:'old',scan_id:'expired1',lease_seconds:60};
+            const q=apply(p.state,'CLAIM',lease),p2=prepare(q,[rows[0]],[],t1,'expired2',1),p3=prepare(p2.state,[rows[0]],[],t2,'expired3',1);
+            assert.equal(p2.inbox.assigned,1);assert.equal(p3.inbox.assigned,0);assert.throws(()=>apply(p3.state,'CLAIM',lease,t2),/JOB_RESERVED_OTHER_SCAN/)
           });
           for(const c of cases)console.log('AUDIT_RESULT '+JSON.stringify(c));
           console.log('AUDIT_SUMMARY '+JSON.stringify({total:cases.length,passed:cases.filter(c=>c.status==='PASS').length,failed:cases.filter(c=>c.status==='FAIL').length,mode:'RESEARCH_ONLY'}));
