@@ -3,6 +3,8 @@
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import assert from 'node:assert/strict';
 import {reduce,empty} from './research-queue.mjs';
@@ -46,9 +48,15 @@ function actionFromBytes(q,bytes,receipt){
 export function applyPinned(q,repo,receipt){
  const {bytes,actual}=readPinned(repo,receipt.commit,receipt.artifact);
  if(actual!==receipt.blob_sha)throw Error('PINNED_RECEIPT_MISMATCH');
+ const old=q.events.find(e=>e.id===receipt.event_id);
+ if(old){
+  const a=JSON.parse(old.payload);
+  if(a.artifact!==receipt.commit+':'+receipt.artifact||a.blob_sha!==receipt.blob_sha||a.worker!==receipt.worker||a.token!==receipt.token||a.chain!==receipt.chain||a.contract!==receipt.contract||a.expected_revision!==receipt.expected_revision||a.at!==receipt.at)throw Error('RECEIPT_EVENT_COLLISION');
+  return reduce(q,a);
+ }
  return reduce(q,actionFromBytes(q,bytes,receipt));
 }
-function selfTest(){
+async function selfTest(){
  const t='2026-11-27T07:00:00Z',at='2026-11-27T07:00:15Z',contract='0x'+'a'.repeat(40),chain='ethereum',id=chain+':'+contract;
  let q=empty(),i=0;
  const act=(type,x)=>q=reduce(q,{type,...x,event_id:'fixture-'+(++i),expected_revision:q.revision,at:t});
@@ -61,7 +69,19 @@ function selfTest(){
  const apply=(a,extra)=>{const {bytes,r}=receipt(a,extra);return reduce(q,actionFromBytes(q,bytes,r))};
  assert.throws(()=>apply(doc,{blob_sha:'0'.repeat(40)}),/RECEIPT_HASH_MISMATCH/);
  assert.throws(()=>apply({...doc,worker:'dot2'}),/ARTIFACT_BINDING_MISMATCH/);
- q=apply(doc);assert.equal(q.jobs[id].checkpoint.blob_sha,blobSha(Buffer.from(JSON.stringify(doc))));
+ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'cleanroom-artifact-'));
+ try{
+  const run=args=>{const r=spawnSync('git',['-C',dir,...args],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim()};
+  run(['init','-q']);run(['config','user.name','Fixture']);run(['config','user.email','fixture@example.invalid']);
+  const artifact=root+'fixture.json',bytes=Buffer.from(JSON.stringify(doc));
+  await fs.mkdir(path.join(dir,root),{recursive:true});await fs.writeFile(path.join(dir,artifact),bytes);
+  run(['add','--',artifact]);run(['commit','-qm','Fixture']);
+  const r={...lease,commit:run(['rev-parse','HEAD']),artifact,blob_sha:blobSha(bytes),event_id:'pinned-fixture',expected_revision:q.revision,at};
+  q=applyPinned(q,dir,r);assert.deepEqual(applyPinned(q,dir,r),q);
+  assert.throws(()=>applyPinned(q,dir,{...r,blob_sha:'0'.repeat(40)}),/PINNED_RECEIPT_MISMATCH/);
+  assert.throws(()=>applyPinned(q,dir,{...r,worker:'different'}),/RECEIPT_EVENT_COLLISION/);
+ }finally{await fs.rm(dir,{recursive:true,force:true})}
+ assert.equal(q.jobs[id].checkpoint.blob_sha,blobSha(Buffer.from(JSON.stringify(doc))));
  const final={...doc,status:'FINAL',decision:'PAPER_BUY',reason:'test only',quote:{chain,contract,source:'https://example.org',price_eur:1,observed_at:t},risk:{reviewed:true,sources:doc.sources},costs:{reviewed:true,sources:doc.sources,gas_eur:null,dex_fee_pct:0,slippage_pct:0,buy_tax_pct:0,sell_tax_pct:0},stake_eur:50,exit_rule:'test rule'};
  assert.throws(()=>apply(final),/BUY_COST_UNKNOWN/);
  assert.throws(()=>apply({...final,quote:{...final.quote,observed_at:'2026-11-27T07:01:00Z'}}),/BUY_QUOTE_AT_DECISION_INVALID/);
@@ -69,6 +89,6 @@ function selfTest(){
  console.log('Worker artifact fixtures passed: content-addressed readback, scan/lease binding, time provenance, unknown cost refusal, valid WATCH receipt');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
- if(process.argv.includes('--self-test'))selfTest();
+ if(process.argv.includes('--self-test'))await selfTest();
  else{const [stateFile,repo,receiptFile]=process.argv.slice(2);if(!stateFile||!repo||!receiptFile)throw Error('Usage: queue-artifact.mjs STATE REPOSITORY RECEIPT');const q=JSON.parse(await fs.readFile(stateFile,'utf8')),r=JSON.parse(await fs.readFile(receiptFile,'utf8'));console.log(JSON.stringify(applyPinned(q,repo,r),null,2))}
 }
