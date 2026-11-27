@@ -1,0 +1,17 @@
+name: R31 continuation ledger regression
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['research/cleanroom/continuation-ledger.mjs','.github/workflows/cleanroom-continuation-ledger.yml','research/cleanroom/scheduler-capture.mjs']
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node research/cleanroom/continuation-ledger.mjs --self-test
+      - run: node research/cleanroom/continuation-ledger.mjs r31/research/cleanroom/worker-diagnostics/2026-11-27T113020Z-operational-trace-v2-summary.json

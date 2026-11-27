@@ -129,8 +129,13 @@ function selfTest(){
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  const args=process.argv.slice(2);
  if(args.length===1&&args[0]==='--self-test')selfTest();
- else if(args.length===1&&['--once','--continuous'].includes(args[0])){
+ else if(args.length===1&&/^--cycles=[2-3]$/.test(args[0])){
+  const repo=git(process.cwd(),['rev-parse','--show-toplevel']),limit=Number(args[0].split('=')[1]);
+  let failed=0;
+  for(let i=1;i<=limit;i++){const start=Date.now();if(!await cycle(repo,i))failed++;if(i<limit)await sleep(Math.max(0,interval-(Date.now()-start)))}
+  console.log(JSON.stringify({bounded_cycles:limit,failed,continuous:false}));if(failed)process.exitCode=1;
+ }else if(args.length===1&&['--once','--continuous'].includes(args[0])){
   const repo=git(process.cwd(),['rev-parse','--show-toplevel']);let i=0;
   do{const start=Date.now();const ok=await cycle(repo,++i);if(args[0]==='--once'){if(!ok)process.exitCode=1;break}await sleep(Math.max(0,interval-(Date.now()-start)))}while(true);
- }else throw Error('Usage: --self-test | --once | --continuous (isolated branch only)');
+ }else throw Error('Usage: --self-test | --once | --cycles=2 | --cycles=3 | --continuous (isolated branch only)');
 }
