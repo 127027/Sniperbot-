@@ -1,0 +1,20 @@
+name: R31 compact report boundary
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['research/cleanroom/compact-report.mjs','.github/workflows/cleanroom-compact-report.yml','r31/research/cleanroom/worker-diagnostics/compact-*']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node research/cleanroom/compact-report.mjs r31/research/cleanroom/worker-diagnostics/2026-11-27-source-receipt-packet-46004741978.json --self-test
+      - name: Check captured compact returns when present
+        run: |
+          if [ ! -f r31/research/cleanroom/worker-diagnostics/compact-dispatch-results.json ]; then echo NO_COMPACT_RETURNS_YET; exit 0; fi
+          node --input-type=module -e 'import fs from "node:fs";import {check} from "./research/cleanroom/compact-report.mjs";const j=JSON.parse(fs.readFileSync("r31/research/cleanroom/worker-diagnostics/compact-dispatch-results.json"));const p=JSON.parse(fs.readFileSync("r31/research/cleanroom/worker-diagnostics/2026-11-27-source-receipt-packet-46004741978.json"));for(const r of j.runs){const v=check(p,JSON.parse(fs.readFileSync(r.path)),r.worker,r.run_id);console.log(JSON.stringify(v));if(v.status!=="COMPACT_STRUCTURAL_PASS")process.exitCode=1;}if(j.runs.length!==2||new Set(j.runs.map(r=>r.worker)).size!==2)process.exitCode=1;'
