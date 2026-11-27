@@ -1,0 +1,35 @@
+name: R31 ranked deep analysis packet
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['research/cleanroom/ranked-deep-cycle.mjs','.github/workflows/cleanroom-ranked-deep-cycle.yml','r31/research/cleanroom/worker-diagnostics/broad-current-dispatch.json']
+permissions:
+  contents: read
+concurrency:
+  group: r31-ranked-deep-cycle
+  cancel-in-progress: false
+jobs:
+  ranked:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node research/cleanroom/ranked-deep-cycle.mjs --self-test
+      - name: Deep evidence for current ranked dispatch
+        run: |
+          if test -f r31/research/cleanroom/worker-diagnostics/broad-current-dispatch.json; then
+            node research/cleanroom/ranked-deep-cycle.mjs
+          else
+            echo "No independently accepted broad manifest yet; fixture only"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ranked-evidence
+          path: |
+            ranked-packet.json
+            ranked-summary.json
+          if-no-files-found: ignore
