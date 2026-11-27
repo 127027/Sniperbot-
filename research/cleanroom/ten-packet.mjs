@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {lookup} from './exact-contract-probe.mjs';
+import {makePacket} from './source-receipt-packet.mjs';
+const manifest=JSON.parse(fs.readFileSync('research/cleanroom/ten-roster-v1.json','utf8'));
+const roster=manifest.roster;
+assert.equal(roster.length,10);
+const probes=[];
+for(const [chain,contract] of roster)probes.push(await lookup(chain,contract));
+const p=makePacket(probes,{run_id:process.env.GITHUB_RUN_ID,commit:process.env.GITHUB_SHA,at:new Date().toISOString(),roster});
+assert.equal(p.candidates.length,10);
+assert.equal(p.candidates.flatMap(c=>c.sources).length,20);
+fs.writeFileSync('ten-packet.json',JSON.stringify(p,null,2));
+fs.writeFileSync('ten-probes.json',JSON.stringify(probes,null,2));
+for(const c of p.candidates)console.log('TEN_CANDIDATE '+JSON.stringify(c));
+console.log('TEN_META '+JSON.stringify({...p,candidates:undefined}));

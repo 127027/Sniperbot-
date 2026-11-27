@@ -7,11 +7,12 @@ import {validatePacket,evaluate} from './prefetched-analysis.mjs';
 const pairs=[['solana','5DQSDg6SGkbsbykq4mQstpcL4d5raEHc6rY7LgBwpump','LOU'],['optimism','0x2598c30330d5771ae9f983979209486ae26de875','AI (unverified)'],['base','0xb166e8b140d35d9d8226e40c09f757bac5a4d87d','NPC'],['solana','63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9','GIGA (label not independently confirmed)']];
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const exact=(chain,a,b)=>typeof a==='string'&&typeof b==='string'&&(chain==='solana'?a===b:a.toLowerCase()===b.toLowerCase());
-const networks={solana:'solana',optimism:'optimism',base:'base'};
+const networks={solana:'solana',optimism:'optimism',base:'base',bsc:'bsc',ethereum:'eth'};
 function expected(chain,contract,provider){return provider==='DexScreener'?'https://api.dexscreener.com/tokens/v1/'+chain+'/'+contract:'https://api.geckoterminal.com/api/v2/networks/'+networks[chain]+'/tokens/'+contract+'/pools'}
-export function makePacket(probes,{run_id,commit,at,fixture=false}){
+export function makePacket(probes,{run_id,commit,at,fixture=false,roster=pairs}){
  if(!run_id||!/^[a-f0-9]{40}$/.test(commit)||!Number.isFinite(Date.parse(at)))throw Error('MISSING_PROVENANCE');
- const candidates=pairs.map(([chain,contract,label],i)=>{
+ if(!Array.isArray(roster)||!roster.length||new Set(roster.map(([chain,contract])=>chain+':'+(chain==='solana'?contract:contract.toLowerCase()))).size!==roster.length)throw Error('INVALID_ROSTER');
+ const candidates=roster.map(([chain,contract,label],i)=>{
   const p=probes.find(x=>x.chain===chain&&exact(chain,x.contract,contract));
   if(!p||p.mode!=='RESEARCH_ONLY'||p.non_executable!==true||p.attempts?.length!==2)throw Error('MISSING_REQUIRED_SOURCE_ATTEMPT:'+chain+':'+contract);
   const sources=['DexScreener','GeckoTerminal'].map((provider,k)=>{

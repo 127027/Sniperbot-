@@ -1,0 +1,25 @@
+name: R31 ten contract capacity probe
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['research/cleanroom/ten-roster-v1.json','research/cleanroom/ten-packet.mjs','research/cleanroom/compact-report.mjs','.github/workflows/cleanroom-ten-packet.yml']
+permissions:
+  contents: read
+jobs:
+  ten-packet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node research/cleanroom/source-receipt-packet.mjs --self-test
+      - run: node research/cleanroom/ten-packet.mjs
+      - run: node research/cleanroom/compact-report.mjs ten-packet.json --self-test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ten-source-packet
+          path: |
+            ten-packet.json
+            ten-probes.json
