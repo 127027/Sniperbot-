@@ -1,0 +1,50 @@
+{
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "observed_at": "2026-11-27T05:40:25Z",
+  "main_run": {
+    "id": "037307c6-e618-8325-bf85-32070b0a884d",
+    "started": "2026-11-27T04:56:18.679451Z",
+    "completed": "2026-11-27T04:56:25.233579Z",
+    "finals": 0,
+    "buys": 0,
+    "verification": "Directory and path-filtered commit history: latest commit c00fc7cf64a3b6331f68097411eeee83332f9906 at 04:45:33Z predates run; no new output. Tool identification only according to report."
+  },
+  "support_run": {
+    "id": "e02ede1c-ebc8-8321-a5f8-09c5edf9fc38",
+    "started": "2026-11-26T21:10:32.928844Z",
+    "completed": "2026-11-26T21:11:31.011217Z",
+    "verified_blob": "a9d5e709f219cfedd80491a91a4d97b63bad5076",
+    "leads": 7,
+    "fresh_complete": 0
+  },
+  "collector": {
+    "run": "45920764204",
+    "snapshot": "2026-11-27T01:08:06.494Z",
+    "age_seconds": 16338.506,
+    "registry": 5563,
+    "newest_ci": "45942619239",
+    "newest_ci_type": "R46 hourly paper fallback; fallback success, replay skipped; not collector"
+  },
+  "prior_learning": "2026-11-27T04-45-05Z-learning.json",
+  "cause": "Worker omission and collector scheduling root cause unknown.",
+  "hypothesis": "Collector modules are portable for an isolated nonpublishing smoke test without third-party package imports; existing publish mode is not branch-safe.",
+  "test": {
+    "method": "Fetched all five main modules, inspected imports, CLI modes and file IO; checked CI and output history.",
+    "result": "All five use Node built-ins; four expose --self-test, watchdog does not. Watchdog --publish explicitly pulls and pushes main; targeted module also fetches a support ref. Static portability supported, executable isolation not verified. No runtime test executed or source staged because safe execution/readback of staged code was not established in this round.",
+    "source_blobs": [
+      "f8ff9def215fdb2ba4cfb823f4577d12ccbf683e",
+      "46503aa29042d66f897feebde8bf1f6fa5317c29",
+      "6b9e7d1fe33ee1c5e1f8aecfc9717b29a564b505",
+      "b8436b9665e22fc3e11b61b0d9ce42f4dd1420ed",
+      "b986dd29d34f82dc44236d91338cb3116f37a987"
+    ],
+    "patch": null
+  },
+  "prompt_changed": false,
+  "next_test": {
+    "scheduled": "2026-11-27T06:00:00Z",
+    "acceptance": "Independent fetch/write/readback, more than three final decisions beyond entry page, diagnosis, BUY quotes <=900 seconds. Supervisor: execute four offline self-tests in disposable directory if source transfer and Node runtime available; no --publish, no main writes; then assess isolated collector run."
+  },
+  "matured_cohorts": 0
+}
