@@ -2,7 +2,7 @@ name: R31 broad registry priority scan
 on:
   push:
     branches: ['codex/r31-autonomy-recovery']
-    paths: ['research/cleanroom/broad-research.mjs','research/cleanroom/same-run-dispatch.mjs','research/cleanroom/ranked-deep-cycle.mjs','.github/workflows/cleanroom-broad-research.yml']
+    paths: ['research/cleanroom/broad-research.mjs','research/cleanroom/same-run-dispatch.mjs','research/cleanroom/ranked-deep-cycle.mjs','research/cleanroom/night-batch-runner.mjs','r31/research/cleanroom/night-trigger.json','.github/workflows/cleanroom-broad-research.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -12,7 +12,7 @@ concurrency:
 jobs:
   broad:
     runs-on: ubuntu-latest
-    timeout-minutes: 22
+    timeout-minutes: 25
     env:
       REGISTRY_COMMIT: e91af6609ddbea58d5888578eca482b252d47bf1
       R31_DISPATCH_PATH: ranked-dispatch.json
@@ -30,16 +30,19 @@ jobs:
       - run: node research/cleanroom/broad-research.mjs --self-test
       - run: node research/cleanroom/same-run-dispatch.mjs --self-test
       - run: node research/cleanroom/ranked-deep-cycle.mjs --self-test
+      - run: node research/cleanroom/night-batch-runner.mjs --self-test
       - run: node research/cleanroom/broad-research.mjs
       - run: node research/cleanroom/same-run-dispatch.mjs
-      - run: node research/cleanroom/ranked-deep-cycle.mjs
+      - run: node research/cleanroom/night-batch-runner.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: broad-research-and-deep-evidence
+          name: broad-research-and-deep-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 30
           path: |
             broad-research.json
             broad-observations.json
             ranked-dispatch.json
             ranked-packet.json
             ranked-summary.json
+            night-evidence/

@@ -41,6 +41,16 @@ function score(m){
  const latePenalty=cap((m.change_1h-80)/8,0,35);
  return Math.round(((accel+imbalance)*confidence+momentum+liquidity+activity-latePenalty)*100)/100;
 }
+function disposition(r){
+ if(!r.market)return r.status;
+ const m=r.market,missing=['volume_5m','volume_1h','change_5m','change_1h','buys_5m','sells_5m'].filter(k=>m[k]===null);
+ if(missing.length)return 'MISSING_FIELDS:'+missing.join(',');
+ if(m.liquidity_usd<1000)return 'LOW_LIQUIDITY';
+ if(m.volume_1h<=0)return 'NO_HOURLY_VOLUME';
+ if(m.buys_5m+m.sells_5m<=0)return 'NO_5M_TRADES';
+ if(r.priority===null)return 'UNCLASSIFIED';
+ return deepChains.has(r.chain)?'RANKABLE_SUPPORTED':'RANKABLE_UNSUPPORTED_DEEP';
+}
 function rank(rows){
  const ranked=rows.filter(r=>r.priority!==null).sort((a,b)=>b.priority-a.priority||key(a.chain,a.contract).localeCompare(key(b.chain,b.contract)));
  const deep=ranked.filter(r=>deepChains.has(r.chain));
@@ -73,9 +83,10 @@ async function run(){
  if(receipt.http_status===429){let delay=/^\d+$/.test(receipt.retry_after??'')?Number(receipt.retry_after)*1000:Date.parse(receipt.retry_after)-Date.now();if(!Number.isFinite(delay)||delay<0)delay=60000;if(delay>120000)stop=true;else cooldown=Date.now()+Math.max(delay,15000);}
  for(const r of batch){const m=Array.isArray(x.data)?extract(r,x.data,receipt.finished_at):null;rows.push({...r,receipt_id:receipt.id,status:m?'EXACT_MARKET_MATCH':Array.isArray(x.data)?'NO_EXACT_MARKET_MATCH':'SOURCE_ERROR',market:m,priority:score(m)});}
  }}
+ for(const r of rows)r.disposition=disposition(r);
  const v=rank(rows),finished_at=new Date().toISOString();
- const summary={...mode,started_at,finished_at,registry_snapshot:index.updated_at,registry_count:registry.length,discovery_new:u.added,universe:u.rows.length,attempted:rows.filter(r=>r.receipt_id).length,batch_requests:receipts.length,batch_http200:receipts.filter(r=>r.http_status===200).length,batch_429:receipts.filter(r=>r.http_status===429).length,matched:rows.filter(r=>r.market).length,rankable:v.ranked.length,deep_unsupported:v.unsupported_deep,selected:v.selected.length,backlog:v.backlog.length,qualified_buys:0,by_chain:Object.fromEntries(chains.map(c=>[c,{universe:rows.filter(r=>r.chain===c).length,attempted:rows.filter(r=>r.chain===c&&r.receipt_id).length,matched:rows.filter(r=>r.chain===c&&r.market).length,rankable:rows.filter(r=>r.chain===c&&r.priority!==null).length}]))};
- const p={schema:'r31.broad-research.v1',...mode,provenance:{run_id:process.env.GITHUB_RUN_ID,commit:process.env.GITHUB_SHA,registry_commit:process.env.REGISTRY_COMMIT},summary,discovery_receipts:feeds.map(f=>f.receipt),batch_receipts:receipts,selected:v.selected,backlog:v.backlog,unsupported_rows:v.unsupported_rows,unresolved:rows.filter(r=>!r.market||r.priority===null).map(r=>({chain:r.chain,contract:r.contract,status:r.status,receipt_id:r.receipt_id??null})),limitations:'Known registry only plus four discovery feeds; no claim of exhaustive global coverage. Single market provider, unknown quote times, unverified meme identity, heuristic priority not BUY. Backlog not yet dispatched.'};
+ const summary={...mode,started_at,finished_at,registry_snapshot:index.updated_at,registry_count:registry.length,discovery_new:u.added,universe:u.rows.length,attempted:rows.filter(r=>r.receipt_id).length,batch_requests:receipts.length,batch_http200:receipts.filter(r=>r.http_status===200).length,batch_429:receipts.filter(r=>r.http_status===429).length,matched:rows.filter(r=>r.market).length,rankable:v.ranked.length,deep_unsupported:v.unsupported_deep,selected:v.selected.length,backlog:v.backlog.length,qualified_buys:0,dispositions:rows.reduce((a,r)=>(a[r.disposition]=(a[r.disposition]??0)+1,a),{}),by_chain:Object.fromEntries(chains.map(c=>[c,{universe:rows.filter(r=>r.chain===c).length,attempted:rows.filter(r=>r.chain===c&&r.receipt_id).length,matched:rows.filter(r=>r.chain===c&&r.market).length,rankable:rows.filter(r=>r.chain===c&&r.priority!==null).length}]))};
+ const p={schema:'r31.broad-research.v1',...mode,provenance:{run_id:process.env.GITHUB_RUN_ID,commit:process.env.GITHUB_SHA,registry_commit:process.env.REGISTRY_COMMIT},summary,discovery_receipts:feeds.map(f=>f.receipt),batch_receipts:receipts,selected:v.selected,backlog:v.backlog,unsupported_rows:v.unsupported_rows,unresolved:rows.filter(r=>!r.market||r.priority===null).map(r=>({chain:r.chain,contract:r.contract,status:r.status,disposition:r.disposition,receipt_id:r.receipt_id??null})),limitations:'Known registry only plus four discovery feeds; no claim of exhaustive global coverage. Single market provider, unknown quote times, unverified meme identity, heuristic priority not BUY. Backlog not yet dispatched.'};
  assert.equal(rows.length,u.rows.length);assert.equal(new Set(rows.map(r=>key(r.chain,r.contract))).size,rows.length);
  fs.writeFileSync('broad-research.json',JSON.stringify(p,null,2));fs.writeFileSync('broad-observations.json',JSON.stringify(rows,null,2));
  console.log('BROAD_SUMMARY '+JSON.stringify(summary));console.log('BROAD_PROVENANCE '+JSON.stringify(p.provenance));
