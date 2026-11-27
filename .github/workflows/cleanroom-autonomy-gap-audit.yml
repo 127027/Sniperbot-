@@ -1,0 +1,89 @@
+name: Cleanroom autonomy gap audit
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['.github/workflows/cleanroom-autonomy-gap-audit.yml','research/cleanroom/research-queue.mjs','research/cleanroom/queue-ingest.mjs','research/cleanroom/queue-artifact.mjs']
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Independent adversarial queue acceptance
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {empty,reduce,next} from './research/cleanroom/research-queue.mjs';
+          import {prepare} from './research/cleanroom/queue-ingest.mjs';
+          const t='2026-11-27T07:00:00Z',t1='2026-11-27T07:01:00Z',t2='2026-11-27T07:02:00Z',sha='a'.repeat(40);
+          const addresses=['a','b','c','d'].map(c=>'0x'+c.repeat(40));
+          const id=a=>'ethereum:'+a;
+          const rows=addresses.map(contract=>({chain:'ethereum',contract,sources:[{url:'https://example.org/discovery',retrieved_at:t}]}));
+          const candidate={id:'fixture',coin:'fixture',identities:[{chain:'ethereum',contract:addresses[0],pool:{source_url:'https://example.org/pool',retrieved_at:t}}]};
+          let n=0;
+          const apply=(q,type,x,at=t)=>reduce(q,{type,...x,at,event_id:'audit-'+(++n),expected_revision:q.revision});
+          const cases=[];
+          function test(name,fn){try{fn();cases.push({name,status:'PASS'})}catch(e){cases.push({name,status:'FAIL',error:e.message})}}
+          test('duplicate contract deduplicated, distinct chains retained',()=>{
+            const p=prepare(null,[...rows,rows[0],{...rows[0],chain:'bsc'}],[],t,'audit1',4);
+            assert.equal(Object.keys(p.state.jobs).length,5)
+          });
+          test('restart recovers expired lease and fences prior worker',()=>{
+            let q=prepare(null,rows,[candidate],t,'audit2',4).state;
+            const lease={chain:'ethereum',contract:addresses[0],worker:'one',token:'old',scan_id:'audit2',lease_seconds:60};
+            q=apply(q,'CLAIM',lease);
+            q=apply(q,'CHECKPOINT',{...lease,artifact:'checkpoint.json',blob_sha:sha,readback_verified:true});
+            q=JSON.parse(JSON.stringify(q));
+            assert.ok(next(q,t1).includes(id(addresses[0])));
+            const newer={...lease,worker:'two',token:'new'};
+            q=apply(q,'CLAIM',newer,t1);
+            assert.equal(q.jobs[id(addresses[0])].checkpoint.artifact,'checkpoint.json');
+            assert.throws(()=>apply(q,'FINAL',{...lease,decision:'WATCH',reason:'fixture',artifact:'old.json',blob_sha:sha,readback_verified:true},t1),/LEASE_INVALID/)
+          });
+          test('stale and wrong-contract BUY quotes rejected',()=>{
+            let q=prepare(null,rows,[candidate],t,'audit3',4).state;
+            const lease={chain:'ethereum',contract:addresses[0],worker:'one',token:'old',scan_id:'audit3',lease_seconds:60};
+            q=apply(q,'CLAIM',lease);
+            q=apply(q,'CHECKPOINT',{...lease,artifact:'checkpoint.json',blob_sha:sha,readback_verified:true});
+            const f={...lease,decision:'PAPER_BUY',artifact:'final.json',blob_sha:sha,readback_verified:true,reason:'fixture',risk_reviewed:true,costs_reviewed:true,stake_eur:50,exit_rule:'fixture'};
+            for(const quote of [{chain:'ethereum',contract:addresses[0],price_eur:1,source:'https://example.org',observed_at:'2026-11-27T06:00:00Z'},{chain:'ethereum',contract:addresses[1],price_eur:1,source:'https://example.org',observed_at:t}])assert.throws(()=>apply(q,'FINAL',{...f,quote}),/BUY_QUOTE_INVALID/)
+          });
+          test('uncompleted scan retains all unresolved contracts',()=>{
+            let q=prepare(null,rows,[candidate],t,'audit4',2).state;
+            q=apply(q,'CLOSE_SCAN',{scan_id:'audit4',diagnosis_artifact:'diag.json',diagnosis_sha:sha,readback_verified:true},t1);
+            assert.equal(q.scans.audit4.status,'INCOMPLETE');
+            assert.equal(q.scans.audit4.unfinished.length,2);
+            assert.equal(next(q,t2).length,4)
+          });
+          test('parallel inboxes reserve distinct work before worker claim',()=>{
+            const p=prepare(null,rows,[candidate],t,'parallel1',2);
+            const p2=prepare(p.state,rows,[candidate],t1,'parallel2',2);
+            const overlap=p2.inbox.rows.filter(x=>p.inbox.rows.some(y=>y.id===x.id));
+            assert.equal(overlap.length,0,'Duplicate inbox assignments: '+overlap.length)
+          });
+          test('failed scan with zero claims rotates to untouched candidates',()=>{
+            const p=prepare(null,rows,[candidate],t,'rotation1',2);
+            const q=apply(p.state,'CLOSE_SCAN',{scan_id:'rotation1',diagnosis_artifact:'diag.json',diagnosis_sha:sha,readback_verified:true},t1);
+            const p2=prepare(q,rows,[candidate],t2,'rotation2',2);
+            assert.ok(p2.inbox.rows.some(x=>!p.inbox.rows.some(y=>y.id===x.id)),'Same inbox repeated; no untouched candidate assigned')
+          });
+          test('candidate-only discovery with timestamped source survives missing pool',()=>{
+            const row={id:'lead:'+id(addresses[0]),coin:'fixture',source_url:'https://example.org/discovery',observed_at_utc:t,discovery_origin:'DOT_SUPPORT_DISCOVERY',identities:[{chain:'ethereum',contract:addresses[0],pool:null}]};
+            const p=prepare(null,[],[row],t,'poolless1',2);
+            assert.ok(Object.hasOwn(p.state.jobs,id(addresses[0])),'Candidate absent from registry and no pool: discovery lost')
+          });
+          test('scan closing requires actual verified diagnosis not only a caller flag',()=>{
+            const p=prepare(null,rows,[candidate],t,'unverified1',2);
+            assert.throws(()=>apply(p.state,'CLOSE_SCAN',{scan_id:'unverified1',diagnosis_artifact:'nonexistent.json',diagnosis_sha:sha,readback_verified:true},t1),'Missing actual diagnosis validation')
+          });
+          for(const c of cases)console.log('AUDIT_RESULT '+JSON.stringify(c));
+          console.log('AUDIT_SUMMARY '+JSON.stringify({total:cases.length,passed:cases.filter(c=>c.status==='PASS').length,failed:cases.filter(c=>c.status==='FAIL').length,mode:'RESEARCH_ONLY'}));
+          if(cases.some(c=>c.status==='FAIL'))process.exitCode=1;
+          JS
