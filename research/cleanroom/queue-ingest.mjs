@@ -31,6 +31,9 @@ export function prepare(q,registry,candidates,at,scanId,limit=32){
   if(!valid(i.chain,i.contract))continue;
   const k=id(i.chain,i.contract),p=i.pool;
   add(sourceRow(i.chain,i.contract,p?.source_url,p?.retrieved_at,at));
+  // A contract-addressed lead is discovery evidence even without a known pool.
+  // Never bind a generic asset-level quote to a contract as discovery evidence.
+  if(r.id==='lead:'+k&&typeof r.discovery_origin==='string'&&r.discovery_origin) add(sourceRow(i.chain,i.contract,r.source_url,r.observed_at_utc,at));
   if(!evidence.has(k))evidence.set(k,[]);
   evidence.get(k).push({asset_id:r.id,coin:r.coin??null,discovery_origin:r.discovery_origin??null,quote:{price_eur:r.price_eur??null,observed_at:r.observed_at_utc??null,scope:r.quote_scope??null,identity:r.fallback_identity??null,source:r.source_url??null},pool:p??null,security:i.security??null,secondary_security:i.secondary_security??null,execution_costs:i.execution_costs??null});
  }
@@ -48,7 +51,14 @@ export function prepare(q,registry,candidates,at,scanId,limit=32){
  const recent=pending.filter(k=>!state.jobs[k].attempts&&evidence.has(k)).sort((a,b)=>state.jobs[b].last_seen.localeCompare(state.jobs[a].last_seen)||a.localeCompare(b));
  const ids=[],used=new Set();
  function take(xs,n){let count=0;for(const k of xs){if(ids.length>=limit||count>=n)break;if(pendingSet.has(k)&&!used.has(k)){used.add(k);ids.push(k);count++}}}
- take(resumed,Math.ceil(limit/4));take(recent,Math.ceil(limit/2));take(pending,limit);
+ // Prefer never-assigned work before recycling any previously assigned lead.
+ // Within each assignment-count tier, reserve capacity for interrupted and recent leads.
+ const tiers=[...new Set(pending.map(k=>state.jobs[k].assignments??0))].sort((a,b)=>a-b);
+ for(const tier of tiers){
+  const inTier=k=>(state.jobs[k].assignments??0)===tier;
+  take(resumed.filter(inTier),Math.ceil(limit/4));take(recent.filter(inTier),Math.ceil(limit/2));take(pending.filter(inTier),limit);
+  if(ids.length>=limit)break;
+ }
  if(ids.length)emit('START_SCAN',{scan_id:scanId,ids});
  const inbox={schema,mode:'RESEARCH_ONLY',non_executable:true,scan_id:scanId,prepared_at:at,queue_revision:state.revision,eligible_pending:pending.length,assigned:ids.length,remaining:pending.length-ids.length,rows:ids.map(k=>{const j=state.jobs[k];return {id:k,chain:j.chain,contract:j.contract,first_seen:j.first_seen,last_seen:j.last_seen,attempts:j.attempts,status:j.status,checkpoint:j.checkpoint??null,discovery_sources:j.evidence.slice(-6),evidence:evidence.get(k)??[]}}),limitations:'Unranked research work assignment. Not a shortlist of recommended purchases. Verify source identity, timestamps, prices, costs and safety independently. Missing evidence remains unknown.'};
  return {state,inbox};
@@ -73,7 +83,11 @@ function selfTest(){
  const restored=JSON.parse(JSON.stringify(p.state));assert.equal(Object.keys(restored.jobs).length,3);
  const newer='2026-11-27T07:01:00Z';
  const q=prepare(restored,[...rows,{chain:'ethereum',contract:'bad',sources:[{url:'https://example.org',retrieved_at:t}]}],candidates,newer,'scan2',3);
- assert.equal(Object.keys(q.state.jobs).length,3);assert.equal(q.inbox.assigned,3);assert.equal(q.inbox.non_executable,true);
+ assert.equal(Object.keys(q.state.jobs).length,3);assert.equal(q.inbox.assigned,1);assert.equal(q.inbox.non_executable,true);
+ assert.ok(q.inbox.rows.every(x=>!p.inbox.rows.some(y=>y.id===x.id)));
+ const lead={id:'lead:ethereum:'+a,discovery_origin:'DOT_SUPPORT_DISCOVERY',source_url:'https://example.org/discovery',observed_at_utc:t,identities:[{chain:'ethereum',contract:a,pool:null}]};
+ assert.equal(Object.keys(prepare(null,[],[lead],t,'lead',2).state.jobs).length,1);
+ assert.equal(Object.keys(prepare(null,[],[{...lead,id:'asset'}],t,'asset',2).state.jobs).length,0);
  console.log('Queue ingestion fixtures passed: registry coverage, bounded inbox, source provenance, missing quote and persistence');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
