@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
-const usd={solana:'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',base:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',optimism:'0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85'};
+const usd={solana:'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',base:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',optimism:'0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',ethereum:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',bsc:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d'};
 const pairs=[['solana','5DQSDg6SGkbsbykq4mQstpcL4d5raEHc6rY7LgBwpump','LOU'],['optimism','0x2598c30330d5771ae9f983979209486ae26de875','AI label unverified'],['base','0xb166e8b140d35d9d8226e40c09f757bac5a4d87d','NPC'],['solana','63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9','GIGA label unverified']];
 const integer=x=>typeof x==='string'&&/^[1-9]\d{0,79}$/.test(x);
 const same=(c,a,b)=>typeof a==='string'&&typeof b==='string'&&(c==='solana'?a===b:a.toLowerCase()===b.toLowerCase());
@@ -38,21 +38,23 @@ function reference(j){
  const k=Object.keys(j.result??{});if(k.length!==1||!['USDCEUR','USDCZEUR'].includes(k[0]))return null;
  const t=Number(j.result[k[0]]?.c?.[0]);return Number.isFinite(t)&&t>0.5&&t<1.5?t:null;
 }
-export async function run(fetcher=fetch){
+export async function run(fetcher=fetch,roster=pairs){
  const fx=await get('https://api.kraken.com/0/public/Ticker?pair=USDCEUR',fetcher);
  const eur_per_usdc=reference(fx.data);
- const amount=eur_per_usdc?String(Math.floor(50/eur_per_usdc*1e6)):null;
+ const baseUnits=eur_per_usdc?BigInt(Math.floor(50/eur_per_usdc*1e6)):null;
  const results=[];
- for(const [chain,contract,label] of pairs){
-  const base={chain,contract,label,stake_target_eur:50,settlement_token:usd[chain],mode:'RESEARCH_ONLY',non_executable:true};
+ for(const [chain,contract,label] of roster){
+  const decimals=chain==='bsc'?18:6,scale=10**decimals,amount=baseUnits!==null?(baseUnits*10n**BigInt(decimals-6)).toString():null;
+  const base={chain,contract,label,stake_target_eur:50,settlement_token:usd[chain],settlement_decimals:decimals,settlement_scope:chain==='bsc'?'BINANCE_PEG_USDC_REFERENCE_PARITY_UNVERIFIED':'USDC_REFERENCE',mode:'RESEARCH_ONLY',non_executable:true};
+  if(!usd[chain]){results.push({...base,status:'UNSUPPORTED_CHAIN',entry:null,exit:null,complete_costs:false});continue}
   if(!amount){results.push({...base,status:'FX_UNAVAILABLE',entry:null,exit:null,complete_costs:false});continue}
   const entry=await leg(chain,usd[chain],contract,amount,fetcher);
   if(!entry.quote){results.push({...base,status:'ENTRY_QUOTE_UNAVAILABLE',entry,exit:null,complete_costs:false});continue}
   const exit=await leg(chain,contract,usd[chain],entry.quote.amount_out,fetcher);
-  const back=exit.quote?Number(exit.quote.amount_out)/1e6*eur_per_usdc:null;
-  results.push({...base,status:exit.quote?'INDICATIVE_ROUNDTRIP_ONLY':'EXIT_QUOTE_UNAVAILABLE',entry,exit,reference_input_eur:Number(amount)/1e6*eur_per_usdc,reference_output_eur:back,roundtrip_difference_eur:back===null?null:Number(amount)/1e6*eur_per_usdc-back,complete_costs:false,gas_eur:null,dex_fee_pct:null,buy_tax_pct:null,sell_tax_pct:null,actual_sellability_verified:false,qualified_buys:0});
+  const back=exit.quote?Number(exit.quote.amount_out)/scale*eur_per_usdc:null;
+  results.push({...base,status:exit.quote?'INDICATIVE_ROUNDTRIP_ONLY':'EXIT_QUOTE_UNAVAILABLE',entry,exit,reference_input_eur:Number(amount)/scale*eur_per_usdc,reference_output_eur:back,roundtrip_difference_eur:back===null?null:Number(amount)/scale*eur_per_usdc-back,complete_costs:false,gas_usd_reported_both:entry.quote.gas_usd!==null&&exit.quote?.gas_usd!=null?entry.quote.gas_usd+exit.quote.gas_usd:null,gas_eur:null,dex_fee_pct:null,buy_tax_pct:null,sell_tax_pct:null,actual_sellability_verified:false,qualified_buys:0});
  }
- return {schema:'r31.readonly-roundtrip-probe.v1',mode:'RESEARCH_ONLY',non_executable:true,fx:{receipt:fx.receipt,eur_per_usdc,provider_quote_time:null},results,qualified_buys:0,limitations:'Reference conversion uses last USDC/EUR ticker price, unknown trade timestamp. Two independent sequential route quotes, not a stateful simulated swap. Route difference is not complete costs; gas, taxes, approvals, actual sellability and execution remain unverified. No transaction built or submitted.'};
+ return {schema:'r31.readonly-roundtrip-probe.v1',mode:'RESEARCH_ONLY',non_executable:true,fx:{receipt:fx.receipt,eur_per_usdc,provider_quote_time:null},results,qualified_buys:0,limitations:'Reference conversion uses last USDC/EUR ticker price, unknown trade timestamp; Binance-Peg USDC parity not verified. Two independent sequential route quotes, not a stateful simulated swap. Route difference is not complete costs; gas, taxes, approvals, actual sellability and execution remain unverified. No transaction built or submitted.'};
 }
 async function test(){
  const c='base',a=usd[c],b=pairs[2][1],j={code:0,data:{routeSummary:{tokenIn:a,tokenOut:b,amountIn:'100',amountOut:'200',gasUsd:'0.1'}}};
