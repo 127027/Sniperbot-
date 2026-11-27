@@ -1,0 +1,47 @@
+{
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "observed_at": "2026-11-27T06:41:00Z",
+  "main_run": {
+    "id": "6766cb20-1c7c-8325-b7dd-88ce9161ccf4",
+    "started": "2026-11-27T05:57:58.247258Z",
+    "completed": "2026-11-27T05:58:10.406732Z",
+    "finals": 0,
+    "buys": 0,
+    "verification": "Directory unchanged since prior learning file; no new checkpoint, final or diagnosis; task disabled, next null."
+  },
+  "support_run": {
+    "id": "e02ede1c-ebc8-8321-a5f8-09c5edf9fc38",
+    "started": "2026-11-26T21:10:32.928844Z",
+    "completed": "2026-11-26T21:11:31.011217Z",
+    "verified_blob": "a9d5e709f219cfedd80491a91a4d97b63bad5076",
+    "new_run": false
+  },
+  "collector": {
+    "run": "45920764204",
+    "snapshot": "2026-11-27T01:08:06.494Z",
+    "age_seconds": 19973.506,
+    "registry": 5563,
+    "newest_ci": "45942619239",
+    "newer_collector_in_30_main_runs": false
+  },
+  "prior_learning": "2026-11-27T05-40-25Z-learning.json",
+  "cause": "Worker omission and collector scheduling root cause unknown. Direct source transfer to disposable Node runtime blocked by DNS.",
+  "hypothesis": "Pinned collector source can be transferred directly from GitHub to disposable Node runtime for offline self-tests.",
+  "test": {
+    "method": "Fetched four exact source blobs through GitHub connector; inspected self-test entrypoints; ran node --version and curl -fLsS --max-time 8 against pinned blob endpoint in mktemp directory.",
+    "node": "v22.16.0",
+    "curl_exit": 6,
+    "error": "Could not resolve host: api.github.com",
+    "result": "Direct transfer hypothesis falsified in current runtime. Connector fetch works, runtime direct fetch fails; no source staged, zero self-tests executed. No publish or main write."
+  },
+  "patch": null,
+  "prompt_changed": false,
+  "next_test": {
+    "scheduled": null,
+    "reason": "Main task ended; no independently scheduled main retest remains.",
+    "experiment": "Transfer exact connector source text through a verified local bridge or stage a test-only isolated branch workflow, verify blob identity, execute four offline self-tests without publish.",
+    "acceptance": "4/4 offline self-tests pass; independent later main run >3 persisted finals beyond entry, diagnosis and fresh quote <=900s for BUY."
+  },
+  "matured_cohorts": 0
+}
