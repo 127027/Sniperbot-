@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {pathToFileURL} from 'node:url';
-import {parseReturn} from './scheduler-capture.mjs';
+import {parseReturn,inspect} from './scheduler-capture.mjs';
 const str=x=>typeof x==='string'&&!!x.trim();
 // Legacy text is supported; structured diagnostics must contain meaningful typed fields.
 const obj=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
@@ -20,7 +20,7 @@ export function validatePacket(p){
  for(const c of p.candidates){
   if(!str(c.chain)||!str(c.contract)||ids.has(identity(c))||!Array.isArray(c.sources)||!c.sources.length||!Array.isArray(c.gaps)||!c.gaps.length)throw Error('BAD_CANDIDATE');
   ids.add(identity(c));
-  for(const s of c.sources){if(!str(s.id)||sources.has(s.id)||!/^https:\/\//.test(s.url)||!str(s.summary)||!['READ','HTTP_ERROR'].includes(s.status)||s.status==='HTTP_ERROR'&&!(s.http_status>=400))throw Error('BAD_SOURCE');sources.add(s.id);}
+  for(const s of c.sources){if(!str(s.id)||sources.has(s.id)||!/^https:\/\//.test(s.url)||!str(s.summary)||!['READ','HTTP_ERROR','SOURCE_ERROR'].includes(s.status)||s.status==='HTTP_ERROR'&&!(s.http_status>=400))throw Error('BAD_SOURCE');sources.add(s.id);}
  }
  return p;
 }
@@ -32,8 +32,12 @@ export function evaluate(p,raw,worker){
   if(!str(x.chain)||!str(x.contract)){errors.push('MISSING_IDENTITY');continue}
   const id=identity(x),c=p.candidates.find(y=>identity(y)===id);
   if(!c||seen.has(id)){errors.push('UNASSIGNED_OR_DUPLICATE:'+id);continue}seen.add(id);
-  if(!['WATCH','REJECT','DATA_GAP'].includes(x.decision)||!str(x.reason)||!Array.isArray(x.source_ids)||!x.source_ids.length||x.source_ids.some(s=>!c.sources.some(y=>y.id===s))||!Array.isArray(x.gaps)||!x.gaps.length)errors.push('ROW_INVALID:'+id);
-  if(c.sources.some(s=>s.status==='HTTP_ERROR')&&(!Array.isArray(x.failed_source_ids)||c.sources.filter(s=>s.status==='HTTP_ERROR').some(s=>!x.failed_source_ids.includes(s.id))))errors.push('FAILED_SOURCE_OMITTED:'+id);
+  if(!['WATCH','REJECT','DATA_GAP'].includes(x.decision)||!str(x.reason)||!Array.isArray(x.source_ids)||(!x.source_ids.length&&!(p.source_receipts_required===true&&c.sources.every(s=>s.status!=='READ')))||x.source_ids.some(s=>!c.sources.some(y=>y.id===s))||!Array.isArray(x.gaps)||!x.gaps.length)errors.push('ROW_INVALID:'+id);
+  if(p.source_receipts_required===true){
+   const reads=c.sources.filter(s=>s.status==='READ').map(s=>s.id),failed=c.sources.filter(s=>s.status!=='READ').map(s=>s.id);
+   if(!Array.isArray(x.source_ids)||reads.some(id=>!x.source_ids.includes(id))||x.source_ids.some(id=>!reads.includes(id))||!Array.isArray(x.failed_source_ids)||failed.some(id=>!x.failed_source_ids.includes(id))||x.failed_source_ids.some(id=>!failed.includes(id)))errors.push('RECEIPT_COVERAGE_INVALID:'+id);
+  }
+  if(c.sources.some(s=>s.status!=='READ')&&(!Array.isArray(x.failed_source_ids)||c.sources.filter(s=>s.status!=='READ').some(s=>!x.failed_source_ids.includes(s.id))))errors.push('FAILED_SOURCE_OMITTED:'+id);
  }
  if(seen.size!==p.candidates.length)errors.push('MISSING_CANDIDATES');
  if(!Array.isArray(r.steps)||!r.steps.length||r.steps.some((s,i)=>s.seq!==i+1||!str(s.action)||!str(s.result)||!str(s.status))||r.steps.at(-1)?.action!=='REPORT')errors.push('MISSING_TRACE');
@@ -41,7 +45,7 @@ export function evaluate(p,raw,worker){
  return {status:errors.length?'INCOMPLETE':'STRUCTURAL_PACKET_ANALYSIS_ONLY',errors,assessed:seen.size,verified_buys:0,accepted:false,worker_report:r};
 }
 function test(p){
- const rows=p.candidates.map(c=>({chain:c.chain,contract:c.contract,decision:'DATA_GAP',reason:'fixture',source_ids:c.sources.map(s=>s.id),failed_source_ids:c.sources.filter(s=>s.status==='HTTP_ERROR').map(s=>s.id),gaps:c.gaps}));
+ const rows=p.candidates.map(c=>({chain:c.chain,contract:c.contract,decision:'DATA_GAP',reason:'fixture',source_ids:c.sources.map(s=>s.id),failed_source_ids:c.sources.filter(s=>s.status!=='READ').map(s=>s.id),gaps:c.gaps}));
  const r={schema:'r31.packet-analysis.v1',packet_id:p.id,worker:'market',mode:'RESEARCH_ONLY',non_executable:true,rows,steps:[{seq:1,action:'REPORT',result:'fixture',status:'OK'}],fix_hypothesis:'fixture',next_test:'fixture',acceptance:'fixture',stop_reason:'fixture'};
  const run=x=>evaluate(p,JSON.stringify(x),'market');
  assert.equal(run(r).status,'STRUCTURAL_PACKET_ANALYSIS_ONLY');
@@ -57,6 +61,7 @@ function test(p){
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){const p=validatePacket(JSON.parse(fs.readFileSync(process.argv[2],'utf8')));if(process.argv.includes('--self-test'))test(p);else if(process.argv[3])console.log(JSON.stringify(evaluate(p,fs.readFileSync(process.argv[3],'utf8'),process.argv[4]),null,2));else console.log(JSON.stringify({packet:p.id,candidates:p.candidates.length,valid:true,verified_buys:0}));}
 
 export function replayCaptured(p,c,worker,expectedRun){
- if(c?.schema!=='r31.scheduler-capture.v1'||c.mode!=='RESEARCH_ONLY'||c.non_executable!==true||c.worker!==worker||c.run?.id!==expectedRun||c.run?.recorded_status!=='completed')throw Error('CAPTURE_BINDING_INVALID');
+ const observed=inspect(c);
+ if(observed.worker!==worker||observed.run_id!==expectedRun||observed.recorded_status!=='completed')throw Error('CAPTURE_BINDING_INVALID');
  return evaluate(p,c.raw_report,worker);
 }

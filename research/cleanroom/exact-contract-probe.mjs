@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 const networks={solana:'solana',ethereum:'eth',base:'base',bsc:'bsc',optimism:'optimism',arbitrum:'arbitrum',polygon:'polygon_pos',avalanche:'avax'};
 const same=(c,a,b)=>typeof a==='string'&&typeof b==='string'&&(c==='solana'?a===b:a.toLowerCase()===b.toLowerCase());
@@ -14,14 +15,17 @@ export function geckoRows(j,c,a){
  return j.data.filter(p=>p.type==='pool'&&p.id===n+p.attributes?.address&&typeof p.relationships?.base_token?.data?.id==='string'&&p.relationships.base_token.data.id.startsWith(n)&&same(c,p.relationships.base_token.data.id.slice(n.length),a)&&positive(p.attributes?.base_token_price_usd)&&positive(p.attributes?.reserve_in_usd)).map(p=>({chain:c,contract:p.relationships.base_token.data.id.slice(n.length),pool:p.attributes.address,price_usd:Number(p.attributes.base_token_price_usd),liquidity_usd:Number(p.attributes.reserve_in_usd),volume_1h_usd:p.attributes.volume_usd?.h1??null,change_1h_pct:p.attributes.price_change_percentage?.h1??null,provider_quote_time:null}));
 }
 async function request(provider,url,parse,c,a,fetcher){
- const started_at=new Date().toISOString();let http_status=null;
+ const started_at=new Date().toISOString();let http_status=null,response_sha256=null,response_bytes=null;
  try{
   const r=await fetcher(url,{signal:AbortSignal.timeout(12000),headers:{accept:'application/json'},redirect:'error'});
   http_status=r.status;
-  if(!r.ok)return {provider,url,started_at,finished_at:new Date().toISOString(),http_status,status:'HTTP_ERROR',error:'HTTP_'+r.status,retry_after:r.headers.get('retry-after'),rows:[]};
-  const j=await r.json(),rows=parse(j,c,a);
-  return {provider,url,started_at,finished_at:new Date().toISOString(),http_status,status:rows.length?'EXACT_POOL_MATCH':'NO_EXACT_POOL',error:null,rows};
- }catch(e){return {provider,url,started_at,finished_at:new Date().toISOString(),http_status,status:'REQUEST_OR_PARSE_ERROR',error:String(e.name)+': '+String(e.message).slice(0,250),rows:[]}}
+  const chunks=[];let size=0;
+  if(r.body){for await(const chunk of r.body){size+=chunk.byteLength;if(size>2*1024*1024)throw Error('RESPONSE_TOO_LARGE');chunks.push(Buffer.from(chunk));}}
+  const bytes=Buffer.concat(chunks);response_bytes=bytes.length;response_sha256=createHash('sha256').update(bytes).digest('hex');
+  if(!r.ok)return {provider,url,started_at,finished_at:new Date().toISOString(),http_status,response_sha256,response_bytes,status:'HTTP_ERROR',error:'HTTP_'+r.status,retry_after:r.headers.get('retry-after'),rows:[]};
+  const j=JSON.parse(bytes.toString('utf8')),rows=parse(j,c,a);
+  return {provider,url,started_at,finished_at:new Date().toISOString(),http_status,response_sha256,response_bytes,status:rows.length?'EXACT_POOL_MATCH':'NO_EXACT_POOL',error:null,rows};
+ }catch(e){return {provider,url,started_at,finished_at:new Date().toISOString(),http_status,response_sha256,response_bytes,status:'REQUEST_OR_PARSE_ERROR',error:String(e.name)+': '+String(e.message).slice(0,250),rows:[]}}
 }
 export async function lookup(c,a,fetcher=fetch){
  if(!valid(c,a))throw Error('INVALID_CHAIN_OR_CONTRACT');
@@ -36,7 +40,7 @@ async function test(){
  assert.equal(geckoRows({data:[g,{...g,id:'base_'+b}]},'ethereum',a).length,1);
  assert.equal(geckoRows({data:[g]},'ethereum',b).length,0);
  let calls=0;const r=await lookup('ethereum',a,async()=>{calls++;return calls===1?new Response('rate limit',{status:429}):Response.json({data:[g]})});
- assert.equal(r.attempts[0].http_status,429);assert.equal(r.exact_pool_matches,1);assert.equal(r.qualified_buys,0);
+ assert.equal(r.attempts[0].http_status,429);assert.equal(r.attempts[0].response_sha256,createHash('sha256').update('rate limit').digest('hex'));assert.equal(r.exact_pool_matches,1);assert.equal(r.qualified_buys,0);
  await assert.rejects(()=>lookup('ethereum','bad'),/INVALID_CHAIN/);
  console.log('Exact lookup fixtures passed: chain/address mismatch, fallback after 429, no implied BUY');
 }

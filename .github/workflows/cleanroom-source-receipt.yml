@@ -1,0 +1,25 @@
+name: R31 source receipt packet
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['research/cleanroom/source-receipt-packet.mjs','research/cleanroom/exact-contract-probe.mjs','.github/workflows/cleanroom-source-receipt.yml']
+permissions:
+  contents: read
+jobs:
+  source-receipts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node research/cleanroom/exact-contract-probe.mjs --self-test
+      - run: node research/cleanroom/source-receipt-packet.mjs --self-test
+      - run: node research/cleanroom/source-receipt-packet.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-receipt-packet
+          path: |
+            receipt-probes.json
+            receipt-packet.json

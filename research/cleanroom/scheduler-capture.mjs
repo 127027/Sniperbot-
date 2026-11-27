@@ -38,16 +38,29 @@ export function auditSteps(p){
 }
 
 // Raw scheduler capture is evidence of what the worker reported, never a trade.
+export function captureRun(c){
+ const keys=['run_id','status','started_at','completed_at'];
+ if(c?.run!==undefined){
+  if(keys.some(k=>Object.hasOwn(c,k))||!c.run||typeof c.run!=='object')throw Error('CAPTURE_AMBIGUOUS_RUN');
+  return c.run;
+ }
+ if(c?.content_truncated!==false||!keys.every(k=>Object.hasOwn(c,k)))throw Error('CAPTURE_INVALID');
+ return {id:c.run_id,recorded_status:c.status,scheduled_for:c.scheduled_for,started_at:c.started_at,completed_at:c.completed_at};
+}
 export function inspect(c){
- const r=c?.run,t=Date.parse(r?.started_at),e=Date.parse(r?.completed_at);
- if(c?.schema!=='r31.scheduler-capture.v1'||c.mode!=='RESEARCH_ONLY'||c.non_executable!==true||!['market','discovery'].includes(c.worker)||typeof c.task_id!=='string'||!r?.id||!['completed','failed','no_update'].includes(r.recorded_status)||!Number.isFinite(t)||!Number.isFinite(e)||e<t||typeof c.raw_report!=='string'||!c.raw_report.trim())throw Error('CAPTURE_INVALID');
+ const r=captureRun(c),t=Date.parse(r?.started_at),e=Date.parse(r?.completed_at);
+ if(c?.schema!=='r31.scheduler-capture.v1'||c.mode!=='RESEARCH_ONLY'||c.non_executable!==true||!['market','discovery'].includes(c.worker)||typeof c.task_id!=='string'||!r?.id||!['completed','failed','no_update'].includes(r.recorded_status)||!Number.isFinite(t)||!Number.isFinite(e)||e<t||c.content_truncated===true||typeof c.raw_report!=='string'||!c.raw_report.trim())throw Error('CAPTURE_INVALID');
  const {parsed,format,error}=parseReturn(c.raw_report);
  const valid=['r31.research-return.v1','r31.research-return.v2'].includes(parsed?.schema)&&parsed.worker===c.worker&&parsed.mode==='RESEARCH_ONLY'&&parsed.non_executable===true&&Array.isArray(parsed.rows)&&typeof parsed.stop_reason==='string'&&parsed.stop_reason.trim()&&typeof parsed.next_work==='string'&&parsed.next_work.trim()&&Array.isArray(parsed.blockers);
- return {worker:c.worker,run_id:r.id,started_at:r.started_at,completed_at:r.completed_at,duration_ms:e-t,raw_sha256:createHash('sha256').update(c.raw_report).digest('hex'),capture_status:'RAW_REPORT_PRESERVED',format,parse_error:error,trace:valid?auditSteps(parsed):null,return_status:valid?'STRUCTURED_RETURN_PRESENT_UNVERIFIED':'UNSTRUCTURED_OR_INCOMPLETE_RETURN',research_quality_verified:false,qualified_buys_verified:0,accepted:false,parsed:valid?parsed:null};
+ const packet=parsed?.schema==='r31.packet-analysis.v1'&&parsed.worker===c.worker&&parsed.mode==='RESEARCH_ONLY'&&parsed.non_executable===true;
+ return {worker:c.worker,run_id:r.id,recorded_status:r.recorded_status,started_at:r.started_at,completed_at:r.completed_at,duration_ms:e-t,raw_sha256:createHash('sha256').update(c.raw_report).digest('hex'),capture_status:'RAW_REPORT_PRESERVED',format,parse_error:error,trace:valid?auditSteps(parsed):null,return_status:valid?'STRUCTURED_RETURN_PRESENT_UNVERIFIED':packet?'PACKET_RETURN_REQUIRES_SEPARATE_VALIDATION':'UNSTRUCTURED_OR_INCOMPLETE_RETURN',research_quality_verified:false,qualified_buys_verified:0,accepted:false,parsed:valid?parsed:null};
 }
 function test(){
  const c={schema:'r31.scheduler-capture.v1',mode:'RESEARCH_ONLY',non_executable:true,worker:'market',task_id:'fixture',run:{id:'fixture',recorded_status:'completed',started_at:'2026-11-27T10:00:00Z',completed_at:'2026-11-27T10:00:10Z'},raw_report:'some reported BUY'};
  assert.equal(inspect(c).qualified_buys_verified,0);assert.equal(inspect(c).duration_ms,10000);
+ const {run,...rest}=c;const flat={...rest,run_id:run.id,status:run.recorded_status,started_at:run.started_at,completed_at:run.completed_at,content_truncated:false};
+ assert.equal(inspect(flat).run_id,'fixture');assert.equal(inspect(flat).raw_sha256,inspect(c).raw_sha256);
+ assert.throws(()=>inspect({...flat,run}),/CAPTURE_AMBIGUOUS_RUN/);assert.throws(()=>inspect({...flat,content_truncated:true}),/CAPTURE_INVALID/);
  assert.throws(()=>inspect({...c,raw_report:''}),/CAPTURE_INVALID/);
  const p={schema:'r31.research-return.v1',mode:'RESEARCH_ONLY',non_executable:true,worker:'market',rows:[],stop_reason:'fixture',next_work:'fixture',blockers:[]};
  assert.equal(inspect({...c,raw_report:JSON.stringify(p)}).return_status,'STRUCTURED_RETURN_PRESENT_UNVERIFIED');
