@@ -1,0 +1,80 @@
+name: Cleanroom autonomy recovery isolation
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['research/cleanroom/**', '.github/workflows/cleanroom-autonomy-recovery.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: cleanroom-autonomy-recovery
+  cancel-in-progress: false
+jobs:
+  offline-tests:
+    if: github.ref == 'refs/heads/codex/r31-autonomy-recovery'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Market probe fixtures
+        run: node research/cleanroom/market-probe.mjs --self-test
+      - name: Evidence fixtures
+        run: node research/cleanroom/evidence.mjs --self-test
+      - name: Targeted evidence fixtures
+        run: node research/cleanroom/targeted.mjs --self-test
+      - name: Registry fixtures
+        run: node research/cleanroom/token-registry.mjs --self-test
+      - name: Queue interruption and lease fixtures
+        run: node research/cleanroom/research-queue.mjs --self-test
+  isolated-collector:
+    if: github.ref == 'refs/heads/codex/r31-autonomy-recovery'
+    needs: offline-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Execute collector without publishing
+        run: node research/cleanroom/watchdog.mjs --once
+      - name: Verify new isolated snapshot
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const root='research/cleanroom/';
+          const h=JSON.parse(fs.readFileSync(root+'collector-health.json'));
+          const idx=JSON.parse(fs.readFileSync(root+'candidate-pages/index.json'));
+          assert.equal(h.run_id,process.env.GITHUB_RUN_ID);
+          assert.equal(h.status,'OK');
+          assert.equal(h.snapshot,idx.snapshot);
+          assert.ok(Date.now()-Date.parse(h.snapshot)>=0&&Date.now()-Date.parse(h.snapshot)<=300000);
+          let fresh=0;
+          for(const p of idx.pages){
+            const data=JSON.parse(fs.readFileSync(root+'candidate-pages/'+p.file));
+            assert.equal(data.snapshot,idx.snapshot);
+            for(const r of data.rows){
+              const age=Date.now()-Date.parse(r.observed_at_utc);
+              if(r.research_ready&&r.price_eur>0&&Number.isFinite(age)&&age>=0&&age<=900000)fresh++;
+            }
+          }
+          assert.ok(fresh>0,'No fresh evidence');
+          console.log(JSON.stringify({run:h.run_id,snapshot:h.snapshot,fresh,rows:idx.total_rows,mode:'RESEARCH_ONLY',published:false}));
+          JS
+      - name: Retain isolated evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cleanroom-isolated-evidence
+          path: |
+            research/cleanroom/collector-health.json
+            research/cleanroom/candidate-pages/index.json
+          retention-days: 7
