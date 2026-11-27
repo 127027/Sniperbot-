@@ -68,7 +68,14 @@ async function cycle(repo,sequence){
    const inputs=await readInputs(p(dir));if(inputs.snapshot!==h.snapshot)throw Error('COLLECTOR_INPUT_MISMATCH');
    const compact=packets(inputs,h,sourceCommit);
    fs.mkdirSync(p(dir+'worker-packets'),{recursive:true});
-   for(const [worker,packet] of Object.entries(compact))write(p(dir+'worker-packets/'+worker+'.json'),packet);
+   // Reset generated pages so a new snapshot cannot advertise stale old pages.
+   for(const f of fs.readdirSync(p(dir+'worker-packets')))if(/^(market|discovery)-page-\d+\.json$/.test(f))fs.unlinkSync(p(dir+'worker-packets/'+f));
+   for(const [worker,packet] of Object.entries(compact)){
+    const {pages,...entry}=packet;
+    write(p(dir+'worker-packets/'+worker+'.json'),entry);
+    for(const page of pages)write(p(dir+'worker-packets/'+page.file),page);
+    write(p(dir+'worker-packets/'+worker+'-index.json'),{schema:'r31.packet-index.v1',mode:'RESEARCH_ONLY',non_executable:true,worker,snapshot:packet.snapshot,total_available:packet.total_available,pages:pages.map(x=>({file:x.file,offset:x.offset,count:x.rows.length,next_file:x.next_file}))});
+   }
    ok=true;
   }catch(e){error=String(e.message).slice(0,500)}
   if(!ok){

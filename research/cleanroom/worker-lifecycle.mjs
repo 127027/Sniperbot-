@@ -26,7 +26,23 @@ export function packets(data,health,runtimeCommit){
  pool.sort((a,b)=>Number(b.research_ready_at_capture)-Number(a.research_ready_at_capture)||ts(b.observed_at)-ts(a.observed_at)||a.id.localeCompare(b.id));
  const seen=new Set();const unique=pool.filter(x=>!seen.has(x.id)&&seen.add(x.id));
  const roles={market:unique.filter(x=>['solana','base'].includes(x.chain)),discovery:unique.filter(x=>!['solana','base'].includes(x.chain))};
- return Object.fromEntries(Object.entries(roles).map(([worker,rows])=>[worker,{schema:'r31.compact-research-packet.v1',mode:'RESEARCH_ONLY',non_executable:true,worker,snapshot:data.snapshot,collector_run_id:health.run_id,runtime_commit:runtimeCommit,total_available:rows.length,rows:rows.slice(0,6),remaining:Math.max(0,rows.length-6),limitations:'Bounded stage input, not full coverage or recommendations. Recheck current age, identity, risk, fees and independent sources. No execution quote guaranteed.'}]));
+ // Chain round-robin prevents a tied retrieval timestamp from filling
+ // every first packet with one alphabetically early chain.
+ return Object.fromEntries(Object.entries(roles).map(([worker,rows])=>{
+  const groups=new Map();
+  for(const row of rows){if(!groups.has(row.chain))groups.set(row.chain,[]);groups.get(row.chain).push(row)}
+  const ordered=[];
+  while(ordered.length<rows.length)for(const group of groups.values())if(group.length)ordered.push(group.shift());
+  const meta={schema:'r31.compact-research-packet.v1',mode:'RESEARCH_ONLY',non_executable:true,worker,snapshot:data.snapshot,collector_run_id:health.run_id,runtime_commit:runtimeCommit,total_available:ordered.length,limitations:'Research leads, not recommendations. Check individual identity, classification, freshness, risk and costs independently. No execution quote guaranteed.'};
+  const pages=[];
+  for(let offset=0;offset<ordered.length;offset+=6){
+   const n=pages.length,name=worker+'-page-'+String(n).padStart(3,'0')+'.json';
+   const next=offset+6<ordered.length?worker+'-page-'+String(n+1).padStart(3,'0')+'.json':null;
+   pages.push({...meta,file:name,offset,rows:ordered.slice(offset,offset+6),remaining:Math.max(0,ordered.length-offset-6),next_file:next});
+  }
+  return [worker,{...meta,rows:pages[0]?.rows??[],remaining:pages[0]?.remaining??0,next_file:pages[0]?.next_file??null,pages}];
+ }));
+
 }
 function test(){
  const run={id:'fixture',recorded_status:'completed',started_at:'2026-11-27T09:00:00Z',completed_at:'2026-11-27T09:00:20Z'};
@@ -40,6 +56,9 @@ function test(){
  const t='2026-11-27T09:00:00Z',row={coin:'fixture',research_ready:true,identities:[{chain:'base',contract:'0x'+'a'.repeat(40),pool:{source_url:'https://example.org',retrieved_at:t,price_usd:1}},{chain:'bsc',contract:'0x'+'b'.repeat(40),pool:{source_url:'https://example.org',retrieved_at:t,price_usd:2}}]};
  const p=packets({snapshot:t,candidates:[row,row]},{status:'OK',snapshot:t,run_id:'fixture'},'a'.repeat(40));
  assert.equal(p.market.rows.length,1);assert.equal(p.discovery.rows.length,1);assert.equal(p.market.rows[0].market.indicative_eur,null);assert.equal(p.market.non_executable,true);
+ const many=Array.from({length:15},(_,n)=>({coin:'fixture'+n,research_ready:true,identities:[{chain:n%3===0?'ethereum':n%3===1?'bsc':'arbitrum',contract:'0x'+n.toString(16).padStart(40,'0'),pool:{source_url:'https://example.org',retrieved_at:t}}]}));
+ const q=packets({snapshot:t,candidates:many},{status:'OK',snapshot:t,run_id:'fixture'},'a'.repeat(40)).discovery;
+ assert.equal(q.pages.length,3);assert.equal(q.pages.flatMap(x=>x.rows).length,15);assert.equal(new Set(q.pages.flatMap(x=>x.rows.map(y=>y.id))).size,15);assert.equal(new Set(q.pages[0].rows.map(x=>x.chain)).size,3);assert.equal(q.pages[0].next_file,q.pages[1].file);assert.equal(q.pages[2].next_file,null);assert.equal(q.pages[2].remaining,0);
  console.log('Worker lifecycle fixtures passed: terminal without report, checkpoint resume, no false acceptance, compact disjoint evidence packets');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){if(process.argv.includes('--self-test'))test();else{const o=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));console.log(JSON.stringify(o.map(x=>classify(x.run,x.artifacts)),null,2))}}
