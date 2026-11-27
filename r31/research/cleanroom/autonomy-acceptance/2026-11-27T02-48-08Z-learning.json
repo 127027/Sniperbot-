@@ -1,0 +1,55 @@
+{
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "observed_at": "2026-11-27T02:48:08Z",
+  "main_run": {
+    "id": "8ab0aa17-6be0-8325-a343-f70d43c8fa74",
+    "started": "2026-11-27T02:01:42.809473Z",
+    "completed": "2026-11-27T02:02:54.249551Z",
+    "finals": 3,
+    "buys": 0,
+    "final_shas": [
+      "553512c596d7228e0a6dcb52b9326dc4d93d8e47",
+      "439dad4fad73e0a2ad41050833f5898b1748564d",
+      "e691212ea7c944769e130c59d6abb0030e0425d4"
+    ],
+    "diagnosis_sha": "6e6df9a9ae7c43a352be6e9064eb881e5d2c06e6",
+    "coverage": "entry only"
+  },
+  "support_run": {
+    "id": "e02ede1c-ebc8-8321-a5f8-09c5edf9fc38",
+    "sha": "a9d5e709f219cfedd80491a91a4d97b63bad5076",
+    "new_run": false
+  },
+  "prior_learning": "2026-11-27T01-41-50Z-learning.json",
+  "cause": "Scheduled collector cadence not realized; scheduler root cause unknown. Incomplete worker coverage remains unexplained.",
+  "hypothesis": "Missing scheduled workflow executions rather than failure inside a started collector explains current stale snapshot.",
+  "test": {
+    "method": "Read main workflow and watchdog source; query 100 main-branch CI runs, filter collector; compare expected cron slots with actual run creation and health snapshot.",
+    "workflow_sha": "1234927b412a6da70c1d42be33fff2535657b654",
+    "watchdog_sha": "f8ff9def215fdb2ba4cfb823f4577d12ccbf683e",
+    "last_collector_run": 45920764204,
+    "conclusion": "success",
+    "snapshot": "2026-11-27T01:08:06.494Z",
+    "snapshot_age_seconds": 6001.506,
+    "expected_slots_without_new_visible_run": [
+      "2026-11-27T01:14:00.000Z",
+      "2026-11-27T01:24:00.000Z",
+      "2026-11-27T01:34:00.000Z",
+      "2026-11-27T01:44:00.000Z",
+      "2026-11-27T01:54:00.000Z",
+      "2026-11-27T02:04:00.000Z",
+      "2026-11-27T02:14:00.000Z",
+      "2026-11-27T02:24:00.000Z",
+      "2026-11-27T02:34:00.000Z",
+      "2026-11-27T02:44:00.000Z"
+    ],
+    "result": "Confirmed missing visible runs after last successful one. Scheduled path explicitly uses --once; push path uses five cycles. No evidence of a failed started collector in this interval; underlying scheduling cause unknown. Workflow metadata endpoint returned HTTP 400, branch-filtered runs endpoint succeeded."
+  },
+  "patch": null,
+  "next_test": {
+    "scheduled": "2026-11-27T03:00:00Z",
+    "acceptance": "More than 3 persisted finals, at least one beyond entry page, diagnosis persisted, quote age <=900s for any BUY; verify actual collector cadence. Investigate isolated bounded collector recovery mechanism if no new run; no main deployment."
+  },
+  "matured_cohorts": 0
+}
