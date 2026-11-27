@@ -1,0 +1,35 @@
+name: R31 broad registry priority scan
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['research/cleanroom/broad-research.mjs','.github/workflows/cleanroom-broad-research.yml']
+permissions:
+  contents: read
+concurrency:
+  group: r31-broad-research
+  cancel-in-progress: false
+jobs:
+  broad:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      REGISTRY_COMMIT: e91af6609ddbea58d5888578eca482b252d47bf1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: e91af6609ddbea58d5888578eca482b252d47bf1
+          path: collector-data
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node research/cleanroom/broad-research.mjs --self-test
+      - run: node research/cleanroom/broad-research.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: broad-research
+          path: |
+            broad-research.json
+            broad-observations.json
