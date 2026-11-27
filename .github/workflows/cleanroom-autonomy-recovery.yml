@@ -33,6 +33,8 @@ jobs:
         run: node research/cleanroom/research-queue.mjs --self-test
       - name: Queue ingestion fixtures
         run: node research/cleanroom/queue-ingest.mjs --self-test
+      - name: Pinned worker artifact fixtures
+        run: node research/cleanroom/queue-artifact.mjs --self-test
   isolated-collector:
     if: github.ref == 'refs/heads/codex/r31-autonomy-recovery'
     needs: offline-tests
