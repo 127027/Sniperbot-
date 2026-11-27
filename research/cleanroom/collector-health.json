@@ -1,39 +1,39 @@
 {
   "schema": "cleanroom.collector-health.v1",
   "mode": "RESEARCH_ONLY",
-  "run_id": "45920764204",
-  "event": "schedule",
+  "run_id": "service-45967891438-1-1795769024497-1",
+  "event": "push",
   "sample": 0,
-  "started_at": "2026-11-27T01:07:47.610Z",
-  "finished_at": "2026-11-27T01:08:06.897Z",
+  "started_at": "2026-11-27T08:43:44.527Z",
+  "finished_at": "2026-11-27T08:44:00.987Z",
   "status": "OK",
   "failed_cycles_in_run": 0,
-  "snapshot": "2026-11-27T01:08:06.494Z",
-  "fresh_research_quotes": 79,
+  "snapshot": "2026-11-27T08:44:00.695Z",
+  "fresh_research_quotes": 87,
   "steps": [
     {
       "file": "market-probe.mjs",
       "exit_code": 0,
       "error": null,
-      "finished_at": "2026-11-27T01:07:49.027Z"
+      "finished_at": "2026-11-27T08:43:46.578Z"
     },
     {
       "file": "evidence.mjs",
       "exit_code": 0,
       "error": null,
-      "finished_at": "2026-11-27T01:07:49.416Z"
+      "finished_at": "2026-11-27T08:43:46.881Z"
     },
     {
       "file": "targeted.mjs",
       "exit_code": 0,
       "error": null,
-      "finished_at": "2026-11-27T01:08:06.539Z"
+      "finished_at": "2026-11-27T08:44:00.739Z"
     },
     {
       "file": "token-registry.mjs",
       "exit_code": 0,
       "error": null,
-      "finished_at": "2026-11-27T01:08:06.881Z"
+      "finished_at": "2026-11-27T08:44:00.972Z"
     }
   ],
   "summary": {
@@ -43,7 +43,7 @@
     "support_selected": 0,
     "support_with_pool": 0,
     "support_fresh_quotes": 0,
-    "contract_quote_eligible": 12,
+    "contract_quote_eligible": 25,
     "contract_quote_candidates": 1,
     "contract_quote_hits": 0,
     "contract_quote_chain": "base",
@@ -55,31 +55,31 @@
     "raw_overlap_previous_cycle": 0,
     "raw_current_selected": 32,
     "raw_backlog_selected": 16,
-    "raw_cumulative_selection_keys": 3268,
+    "raw_cumulative_selection_keys": 3316,
     "cache_primary_risk": 0,
     "cache_secondary_risk": 0,
-    "cache_kraken_mapping": 4,
+    "cache_kraken_mapping": 2,
     "assets": 240,
     "raw_leads_checked": 48,
-    "raw_leads_with_pool": 18,
-    "raw_leads_with_timestamped_quote": 3,
-    "pool_mapped": 229,
-    "fresh_quote_and_pool": 76,
-    "security_fields": 23,
+    "raw_leads_with_pool": 37,
+    "raw_leads_with_timestamped_quote": 2,
+    "pool_mapped": 230,
+    "fresh_quote_and_pool": 85,
+    "security_fields": 25,
     "raw_leads_with_security_fields": 2,
-    "fallback_quotes": 3,
-    "kraken_quotes": 6,
+    "fallback_quotes": 2,
+    "kraken_quotes": 7,
     "news": 30,
-    "registry_total": 5563,
-    "registry_added": 91
+    "registry_total": 5631,
+    "registry_added": 68
   },
   "provider_statuses": {
     "api.geckoterminal.com": {
-      "OK": 6,
+      "OK": 5,
       "HTTP_429": 1
     },
     "api.dexscreener.com": {
-      "OK": 17
+      "OK": 18
     },
     "api.coingecko.com": {
       "OK": 5
@@ -94,11 +94,11 @@
       "OK": 37
     },
     "api.honeypot.is": {
-      "OK": 9,
-      "HTTP_404": 8
+      "HTTP_404": 8,
+      "OK": 8
     },
     "api.rugcheck.xyz": {
-      "OK": 7
+      "OK": 8
     },
     "api.frankfurter.dev": {
       "OK": 1
@@ -107,5 +107,21 @@
       "OK": 13
     }
   },
-  "limitations": "Health is per completed cycle, not proof of continuous execution. Compare snapshot and provider timestamps with current UTC. No trade decisions."
+  "limitations": "Health is per completed cycle, not proof of continuous execution. Compare snapshot and provider timestamps with current UTC. No trade decisions.",
+  "cadence_24h": {
+    "mode": "RESEARCH_ONLY",
+    "non_executable": true,
+    "window_start": "2026-11-26T08:44:00.987Z",
+    "window_end": "2026-11-27T08:44:00.987Z",
+    "sample_count": 1,
+    "successful_fresh_cycles": 1,
+    "failed_or_stale_cycles": 0,
+    "future_samples": 0,
+    "scheduled_cycles": 0,
+    "largest_gap_seconds": 86400,
+    "max_allowed_gap_seconds": 900,
+    "gaps_over_limit": 1,
+    "status": "CADENCE_UNVERIFIED",
+    "limitations": "Observed completed-cycle cadence only; not continuous provider or AI execution, complete market coverage, or paper results."
+  }
 }
