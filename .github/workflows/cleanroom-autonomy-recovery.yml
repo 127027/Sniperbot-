@@ -31,6 +31,8 @@ jobs:
         run: node research/cleanroom/token-registry.mjs --self-test
       - name: Queue interruption and lease fixtures
         run: node research/cleanroom/research-queue.mjs --self-test
+      - name: Queue ingestion fixtures
+        run: node research/cleanroom/queue-ingest.mjs --self-test
   isolated-collector:
     if: github.ref == 'refs/heads/codex/r31-autonomy-recovery'
     needs: offline-tests
@@ -69,6 +71,25 @@ jobs:
           assert.ok(fresh>0,'No fresh evidence');
           console.log(JSON.stringify({run:h.run_id,snapshot:h.snapshot,fresh,rows:idx.total_rows,mode:'RESEARCH_ONLY',published:false}));
           JS
+      - name: Prepare research queue from actual new snapshot
+        run: |
+          mkdir -p "${RUNNER_TEMP}/cleanroom-queue"
+          node research/cleanroom/queue-ingest.mjs research/cleanroom "${RUNNER_TEMP}/cleanroom-queue/state.json" "test-${GITHUB_RUN_ID}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" 32 > "${RUNNER_TEMP}/cleanroom-queue/inbox.json"
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const base=process.env.RUNNER_TEMP+'/cleanroom-queue/';
+          const state=JSON.parse(fs.readFileSync(base+'state.json'));
+          const inbox=JSON.parse(fs.readFileSync(base+'inbox.json'));
+          assert.equal(state.mode,'RESEARCH_ONLY');
+          assert.equal(inbox.snapshot_status,'RECENT_SNAPSHOT');
+          assert.equal(inbox.non_executable,true);
+          assert.equal(inbox.rows.length,inbox.assigned);
+          assert.ok(inbox.assigned>0&&inbox.assigned<=32);
+          assert.equal(new Set(inbox.rows.map(r=>r.id)).size,inbox.assigned);
+          assert.equal(Object.keys(state.jobs).length,inbox.eligible_pending);
+          console.log(JSON.stringify({queued:Object.keys(state.jobs).length,assigned:inbox.assigned,remaining:inbox.remaining,snapshot:inbox.snapshot,non_executable:true}));
+          JS
       - name: Retain isolated evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -77,4 +98,5 @@ jobs:
           path: |
             research/cleanroom/collector-health.json
             research/cleanroom/candidate-pages/index.json
+            ${{ runner.temp }}/cleanroom-queue/inbox.json
           retention-days: 7
