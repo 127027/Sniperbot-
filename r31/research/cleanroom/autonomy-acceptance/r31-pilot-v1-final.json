@@ -1,0 +1,73 @@
+{
+  "schema": "cleanroom.worker-artifact.v1",
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "scan_id": "r31-pilot-v1",
+  "worker": "r31-pilot-worker",
+  "chain": "base",
+  "contract": "0xb3ca3148e37f1eb70eb0f15408eb3e15dcb07c5e",
+  "token": "6b057907-d1d6-4be6-b05f-d0407c698ab6",
+  "assessed_at_utc": "2026-11-27T08:46:14.473Z",
+  "status": "FINAL",
+  "decision": "DATA_GAP",
+  "reason": "Collector identifies UBR on Base with indicative last trade at 08:41:31 UTC, reported liquidity USD 187500.77 and one-hour change +106%. Independent exact-contract DexScreener and BaseScan lookups and alternate GeckoTerminal pool lookup were inaccessible; exact-contract search returned no results. Cannot independently verify current price, sellability, security or execution costs. No trade inference.",
+  "sources": [
+    {
+      "url": "https://api.geckoterminal.com/api/v2/networks/base/new_pools?include=base_token,quote_token&page=1",
+      "observed_at": "2026-11-27T08:41:32.652Z"
+    },
+    {
+      "url": "https://api.dexscreener.com/tokens/v1/base/0x13509fa9afb91fe7ba33bc0cf4fb89eb46641d30,0x1c30fa42023ab174246dea0fbbd1869ba331f6af,0x1cc184b7fef55ccebbe5073e5dd4e3af2279be24,0x22cdffcea8ff64bfdb2a3925b2ce64bdaa0aa099,0x3208d43ace7b77965a80970feb32557a02c79b51,0x3f55064613f0186fb6f920bc91725c7e249818b8,0x5936c13c3f8a8fec6817d320f3730797ed301ba3,0x74b8ba4e5c89b6ee71ac5ca26ab2a567382f0a78,0x83c9e1e641cf68d87fbcf406fdaf7ae6c178895b,0x88f2c8f04991e442c1900d9c790e0ae805853c64,0x95b374d9ab727127b271cb520d64687e82fa8f7e,0xb2000000000000000000009497a6c4973fb325fa,0xb200000000000000000000a420c7d2afad8f3aaf,0xb200000000000000000000ac745131ee1ccd45c4,0xb3ca3148e37f1eb70eb0f15408eb3e15dcb07c5e,0xb832072f1f7d8ba2049a9225466045b33710602b,0xd186796af8b962e5128d7fa398489989021c5e92,0xd1da5881f86741b9ea259262f25f41cbbc817bb0,0xe6dfa6e9b1a04d45a85a563e3c471c5e1e42e256,0x776aaef8d8760129a0398cf8674ee28cefc0eab9,0x885a590198e5f0947f4c92db815cf2a2147980b8,0xb757977bc882a14db86b048f2abb2f2a14d33184",
+      "observed_at": "2026-11-27T08:41:35.502Z"
+    },
+    {
+      "url": "https://api.geckoterminal.com/api/v2/networks/base/pools/0xc03bdb75e83bc3b3d3d746ef753b7870d48bf0fe366d012eac8fc8315d25f8e4/trades",
+      "observed_at": "2026-11-27T08:41:31.000Z"
+    }
+  ],
+  "actual_attempts": [
+    {
+      "url": "https://api.dexscreener.com/tokens/v1/base/0xb3ca3148e37f1eb70eb0f15408eb3e15dcb07c5e",
+      "result": "Web lookup returned URL not accessible via tool"
+    },
+    {
+      "url": "https://basescan.org/token/0xb3ca3148e37f1eb70eb0f15408eb3e15dcb07c5e",
+      "result": "Web lookup returned URL not accessible via tool"
+    },
+    {
+      "url": "https://www.geckoterminal.com/base/pools/0xc03bdb75e83bc3b3d3d746ef753b7870d48bf0fe366d012eac8fc8315d25f8e4",
+      "result": "Alternate pool webpage returned URL not accessible via tool"
+    }
+  ],
+  "additional_attempts": [
+    {
+      "method": "exact contract web search",
+      "query": "0xb3ca3148e37f1eb70eb0f15408eb3e15dcb07c5e",
+      "result": "No results"
+    }
+  ],
+  "packet_quote": {
+    "price_eur": 0.000002019445701797211,
+    "observed_at": "2026-11-27T08:41:31.000Z",
+    "scope": "POOL_LAST_TRADE_USD_FX_INDICATIVE_PAPER",
+    "identity": {
+      "chain": "base",
+      "contract": "0xb3ca3148e37f1eb70eb0f15408eb3e15dcb07c5e"
+    },
+    "source": "https://api.geckoterminal.com/api/v2/networks/base/pools/0xc03bdb75e83bc3b3d3d746ef753b7870d48bf0fe366d012eac8fc8315d25f8e4/trades"
+  },
+  "unknowns": [
+    "independent current quote",
+    "sellability",
+    "contract security",
+    "taxes",
+    "gas",
+    "slippage",
+    "DEX fees"
+  ],
+  "counts": {
+    "assigned": 1,
+    "assessed": 1,
+    "fully_verified": 0
+  }
+}
