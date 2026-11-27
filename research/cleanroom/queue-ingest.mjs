@@ -68,7 +68,7 @@ export function prepare(q,registry,candidates,at,scanId,limit=32){
  const inbox={schema,mode:'RESEARCH_ONLY',non_executable:true,scan_id:scanId,prepared_at:at,queue_revision:state.revision,eligible_pending:pending.length,assigned:ids.length,remaining:pending.length-ids.length,rows:ids.map(k=>{const j=state.jobs[k];return {id:k,chain:j.chain,contract:j.contract,first_seen:j.first_seen,last_seen:j.last_seen,attempts:j.attempts,status:j.status,checkpoint:j.checkpoint??null,discovery_sources:j.evidence.slice(-6),evidence:evidence.get(k)??[]}}),limitations:'Unranked research work assignment. Not a shortlist of recommended purchases. Verify source identity, timestamps, prices, costs and safety independently. Missing evidence remains unknown.'};
  return {state,inbox};
 }
-async function readInputs(root){
+export async function readInputs(root){
  const ri=await read(path.join(root,'token-registry/index.json')),ci=await read(path.join(root,'candidate-pages/index.json'));
  if(ri.schema!=='cleanroom.token-registry.v1'||ci.schema!=='cleanroom.candidate-index.v1'||!Array.isArray(ri.shards)||!Array.isArray(ci.pages))throw Error('BAD_INPUT_INDEX');
  const registry=[],candidates=[],shards=new Set(),pages=new Set();

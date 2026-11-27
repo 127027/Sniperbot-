@@ -1,0 +1,49 @@
+name: R31 isolated real worker pilot
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths:
+      - 'research/cleanroom/pilot-controller.mjs'
+      - '.github/workflows/cleanroom-worker-pilot.yml'
+      - 'r31/research/cleanroom/autonomy-acceptance/r31-pilot-v1-checkpoint.json'
+      - 'r31/research/cleanroom/autonomy-acceptance/r31-pilot-v1-final.json'
+permissions:
+  contents: write
+concurrency:
+  group: r31-real-worker-pilot-v1
+  cancel-in-progress: false
+jobs:
+  pilot:
+    if: github.ref == 'refs/heads/codex/r31-autonomy-recovery'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify bounded pilot and queue libraries
+        run: |
+          node research/cleanroom/pilot-controller.mjs --self-test
+          node research/cleanroom/queue-remote.mjs --self-test
+          node research/cleanroom/queue-artifact.mjs --self-test
+      - name: Prepare isolated authenticated bare cache
+        run: |
+          cache="$RUNNER_TEMP/r31-pilot-state"
+          git init --bare "$cache"
+          git -C "$cache" remote add origin "$(git remote get-url origin)"
+          git -C "$cache" config --local http.https://github.com/.extraheader "$(git config --local --get http.https://github.com/.extraheader)"
+      - name: Dispatch fresh data or reconcile actual worker artifact
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          cache="$RUNNER_TEMP/r31-pilot-state"
+          if git diff --name-only "$BEFORE" "$GITHUB_SHA" | grep -Eq '^(research/cleanroom/pilot-controller\.mjs|\.github/workflows/cleanroom-worker-pilot\.yml)$'; then
+            node research/cleanroom/watchdog.mjs --once
+            node research/cleanroom/pilot-controller.mjs dispatch "$cache"
+          else
+            node research/cleanroom/pilot-controller.mjs reconcile "$cache"
+          fi
