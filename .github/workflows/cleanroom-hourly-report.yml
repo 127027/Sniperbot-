@@ -1,0 +1,25 @@
+name: R31 hourly report validation
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['research/cleanroom/hourly-report.mjs','.github/workflows/cleanroom-hourly-report.yml','r31/research/cleanroom/hourly-retest/**']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node research/cleanroom/hourly-report.mjs --self-test
+      - name: Validate actual reports without counting fixtures
+        run: |
+          shopt -s nullglob
+          files=(r31/research/cleanroom/hourly-retest/2026-11-27T09-00Z-*-report.json)
+          if (( ${#files[@]} )); then
+            node research/cleanroom/hourly-report.mjs "${files[@]}"
+          else
+            echo 'NO_WORKER_REPORTS_YET'
+          fi
