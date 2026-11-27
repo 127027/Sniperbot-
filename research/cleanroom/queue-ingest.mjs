@@ -45,20 +45,25 @@ export function prepare(q,registry,candidates,at,scanId,limit=32){
   if(j.status==='DECIDED'&&j.last_seen&&time(j.last_seen)>time(j.history.at(-1).at))emit('REOPEN',{chain:j.chain,contract:j.contract,evidence_at:j.last_seen,reason:'New original-time discovery/pool evidence'});
  }
  const pending=next(state,at),pendingSet=new Set(pending);
- const resumed=pending.filter(k=>state.jobs[k].attempts>0).sort((a,b)=>state.jobs[a].first_seen.localeCompare(state.jobs[b].first_seen)||a.localeCompare(b));
+ const age=k=>state.jobs[k].last_assigned_at??state.jobs[k].first_seen;
+ const oldest=(a,b)=>age(a).localeCompare(age(b))||(state.jobs[a].assignments??0)-(state.jobs[b].assignments??0)||a.localeCompare(b);
+ const resumed=pending.filter(k=>state.jobs[k].attempts>0&&state.jobs[k].status!=='DECIDED').sort(oldest);
  // A separate rotating backlog prevents starvation; prioritize recent observed
  // market evidence for acquisition only, never a price-based BUY decision.
- const recent=pending.filter(k=>!state.jobs[k].attempts&&evidence.has(k)).sort((a,b)=>state.jobs[b].last_seen.localeCompare(state.jobs[a].last_seen)||a.localeCompare(b));
+ const recent=pending.filter(k=>!(state.jobs[k].assignments??0)&&!state.jobs[k].attempts&&evidence.has(k)).sort((a,b)=>state.jobs[b].last_seen.localeCompare(state.jobs[a].last_seen)||a.localeCompare(b));
+ const backlog=[...pending].sort(oldest);
  const ids=[],used=new Set();
  function take(xs,n){let count=0;for(const k of xs){if(ids.length>=limit||count>=n)break;if(pendingSet.has(k)&&!used.has(k)){used.add(k);ids.push(k);count++}}}
- // Prefer never-assigned work before recycling any previously assigned lead.
- // Within each assignment-count tier, reserve capacity for interrupted and recent leads.
- const tiers=[...new Set(pending.map(k=>state.jobs[k].assignments??0))].sort((a,b)=>a-b);
- for(const tier of tiers){
-  const inTier=k=>(state.jobs[k].assignments??0)===tier;
-  take(resumed.filter(inTier),Math.ceil(limit/4));take(recent.filter(inTier),Math.ceil(limit/2));take(pending.filter(inTier),limit);
-  if(ids.length>=limit)break;
+ // Reserve capacity across categories, not merely within the never-assigned tier:
+ // continuous arrivals must not permanently starve interrupted or old work.
+ if(limit===1){
+  const phase=Object.keys(state.scans).length%4;
+  if(phase===0)take(resumed,1);else if(phase===1||phase===2)take(recent,1);
+ }else{
+  take(resumed,Math.max(1,Math.floor(limit/4)));
+  take(recent,Math.min(Math.ceil(limit/2),Math.max(0,limit-ids.length-1)));
  }
+ take(backlog,limit);
  if(ids.length)emit('START_SCAN',{scan_id:scanId,ids});
  const inbox={schema,mode:'RESEARCH_ONLY',non_executable:true,scan_id:scanId,prepared_at:at,queue_revision:state.revision,eligible_pending:pending.length,assigned:ids.length,remaining:pending.length-ids.length,rows:ids.map(k=>{const j=state.jobs[k];return {id:k,chain:j.chain,contract:j.contract,first_seen:j.first_seen,last_seen:j.last_seen,attempts:j.attempts,status:j.status,checkpoint:j.checkpoint??null,discovery_sources:j.evidence.slice(-6),evidence:evidence.get(k)??[]}}),limitations:'Unranked research work assignment. Not a shortlist of recommended purchases. Verify source identity, timestamps, prices, costs and safety independently. Missing evidence remains unknown.'};
  return {state,inbox};
@@ -88,6 +93,23 @@ function selfTest(){
  const lead={id:'lead:ethereum:'+a,discovery_origin:'DOT_SUPPORT_DISCOVERY',source_url:'https://example.org/discovery',observed_at_utc:t,identities:[{chain:'ethereum',contract:a,pool:null}]};
  assert.equal(Object.keys(prepare(null,[],[lead],t,'lead',2).state.jobs).length,1);
  assert.equal(Object.keys(prepare(null,[],[{...lead,id:'asset'}],t,'asset',2).state.jobs).length,0);
+ // Sustained fresh arrivals must not starve a previously interrupted task or
+ // an older unseen backlog. Each round is a synthetic, expired reservation.
+ const start=Date.parse(t),make=(n,at)=>({chain:'ethereum',contract:'0x'+n.toString(16).padStart(40,'0'),sources:[{url:'https://example.org/discovery',retrieved_at:at}]});
+ const older=Array.from({length:12},(_,i)=>make(i+100,t));
+ let z=prepare(null,older,[],t,'fair0',1).state,interrupted=z.scans.fair0.ids[0],job=z.jobs[interrupted];
+ z=reduce(z,{type:'CLAIM',chain:job.chain,contract:job.contract,scan_id:'fair0',worker:'fixture',token:'fixture-token',lease_seconds:60,at:t,event_id:'fair-claim',expected_revision:z.revision});
+ const seen=new Set();
+ for(let round=1;round<=16;round++){
+  const at=new Date(start+round*16*60000).toISOString();
+  const newRows=Array.from({length:12},(_,i)=>make(1000+round*12+i,at));
+  const evidence=newRows.map(r=>({id:'lead:'+id(r.chain,r.contract),discovery_origin:'FIXTURE',source_url:r.sources[0].url,observed_at_utc:at,identities:[{chain:r.chain,contract:r.contract,pool:null}]}));
+  const p=prepare(z,newRows,evidence,at,'fair'+round,4);z=p.state;
+  for(const r of p.inbox.rows)seen.add(r.id);
+  if(round===1)assert.ok(p.inbox.rows.some(r=>r.id===interrupted),'Interrupted task starved by fresh leads');
+  assert.equal(p.inbox.rows.length,4);
+ }
+ assert.ok(older.every(r=>seen.has(id(r.chain,r.contract))),'Old backlog starved by sustained new leads');
  console.log('Queue ingestion fixtures passed: registry coverage, bounded inbox, source provenance, missing quote and persistence');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
