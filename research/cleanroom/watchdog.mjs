@@ -1,6 +1,7 @@
 // One command for a bounded measured GitHub run or a dedicated laptop checkout.
 import fs from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
+import {append,coverage,emptyLedger} from './collector-cadence.mjs';
 const dir='research/cleanroom/', interval=300000, continuous=process.argv.includes('--continuous'), once=process.argv.includes('--once'), publish=process.argv.includes('--publish');
 const cyclesArg=process.argv.find(x=>x.startsWith('--cycles='));
 const cycles=cyclesArg?Number(cyclesArg.slice(9)):13;
@@ -31,12 +32,17 @@ for(let i=0;i<limit;i++){
  }
  const healthPath=dir+'collector-health.json';
  const health={schema:'cleanroom.collector-health.v1',mode:'RESEARCH_ONLY',run_id:process.env.GITHUB_RUN_ID??'local-'+started,event:process.env.GITHUB_EVENT_NAME??'local',sample:i,started_at:cycle_start,finished_at:now(),status:cycleStatus,failed_cycles_in_run:failedCycles,snapshot,fresh_research_quotes:freshQuotes,steps,summary,provider_statuses,limitations:'Health is per completed cycle, not proof of continuous execution. Compare snapshot and provider timestamps with current UTC. No trade decisions.'};
+ const cadencePath=dir+'collector-cadence.json';let ledger=emptyLedger();
+ try{ledger=JSON.parse(await fs.readFile(cadencePath,'utf8'))}catch(e){if(e.code!=='ENOENT')throw e}
+ ledger=append(ledger,health);
+ health.cadence_24h=coverage(ledger,health.finished_at);
+ await fs.writeFile(cadencePath+'.tmp',JSON.stringify(ledger)+'\n');await fs.rename(cadencePath+'.tmp',cadencePath);
  await fs.writeFile(healthPath+'.tmp',JSON.stringify(health,null,2)+'\n');await fs.rename(healthPath+'.tmp',healthPath);
  const p=dir+'watchdog-checkpoints.json';let h={schema:'cleanroom.watchdog.v1',samples:[]};try{h=JSON.parse(await fs.readFile(p,'utf8'))}catch{}
  h.samples.push({run_id:process.env.GITHUB_RUN_ID??'local-'+started,sample:i,planned_at:new Date(started+i*interval).toISOString(),started_at:cycle_start,finished_at:now(),status:cycleStatus,steps,summary,source_logs});h.samples=h.samples.slice(-144);
  await fs.writeFile(p+'.tmp',JSON.stringify(h,null,2)+'\n');await fs.rename(p+'.tmp',p);
  if(publish){
-  const files=[p,healthPath];if(good)files.push(dir+'market-latest.json',dir+'evidence-latest.json',dir+'targeted-latest.json',dir+'token-registry/',dir+'candidate-pages/');
+  const files=[p,healthPath,cadencePath];if(good)files.push(dir+'market-latest.json',dir+'evidence-latest.json',dir+'targeted-latest.json',dir+'token-registry/',dir+'candidate-pages/');
   for(const args of [['add','--',...files],['commit','-m','Cleanroom watchdog checkpoint '+cycle_start],['pull','--rebase','origin','main'],['push','origin','HEAD:main']]){const r=run('git',args,60000);if(r.exit_code!==0)throw Error('GIT_STEP_FAILED '+args[0]);}
  }
  console.log(JSON.stringify({sample:i,good,summary,health:health.status,fresh_research_quotes:freshQuotes}));

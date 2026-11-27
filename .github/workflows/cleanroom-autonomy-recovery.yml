@@ -39,6 +39,8 @@ jobs:
         run: node research/cleanroom/queue-coordinator.mjs --self-test
       - name: Remote CAS and five-worker packet acceptance
         run: node research/cleanroom/queue-remote.mjs --self-test
+      - name: Collector cadence and gap detection fixtures
+        run: node research/cleanroom/collector-cadence.mjs --self-test
   isolated-collector:
     if: github.ref == 'refs/heads/codex/r31-autonomy-recovery'
     needs: offline-tests
@@ -103,6 +105,7 @@ jobs:
           name: cleanroom-isolated-evidence
           path: |
             research/cleanroom/collector-health.json
+            research/cleanroom/collector-cadence.json
             research/cleanroom/candidate-pages/index.json
             ${{ runner.temp }}/cleanroom-queue/inbox.json
           retention-days: 7
