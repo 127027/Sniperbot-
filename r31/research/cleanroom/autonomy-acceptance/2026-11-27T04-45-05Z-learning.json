@@ -1,0 +1,41 @@
+{
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "observed_at": "2026-11-27T04:45:05Z",
+  "main_run": {
+    "id": "1e9f43ad-d1c0-8325-93fe-fb34cf4f0d74",
+    "started": "2026-11-27T03:59:12.819896Z",
+    "completed": "2026-11-27T03:59:40.933412Z",
+    "finals": 1,
+    "buys": 0,
+    "checkpoint_sha": "6eeefbfc844023d602c549d2b313fbcf2810ea1a",
+    "final_sha": "1952eb11052740e13567091d0066e297a7b13af7",
+    "decision": "WATCH",
+    "reported_sighted": 19,
+    "reported_pages": 1,
+    "diagnosis_file": false
+  },
+  "support_run": {
+    "id": "e02ede1c-ebc8-8321-a5f8-09c5edf9fc38",
+    "sha": "a9d5e709f219cfedd80491a91a4d97b63bad5076",
+    "new_run": false
+  },
+  "prior_learning": [
+    "2026-11-27T02-48-08Z-learning.json",
+    "2026-11-27T03-40-06Z-learning.json"
+  ],
+  "cause": "Collector scheduling root cause and incomplete worker execution unknown. Isolated branch lacks collector implementation.",
+  "hypothesis": "Existing research branch may already contain runnable isolated collector and workflow, enabling recovery without main changes.",
+  "test": {
+    "method": "Fetch five collector modules at research branch; list both cleanroom directories and workflow directory; enumerate available workflow actions; inspect current health and recent CI.",
+    "result": "Hypothesis falsified for existing layout: all five module fetches HTTP 404 NOT_FOUND; research/cleanroom contains only overnight-learning-policy.md; r31/research/cleanroom contains reports and queues; workflows only r31-android-device.yml, r31-android.yml, r31-paper-check.yml. No dispatch action exposed. Recursive tree request HTTP 400 invalid repository path. No isolated execution attempted. Main health run 45920764204 successful, snapshot 2026-11-27T01:08:06.494Z, age 13018.506 seconds, registry 5563. Latest 30 CI results show no newer collector.",
+    "patch": null,
+    "tests": "Read-only structural diagnosis; no executable collector test or deployment."
+  },
+  "prompt_changed": false,
+  "next_test": {
+    "scheduled": "2026-11-27T05:00:00Z",
+    "acceptance": "More than three persisted finals, beyond entry page, separate diagnosis, quote age <=900s for BUY. Next supervisory experiment: evaluate portable collector module staging and offline self-test feasibility in isolated environment; no main writes, no untested deployment."
+  },
+  "matured_cohorts": 0
+}
