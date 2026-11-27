@@ -29,7 +29,25 @@ function write(file,data){fs.writeFileSync(file,JSON.stringify(data,null,2)+'\n'
 function fresh(h,idx,runId,started,at){
  return h?.schema==='cleanroom.collector-health.v1'&&h.mode==='RESEARCH_ONLY'&&h.run_id===runId&&h.status==='OK'&&time(h.started_at)>=time(started)&&time(h.finished_at)>=time(h.started_at)&&time(h.finished_at)<=time(at)&&h.snapshot===idx?.snapshot&&Number.isInteger(h.fresh_research_quotes)&&h.fresh_research_quotes>0&&Number.isFinite(time(h.snapshot))&&time(h.snapshot)<=time(at)&&time(at)-time(h.snapshot)<=300000;
 }
+// Data history and executable revision are deliberately independent. Copy only
+// the pinned, allowlisted runtime bytes into the disposable data worktree.
+// Do not stage these files on the data branch.
+const runtimeFiles=['watchdog.mjs','market-probe.mjs','evidence.mjs','targeted.mjs','token-registry.mjs','collector-cadence.mjs'];
+function overlayRuntime(repo,work,sourceCommit){
+ if(!sha(sourceCommit))throw Error('COLLECTOR_RUNTIME_COMMIT_INVALID');
+ const blobs={};
+ for(const f of runtimeFiles){
+  const rel=dir+f,expected=git(repo,['rev-parse',sourceCommit+':'+rel]);
+  if(!sha(expected)||git(repo,['hash-object',rel])!==expected)throw Error('COLLECTOR_RUNTIME_DIRTY:'+rel);
+  fs.copyFileSync(path.join(repo,rel),path.join(work,rel));
+  if(git(work,['hash-object',rel])!==expected)throw Error('COLLECTOR_RUNTIME_COPY_MISMATCH:'+rel);
+  blobs[rel]=expected;
+ }
+ return blobs;
+}
+
 async function cycle(repo,sequence){
+ const sourceCommit=git(repo,['rev-parse','HEAD']);
  const expected=remoteHead(repo);
  if(expected){git(repo,['fetch','--no-tags','origin',ref]);if(git(repo,['rev-parse','FETCH_HEAD'])!==expected)throw Error('COLLECTOR_REMOTE_CHANGED_DURING_FETCH')}
  const base=expected??git(repo,['rev-parse','HEAD']);if(!sha(base))throw Error('COLLECTOR_BASE_INVALID');
@@ -37,6 +55,7 @@ async function cycle(repo,sequence){
  let added=false;
  try{
   git(repo,['worktree','add','--detach',work,base]);added=true;
+  const runtimeBlobs=overlayRuntime(repo,work,sourceCommit);
   const p=x=>path.join(work,x),previous=fs.existsSync(p(ledgerPath))?json(p(ledgerPath)):emptyLedger();
   const started=now(),runId='service-'+(process.env.GITHUB_RUN_ID??'local')+'-'+(process.env.GITHUB_RUN_ATTEMPT??'0')+'-'+Date.now()+'-'+sequence;
   const r=spawnSync(process.execPath,[dir+'watchdog.mjs','--once'],{cwd:work,stdio:'inherit',timeout:900000,env:{...process.env,GITHUB_RUN_ID:runId,GITHUB_EVENT_NAME:process.env.GITHUB_EVENT_NAME??'local-service'}});
@@ -53,7 +72,7 @@ async function cycle(repo,sequence){
    h={schema:'cleanroom.collector-health.v1',mode:'RESEARCH_ONLY',run_id:runId,event:process.env.GITHUB_EVENT_NAME??'local-service',sample:0,started_at:started,finished_at:now(),status:'FAILED',snapshot:null,fresh_research_quotes:0,steps:[],service_error:error};
    const ledger=append(previous,h);h.cadence_24h=coverage(ledger,h.finished_at);write(p(ledgerPath),ledger);write(p(healthPath),h);
   }
-  const status={schema:'cleanroom.collector-service.v1',mode:'RESEARCH_ONLY',non_executable:true,status:ok?'OK':'FAILED',run_id:runId,github_run_id:process.env.GITHUB_RUN_ID??null,base_commit:base,started_at:started,finished_at:now(),snapshot:ok?h.snapshot:null,fresh_research_quotes:ok?h.fresh_research_quotes:0,error,cadence_24h:h.cadence_24h,limitations:'Separate research-only data branch; no execution quotes guaranteed and no 24/7 claim until cadence passes.'};
+  const status={schema:'cleanroom.collector-service.v1',mode:'RESEARCH_ONLY',non_executable:true,status:ok?'OK':'FAILED',run_id:runId,github_run_id:process.env.GITHUB_RUN_ID??null,base_commit:base,runtime_commit:sourceCommit,runtime_blobs:runtimeBlobs,started_at:started,finished_at:now(),snapshot:ok?h.snapshot:null,fresh_research_quotes:ok?h.fresh_research_quotes:0,error,cadence_24h:h.cadence_24h,limitations:'Separate research-only data branch; no execution quotes guaranteed and no 24/7 claim until cadence passes.'};
   write(p(statusPath),status);
   const files=[healthPath,ledgerPath,statusPath,...(ok?dataPaths:[])];
   git(work,['add','--',...files]);
@@ -82,7 +101,19 @@ function selfTest(){
  assert.ok(!fresh(h,{snapshot:t},'fixture',t,u));
  assert.ok(!fresh({...h,fresh_research_quotes:0},{snapshot:u},'fixture',t,u));
  assert.equal(ref,'refs/heads/cleanroom-collector-r31-pilot-v1');
- console.log('Collector service fixtures passed: identity, freshness, failed cycle, scope, no main publishing');
+ const fixture=fs.mkdtempSync(path.join(os.tmpdir(),'r31-runtime-fixture-'));
+ try{
+  const src=path.join(fixture,'source'),dst=path.join(fixture,'old-data');
+  fs.mkdirSync(path.join(src,dir),{recursive:true});fs.mkdirSync(path.join(dst,dir),{recursive:true});
+  git(src,['init','-q']);git(dst,['init','-q']);
+  for(const f of runtimeFiles){fs.writeFileSync(path.join(src,dir,f),'new runtime '+f+'\n');fs.writeFileSync(path.join(dst,dir,f),'old runtime '+f+'\n')}
+  git(src,['add','--',dir]);git(src,['commit','-qm','fixture runtime']);
+  const pin=git(src,['rev-parse','HEAD']),blobs=overlayRuntime(src,dst,pin);
+  for(const f of runtimeFiles){assert.equal(fs.readFileSync(path.join(dst,dir,f),'utf8'),'new runtime '+f+'\n');assert.equal(git(dst,['hash-object',dir+f]),blobs[dir+f])}
+  fs.writeFileSync(path.join(src,dir,runtimeFiles[0]),'uncommitted patch');
+  assert.throws(()=>overlayRuntime(src,dst,pin),/COLLECTOR_RUNTIME_DIRTY/);
+ }finally{fs.rmSync(fixture,{recursive:true,force:true})}
+ console.log('Collector service fixtures passed: identity, freshness, failed cycle, scope, pinned runtime replaces stale data-branch code, rejects dirty runtime');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  const args=process.argv.slice(2);

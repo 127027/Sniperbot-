@@ -2,11 +2,12 @@ name: R31 hourly report validation
 on:
   push:
     branches: ['codex/r31-autonomy-recovery']
-    paths: ['research/cleanroom/hourly-report.mjs','.github/workflows/cleanroom-hourly-report.yml','r31/research/cleanroom/hourly-retest/**']
+    paths: ['research/cleanroom/hourly-report.mjs','research/cleanroom/hourly-inventory.mjs','.github/workflows/cleanroom-hourly-report.yml','r31/research/cleanroom/hourly-retest/**']
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  validate:
+  regression-fixtures:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,12 +15,13 @@ jobs:
         with:
           node-version: '22'
       - run: node research/cleanroom/hourly-report.mjs --self-test
-      - name: Validate actual reports without counting fixtures
-        run: |
-          shopt -s nullglob
-          files=(r31/research/cleanroom/hourly-retest/2026-11-27T09-00Z-*-report.json)
-          if (( ${#files[@]} )); then
-            node research/cleanroom/hourly-report.mjs "${files[@]}"
-          else
-            echo 'NO_WORKER_REPORTS_YET'
-          fi
+      - run: node research/cleanroom/hourly-inventory.mjs --self-test
+  actual-report-inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Inventory expected workers; not a research acceptance
+        run: node research/cleanroom/hourly-inventory.mjs r31/research/cleanroom/hourly-retest 2026-11-27T09:00:00Z
