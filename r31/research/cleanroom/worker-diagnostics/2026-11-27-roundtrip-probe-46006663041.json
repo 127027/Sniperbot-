@@ -1,0 +1,250 @@
+{
+  "workflow_run": 46006663041,
+  "job": 140531417395,
+  "commit": "ef39614fb726bca3c006cb4df6c3159667e96ee8",
+  "probe": {
+    "schema": "r31.readonly-roundtrip-probe.v1",
+    "mode": "RESEARCH_ONLY",
+    "non_executable": true,
+    "fx": {
+      "receipt": {
+        "url": "https://api.kraken.com/0/public/Ticker?pair=USDCEUR",
+        "started_at": "2026-11-27T13:23:23.194Z",
+        "finished_at": "2026-11-27T13:23:23.529Z",
+        "http_status": 200,
+        "response_sha256": "06c3b40d17b9600d2ea8995ef7a4a6d9ef62c6057deccaa1c0440e9b84130ab8",
+        "error": null
+      },
+      "eur_per_usdc": 0.9134,
+      "provider_quote_time": null
+    },
+    "results": [
+      {
+        "chain": "solana",
+        "contract": "5DQSDg6SGkbsbykq4mQstpcL4d5raEHc6rY7LgBwpump",
+        "label": "LOU",
+        "stake_target_eur": 50,
+        "settlement_token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "mode": "RESEARCH_ONLY",
+        "non_executable": true,
+        "status": "INDICATIVE_ROUNDTRIP_ONLY",
+        "entry": {
+          "receipt": {
+            "url": "https://api.jup.ag/swap/v1/quote?inputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&outputMint=5DQSDg6SGkbsbykq4mQstpcL4d5raEHc6rY7LgBwpump&amount=54740529&slippageBps=50",
+            "started_at": "2026-11-27T13:23:23.529Z",
+            "finished_at": "2026-11-27T13:23:23.708Z",
+            "http_status": 200,
+            "response_sha256": "42ebc9c6aa500c44490d0997a9d9a97bed1740ae136e9bb73688499cf4fb0bef",
+            "error": null
+          },
+          "quote": {
+            "amount_in": "54740529",
+            "amount_out": "1440242449668",
+            "gas_usd": null,
+            "price_impact_pct": 0.004603918933483107,
+            "slippage_bps": 50
+          },
+          "error": null
+        },
+        "exit": {
+          "receipt": {
+            "url": "https://api.jup.ag/swap/v1/quote?inputMint=5DQSDg6SGkbsbykq4mQstpcL4d5raEHc6rY7LgBwpump&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=1440242449668&slippageBps=50",
+            "started_at": "2026-11-27T13:23:23.709Z",
+            "finished_at": "2026-11-27T13:23:23.754Z",
+            "http_status": 200,
+            "response_sha256": "926e2425fd985176310591d76254ba3b87723208041a4d19075743633154f00f",
+            "error": null
+          },
+          "quote": {
+            "amount_in": "1440242449668",
+            "amount_out": "54149092",
+            "gas_usd": null,
+            "price_impact_pct": 0.006229130770945729,
+            "slippage_bps": 50
+          },
+          "error": null
+        },
+        "reference_input_eur": 49.9999991886,
+        "reference_output_eur": 49.459780632800005,
+        "roundtrip_difference_eur": 0.5402185557999957,
+        "complete_costs": false,
+        "gas_eur": null,
+        "dex_fee_pct": null,
+        "buy_tax_pct": null,
+        "sell_tax_pct": null,
+        "actual_sellability_verified": false,
+        "qualified_buys": 0
+      },
+      {
+        "chain": "optimism",
+        "contract": "0x2598c30330d5771ae9f983979209486ae26de875",
+        "label": "AI label unverified",
+        "stake_target_eur": 50,
+        "settlement_token": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+        "mode": "RESEARCH_ONLY",
+        "non_executable": true,
+        "status": "INDICATIVE_ROUNDTRIP_ONLY",
+        "entry": {
+          "receipt": {
+            "url": "https://aggregator-api.kyberswap.com/optimism/api/v1/routes?tokenIn=0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85&tokenOut=0x2598c30330d5771ae9f983979209486ae26de875&amountIn=54740529&gasInclude=true",
+            "started_at": "2026-11-27T13:23:23.754Z",
+            "finished_at": "2026-11-27T13:23:24.065Z",
+            "http_status": 200,
+            "response_sha256": "eed7061ff59f93aab7db4464cb2a18dc624e67ab43fcba47c963d663627976be",
+            "error": null
+          },
+          "quote": {
+            "amount_in": "54740529",
+            "amount_out": "75374679237301837706035200",
+            "gas_usd": 0.00210804318042314,
+            "price_impact_pct": null,
+            "slippage_bps": null
+          },
+          "error": null
+        },
+        "exit": {
+          "receipt": {
+            "url": "https://aggregator-api.kyberswap.com/optimism/api/v1/routes?tokenIn=0x2598c30330d5771ae9f983979209486ae26de875&tokenOut=0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85&amountIn=75374679237301837706035200&gasInclude=true",
+            "started_at": "2026-11-27T13:23:24.065Z",
+            "finished_at": "2026-11-27T13:23:24.298Z",
+            "http_status": 200,
+            "response_sha256": "773f6937cad1ba419c397848b7d45b36260774fd68a113d845db0dbac9506a5d",
+            "error": null
+          },
+          "quote": {
+            "amount_in": "75374679237301837706035200",
+            "amount_out": "51234689",
+            "gas_usd": 0.001867187058087863,
+            "price_impact_pct": null,
+            "slippage_bps": null
+          },
+          "error": null
+        },
+        "reference_input_eur": 49.9999991886,
+        "reference_output_eur": 46.7977649326,
+        "roundtrip_difference_eur": 3.202234255999997,
+        "complete_costs": false,
+        "gas_eur": null,
+        "dex_fee_pct": null,
+        "buy_tax_pct": null,
+        "sell_tax_pct": null,
+        "actual_sellability_verified": false,
+        "qualified_buys": 0
+      },
+      {
+        "chain": "base",
+        "contract": "0xb166e8b140d35d9d8226e40c09f757bac5a4d87d",
+        "label": "NPC",
+        "stake_target_eur": 50,
+        "settlement_token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "mode": "RESEARCH_ONLY",
+        "non_executable": true,
+        "status": "INDICATIVE_ROUNDTRIP_ONLY",
+        "entry": {
+          "receipt": {
+            "url": "https://aggregator-api.kyberswap.com/base/api/v1/routes?tokenIn=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913&tokenOut=0xb166e8b140d35d9d8226e40c09f757bac5a4d87d&amountIn=54740529&gasInclude=true",
+            "started_at": "2026-11-27T13:23:24.298Z",
+            "finished_at": "2026-11-27T13:23:24.415Z",
+            "http_status": 200,
+            "response_sha256": "653806929f2a9156089fd2f390e7ae0fdb2abbd21b638610e2469253e9e46fd1",
+            "error": null
+          },
+          "quote": {
+            "amount_in": "54740529",
+            "amount_out": "5064699198782746656768",
+            "gas_usd": 0.006528490709932836,
+            "price_impact_pct": null,
+            "slippage_bps": null
+          },
+          "error": null
+        },
+        "exit": {
+          "receipt": {
+            "url": "https://aggregator-api.kyberswap.com/base/api/v1/routes?tokenIn=0xb166e8b140d35d9d8226e40c09f757bac5a4d87d&tokenOut=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913&amountIn=5064699198782746656768&gasInclude=true",
+            "started_at": "2026-11-27T13:23:24.415Z",
+            "finished_at": "2026-11-27T13:23:24.513Z",
+            "http_status": 200,
+            "response_sha256": "17e9e4af83356a1be2263d5d1d654e795a3d9ed30744c48bca2cf1477c4f6146",
+            "error": null
+          },
+          "quote": {
+            "amount_in": "5064699198782746656768",
+            "amount_out": "54393912",
+            "gas_usd": 0.004393690133896038,
+            "price_impact_pct": null,
+            "slippage_bps": null
+          },
+          "error": null
+        },
+        "reference_input_eur": 49.9999991886,
+        "reference_output_eur": 49.6833992208,
+        "roundtrip_difference_eur": 0.316599967800002,
+        "complete_costs": false,
+        "gas_eur": null,
+        "dex_fee_pct": null,
+        "buy_tax_pct": null,
+        "sell_tax_pct": null,
+        "actual_sellability_verified": false,
+        "qualified_buys": 0
+      },
+      {
+        "chain": "solana",
+        "contract": "63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9",
+        "label": "GIGA label unverified",
+        "stake_target_eur": 50,
+        "settlement_token": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "mode": "RESEARCH_ONLY",
+        "non_executable": true,
+        "status": "INDICATIVE_ROUNDTRIP_ONLY",
+        "entry": {
+          "receipt": {
+            "url": "https://api.jup.ag/swap/v1/quote?inputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&outputMint=63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9&amount=54740529&slippageBps=50",
+            "started_at": "2026-11-27T13:23:24.513Z",
+            "finished_at": "2026-11-27T13:23:24.560Z",
+            "http_status": 200,
+            "response_sha256": "a899286b472475c798c294a87d41c70f8026a5b529b19011d4dcf65797665a8e",
+            "error": null
+          },
+          "quote": {
+            "amount_in": "54740529",
+            "amount_out": "3959757865",
+            "gas_usd": null,
+            "price_impact_pct": 0.004996433484645575,
+            "slippage_bps": 50
+          },
+          "error": null
+        },
+        "exit": {
+          "receipt": {
+            "url": "https://api.jup.ag/swap/v1/quote?inputMint=63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=3959757865&slippageBps=50",
+            "started_at": "2026-11-27T13:23:24.560Z",
+            "finished_at": "2026-11-27T13:23:24.608Z",
+            "http_status": 200,
+            "response_sha256": "b922d30c5efa741b2a149ed492819220378dc5dbaf8768f65289c709b2c5ad26",
+            "error": null
+          },
+          "quote": {
+            "amount_in": "3959757865",
+            "amount_out": "54455942",
+            "gas_usd": null,
+            "price_impact_pct": 0.00020341828163487484,
+            "slippage_bps": 50
+          },
+          "error": null
+        },
+        "reference_input_eur": 49.9999991886,
+        "reference_output_eur": 49.7400574228,
+        "roundtrip_difference_eur": 0.2599417658000007,
+        "complete_costs": false,
+        "gas_eur": null,
+        "dex_fee_pct": null,
+        "buy_tax_pct": null,
+        "sell_tax_pct": null,
+        "actual_sellability_verified": false,
+        "qualified_buys": 0
+      }
+    ],
+    "qualified_buys": 0,
+    "limitations": "Reference conversion uses last USDC/EUR ticker price, unknown trade timestamp. Two independent sequential route quotes, not a stateful simulated swap. Route difference is not complete costs; gas, taxes, approvals, actual sellability and execution remain unverified. No transaction built or submitted."
+  }
+}
