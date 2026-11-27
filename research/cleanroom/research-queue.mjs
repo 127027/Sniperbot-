@@ -10,7 +10,7 @@ const time=t=>{const n=Date.parse(t);if(!Number.isFinite(n))throw Error('INVALID
 const iso=t=>new Date(time(t)).toISOString();
 const activeReservation=(j,ms)=>j.reservation&&time(j.reservation.expires_at)>ms;
 function eligible(j,ms){
- if(j.status==='RESEARCHING')return time(j.lease.expires_at)<=ms;
+ if(j.status==='RESEARCHING')return time(j.lease.expires_at)<=ms&&(!activeReservation(j,ms)||j.reservation.scan_id===j.lease.scan_id);
  return !activeReservation(j,ms)&&(j.status==='QUEUED'||j.status==='RETRY'&&time(j.retry_at)<=ms);
 }
 function key(chain,contract){
