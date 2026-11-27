@@ -8,10 +8,11 @@ import {spawnSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 import {append,coverage,emptyLedger} from './collector-cadence.mjs';
 import {readInputs} from './queue-ingest.mjs';
+import {packets} from './worker-lifecycle.mjs';
 const ref='refs/heads/cleanroom-collector-r31-pilot-v1';
 const dir='research/cleanroom/',interval=300000;
 const healthPath=dir+'collector-health.json',ledgerPath=dir+'collector-cadence.json',statusPath=dir+'collector-service-status.json';
-const dataPaths=[dir+'market-latest.json',dir+'evidence-latest.json',dir+'targeted-latest.json',dir+'token-registry/',dir+'candidate-pages/',dir+'watchdog-checkpoints.json'];
+const dataPaths=[dir+'market-latest.json',dir+'evidence-latest.json',dir+'targeted-latest.json',dir+'token-registry/',dir+'candidate-pages/',dir+'watchdog-checkpoints.json',dir+'worker-packets/'];
 const sha=x=>typeof x==='string'&&/^[0-9a-f]{40}$/.test(x);
 const now=()=>new Date().toISOString(),time=x=>Date.parse(x);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -65,6 +66,9 @@ async function cycle(repo,sequence){
    h=json(p(healthPath));const idx=json(p(dir+'candidate-pages/index.json'));
    if(!fresh(h,idx,runId,started,now()))throw Error('COLLECTOR_POSTCHECK_FAILED');
    const inputs=await readInputs(p(dir));if(inputs.snapshot!==h.snapshot)throw Error('COLLECTOR_INPUT_MISMATCH');
+   const compact=packets(inputs,h,sourceCommit);
+   fs.mkdirSync(p(dir+'worker-packets'),{recursive:true});
+   for(const [worker,packet] of Object.entries(compact))write(p(dir+'worker-packets/'+worker+'.json'),packet);
    ok=true;
   }catch(e){error=String(e.message).slice(0,500)}
   if(!ok){

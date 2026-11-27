@@ -4,6 +4,7 @@ on:
     branches: ['codex/r31-autonomy-recovery']
     paths:
       - 'research/cleanroom/collector-service.mjs'
+      - 'research/cleanroom/worker-lifecycle.mjs'
       - 'docs/R31_HOURLY_WORKER_ACCEPTANCE.md'
       - '.github/workflows/cleanroom-collector-service.yml'
   workflow_dispatch:
@@ -27,6 +28,7 @@ jobs:
       - name: Verify collector service guards
         run: |
           node research/cleanroom/collector-service.mjs --self-test
+          node research/cleanroom/worker-lifecycle.mjs --self-test
           node research/cleanroom/collector-cadence.mjs --self-test
       - name: Publish one measured research-only cycle
         run: node research/cleanroom/collector-service.mjs --once

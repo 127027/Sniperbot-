@@ -1,0 +1,18 @@
+name: R31 worker lifecycle diagnostics
+on:
+  push:
+    branches: ['codex/r31-autonomy-recovery']
+    paths: ['research/cleanroom/worker-lifecycle.mjs','.github/workflows/cleanroom-worker-lifecycle.yml','r31/research/cleanroom/worker-diagnostics/**']
+permissions:
+  contents: read
+jobs:
+  diagnostics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node research/cleanroom/worker-lifecycle.mjs --self-test
+      - name: Classify actual recorded terminal runs (controller observation)
+        run: node research/cleanroom/worker-lifecycle.mjs r31/research/cleanroom/worker-diagnostics/2026-11-27T09-12Z-observations.json
