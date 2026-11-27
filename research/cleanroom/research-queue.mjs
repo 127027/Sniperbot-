@@ -22,7 +22,7 @@ export function reduce(input,action){
  if(action.expected_revision!==q.revision)throw Error('REVISION_CONFLICT');
  if(q.events.length&&ms<time(q.events.at(-1).at))throw Error('NON_MONOTONIC_EVENT_TIME');
  const job=()=>{const j=q.jobs[key(action.chain,action.contract)];if(!j)throw Error('UNKNOWN_JOB');return j};
- const owned=()=>{const j=job();if(j.status!=='RESEARCHING'||j.lease?.worker!==action.worker||j.lease?.token!==action.token||time(j.lease.expires_at)<=ms)throw Error('LEASE_INVALID');return j};
+ const owned=()=>{const j=job();if(j.status!=='RESEARCHING'||j.lease?.worker!==action.worker||j.lease?.token!==action.token||time(j.lease.expires_at)<=ms||q.scans[j.lease.scan_id]?.status!=='OPEN')throw Error('LEASE_INVALID');return j};
  switch(action.type){
  case 'ENQUEUE': {
   if(!Array.isArray(action.rows))throw Error('ROWS_REQUIRED');
@@ -38,8 +38,8 @@ export function reduce(input,action){
   }break;
  }
  case 'START_SCAN': {
-  const s=action.scan_id;if(typeof s!=='string'||!s||Object.hasOwn(q.scans,s))throw Error('INVALID_SCAN');
-  const ids=[...new Set(action.ids??[])];if(ids.some(id=>!Object.hasOwn(q.jobs,id)))throw Error('UNKNOWN_SCAN_JOB');
+  const s=action.scan_id;if(typeof s!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,100}$/.test(s)||Object.hasOwn(q.scans,s))throw Error('INVALID_SCAN');
+  if(!Array.isArray(action.ids)||!action.ids.length)throw Error('SCAN_IDS_REQUIRED');const ids=[...new Set(action.ids)];if(ids.some(id=>!Object.hasOwn(q.jobs,id)))throw Error('UNKNOWN_SCAN_JOB');
   q.scans[s]={started_at:at,ids,status:'OPEN'};break;
  }
  case 'CLAIM':{
@@ -81,7 +81,9 @@ export function reduce(input,action){
   if(typeof action.diagnosis_artifact!=='string'||!action.diagnosis_artifact||!/^[0-9a-f]{40}$/.test(action.diagnosis_sha??'')||action.readback_verified!==true)throw Error('DIAGNOSIS_NOT_VERIFIED');
   const results=s.ids.map(id=>q.jobs[id].history.findLast(h=>h.scan_id===action.scan_id));
   s.completed=results.filter(Boolean).length;s.buy_count=results.filter(h=>h?.decision==='PAPER_BUY').length;
-  s.unfinished=s.ids.filter((id,i)=>!results[i]);s.status=s.unfinished.length?'INCOMPLETE':'COMPLETE';s.closed_at=at;s.diagnosis_artifact=action.diagnosis_artifact;s.diagnosis_sha=action.diagnosis_sha;break;
+  s.unfinished=s.ids.filter((id,i)=>!results[i]);
+  for(const id of s.unfinished){const j=q.jobs[id];if(j.lease?.scan_id===action.scan_id){j.status='QUEUED';delete j.lease;}}
+  s.status=s.unfinished.length?'INCOMPLETE':'COMPLETE';s.closed_at=at;s.diagnosis_artifact=action.diagnosis_artifact;s.diagnosis_sha=action.diagnosis_sha;break;
  }
  default:throw Error('UNKNOWN_ACTION');
  }
@@ -113,6 +115,7 @@ function selfTest(){
  assert.equal(q.scans.scan1.status,'INCOMPLETE');assert.equal(q.scans.scan1.buy_count,0);assert.equal(q.scans.scan1.unfinished.length,1);
  apply('REOPEN',{...identity,reason:'new evidence',evidence_at:'2026-11-27T07:01:03Z'},'2026-11-27T07:01:03Z');
  assert.equal(q.jobs[id].status,'QUEUED');assert.equal(q.jobs[id].history.length,1);
+ assert.throws(()=>reduce(q,evt('CLAIM',{...lease,token:'new'},'2026-11-27T07:01:04Z')),/JOB_NOT_IN_OPEN_SCAN/);
  console.log('Queue fixtures passed: identity deduplication, CAS revision, event replay, competing claims, expired lease recovery, checkpoint persistence, stale/wrong-contract BUY rejection, incomplete scan, reopening');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
