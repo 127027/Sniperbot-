@@ -14,3 +14,9 @@ Read docs/SNIPERBOT_MASTER.md first. This file is operational state, not another
 3. Read latest support and main reports, compare exact IDs and source receipts; broad new-pool result actual counts and source errors; no fixture as live. Check fresh entry/exit rationale, ranked top10 or explicit shortfall.
 4. Patch first reproducible P0, test, store immutable hourly-control journal and update this file. No claims of autonomy until 24h/7d cadence and actual paper handoff.
 5. Manual restart requests/results recorded separately below or in dated journal; never count inline chat run as autonomous.
+
+## Verified follow-up before 09:00 MEZ
+- All four active tasks independently re-read; each prompt references MASTER; next scheduled slots 09:00 market, 09:15 discovery, 09:42 controller, 20:00 audit. No new autonomous worker completion since baseline.
+- Recovery collector run 46122727257 in progress at check; first measured cycle OK, snapshot 07:46:47.390Z, 74 fresh research quotes, 11 successful samples but 7 gaps >15min; cadence remains unverified. Do not duplicate while running.
+- New-pool broad workflow 46121636317 now completed success at 07:48:22Z; actual live discovery counts and receipts still require artifact inspection. Do not equate workflow success with global coverage or BUYs.
+- Paper pointer remains sequence 8, blob 84be36eca36f5cb340d89b80c65fb67e2db931d1; no new hourly publication proven. Next check follow above procedure. No automation changes or orders during this verification.
