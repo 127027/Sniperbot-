@@ -1,0 +1,2 @@
+# R32 collector handoff
+Each market-data.json snapshot records exact Git blob IDs of the four input feeds in input_blobs, plus actual failed calls and missing execution evidence. Consumers must record market-data blob read, compare input versions and report mismatch, not claim all data consumed. Push/manual collector trigger remains; GitHub scheduled workflows on non-default branches are not assumed to run. No real orders.
