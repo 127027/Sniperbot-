@@ -1,0 +1,2 @@
+# R32 watch retention
+The read-only collector retains exact candidate identities and original observation timestamps for up to 24 hours across feed overwrites, with a 500 identity storage cap and 60 per-run request cap. Newest observations have priority. Retained identity is not fresh research, and a new HTTP retrieval is not provider quote time or an executable quote. Old identities expire; no automatic BUY permission. Counts and remaining capacity are recorded. Current runner remains unchanged and will not use older leads for entries.
