@@ -25,7 +25,17 @@ export function extract(j, src) {
     return j.data.flatMap(p => {
       const id = p.relationships?.base_token?.data?.id;
       const address = typeof id === 'string' && id.startsWith('solana_') ? id.slice(7) : null;
-      return valid(address) ? [{address,source:src.url,kind:src.kind}] : [];
+      const a=p.attributes??{}, pool=a.address??(typeof p.id==='string'&&p.id.startsWith('solana_')?p.id.slice(7):null);
+      const price=numeric(a.base_token_price_usd), liquidity=numeric(a.reserve_in_usd);
+      const market=typeof pool==='string'&&MINT.test(pool)&&price>0&&liquidity!==null&&liquidity>=0?{
+        symbol:null,pool,price_usd:price,liquidity_usd:liquidity,volume_1h_usd:numeric(a.volume_usd?.h1),
+        change_5m_pct:numeric(a.price_change_percentage?.m5),change_1h_pct:numeric(a.price_change_percentage?.h1),
+        buys_5m:numeric(a.transactions?.m5?.buys),sells_5m:numeric(a.transactions?.m5?.sells),
+        pair_created_at:Number.isFinite(Date.parse(a.pool_created_at))?Date.parse(a.pool_created_at):null,
+        provider_quote_time:null,risk:'UNKNOWN',sellability:'UNKNOWN',status:'INDICATIVE_NOT_EXECUTABLE',
+        market_source:src.url
+      }:null;
+      return valid(address) ? [{address,source:src.url,kind:src.kind,...(market?{market}:{})}] : [];
     });
   }
   if (!Array.isArray(j)) throw Error('INVALID_PROFILE_RESPONSE');
@@ -35,6 +45,7 @@ export function extract(j, src) {
 export function upsert(universe, x, now) {
   if (!valid(x.address)) return;
   const old = universe.get(x.address);
+  const seed=x.market&&(!old?.market||now-(old.last_refresh??0)>300000||old.market.liquidity_usd==null)&&(!old?.market?.pool||old.market.pool===x.market.pool||now-(old.last_refresh??0)>300000);
   universe.set(x.address, {
     ...old, chain:'solana', address:x.address,
     first_seen:old?.first_seen ?? now, last_seen:now,
@@ -42,7 +53,8 @@ export function upsert(universe, x, now) {
     sources:[...new Set([...(old?.sources??[]),x.source])],
     discovery_kinds:[...new Set([...(old?.discovery_kinds??[]),x.kind])],
     promoted:old?.promoted===true || x.kind==='boost',
-    meme_status:'UNVERIFIED'
+    meme_status:'UNVERIFIED',
+    ...(seed?{market:{...x.market,retrieved_at:new Date(now).toISOString()},last_refresh:now,last_error:undefined}:{})
   });
 }
 export function prune(universe, now, limit=LIMIT) {
@@ -73,6 +85,7 @@ export class Scanner {
   constructor({fetcher=fetch,clock=Date.now,universe=new Map(),backoff={}}={}) {
     this.fetcher=fetcher; this.clock=clock; this.universe=universe; this.backoff=backoff;
     this.errors=[]; this.receipts=[]; this.busy=false;
+    this.batchBudget=10; this.maxBatchBudget=50;
   }
   async request(url) {
     const host=new URL(url).hostname, now=this.clock();
@@ -99,28 +112,44 @@ export class Scanner {
         } catch(e) {this.errors.push({url:src.url,error:String(e.message)});}
       }
       prune(this.universe,this.clock());
-      const batch=nextBatch(this.universe,60,this.clock());
+      const cycleStarted=this.clock();
+      const batch=nextBatch(this.universe,this.batchBudget*30,this.clock());
+      let failed=false, attempted=0;
       for(let i=0;i<batch.length;i+=30) {
         const group=batch.slice(i,i+30);
         const url=ds+'tokens/v1/solana/'+group.map(c=>c.address).join(',');
         // A backoff skip does not count as an attempted refresh.
-        if((this.backoff['api.dexscreener.com']??0)>this.clock()) break;
+        if((this.backoff['api.dexscreener.com']??0)>this.clock() || this.clock()-cycleStarted>=50000) break;
+        attempted++;
         for(const c of group) c.last_attempt=this.clock();
         try {
           const pairs=await this.request(url);
           if(!Array.isArray(pairs)) throw Error('INVALID_PAIRS_RESPONSE');
           for(const c of group) {
             const at=this.clock(), row=normalize(c.address,pairs,at);
-            if(row) { c.market=row;c.last_refresh=at;delete c.last_error; }
-            else c.last_error='NO_EXACT_BASE_POOL';
+            if(row) {
+              // A null DEX liquidity reading is not a zero and must not erase
+              // a fresh observation of the same pool. Preserve the complete
+              // original snapshot (including its timestamp), not a mixed row.
+              const keep=row.liquidity_usd===null&&c.market?.pool===row.pool&&
+                c.market.liquidity_usd!==null&&c.market.liquidity_usd!==undefined&&
+                at-c.last_refresh<=300000;
+              if(!keep){c.market=row;c.last_refresh=at;}
+              delete c.last_error;
+            }
+            else if(!(c.market?.market_source?.includes('geckoterminal')&&at-c.last_refresh<=300000))
+              c.last_error='NO_EXACT_BASE_POOL';
           }
           this.receipts.push({url,at:new Date(this.clock()).toISOString(),requested:group.length,
             matched:group.filter(c=>!c.last_error).length});
         } catch(e) {
+          failed=true;
           for(const c of group) c.last_error=String(e.message);
           this.errors.push({url,error:String(e.message)});
         }
       }
+      if(failed || (this.backoff['api.dexscreener.com']??0)>this.clock() || this.clock()-cycleStarted>=50000) this.batchBudget=Math.max(2,Math.floor(this.batchBudget/2));
+      else if(attempted===this.batchBudget) this.batchBudget=Math.min(this.maxBatchBudget,this.batchBudget+5);
       return this.snapshot();
     } finally {this.busy=false;}
   }
@@ -131,6 +160,7 @@ export class Scanner {
     return {mode:'PAPER_ONLY',scope:'SOLANA_DISCOVERY_PILOT',ts:Math.floor(now/1000),
       candidates:entries,backoff:this.backoff,errors:this.errors,receipts:this.receipts,
       coverage:{identities:entries.length,fresh_market:entries.filter(c=>!c.market_stale).length},
+      refresh_budget:{addresses_per_cycle:this.batchBudget*30,max_addresses_per_cycle:this.maxBatchBudget*30},
       status:'OBSERVATION_ONLY'};
   }
 }
