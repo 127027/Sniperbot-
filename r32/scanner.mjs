@@ -25,7 +25,17 @@ export function extract(j, src) {
     return j.data.flatMap(p => {
       const id = p.relationships?.base_token?.data?.id;
       const address = typeof id === 'string' && id.startsWith('solana_') ? id.slice(7) : null;
-      return valid(address) ? [{address,source:src.url,kind:src.kind}] : [];
+      const a=p.attributes??{}, pool=a.address??(typeof p.id==='string'&&p.id.startsWith('solana_')?p.id.slice(7):null);
+      const price=numeric(a.base_token_price_usd), liquidity=numeric(a.reserve_in_usd);
+      const market=typeof pool==='string'&&MINT.test(pool)&&price>0&&liquidity!==null&&liquidity>=0?{
+        symbol:null,pool,price_usd:price,liquidity_usd:liquidity,volume_1h_usd:numeric(a.volume_usd?.h1),
+        change_5m_pct:numeric(a.price_change_percentage?.m5),change_1h_pct:numeric(a.price_change_percentage?.h1),
+        buys_5m:numeric(a.transactions?.m5?.buys),sells_5m:numeric(a.transactions?.m5?.sells),
+        pair_created_at:Number.isFinite(Date.parse(a.pool_created_at))?Date.parse(a.pool_created_at):null,
+        provider_quote_time:null,risk:'UNKNOWN',sellability:'UNKNOWN',status:'INDICATIVE_NOT_EXECUTABLE',
+        market_source:src.url
+      }:null;
+      return valid(address) ? [{address,source:src.url,kind:src.kind,...(market?{market}:{})}] : [];
     });
   }
   if (!Array.isArray(j)) throw Error('INVALID_PROFILE_RESPONSE');
@@ -35,6 +45,7 @@ export function extract(j, src) {
 export function upsert(universe, x, now) {
   if (!valid(x.address)) return;
   const old = universe.get(x.address);
+  const seed=x.market&&(!old?.market||now-(old.last_refresh??0)>300000||old.market.liquidity_usd==null)&&(!old?.market?.pool||old.market.pool===x.market.pool||now-(old.last_refresh??0)>300000);
   universe.set(x.address, {
     ...old, chain:'solana', address:x.address,
     first_seen:old?.first_seen ?? now, last_seen:now,
@@ -42,7 +53,8 @@ export function upsert(universe, x, now) {
     sources:[...new Set([...(old?.sources??[]),x.source])],
     discovery_kinds:[...new Set([...(old?.discovery_kinds??[]),x.kind])],
     promoted:old?.promoted===true || x.kind==='boost',
-    meme_status:'UNVERIFIED'
+    meme_status:'UNVERIFIED',
+    ...(seed?{market:{...x.market,retrieved_at:new Date(now).toISOString()},last_refresh:now,last_error:undefined}:{})
   });
 }
 export function prune(universe, now, limit=LIMIT) {
