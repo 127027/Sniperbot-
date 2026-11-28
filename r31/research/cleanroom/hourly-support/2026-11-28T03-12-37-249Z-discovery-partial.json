@@ -1,0 +1,75 @@
+{
+  "schema": "cleanroom.hourly-support.v1",
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "status": "PARTIAL",
+  "observed_at_utc": "2026-11-28T03:12:37.249Z",
+  "collector": {
+    "snapshot": "2026-11-28T01:59:37.427Z",
+    "run_id": "46095763201",
+    "registry_total": 5742,
+    "fresh_at_snapshot": 77,
+    "age_seconds": 4379.822
+  },
+  "candidates": [
+    {
+      "chain": "robinhood",
+      "contract": "0xa08922558d51a8a908a9527ffd7e0fb960673f56",
+      "name": "semi genius",
+      "pool": null,
+      "registry_status": "NOT_CHECKED",
+      "launch_reported_at": "2026-11-28T01:30:00Z",
+      "market_observation": {
+        "at": "2026-11-28T02:17:00Z",
+        "market_cap_usd": 206000,
+        "liquidity_usd": 67500,
+        "change_24h_pct": 2990,
+        "source": "https://dxttools.trade/token/robinhood/0xA08922558D51A8A908a9527fFd7E0Fb960673F56"
+      },
+      "risks": [
+        "Paid promotion reported 01:57 UTC",
+        "Conflicting liquidity and failed sell simulation at 01:30 UTC; current sellability unknown"
+      ],
+      "sources": [
+        "https://pocketcoin.app/robinhood/token/0xa08922558d51a8a908a9527ffd7e0fb960673f56/audit",
+        "https://api.dexscreener.com/token-profiles/latest/v1"
+      ],
+      "missing": [
+        "full pool address",
+        "fresh quote",
+        "costs",
+        "registry membership"
+      ]
+    },
+    {
+      "chain": "solana",
+      "contract": "8W1iJsknSoHeCrcHbqLTB9MnuBdzzhKX3mo8cjnSkkim",
+      "pool": null,
+      "registry_status": "NOT_CHECKED",
+      "catalyst": "Zoo red panda naming vote announced Nov 27, voting Nov 28-Dec 20; token profile links official announcement, no endorsement or confirmed token name.",
+      "sources": [
+        "https://api.dexscreener.com/token-profiles/latest/v1",
+        "https://www.higashiyama.city.nagoya.jp/news/2026/11/post-1585.html"
+      ],
+      "missing": [
+        "launch time",
+        "pool",
+        "market data",
+        "security",
+        "costs",
+        "registry membership"
+      ]
+    }
+  ],
+  "attempted_tools": [
+    {
+      "url": "https://api.dexscreener.com/token-pairs/v1/solana/8W1iJsknSoHeCrcHbqLTB9MnuBdzzhKX3mo8cjnSkkim",
+      "error": "URL is not accessible via this tool"
+    },
+    {
+      "url": "https://api.dexscreener.com/token-pairs/v1/robinhood/0xA08922558D51A8A908a9527fFd7E0Fb960673F56",
+      "error": "URL is not accessible via this tool"
+    }
+  ],
+  "next_cursor": "Check exact registry shard and additional profile contracts, alternative pool sources; no current executable quote."
+}
