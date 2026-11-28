@@ -22,6 +22,36 @@ function addDiscovery(rows,feeds){
  const m=new Map(rows.map(r=>[key(r.chain,r.contract),r]));let added=0;for(const f of feeds)if(Array.isArray(f.data))for(const r of f.data){const a=canon(r.chainId,r.tokenAddress);if(!a)continue;const k=key(r.chainId,a);if(!m.has(k)){m.set(k,{chain:r.chainId,contract:a,label:a.slice(0,8),origin:'LIVE_DISCOVERY',classification:'UNVERIFIED',source:f.receipt.url});added++;}}
  return {rows:[...m.values()],added};
 }
+
+// Ingest immutable support checkpoints as identity leads only; never reuse their quotes.
+function mergeSupport(rows,reports){
+ const m=new Map(rows.map(r=>[key(r.chain,r.contract),r])),unsupported=[],invalid=[];let added=0,matched=0;
+ for(const f of reports)for(const x of f.data.candidates??[]){
+  const chain=x.chain,contract=x.contract,a=canon(chain,contract);
+  const source={path:f.path,sha256:f.sha256,observed_at:x.observation_utc??null};
+  if(!chains.includes(chain)){unsupported.push({chain,contract,source,disposition:'UNSUPPORTED_MARKET_CHAIN'});continue}
+  if(!a){invalid.push({chain,contract,source,disposition:'INVALID_SUPPORT_IDENTITY'});continue}
+  const k=key(chain,a),prior=m.get(k);
+  if(prior){prior.support_refs=[...(prior.support_refs??[]),source];matched++;continue}
+  m.set(k,{chain,contract:a,label:String(x.label??a.slice(0,8)).slice(0,60),origin:'SUPPORT_DISCOVERY',classification:'UNVERIFIED',support_refs:[source]});added++;
+ }
+ return {rows:[...m.values()],added,matched,unsupported,invalid};
+}
+function readSupport(root,at){
+ if(!fs.existsSync(root))return {reports:[],errors:[],status:'DIRECTORY_MISSING'};
+ const reports=[],errors=[];
+ for(const name of fs.readdirSync(root).filter(n=>n.endsWith('.json')).sort()){
+  const file=path.join(root,name);
+  try{
+   const b=fs.readFileSync(file),data=JSON.parse(b),t=Date.parse(data.observed_at_utc??data.created_at_utc??data.actual_utc??'');
+   if(data.mode!=='RESEARCH_ONLY'||data.non_executable!==true||!Array.isArray(data.candidates))throw Error('INVALID_SUPPORT_SCHEMA');
+   if(!Number.isFinite(t)||t>Date.parse(at)||Date.parse(at)-t>24*3600000)throw Error('SUPPORT_TIME_OUTSIDE_24H');
+   reports.push({path:file,sha256:sha(b),data});
+  }catch(e){errors.push({path:file,error:String(e.message).slice(0,120)})}
+ }
+ return {reports,errors,status:'READ'};
+}
+
 function extract(r,all,at){
  const p=all.filter(x=>x.chainId===r.chain&&canon(r.chain,x.baseToken?.address)===r.contract&&typeof x.pairAddress==='string'&&num(x.priceUsd)>0&&num(x.liquidity?.usd)>0).sort((a,b)=>num(b.liquidity.usd)-num(a.liquidity.usd))[0];
  if(!p)return null;
@@ -70,12 +100,14 @@ function test(){
  const union=addDiscovery([r],[{receipt:{url:'fixture'},data:[{chainId:c,tokenAddress:a},{chainId:c,tokenAddress:b}]}]);assert.equal(union.added,1);assert.equal(union.rows.length,2);
  assert.ok(score({...m,buys_5m:1,sells_5m:0})<score({...m,buys_5m:20,sells_5m:5}));
  const many=Array.from({length:121},(_,i)=>({chain:c,contract:'0x'+i.toString(16).padStart(40,'0'),priority:121-i}));assert.equal(rank(many).backlog.length,111);
+ const joined=mergeSupport([r],[{path:'fixture',sha256:'fixture',data:{candidates:[{chain:c,contract:a},{chain:c,contract:b},{chain:'robinhood',contract:a},{chain:c,contract:'bad'}]}}]);assert.equal(joined.added,1);assert.equal(joined.matched,1);assert.equal(joined.unsupported.length,1);assert.equal(joined.invalid.length,1);assert.equal(joined.rows.length,2);
+ const late={chain:c,contract:'0x'+'f'.repeat(40),priority:1000};assert.equal(rank([...many,late]).selected[0].contract,late.contract);assert.equal(rank([late,...many.reverse()]).selected[0].contract,late.contract);
  console.log('BROAD_FIXTURE_PASS exact base identity, missing data, momentum, exhaustion penalty, deduplication and ranking');
 }
 async function run(){
  const started_at=new Date().toISOString();const {index,rows:registry}=loadRegistry('collector-data/research/cleanroom/token-registry');
  const feeds=[];for(const endpoint of ['token-profiles/latest/v1','token-boosts/latest/v1','token-boosts/top/v1','community-takeovers/latest/v1'])feeds.push(await get('https://api.dexscreener.com/'+endpoint));
- const u=addDiscovery(registry,feeds),receipts=[],rows=[];let cooldown=0,stop=false;
+ const u=addDiscovery(registry,feeds),support=readSupport('r31/research/cleanroom/hourly-support',started_at),merged=mergeSupport(u.rows,support.reports),receipts=[],rows=[];u.rows=merged.rows;let cooldown=0,stop=false;
  for(const c of chains){const group=u.rows.filter(r=>r.chain===c);for(let i=0;i<group.length;i+=30){
  const batch=group.slice(i,i+30);if(stop){for(const r of batch)rows.push({...r,status:'NOT_ATTEMPTED_COOLDOWN',priority:null,market:null});continue}
  await sleep(Math.max(500,cooldown-Date.now()));const x=await get('https://api.dexscreener.com/tokens/v1/'+c+'/'+batch.map(r=>r.contract).join(','));
@@ -85,8 +117,8 @@ async function run(){
  }}
  for(const r of rows)r.disposition=disposition(r);
  const v=rank(rows),finished_at=new Date().toISOString();
- const summary={...mode,started_at,finished_at,registry_snapshot:index.updated_at,registry_count:registry.length,discovery_new:u.added,universe:u.rows.length,attempted:rows.filter(r=>r.receipt_id).length,batch_requests:receipts.length,batch_http200:receipts.filter(r=>r.http_status===200).length,batch_429:receipts.filter(r=>r.http_status===429).length,matched:rows.filter(r=>r.market).length,rankable:v.ranked.length,deep_unsupported:v.unsupported_deep,selected:v.selected.length,backlog:v.backlog.length,qualified_buys:0,dispositions:rows.reduce((a,r)=>(a[r.disposition]=(a[r.disposition]??0)+1,a),{}),by_chain:Object.fromEntries(chains.map(c=>[c,{universe:rows.filter(r=>r.chain===c).length,attempted:rows.filter(r=>r.chain===c&&r.receipt_id).length,matched:rows.filter(r=>r.chain===c&&r.market).length,rankable:rows.filter(r=>r.chain===c&&r.priority!==null).length}]))};
- const p={schema:'r31.broad-research.v1',...mode,provenance:{run_id:process.env.GITHUB_RUN_ID,commit:process.env.GITHUB_SHA,registry_commit:process.env.REGISTRY_COMMIT},summary,discovery_receipts:feeds.map(f=>f.receipt),batch_receipts:receipts,selected:v.selected,backlog:v.backlog,unsupported_rows:v.unsupported_rows,unresolved:rows.filter(r=>!r.market||r.priority===null).map(r=>({chain:r.chain,contract:r.contract,status:r.status,disposition:r.disposition,receipt_id:r.receipt_id??null})),limitations:'Known registry only plus four discovery feeds; no claim of exhaustive global coverage. Single market provider, unknown quote times, unverified meme identity, heuristic priority not BUY. Backlog not yet dispatched.'};
+ const summary={...mode,started_at,finished_at,registry_snapshot:index.updated_at,registry_count:registry.length,discovery_new:u.added,support_new:merged.added,support_matches:merged.matched,support_unsupported:merged.unsupported.length,support_invalid:merged.invalid.length,support_reports:support.reports.length,universe:u.rows.length,attempted:rows.filter(r=>r.receipt_id).length,batch_requests:receipts.length,batch_http200:receipts.filter(r=>r.http_status===200).length,batch_429:receipts.filter(r=>r.http_status===429).length,matched:rows.filter(r=>r.market).length,rankable:v.ranked.length,deep_unsupported:v.unsupported_deep,selected:v.selected.length,backlog:v.backlog.length,qualified_buys:0,dispositions:rows.reduce((a,r)=>(a[r.disposition]=(a[r.disposition]??0)+1,a),{}),by_chain:Object.fromEntries(chains.map(c=>[c,{universe:rows.filter(r=>r.chain===c).length,attempted:rows.filter(r=>r.chain===c&&r.receipt_id).length,matched:rows.filter(r=>r.chain===c&&r.market).length,rankable:rows.filter(r=>r.chain===c&&r.priority!==null).length}]))};
+ const p={schema:'r31.broad-research.v1',...mode,provenance:{run_id:process.env.GITHUB_RUN_ID,commit:process.env.GITHUB_SHA,registry_commit:process.env.REGISTRY_COMMIT},summary,support_receipts:{status:support.status,reports:support.reports.map(f=>({path:f.path,sha256:f.sha256})),errors:support.errors,unsupported:merged.unsupported,invalid:merged.invalid},discovery_receipts:feeds.map(f=>f.receipt),batch_receipts:receipts,selected:v.selected,backlog:v.backlog,unsupported_rows:v.unsupported_rows,unresolved:rows.filter(r=>!r.market||r.priority===null).map(r=>({chain:r.chain,contract:r.contract,status:r.status,disposition:r.disposition,receipt_id:r.receipt_id??null})),limitations:'Known registry plus four discovery feeds and eligible support checkpoint identities; no claim of exhaustive global coverage. Single market provider, unknown quote times, unverified meme identity, heuristic priority not BUY. Backlog not yet dispatched.'};
  assert.equal(rows.length,u.rows.length);assert.equal(new Set(rows.map(r=>key(r.chain,r.contract))).size,rows.length);
  fs.writeFileSync('broad-research.json',JSON.stringify(p,null,2));fs.writeFileSync('broad-observations.json',JSON.stringify(rows,null,2));
  console.log('BROAD_SUMMARY '+JSON.stringify(summary));console.log('BROAD_PROVENANCE '+JSON.stringify(p.provenance));
