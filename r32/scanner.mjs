@@ -123,8 +123,18 @@ export class Scanner {
           if(!Array.isArray(pairs)) throw Error('INVALID_PAIRS_RESPONSE');
           for(const c of group) {
             const at=this.clock(), row=normalize(c.address,pairs,at);
-            if(row) { c.market=row;c.last_refresh=at;delete c.last_error; }
-            else c.last_error='NO_EXACT_BASE_POOL';
+            if(row) {
+              // A null DEX liquidity reading is not a zero and must not erase
+              // a fresh observation of the same pool. Preserve the complete
+              // original snapshot (including its timestamp), not a mixed row.
+              const keep=row.liquidity_usd===null&&c.market?.pool===row.pool&&
+                c.market.liquidity_usd!==null&&c.market.liquidity_usd!==undefined&&
+                at-c.last_refresh<=300000;
+              if(!keep){c.market=row;c.last_refresh=at;}
+              delete c.last_error;
+            }
+            else if(!(c.market?.market_source?.includes('geckoterminal')&&at-c.last_refresh<=300000))
+              c.last_error='NO_EXACT_BASE_POOL';
           }
           this.receipts.push({url,at:new Date(this.clock()).toISOString(),requested:group.length,
             matched:group.filter(c=>!c.last_error).length});
