@@ -148,6 +148,28 @@ export class Scanner {
           this.errors.push({url,error:String(e.message)});
         }
       }
+      // Bounded secondary source for exact pools with missing DEX liquidity.
+      // Retain source-specific complete snapshots; never infer missing liquidity.
+      const missing=[...this.universe.values()].filter(c=>c.market&&c.market.liquidity_usd==null&&
+        MINT.test(c.market.pool??'')&&this.clock()-c.last_refresh<=300000)
+        .sort((a,b)=>(a.last_liquidity_attempt??0)-(b.last_liquidity_attempt??0));
+      for(let i=0;i<Math.min(missing.length,120);i+=30){
+        if((this.backoff['api.geckoterminal.com']??0)>this.clock()||this.clock()-cycleStarted>=50000)break;
+        const group=missing.slice(i,i+30), pools=[...new Set(group.map(c=>c.market.pool))];
+        const url=gt+'pools/multi/'+pools.join(',');
+        for(const c of group)c.last_liquidity_attempt=this.clock();
+        try{
+          const leads=extract(await this.request(url),{url,kind:'trending'});
+          let matched=0;
+          for(const c of group){
+            const lead=leads.find(x=>x.address===c.address&&x.market?.pool===c.market.pool);
+            if(!lead)continue;
+            c.market={...lead.market,symbol:c.market.symbol??null,retrieved_at:new Date(this.clock()).toISOString()};
+            c.last_refresh=this.clock();delete c.last_error;matched++;
+          }
+          this.receipts.push({url,at:new Date(this.clock()).toISOString(),requested:group.length,matched,kind:'liquidity_fallback'});
+        }catch(e){this.errors.push({url,error:String(e.message)});}
+      }
       if(failed || (this.backoff['api.dexscreener.com']??0)>this.clock() || this.clock()-cycleStarted>=50000) this.batchBudget=Math.max(2,Math.floor(this.batchBudget/2));
       else if(attempted===this.batchBudget) this.batchBudget=Math.min(this.maxBatchBudget,this.batchBudget+5);
       return this.snapshot();
