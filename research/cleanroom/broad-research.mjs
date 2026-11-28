@@ -18,8 +18,25 @@ function loadRegistry(root){
  for(const r of j.rows){const a=canon(r.chain,r.contract);if(!a)throw Error('INVALID_REGISTRY_IDENTITY');const k=key(r.chain,a);if(seen.has(k))throw Error('DUPLICATE_REGISTRY_IDENTITY');seen.add(k);rows.push({chain:r.chain,contract:a,label:r.asset_ids?.[0]??r.sources?.at(-1)?.symbol??a.slice(0,8),first_seen_at:r.first_seen_at,last_seen_at:r.last_seen_at,origin:'REGISTRY',classification:'UNVERIFIED'});}}
  assert.equal(rows.length,index.total_contracts);return {index,rows};
 }
+// Pool discovery is independent of paid profiles/boosts and the existing registry.
+// Pool creation is not proof of token creation or meme classification.
+function newPoolLeads(payload,receipt){
+ const aliases={eth:'ethereum',bsc:'bsc',solana:'solana',base:'base',arbitrum:'arbitrum',polygon_pos:'polygon',optimism:'optimism',avax:'avalanche'};
+ const data=[],unsupported=[],invalid=[];for(const p of payload?.data??[]){
+  const network=p.relationships?.network?.data?.id??String(p.id??'').split('_')[0];
+  const chain=aliases[network],id=p.relationships?.base_token?.data?.id;
+  const prefix=network+'_',address=typeof id==='string'&&id.startsWith(prefix)?id.slice(prefix.length):null;
+  const pool=p.attributes?.address??null,created=p.attributes?.pool_created_at??null;
+  const row={network,chain:chain??null,contract:address,pool,pool_created_at:created,source:receipt.url,observed_at:receipt.finished_at};
+  if(!chain){unsupported.push(row);continue}
+  if(!canon(chain,address)||!pool){invalid.push(row);continue}
+  data.push({chainId:chain,tokenAddress:address,pool,pool_created_at:created});
+ }
+ return {data,unsupported,invalid,receipt};
+}
+
 function addDiscovery(rows,feeds){
- const m=new Map(rows.map(r=>[key(r.chain,r.contract),r]));let added=0;for(const f of feeds)if(Array.isArray(f.data))for(const r of f.data){const a=canon(r.chainId,r.tokenAddress);if(!a)continue;const k=key(r.chainId,a);if(!m.has(k)){m.set(k,{chain:r.chainId,contract:a,label:a.slice(0,8),origin:'LIVE_DISCOVERY',classification:'UNVERIFIED',source:f.receipt.url});added++;}}
+ const m=new Map(rows.map(r=>[key(r.chain,r.contract),r]));let added=0;for(const f of feeds)if(Array.isArray(f.data))for(const r of f.data){const a=canon(r.chainId,r.tokenAddress);if(!a)continue;const k=key(r.chainId,a);if(!m.has(k)){m.set(k,{chain:r.chainId,contract:a,label:a.slice(0,8),origin:'LIVE_DISCOVERY',classification:'UNVERIFIED',source:f.receipt.url,discovery_pool:r.pool??null,pool_created_at:r.pool_created_at??null});added++;}}
  return {rows:[...m.values()],added};
 }
 
@@ -101,14 +118,23 @@ function test(){
  assert.ok(score({...m,buys_5m:1,sells_5m:0})<score({...m,buys_5m:20,sells_5m:5}));
  const many=Array.from({length:121},(_,i)=>({chain:c,contract:'0x'+i.toString(16).padStart(40,'0'),priority:121-i}));assert.equal(rank(many).backlog.length,111);
  const joined=mergeSupport([r],[{path:'fixture',sha256:'fixture',data:{candidates:[{chain:c,contract:a},{chain:c,contract:b},{chain:'robinhood',contract:a},{chain:c,contract:'bad'}]}}]);assert.equal(joined.added,1);assert.equal(joined.matched,1);assert.equal(joined.unsupported.length,1);assert.equal(joined.invalid.length,1);assert.equal(joined.rows.length,2);
+ const freshAddress='0x'+'c'.repeat(40);
+ const f=newPoolLeads({data:[{id:'base_pool',attributes:{address:'pool',pool_created_at:at},relationships:{base_token:{data:{id:'base_'+freshAddress}},network:{data:{id:'base'}}}},{id:'futurechain_pool',relationships:{base_token:{data:{id:'futurechain_token'}}}}]},{url:'fixture',finished_at:at});
+ assert.equal(f.data.length,1);assert.equal(f.unsupported.length,1);const freshUnion=addDiscovery([r],[f]);assert.equal(freshUnion.added,1);assert.equal(freshUnion.rows.find(x=>x.contract===freshAddress).pool_created_at,at);
  const late={chain:c,contract:'0x'+'f'.repeat(40),priority:1000};assert.equal(rank([...many,late]).selected[0].contract,late.contract);assert.equal(rank([late,...many.reverse()]).selected[0].contract,late.contract);
  console.log('BROAD_FIXTURE_PASS exact base identity, missing data, momentum, exhaustion penalty, deduplication and ranking');
 }
 async function run(){
  const started_at=new Date().toISOString();const {index,rows:registry}=loadRegistry('collector-data/research/cleanroom/token-registry');
  const feeds=[];for(const endpoint of ['token-profiles/latest/v1','token-boosts/latest/v1','token-boosts/top/v1','community-takeovers/latest/v1'])feeds.push(await get('https://api.dexscreener.com/'+endpoint));
+ const poolFeeds=[];for(let page=1;page<=3;page++){
+ const x=await get('https://api.geckoterminal.com/api/v2/networks/new_pools?include=base_token,network&page='+page);
+ const f=newPoolLeads(x.data,x.receipt);poolFeeds.push(f);feeds.push(f);
+ if(x.receipt.http_status===429||!Array.isArray(x.data?.data)||x.data.data.length===0)break;
+ await sleep(2200);
+ }
  const u=addDiscovery(registry,feeds),support=readSupport('r31/research/cleanroom/hourly-support',started_at),merged=mergeSupport(u.rows,support.reports),receipts=[],rows=[];u.rows=merged.rows;let cooldown=0,stop=false;
- for(const c of chains){const group=u.rows.filter(r=>r.chain===c);for(let i=0;i<group.length;i+=30){
+ for(const c of chains){const group=u.rows.filter(r=>r.chain===c).sort((a,b)=>Number(b.origin==='LIVE_DISCOVERY')-Number(a.origin==='LIVE_DISCOVERY'));for(let i=0;i<group.length;i+=30){
  const batch=group.slice(i,i+30);if(stop){for(const r of batch)rows.push({...r,status:'NOT_ATTEMPTED_COOLDOWN',priority:null,market:null});continue}
  await sleep(Math.max(500,cooldown-Date.now()));const x=await get('https://api.dexscreener.com/tokens/v1/'+c+'/'+batch.map(r=>r.contract).join(','));
  const receipt={...x.receipt,chain:c,count:batch.length,id:'B'+(receipts.length+1)};receipts.push(receipt);
@@ -117,8 +143,8 @@ async function run(){
  }}
  for(const r of rows)r.disposition=disposition(r);
  const v=rank(rows),finished_at=new Date().toISOString();
- const summary={...mode,started_at,finished_at,registry_snapshot:index.updated_at,registry_count:registry.length,discovery_new:u.added,support_new:merged.added,support_matches:merged.matched,support_unsupported:merged.unsupported.length,support_invalid:merged.invalid.length,support_reports:support.reports.length,universe:u.rows.length,attempted:rows.filter(r=>r.receipt_id).length,batch_requests:receipts.length,batch_http200:receipts.filter(r=>r.http_status===200).length,batch_429:receipts.filter(r=>r.http_status===429).length,matched:rows.filter(r=>r.market).length,rankable:v.ranked.length,deep_unsupported:v.unsupported_deep,selected:v.selected.length,backlog:v.backlog.length,qualified_buys:0,dispositions:rows.reduce((a,r)=>(a[r.disposition]=(a[r.disposition]??0)+1,a),{}),by_chain:Object.fromEntries(chains.map(c=>[c,{universe:rows.filter(r=>r.chain===c).length,attempted:rows.filter(r=>r.chain===c&&r.receipt_id).length,matched:rows.filter(r=>r.chain===c&&r.market).length,rankable:rows.filter(r=>r.chain===c&&r.priority!==null).length}]))};
- const p={schema:'r31.broad-research.v1',...mode,provenance:{run_id:process.env.GITHUB_RUN_ID,commit:process.env.GITHUB_SHA,registry_commit:process.env.REGISTRY_COMMIT},summary,support_receipts:{status:support.status,reports:support.reports.map(f=>({path:f.path,sha256:f.sha256})),errors:support.errors,unsupported:merged.unsupported,invalid:merged.invalid},discovery_receipts:feeds.map(f=>f.receipt),batch_receipts:receipts,selected:v.selected,backlog:v.backlog,unsupported_rows:v.unsupported_rows,unresolved:rows.filter(r=>!r.market||r.priority===null).map(r=>({chain:r.chain,contract:r.contract,status:r.status,disposition:r.disposition,receipt_id:r.receipt_id??null})),limitations:'Known registry plus four discovery feeds and eligible support checkpoint identities; no claim of exhaustive global coverage. Single market provider, unknown quote times, unverified meme identity, heuristic priority not BUY. Backlog not yet dispatched.'};
+ const summary={...mode,started_at,finished_at,registry_snapshot:index.updated_at,registry_count:registry.length,discovery_new:u.added,new_pool_pages:poolFeeds.length,new_pool_supported_leads:poolFeeds.reduce((n,f)=>n+f.data.length,0),new_pool_unsupported:poolFeeds.reduce((n,f)=>n+f.unsupported.length,0),support_new:merged.added,support_matches:merged.matched,support_unsupported:merged.unsupported.length,support_invalid:merged.invalid.length,support_reports:support.reports.length,universe:u.rows.length,attempted:rows.filter(r=>r.receipt_id).length,batch_requests:receipts.length,batch_http200:receipts.filter(r=>r.http_status===200).length,batch_429:receipts.filter(r=>r.http_status===429).length,matched:rows.filter(r=>r.market).length,rankable:v.ranked.length,deep_unsupported:v.unsupported_deep,selected:v.selected.length,backlog:v.backlog.length,qualified_buys:0,dispositions:rows.reduce((a,r)=>(a[r.disposition]=(a[r.disposition]??0)+1,a),{}),by_chain:Object.fromEntries(chains.map(c=>[c,{universe:rows.filter(r=>r.chain===c).length,attempted:rows.filter(r=>r.chain===c&&r.receipt_id).length,matched:rows.filter(r=>r.chain===c&&r.market).length,rankable:rows.filter(r=>r.chain===c&&r.priority!==null).length}]))};
+ const p={schema:'r31.broad-research.v1',...mode,provenance:{run_id:process.env.GITHUB_RUN_ID,commit:process.env.GITHUB_SHA,registry_commit:process.env.REGISTRY_COMMIT},summary,support_receipts:{status:support.status,reports:support.reports.map(f=>({path:f.path,sha256:f.sha256})),errors:support.errors,unsupported:merged.unsupported,invalid:merged.invalid},new_pool_receipts:poolFeeds.map(f=>({receipt:f.receipt,leads:f.data,unsupported:f.unsupported,invalid:f.invalid})),discovery_receipts:feeds.map(f=>f.receipt),batch_receipts:receipts,selected:v.selected,backlog:v.backlog,unsupported_rows:v.unsupported_rows,unresolved:rows.filter(r=>!r.market||r.priority===null).map(r=>({chain:r.chain,contract:r.contract,status:r.status,disposition:r.disposition,receipt_id:r.receipt_id??null})),limitations:'Known registry plus profile/boost feeds, bounded global new-pool pages and eligible support checkpoint identities; no claim of exhaustive global coverage. Single market provider, unknown quote times, unverified meme identity, heuristic priority not BUY. Backlog not yet dispatched.'};
  assert.equal(rows.length,u.rows.length);assert.equal(new Set(rows.map(r=>key(r.chain,r.contract))).size,rows.length);
  fs.writeFileSync('broad-research.json',JSON.stringify(p,null,2));fs.writeFileSync('broad-observations.json',JSON.stringify(rows,null,2));
  console.log('BROAD_SUMMARY '+JSON.stringify(summary));console.log('BROAD_PROVENANCE '+JSON.stringify(p.provenance));
