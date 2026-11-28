@@ -1,0 +1,38 @@
+name: R32 read-only market evidence
+on:
+  push:
+    branches: [r32-local-paper]
+    paths: [r32/feeds/latest.json, r32/feeds/discovery.json, r32/feeds/events.json, r32/feeds/deep.json, r32/market-evidence.mjs, .github/workflows/r32-market-evidence.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: r32-market-evidence
+  cancel-in-progress: false
+jobs:
+  collect:
+    if: github.ref == 'refs/heads/r32-local-paper'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: r32-local-paper
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node r32/market-evidence.mjs --self-test
+      - run: node r32/market-evidence.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r32-market-evidence
+          path: r32/feeds/market-data.json
+      - name: Publish only read-only market evidence; no force push
+        run: |
+          git config user.name 'R32 evidence collector'
+          git config user.email 'r32-evidence@users.noreply.github.com'
+          git add -- r32/feeds/market-data.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'R32 indicative market evidence'
+          git pull --rebase origin r32-local-paper
+          git push origin HEAD:r32-local-paper
