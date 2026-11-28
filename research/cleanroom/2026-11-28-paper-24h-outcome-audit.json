@@ -1,0 +1,126 @@
+{
+  "mode": "RESEARCH_ONLY",
+  "non_executable": true,
+  "review_at_mez": "2026-11-28T07:55:14+01:00",
+  "window": {
+    "start": "2026-11-26T23:00:00+01:00",
+    "end": "2026-11-27T07:59:59+01:00"
+  },
+  "policy": {
+    "path": "research/cleanroom/overnight-learning-policy.md",
+    "sha": "5124527c55020ea655326ef324b6397d770b2418"
+  },
+  "scans": [
+    {
+      "slot_mez": "23:00",
+      "finals": 0,
+      "notes": "MOODENG NOT_FINAL",
+      "distinct_buys": 0,
+      "paper_fills": 0
+    },
+    {
+      "slot_mez": "00:00",
+      "finals": 0,
+      "notes": "no output",
+      "distinct_buys": 0,
+      "paper_fills": 0
+    },
+    {
+      "slot_mez": "01:00",
+      "finals": 1,
+      "notes": "Gooncoin REJECT",
+      "distinct_buys": 0,
+      "paper_fills": 0
+    },
+    {
+      "slot_mez": "02:00",
+      "finals": 1,
+      "notes": "OCEAN REJECT",
+      "distinct_buys": 0,
+      "paper_fills": 0
+    },
+    {
+      "slot_mez": "03:00",
+      "finals": 3,
+      "notes": "FGM REJECT; moolah WATCH; NIO DATA_GAP",
+      "distinct_buys": 0,
+      "paper_fills": 0
+    },
+    {
+      "slot_mez": "04:00",
+      "finals": 0,
+      "notes": "no output",
+      "distinct_buys": 0,
+      "paper_fills": 0
+    },
+    {
+      "slot_mez": "05:00",
+      "finals": 1,
+      "notes": "moolah WATCH",
+      "distinct_buys": 0,
+      "paper_fills": 0
+    },
+    {
+      "slot_mez": "06:00",
+      "finals": 0,
+      "notes": "no output",
+      "distinct_buys": 0,
+      "paper_fills": 0
+    },
+    {
+      "slot_mez": "07:00",
+      "finals": 0,
+      "notes": "no output",
+      "distinct_buys": 0,
+      "paper_fills": 0
+    }
+  ],
+  "counts": {
+    "scans": 9,
+    "finals": 6,
+    "distinct_final_contracts": 5,
+    "reject": 3,
+    "watch": 2,
+    "data_gap": 1,
+    "checkpoints": 5,
+    "learning_journals": 9,
+    "distinct_buys": 0,
+    "target": 10,
+    "verified_fills": 0,
+    "matured_buy_cohorts": 0,
+    "verified_outcomes": 0,
+    "net_pnl_eur": null,
+    "positive_pnl_proven": false,
+    "drawdown": null
+  },
+  "final_blobs": [
+    "b0b0651a8862b0758b821dfa700f5983146c4cb6",
+    "191a544fb5cf5b3ef4713704b00f33d062ba61fe",
+    "e691212ea7c944769e130c59d6abb0030e0425d4",
+    "553512c596d7228e0a6dcb52b9326dc4d93d8e47",
+    "439dad4fad73e0a2ad41050833f5898b1748564d",
+    "1952eb11052740e13567091d0066e297a7b13af7"
+  ],
+  "evaluation": "No BUY cohort exists; no historical exit price lookup applicable. No verified capital deployed in scoped artifacts; realized PnL of empty verified trade set is arithmetically zero but strategy net PnL, costs, risk and profitability not evaluable. Last scheduled slot not yet fully 24h elapsed at review, irrelevant to absent BUYs. No inference about external account fills.",
+  "findings": [
+    "Five scans without finals, four with finals; repeated moolah same BSC contract; five checkpoints not buys.",
+    "03:00 diagnosis explicitly entry-only; page-000, registry shards and independent listings not attempted; no explicit runtime limit observed.",
+    "Collector last successful run 45920764204 snapshot 02:08:06 MEZ; 5h32m55s old at final journal. Missing visible scheduled runs, root cause unknown.",
+    "Moolah quote 54m47s old at 03:00, 2h52m17s old at 05:00; costs unknown; no entry.",
+    "Support same pre-window report seven leads, zero fresh complete; no new run in journals.",
+    "Nine learning journals, zero patches during window; regression predicate reproduced but historical CI exact assertion unconfirmed; direct transfer curl exit 6 DNS, no self-tests in night."
+  ],
+  "next_tests": [
+    "Interrupt worker after checkpoint, restart and verify same contract final readback, no duplicate; force missing write and mark incomplete.",
+    "Verify 24h collector heartbeat and original quote age <=900s; independently refresh or DATA_GAP; test scheduler outage recovery.",
+    "Process beyond entry page, reconcile all queued identities and support handoff; report coverage not fixed BUY quota.",
+    "Test valid contract scope and reject wrong identity/missing timestamp; isolated CI no publish.",
+    "For future BUY require locked original quote, exit rule and costs, separate fill receipt; evaluate matured cohorts only."
+  ],
+  "sources": [
+    "https://github.com/127027/Sniperbot-/tree/codex/r31-control-center-paper/r31/research/cleanroom/autonomy-acceptance",
+    "https://github.com/127027/Sniperbot-/blob/codex/r31-control-center-paper/research/cleanroom/overnight-learning-policy.md",
+    "https://github.com/127027/Sniperbot-/actions/runs/45920764204"
+  ],
+  "limitations": "Audit of saved research artifacts and journal-reported run metadata, not independent live execution telemetry. No strategy change or orders."
+}
