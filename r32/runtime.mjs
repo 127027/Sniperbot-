@@ -9,6 +9,8 @@ import {decide,qualify,applyBuy,monitor,paperBudgetRaw} from './decision.mjs';
 import {fresh,identity} from './paper.mjs';
 const MINT=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const iso=t=>new Date(t).toISOString();
+const rank=c=>Math.max(-50,Math.min(200,Number.isFinite(c.market.change_1h_pct)?c.market.change_1h_pct:0))/200+
+  Math.log10(1+c.market.volume_1h_usd)/10+Math.log10(1+c.market.liquidity_usd)/10-(c.promoted?0.1:0);
 const recent=(t,n,max)=>Number.isFinite(Date.parse(t))&&Date.parse(t)<=n&&n-Date.parse(t)<=max;
 export function atomic(file,value){
   fs.writeFileSync(file+'.tmp',JSON.stringify(value,null,2));
@@ -115,22 +117,17 @@ export class Pilot {
   async entries(){return this.guard('entries',async()=>{
     const start=this.clock(),hour=Math.floor(start/3600000);
     this.buys=[];this.blocked=[];
-    if(!this.state.enabled)return;
     if(!this.fx)throw Error('FX_UNAVAILABLE');
     // Broad discovery remains independent of the bounded expensive validation stage.
     const candidates=this.scanner.snapshot().candidates
       .map(c=>({...c,...this.narratives.get(c.address),fx:this.fx}))
       .filter(c=>c.meme_status==='VERIFIED_MEME'&&recent(c.meme_observed_at,start,3600000))
       .filter(c=>!qualify(c,start).some(x=>!['RISK','ROUTE'].includes(x)))
-      .sort((a,b)=>(b.market.change_1h_pct??-Infinity)-(a.market.change_1h_pct??-Infinity));
+      .sort((a,b)=>rank(b)-rank(a));
     this.diag.entry_pool=candidates.length;
     const cap=20;
     for(const c of candidates.slice(0,cap)){
-      if(!this.state.enabled||Math.floor(this.clock()/3600000)!==hour)break;
-      if(this.state.cash<5000||this.state.positions.length>=10||this.buys.length>=10)break;
-      if(this.state.positions.some(p=>p.id===identity(c)))continue;
-      // No re-entry in same hourly generation after an exit/restart.
-      if(this.state.history.some(h=>h.id===identity(c)&&h.action==='BUY'&&Math.floor(Date.parse(h.at)/3600000)===hour))continue;
+      if(Math.floor(this.clock()/3600000)!==hour||this.buys.length>=10)break;
       try{
         c.risk_evidence=await this.inspect(c.address);
         if(c.risk_evidence.risk!=='PASS'){this.blocked.push({address:c.address,reasons:['RISK'],detail:c.risk_evidence.error??c.risk_evidence.checks});continue;}
@@ -139,9 +136,12 @@ export class Pilot {
         const {buys,blocked}=decide([c],now);this.blocked.push(...blocked);
         if(!buys.length)continue;
         // Actual entry revalidates evidence after async provider work and respects a concurrent pause.
+        this.buys.push(buys[0]);
+        // Advice never depends on one device's portfolio. Same-hour re-entry is a local policy.
+        if(this.state.history.some(h=>h.id===identity(c)&&h.action==='BUY'&&Math.floor(Date.parse(h.at)/3600000)===hour))continue;
         const r=applyBuy(this.state,buys[0],c,now);
-        if(r.reason==='BOUGHT'){this.save(r.state);this.buys.push(buys[0]);}
-        else this.blocked.push({address:c.address,reasons:[r.reason]});
+        if(r.reason==='BOUGHT')this.save(r.state);
+        else this.diag.last_local_action={address:c.address,reason:r.reason};
       }catch(e){this.blocked.push({address:c.address,reasons:['PROVIDER_ERROR'],detail:String(e.message)});}
     }
     this.diag.entry_capacity={eligible:candidates.length,limit:cap,remaining:Math.max(0,candidates.length-cap)};

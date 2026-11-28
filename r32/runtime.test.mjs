@@ -31,8 +31,8 @@ test('fixture discovery -> narrative -> risk -> route -> buy -> pause -> exit ->
  quoteExit:async()=>route(a,USDC,'1000000','35000000')};
  const b=new Pilot(opts);await b.context();await b.scan();b.toggle();await b.entries();
  assert.equal(b.state.cash,45000);assert.equal(b.state.positions.length,1);
- await b.entries();assert.equal(b.state.positions.length,1);
- b.toggle();await b.exits();assert.equal(b.state.cash,48490);assert.equal(b.state.positions.length,0);
+ await b.entries();assert.equal(b.state.positions.length,1);assert.equal(b.buys.length,1);
+ b.toggle();await b.entries();assert.equal(b.buys.length,1);assert.equal(b.state.positions.length,1);await b.exits();assert.equal(b.state.cash,48490);assert.equal(b.state.positions.length,0);
  const c=new Pilot(opts);assert.equal(c.state.cash,48490);assert.equal(c.state.history[1].action,'SELL');
  assert.equal(c.state.enabled,false);c.toggle();await c.entries();assert.equal(c.state.positions.length,0);
  }finally{fs.rmSync(dir,{recursive:true,force:true});}

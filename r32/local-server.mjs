@@ -30,20 +30,20 @@ const server=http.createServer((req,res)=>{
   if(req.method==='GET'&&url.pathname==='/api/state')return res.end(JSON.stringify(bot.view()));
   if(req.method==='GET'&&url.pathname==='/api/diag')return res.end(JSON.stringify(bot.view().diag));
   if(req.method==='POST'&&url.pathname==='/api/toggle'&&req.headers.origin===origin){
-    bot.toggle();if(bot.state.enabled)void bot.entries();return res.end(JSON.stringify(bot.view()));
+    bot.toggle();if(bot.state.enabled&&process.env.R32_OFFLINE!=='1'&&ready)void bot.entries();return res.end(JSON.stringify(bot.view()));
   }
   res.writeHead(404);res.end('{}');
 });
-let entryHour=null;
+let entryHour=null,ready=false;
 async function entryTick(){
   const h=Math.floor(Date.now()/3600000);
-  if(entryHour===h||bot.busy.entries)return;
+  if(!ready||entryHour===h||bot.busy.entries||bot.busy.scan||bot.busy.context)return;
   entryHour=h;await bot.context();await bot.entries();
 }
 server.listen(3030,'127.0.0.1',()=>{
   console.log('R32 LOCAL PAPER PILOT '+origin);
   if(process.env.R32_OFFLINE==='1')return;
-  void (async()=>{await bot.context();await bot.scan();await entryTick();})();
+  void (async()=>{await bot.context();await bot.scan();ready=true;await entryTick();})();
   setInterval(()=>void bot.scan(),60000);
   setInterval(()=>void bot.context(),300000);
   setInterval(()=>void bot.exits(),60000);
