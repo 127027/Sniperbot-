@@ -1,0 +1,27 @@
+# R32 Fable 5.2 — manueller Sofort-Audit
+**Provenienz:** Ausführung des von run_now in diesen Chat zurückgegebenen Inline-Auftrags durch den koordinierenden Chat. Kein Nachweis eines neuen unabhängigen Agentenlaufs. Rollenberichte beruhen auf tatsächlich gelesenen Originalfeeds, gespeicherten Aufgaben und neuer gemeinsamer Inline-Recherche. Keine Rekonstruktion privater Gedankengänge; Gründe aus dokumentierten Entscheidungen und beobachtbaren Bedingungen. Keine Änderung operativer Handelssignale durch diese Audit-Dateien. Regelmäßige Aufgaben bleiben aktiv.
+**Daten-Snapshot:** 7d73bc86c129a6c0186f39daf46f8f0bb434858a (2026-11-28T16:14:32Z); Queue SHA f13c0bfc8144551c4fd31943aa48deaf683686ab.
+## Eingaben und Belege
+- [r32/local/queue.json](https://github.com/127027/Sniperbot-/blob/7d73bc86c129a6c0186f39daf46f8f0bb434858a/r32/local/queue.json) — Blob f13c0bfc8144551c4fd31943aa48deaf683686ab, Zeit 2026-11-28T16:14:35.307Z
+- [r32/signals/dot-1.json](https://github.com/127027/Sniperbot-/blob/7d73bc86c129a6c0186f39daf46f8f0bb434858a/r32/signals/dot-1.json) — Blob 2c3ab49b1faa71bc32c54e5bd81b77b7404d62b7, Zeit 2026-11-28T15:57:01.551Z
+- [r32/signals/dot-2.json](https://github.com/127027/Sniperbot-/blob/7d73bc86c129a6c0186f39daf46f8f0bb434858a/r32/signals/dot-2.json) — Blob 5c341e27e40383f4e1a865f7b7ade768ea332e8c, Zeit 2026-11-28T16:14:19.995Z
+- [r32/signals/dot-3.json](https://github.com/127027/Sniperbot-/blob/7d73bc86c129a6c0186f39daf46f8f0bb434858a/r32/signals/dot-3.json) — Blob 0318ccb94eceb19ca715399a69b4ddd4ce24da93, Zeit nicht initialisiert
+- [r32/signals/dot-4.json](https://github.com/127027/Sniperbot-/blob/7d73bc86c129a6c0186f39daf46f8f0bb434858a/r32/signals/dot-4.json) — Blob ab2ab06ea147f6f0297ccab64eb87166935fc644, Zeit 2026-11-28T15:39:32.393Z
+- [r32/signals/scorecard.json](https://github.com/127027/Sniperbot-/blob/7d73bc86c129a6c0186f39daf46f8f0bb434858a/r32/signals/scorecard.json) — Blob fa2b0e9de91d39a5aeeeaa1a22ef9d5a237a6995, Zeit 2026-11-28T15:55:59.699Z
+## Gemeinsame Datenlage
+969 Identitäten, 241 frische Marktbeobachtungen zum Zeitpunkt der Queue-Erstellung, 13 publizierte Kandidaten, 1 technische Markt-Gates erfüllt. Keine weltweite Vollabdeckung; keine Holder-/Quote-Freigabe. Momentaufnahme ist nicht automatisch zur tatsächlichen Ausführung frisch. Die Queue stammt vom 2026-11-28T16:14:35.307Z.
+| Coin | Mint | Liquidität USD | Volumen 1h USD | 5m / 1h | ursprünglicher Abruf UTC |
+|---|---|---:|---:|---|---|
+| Selfvalue | `HLSreoB6RNByRWJTTqRaYhXj389vJHEgkVq8CQ4Hpump` | 23510 | 235159 | 28.99% / 289% | 2026-11-28T16:12:36.883Z |
+## Neue Inline-Quellenprüfung
+- https://pump.fun/coin/B34nXKzCgsJb9ChLuSHPRpXLE3WFSWyeT8Cqkzzmpump?highlight_holder=HVaeUPbAwFhZnY8T3MrUzTWqpHiAbTU1NACmCQdJrqZp — FIONA, Fiona the Hippo, exakte Adresse; gecachte Seite, keine aktuellen ausführbaren Preise.
+- https://www.solanaterminal.com/solana/token/job/9Pq7aLAbhDG2tTnS22cm6kuysZVcZpLFE368HWuypump — DogWifJob, exakter Mint und Meme-Identität, Zahlen explizit Stand 18.11.; nicht für heutigen Einstieg verwenden.
+- https://pumpscan.io/token/Fo2HAwr7ZAUM2bSZ7MWSi16e3aWGpbw5MsUDYCttpump — PumpChan, Token-2022, identischer Pool DDcyemq9bkyqtC93djkwaH6VaMKCjVsoCUVGV29q7teB; alte Beobachtung, keine aktuelle Risikofreigabe.
+- https://pumpview.fun/tokens/PgFtGGquvnv2zEkjG2N2QPvBTBrafuExGYEqahRpump — BRUH, exakte Mint-Zuordnung, gespeicherte Momentaufnahme 15.11., nicht live.
+- https://dextrading.com/narratives — Zeitstempel im Seiteninhalt 28.11. 16:01 UTC, Solana-Narrativtabelle 15:54 UTC; FIONA Animal memes, JIMMY, mihao, MoonBoy/Zhaki/Split Copycat-Wellen. Aggregierte/sekundäre Narrative sind keine Mint-bezogene Handelsfreigabe. Nicht als Beleg für jeden gleichnamigen Token verwenden.
+- Suche nach TIMMY-Mint lieferte keinen hinreichenden eindeutigen unabhängigen Narrativbeleg. Nicht als Nicht-Meme klassifizieren.
+
+## Dot 5 — Qualitätskontrolle (:55)
+**Soll:** Vollständigkeit, Zeitfenster, Überschneidungen, Quellen, Stundenreport/Archiv und Übergaben prüfen. Keine eigenen Handelssignale.
+**Tatsächlich:** 2026-11-28T15:55:59.699Z, geprüfte Queue 1e51bdfc64ee6f781faf33ab0679d2ea743dee48; Coverage {"identities":550,"fresh_market":268,"queue_candidates":60,"checked":15,"independent_verified":0,"processed_overlap":1}; Fehler URL is not accessible via this tool.. Bericht enthält Beobachtungen aus älterer Queue. Beim aktuellen Snapshot sind 3/4 Recherchefeeds initialisiert, 0 BUYs gespeichert; kein Nachweis des Empfangs eines gültigen BUY oder einer Ausführung.
+**Ablauf und Gründe:** Queue- und Feed-SHAs lesen (Konsistenz); Zeitstempel, Quellen, Mints und fehlende Research-Übergaben prüfen; tatsächliche Abdeckung statt Summieren von Doppelprüfungen; Ursachen technische Sperre vs legitime Nichtempfehlung trennen; Scorecard veröffentlichen und Readback. **Warum bisher keine Freigabe:** uninitialisierte bzw. aus unterschiedlichen Queue-Ständen stammende Feeds, fehlende unabhängige Quellen, keine nachgewiesene vollständige Stundenentscheidung. **Test:** jede Stunde fünf valide, nachvollziehbare Berichte; ein gemeinsamer Marktbericht mit tatsächlichen Inputs, mindestens eine überprüfbare BUY- oder Ablehnungsentscheidung, Live-RPC-Nachweis; private Ausführung nur lokal diagnostizieren, keine Portfolio-Uploads. Prüfe, ob unabhängige Quellenzugriffe bzw. unvollständige Abdeckung fälschlich als gesamtes Markturteil interpretiert werden.

@@ -1,0 +1,11 @@
+# Audit-Paket für Claude Fable 5.2 — R32
+Stand: Snapshot 7d73bc86c129a6c0186f39daf46f8f0bb434858a (2026-11-28T16:14:32Z). Bitte aktuellen Codebranch r32-local-paper **am Commit 235d0e66cb4dbca7e6a421274e5962872ce99bea** und aktuellen Head separat prüfen, nicht alte Web-Caches. Datenbranch r32-data.
+- [Tatsächliche gespeicherte Dot-Konfiguration und vorherige Laufberichte](dot-configurations.json)
+- [Dot 1 Markt](inline-dot-1.md)
+- [Dot 2 Discovery](inline-dot-2.md)
+- [Dot 3 Ereignisse](inline-dot-3.md)
+- [Dot 4 Tiefenanalyse](inline-dot-4.md)
+- [Dot 5 Kontrolle](inline-dot-5.md)
+Die fünf manuellen Sofortstart-Aufrufe wurden vom Dienst angenommen, lieferten aber Inline-Aufträge in diesem Chat, keine unabhängig nachgewiesenen neuen Agentenläufe. Ob separate reguläre Dots ihre eigenen Selbstaudits dot-1.md bis dot-5.md schreiben, bleibt zu prüfen. Die oben genannten Berichte sind sofortige evidenzbasierte Inline-Auswertungen, nicht unabhängige Selbstzeugnisse.
+## Auftrag
+Prüfe WARUM die Dots trotz vorhandener Marktkandidaten keine BUYs produzieren. Unterscheide echte Ablehnungen von unzugänglichen Quellen, impliziten mehrfachen Gates und fehlenden Spezialisten-Übergaben. Beurteile insbesondere ob die Prompts unnötig einen aktuellen Katalysator oder unabhängige Live-Kurse verlangen, obwohl die Queue die Marktwerte liefert; ob die KI-Marktentscheidung sich von einem regelbasierten Scanner unterscheidet; ob die 5 gestaffelten Aufgaben tatsächlich zusammenarbeiten und der Laptop nur gemeinsame BUYs verarbeitet; wie neue Mints übernommen werden; wie die Recherche vor einem Anstieg statt danach funktioniert; wie Coverage, Qualität und Laufzeiten messbar werden. Prüfe die exakten Dateien signals.mjs, runtime.mjs, transport.mjs, scanner.mjs, risk.mjs, decision.mjs, recorder.mjs und lokale Diagnose/Tests. Gib pro Dot konkrete korrigierte Prompts, priorisierte P0/P1/P2-Fehler, reproduzierbare Tests und eine belastbare Einschätzung, ob jede Stunde bis zu zehn gute Paper-Einstiege realistisch geliefert werden können. Keine erzwungenen zehn Empfehlungen, kein Echtgeld, kein HOLD, keine zusätzlichen KI-Dienste. Keine Zugangsdaten, kein privates Portfolio. Helius-Schlüssel lokal konfiguriert, Live-Halterprüfung noch unbestätigt. Keine Behauptungen über Tests, die nicht ausgeführt wurden.
