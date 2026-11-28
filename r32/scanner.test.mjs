@@ -39,3 +39,34 @@ test('fresh Dot discoveries have bounded priority without starving rotation',()=
  const u=new Map();upsert(u,lead(a),t);upsert(u,lead(b),t+1);u.get(b).dot_priority_until=t+100000;
  assert.equal(nextBatch(u,3,t)[0].address,b);assert.equal(nextBatch(u,3,t).length,2);
 });
+
+test('discovery liquidity survives missing DEX liquidity on identical pool',async()=>{
+ const f=async url=>({ok:true,status:200,json:async()=>url.includes('geckoterminal')?
+  {data:[{id:'solana_'+p,relationships:{base_token:{data:{id:'solana_'+a}}},
+  attributes:{address:p,base_token_price_usd:'0.01',reserve_in_usd:'25000',volume_usd:{h1:'30000'}}}]}:
+  url.includes('/tokens/v1/')?[pair]:[]});
+ const scanner=new Scanner({fetcher:f,clock:()=>t});const r=await scanner.cycle();
+ assert.equal(r.candidates[0].market.liquidity_usd,25000);
+ assert.equal(r.candidates[0].market.pool,p);
+ assert.equal(r.candidates[0].market.risk,'UNKNOWN');
+ assert.equal(r.candidates[0].market_stale,false);
+});
+test('discovery never borrows liquidity from a different pool',async()=>{
+ const f=async url=>({ok:true,status:200,json:async()=>url.includes('geckoterminal')?
+  {data:[{id:'solana_'+b,relationships:{base_token:{data:{id:'solana_'+a}}},
+  attributes:{address:b,base_token_price_usd:'0.01',reserve_in_usd:'25000'}}]}:
+  url.includes('/tokens/v1/')?[pair]:[]});
+ const scanner=new Scanner({fetcher:f,clock:()=>t});const r=await scanner.cycle();
+ assert.equal(r.candidates[0].market.pool,p);
+ assert.equal(r.candidates[0].market.liquidity_usd,null);
+});
+test('refresh budget increases after full successful cycle and reduces after 429',async()=>{
+ const u=new Map();
+ for(let i=0;i<400;i++){const address='A'.repeat(30)+'123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'[Math.floor(i/58)]+'123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'[i%58];upsert(u,lead(address),t);}
+ let fail=false,calls=0;
+ const f=async url=>{if(url.includes('/tokens/v1/')){calls++;if(fail)return {ok:false,status:429,headers:{get:()=> '60'}};}
+ return {ok:true,status:200,json:async()=>url.includes('geckoterminal')?{data:[]}:[]};};
+ const scanner=new Scanner({fetcher:f,clock:()=>t,universe:u});
+ await scanner.cycle();assert.equal(calls,10);assert.equal(scanner.batchBudget,15);
+ fail=true;calls=0;await scanner.cycle();assert.equal(calls,1);assert.equal(scanner.batchBudget,7);
+});
