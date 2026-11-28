@@ -25,21 +25,27 @@ export function evaluateExtensions(exts){
 }
 const MINT=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const amount=x=>typeof x==='string'&&/^[0-9]{1,30}$/.test(x);
-async function rpc(method,params,fetcher){
-  const r=await fetcher(RPC,{method:'POST',redirect:'error',signal:AbortSignal.timeout(10000),
-    headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})});
+async function rpc(method,params,fetcher,url=RPC){
+  let r;
+  try{r=await fetcher(url,{method:'POST',redirect:'error',signal:AbortSignal.timeout(10000),
+    headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})});}catch{throw Error('RPC_NETWORK '+method);}
   if(!r.ok)throw Error('RPC HTTP '+r.status+' '+method);
   const j=await r.json();
-  if(j.error)throw Error(method+' '+j.error.code+' '+String(j.error.message));
+  if(j.error)throw Error(method+' '+j.error.code+' '+'PROVIDER_REJECTED');
   if(!Number.isSafeInteger(j.result?.context?.slot))throw Error('RPC_CONTEXT_MISSING '+method);
   return j.result;
 }
-export async function inspectMint(address,fetcher=fetch,clock=Date.now){
+export async function inspectMint(address,fetcher=fetch,clock=Date.now,{heliusKey=process.env.R32_HELIUS_API_KEY}={}){
   const result={chain:'solana',address,source:RPC,checks:[],scope:RISK_SCOPE,risk:'UNKNOWN'};
   const done=()=>({...result,observed_at:new Date(clock()).toISOString()});
   if(typeof address!=='string'||!MINT.test(address)){result.error='INVALID_MINT';return done();}
   try{
-    const a=await rpc('getAccountInfo',[address,{encoding:'jsonParsed',commitment:'finalized'}],fetcher);
+    // Fixed HTTPS destination; API key must never appear in results, logs or GitHub.
+    const configured=typeof heliusKey==='string'&&heliusKey.trim().length>0;
+    const url=configured?'https://mainnet.helius-rpc.com/?'+new URLSearchParams({'api-key':heliusKey.trim()}):RPC;
+    result.source=configured?'https://mainnet.helius-rpc.com/':RPC;
+    result.holder_provider=configured?'HELIUS':'NOT_CONFIGURED';
+    const a=await rpc('getAccountInfo',[address,{encoding:'jsonParsed',commitment:'finalized'}],fetcher,url);
     const v=a.value,p=v?.data?.parsed,i=p?.info;
     result.mint_diagnostic={owner:v?.owner??null,parsed_type:p?.type??null,
       initialized:i?.isInitialized??null,supply:i?.supply??null,decimals:i?.decimals??null,
@@ -68,7 +74,8 @@ export async function inspectMint(address,fetcher=fetch,clock=Date.now){
       result.risk='FAIL';result.checks.push('ACTIVE_MINT_OR_FREEZE_AUTHORITY');return done();
     }
     result.checks.push('NO_MINT_OR_FREEZE_AUTHORITY');
-    const h=await rpc('getTokenLargestAccounts',[address,{commitment:'finalized'}],fetcher);
+    if(!configured){result.error='HOLDER_PROVIDER_REQUIRED';result.retryable=false;return done();}
+    const h=await rpc('getTokenLargestAccounts',[address,{commitment:'finalized'}],fetcher,url);
     if(Math.abs(h.context.slot-a.context.slot)>150||!Array.isArray(h.value)||!h.value.length||
       h.value.length>20||h.value.some(x=>!MINT.test(x.address??'')||!amount(x.amount)||x.decimals!==i.decimals)||
       new Set(h.value.map(x=>x.address)).size!==h.value.length)throw Error('INVALID_OR_UNSYNCED_HOLDER_RESPONSE');
@@ -85,5 +92,5 @@ export async function inspectMint(address,fetcher=fetch,clock=Date.now){
     result.risk='PASS';
     result.limitations='Conservative experimental account limits; pool accounts not excluded, wallet clustering, LP ownership, program behavior and actual sellability not established.';
     return done();
-  }catch(e){result.error=String(e.message);return done();}
+  }catch(e){const m=String(e.message);result.error=/RPC HTTP 429 getTokenLargestAccounts/.test(m)?'HOLDER_PROVIDER_RATE_LIMIT':m;result.retryable=/RPC HTTP 429|RPC HTTP 5|RPC_NETWORK/.test(m);return done();}
 }

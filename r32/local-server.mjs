@@ -3,21 +3,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {fileURLToPath} from 'node:url';
-import {execFile} from 'node:child_process';
-import {promisify} from 'node:util';
 import {createHash} from 'node:crypto';
 import {Pilot} from './runtime.mjs';
 import {Transport} from './transport.mjs';
 const root=path.dirname(fileURLToPath(import.meta.url));
 const dir=process.env.R32_DATA_DIR||path.join(process.env.LOCALAPPDATA||os.homedir(),'MemeSniperR32');
-const exec=promisify(execFile);
-const readNarratives=async()=>{
-  const {stdout}=await exec('gh',['api','repos/127027/Sniperbot-/contents/r32/feeds/events.json?ref=r32-local-paper',
-    '-H','Accept: application/vnd.github.raw+json'],{timeout:20000,maxBuffer:3000000,windowsHide:true});
-  return JSON.parse(stdout);
-};
 const transport=new Transport();
-const bot=new Pilot({dir,readNarratives,readSignals:()=>transport.readSignals()});
+const bot=new Pilot({dir,readSignals:()=>transport.readSignals()});
+bot.diag.holder_provider=process.env.R32_HELIUS_API_KEY?.trim()?'HELIUS_CONFIGURED_NOT_YET_VERIFIED':'HOLDER_PROVIDER_REQUIRED';
 bot.diag.code_version=createHash('sha256').update(['local-server.mjs','runtime.mjs','scanner.mjs','decision.mjs','providers.mjs','risk.mjs','recorder.mjs','signals.mjs','transport.mjs','pilot-dashboard.html']
   .map(f=>fs.readFileSync(path.join(root,f))).reduce((a,b)=>Buffer.concat([a,b]))).digest('hex');
 const host='127.0.0.1:3030',origin='http://'+host;

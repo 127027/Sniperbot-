@@ -41,8 +41,8 @@ export function gatedFetch(fetcher=fetch){
   const hosts=new Map();
   return (url,opts={},priority=0)=>new Promise((resolve,reject)=>{
     const host=new URL(url).hostname;
-    if(!hosts.has(host))hosts.set(host,{queue:[],running:false,next:0});
-    const h=hosts.get(host);h.queue.push({url,opts,priority,resolve,reject});
+    if(!hosts.has(host))hosts.set(host,{queue:[],running:false,next:0,backoffUntil:0});
+    const h=hosts.get(host);if(h.backoffUntil>Date.now()){reject(Error('RATE_BACKOFF '+host));return;}h.queue.push({url,opts,priority,resolve,reject});
     if(h.running)return;
     h.running=true;
     void (async()=>{
@@ -58,6 +58,7 @@ export function gatedFetch(fetcher=fetch){
             if(r.status===429){
               const v=r.headers?.get('retry-after'), seconds=Number(v);
               h.next=Date.now()+Math.max(60000,v&&Number.isFinite(seconds)?seconds*1000:Date.parse(v)-Date.now()||0);
+              h.backoffUntil=h.next;
               for(const pending of h.queue.splice(0))pending.reject(Error('RATE_BACKOFF '+host));
             }
             q.resolve(r);
@@ -125,6 +126,14 @@ export class Pilot {
     this.signalFeeds=await this.readSignals();
     const merged=this.currentSignals();
     this.diag.signal_sources=merged.fresh_dots;
+    let adopted=0;
+    for(const n of merged.new_identities){
+      const old=this.scanner.universe.get(n.address);
+      if(!old){upsert(this.scanner.universe,{address:n.address,source:n.source,kind:'dot'},this.clock());adopted++;}
+      const c=this.scanner.universe.get(n.address);
+      if(c){c.dot_observed_at=n.observed_at;c.dot_source=n.source;c.dot_priority_until=Date.parse(n.observed_at)+90*60000;}
+    }
+    this.diag.adopted_new_identities=adopted;
     this.record('signals',{feeds:this.signalFeeds,merged});
   });}
   async entries(){return this.guard('entries',async()=>{

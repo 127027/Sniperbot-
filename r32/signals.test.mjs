@@ -20,3 +20,9 @@ test('targeted cross-dot objection vetoes, unrelated or same-dot objection does 
  assert.equal(mergeSignals([wrap(1,[advisory()],{objections:[o]})],now).buys.length,1);
  assert.equal(mergeSignals([wrap(1,[advisory()]),wrap(2,[],{objections:[{...o,target_dot:3}]})],now).buys.length,1);
 });
+
+test('new identities accepted from fresh correct envelope, source and time checked',()=>{
+ const n={chain:'solana',address:a,source:'https://example.org/token',observed_at:at};
+ const r=mergeSignals([wrap(1,[],{new_identities:[n,{...n,address:'B'.repeat(32),source:'http://invalid.test'},{...n,address:'C'.repeat(32),observed_at:new Date(now+1).toISOString()}]})],now);
+ assert.equal(r.new_identities.length,1);assert.equal(r.new_identities[0].address,a);
+});

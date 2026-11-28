@@ -50,9 +50,11 @@ export function prune(universe, now, limit=LIMIT) {
   const sorted=[...universe.values()].sort((a,b)=>b.last_seen-a.last_seen);
   for (const c of sorted.slice(limit)) universe.delete(c.address);
 }
-export function nextBatch(universe, n=60) {
-  return [...universe.values()].sort((a,b)=>a.last_attempt-b.last_attempt || a.first_seen-b.first_seen)
-    .slice(0,n);
+export function nextBatch(universe,n=60,now=Date.now()) {
+  const rows=[...universe.values()].sort((a,b)=>a.last_attempt-b.last_attempt||a.first_seen-b.first_seen);
+  const priority=rows.filter(c=>c.dot_priority_until>now&&now-c.last_attempt>=60000).slice(0,Math.floor(n/3));
+  const ids=new Set(priority.map(c=>c.address));
+  return [...priority,...rows.filter(c=>!ids.has(c.address))].slice(0,n);
 }
 export function normalize(address,pairs,now) {
   const p=pairs.filter(x=>x.chainId==='solana' && x.baseToken?.address===address &&
@@ -97,7 +99,7 @@ export class Scanner {
         } catch(e) {this.errors.push({url:src.url,error:String(e.message)});}
       }
       prune(this.universe,this.clock());
-      const batch=nextBatch(this.universe);
+      const batch=nextBatch(this.universe,60,this.clock());
       for(let i=0;i<batch.length;i+=30) {
         const group=batch.slice(i,i+30);
         const url=ds+'tokens/v1/solana/'+group.map(c=>c.address).join(',');

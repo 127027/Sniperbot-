@@ -16,12 +16,18 @@ export function validAdvisory(a,now){
 // An unexpired SELL takes priority over BUY; absence of a signal never means SELL.
 // Fresh objections veto only an explicit target dot or all BUYs if target_dot is null.
 export function mergeSignals(inputs,now){
- const byAddress=new Map(),objections=[],rejected=[],freshDots=[],notMeme=[];
+ const byAddress=new Map(),objections=[],rejected=[],freshDots=[],notMeme=[],newIdentities=new Map();
  for(const {expected_dot,feed:f} of inputs){
   if(!Number.isInteger(expected_dot)||expected_dot<1||expected_dot>4||f?.dot!==expected_dot||
     f?.version!==1||f.mode!=='PAPER_ONLY'||!recent(f.run_at,now)||
     !Array.isArray(f.advisories)||f.advisories.length>20){rejected.push({dot:expected_dot,reason:'INVALID_OR_STALE_FEED'});continue;}
   freshDots.push(expected_dot);
+  for(const n of (Array.isArray(f.new_identities)?f.new_identities.slice(0,30):[])){
+   if(validIdentity(n)&&https(n.source)&&recent(n.observed_at,now)&&time(n.observed_at)<=time(f.run_at)){
+    const old=newIdentities.get(n.address);
+    if(!old||time(n.observed_at)>time(old.observed_at))newIdentities.set(n.address,{chain:'solana',address:n.address,source:n.source,observed_at:n.observed_at,dot:expected_dot});
+   }
+  }
   let buyCount=0;
   for(const a of f.advisories){
    if(!validAdvisory(a,now)||time(a.observed_at)>time(f.run_at)||a.action==='BUY'&&++buyCount>10){
@@ -49,5 +55,5 @@ export function mergeSignals(inputs,now){
   if(buy)buys.push(buy);else rejected.push({address,reason:'VETOED'});
  }
  buys.sort((a,b)=>a.rank-b.rank||time(b.observed_at)-time(a.observed_at)||a.dot-b.dot||a.address.localeCompare(b.address));
- return {buys:buys.slice(0,10),sells,fresh_dots:[...new Set(freshDots)],rejected};
+ return {buys:buys.slice(0,10),sells,new_identities:[...newIdentities.values()],fresh_dots:[...new Set(freshDots)],rejected};
 }

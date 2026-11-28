@@ -34,3 +34,8 @@ test('429 backoff, keep last data but mark stale after failure',async()=>{
   const r=await s.cycle();assert.equal(r.candidates[0].market.price_usd,0.01);
   assert.equal(r.candidates[0].market_stale,true);assert.equal(r.backoff['api.dexscreener.com'],now+120000);
 });
+
+test('fresh Dot discoveries have bounded priority without starving rotation',()=>{
+ const u=new Map();upsert(u,lead(a),t);upsert(u,lead(b),t+1);u.get(b).dot_priority_until=t+100000;
+ assert.equal(nextBatch(u,3,t)[0].address,b);assert.equal(nextBatch(u,3,t).length,2);
+});

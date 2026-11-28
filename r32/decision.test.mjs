@@ -40,7 +40,7 @@ test('onchain authority fails; RPC failure unknown; scoped classic checks pass f
  const value=method==='getAccountInfo'?{owner:'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',data:{parsed:{type:'mint',info:{isInitialized:true,supply:'10000',decimals:6,mintAuthority:null,freezeAuthority:null}}}}:
  [{address:'B'.repeat(32),amount:'1000',decimals:6}];
  return {ok:true,json:async()=>({result:{context:{slot:100},value}})}};
- assert.equal((await inspectMint(a,mock,()=>now)).risk,'PASS');
+ assert.equal((await inspectMint(a,mock,()=>now,{heliusKey:'fixture-only'})).risk,'PASS');
  assert.equal((await inspectMint(a,async()=>({ok:false,status:429}),()=>now)).risk,'UNKNOWN');
  assert.equal((await inspectMint(a,async(u,o)=>{const r=await mock(u,o);const j=await r.json();j.result.value.data.parsed.info.mintAuthority=a;return {ok:true,json:async()=>j}},()=>now)).risk,'FAIL');
 });
