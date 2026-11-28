@@ -25,7 +25,8 @@ export function packets(data,health,runtimeCommit){
  }
  pool.sort((a,b)=>Number(b.research_ready_at_capture)-Number(a.research_ready_at_capture)||ts(b.observed_at)-ts(a.observed_at)||a.id.localeCompare(b.id));
  const seen=new Set();const unique=pool.filter(x=>!seen.has(x.id)&&seen.add(x.id));
- const roles={market:unique.filter(x=>['solana','base'].includes(x.chain)),discovery:unique.filter(x=>!['solana','base'].includes(x.chain))};
+ // The market reviewer must see the complete reachable universe, not just two chains.
+ const roles={market:unique,discovery:unique.filter(x=>!['solana','base'].includes(x.chain))};
  // Chain round-robin prevents a tied retrieval timestamp from filling
  // every first packet with one alphabetically early chain.
  return Object.fromEntries(Object.entries(roles).map(([worker,rows])=>{
@@ -55,10 +56,10 @@ function test(){
  assert.equal(classify(run,[{...checkpoint,kind:'FINAL',validated:true}]).accepted,false);
  const t='2026-11-27T09:00:00Z',row={coin:'fixture',research_ready:true,identities:[{chain:'base',contract:'0x'+'a'.repeat(40),pool:{source_url:'https://example.org',retrieved_at:t,price_usd:1}},{chain:'bsc',contract:'0x'+'b'.repeat(40),pool:{source_url:'https://example.org',retrieved_at:t,price_usd:2}}]};
  const p=packets({snapshot:t,candidates:[row,row]},{status:'OK',snapshot:t,run_id:'fixture'},'a'.repeat(40));
- assert.equal(p.market.rows.length,1);assert.equal(p.discovery.rows.length,1);assert.equal(p.market.rows[0].market.indicative_eur,null);assert.equal(p.market.non_executable,true);
+ assert.equal(p.market.rows.length,2);assert.equal(p.discovery.rows.length,1);assert.ok(p.market.rows.some(x=>x.chain==='bsc'));assert.ok(p.market.rows.every(x=>x.market.indicative_eur===null));assert.equal(p.market.non_executable,true);
  const many=Array.from({length:15},(_,n)=>({coin:'fixture'+n,research_ready:true,identities:[{chain:n%3===0?'ethereum':n%3===1?'bsc':'arbitrum',contract:'0x'+n.toString(16).padStart(40,'0'),pool:{source_url:'https://example.org',retrieved_at:t}}]}));
  const q=packets({snapshot:t,candidates:many},{status:'OK',snapshot:t,run_id:'fixture'},'a'.repeat(40)).discovery;
  assert.equal(q.pages.length,3);assert.equal(q.pages.flatMap(x=>x.rows).length,15);assert.equal(new Set(q.pages.flatMap(x=>x.rows.map(y=>y.id))).size,15);assert.equal(new Set(q.pages[0].rows.map(x=>x.chain)).size,3);assert.equal(q.pages[0].next_file,q.pages[1].file);assert.equal(q.pages[2].next_file,null);assert.equal(q.pages[2].remaining,0);
- console.log('Worker lifecycle fixtures passed: terminal without report, checkpoint resume, no false acceptance, compact disjoint evidence packets');
+ console.log('Worker lifecycle fixtures passed: terminal without report, checkpoint resume, no false acceptance, complete market reviewer coverage and supplemental discovery packets');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){if(process.argv.includes('--self-test'))test();else{const o=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));console.log(JSON.stringify(o.map(x=>classify(x.run,x.artifacts)),null,2))}}
