@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {Pilot,narrativeMap} from './runtime.mjs';
 import {USDC} from './providers.mjs';
+import {RISK_SCOPE} from './risk.mjs';
 import {readRecords,replay} from './recorder.mjs';
 const now=Date.parse('2026-11-28T14:00:00Z'),at=new Date(now).toISOString(),a='A'.repeat(32);
 const fx={status:'DAILY_REFERENCE_NOT_LIVE_FX',usd_per_eur:1,reference_date:'2026-11-27',retrieved_at:at};
@@ -26,7 +27,7 @@ test('fixture discovery -> narrative -> risk -> route -> buy -> pause -> exit ->
  // Inject direct fixture Scanner to avoid wall-clock provider throttles in tests.
  const {Scanner}=await import('./scanner.mjs');
  const opts={dir,clock:()=>now,scanner:new Scanner({fetcher:f,clock:()=>now}),readNarratives:async()=>feed,
- getFx:async()=>fx,inspect:async()=>({chain:'solana',address:a,risk:'PASS',scope:'CLASSIC_SPL_MINT_AND_ACCOUNT_CONCENTRATION',observed_at:at}),
+ getFx:async()=>fx,inspect:async()=>({chain:'solana',address:a,risk:'PASS',scope:RISK_SCOPE,observed_at:at}),
  quoteRoundtrip:async(addr,raw)=>({chain:'solana',address:addr,mode:'PAPER_ONLY',route_evidence:'BIDIRECTIONAL_QUOTED',
  buy:route(USDC,addr,raw,'1000000'),sell:route(addr,USDC,'1000000','49000000')}),
  quoteExit:async()=>route(a,USDC,'1000000','35000000')};

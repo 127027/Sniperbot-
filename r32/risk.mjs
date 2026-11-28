@@ -1,6 +1,28 @@
 // Read-only Solana RPC checks. PASS denotes scoped checks only, not token safety.
 const RPC='https://api.mainnet-beta.solana.com';
 const SPL='TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+export const TOKEN_2022='TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
+export const RISK_SCOPE='SPL_T22_METADATA_ALLOWLIST_ACCOUNT_CONCENTRATION_V2';
+export function evaluateExtensions(exts){
+  if(!Array.isArray(exts))return {unknown:true,blocked:[],warnings:[]};
+  const blocked=[],warnings=[],seen=new Set();
+  for(const e of exts){
+    const name=e?.extension;
+    if(typeof name!=='string'||seen.has(name))return {unknown:true,blocked,warnings};
+    seen.add(name);
+    // Pilot intentionally accepts metadata-only extensions; no transfer-affecting extensions.
+    if(!['metadataPointer','tokenMetadata'].includes(name)){blocked.push('T22_BLOCKED_EXTENSION:'+name);continue;}
+    if(!e.state||typeof e.state!=='object'||Array.isArray(e.state))return {unknown:true,blocked,warnings};
+    if(name==='metadataPointer'){
+      if(!Object.hasOwn(e.state,'authority')||!Object.hasOwn(e.state,'metadataAddress'))return {unknown:true,blocked,warnings};
+      warnings.push('METADATA_POINTER_NOT_IDENTITY_PROOF');
+    }else{
+      if(!Object.hasOwn(e.state,'updateAuthority')||typeof e.state.mint!=='string')return {unknown:true,blocked,warnings};
+      warnings.push('TOKEN_METADATA_NOT_IDENTITY_PROOF');
+    }
+  }
+  return {unknown:false,blocked,warnings};
+}
 const MINT=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const amount=x=>typeof x==='string'&&/^[0-9]{1,30}$/.test(x);
 async function rpc(method,params,fetcher){
@@ -13,7 +35,7 @@ async function rpc(method,params,fetcher){
   return j.result;
 }
 export async function inspectMint(address,fetcher=fetch,clock=Date.now){
-  const result={chain:'solana',address,source:RPC,checks:[],scope:'CLASSIC_SPL_MINT_AND_ACCOUNT_CONCENTRATION',risk:'UNKNOWN'};
+  const result={chain:'solana',address,source:RPC,checks:[],scope:RISK_SCOPE,risk:'UNKNOWN'};
   const done=()=>({...result,observed_at:new Date(clock()).toISOString()});
   if(typeof address!=='string'||!MINT.test(address)){result.error='INVALID_MINT';return done();}
   try{
@@ -24,14 +46,24 @@ export async function inspectMint(address,fetcher=fetch,clock=Date.now){
       mint_authority_field:!!i&&Object.hasOwn(i,'mintAuthority'),
       freeze_authority_field:!!i&&Object.hasOwn(i,'freezeAuthority')};
     if(!v){result.error='MINT_ACCOUNT_MISSING';return done();}
-    if(v.owner!==SPL){result.error='UNSUPPORTED_TOKEN_PROGRAM';return done();}
+    if(v.owner!==SPL&&v.owner!==TOKEN_2022){result.error='UNSUPPORTED_TOKEN_PROGRAM';return done();}
     if(p?.type!=='mint'||i?.isInitialized!==true){result.error='INVALID_PARSED_MINT';return done();}
     if(!amount(i.supply)||BigInt(i.supply)<=0n){result.error='NONPOSITIVE_OR_INVALID_SUPPLY';return done();}
     if(!Number.isInteger(i.decimals)||i.decimals<0||i.decimals>18||
       !Object.hasOwn(i,'mintAuthority')||!Object.hasOwn(i,'freezeAuthority')){
       result.error='INCOMPLETE_MINT_FIELDS';return done();
     }
-    result.mint_slot=a.context.slot;result.decimals=i.decimals;
+    result.mint_slot=a.context.slot;result.decimals=i.decimals;result.token_program=v.owner;
+    if(v.owner===TOKEN_2022){
+      // Absence of parsed extensions is not evidence of an empty extension list.
+      const extensions=i.extensions===undefined&&v.space===82?[]:i.extensions;
+      result.extension_diagnostic={space:v.space??null,parsed:Array.isArray(extensions),names:Array.isArray(extensions)?extensions.map(e=>e?.extension):null};
+      const e=evaluateExtensions(extensions);
+      if(e.unknown){result.error='T22_EXTENSIONS_UNPARSED';return done();}
+      result.warnings=e.warnings;
+      if(e.blocked.length){result.risk='FAIL';result.checks.push(...e.blocked);return done();}
+      result.checks.push('T22_METADATA_ONLY_EXTENSIONS');
+    }
     if(i.mintAuthority!==null||i.freezeAuthority!==null){
       result.risk='FAIL';result.checks.push('ACTIVE_MINT_OR_FREEZE_AUTHORITY');return done();
     }

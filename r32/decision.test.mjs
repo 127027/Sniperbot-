@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectMint} from './risk.mjs';
+import {inspectMint,RISK_SCOPE} from './risk.mjs';
 import {decide,applyBuy,monitor,paperBudgetRaw} from './decision.mjs';
 import {fresh} from './paper.mjs';
 import {USDC} from './providers.mjs';
@@ -9,7 +9,7 @@ const fx={status:'DAILY_REFERENCE_NOT_LIVE_FX',usd_per_eur:1,reference_date:'202
 const route=(i,o,amount,out)=>({input_mint:i,output_mint:o,in_raw:amount,out_raw:out,retrieved_at:at,status:'QUOTED_NOT_EXECUTED'});
 const candidate=()=>({chain:'solana',address:a,meme_status:'VERIFIED_MEME',meme_source:'fixture',meme_observed_at:at,
  market_stale:false,market:{symbol:'FIXTURE',retrieved_at:at,liquidity_usd:50000,volume_1h_usd:90000,pair_created_at:now-3600000,buys_5m:30,sells_5m:10,change_1h_pct:40},
- risk_evidence:{chain:'solana',address:a,risk:'PASS',scope:'CLASSIC_SPL_MINT_AND_ACCOUNT_CONCENTRATION',observed_at:at},fx,
+ risk_evidence:{chain:'solana',address:a,risk:'PASS',scope:RISK_SCOPE,observed_at:at},fx,
  roundtrip:{chain:'solana',address:a,mode:'PAPER_ONLY',route_evidence:'BIDIRECTIONAL_QUOTED',
  buy:route(USDC,a,paperBudgetRaw(fx,now),'1000000'),sell:route(a,USDC,'1000000','49000000')}});
 test('same evidence contract generates BUY and local paper fill, independent devices',()=>{

@@ -1,6 +1,7 @@
 // Common evidence -> expiring advisory -> virtual ledger. No wallet or transaction.
 import {identity} from './paper.mjs';
 import {USDC} from './providers.mjs';
+import {RISK_SCOPE} from './risk.mjs';
 const MINT=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const raw=x=>typeof x==='string'&&/^[1-9][0-9]{0,30}$/.test(x);
 const fresh=(t,now,max)=>Number.isFinite(Date.parse(t))&&Date.parse(t)<=now&&now-Date.parse(t)<=max;
@@ -34,7 +35,7 @@ export function qualify(c,now){
   if(!finite(m.volume_1h_usd)||m.volume_1h_usd<POLICY.minVolume)reasons.push('VOLUME');
   if(!finite(m.pair_created_at)||m.pair_created_at<=0||now-m.pair_created_at<POLICY.minPairAge)reasons.push('PAIR_AGE');
   if(!finite(m.buys_5m)||!finite(m.sells_5m)||m.sells_5m<=0||m.buys_5m/m.sells_5m<1.2)reasons.push('FLOW');
-  if(r.address!==c?.address||r.chain!==c?.chain||r.risk!=='PASS'||r.scope!=='CLASSIC_SPL_MINT_AND_ACCOUNT_CONCENTRATION'||
+  if(r.address!==c?.address||r.chain!==c?.chain||r.risk!=='PASS'||r.scope!==RISK_SCOPE||
     !fresh(r.observed_at,now,POLICY.maxRiskAge))reasons.push('RISK');
   if(!reference(fx,now))reasons.push('FX');
   if(q.address!==c?.address||q.chain!==c?.chain||q.mode!=='PAPER_ONLY'||q.route_evidence!=='BIDIRECTIONAL_QUOTED'||

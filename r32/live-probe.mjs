@@ -35,6 +35,14 @@ await check('rpc_discovered_tokens',async()=>{
    throw Error(JSON.stringify({observations,error:'NO_SCOPED_RISK_DECISION'}));
  return {observations,limitations:'Discovery tokens not necessarily memes; FAIL is a valid policy decision, not an entry approval.'};
 });
+await check('rpc_token2022_regression',async()=>{
+ const observations=[];
+ for(const address of ['Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump','Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump','Fo2HAwr7ZAUM2bSZ7MWSi16e3aWGpbw5MsUDYCttpump']){
+  await new Promise(r=>setTimeout(r,1100));observations.push(await inspectMint(address));
+ }
+ if(observations.some(r=>r.risk==='UNKNOWN'))throw Error(JSON.stringify(observations));
+ return observations;
+});
 report.ended_at=new Date().toISOString();
 report.status=Object.values(report.checks).every(x=>x.status==='PASS')?'PASS':'PARTIAL_OR_FAIL';
 fs.writeFileSync('r32-live-probe.json',JSON.stringify(report,null,2)+'\n');
