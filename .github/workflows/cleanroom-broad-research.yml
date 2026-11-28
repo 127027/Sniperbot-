@@ -14,16 +14,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      REGISTRY_COMMIT: e91af6609ddbea58d5888578eca482b252d47bf1
       R31_DISPATCH_PATH: ranked-dispatch.json
       R31_SAME_RUN: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
         with:
-          ref: e91af6609ddbea58d5888578eca482b252d47bf1
+          ref: cleanroom-collector-r31-pilot-v1
           path: collector-data
           persist-credentials: false
+      - name: Pin actual collector checkout for provenance
+        run: |
+          registry_commit=$(git -C collector-data rev-parse HEAD)
+          [[ "$registry_commit" =~ ^[0-9a-f]{40}$ ]]
+          echo "REGISTRY_COMMIT=$registry_commit" >> "$GITHUB_ENV"
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
