@@ -11,10 +11,13 @@ export function preparePublication({previous=null,universe,decisions,target_utc,
  for(const c of universe.coins){const k=identity(c);if(next.has(k)||!['LONG','EXIT'].includes(c.intent)||typeof c.coin!=='string')throw Error('INVALID_UNIVERSE');next.set(k,{coin:c.coin,chain:c.chain,contract:c.contract,intent:c.intent})}
  const supplied=new Map();
  const archivedGap=c=>({coin:c.coin,chain:c.chain,contract:c.contract,action:'DATA_GAP',reason:'[STRATEGY SELL] [EXECUTION PRICE_PENDING] Prior EXIT archive: persistent full exit; no verified fresh quote. Retry in later hours.'});
- for(const d of decisions){const k=identity(d);if(supplied.has(k))throw Error('DUPLICATE_DECISION');supplied.set(k,d);
+ for(const raw of decisions){
+ // Legacy HOLD_ONLY is non-executable; never turn it into a new entry without evidence.
+ const d=raw.action==='HOLD'?{coin:raw.coin,chain:raw.chain,contract:raw.contract,action:'WATCH',reason:'[ENTRY_NOT_ALLOWED] '+raw.reason}:raw;
+ const k=identity(d);if(supplied.has(k))throw Error('DUPLICATE_DECISION');supplied.set(k,d);
  if(d.action==='SELL'&&d.fraction!==undefined&&d.fraction!==1)throw Error('R39_FULL_EXIT_REQUIRED');
  if(d.action==='BUY'||d.action==='SELL')next.set(k,{coin:d.coin,chain:d.chain,contract:d.contract,intent:d.action==='BUY'?'LONG':'EXIT'});
- if(d.action==='HOLD'&&next.get(k)?.intent==='EXIT')throw Error('EXIT_INTENT_NEEDS_REVIEW');
+ if(raw.action==='HOLD'&&next.get(k)?.intent==='EXIT')throw Error('EXIT_INTENT_NEEDS_REVIEW');
  // An archived exit is durable until a new executable BUY. Never recycle stale SELL prices.
  if(next.get(k)?.intent==='EXIT'&&d.action!=='SELL')supplied.set(k,archivedGap(next.get(k)));
  }

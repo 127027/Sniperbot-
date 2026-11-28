@@ -52,7 +52,7 @@ test('R35 BUY BUY HOLD BUY SELL across two devices: immutable global BUY and loc
   assert.equal(first.view().feed.state,'PROCESSED');
   if(second)assert.equal(second.view().feed.state,'PROCESSED');
   assert.equal(JSON.stringify(current.signal),before);
-  assert.equal(current.signal.decisions[0].action,action);
+  assert.equal(current.signal.decisions[0].action,action==='HOLD'?'WATCH':action);
   assert.equal(blobSha(Buffer.from(current.files.find(f=>f.path===current.pointer.path).content)),sha);
   const a=first.view().ledger,b=second?.view().ledger;
   if(hour<12){assert.equal(a.cash_eur,450);assert.equal(a.positions.length,1);assert.equal(a.trades.length,1)}
