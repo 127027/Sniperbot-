@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {Pilot,narrativeMap} from './runtime.mjs';
 import {USDC} from './providers.mjs';
+import {readRecords,replay} from './recorder.mjs';
 const now=Date.parse('2026-11-28T14:00:00Z'),at=new Date(now).toISOString(),a='A'.repeat(32);
 const fx={status:'DAILY_REFERENCE_NOT_LIVE_FX',usd_per_eur:1,reference_date:'2026-11-27',retrieved_at:at};
 const route=(i,o,amount,out)=>({input_mint:i,output_mint:o,in_raw:amount,out_raw:out,retrieved_at:at,status:'QUOTED_NOT_EXECUTED'});
@@ -33,6 +34,10 @@ test('fixture discovery -> narrative -> risk -> route -> buy -> pause -> exit ->
  assert.equal(b.state.cash,45000);assert.equal(b.state.positions.length,1);
  await b.entries();assert.equal(b.state.positions.length,1);assert.equal(b.buys.length,1);
  b.toggle();await b.entries();assert.equal(b.buys.length,1);assert.equal(b.state.positions.length,1);await b.exits();assert.equal(b.state.cash,48490);assert.equal(b.state.positions.length,0);
+ const records=readRecords(path.join(dir,'records'));
+ const replayed=replay(records,{start:now,end:now+1,initial:records[0].data.initial});
+ assert.equal(replayed.state.cash,b.state.cash);assert.deepEqual(replayed.state.history,b.state.history);
+ assert.equal(replayed.counts.buy,1);assert.equal(replayed.counts.sell,1);
  const c=new Pilot(opts);assert.equal(c.state.cash,48490);assert.equal(c.state.history[1].action,'SELL');
  assert.equal(c.state.enabled,false);c.toggle();await c.entries();assert.equal(c.state.positions.length,0);
  }finally{fs.rmSync(dir,{recursive:true,force:true});}

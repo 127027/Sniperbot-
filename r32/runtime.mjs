@@ -7,6 +7,7 @@ import {inspectMint} from './risk.mjs';
 import {fxReference,roundTrip,routeQuote,USDC} from './providers.mjs';
 import {decide,qualify,applyBuy,monitor,paperBudgetRaw} from './decision.mjs';
 import {fresh,identity} from './paper.mjs';
+import {Recorder} from './recorder.mjs';
 const MINT=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const iso=t=>new Date(t).toISOString();
 const rank=c=>Math.max(-50,Math.min(200,Number.isFinite(c.market.change_1h_pct)?c.market.change_1h_pct:0))/200+
@@ -85,10 +86,12 @@ export class Pilot {
     this.quoteExit=quoteExit??((a,q)=>routeQuote(a,USDC,q,exit));
     this.diag={started_at:iso(clock()),loops:{},errors:{},narrative_sha:null,mode:'PAPER_ONLY'};
     this.narratives=new Map();this.fx=null;this.snapshot=this.scanner.snapshot();
-    this.buys=[];this.blocked=[];this.busy={};this.save(this.state);
+    this.buys=[];this.blocked=[];this.busy={};this.recorder=new Recorder(dir,{clock});this.save(this.state);
+    this.record('session_start',{initial:this.state});
   }
   save(s){atomic(this.file,s);this.state=s;}
-  toggle(){this.save({...this.state,enabled:!this.state.enabled});}
+  record(kind,data){try{return this.recorder.append(kind,data);}catch(e){this.diag.errors.recorder=String(e.message);throw e;}}
+  toggle(){const enabled=!this.state.enabled;this.record('toggle',{enabled});this.save({...this.state,enabled});}
   async guard(name,fn){
     if(this.busy[name])return;
     this.busy[name]=true;const start=this.clock();
@@ -99,6 +102,7 @@ export class Pilot {
   async scan(){return this.guard('scan',async()=>{
     this.snapshot=await this.scanner.cycle();
     atomic(path.join(this.dir,'universe-pilot.json'),this.snapshot);
+    this.record('scan',{snapshot:this.snapshot});
   });}
   async context(){return this.guard('context',async()=>{
     const errors=[];
@@ -112,6 +116,7 @@ export class Pilot {
         if(!this.scanner.universe.has(address))upsert(this.scanner.universe,{address,source:n.meme_source,kind:'narrative'},this.clock());
       }
     }catch(e){errors.push('NARRATIVE '+e.message);}
+    this.record('context',{fx:this.fx,narratives:[...this.narratives],errors});
     if(errors.length)throw Error(errors.join('; '));
   });}
   async entries(){return this.guard('entries',async()=>{
@@ -139,12 +144,14 @@ export class Pilot {
         this.buys.push(buys[0]);
         // Advice never depends on one device's portfolio. Same-hour re-entry is a local policy.
         if(this.state.history.some(h=>h.id===identity(c)&&h.action==='BUY'&&Math.floor(Date.parse(h.at)/3600000)===hour))continue;
+        this.record('entry',{candidate:c,signal:buys[0],decision_at:now});
         const r=applyBuy(this.state,buys[0],c,now);
         if(r.reason==='BOUGHT')this.save(r.state);
         else this.diag.last_local_action={address:c.address,reason:r.reason};
       }catch(e){this.blocked.push({address:c.address,reasons:['PROVIDER_ERROR'],detail:String(e.message)});}
     }
     this.diag.entry_capacity={eligible:candidates.length,limit:cap,remaining:Math.max(0,candidates.length-cap)};
+    this.record('entry_summary',{buys:this.buys,blocked:this.blocked,capacity:this.diag.entry_capacity});
     atomic(path.join(this.dir,'last-entry-pilot.json'),{at:iso(this.clock()),buys:this.buys,blocked:this.blocked});
   });}
   async exits(){return this.guard('exits',async()=>{
@@ -158,7 +165,9 @@ export class Pilot {
         const pairs=await this.scanner.request(url);
         market=normalize(p.address,pairs,this.clock());
       }catch(e){err=[err,String(e.message)].filter(Boolean).join('; ');}
-      const r=monitor(this.state,p.id,{quote,fx:this.fx,market},this.clock());
+      const now=this.clock(), evidence={quote,fx:this.fx,market};
+      this.record('exit',{id:p.id,evidence,decision_at:now});
+      const r=monitor(this.state,p.id,evidence,now);
       let state=r.state;
       if(err)state={...state,positions:state.positions.map(x=>x.id===p.id?{...x,last_error:err}:x)};
       this.save(state);

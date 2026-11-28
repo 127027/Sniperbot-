@@ -19,10 +19,17 @@ export async function inspectMint(address,fetcher=fetch,clock=Date.now){
   try{
     const a=await rpc('getAccountInfo',[address,{encoding:'jsonParsed',commitment:'finalized'}],fetcher);
     const v=a.value,p=v?.data?.parsed,i=p?.info;
-    if(v?.owner!==SPL||p?.type!=='mint'||i?.isInitialized!==true||
-      !amount(i.supply)||BigInt(i.supply)<=0n||!Number.isInteger(i.decimals)||
+    result.mint_diagnostic={owner:v?.owner??null,parsed_type:p?.type??null,
+      initialized:i?.isInitialized??null,supply:i?.supply??null,decimals:i?.decimals??null,
+      mint_authority_field:!!i&&Object.hasOwn(i,'mintAuthority'),
+      freeze_authority_field:!!i&&Object.hasOwn(i,'freezeAuthority')};
+    if(!v){result.error='MINT_ACCOUNT_MISSING';return done();}
+    if(v.owner!==SPL){result.error='UNSUPPORTED_TOKEN_PROGRAM';return done();}
+    if(p?.type!=='mint'||i?.isInitialized!==true){result.error='INVALID_PARSED_MINT';return done();}
+    if(!amount(i.supply)||BigInt(i.supply)<=0n){result.error='NONPOSITIVE_OR_INVALID_SUPPLY';return done();}
+    if(!Number.isInteger(i.decimals)||i.decimals<0||i.decimals>18||
       !Object.hasOwn(i,'mintAuthority')||!Object.hasOwn(i,'freezeAuthority')){
-      result.error='UNSUPPORTED_OR_UNPARSED_MINT';return done();
+      result.error='INCOMPLETE_MINT_FIELDS';return done();
     }
     result.mint_slot=a.context.slot;result.decimals=i.decimals;
     if(i.mintAuthority!==null||i.freezeAuthority!==null){

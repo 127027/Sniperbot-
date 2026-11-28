@@ -16,7 +16,7 @@ const readNarratives=async()=>{
   return JSON.parse(stdout);
 };
 const bot=new Pilot({dir,readNarratives});
-bot.diag.code_version=createHash('sha256').update(['local-server.mjs','runtime.mjs','scanner.mjs','decision.mjs','providers.mjs','risk.mjs','pilot-dashboard.html']
+bot.diag.code_version=createHash('sha256').update(['local-server.mjs','runtime.mjs','scanner.mjs','decision.mjs','providers.mjs','risk.mjs','recorder.mjs','pilot-dashboard.html']
   .map(f=>fs.readFileSync(path.join(root,f))).reduce((a,b)=>Buffer.concat([a,b]))).digest('hex');
 const host='127.0.0.1:3030',origin='http://'+host;
 const server=http.createServer((req,res)=>{
