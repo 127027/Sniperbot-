@@ -70,3 +70,14 @@ test('refresh budget increases after full successful cycle and reduces after 429
  await scanner.cycle();assert.equal(calls,10);assert.equal(scanner.batchBudget,15);
  fail=true;calls=0;await scanner.cycle();assert.equal(calls,1);assert.equal(scanner.batchBudget,7);
 });
+
+test('secondary liquidity lookup requires exact mint and exact pool',async()=>{
+ const u=new Map();upsert(u,lead(a),t);
+ const gtRow={id:'solana_'+p,relationships:{base_token:{data:{id:'solana_'+a}}},attributes:{address:p,base_token_price_usd:'0.01',reserve_in_usd:'24000',volume_usd:{h1:'30000'}}};
+ let matched=false;
+ const f=async url=>({ok:true,status:200,json:async()=>url.includes('/pools/multi/')?(matched?{data:[gtRow]}:{data:[{...gtRow,relationships:{base_token:{data:{id:'solana_'+b}}}}]}):url.includes('geckoterminal')?{data:[]}:url.includes('/tokens/v1/')?[pair]:[]});
+ const scanner=new Scanner({fetcher:f,clock:()=>t,universe:u});
+ let r=await scanner.cycle();assert.equal(r.candidates[0].market.liquidity_usd,null);
+ matched=true;r=await scanner.cycle();assert.equal(r.candidates[0].market.liquidity_usd,24000);
+ assert.equal(r.candidates[0].market.pool,p);assert.equal(r.candidates[0].market.risk,'UNKNOWN');
+});
