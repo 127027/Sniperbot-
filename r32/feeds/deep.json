@@ -1,0 +1,65 @@
+{
+  "ts": 1795866118,
+  "leads": [],
+  "risk_notes": [
+    "Paid boosts and profile claims are not proof of momentum, liquidity or sellability. No qualified leads."
+  ],
+  "errors": [
+    "discovery.json: GitHub API error 404: {\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/repos/contents#get-repository-content\",\"status\":\"404\"}",
+    "events.json: GitHub API error 404: {\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/repos/contents#get-repository-content\",\"status\":\"404\"}",
+    "deep.json initial read: GitHub API error 404: {\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/repos/contents#get-repository-content\",\"status\":\"404\"}",
+    "DEX Screener batch and single token pairs: Internal Error; URL is not accessible via this tool.",
+    "GeckoTerminal token pools: Internal Error; URL is not accessible via this tool."
+  ],
+  "status": "PARTIAL",
+  "mode": "PAPER_ONLY",
+  "self_diagnosis": {
+    "start": "2026-11-28T11:41:42Z",
+    "end": null,
+    "checkpoint_at": "2026-11-28T11:41:58.595Z",
+    "sources": [
+      {
+        "url": "https://github.com/127027/Sniperbot-/blob/r32-local-paper/r32/feeds/latest.json",
+        "observed_at": "2026-11-28T11:41:48.711Z",
+        "result": "success; ts=0; empty",
+        "sha": "8dfb1c5b6fb4e0d257a7634d086ff7467d389428"
+      },
+      {
+        "url": "https://api.dexscreener.com/token-profiles/latest/v1",
+        "observed_at": null,
+        "result": "success; profile metadata only"
+      },
+      {
+        "url": "https://api.dexscreener.com/token-boosts/latest/v1",
+        "observed_at": null,
+        "result": "success; paid promotion metadata only"
+      },
+      {
+        "url": "https://api.dexscreener.com/token-pairs/v1/solana/EwUVBpdM5vw1CJHRMSLywzVjyQSJZpy6qboxEPBKpump",
+        "observed_at": null,
+        "result": "Internal Error; URL is not accessible via this tool"
+      },
+      {
+        "url": "https://api.geckoterminal.com/api/v2/networks/solana/tokens/3rVr2RBzEXXKf1cVvZ6HBvFg2XmBK4iMgZv9q9q4pump/pools",
+        "observed_at": null,
+        "result": "Internal Error; URL is not accessible via this tool"
+      }
+    ],
+    "steps": [
+      "Read four GitHub feeds",
+      "Read two public discovery endpoints",
+      "Attempted batch market data for six exact Solana identities, single pair lookup and alternative GeckoTerminal lookup"
+    ],
+    "candidate_count": 6,
+    "qualified": 0,
+    "target": 10,
+    "shortfall": 10,
+    "proven_cause": "Missing upstream feeds and inaccessible pair endpoints",
+    "internal_cause": "UNKNOWN",
+    "next_action": "Restore upstream feeds and use accessible market data endpoint; verify exact identity, fresh pool timestamp, liquidity, momentum, security and exit route before lead admission",
+    "test": "Nonempty timestamped upstream feeds and successful exact-contract market and exit evidence; readback and consumer receipt",
+    "handoff": "not proven",
+    "path": "r32/feeds/deep.json",
+    "blob_sha": null
+  }
+}
