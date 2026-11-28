@@ -31,7 +31,8 @@ test('fixture discovery -> narrative -> risk -> route -> buy -> pause -> exit ->
  quoteRoundtrip:async(addr,raw)=>({chain:'solana',address:addr,mode:'PAPER_ONLY',route_evidence:'BIDIRECTIONAL_QUOTED',
  buy:route(USDC,addr,raw,'1000000'),sell:route(addr,USDC,'1000000','49000000')}),
  quoteExit:async()=>route(a,USDC,'1000000','35000000')};
- const b=new Pilot(opts);await b.context();await b.scan();b.toggle();await b.entries();
+ opts.readSignals=async()=>[{expected_dot:1,feed:{version:1,mode:'PAPER_ONLY',dot:1,run_at:at,advisories:[{mode:'PAPER_ONLY',chain:'solana',address:a,action:'BUY',observed_at:at,expires_at:new Date(now+3600000).toISOString(),rank:1,thesis:'fixture',sources:['https://example.org/source'],risks:[]}]}}];
+ const b=new Pilot(opts);await b.context();await b.scan();await b.signals();b.toggle();await b.entries();
  assert.equal(b.state.cash,45000);assert.equal(b.state.positions.length,1);
  await b.entries();assert.equal(b.state.positions.length,1);assert.equal(b.buys.length,1);
  b.toggle();await b.entries();assert.equal(b.buys.length,1);assert.equal(b.state.positions.length,1);await b.exits();assert.equal(b.state.cash,48490);assert.equal(b.state.positions.length,0);
@@ -40,6 +41,6 @@ test('fixture discovery -> narrative -> risk -> route -> buy -> pause -> exit ->
  assert.equal(replayed.state.cash,b.state.cash);assert.deepEqual(replayed.state.history,b.state.history);
  assert.equal(replayed.counts.buy,1);assert.equal(replayed.counts.sell,1);
  const c=new Pilot(opts);assert.equal(c.state.cash,48490);assert.equal(c.state.history[1].action,'SELL');
- assert.equal(c.state.enabled,false);c.toggle();await c.entries();assert.equal(c.state.positions.length,0);
+ assert.equal(c.state.enabled,false);c.toggle();await c.signals();await c.entries();assert.equal(c.state.positions.length,0);
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });

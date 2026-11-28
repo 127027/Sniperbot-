@@ -2,13 +2,14 @@
 import {identity} from './paper.mjs';
 import {USDC} from './providers.mjs';
 import {RISK_SCOPE} from './risk.mjs';
+import {validAdvisory,MAX_TTL} from './signals.mjs';
 const MINT=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const raw=x=>typeof x==='string'&&/^[1-9][0-9]{0,30}$/.test(x);
 const fresh=(t,now,max)=>Number.isFinite(Date.parse(t))&&Date.parse(t)<=now&&now-Date.parse(t)<=max;
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
 export const POLICY=Object.freeze({stake:5000,maxPositions:10,minLiquidity:20000,minVolume:25000,
   minPairAge:600000,maxQuoteAge:60000,maxMarketAge:300000,maxRiskAge:300000,maxRoundtripBps:600,
-  advisoryTtl:3600000,stopLossBps:2500,trailBps:3000});
+  advisoryTtl:MAX_TTL,stopLossBps:2500,trailBps:3000});
 function validIdentity(x){return x?.chain==='solana'&&typeof x.address==='string'&&MINT.test(x.address);}
 function route(q,input,output,now){
   return q?.status==='QUOTED_NOT_EXECUTED'&&q.input_mint===input&&q.output_mint===output&&
@@ -29,7 +30,7 @@ function proceeds(q,fx){return Math.max(0,Math.floor(Number(BigInt(q.out_raw))/1
 export function qualify(c,now){
   const reasons=[],m=c?.market??{},q=c?.roundtrip??{},r=c?.risk_evidence??{},fx=c?.fx;
   if(!validIdentity(c))reasons.push('IDENTITY');
-  if(c?.meme_status!=='VERIFIED_MEME'||!c?.meme_source||!fresh(c.meme_observed_at,now,86400000))reasons.push('MEME_EVIDENCE');
+  if(!validAdvisory(c?.dot_signal,now)||c.dot_signal.action!=='BUY'||identity(c.dot_signal)!==identity(c))reasons.push('DOT_BUY_REQUIRED');
   if(c?.market_stale!==false||!fresh(m.retrieved_at,now,POLICY.maxMarketAge))reasons.push('MARKET_STALE');
   if(!finite(m.liquidity_usd)||m.liquidity_usd<POLICY.minLiquidity)reasons.push('LIQUIDITY');
   if(!finite(m.volume_1h_usd)||m.volume_1h_usd<POLICY.minVolume)reasons.push('VOLUME');
@@ -47,11 +48,6 @@ export function qualify(c,now){
   }
   return reasons;
 }
-function score(c){
-  const m=c.market;
-  return Math.max(-50,Math.min(200,finite(m.change_1h_pct)?m.change_1h_pct:0))/200+
-    Math.log10(1+m.volume_1h_usd)/10+Math.log10(1+m.liquidity_usd)/10-(c.promoted?0.1:0);
-}
 export function decide(candidates,now){
   const blocked=[],qualified=new Map();
   for(const c of candidates){
@@ -59,22 +55,19 @@ export function decide(candidates,now){
     if(reasons.length)blocked.push({address:c?.address??null,reasons});
     else qualified.set(identity(c),c);
   }
-  const buys=[...qualified.values()].sort((a,b)=>score(b)-score(a)).slice(0,10).map(c=>({
-    action:'BUY',mode:'PAPER_ONLY',chain:c.chain,address:c.address,symbol:c.market.symbol??c.address.slice(0,8),
-    observed_at:new Date(now).toISOString(),expires_at:new Date(now+POLICY.advisoryTtl).toISOString(),score:score(c)
-  }));
+  const buys=[...qualified.values()].sort((a,b)=>a.dot_signal.rank-b.dot_signal.rank).slice(0,10)
+    .map(c=>({...c.dot_signal,symbol:c.market.symbol??c.address.slice(0,8)}));
   return {buys,blocked};
 }
 function advisory(x,now,action){
-  return validIdentity(x)&&x.mode==='PAPER_ONLY'&&x.action===action&&fresh(x.observed_at,now,POLICY.advisoryTtl)&&
-    Date.parse(x.expires_at)>now&&Date.parse(x.expires_at)<=Date.parse(x.observed_at)+POLICY.advisoryTtl;
+  return validAdvisory(x,now)&&x.action===action;
 }
 export function applyBuy(s,sig,c,now){
   if(!advisory(sig,now,'BUY'))return {state:s,reason:'INVALID_ADVISORY'};
   if(!s.enabled)return {state:s,reason:'OFF'};
   if(s.positions.some(p=>p.id===identity(sig)))return {state:s,reason:'ALREADY_HELD'};
   if(s.cash<POLICY.stake||s.positions.length>=POLICY.maxPositions)return {state:s,reason:'BUDGET'};
-  if(!validIdentity(c)||identity(c)!==identity(sig)||qualify(c,now).length)return {state:s,reason:'LOCAL_VALIDATION_FAILED'};
+  if(!validIdentity(c)||identity(c)!==identity(sig)||c.dot_signal?.observed_at!==sig.observed_at||c.dot_signal?.expires_at!==sig.expires_at||qualify(c,now).length)return {state:s,reason:'LOCAL_VALIDATION_FAILED'};
   const q=c.roundtrip, at=new Date(now).toISOString(),value=proceeds(q.sell,c.fx);
   const decimals=Number.isInteger(c.risk_evidence.decimals)&&c.risk_evidence.decimals>=0&&c.risk_evidence.decimals<=18?c.risk_evidence.decimals:null;
   const units=decimals===null?null:Number(q.buy.out_raw)/10**decimals;

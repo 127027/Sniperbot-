@@ -8,6 +8,7 @@ import {fxReference,roundTrip,routeQuote,USDC} from './providers.mjs';
 import {decide,qualify,applyBuy,monitor,paperBudgetRaw} from './decision.mjs';
 import {fresh,identity} from './paper.mjs';
 import {Recorder} from './recorder.mjs';
+import {mergeSignals} from './signals.mjs';
 const MINT=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const iso=t=>new Date(t).toISOString();
 const rank=c=>Math.max(-50,Math.min(200,Number.isFinite(c.market.change_1h_pct)?c.market.change_1h_pct:0))/200+
@@ -68,7 +69,7 @@ export function gatedFetch(fetcher=fetch){
 }
 export class Pilot {
   constructor({dir,clock=Date.now,scanner,readNarratives=async()=>({mode:'PAPER_ONLY',leads:[]}),
-      getFx,inspect,quoteRoundtrip,quoteExit,fetcher=fetch}){
+      getFx,inspect,quoteRoundtrip,quoteExit,fetcher=fetch,readSignals=async()=>[]}){
     this.dir=dir;this.clock=clock;fs.mkdirSync(dir,{recursive:true});
     this.file=path.join(dir,'portfolio-pilot.json');
     this.state=read(this.file,fresh());
@@ -80,7 +81,7 @@ export class Pilot {
     const limited=gatedFetch(fetcher),normal=(u,o)=>limited(u,o,0),exit=(u,o)=>limited(u,o,10);
     this.scanner=scanner??new Scanner({fetcher:normal,clock,
       universe:new Map(old.candidates.map(c=>[c.address,c])),backoff:old.backoff});
-    this.readNarratives=readNarratives;this.getFx=getFx??(()=>fxReference(normal));
+    this.readNarratives=readNarratives;this.readSignals=readSignals;this.signalFeeds=[];this.getFx=getFx??(()=>fxReference(normal));
     this.inspect=inspect??(a=>inspectMint(a,normal));
     this.quoteRoundtrip=quoteRoundtrip??((a,b)=>roundTrip(a,b,normal,async()=>{}));
     this.quoteExit=quoteExit??((a,q)=>routeQuote(a,USDC,q,exit));
@@ -119,36 +120,50 @@ export class Pilot {
     this.record('context',{fx:this.fx,narratives:[...this.narratives],errors});
     if(errors.length)throw Error(errors.join('; '));
   });}
+  currentSignals(){return mergeSignals(this.signalFeeds,this.clock());}
+  async signals(){return this.guard('signals',async()=>{
+    this.signalFeeds=await this.readSignals();
+    const merged=this.currentSignals();
+    this.diag.signal_sources=merged.fresh_dots;
+    this.record('signals',{feeds:this.signalFeeds,merged});
+  });}
   async entries(){return this.guard('entries',async()=>{
     const start=this.clock(),hour=Math.floor(start/3600000);
     this.buys=[];this.blocked=[];
     if(!this.fx)throw Error('FX_UNAVAILABLE');
-    // Broad discovery remains independent of the bounded expensive validation stage.
-    const candidates=this.scanner.snapshot().candidates
-      .map(c=>({...c,...this.narratives.get(c.address),fx:this.fx}))
-      .filter(c=>c.meme_status==='VERIFIED_MEME'&&recent(c.meme_observed_at,start,3600000))
-      .filter(c=>!qualify(c,start).some(x=>!['RISK','ROUTE'].includes(x)))
-      .sort((a,b)=>rank(b)-rank(a));
+    const merged=this.currentSignals();
+    const candidates=merged.buys;
     this.diag.entry_pool=candidates.length;
-    const cap=20;
-    for(const c of candidates.slice(0,cap)){
-      if(Math.floor(this.clock()/3600000)!==hour||this.buys.length>=10)break;
+    this.blocked=[...merged.rejected];
+    const cap=10;
+    for(const sig of candidates.slice(0,cap)){
       try{
+        // Portfolio-independent advice stays visible; expensive checks only for possible new entries.
+        this.buys.push(sig);
+        if(!this.state.enabled||this.state.cash<5000||this.state.positions.length>=10||
+          this.state.positions.some(p=>p.id===identity(sig))||
+          this.state.history.some(h=>h.id===identity(sig)&&h.action==='BUY'&&Math.floor(Date.parse(h.at)/3600000)===hour))continue;
+        const url='https://api.dexscreener.com/tokens/v1/solana/'+sig.address;
+        const pairs=await this.scanner.request(url);
+        const market=normalize(sig.address,pairs,this.clock());
+        const c={chain:sig.chain,address:sig.address,dot_signal:sig,fx:this.fx,market,market_stale:!market};
+        const early=qualify(c,this.clock()).filter(x=>!['RISK','ROUTE'].includes(x));
+        if(early.length){this.blocked.push({address:sig.address,reasons:early});continue;}
         c.risk_evidence=await this.inspect(c.address);
         if(c.risk_evidence.risk!=='PASS'){this.blocked.push({address:c.address,reasons:['RISK'],detail:c.risk_evidence.error??c.risk_evidence.checks});continue;}
         c.roundtrip=await this.quoteRoundtrip(c.address,paperBudgetRaw(c.fx,this.clock()));
         const now=this.clock();
+        const current=this.currentSignals().buys.find(a=>a.address===sig.address);
+        if(!current||current.dot!==sig.dot||current.observed_at!==sig.observed_at||current.expires_at!==sig.expires_at){
+          this.blocked.push({address:c.address,reasons:['SIGNAL_CHANGED']});continue;
+        }
         const {buys,blocked}=decide([c],now);this.blocked.push(...blocked);
         if(!buys.length)continue;
-        // Actual entry revalidates evidence after async provider work and respects a concurrent pause.
-        this.buys.push(buys[0]);
-        // Advice never depends on one device's portfolio. Same-hour re-entry is a local policy.
-        if(this.state.history.some(h=>h.id===identity(c)&&h.action==='BUY'&&Math.floor(Date.parse(h.at)/3600000)===hour))continue;
         this.record('entry',{candidate:c,signal:buys[0],decision_at:now});
         const r=applyBuy(this.state,buys[0],c,now);
         if(r.reason==='BOUGHT')this.save(r.state);
         else this.diag.last_local_action={address:c.address,reason:r.reason};
-      }catch(e){this.blocked.push({address:c.address,reasons:['PROVIDER_ERROR'],detail:String(e.message)});}
+      }catch(e){this.blocked.push({address:sig.address,reasons:['PROVIDER_ERROR'],detail:String(e.message)});}
     }
     this.diag.entry_capacity={eligible:candidates.length,limit:cap,remaining:Math.max(0,candidates.length-cap)};
     this.record('entry_summary',{buys:this.buys,blocked:this.blocked,capacity:this.diag.entry_capacity});
@@ -165,7 +180,7 @@ export class Pilot {
         const pairs=await this.scanner.request(url);
         market=normalize(p.address,pairs,this.clock());
       }catch(e){err=[err,String(e.message)].filter(Boolean).join('; ');}
-      const now=this.clock(), evidence={quote,fx:this.fx,market};
+      const now=this.clock(), evidence={quote,fx:this.fx,market,signal:this.currentSignals().sells.find(a=>a.address===p.address)};
       this.record('exit',{id:p.id,evidence,decision_at:now});
       const r=monitor(this.state,p.id,evidence,now);
       let state=r.state;
@@ -179,7 +194,7 @@ export class Pilot {
       .sort((a,b)=>(b.market.change_5m_pct??-Infinity)-(a.market.change_5m_pct??-Infinity)).slice(0,10);
     return {state:s,shortlist:rows.map(c=>({symbol:c.market.symbol,chain:c.chain,change:c.market.change_5m_pct,
       status:'Beobachtung · '+(this.narratives.has(c.address)?'Narrativ belegt':'Meme-Evidenz offen')})),
-      qualified:this.buys.filter(b=>Date.parse(b.expires_at)>now).length,
+      qualified:this.currentSignals().buys.length,
       invested:s.positions.reduce((n,p)=>n+p.amount,0),last:this.diag.loops.context?.end??null,
       errors:[...Object.values(this.diag.errors),...(this.snapshot.errors??[]).map(e=>e.error)],
       note:'Lokaler Solana-Pilot · virtuelle Quote-Simulation · USDC/USD-Parität und 0,10 EUR je Seite modelliert.',

@@ -7,6 +7,7 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {createHash} from 'node:crypto';
 import {Pilot} from './runtime.mjs';
+import {Transport} from './transport.mjs';
 const root=path.dirname(fileURLToPath(import.meta.url));
 const dir=process.env.R32_DATA_DIR||path.join(process.env.LOCALAPPDATA||os.homedir(),'MemeSniperR32');
 const exec=promisify(execFile);
@@ -15,8 +16,9 @@ const readNarratives=async()=>{
     '-H','Accept: application/vnd.github.raw+json'],{timeout:20000,maxBuffer:3000000,windowsHide:true});
   return JSON.parse(stdout);
 };
-const bot=new Pilot({dir,readNarratives});
-bot.diag.code_version=createHash('sha256').update(['local-server.mjs','runtime.mjs','scanner.mjs','decision.mjs','providers.mjs','risk.mjs','recorder.mjs','pilot-dashboard.html']
+const transport=new Transport();
+const bot=new Pilot({dir,readNarratives,readSignals:()=>transport.readSignals()});
+bot.diag.code_version=createHash('sha256').update(['local-server.mjs','runtime.mjs','scanner.mjs','decision.mjs','providers.mjs','risk.mjs','recorder.mjs','signals.mjs','transport.mjs','pilot-dashboard.html']
   .map(f=>fs.readFileSync(path.join(root,f))).reduce((a,b)=>Buffer.concat([a,b]))).digest('hex');
 const host='127.0.0.1:3030',origin='http://'+host;
 const server=http.createServer((req,res)=>{
@@ -34,18 +36,21 @@ const server=http.createServer((req,res)=>{
   }
   res.writeHead(404);res.end('{}');
 });
-let entryHour=null,ready=false;
+let ready=false;
+async function publish(){
+ await bot.guard('publish',async()=>{bot.diag.queue=await transport.publish(bot.scanner.snapshot(),Date.now());});
+}
 async function entryTick(){
-  const h=Math.floor(Date.now()/3600000);
-  if(!ready||entryHour===h||bot.busy.entries||bot.busy.scan||bot.busy.context)return;
-  entryHour=h;await bot.context();await bot.entries();
+ if(!ready||bot.busy.entries||bot.busy.signals)return;
+ await bot.signals();await bot.entries();
 }
 server.listen(3030,'127.0.0.1',()=>{
-  console.log('R32 LOCAL PAPER PILOT '+origin);
-  if(process.env.R32_OFFLINE==='1')return;
-  void (async()=>{await bot.context();await bot.scan();ready=true;await entryTick();})();
-  setInterval(()=>void bot.scan(),60000);
-  setInterval(()=>void bot.context(),300000);
-  setInterval(()=>void bot.exits(),60000);
-  setInterval(()=>void entryTick(),15000);
+ console.log('R32 LOCAL PAPER PILOT '+origin);
+ if(process.env.R32_OFFLINE==='1')return;
+ void (async()=>{await bot.context();await bot.scan();ready=true;await publish();await entryTick();})();
+ setInterval(()=>void bot.scan(),60000);
+ setInterval(()=>void bot.context(),300000);
+ setInterval(()=>void bot.exits(),60000);
+ setInterval(()=>void entryTick(),60000);
+ setInterval(()=>void publish(),600000);
 });

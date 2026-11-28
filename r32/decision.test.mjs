@@ -7,7 +7,7 @@ import {USDC} from './providers.mjs';
 const now=Date.parse('2026-11-28T14:00:00Z'),at=new Date(now).toISOString(),a='A'.repeat(32);
 const fx={status:'DAILY_REFERENCE_NOT_LIVE_FX',usd_per_eur:1,reference_date:'2026-11-27',retrieved_at:at};
 const route=(i,o,amount,out)=>({input_mint:i,output_mint:o,in_raw:amount,out_raw:out,retrieved_at:at,status:'QUOTED_NOT_EXECUTED'});
-const candidate=()=>({chain:'solana',address:a,meme_status:'VERIFIED_MEME',meme_source:'fixture',meme_observed_at:at,
+const candidate=()=>({dot_signal:{mode:'PAPER_ONLY',chain:'solana',address:a,action:'BUY',observed_at:at,expires_at:new Date(now+3600000).toISOString(),rank:1,thesis:'fixture',sources:['https://example.org/source'],risks:[]},chain:'solana',address:a,meme_status:'VERIFIED_MEME',meme_source:'fixture',meme_observed_at:at,
  market_stale:false,market:{symbol:'FIXTURE',retrieved_at:at,liquidity_usd:50000,volume_1h_usd:90000,pair_created_at:now-3600000,buys_5m:30,sells_5m:10,change_1h_pct:40},
  risk_evidence:{chain:'solana',address:a,risk:'PASS',scope:RISK_SCOPE,observed_at:at},fx,
  roundtrip:{chain:'solana',address:a,mode:'PAPER_ONLY',route_evidence:'BIDIRECTIONAL_QUOTED',
@@ -22,7 +22,7 @@ test('same evidence contract generates BUY and local paper fill, independent dev
  assert.equal(applyBuy(s,sig,c,now+3600000).reason,'INVALID_ADVISORY');
 });
 test('unknown risk, missing sale route and unverified meme all block',()=>{
- for(const change of [{risk_evidence:{}},{roundtrip:{}},{meme_status:'UNVERIFIED'}]){
+ for(const change of [{risk_evidence:{}},{roundtrip:{}},{dot_signal:undefined}]){
   const r=decide([{...candidate(),...change}],now);assert.equal(r.buys.length,0);assert.ok(r.blocked[0].reasons.length);
  }
 });
