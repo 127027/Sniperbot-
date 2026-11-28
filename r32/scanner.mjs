@@ -85,6 +85,7 @@ export class Scanner {
   constructor({fetcher=fetch,clock=Date.now,universe=new Map(),backoff={}}={}) {
     this.fetcher=fetcher; this.clock=clock; this.universe=universe; this.backoff=backoff;
     this.errors=[]; this.receipts=[]; this.busy=false;
+    this.batchBudget=10; this.maxBatchBudget=50;
   }
   async request(url) {
     const host=new URL(url).hostname, now=this.clock();
@@ -111,12 +112,15 @@ export class Scanner {
         } catch(e) {this.errors.push({url:src.url,error:String(e.message)});}
       }
       prune(this.universe,this.clock());
-      const batch=nextBatch(this.universe,60,this.clock());
+      const cycleStarted=this.clock();
+      const batch=nextBatch(this.universe,this.batchBudget*30,this.clock());
+      let failed=false, attempted=0;
       for(let i=0;i<batch.length;i+=30) {
         const group=batch.slice(i,i+30);
         const url=ds+'tokens/v1/solana/'+group.map(c=>c.address).join(',');
         // A backoff skip does not count as an attempted refresh.
-        if((this.backoff['api.dexscreener.com']??0)>this.clock()) break;
+        if((this.backoff['api.dexscreener.com']??0)>this.clock() || this.clock()-cycleStarted>=50000) break;
+        attempted++;
         for(const c of group) c.last_attempt=this.clock();
         try {
           const pairs=await this.request(url);
@@ -139,10 +143,13 @@ export class Scanner {
           this.receipts.push({url,at:new Date(this.clock()).toISOString(),requested:group.length,
             matched:group.filter(c=>!c.last_error).length});
         } catch(e) {
+          failed=true;
           for(const c of group) c.last_error=String(e.message);
           this.errors.push({url,error:String(e.message)});
         }
       }
+      if(failed || (this.backoff['api.dexscreener.com']??0)>this.clock() || this.clock()-cycleStarted>=50000) this.batchBudget=Math.max(2,Math.floor(this.batchBudget/2));
+      else if(attempted===this.batchBudget) this.batchBudget=Math.min(this.maxBatchBudget,this.batchBudget+5);
       return this.snapshot();
     } finally {this.busy=false;}
   }
@@ -153,6 +160,7 @@ export class Scanner {
     return {mode:'PAPER_ONLY',scope:'SOLANA_DISCOVERY_PILOT',ts:Math.floor(now/1000),
       candidates:entries,backoff:this.backoff,errors:this.errors,receipts:this.receipts,
       coverage:{identities:entries.length,fresh_market:entries.filter(c=>!c.market_stale).length},
+      refresh_budget:{addresses_per_cycle:this.batchBudget*30,max_addresses_per_cycle:this.maxBatchBudget*30},
       status:'OBSERVATION_ONLY'};
   }
 }
