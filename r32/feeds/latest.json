@@ -1,1 +1,65 @@
-{"ts":0,"leads":[],"status":"INITIAL_EMPTY_NO_LIVE_RESEARCH","mode":"PAPER_ONLY"}
+{
+  "ts": 1795867213,
+  "mode": "PAPER_ONLY",
+  "status": "PARTIAL",
+  "leads": [
+    {
+      "chain": "solana",
+      "address": "F1aGWw6nDzqVYig3zpkALMgwX6PpoDRjfjoyShYdpump",
+      "source": "https://api.dexscreener.com/token-profiles/latest/v1",
+      "observed_at": "2026-11-28T12:00:13.317Z",
+      "reason": "DATA_GAP: MoonGirl profile explicitly describes space meme and MoonBoy association; promotional claim only, no verified pool or quote; source publication time unknown."
+    }
+  ],
+  "research": {
+    "ranked": [],
+    "coverage": [
+      "DEX Screener latest profiles",
+      "Koinsify Solana pools snapshot 09:01 UTC",
+      "sasa cross-chain snapshot 00:01 UTC",
+      "MEMECOINY Solana snapshot 09:01"
+    ],
+    "errors": [
+      "discovery and events INITIAL_EMPTY; deep zero leads; no fresh verified quote"
+    ]
+  },
+  "self_diagnosis": {
+    "start": "2026-11-28T12:00:04.445Z",
+    "end": null,
+    "checkpoint_at": "2026-11-28T12:00:13.317Z",
+    "sources": [
+      {
+        "url": "https://api.dexscreener.com/token-profiles/latest/v1",
+        "observed_at": "2026-11-28T12:00:13.317Z",
+        "result": "success; profile only"
+      },
+      {
+        "path": "r32/feeds/discovery.json",
+        "sha": "f353ea3a64a2aba15a16f440648aafca8c415d19",
+        "observed_at": "2026-11-28T12:00:04.446Z",
+        "result": "initial empty"
+      },
+      {
+        "path": "r32/feeds/events.json",
+        "sha": "b6ed6f0446da79209a41a91a897cd2fb6cc835b9",
+        "observed_at": "2026-11-28T12:00:04.447Z",
+        "result": "initial empty"
+      },
+      {
+        "path": "r32/feeds/deep.json",
+        "sha": "655e974529011138ff5ce4699fd65a3a142d07c8",
+        "observed_at": "2026-11-28T12:00:04.447Z",
+        "result": "partial zero leads"
+      }
+    ],
+    "candidate_count": 1,
+    "qualified": 0,
+    "target": 10,
+    "shortfall": 10,
+    "internal_cause": "UNKNOWN",
+    "next_action": "verify MoonGirl pair via direct and alternative web sources",
+    "handoff": "not proven",
+    "path": "r32/feeds/latest.json",
+    "previous_sha": "8dfb1c5b6fb4e0d257a7634d086ff7467d389428"
+  }
+}
