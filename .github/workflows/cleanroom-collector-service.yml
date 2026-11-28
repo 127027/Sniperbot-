@@ -7,6 +7,7 @@ on:
       - 'research/cleanroom/worker-lifecycle.mjs'
       - 'docs/R31_HOURLY_WORKER_ACCEPTANCE.md'
       - '.github/workflows/cleanroom-collector-service.yml'
+      - 'r31/research/cleanroom/collector-trigger.json'
   workflow_dispatch:
 permissions:
   contents: write
@@ -17,7 +18,7 @@ jobs:
   service:
     if: github.ref == 'refs/heads/codex/r31-autonomy-recovery'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,5 +31,5 @@ jobs:
           node research/cleanroom/collector-service.mjs --self-test
           node research/cleanroom/worker-lifecycle.mjs --self-test
           node research/cleanroom/collector-cadence.mjs --self-test
-      - name: Publish two measured research-only cycles
-        run: node research/cleanroom/collector-service.mjs --cycles=2
+      - name: Publish bounded measured research-only cycles
+        run: node research/cleanroom/collector-service.mjs --cycles=3
