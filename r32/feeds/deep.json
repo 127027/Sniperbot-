@@ -1,5 +1,5 @@
 {
-  "ts": 1795876994,
+  "ts": 1795877008,
   "mode": "PAPER_ONLY",
   "status": "PARTIAL",
   "leads": [
@@ -217,17 +217,28 @@
     }
   ],
   "risk_notes": [
-    "No executable quotes or confirmed exit; retained observations not refreshed."
+    "No executable quotes or confirmed exit; retained observations not refreshed.",
+    "John +303% 1h at 14:28 UTC, not prospective evidence; TOYRF +157% 1h but liquidity null and 5m -10.84%; ROCKET 295 trades/$27.38 possible artificial activity; McRib NO_EXACT_POOL."
   ],
   "errors": [
     {
       "url": "https://api.dexscreener.com/token-pairs/v1/solana/4fJ39yS5voEKVvG92SqDGnrQw8De6FUKG7AXaoS9pump",
       "error": "NO_EXACT_POOL"
+    },
+    {
+      "url": "https://blinkbun.com/en/new-solana-tokens/",
+      "retrieved_at": null,
+      "error": "URL is not accessible via this tool."
+    },
+    {
+      "url": "https://dexscreener.com/solana/DiM3d4XCy8gmtkrAr93bNsiLYQmENK7LMMUAZjTT8LX1",
+      "retrieved_at": null,
+      "error": "URL is not accessible via this tool."
     }
   ],
   "self_diagnosis": {
     "start": "2026-11-28T14:43:14.632Z",
-    "end": null,
+    "end": "2026-11-28T14:43:28.506Z",
     "inputs": {
       "deep": {
         "sha": "003a597fb2f40bf457d130121ac0970e0a5c9826",
@@ -261,7 +272,7 @@
     "attempted": 30,
     "remaining": 0,
     "qualified": 0,
-    "stage": "checkpoint",
+    "stage": "final",
     "collector_diagnosis": {
       "target": "all eligible exact identities up to cycle capacity",
       "actual": 29,
@@ -279,12 +290,55 @@
         "sellability"
       ],
       "next": "refresh source evidence; never convert indicative data into executable proof"
-    }
+    },
+    "external_sources": [
+      {
+        "url": "https://blinkbun.com/en/new-solana-tokens/",
+        "retrieved_at": null,
+        "error": "URL is not accessible via this tool."
+      },
+      {
+        "url": "https://dexscreener.com/solana/DiM3d4XCy8gmtkrAr93bNsiLYQmENK7LMMUAZjTT8LX1",
+        "retrieved_at": null,
+        "error": "URL is not accessible via this tool."
+      },
+      {
+        "url": "https://www.geckoterminal.com/base/pools",
+        "retrieved_at": null,
+        "status": "success",
+        "pools_reviewed": 20
+      },
+      {
+        "url": "https://www.geckoterminal.com/base/pools/0x5116773e18a9c7bb03ebb961b38678e45e238923",
+        "retrieved_at": null,
+        "status": "success",
+        "note": "DRB token address abbreviated, no exact new lead; pool fee 1%, liquidity 812221.48, source quote time ambiguous/stale"
+      }
+    ]
   },
   "repair_review": {
     "status": "PARTIAL",
-    "next": "independent source check; verify quotes and exit",
-    "test": "exact identity, fresh quote and costs"
+    "target": 10,
+    "qualified": 0,
+    "shortfall": 10,
+    "last_success": "29 collector rows processed, checkpoint identical readback ab1e605d2b53472118653100f4deeb393f9d332a",
+    "first_failure": "McRib NO_EXACT_POOL in collector; independent BLINKBUN URL inaccessible",
+    "alternative": "GeckoTerminal Base 20 pools and DRB individual pool; no full token address",
+    "cause": "missing exact pool, executable quotes, costs and exit verification; internal cause UNKNOWN",
+    "previous": {
+      "input_sync": "PASS 4/4",
+      "collector_coverage": "PARTIAL 29/30",
+      "prior_new_leads": "PASS dogbaton BIBLE Sunforge rows present",
+      "laptop": "UNKNOWN"
+    },
+    "next": "read-only bidirectional quote and token risk checks; refresh collector under 15 minutes; obtain full token address for Base candidates",
+    "test": "same exact chain/address, fresh timestamped two-way quote, costs, security and receipt of final blob",
+    "open": [
+      "market-wide coverage",
+      "holder concentration",
+      "laptop receipt"
+    ],
+    "checkpoint_sha": "ab1e605d2b53472118653100f4deeb393f9d332a"
   },
   "missed_opportunity_review": {
     "window": "2026-11-27T10:25:00Z to 2026-11-28T10:25:00Z",
