@@ -60,23 +60,25 @@ function executionCosts(i,at){
 }
 // Independent worker reports are untrusted discovery locators, not market facts.
 function supportRows(doc){
- if(doc?.mode!=='RESEARCH_ONLY'||doc.non_executable!==true||!Array.isArray(doc.rows))return [];
- return doc.rows.filter(r=>nets[r.chain]&&(r.chain==='solana'?/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(r.contract??''):/^0x[0-9a-fA-F]{40}$/.test(r.contract??''))&&Array.isArray(r.sources)&&r.sources.some(u=>typeof u==='string'&&u.startsWith('https://'))).slice(0,32).map(r=>({chain:r.chain,contract:norm(r.chain,r.contract),sources:[{symbol:typeof r.name==='string'?r.name.slice(0,100):null}]}));
+ if(doc?.mode!=='RESEARCH_ONLY'||doc.non_executable!==true)return [];
+ const rows=Array.isArray(doc.candidates)?doc.candidates:Array.isArray(doc.rows)?doc.rows:[];
+ return rows.filter(r=>nets[r.chain]&&(r.chain==='solana'?/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(r.contract??''):/^0x[0-9a-fA-F]{40}$/.test(r.contract??''))&&[r.source_url,...(Array.isArray(r.sources)?r.sources:[])].some(u=>typeof u==='string'&&u.startsWith('https://'))).map(r=>({chain:r.chain,contract:norm(r.chain,r.contract),sources:[{symbol:typeof (r.label??r.name)==='string'?(r.label??r.name).slice(0,100):null}]}));
 }
 function loadSupport(at){
- const root='r31/research/cleanroom/autonomy-acceptance/',ref='refs/remotes/origin/cleanroom-support-read';
+ const root='r31/research/cleanroom/hourly-support/',ref='refs/remotes/origin/cleanroom-support-read';
  const git=args=>spawnSync('git',args,{encoding:'utf8',timeout:15000,maxBuffer:2000000});
- const fetched=git(['fetch','--no-tags','--depth=1','origin','+refs/heads/codex/r31-control-center-paper:'+ref]);
+ const fetched=git(['fetch','--no-tags','--depth=1','origin','+refs/heads/codex/r31-autonomy-recovery:'+ref]);
  if(fetched.status!==0)return {status:'FETCH_FAILED',rows:[],files:[]};
  const tree=git(['ls-tree','-r','--name-only',ref,'--',root]);
  if(tree.status!==0)return {status:'TREE_FAILED',rows:[],files:[]};
- const names=tree.stdout.split('\n').filter(p=>p.startsWith(root)&&/^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z-support-evidence\.json$/.test(p.slice(root.length))).sort().reverse();
- const rows=[],files=[];
- for(const p of names.slice(0,4)){
-  const t=Date.parse(p.slice(root.length,root.length+20).replace(/T(\d{2})-(\d{2})-(\d{2})Z/,'T$1:$2:$3Z'));
-  if(!Number.isFinite(t)||t>at||at-t>2*3600000)continue;
+ const names=tree.stdout.split('\n').filter(p=>p.startsWith(root)&&p.endsWith('.json')).sort().reverse();
+ const rows=[],files=[],seen=new Set();
+ for(const p of names){
   const file=git(['show',ref+':'+p]);if(file.status!==0)continue;
-  try{const valid=supportRows(JSON.parse(file.stdout));if(valid.length){files.push(p);rows.push(...valid.map(r=>({...r,support_file:p})));}}catch{}
+  try{const doc=JSON.parse(file.stdout),t=Date.parse(doc.observed_at_utc??doc.created_at_utc??doc.actual_utc??'');
+   if(!Number.isFinite(t)||t>at||at-t>2*3600000)continue;
+   const valid=supportRows(doc);if(valid.length){files.push(p);for(const r of valid){const k=r.chain+':'+r.contract;if(!seen.has(k)){seen.add(k);rows.push({...r,support_file:p});}}}
+  }catch{}
  }
  return {status:files.length?'OK':'NO_RECENT_VALID_REPORT',rows,files};
 }
@@ -178,7 +180,9 @@ if(process.argv.includes('--self-test')){
  assert.equal(usableSecondary({evidence:fixtureRisk,pool_address:a},{pool:{pool_address:b}},at),false);
  assert.equal(cachedRisk(fixtureRisk).retrieved_at,fixtureRisk.retrieved_at);
  const supportFixture={mode:'RESEARCH_ONLY',non_executable:true,rows:[{chain:'ethereum',contract:a,name:'fixture',sources:['https://example.com'],price_eur:999},{chain:'ethereum',contract:'bad',sources:['https://example.com']}]};
- assert.equal(supportRows(supportFixture).length,1);assert.equal(supportRows(supportFixture)[0].price_eur,undefined);assert.equal(supportRows({...supportFixture,non_executable:false}).length,0);
+ assert.equal(supportRows(supportFixture).length,1);
+ assert.equal(supportRows({mode:'RESEARCH_ONLY',non_executable:true,candidates:[{chain:'ethereum',contract:a,label:'new',source_url:'https://example.com',price:999}]}).length,1);
+ assert.equal(supportRows({mode:'RESEARCH_ONLY',non_executable:true,candidates:[{chain:'ethereum',contract:a,label:'new',source_url:'https://example.com',price:999}]})[0].price,undefined);assert.equal(supportRows(supportFixture)[0].price_eur,undefined);assert.equal(supportRows({...supportFixture,non_executable:false}).length,0);
  const cost=executionCosts({security:{...fixtureRisk,source:'GoPlus',fields:{buy_tax:'0.02',sell_tax:'0.04'}},secondary_security:{...fixtureRisk,source:'Honeypot.is',fields:{buy_tax_pct:0,sell_tax_pct:3}}},at);
  assert.equal(cost.tax_observations[0].buy_tax_pct,2);assert.equal(cost.tax_observations[1].sell_tax_pct,3);assert.equal(cost.round_trip_total_eur,null);
  assert.equal(executionCosts({security:fixtureRisk},at+3600000).tax_observations.length,0);
