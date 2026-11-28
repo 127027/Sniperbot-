@@ -16,6 +16,7 @@ const dataPaths=[dir+'market-latest.json',dir+'evidence-latest.json',dir+'target
 const sha=x=>typeof x==='string'&&/^[0-9a-f]{40}$/.test(x);
 const now=()=>new Date().toISOString(),time=x=>Date.parse(x);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const validBoundedCycles=x=>/^--cycles=(?:[2-9]|1[0-3])$/.test(x);
 function git(repo,args,{allowFail=false}={}){
  const r=spawnSync('git',['--no-replace-objects','-C',repo,...args],{encoding:'utf8',timeout:120000,maxBuffer:8*1024*1024,env:{...process.env,GIT_AUTHOR_NAME:'R31 isolated collector',GIT_AUTHOR_EMAIL:'collector@users.noreply.github.com',GIT_COMMITTER_NAME:'R31 isolated collector',GIT_COMMITTER_EMAIL:'collector@users.noreply.github.com'}});
  if(r.error||r.status!==0){if(allowFail&&!r.error)return null;throw Error('COLLECTOR_GIT_FAILED:'+args[0]);}return r.stdout.trim();
@@ -103,6 +104,7 @@ async function cycle(repo,sequence){
  }
 }
 function selfTest(){
+ assert.ok(validBoundedCycles('--cycles=13'));assert.ok(validBoundedCycles('--cycles=2'));assert.ok(!validBoundedCycles('--cycles=14'));assert.ok(!validBoundedCycles('--cycles=0'));
  const t='2026-11-27T08:00:00Z',u='2026-11-27T08:00:10Z';
  const h={schema:'cleanroom.collector-health.v1',mode:'RESEARCH_ONLY',run_id:'fixture',status:'OK',started_at:t,finished_at:u,snapshot:u,fresh_research_quotes:1};
  assert.ok(fresh(h,{snapshot:u},'fixture',t,u));
@@ -129,7 +131,7 @@ function selfTest(){
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  const args=process.argv.slice(2);
  if(args.length===1&&args[0]==='--self-test')selfTest();
- else if(args.length===1&&/^--cycles=[2-3]$/.test(args[0])){
+ else if(args.length===1&&validBoundedCycles(args[0])){
   const repo=git(process.cwd(),['rev-parse','--show-toplevel']),limit=Number(args[0].split('=')[1]);
   let failed=0;
   for(let i=1;i<=limit;i++){const start=Date.now();if(!await cycle(repo,i))failed++;if(i<limit)await sleep(Math.max(0,interval-(Date.now()-start)))}
@@ -137,5 +139,5 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  }else if(args.length===1&&['--once','--continuous'].includes(args[0])){
   const repo=git(process.cwd(),['rev-parse','--show-toplevel']);let i=0;
   do{const start=Date.now();const ok=await cycle(repo,++i);if(args[0]==='--once'){if(!ok)process.exitCode=1;break}await sleep(Math.max(0,interval-(Date.now()-start)))}while(true);
- }else throw Error('Usage: --self-test | --once | --cycles=2 | --cycles=3 | --continuous (isolated branch only)');
+ }else throw Error('Usage: --self-test | --once | --cycles=2..13 | --continuous (isolated branch only)');
 }

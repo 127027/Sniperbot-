@@ -45,7 +45,7 @@ function mergeSupport(rows,reports){
  const m=new Map(rows.map(r=>[key(r.chain,r.contract),r])),unsupported=[],invalid=[];let added=0,matched=0;
  for(const f of reports)for(const x of f.data.candidates??[]){
   const chain=x.chain,contract=x.contract,a=canon(chain,contract);
-  const source={path:f.path,sha256:f.sha256,observed_at:x.observation_utc??null};
+  const source={path:f.path,sha256:f.sha256,observed_at:x.observed_at_utc??x.observation_utc??f.data.observed_at_utc??null};
   if(!chains.includes(chain)){unsupported.push({chain,contract,source,disposition:'UNSUPPORTED_MARKET_CHAIN'});continue}
   if(!a){invalid.push({chain,contract,source,disposition:'INVALID_SUPPORT_IDENTITY'});continue}
   const k=key(chain,a),prior=m.get(k);

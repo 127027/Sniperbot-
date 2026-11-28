@@ -18,7 +18,7 @@ jobs:
   service:
     if: github.ref == 'refs/heads/codex/r31-autonomy-recovery'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 85
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,4 +32,4 @@ jobs:
           node research/cleanroom/worker-lifecycle.mjs --self-test
           node research/cleanroom/collector-cadence.mjs --self-test
       - name: Publish bounded measured research-only cycles
-        run: node research/cleanroom/collector-service.mjs --cycles=3
+        run: node research/cleanroom/collector-service.mjs --cycles=13
