@@ -16,7 +16,7 @@ const readNarratives=async()=>{
   return JSON.parse(stdout);
 };
 const bot=new Pilot({dir,readNarratives});
-bot.diag.code_version=createHash('sha256').update(['local-server.mjs','runtime.mjs','scanner.mjs','decision.mjs','providers.mjs','risk.mjs']
+bot.diag.code_version=createHash('sha256').update(['local-server.mjs','runtime.mjs','scanner.mjs','decision.mjs','providers.mjs','risk.mjs','pilot-dashboard.html']
   .map(f=>fs.readFileSync(path.join(root,f))).reduce((a,b)=>Buffer.concat([a,b]))).digest('hex');
 const host='127.0.0.1:3030',origin='http://'+host;
 const server=http.createServer((req,res)=>{
@@ -24,7 +24,7 @@ const server=http.createServer((req,res)=>{
   const url=new URL(req.url,origin);
   res.setHeader('Cache-Control','no-store');
   if(req.method==='GET'&&url.pathname==='/'){
-    res.setHeader('Content-Type','text/html; charset=utf-8');return res.end(fs.readFileSync(path.join(root,'dashboard.html')));
+    res.setHeader('Content-Type','text/html; charset=utf-8');return res.end(fs.readFileSync(path.join(root,'pilot-dashboard.html')));
   }
   res.setHeader('Content-Type','application/json');
   if(req.method==='GET'&&url.pathname==='/api/state')return res.end(JSON.stringify(bot.view()));

@@ -1,0 +1,3 @@
+# Pilot presentation and read-only live probe
+The old observation dashboard and portfolio remain unchanged. Local pilot serves pilot-dashboard.html; no external UI resources. History shows timestamps, virtual amount, quote-implied unit prices when verified decimals are present, modeled fees and realized PnL. Old records without fields show unknown. Exit values are estimates, not executable fills. Local diag includes exact provider errors; no telemetry.
+Live probe tests public FX, discovery, bidirectional WSOL quotes and RPC response from a GitHub runner without keys or transactions. It does NOT test a real meme BUY, profit, Windows or actual settlement. Failed checks produce a non-green workflow and an artifact. The WSOL control is not a meme candidate. 

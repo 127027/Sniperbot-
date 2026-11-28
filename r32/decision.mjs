@@ -75,12 +75,15 @@ export function applyBuy(s,sig,c,now){
   if(s.cash<POLICY.stake||s.positions.length>=POLICY.maxPositions)return {state:s,reason:'BUDGET'};
   if(!validIdentity(c)||identity(c)!==identity(sig)||qualify(c,now).length)return {state:s,reason:'LOCAL_VALIDATION_FAILED'};
   const q=c.roundtrip, at=new Date(now).toISOString(),value=proceeds(q.sell,c.fx);
+  const decimals=Number.isInteger(c.risk_evidence.decimals)&&c.risk_evidence.decimals>=0&&c.risk_evidence.decimals<=18?c.risk_evidence.decimals:null;
+  const units=decimals===null?null:Number(q.buy.out_raw)/10**decimals;
+  const entry_price_eur=units>0?Number(q.buy.in_raw)/1e6/c.fx.usd_per_eur/units:null;
   const p={id:identity(sig),chain:sig.chain,address:sig.address,symbol:sig.symbol,amount:POLICY.stake,
-    qty_raw:q.buy.out_raw,entry_usdc_raw:q.buy.in_raw,entry_fee_cents:10,
+    qty_raw:q.buy.out_raw,decimals,entry_price_eur,entry_usdc_raw:q.buy.in_raw,entry_fee_cents:10,
     entry_fx:c.fx.usd_per_eur,entry_liquidity:c.market.liquidity_usd,
     peak_cents:value,mark_cents:value,at,model:'QUOTED_PAPER_USDC_USD_PARITY'};
   return {reason:'BOUGHT',state:{...s,cash:s.cash-POLICY.stake,positions:[...s.positions,p],
-    history:[...s.history,{action:'BUY',id:p.id,symbol:p.symbol,amount:50,at,qty_raw:p.qty_raw,model:p.model}]}};
+    history:[...s.history,{action:'BUY',id:p.id,symbol:p.symbol,amount:50,at,qty_raw:p.qty_raw,unit_price_eur:p.entry_price_eur,modeled_fee_eur:0.1,model:p.model}]}};
 }
 export function monitor(s,id,{quote,fx,market,signal}={},now){
   const p=s.positions.find(x=>x.id===id);
@@ -97,5 +100,6 @@ export function monitor(s,id,{quote,fx,market,signal}={},now){
   if(!reason)return {state:{...s,positions:s.positions.map(x=>x===p?{...p,mark_cents:value,peak_cents:peak,mark_stale:false,last_error:null}:x)},reason:'NO_ACTION'};
   return {reason,state:{...s,cash:s.cash+value,positions:s.positions.filter(x=>x!==p),
     history:[...s.history,{action:'SELL',id:p.id,symbol:p.symbol,amount:value/100,pnl:(value-p.amount)/100,
-      buy_at:p.at,at:new Date(now).toISOString(),reason,model:p.model,qty_raw:p.qty_raw}]}};
+      buy_at:p.at,at:new Date(now).toISOString(),reason,model:p.model,qty_raw:p.qty_raw,
+      unit_price_eur:Number.isInteger(p.decimals)?Number(quote.out_raw)/1e6/fx.usd_per_eur/(Number(p.qty_raw)/10**p.decimals):null,modeled_fee_eur:0.1}]}};
 }

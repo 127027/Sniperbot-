@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meme Sniper R32 – lokaler Paper-Pilot</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0d1420;color:#e7edf7;font:15px system-ui}main{max-width:1100px;margin:auto;padding:24px}header{display:flex;align-items:center;justify-content:space-between;gap:12px}h1{font-size:24px}h2{font-size:18px}small,p{color:#aab6c8}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}.tile,section{background:#172233;border:1px solid #26354b;border-radius:12px;padding:16px;margin:10px 0}.tile strong{display:block;font-size:25px;margin-top:8px}button{background:#254b79;color:white;border:0;border-radius:8px;padding:12px 18px;cursor:pointer}button:disabled{opacity:.5}table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:10px 8px;border-bottom:1px solid #28364a;white-space:nowrap}th{color:#aab6c8;font-weight:500}.scroll{overflow:auto}.pos{color:#86efac}.neg{color:#fca5a5}pre{white-space:pre-wrap;overflow-wrap:anywhere;color:#aab6c8}summary{cursor:pointer}
+</style>
+<main>
+<header><div><small>PAPER · Solana-Pilot · Kein Echtgeld</small><h1>MEME SNIPER R32</h1></div><button id="toggle" disabled>Start</button></header>
+<div class="grid"><div class="tile">Startbudget<strong>500,00 €</strong></div><div class="tile">Verfügbar<strong id="cash">—</strong></div><div class="tile">Investiert<strong id="invested">—</strong></div><div class="tile">Realisierter Gewinn/Verlust<strong id="realized">—</strong></div><div class="tile">Geschätzter Portfoliowert<strong id="equity">—</strong></div></div>
+<section><h2>Meine Positionen <span id="count"></span></h2><div class="scroll"><table><thead><tr><th>Coin</th><th>Kaufzeit</th><th>Einsatz</th><th>Kaufkurs EUR</th><th>Netto-Auszahlungswert*</th><th>Offenes PnL*</th><th>Status</th></tr></thead><tbody id="positions"></tbody></table></div></section>
+<section><h2>Handelsverlauf</h2><div class="scroll"><table><thead><tr><th>Aktion</th><th>Coin</th><th>Zeit</th><th>Kaufzeit</th><th>Betrag</th><th>Stückkurs EUR</th><th>Modellgebühr</th><th>PnL</th><th>Grund</th></tr></thead><tbody id="history"></tbody></table></div></section>
+<section><h2>Marktbeobachtung</h2><p id="qualified"></p><div class="scroll"><table><thead><tr><th>Coin</th><th>Netzwerk</th><th>5 Min.</th><th>Status</th></tr></thead><tbody id="watch"></tbody></table></div></section>
+<p id="status"></p><p id="note"></p><p>*Virtuelle Schätzung, keine garantierte Ausführung. Bei veralteter oder fehlender Verkaufsquote bleibt der Wert offen. Keine tatsächlichen Käufe, Verkäufe oder Einzahlungen.</p>
+<details><summary>Technische Diagnose</summary><pre id="diag"></pre></details></main>
+<script>
+const el=id=>document.getElementById(id),fmt=v=>Number.isFinite(v)?v.toLocaleString('de-DE',{style:'currency',currency:'EUR'}):'—',cents=v=>Number.isFinite(v)?fmt(v/100):'—',unit=v=>Number.isFinite(v)?v.toLocaleString('de-DE',{maximumSignificantDigits:8}):'—',time=v=>v&&Number.isFinite(Date.parse(v))?new Date(v).toLocaleString('de-DE'):'—';
+function table(id,rows,empty){const b=el(id);b.replaceChildren();for(const row of rows.length?rows:[[empty]]){const tr=document.createElement('tr');for(const v of row){const td=document.createElement('td');td.textContent=v??'—';tr.append(td)}b.append(tr)}}
+let busy=false;
+async function load(toggle=false){
+ if(busy)return;busy=true;el('toggle').disabled=true;
+ try{
+  const r=await fetch(toggle?'/api/toggle':'/api/state',{method:toggle?'POST':'GET'});if(!r.ok)throw Error('HTTP '+r.status);
+  const d=await r.json(),s=d.state;el('cash').textContent=cents(s.cash);el('invested').textContent=cents(d.invested);
+  el('count').textContent='('+s.positions.length+' / 10)';el('toggle').textContent=s.enabled?'Pausieren':'Start';
+  const known=s.positions.every(x=>!x.mark_stale&&Number.isFinite(x.mark_cents));el('equity').textContent=known?cents(s.cash+s.positions.reduce((a,x)=>a+x.mark_cents,0)):'Unbekannt';
+  const pnl=s.history.filter(x=>x.action==='SELL'&&Number.isFinite(x.pnl)).reduce((a,x)=>a+x.pnl,0);el('realized').textContent=fmt(pnl);el('realized').className=pnl>=0?'pos':'neg';
+  el('qualified').textContent=d.qualified+' / 10 gültige lokale BUY-Empfehlungen · '+(d.diag?.coverage?.identities??0)+' beobachtete Coins';
+  table('watch',d.shortlist.map(x=>[x.symbol,x.chain,x.change==null?'—':x.change+' %',x.status]),'Keine frischen Marktbeobachtungen');
+  table('positions',s.positions.map(x=>[x.symbol,time(x.at),cents(x.amount),unit(x.entry_price_eur),x.mark_stale?'Unbekannt':cents(x.mark_cents),x.mark_stale?'Unbekannt':cents(Number.isFinite(x.mark_cents)?x.mark_cents-x.amount:null),x.mark_stale?'Quote fehlt / veraltet':x.last_error??'Überwachung aktiv']),'Keine offenen Positionen');
+  table('history',[...s.history].reverse().map(x=>[x.action,x.symbol,time(x.at),time(x.action==='BUY'?x.at:x.buy_at),fmt(x.amount),unit(x.unit_price_eur),fmt(x.modeled_fee_eur),fmt(x.pnl),x.reason??'—']),'Noch keine Trades');
+  el('status').textContent='Letzter Kontextlauf: '+time(d.last)+(d.errors.length?' · '+d.errors.join(' · '):'');
+  el('note').textContent=d.note;el('diag').textContent=JSON.stringify(d.diag,null,2);el('toggle').disabled=false;
+ }catch(e){el('status').textContent='Lokaler Server: '+e.message}finally{busy=false}
+}
+el('toggle').onclick=()=>load(true);load();setInterval(load,5000);
+</script></html>

@@ -1,0 +1,25 @@
+name: R32 live read-only provider probe
+on:
+  push:
+    branches: [r32-local-paper]
+    paths: [r32/live-probe.mjs, .github/workflows/r32-live-probe.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    if: github.ref == 'refs/heads/r32-local-paper'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node r32/live-probe.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r32-live-provider-probe
+          path: r32-live-probe.json
+          if-no-files-found: error
